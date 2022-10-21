@@ -97,7 +97,7 @@ class Payment extends \Magento\Framework\Model\AbstractModel implements OrderPay
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getPaymentMethod()
     {

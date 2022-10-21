@@ -12,6 +12,9 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
+use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Util\ManualCapture;
@@ -30,6 +33,7 @@ use Magento\Framework\View\DesignInterface;
 use Magento\Payment\Helper\Data as MagentoDataHelper;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Model\Order;
+use Adyen\Payment\Helper\Data as AdyenDataHelper;
 
 /**
  * @SuppressWarnings(PHPMD.LongVariable)
@@ -39,6 +43,7 @@ class PaymentMethods extends AbstractHelper
     const ADYEN_HPP = 'adyen_hpp';
     const ADYEN_CC = 'adyen_cc';
     const ADYEN_ONE_CLICK = 'adyen_oneclick';
+    const ADYEN_PAY_BY_LINK = 'adyen_pay_by_link';
 
     const ADYEN_PREFIX = 'adyen_';
 
@@ -49,6 +54,9 @@ class PaymentMethods extends AbstractHelper
     const METHODS_WITH_LOGO_FILE_MAPPING = [
         "scheme" => "card"
     ];
+
+    const FUNDING_SOURCE_DEBIT = 'debit';
+    const FUNDING_SOURCE_CREDIT = 'credit';
 
     /**
      * @var CartRepositoryInterface
@@ -79,6 +87,11 @@ class PaymentMethods extends AbstractHelper
      * @var AdyenLogger
      */
     protected $adyenLogger;
+
+    /**
+     * @var AdyenDataHelper
+     */
+    protected $adyenDataHelper;
 
     /**
      * @var Repository
@@ -140,7 +153,8 @@ class PaymentMethods extends AbstractHelper
         Config $configHelper,
         MagentoDataHelper $dataHelper,
         ManualCapture $manualCapture,
-        SerializerInterface $serializer
+        SerializerInterface $serializer,
+        AdyenDataHelper $adyenDataHelper
     ) {
         parent::__construct($context);
         $this->quoteRepository = $quoteRepository;
@@ -158,6 +172,7 @@ class PaymentMethods extends AbstractHelper
         $this->dataHelper = $dataHelper;
         $this->manualCapture = $manualCapture;
         $this->serializer = $serializer;
+        $this->adyenDataHelper = $adyenDataHelper;
     }
 
     /**
@@ -404,12 +419,8 @@ class PaymentMethods extends AbstractHelper
         ];
 
         if (!empty($this->getCurrentShopperReference())) {
-            $paymentMethodRequest["shopperReference"] = str_pad(
-                $this->getCurrentShopperReference(),
-                3,
-                '0',
-                STR_PAD_LEFT
-            );
+            $paymentMethodRequest["shopperReference"] =
+                $this->adyenDataHelper->padShopperReference($this->getCurrentShopperReference());
         }
 
         $amountValue = $this->adyenHelper->formatAmount($this->getCurrentPaymentAmount(), $currencyCode);
@@ -555,25 +566,62 @@ class PaymentMethods extends AbstractHelper
     }
 
     /**
-     * Check if the passed payment method supports recurring functionality.
+     * Check if the passed payment method provider is a recurring one or not
      *
-     * Currently only SEPA is allowed on our Magento plugin.
-     * Possible future payment methods:
-     *
-     * 'ach','amazonpay','applepay','directdebit_GB','bcmc','dana','dankort','eps','gcash','giropay','googlepay','paywithgoogle',
-     * 'gopay_wallet','ideal','kakaopay','klarna','klarna_account','klarna_b2b','klarna_paynow','momo_wallet','paymaya_wallet',
-     * 'paypal','trustly','twint','uatp','billdesk_upi','payu_IN_upi','vipps','yandex_money','zip'
-     *
-     * @param string $paymentMethod
+     * @param string $provider
      * @return bool
      */
-    public function paymentMethodSupportsRecurring(string $paymentMethod): bool
+    public function isRecurringProvider(string $provider): bool
     {
-        $paymentMethodRecurring = [
-            'sepadirectdebit',
-        ];
+        return in_array($provider, [
+            AdyenCcConfigProvider::CC_VAULT_CODE,
+            AdyenHppConfigProvider::HPP_VAULT_CODE,
+            AdyenOneclickConfigProvider::CODE
+        ]);
+    }
 
-        return in_array($paymentMethod, $paymentMethodRecurring);
+    /**
+     * Retrieve available credit card types
+     *
+     * @return array
+     */
+    public function getCcAvailableTypes(): array
+    {
+        $types = [];
+        $ccTypes = $this->adyenHelper->getAdyenCcTypes();
+        $availableTypes = $this->adyenHelper->getAdyenCcConfigData('cctypes');
+        if ($availableTypes) {
+            $availableTypes = explode(',', $availableTypes);
+            foreach (array_keys($ccTypes) as $code) {
+                if (in_array($code, $availableTypes)) {
+                    $types[$code] = $ccTypes[$code]['name'];
+                }
+            }
+        }
+
+        return $types;
+    }
+
+    /**
+     * Retrieve available credit card type codes by alt code
+     *
+     * @return array
+     */
+    public function getCcAvailableTypesByAlt(): array
+    {
+        $types = [];
+        $ccTypes = $this->adyenHelper->getAdyenCcTypes();
+        $availableTypes = $this->adyenHelper->getAdyenCcConfigData('cctypes');
+        if ($availableTypes) {
+            $availableTypes = explode(',', $availableTypes);
+            foreach (array_keys($ccTypes) as $code) {
+                if (in_array($code, $availableTypes)) {
+                    $types[$ccTypes[$code]['code_alt']] = $code;
+                }
+            }
+        }
+
+        return $types;
     }
 
     /**
@@ -640,7 +688,7 @@ class PaymentMethods extends AbstractHelper
             }
 
             if ($paymentCode == "adyen_pos_cloud") {
-                $captureModePos = $this->adyenHelper->getAdyenPosCloudConfigData(
+                $captureModePos = $this->configHelper->getAdyenPosCloudConfigData(
                     'capture_mode_pos',
                     $order->getStoreId()
                 );

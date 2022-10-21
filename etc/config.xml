@@ -104,8 +104,18 @@
                 <can_refund>1</can_refund>
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
+                <can_authorize_vault>1</can_authorize_vault>
+                <can_capture_vault>1</can_capture_vault>
                 <group>adyen</group>
             </adyen_hpp>
+            <adyen_hpp_vault>
+                <model>AdyenPaymentHppVaultFacade</model>
+                <title>Stored Payment Methods (Adyen)</title>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
+                </instant_purchase>
+            </adyen_hpp_vault>
             <adyen_pos_cloud>
                 <active>0</active>
                 <model>AdyenPaymentPosCloudFacade</model>
@@ -124,7 +134,6 @@
                 <can_refund>1</can_refund>
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
-                <pos_timeout>30</pos_timeout>
                 <total_timeout>120</total_timeout>
                 <recurring_type>NONE</recurring_type>
                 <group>adyen</group>

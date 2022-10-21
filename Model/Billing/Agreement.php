@@ -231,7 +231,7 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         $expiryDate = explode('/', $contractDetail['expiryDate']);
 
         $recurringType = !empty($contractDetail['pos_payment'])
-            ? $this->adyenHelper->getAdyenPosCloudConfigData('recurring_type', $storeId)
+            ? $this->configHelper->getAdyenPosCloudConfigData('recurring_type', $storeId)
             : $this->recurringHelper->getRecurringTypeFromSetting($storeId);
 
         $agreementData = [
@@ -250,46 +250,6 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         if (!empty($contractDetail['pos_payment'])) {
             $agreementData['posPayment'] = true;
         }
-
-        $this->setAgreementData($agreementData);
-
-        return $this;
-    }
-
-    /**
-     * Set SEPA billing agreement This should be changed to utilise the factory method for different payment methods
-     * in the future
-     *
-     * @param array $additionalData
-     * @param $storeId
-     * @param array $savedPaymentData
-     * @return $this
-     */
-    public function setSepaBillingAgreement(array $additionalData, $storeId, array $savedPaymentData): Agreement
-    {
-        $this
-            ->setMethodCode(PaymentMethods::ADYEN_ONE_CLICK)
-            ->setReferenceId($additionalData['recurring.recurringDetailReference']);
-
-        $variant = $additionalData['paymentMethod'];
-
-        $label = __(
-            '%1, %2',
-            $savedPaymentData['ownerName'],
-            $savedPaymentData['iban']
-        );
-
-        $this->setAgreementLabel($label);
-        $recurringType = $this->configHelper->getAlternativePaymentMethodTokenType($storeId);
-
-        $agreementData = [
-            'bank' => [
-                'ownerName' => $savedPaymentData['ownerName'],
-                'iban' => $savedPaymentData['iban'],
-            ],
-            'variant' => $variant,
-            'contractTypes' => [$recurringType]
-        ];
 
         $this->setAgreementData($agreementData);
 

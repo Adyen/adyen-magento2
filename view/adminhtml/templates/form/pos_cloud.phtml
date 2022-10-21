@@ -17,6 +17,8 @@
 
 $code = $block->escapeHtml($block->getMethodCode());
 $terminals = $block->getConnectedTerminals();
+$installments = $block->getFormattedInstallments();
+$fundingSourceOptions = $block->getFundingSourceOptions();
 
 ?>
 
@@ -25,21 +27,137 @@ $terminals = $block->getConnectedTerminals();
     id="payment_form_<?= $escaper->escapeHtml($block->getMethodCode()) ?>"
     style="display: none">
     <?php if ($terminals): ?>
-        <div class="admin__field-control">
-            <select id="<?= /* @noEscape */ $code; ?>_connected_terminals" required="required"
-                class="required-entry admin__control-select"
-                name="payment[terminal_id]">
-                <option value=""><?= $escaper->escapeHtml(__('Please select a terminal...')) ?></option>
-                <?php
+
+        <div class="admin__field _required">
+            <label for="<?= /* @noEscape */ $code; ?>_connected_terminals" class="admin__field-label">
+                <span>
+                   <?= $escaper->escapeHtml(__('Connected terminals')) ?>
+                </span>
+            </label>
+            <div class="admin__field-control">
+                <select id="<?= /* @noEscape */ $code; ?>_connected_terminals" required="required"
+                        class="required-entry admin__control-select"
+                        name="payment[terminal_id]">
+                    <option value=""><?= $escaper->escapeHtml(__('Please select a terminal...')) ?></option>
+                    <?php
                     foreach ($terminals as $terminal) {
                         printf("<option value='%s'>%s</option>", $terminal, $terminal);
                     }
-                ?>
-            </select>
+                    ?>
+                </select>
+            </div>
         </div>
+
+        <div id="<?= /* @noEscape */ $code; ?>_funding_source_container" class="admin__field">
+            <label for="<?= /* @noEscape */ $code; ?>_funding_source" class="admin__field-label">
+                <span>
+                   <?= $escaper->escapeHtml(__('Credit/Debit Card')) ?>
+                </span>
+            </label>
+            <div class="admin__field-control">
+                <select id="<?= /* @noEscape */ $code; ?>_funding_source"
+                        class="admin__control-select"
+                        name="payment[funding_source]">
+                    <?php
+                        foreach ($fundingSourceOptions as $key => $fundingSourceOption) {
+                            printf("<option value='%s'>%s</option>", $key, $fundingSourceOption);
+                        }
+                    ?>
+                </select>
+            </div>
+        </div>
+
+        <div id="<?= /* @noEscape */ $code; ?>_installments_container" class="admin__field">
+            <label for="<?= /* @noEscape */ $code; ?>_installments" class="admin__field-label">
+                <span>
+                   <?= $escaper->escapeHtml(__('Installments')) ?>
+                </span>
+            </label>
+            <div class="admin__field-control">
+                <select id="<?= /* @noEscape */ $code; ?>_installments"
+                        class="admin__control-select"
+                        name="payment[number_of_installments]">
+                    <option value=""><?= $escaper->escapeHtml(__('Do not use Installments')) ?></option>
+                    <?php
+                        foreach ($installments as $installment => $installmentDescription) {
+                            printf("<option value='%s'>%s</option>", $installment, $installmentDescription);
+                        }
+                    ?>
+                </select>
+            </div>
+        </div>
+
     <?php else: ?>
         <p class="admin__field-error">
             <?= $escaper->escapeHtml(__('Connect at least one terminal!')) ?>
         </p>
     <?php endif ?>
 </fieldset>
+
+<script>
+    define(
+        'adyenPosCloudComponent',
+        [
+            'jquery'
+        ],
+        function ($) {
+            return {
+                fundingSourceOption: null,
+
+                init: function (hasFundingSource) {
+                    this.setFundingSourceOption(null);
+                    this.initFundingSource(hasFundingSource);
+                    this.initInstallmentContainer();
+                },
+
+                initInstallmentContainer: function () {
+                    if (this.hasInstallment()) {
+                        $("#adyen_pos_cloud_installments_container").show();
+                    } else {
+                        $("#adyen_pos_cloud_installments").val(null);
+                        $("#adyen_pos_cloud_installments_container").hide();
+                    }
+
+                    return true;
+                },
+
+                initFundingSource: function (hasFundingSource) {
+                    if (!hasFundingSource) {
+                        // Remove combo card options
+                        $("#adyen_pos_cloud_funding_source_container").remove();
+                        return false;
+                    }
+
+                    return true;
+                },
+
+                hasInstallment: function () {
+                    return Boolean(<?= $block->hasInstallment() ?>) && this.fundingSourceOption !== 'debit';
+                },
+
+                setFundingSourceOption: function (option) {
+                    this.fundingSourceOption = option;
+                }
+            }
+        }
+    );
+
+    require(
+        [
+            'jquery',
+            'adyenPosCloudComponent',
+        ],
+        function ($, adyenPosCloudComponent) {
+            let hasFundingSource = Boolean(<?= $block->hasFundingSource() ?>);
+            adyenPosCloudComponent.init(hasFundingSource);
+
+            if (hasFundingSource) {
+                $("#adyen_pos_cloud_funding_source").on("change", function () {
+                    let fundingSourceOption = $("#adyen_pos_cloud_funding_source").val();
+                    adyenPosCloudComponent.setFundingSourceOption(fundingSourceOption);
+                    adyenPosCloudComponent.initInstallmentContainer();
+                });
+            }
+        }
+    );
+</script>

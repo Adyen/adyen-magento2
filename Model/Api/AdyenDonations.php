@@ -13,6 +13,7 @@
 namespace Adyen\Payment\Model\Api;
 
 use Adyen\Payment\Api\AdyenDonationsInterface;
+use Adyen\Payment\Helper\Data;
 use Adyen\Util\Uuid;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Exception\LocalizedException;
@@ -22,6 +23,7 @@ use Magento\Payment\Gateway\Command\CommandException;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\OrderFactory;
+
 
 class AdyenDonations implements AdyenDonationsInterface
 {
@@ -55,16 +57,23 @@ class AdyenDonations implements AdyenDonationsInterface
      */
     private $donationTryCount;
 
+    /**
+     * @var Data
+     */
+    protected $dataHelper;
+
     public function __construct(
         CommandPoolInterface $commandPool,
         OrderFactory $orderFactory,
         Session $checkoutSession,
-        Json $jsonSerializer
+        Json $jsonSerializer,
+        Data $dataHelper
     ) {
         $this->commandPool = $commandPool;
         $this->orderFactory = $orderFactory;
         $this->checkoutSession = $checkoutSession;
         $this->jsonSerializer = $jsonSerializer;
+        $this->dataHelper = $dataHelper;
     }
 
     /**
@@ -88,7 +97,7 @@ class AdyenDonations implements AdyenDonationsInterface
 
         $customerId = $order->getCustomerId();
         if ($customerId) {
-            $payload['shopperReference'] = str_pad($customerId, 3, '0', STR_PAD_LEFT);
+            $payload['shopperReference'] = $this->dataHelper->padShopperReference($customerId);
         } else {
             $guestCustomerId = $order->getIncrementId() . Uuid::generateV4();
             $payload['shopperReference'] = $guestCustomerId;
