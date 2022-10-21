@@ -25,6 +25,7 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Webhook\PaymentStates;
+use Adyen\Payment\Exception\AdyenWebhookException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Sales\Model\Order;
@@ -158,7 +159,16 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
                 $this->orderHelper->sendOrderMail($order);
             }
         } else {
-            // TODO: Throw exception here
+            $this->adyenLogger->addAdyenNotification(sprintf(
+                    'Full amount not authorized for psp reference %s and order %s.',
+                    $notification->getPspReference(),
+                    $order->getIncrementId()
+                ));
+            throw new AdyenWebhookException(__(sprintf(
+                'Full amount not authorized for psp reference %s and order %s',
+                $notification->getPspreference(),
+                $order->getIncrementId()
+            )));
         }
 
         // Set authorized amount in sales_order_payment

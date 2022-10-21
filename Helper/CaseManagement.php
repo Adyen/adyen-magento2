@@ -13,7 +13,7 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
-use JMS\Serializer\SerializerInterface;
+use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Sales\Model\Order;
@@ -48,14 +48,16 @@ class CaseManagement
      *
      * @param AdyenLogger $adyenLogger
      * @param Config $configHelper
+     * @param Serializer $serializer
      */
     public function __construct(
         AdyenLogger $adyenLogger,
-        Config $configHelper
+        Config $configHelper,
+        SerializerInterface $serializer
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->configHelper = $configHelper;
-        // TODO: Add serializer here and in di.xml
+        $this->serializer = $serializer;
     }
 
     /**
