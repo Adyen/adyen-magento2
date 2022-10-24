@@ -96,6 +96,7 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
     {
         if ((
                 self::OFFER_CLOSED === $this->getEventCode() ||
+                self::ORDER_CLOSED === $this->getEventCode() ||
                 (self::AUTHORISATION === $this->getEventCode() && !$this->isSuccessful())
             ) &&
             $this->isLessThan10MinutesOld()
