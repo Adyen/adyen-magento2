@@ -1,0 +1,31 @@
+{{template config_path="design/email/header_template"}}
+
+<table class="message-details">
+    <tr>
+        <td><strong>{{trans "PSP Reference"}}</strong></td>
+        <td>{{var data.pspReference}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Merchant Reference"}}</strong></td>
+        <td>{{var data.merchantReference}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Are you using headless integration?"}}</strong></td>
+        <td>{{var data.isHeadlessIntegration?}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "What payment method is causing the problem?"}}</strong></td>
+        <td>{{var data.paymentMethod?}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Terminal ID number"}}</strong></td>
+        <td>{{var data.terminalIdNumber?}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Order history comments"}}</strong></td>
+        <td>{{var data.orderHistoryComments?}}</td>
+    </tr>
+</table>
+
+
+{{template config_path="design/email/footer_template"}}
