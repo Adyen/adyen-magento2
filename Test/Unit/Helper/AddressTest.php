@@ -24,12 +24,14 @@ class AddressTest extends AbstractAdyenTestCase
     const HOUSE_NUMBER_SPACE_LETTER = '789 C';
     const HOUSE_NUMBER_SEPARATOR_LETTER = '103, 45/47 BG';
     const HOUSE_NUMBER_RANGE = '45-53';
+    const HOUSE_NUMBER_DASH_NUMBER = '105A-44';
     const HOUSE_NUMBERS = [
         self::HOUSE_NUMBER,
         self::HOUSE_NUMBER_LETTER,
         self::HOUSE_NUMBER_SPACE_LETTER,
         self::HOUSE_NUMBER_SEPARATOR_LETTER,
-        self::HOUSE_NUMBER_RANGE
+        self::HOUSE_NUMBER_RANGE,
+        self::HOUSE_NUMBER_DASH_NUMBER
     ];
     const STREET_NAME_SPECIAL_CHARS = "Wróblewskiego";
     const STREET_NAME = "John-Paul's Ave.";
@@ -39,7 +41,6 @@ class AddressTest extends AbstractAdyenTestCase
         self::STREET_NAME,
         self::STREET_NAME_WITH_NUMBER
     ];
-
 
     /**
      * @var Address
