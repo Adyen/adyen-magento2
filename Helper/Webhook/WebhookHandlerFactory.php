@@ -247,6 +247,14 @@ class WebhookHandlerFactory
                     self::$serializer,
                     self::$orderHelper
                 );
+            case Notification::ORDER_CLOSED:
+                return new OrderClosedWebhookHandler(
+                    self::$adyenOrderPayment,
+                    self::$orderHelper,
+                    self::$configHelper,
+                    self::$adyenOrderPaymentCollectionFactory,
+                    self::$adyenLogger
+                );
         }
 
         $exceptionMessage = sprintf(
