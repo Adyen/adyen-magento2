@@ -230,7 +230,7 @@ class ManagementHelper
     /**
      * @throws AdyenException|NoSuchEntityException
      */
-    private function getManagementApiService($apiKey, $environment): Management
+    private function getManagementApiService(string $apiKey, $environment): Management
     {
         $storeId = $this->storeManager->getStore()->getId();
         if (preg_match('/^\*+$/', $apiKey)) {

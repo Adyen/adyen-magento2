@@ -64,7 +64,7 @@ class WebhookCredentials extends Value
             $webhookUrl = $this->url->getBaseUrl() . 'adyen/process/json';
             $mode = (int)$this->getFieldsetDataValue('demo_mode') ? 'test' : 'live';
             $apiKey = $this->getFieldsetDataValue('api_key_' . $mode);
-            if (preg_match('/^\*+$/', $apiKey)) {
+            if (isset($apiKey) && preg_match('/^\*+$/', $apiKey)) {
                 // API key contains '******', set to the previously saved config value
                 $apiKey = $this->configHelper->getApiKey($mode);
             }
