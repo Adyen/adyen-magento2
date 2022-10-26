@@ -14,8 +14,10 @@ namespace Adyen\Payment\Tests\Unit\Helper;
 use Adyen\Payment\Helper\CaseManagement;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Tests\Unit\AbstractAdyenTestCase;
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Serialize\SerializerInterface;
 use PHPUnit\Framework\TestCase;
 
 class CaseManagementTest extends AbstractAdyenTestCase
@@ -29,27 +31,40 @@ class CaseManagementTest extends AbstractAdyenTestCase
     {
         $this->caseManagementHelper = new CaseManagement(
             $this->createMock(AdyenLogger::class),
-            $this->createMock(Config::class)
+            $this->createMock(Config::class),
+            $this->createMock(SerializerInterface::class)
         );
     }
 
     public function testRequiresManualReviewTrue()
     {
-        $additionalData = [CaseManagement::FRAUD_MANUAL_REVIEW => 'true'];
+        $additionalData = $this->createConfiguredMock(Notification::class, [
+            'getAdditionalData' => json_encode([
+                CaseManagement::FRAUD_MANUAL_REVIEW => 'true'
+            ])
+        ]);
 
         $this->assertTrue($this->caseManagementHelper->requiresManualReview($additionalData));
     }
 
     public function testRequiresManualReviewNoFraudKey()
     {
-        $additionalData = ['test' => 'myPatience'];
+        $additionalData = $this->createConfiguredMock(Notification::class, [
+            'getAdditionalData' => json_encode([
+                'test' => 'myPatience'
+            ])
+        ]);
 
         $this->assertFalse($this->caseManagementHelper->requiresManualReview($additionalData));
     }
 
     public function testRequiresManualReviewUnexpectedValue()
     {
-        $additionalData = [CaseManagement::FRAUD_MANUAL_REVIEW => '1'];
+        $additionalData = $this->createConfiguredMock(Notification::class, [
+            'getAdditionalData' => json_encode([
+                CaseManagement::FRAUD_MANUAL_REVIEW => 1
+            ])
+        ]);
 
         $this->assertFalse($this->caseManagementHelper->requiresManualReview($additionalData));
     }
