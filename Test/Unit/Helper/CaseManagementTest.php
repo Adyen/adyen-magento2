@@ -16,56 +16,67 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Tests\Unit\AbstractAdyenTestCase;
-use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Serialize\SerializerInterface;
-use PHPUnit\Framework\TestCase;
 
 class CaseManagementTest extends AbstractAdyenTestCase
 {
-    /**
-     * @var CaseManagement
-     */
-    private $caseManagementHelper;
+    /** @var Notification */
+    private $mockNotification;
+
+    /** @var SerializerInterface */
+    private $mockSerializer;
 
     public function setUp(): void
     {
-        $this->caseManagementHelper = new CaseManagement(
-            $this->createMock(AdyenLogger::class),
-            $this->createMock(Config::class),
-            $this->createMock(SerializerInterface::class)
-        );
+        $this->mockSerializer = $this->createMock(SerializerInterface::class);
+        $this->mockNotification = $this->createConfiguredMock(Notification::class, [
+            'getAdditionalData' => [
+                CaseManagement::FRAUD_MANUAL_REVIEW => 'true'
+            ]
+        ]);
     }
 
     public function testRequiresManualReviewTrue()
     {
-        $additionalData = $this->createConfiguredMock(Notification::class, [
-            'getAdditionalData' => json_encode([
-                CaseManagement::FRAUD_MANUAL_REVIEW => 'true'
-            ])
+        $this->mockSerializer->method('unserialize')->willReturn([
+            CaseManagement::FRAUD_MANUAL_REVIEW => 'true'
         ]);
 
-        $this->assertTrue($this->caseManagementHelper->requiresManualReview($additionalData));
+        $caseManagementHelper = new CaseManagement(
+            $this->createMock(AdyenLogger::class),
+            $this->createMock(Config::class),
+            $this->mockSerializer
+        );
+        $this->assertTrue($caseManagementHelper->requiresManualReview($this->mockNotification));
     }
 
     public function testRequiresManualReviewNoFraudKey()
     {
-        $additionalData = $this->createConfiguredMock(Notification::class, [
-            'getAdditionalData' => json_encode([
-                'test' => 'myPatience'
-            ])
+        $this->mockSerializer->method('unserialize')->willReturn([
+            'test' => 'myPatience'
         ]);
 
-        $this->assertFalse($this->caseManagementHelper->requiresManualReview($additionalData));
+        $caseManagementHelper = new CaseManagement(
+            $this->createMock(AdyenLogger::class),
+            $this->createMock(Config::class),
+            $this->mockSerializer
+        );
+
+        $this->assertFalse($caseManagementHelper->requiresManualReview($this->mockNotification));
     }
 
     public function testRequiresManualReviewUnexpectedValue()
     {
-        $additionalData = $this->createConfiguredMock(Notification::class, [
-            'getAdditionalData' => json_encode([
-                CaseManagement::FRAUD_MANUAL_REVIEW => 1
-            ])
+        $this->mockSerializer->method('unserialize')->willReturn([
+            CaseManagement::FRAUD_MANUAL_REVIEW => 1
         ]);
 
-        $this->assertFalse($this->caseManagementHelper->requiresManualReview($additionalData));
+        $caseManagementHelper = new CaseManagement(
+            $this->createMock(AdyenLogger::class),
+            $this->createMock(Config::class),
+            $this->mockSerializer
+        );
+
+        $this->assertFalse($caseManagementHelper->requiresManualReview($this->mockNotification));
     }
 }
