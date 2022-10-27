@@ -27,6 +27,7 @@ use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\OrderRepository;
+use Magento\Framework\DB\Adapter;
 
 class Webhook
 {
@@ -173,6 +174,7 @@ class Webhook
                 $this->orderRepository->save($order);
             } catch (Exception $e) {
                 $this->logger->addAdyenWarning($e->getMessage());
+				if($this->isTransient($e)) throw $e;
             }
 
             $this->updateNotification($notification, false, true);
@@ -558,4 +560,12 @@ class Webhook
 
         return $order;
     }
+
+	private function isTransient(\Exception $e)
+	{
+		return ($e instanceof Adapter\LockWaitException
+		 || $e instanceof Adapter\DeadlockException
+		 || $e instanceof Adapter\ConnectionException
+		);
+	}
 }
