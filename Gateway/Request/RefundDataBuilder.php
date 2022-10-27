@@ -19,6 +19,10 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
  */
 class RefundDataBuilder implements BuilderInterface
 {
+    const REFUND_STRATEGY_ASCENDING_ORDER = '1';
+    const REFUND_STRATEGY_DESCENDING_ORDER = '2';
+    const REFUND_STRATEGY_BASED_ON_RATIO = '3';
+
     /**
      * @var \Adyen\Payment\Helper\Data
      */
@@ -78,9 +82,6 @@ class RefundDataBuilder implements BuilderInterface
         $pspReference = $payment->getCcTransId();
         $currency = $creditMemoAmountCurrency->getCurrencyCode();
         $amount = $creditMemoAmountCurrency->getAmount();
-        $storeId = $order->getStoreId();
-        $method = $payment->getMethod();
-        $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($method, $storeId);
 
         // check if it contains a partial payment
         $orderPaymentCollection = $this->orderPaymentCollectionFactory
@@ -88,20 +89,20 @@ class RefundDataBuilder implements BuilderInterface
             ->addFieldToFilter('payment_id', $payment->getId());
 
         // partial refund if multiple payments check refund strategy
-        if ($orderPaymentCollection->getSize() > 1) {
+        if ($orderPaymentCollection->getSize() > self::REFUND_STRATEGY_ASCENDING_ORDER) {
             $refundStrategy = $this->adyenHelper->getAdyenAbstractConfigData(
                 'partial_payments_refund_strategy',
                 $order->getStoreId()
             );
             $ratio = null;
 
-            if ($refundStrategy == "1") {
+            if ($refundStrategy == self::REFUND_STRATEGY_ASCENDING_ORDER) {
                 // Refund in ascending order
                 $orderPaymentCollection->addPaymentFilterAscending($payment->getId());
-            } elseif ($refundStrategy == "2") {
+            } elseif ($refundStrategy == self::REFUND_STRATEGY_DESCENDING_ORDER) {
                 // Refund in descending order
                 $orderPaymentCollection->addPaymentFilterDescending($payment->getId());
-            } elseif ($refundStrategy == "3") {
+            } elseif ($refundStrategy == self::REFUND_STRATEGY_BASED_ON_RATIO) {
                 // refund based on ratio
                 $ratio = $amount / $orderAmountCurrency->getAmount();
                 $orderPaymentCollection->addPaymentFilterAscending($payment->getId());
@@ -145,7 +146,6 @@ class RefundDataBuilder implements BuilderInterface
                         "modificationAmount" => $modificationAmountObject,
                         "reference" => $payment->getOrder()->getIncrementId(),
                         "originalReference" => $partialPayment->getPspreference(),
-                        "merchantAccount" => $merchantAccount
                     ];
                 }
             }
@@ -159,7 +159,6 @@ class RefundDataBuilder implements BuilderInterface
                     "modificationAmount" => $modificationAmount,
                     "reference" => $payment->getOrder()->getIncrementId(),
                     "originalReference" => $pspReference,
-                    "merchantAccount" => $merchantAccount
                 ]
             ];
 
