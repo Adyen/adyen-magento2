@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Observer;
 
 use Adyen\Payment\Helper\AdyenOrderPayment;
+use Adyen\Payment\Helper\CreditMemo;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Invoice as InvoiceHelper;
@@ -44,6 +45,9 @@ class CreditMemoObserver implements ObserverInterface
     /** @var AdyenOrderPayment $adyenOrderPaymentHelper */
     private $adyenOrderPaymentHelper;
 
+    /** @var CreditMemo $adyenCreditMemoHelper */
+    private $adyenCreditMemoHelper;
+
     /** @var Config $configHelper */
     private $configHelper;
 
@@ -64,6 +68,7 @@ class CreditMemoObserver implements ObserverInterface
         InvoiceHelper $invoiceHelper,
         StatusResolver $statusResolver,
         AdyenOrderPayment $adyenOrderPaymentHelper,
+        CreditMemo $adyenCreditMemoHelper,
         Config $configHelper,
         AdyenLogger $adyenLogger,
         PaymentMethods $paymentMethodsHelper,
@@ -74,6 +79,7 @@ class CreditMemoObserver implements ObserverInterface
         $this->invoiceHelper = $invoiceHelper;
         $this->statusResolver = $statusResolver;
         $this->adyenOrderPaymentHelper = $adyenOrderPaymentHelper;
+        $this->adyenCreditMemoHelper = $adyenCreditMemoHelper;
         $this->configHelper = $configHelper;
         $this->logger = $adyenLogger;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
@@ -103,7 +109,7 @@ class CreditMemoObserver implements ObserverInterface
         foreach ($adyenOrderPayments as $adyenOrderPayment) {
             /** @var \Adyen\Payment\Model\Order\Payment $adyenOrderPaymentObject */
             $adyenOrderPaymentObject = $adyenOrderPaymentFactory->load($adyenOrderPayment[OrderPaymentInterface::ENTITY_ID], OrderPaymentInterface::ENTITY_ID);
-            // call creditmemohelper method for linking and updating the credit memos
+            $this->adyenCreditMemoHelper->linkAndUpdateAdyenCreditMemos($adyenOrderPaymentObject, $creditMemo);
         }
     }
 }
