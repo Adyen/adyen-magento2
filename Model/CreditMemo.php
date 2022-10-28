@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2021 Adyen B.V.
+ * Copyright (c) 2022 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -12,17 +12,17 @@
 // phpcs:disable Generic.CodeAnalysis.UselessOverridingMethod.Found
 namespace Adyen\Payment\Model;
 
-use Adyen\Payment\Api\Data\InvoiceInterface;
+use Adyen\Payment\Api\Data\CreditMemoInterface;
 use Magento\Framework\Data\Collection\AbstractDb;
 use Magento\Framework\Model\AbstractModel;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
 use Magento\Framework\Registry;
 
-class Invoice extends AbstractModel implements InvoiceInterface
+class CreditMemo extends AbstractModel implements CreditMemoInterface
 {
     /**
-     * Invoice constructor.
+     * CreditMemo constructor.
      *
      * @param Context $context
      * @param Registry $registry
@@ -47,15 +47,15 @@ class Invoice extends AbstractModel implements InvoiceInterface
      */
     protected function _construct()
     {
-        $this->_init(\Adyen\Payment\Model\ResourceModel\Invoice\Invoice::class);
+        $this->_init(\Adyen\Payment\Model\ResourceModel\CreditMemo\CreditMemo::class);
     }
 
     /**
-     * Gets the Pspreference for the invoice(capture).
+     * Gets the Pspreference for the creditmemo(capture).
      *
      * @return int|null Pspreference.
      */
-    public function getPspreference()
+    public function getPspreference(): ?int
     {
         return $this->getData(self::PSPREFERENCE);
     }
@@ -66,16 +66,13 @@ class Invoice extends AbstractModel implements InvoiceInterface
      * @param string $pspreference
      * @return $this
      */
-    public function setPspreference($pspreference)
+    public function setPspreference($pspreference): CreditMemo
     {
         return $this->setData(self::PSPREFERENCE, $pspreference);
     }
 
     /**
-     * Gets the Pspreference of the original Payment
-     *
-     * @deprecated
-     * @return mixed
+     * @return array|mixed|null
      */
     public function getOriginalReference()
     {
@@ -83,55 +80,31 @@ class Invoice extends AbstractModel implements InvoiceInterface
     }
 
     /**
-     * Sets the OriginalReference
-     *
-     * @deprecated
      * @param $originalReference
      * @return $this
      */
-    public function setOriginalReference($originalReference)
+    public function setOriginalReference($originalReference): CreditMemo
     {
         return $this->setData(self::ORIGINAL_REFERENCE, $originalReference);
     }
 
     /**
-     * Gets the AcquirerReference for the invoice.
-     *
-     * @return int|null Acquirerreference.
-     */
-    public function getAcquirerReference()
-    {
-        return $this->getData(self::ACQUIRER_REFERENCE);
-    }
-
-    /**
-     * Sets AcquirerReference.
-     *
-     * @param string $acquirerReference
-     * @return $this
-     */
-    public function setAcquirerReference($acquirerReference)
-    {
-        return $this->setData(self::ACQUIRER_REFERENCE, $acquirerReference);
-    }
-
-    /**
      * Gets the InvoiceID for the invoice.
      *
-     * @return int|null Invoice ID.
+     * @return int|null CreditMemoId.
      */
-    public function getInvoiceId()
+    public function getCreditMemoId(): ?int
     {
-        return $this->getData(self::INVOICE_ID);
+        return $this->getData(self::CREDITMEMO_ID);
     }
 
     /**
      * Sets InvoiceID.
      *
-     * @param int $invoiceId
+     * @param int $CreditMemoId
      * @return $this
      */
-    public function setInvoiceId($invoiceId)
+    public function setCreditMemoId($creditMemoId): CreditMemo
     {
         return $this->setData(self::INVOICE_ID, $invoiceId);
     }
@@ -139,7 +112,7 @@ class Invoice extends AbstractModel implements InvoiceInterface
     /**
      * @return int|null
      */
-    public function getAmount()
+    public function getAmount(): ?int
     {
         return $this->getData(self::AMOUNT);
     }
@@ -148,7 +121,7 @@ class Invoice extends AbstractModel implements InvoiceInterface
      * @param $amount
      * @return Invoice
      */
-    public function setAmount($amount)
+    public function setAmount($amount): CreditMemo
     {
         return $this->setData(self::AMOUNT, $amount);
     }
@@ -156,16 +129,16 @@ class Invoice extends AbstractModel implements InvoiceInterface
     /**
      * @return int|null
      */
-    public function getAdyenPaymentOrderId()
+    public function getAdyenPaymentOrderId(): ?int
     {
         return $this->getData(self::ADYEN_ORDER_PAYMENT_ID);
     }
 
     /**
      * @param $id
-     * @return Invoice
+     * @return CreditMemo
      */
-    public function setAdyenPaymentOrderId($id)
+    public function setAdyenPaymentOrderId($id): CreditMemo
     {
         return $this->setData(self::ADYEN_ORDER_PAYMENT_ID, $id);
     }
@@ -173,16 +146,16 @@ class Invoice extends AbstractModel implements InvoiceInterface
     /**
      * @return string|null
      */
-    public function getStatus()
+    public function getStatus(): ?string
     {
         return $this->getData(self::STATUS);
     }
 
     /**
      * @param $status
-     * @return Invoice
+     * @return CreditMemo
      */
-    public function setStatus($status)
+    public function setStatus($status): CreditMemo
     {
         return $this->setData(self::STATUS, $status);
     }
@@ -197,9 +170,9 @@ class Invoice extends AbstractModel implements InvoiceInterface
 
     /**
      * @param $createdAt
-     * @return Invoice
+     * @return CreditMemo
      */
-    public function setCreatedAt($createdAt)
+    public function setCreatedAt($createdAt): CreditMemo
     {
         return $this->setData(self::CREATED_AT, $createdAt);
     }
@@ -214,9 +187,9 @@ class Invoice extends AbstractModel implements InvoiceInterface
 
     /**
      * @param $updatedAt
-     * @return Invoice
+     * @return CreditMemo
      */
-    public function setUpdatedAt($updatedAt)
+    public function setUpdatedAt($updatedAt): CreditMemo
     {
         return $this->setData(self::UPDATED_AT, $updatedAt);
     }
