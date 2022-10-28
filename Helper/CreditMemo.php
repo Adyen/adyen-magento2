@@ -90,6 +90,9 @@ class CreditMemo extends AbstractHelper
 
     public function createAdyenCreditMemo(
         Order\Payment $payment,
+        string $pspReference,
+        string $originalReference,
+        int $refundAmountInCents
     ): \Adyen\Payment\Model\CreditMemo
     {
         $order = $payment->getOrder();

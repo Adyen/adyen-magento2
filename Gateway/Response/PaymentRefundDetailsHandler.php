@@ -11,28 +11,54 @@
 
 namespace Adyen\Payment\Gateway\Response;
 
+use Adyen\Payment\Gateway\Http\Client\TransactionRefund;
+use Adyen\Payment\Helper\CreditMemo;
+use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Response\HandlerInterface;
+use Adyen\Util\Currency;
 
 class PaymentRefundDetailsHandler implements HandlerInterface
 {
     /**
+     * @var CreditMemo
+     */
+    private $adyenCreditMemoHelper;
+
+    public function __construct(
+        CreditMemo $adyenCreditMemoHelper
+    ){
+        $this->adyenCreditMemoHelper = $adyenCreditMemoHelper;
+    }
+
+    /**
      * @param array $handlingSubject
      * @param array $response
+     * @throws AlreadyExistsException|LocalizedException
      */
     public function handle(array $handlingSubject, array $response)
     {
         $payment = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
 
-        /** @var OrderPaymentInterface $payment */
+        /** @var Order\Payment $payment */
         $payment = $payment->getPayment();
 
         foreach ($response as $singleResponse) {
             if (isset($singleResponse['error'])) {
-                throw new \Magento\Framework\Exception\LocalizedException("The refund failed. Please make sure the amount is not greater than the limit or negative. Otherwise, refer to the logs for details.");
+                throw new LocalizedException("The refund failed. Please make sure the amount is not greater than the limit or negative. Otherwise, refer to the logs for details.");
             }
 
             // set pspReference as lastTransId only!
             $payment->setLastTransId($singleResponse['pspReference']);
+
+            $currencyConverter = new Currency();
+
+            $this->adyenCreditMemoHelper->createAdyenCreditMemo(
+                $payment,
+                $singleResponse['pspReference'],
+                $singleResponse[TransactionRefund::ORIGINAL_REFERENCE],
+                $currencyConverter->sanitize($singleResponse[TransactionRefund::REFUND_AMOUNT], $singleResponse[TransactionRefund::REFUND_CURRENCY])
+            );
         }
 
         /**
