@@ -113,7 +113,7 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
             $this->stateData->setStateData($stateData, $paymentInfo->getData('quote_id'));
         }
 
-        unset($additionalData[self::STATE_DATA]);
+        // unset($additionalData[self::STATE_DATA]);
 
         // Set additional data in the payment
         foreach ($additionalData as $key => $data) {

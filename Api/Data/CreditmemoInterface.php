@@ -12,7 +12,7 @@
 
 namespace Adyen\Payment\Api\Data;
 
-interface CreditMemoInterface
+interface CreditmemoInterface
 {
     /**
      * Constants for keys of data array. Identical to the name of the getter in snake case.
@@ -70,17 +70,17 @@ interface CreditMemoInterface
     public function setOriginalReference($originalReference);
 
     /**
-     * Gets the CreditMemoId for the creditmemo.
+     * Gets the CreditmemoID for the creditmemo.
      *
-     * @return int|null CreditMemoId
+     * @return int|null Creditmemo ID.
      */
-    public function getCreditMemoId();
+    public function getCreditmemoId();
 
     /**
      * @param int $creditMemoId
      * @return $this
      */
-    public function setCreditMemoId($creditMemoId);
+    public function setCreditmemoId($creditmemoId);
 
     /**
      * @return int|null

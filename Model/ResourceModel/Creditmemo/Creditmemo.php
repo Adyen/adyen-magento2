@@ -10,14 +10,11 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model\ResourceModel\CreditMemo;
+namespace Adyen\Payment\Model\ResourceModel\Creditmemo;
 
-use Adyen\Payment\Model\Notification;
-use Adyen\Payment\Setup\UpgradeSchema;
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
-use Magento\Sales\Model\Order;
 
-class CreditMemo extends AbstractDb
+class Creditmemo extends AbstractDb
 {
     /**
      * Resource initialization
@@ -35,7 +32,7 @@ class CreditMemo extends AbstractDb
      * @param $adyenPaymentId
      * @return array|null
      */
-    public function getAdyenCreditMemosByAdyenPaymentId($adyenPaymentId): ?array
+    public function getAdyenCreditmemosByAdyenPaymentid($adyenPaymentId): ?array
     {
         $select = $this->getConnection()->select()
             ->from(['adyen_creditmemo' => $this->getTable('adyen_creditmemo')])

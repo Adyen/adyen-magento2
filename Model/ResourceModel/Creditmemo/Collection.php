@@ -10,9 +10,9 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model\ResourceModel\CreditMemo;
+namespace Adyen\Payment\Model\ResourceModel\Creditmemo;
 
-use Adyen\Payment\Model\CreditMemo;
+use Adyen\Payment\Model\Creditmemo;
 use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
 
 class Collection extends AbstractCollection
@@ -20,7 +20,7 @@ class Collection extends AbstractCollection
 
     public function _construct()
     {
-        $this->_init(\Adyen\Payment\Model\CreditMemo::class, CreditMemo::class);
+        $this->_init(\Adyen\Payment\Model\Creditmemo::class, Creditmemo::class);
     }
 
     /**
