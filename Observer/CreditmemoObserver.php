@@ -97,7 +97,7 @@ class CreditmemoObserver implements ObserverInterface
     {
         $adyenOrderPaymentFactory = $this->adyenOrderPaymentFactory->create();
 
-        /** @var Creditmemo $creditMemo */
+        /** @var Creditmemo $creditmemo */
         $creditmemo = $observer->getData('creditmemo');
         $order = $creditmemo->getOrder();
         $payment = $order->getPayment();
@@ -109,7 +109,7 @@ class CreditmemoObserver implements ObserverInterface
         foreach ($adyenOrderPayments as $adyenOrderPayment) {
             /** @var \Adyen\Payment\Model\Order\Payment $adyenOrderPaymentObject */
             $adyenOrderPaymentObject = $adyenOrderPaymentFactory->load($adyenOrderPayment[OrderPaymentInterface::ENTITY_ID], OrderPaymentInterface::ENTITY_ID);
-            $this->creditmemoHelper->linkAndUpdateAdyenCreditmemos($adyenOrderPaymentObject, $creditMemo);
+            $this->creditmemoHelper->linkAndUpdateAdyenCreditmemos($adyenOrderPaymentObject, $creditmemo);
         }
     }
 }
