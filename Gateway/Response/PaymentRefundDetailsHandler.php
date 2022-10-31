@@ -23,11 +23,11 @@ class PaymentRefundDetailsHandler implements HandlerInterface
     /**
      * @var Creditmemo
      */
-    private $adyenCreditMemoHelper;
+    private $creditmemoHelper;
 
     public function __construct(
         Creditmemo $creditmemoHelper
-    ){
+    ) {
         $this->creditmemoHelper = $creditmemoHelper;
     }
 
@@ -45,7 +45,10 @@ class PaymentRefundDetailsHandler implements HandlerInterface
 
         foreach ($response as $singleResponse) {
             if (isset($singleResponse['error'])) {
-                throw new LocalizedException("The refund failed. Please make sure the amount is not greater than the limit or negative. Otherwise, refer to the logs for details.");
+                throw new LocalizedException(
+                    "The refund failed. Please make sure the amount is not greater than the limit or negative. 
+                    Otherwise, refer to the logs for details."
+                );
             }
 
             // set pspReference as lastTransId only!
@@ -57,7 +60,10 @@ class PaymentRefundDetailsHandler implements HandlerInterface
                 $payment,
                 $singleResponse['pspReference'],
                 $singleResponse[TransactionRefund::ORIGINAL_REFERENCE],
-                $currencyConverter->sanitize($singleResponse[TransactionRefund::REFUND_AMOUNT], $singleResponse[TransactionRefund::REFUND_CURRENCY])
+                $currencyConverter->sanitize(
+                    $singleResponse[TransactionRefund::REFUND_AMOUNT],
+                    $singleResponse[TransactionRefund::REFUND_CURRENCY]
+                )
             );
         }
 
