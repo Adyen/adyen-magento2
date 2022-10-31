@@ -352,14 +352,13 @@ class Json extends Action
      */
     private function isIpValid()
     {
-        return true;
-//        $ipAddress = [];
-//        $fetchedIpAddress = $this->remoteAddress->getRemoteAddress();
-//        //Getting remote and possibly forwarded IP addresses
-//        if (!empty($fetchedIpAddress)) {
-//            $ipAddress = explode(',', $fetchedIpAddress);
-//        }
-//        return $this->ipAddressHelper->isIpAddressValid($ipAddress);
+        $ipAddress = [];
+        $fetchedIpAddress = $this->remoteAddress->getRemoteAddress();
+        //Getting remote and possibly forwarded IP addresses
+        if (!empty($fetchedIpAddress)) {
+            $ipAddress = explode(',', $fetchedIpAddress);
+        }
+        return $this->ipAddressHelper->isIpAddressValid($ipAddress);
     }
 
     /**
