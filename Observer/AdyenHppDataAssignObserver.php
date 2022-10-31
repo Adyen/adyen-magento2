@@ -89,8 +89,8 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
         $data = $this->readDataArgument($observer);
         $paymentInfo = $this->readPaymentModelArgument($observer);
 
-        // Remove remaining additional information from the previous payment
-        $paymentInfo->unsAdditionalInformation();
+        // Remove remaining brand_code information from the previous payment
+        $paymentInfo->unsAdditionalInformation('brand_code');
 
         // Get additional data array
         $additionalData = $data->getData(PaymentInterface::KEY_ADDITIONAL_DATA);
