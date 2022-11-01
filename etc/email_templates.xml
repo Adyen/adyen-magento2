@@ -2,6 +2,6 @@
 
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Email:etc/email_templates.xsd">
-    <template id="contact_email_template" label="Contact Form" file="email_support.html" type="html"
+    <template id="contact_email_template" label="Contact Form" file="email_template.html" type="html"
               module="Adyen_Payment" area="adminhtml"/>
 </config>
