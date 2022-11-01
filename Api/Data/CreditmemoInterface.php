@@ -33,7 +33,7 @@ interface CreditmemoInterface
      *
      * @return int|null Entity ID.
      */
-    public function getEntityId();
+    public function getEntityId(): ?int;
 
     /**
      * Sets entity ID.
@@ -41,14 +41,14 @@ interface CreditmemoInterface
      * @param int $entityId
      * @return $this
      */
-    public function setEntityId($entityId);
+    public function setEntityId(int $entityId): CreditmemoInterface;
 
     /**
      * Gets the Pspreference for the creditmemo(capture)
      *
      * @return int|null Pspreference.
      */
-    public function getPspreference();
+    public function getPspreference(): ?int;
 
     /**
      * Sets Pspreference.
@@ -56,80 +56,84 @@ interface CreditmemoInterface
      * @param string $pspreference
      * @return $this
      */
-    public function setPspreference($pspreference);
+    public function setPspreference(string $pspreference): CreditmemoInterface;
 
     /**
      * @return mixed
      */
-    public function getOriginalReference();
+    public function getOriginalReference(): mixed;
 
     /**
      * @param  $originalReference
-     * @return mixed
+     * @return $this
      */
-    public function setOriginalReference($originalReference);
+    public function setOriginalReference($originalReference): CreditmemoInterface;
 
     /**
      * Gets the CreditmemoID for the creditmemo.
      *
      * @return int|null Creditmemo ID.
      */
-    public function getCreditmemoId();
+    public function getCreditmemoId(): ?int;
 
     /**
      * @param int $creditMemoId
      * @return $this
      */
-    public function setCreditmemoId($creditmemoId);
+    public function setCreditmemoId(int $creditmemoId): CreditmemoInterface;
 
     /**
      * @return int|null
      */
-    public function getAmount();
+    public function getAmount(): ?int;
 
     /**
      * @param $amount
+     * @return $this
      */
-    public function setAmount($amount);
+    public function setAmount($amount): CreditmemoInterface;
 
     /**
      * @return int|null
      */
-    public function getAdyenPaymentOrderId();
+    public function getAdyenPaymentOrderId(): ?int;
 
     /**
      * @param $id
-     * @return mixed
+     * @return $this
      */
-    public function setAdyenPaymentOrderId($id);
+    public function setAdyenPaymentOrderId($id): CreditmemoInterface;
 
     /**
      * @return string|null
      */
-    public function getStatus();
+    public function getStatus(): ?string;
 
     /**
      * @param $status
+     * @return $this
      */
-    public function setStatus($status);
+    public function setStatus($status): CreditmemoInterface;
 
     /**
      * @return mixed
      */
-    public function getCreatedAt();
+    public function getCreatedAt(): mixed;
 
     /**
      * @param $createdAt
+     * @return $this
      */
-    public function setCreatedAt($createdAt);
+    public function setCreatedAt($createdAt): CreditmemoInterface;
 
     /**
      * @return mixed
      */
-    public function getUpdatedAt();
+    public function getUpdatedAt(): mixed;
 
     /**
      * @param $updatedAt
+     * @return $this
      */
-    public function setUpdatedAt($updatedAt);
+    public function setUpdatedAt($updatedAt): CreditmemoInterface;
 }

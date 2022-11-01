@@ -113,7 +113,7 @@
     <column xsi:type="int" name="creditmemo_id" padding="10" unsigned="true" nullable="true" comment="Creditmemo ID, link to magento creditmemo entity"/>
     <column xsi:type="decimal" name="amount" scale="4" precision="12" unsigned="true" nullable="false" comment="Amount Refunded"/>
     <column xsi:type="int" name="adyen_order_payment_id" padding="10" unsigned="true" nullable="false" comment="ID of corresponding payment"/>
-    <column xsi:type="int" name="status" padding="10" unsigned="true" nullable="false" comment="Creditmemo status"/>
+    <column xsi:type="text" name="status" padding="10" unsigned="true" nullable="false" comment="Creditmemo status"/>
     <column xsi:type="timestamp" name="created_at" default="CURRENT_TIMESTAMP" nullable="false" comment="Created at"/>
     <column xsi:type="timestamp" name="updated_at" default="CURRENT_TIMESTAMP" nullable="false" comment="Updated at"/>
     <constraint xsi:type="primary" referenceId="PRIMARY">

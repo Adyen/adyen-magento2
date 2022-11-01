@@ -18,7 +18,6 @@ use Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo as CreditMemoResourc
 use Adyen\Payment\Model\CreditmemoFactory;
 use Adyen\Payment\Model\Creditmemo as AdyenCreditmemoModel;
 use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel;
-
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Creditmemo as MagentoCreditMemoModel;
@@ -93,12 +92,12 @@ class Creditmemo extends AbstractHelper
         string $pspReference,
         string $originalReference,
         int $refundAmountInCents
-    ): \Adyen\Payment\Model\Creditmemo
+    ): AdyenCreditmemoModel
     {
         $order = $payment->getOrder();
 
         // get adyen_order_payment record
-        /** @var \Adyen\Payment\Api\Data\OrderPaymentInterface $adyenOrderPayment */
+        /** @var OrderPaymentInterface $adyenOrderPayment */
         $adyenOrderPayment = $this->orderPaymentResourceModel->getOrderPaymentDetails(
             $originalReference,
             $payment->getEntityId()
@@ -110,7 +109,7 @@ class Creditmemo extends AbstractHelper
         $adyenCreditmemo->setPspreference($pspReference);
         $adyenCreditmemo->setOriginalReference($originalReference);
         $adyenCreditmemo->setAdyenPaymentOrderId(
-            $adyenOrderPayment[\Adyen\Payment\Api\Data\OrderPaymentInterface::ENTITY_ID]
+            $adyenOrderPayment[OrderPaymentInterface::ENTITY_ID]
         );
         $adyenCreditmemo->setAmount(
             $this->adyenDataHelper->originalAmount(
@@ -127,14 +126,14 @@ class Creditmemo extends AbstractHelper
      * Link all the adyen_creditmemos related to the adyen_order_payment with the given magento entity of the creditmemo
      * @throws AlreadyExistsException
      */
-    public function linkAndUpdateAdyenCreditmemos(Payment $adyenOrderPayment, MagentoCreditmemoModel $magentoCreditmemo)
+    public function linkAndUpdateAdyenCreditmemos(Payment $adyenOrderPayment, MagentoCreditmemoModel $magentoCreditmemo): void
     {
         $adyenCreditmemoLoader = $this->adyenCreditmemoFactory->create();
 
         $adyenCreditmemos = $this->adyenCreditmemoResourceModel->getAdyenCreditmemosByAdyenPaymentid(
             $adyenOrderPayment[OrderPaymentInterface::ENTITY_ID]
         );
-        if (!is_null($adyenCreditmemos)) {
+        if (isset($adyenCreditmemos)) {
             foreach ($adyenCreditmemos as $adyenCreditmemo) {
                 /** @var AdyenCreditmemoModel $currAdyenCreditmemo */
                 $currAdyenCreditmemo = $adyenCreditmemoLoader->load(

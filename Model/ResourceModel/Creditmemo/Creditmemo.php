@@ -29,10 +29,10 @@ class Creditmemo extends AbstractDb
     /**
      * Get all the adyen_creditmemo entries linked to the adyen_order_payment
      *
-     * @param $adyenPaymentId
+     * @param int $adyenPaymentId
      * @return array|null
      */
-    public function getAdyenCreditmemosByAdyenPaymentid($adyenPaymentId): ?array
+    public function getAdyenCreditmemosByAdyenPaymentid(int $adyenPaymentId): ?array
     {
         $select = $this->getConnection()->select()
             ->from(['adyen_creditmemo' => $this->getTable('adyen_creditmemo')])

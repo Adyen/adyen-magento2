@@ -74,7 +74,7 @@ class Creditmemo extends AbstractModel implements CreditMemoInterface
     /**
      * @return array|mixed|null
      */
-    public function getOriginalReference()
+    public function getOriginalReference(): mixed
     {
         return $this->getData(self::ORIGINAL_REFERENCE);
     }
@@ -163,7 +163,7 @@ class Creditmemo extends AbstractModel implements CreditMemoInterface
     /**
      * @return mixed
      */
-    public function getCreatedAt()
+    public function getCreatedAt(): mixed
     {
         return $this->getData(self::CREATED_AT);
     }
@@ -180,7 +180,7 @@ class Creditmemo extends AbstractModel implements CreditMemoInterface
     /**
      * @return mixed
      */
-    public function getUpdatedAt()
+    public function getUpdatedAt(): mixed
     {
         return $this->getData(self::UPDATED_AT);
     }

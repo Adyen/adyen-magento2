@@ -26,10 +26,10 @@ class Collection extends AbstractCollection
     /**
      * Get all the adyen_creditmemo linked to a magento invoice
      *
-     * @param $creditMemoId
+     * @param int $creditMemoId
      * @return array
      */
-    public function getAdyenCreditMemosLinkedToMagentoInvoice($creditMemoId): array
+    public function getAdyenCreditMemosLinkedToMagentoInvoice(int $creditMemoId): array
     {
         $select = $this->getConnection()->select()
             ->from(['adyen_creditmemo' => $this->getTable('adyen_creditmemo')])

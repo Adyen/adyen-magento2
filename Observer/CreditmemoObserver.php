@@ -26,6 +26,7 @@ use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\Order\StatusResolver;
+use Magento\Sales\Model\Order\Creditmemo;
 use Adyen\Payment\Helper\PaymentMethods;
 
 class CreditmemoObserver implements ObserverInterface
@@ -63,16 +64,16 @@ class CreditmemoObserver implements ObserverInterface
     private $logger;
 
     public function __construct(
-        Payment           $adyenPaymentResourceModel,
-        PaymentFactory    $adyenOrderPaymentFactory,
-        InvoiceHelper     $invoiceHelper,
-        StatusResolver    $statusResolver,
+        Payment $adyenPaymentResourceModel,
+        PaymentFactory $adyenOrderPaymentFactory,
+        InvoiceHelper $invoiceHelper,
+        StatusResolver $statusResolver,
         AdyenOrderPayment $adyenOrderPaymentHelper,
         CreditmemoHelper $creditmemoHelper,
-        Config            $configHelper,
-        AdyenLogger       $adyenLogger,
-        PaymentMethods    $paymentMethodsHelper,
-        OrderHelper       $orderHelper
+        Config $configHelper,
+        AdyenLogger $adyenLogger,
+        PaymentMethods $paymentMethodsHelper,
+        OrderHelper $orderHelper
     ) {
         $this->adyenPaymentResourceModel = $adyenPaymentResourceModel;
         $this->adyenOrderPaymentFactory = $adyenOrderPaymentFactory;
@@ -87,8 +88,8 @@ class CreditmemoObserver implements ObserverInterface
     }
 
     /**
-     * Link all adyen_invoices to the appropriate magento invoice and set the order to PROCESSING to allow
-     * further invoices to be generated
+     * Link all adyen_creditmemos to the appropriate magento credit memo and set the order to PROCESSING to allow
+     * further credit memos to be generated
      *
      * @param Observer $observer
      * @throws AlreadyExistsException
