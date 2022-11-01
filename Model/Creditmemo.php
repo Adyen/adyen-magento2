@@ -72,9 +72,30 @@ class Creditmemo extends AbstractModel implements CreditMemoInterface
     }
 
     /**
-     * @return array|mixed|null
+     * Gets the ID for the creditmemo.
+     *
+     * @return int|null Entity ID.
      */
-    public function getOriginalReference(): mixed
+    public function getEntityId(): ?int
+    {
+        return $this->getData(self::ENTITY_ID);
+    }
+
+    /**
+     * Sets entity ID.
+     *
+     * @param int $entityId
+     * @return $this
+     */
+    public function setEntityId($entityId): CreditmemoInterface
+    {
+        return $this->getData(self::ENTITY_ID, $entityId);
+    }
+
+    /**
+     * @return string
+     */
+    public function getOriginalReference(): string
     {
         return $this->getData(self::ORIGINAL_REFERENCE);
     }
@@ -161,9 +182,9 @@ class Creditmemo extends AbstractModel implements CreditMemoInterface
     }
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function getCreatedAt(): mixed
+    public function getCreatedAt(): string
     {
         return $this->getData(self::CREATED_AT);
     }
@@ -178,9 +199,9 @@ class Creditmemo extends AbstractModel implements CreditMemoInterface
     }
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function getUpdatedAt(): mixed
+    public function getUpdatedAt(): string
     {
         return $this->getData(self::UPDATED_AT);
     }

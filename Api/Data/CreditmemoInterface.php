@@ -41,7 +41,7 @@ interface CreditmemoInterface
      * @param int $entityId
      * @return $this
      */
-    public function setEntityId(int $entityId): CreditmemoInterface;
+    public function setEntityId($entityId): CreditmemoInterface;
 
     /**
      * Gets the Pspreference for the creditmemo(capture)
@@ -56,12 +56,12 @@ interface CreditmemoInterface
      * @param string $pspreference
      * @return $this
      */
-    public function setPspreference(string $pspreference): CreditmemoInterface;
+    public function setPspreference($pspreference): CreditmemoInterface;
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function getOriginalReference(): mixed;
+    public function getOriginalReference(): string;
 
     /**
      * @param  $originalReference
@@ -80,7 +80,7 @@ interface CreditmemoInterface
      * @param int $creditMemoId
      * @return $this
      */
-    public function setCreditmemoId(int $creditmemoId): CreditmemoInterface;
+    public function setCreditmemoId($creditmemoId): CreditmemoInterface;
 
     /**
      * @return int|null
@@ -116,9 +116,9 @@ interface CreditmemoInterface
     public function setStatus($status): CreditmemoInterface;
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function getCreatedAt(): mixed;
+    public function getCreatedAt(): string;
 
     /**
      * @param $createdAt
@@ -127,9 +127,9 @@ interface CreditmemoInterface
     public function setCreatedAt($createdAt): CreditmemoInterface;
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function getUpdatedAt(): mixed;
+    public function getUpdatedAt(): string;
 
     /**
      * @param $updatedAt
