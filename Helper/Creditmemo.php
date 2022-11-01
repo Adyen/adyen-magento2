@@ -126,8 +126,9 @@ class Creditmemo extends AbstractHelper
      * Link all the adyen_creditmemos related to the adyen_order_payment with the given magento entity of the creditmemo
      * @throws AlreadyExistsException
      */
-    public function linkAndUpdateAdyenCreditmemos(Payment $adyenOrderPayment, MagentoCreditmemoModel $magentoCreditmemo): void
-    {
+    public function linkAndUpdateAdyenCreditmemos(
+        Payment $adyenOrderPayment, MagentoCreditmemoModel $magentoCreditmemo
+    ): void {
         $adyenCreditmemoLoader = $this->adyenCreditmemoFactory->create();
 
         $adyenCreditmemos = $this->adyenCreditmemoResourceModel->getAdyenCreditmemosByAdyenPaymentid(
