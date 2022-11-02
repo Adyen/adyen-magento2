@@ -23,6 +23,10 @@ use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Checkout\Model\Session;
 use Magento\Payment\Gateway\Http\TransferInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Quote\Api\Data\CartInterface;
+use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
+use Adyen\Payment\Helper\PaymentMethods;
+use Magento\Framework\Exception\NoSuchEntityException;
 
 class TransactionPosCloudSync implements ClientInterface
 {
