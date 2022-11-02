@@ -110,7 +110,7 @@ class ConfigurationSettings extends Generic implements TabInterface
             'pspReference',
             'text',
             [
-                'name' => 'pspReference',
+                'name' => 'pspReferenceConfigurationSettings',
                 'label' => __('PSP Reference'),
                 'title' => __('PSP Reference'),
                 'class' => '',
@@ -166,12 +166,12 @@ class ConfigurationSettings extends Generic implements TabInterface
             ]
         );
         $fieldset->addField(
-            'configValues',
+            'orderHistoryComments',
             'textarea',
             [
-                'name' => 'configValues',
-                'label' => __('Attach config values'),
-                'title' => __('Attach config values'),
+                'name' => 'orderHistoryComments',
+                'label' => __('Order History Comments'),
+                'title' => __('Order History Comments'),
                 'class' => '',
                 'required' => false,
             ]
