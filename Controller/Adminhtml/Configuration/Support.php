@@ -58,7 +58,6 @@ class Support extends Action
             ->setFromByScope($from)
             ->addTo($to)
             ->getTransport();
-        //$test = $transport->getMessage()->getBody();
         //$transport->sendMessage();
         $this->messageManager->addSuccess(__('Form successfully submitted'));
 
