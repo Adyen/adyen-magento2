@@ -76,6 +76,7 @@ class AdyenOrderPayment extends AbstractHelper
      * @param ChargedCurrency $adyenChargedCurrencyHelper
      * @param OrderPaymentResourceModel $orderPaymentResourceModel
      * @param PaymentFactory $adyenOrderPaymentFactory
+     * @param Invoice $invoiceHelper
      */
     public function __construct(
         Context $context,
@@ -202,7 +203,8 @@ class AdyenOrderPayment extends AbstractHelper
     {
         $adyenOrderPayment = null;
         $payment = $order->getPayment();
-        $amount = $this->adyenDataHelper->originalAmount($notification->getAmountValue(), $order->getBaseCurrencyCode());
+        $amount = $this->adyenDataHelper->originalAmount($notification->getAmountValue(),
+            $notification->getAmountCurrency());
         $captureStatus = $autoCapture ? Payment::CAPTURE_STATUS_AUTO_CAPTURE : Payment::CAPTURE_STATUS_NO_CAPTURE;
         $merchantReference = $notification->getMerchantReference();
         $pspReference = $notification->getPspreference();
@@ -255,6 +257,23 @@ class AdyenOrderPayment extends AbstractHelper
     }
 
     /**
+     * Fully refund the adyenOrderPayment
+     *
+     * @param OrderPaymentInterface $adyenOrderPayment
+     * @return OrderPaymentInterface
+     * @throws \Exception
+     */
+    public function refundFullyAdyenOrderPayment(OrderPaymentInterface $adyenOrderPayment): OrderPaymentInterface
+    {
+        $amountRefunded = $adyenOrderPayment->getAmount();
+        $adyenOrderPayment->setUpdatedAt(new \DateTime());
+        $adyenOrderPayment->setTotalRefunded($amountRefunded);
+        $adyenOrderPayment->save();
+
+        return $adyenOrderPayment;
+    }
+
+    /**
      * Compare the total of the passed adyen order payments to the grand total of the order
      *
      * @param Order $order
@@ -267,7 +286,7 @@ class AdyenOrderPayment extends AbstractHelper
         $orderAmountCurrency = $this->adyenChargedCurrencyHelper->getOrderAmountCurrency($order);
 
         foreach ($adyenOrderPayments as $adyenOrderPayment) {
-            $adyenOrderPaymentsTotal += $adyenOrderPayment->getAmount();
+            $adyenOrderPaymentsTotal += $adyenOrderPayment[OrderPaymentInterface::AMOUNT];
         }
 
         $adyenOrderPaymentsTotalCents = $this->adyenDataHelper->formatAmount($adyenOrderPaymentsTotal, $orderAmountCurrency->getCurrencyCode());

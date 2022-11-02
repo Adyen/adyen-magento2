@@ -19,26 +19,23 @@ use Magento\Sales\Model\Order;
 
 class PointOfSale
 {
-    /**
-     * @var Data
-     */
+    /** @var Data  */
     private $dataHelper;
 
-    /**
-     * @var ProductMetadataInterface
-     */
+    /** @var ProductMetadataInterface  */
     private $productMetadata;
 
-    /**
-     * @param \Adyen\Payment\Helper\Data $dataHelper
-     * @param ProductMetadataInterface $productMetadata
-     */
+    /** @var Config */
+    protected $configHelper;
+
     public function __construct(
         Data $dataHelper,
-        ProductMetadataInterface $productMetadata
+        ProductMetadataInterface $productMetadata,
+        Config $configHelper
     ) {
         $this->dataHelper = $dataHelper;
         $this->productMetadata = $productMetadata;
+        $this->configHelper = $configHelper;
     }
 
     /**
@@ -68,11 +65,11 @@ class PointOfSale
 
         // If customer exists add it into the request to store request
         if (!empty($customerId)) {
-            $recurringContract = $this->dataHelper->getAdyenPosCloudConfigData('recurring_type', $storeId);
+            $recurringContract = $this->configHelper->getAdyenPosCloudConfigData('recurring_type', $storeId);
 
             if (!empty($recurringContract) && !empty($shopperEmail)) {
                 $saleToAcquirerData['shopperEmail'] = $shopperEmail;
-                $saleToAcquirerData['shopperReference'] = str_pad((string)$customerId, 3, '0', STR_PAD_LEFT);
+                $saleToAcquirerData['shopperReference'] = $this->dataHelper->padShopperReference($customerId);
                 $saleToAcquirerData['recurringContract'] = $recurringContract;
             }
         }
@@ -98,5 +95,31 @@ class PointOfSale
     public function getCustomerId(Quote $quote): ?string
     {
         return $quote->getCustomerId();
+    }
+
+    /**
+     * @param array $installments
+     * @param float $amount
+     * @param string $currencyCode
+     * @param int $precision
+     * @return array
+     */
+    public function getFormattedInstallments(
+        array $installments,
+        float $amount,
+        string $currencyCode,
+        int $precision
+    ): array {
+        $formattedInstallments = [];
+
+        foreach ($installments as $minAmount => $installment) {
+            if ($amount >= $minAmount) {
+                $dividedAmount = number_format($amount / $installment, $precision);
+                $formattedInstallments[$installment] =
+                    sprintf("%s x %s %s", $installment, $dividedAmount, $currencyCode);
+            }
+        }
+
+        return $formattedInstallments;
     }
 }

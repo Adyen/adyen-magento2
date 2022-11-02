@@ -30,6 +30,7 @@ use Adyen\Payment\Model\ResourceModel\Billing\Agreement;
 use Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory as AgreementCollectionFactory;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as OrderPaymentCollectionFactory;
 use Adyen\Payment\Model\Order\PaymentFactory;
+use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Sales\Model\Order\InvoiceFactory as MagentoInvoiceFactory;
@@ -105,6 +106,9 @@ class WebhookHandlerFactory
     /** @var PaymentTokenRepositoryInterface */
     private static $paymentTokenRepository;
 
+    /** @var OrderPaymentResourceModel */
+    private static $orderPaymentResourceModel;
+
     public function __construct(
         AdyenOrderPayment $adyenOrderPayment,
         Order $orderHelper,
@@ -127,7 +131,8 @@ class WebhookHandlerFactory
         PaymentTokenManagementInterface $paymentTokenManagement,
         PaymentTokenFactoryInterface $paymentTokenFactory,
         EncryptorInterface $encryptor,
-        PaymentTokenRepositoryInterface $paymentTokenRepository
+        PaymentTokenRepositoryInterface $paymentTokenRepository,
+        OrderPaymentResourceModel $orderPaymentResourceModel
     ) {
         self::$adyenOrderPayment = $adyenOrderPayment;
         self::$orderHelper = $orderHelper;
@@ -151,6 +156,7 @@ class WebhookHandlerFactory
         self::$paymentTokenFactory = $paymentTokenFactory;
         self::$encryptor = $encryptor;
         self::$paymentTokenRepository = $paymentTokenRepository;
+        self::$orderPaymentResourceModel = $orderPaymentResourceModel;
     }
 
     /**
@@ -187,7 +193,8 @@ class WebhookHandlerFactory
                     self::$paymentMethodsHelper,
                     self::$adyenLogger,
                     self::$configHelper,
-                    self::$orderHelper
+                    self::$orderHelper,
+                    self::$orderPaymentResourceModel,
                 );
             case Notification::REFUND:
                 return new RefundWebhookHandler(
@@ -239,6 +246,14 @@ class WebhookHandlerFactory
                     self::$adyenLogger,
                     self::$serializer,
                     self::$orderHelper
+                );
+            case Notification::ORDER_CLOSED:
+                return new OrderClosedWebhookHandler(
+                    self::$adyenOrderPayment,
+                    self::$orderHelper,
+                    self::$configHelper,
+                    self::$adyenOrderPaymentCollectionFactory,
+                    self::$adyenLogger
                 );
         }
 

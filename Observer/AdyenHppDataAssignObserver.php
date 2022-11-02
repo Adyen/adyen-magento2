@@ -11,7 +11,6 @@
 
 namespace Adyen\Payment\Observer;
 
-use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Model\ResourceModel\StateData\Collection;
 use Adyen\Service\Validator\CheckoutStateDataValidator;
@@ -19,6 +18,7 @@ use Adyen\Service\Validator\DataArrayValidator;
 use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
+use Magento\Store\Model\StoreManagerInterface;
 
 class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
 {
@@ -55,21 +55,27 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
      */
     private $stateData;
 
+    /** @var StoreManagerInterface */
+    private $storeManager;
+
     /**
      * AdyenHppDataAssignObserver constructor.
      *
      * @param CheckoutStateDataValidator $checkoutStateDataValidator
      * @param Collection $stateDataCollection
      * @param StateData $stateData
+     * @param StoreManagerInterface $storeManager
      */
     public function __construct(
         CheckoutStateDataValidator $checkoutStateDataValidator,
         Collection $stateDataCollection,
-        StateData $stateData
+        StateData $stateData,
+        StoreManagerInterface $storeManager
     ) {
         $this->checkoutStateDataValidator = $checkoutStateDataValidator;
         $this->stateDataCollection = $stateDataCollection;
         $this->stateData = $stateData;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -82,6 +88,9 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
         // Get request fields
         $data = $this->readDataArgument($observer);
         $paymentInfo = $this->readPaymentModelArgument($observer);
+
+        // Remove remaining brand_code information from the previous payment
+        $paymentInfo->unsAdditionalInformation('brand_code');
 
         // Get additional data array
         $additionalData = $data->getData(PaymentInterface::KEY_ADDITIONAL_DATA);
@@ -108,10 +117,6 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
             $this->stateData->setStateData($stateData, $paymentInfo->getData('quote_id'));
         }
 
-        if (array_key_exists(self::BRAND_CODE, $additionalData) && $additionalData[self::BRAND_CODE] === Data::SEPA) {
-            $additionalDataToSave = $this->getSepaAdditionalDataToSave($stateData);
-        }
-
 
         unset($additionalData[self::STATE_DATA]);
 
@@ -120,29 +125,10 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
             $paymentInfo->setAdditionalInformation($key, $data);
         }
 
-        // set ccType
+        // Set ccType. If payment method is tokenizable, update additional information
         if (!empty($additionalData[self::BRAND_CODE])) {
-            $paymentInfo->setCcType($additionalData[self::BRAND_CODE]);
+            $paymentMethod = $additionalData[self::BRAND_CODE];
+            $paymentInfo->setCcType($paymentMethod);
         }
-    }
-
-    /**
-     * Get the additional data to save. This data will be required if the payment is to be tokenized
-     *
-     * @param array $stateData
-     * @return array
-     */
-    private function getSepaAdditionalDataToSave(array $stateData): array
-    {
-        $additionalData = [];
-        if (array_key_exists('iban', $stateData['paymentMethod'])) {
-            $additionalData['iban'] = $stateData['paymentMethod']['iban'];
-        }
-
-        if (array_key_exists('ownerName', $stateData['paymentMethod'])) {
-            $additionalData['ownerName'] = $stateData['paymentMethod']['ownerName'];
-        }
-
-        return $additionalData;
     }
 }
