@@ -64,7 +64,7 @@ class DownloadApplePayCertificate extends Action
      */
     private function downloadAndUnzip($applepayUrl, $applepayPath)
     {
-        $tmpPath ='/tmp/xyz';
+        $tmpPath = '/tmp/xyz';
         if (false !== file_put_contents($tmpPath, file_get_contents($applepayUrl))) {
             $zip = new \ZipArchive;
             if ($zip->open($tmpPath) === true) {
