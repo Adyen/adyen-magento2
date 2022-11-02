@@ -70,7 +70,7 @@ class ApplepayCertificateButton extends Field
 
     /**
      * @return string
-     */
+     *
     public function getActionUrl(): string
     {
             return $this->backendHelper->getUrl("adyen/configuration/DownloadApplePayCertificate");
