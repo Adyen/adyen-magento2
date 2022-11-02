@@ -62,8 +62,13 @@ class TransactionMotoCapture implements ClientInterface
     public function placeRequest(TransferInterface $transferObject)
     {
         $request = $transferObject->getBody();
+        $clientConfig = $transferObject->getClientConfig();
 
-        $client = $this->adyenHelper->initializeAdyenClient(null, null, $request['merchantAccount']);
+        $client = $this->adyenHelper->initializeAdyenClient(
+            $clientConfig['storeId'],
+            null,
+            $request['merchantAccount']
+        );
         $service = new Modification($client);
 
         if (array_key_exists(self::MULTIPLE_AUTHORIZATIONS, $request)) {

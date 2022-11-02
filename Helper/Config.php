@@ -44,6 +44,7 @@ class Config
     const XML_STATUS_FRAUD_MANUAL_REVIEW = 'fraud_manual_review_status';
     const XML_STATUS_FRAUD_MANUAL_REVIEW_ACCEPT = 'fraud_manual_review_accept_status';
     const XML_MOTO_MERCHANT_ACCOUNTS = 'moto_merchant_accounts';
+    const XML_ADYEN_POS_CLOUD = 'adyen_pos_cloud';
 
     /**
      * @var ScopeConfigInterface
@@ -472,6 +473,10 @@ class Config
         return $this->getConfigData('apple_pay_certificate_url',self::XML_ADYEN_HPP,$storeId);
     }
 
+    public function getAdyenPosCloudConfigData(string $field, int $storeId = null, bool $flag = false)
+    {
+        return $this->getConfigData($field, self::XML_ADYEN_POS_CLOUD, $storeId, $flag);
+    }
 
     /**
      * Retrieve information from payment configuration
