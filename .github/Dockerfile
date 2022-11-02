@@ -26,18 +26,18 @@ DEPLOY_SAMPLEDATA=0 \
 USE_SSL=1
 
 RUN apt-get update \
-	&& apt-get install -y libjpeg62-turbo-dev \
-		libpng-dev \
-		libfreetype6-dev \
-		libxml2-dev \
-		libzip-dev \
-		libssl-dev \
-		libxslt-dev \
-		default-mysql-client \
+    && apt-get install -y libjpeg62-turbo-dev \
+        libpng-dev \
+        libfreetype6-dev \
+        libxml2-dev \
+        libzip-dev \
+        libssl-dev \
+        libxslt-dev \
+        default-mysql-client \
         ssl-cert \
-		wget \
-		cron \
-		unzip
+        wget \
+        cron \
+        unzip
 
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg
 RUN docker-php-ext-install -j$(nproc) bcmath gd intl pdo_mysql simplexml soap sockets xsl zip
