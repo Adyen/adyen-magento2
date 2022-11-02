@@ -40,6 +40,7 @@ class AddressTest extends AbstractAdyenTestCase
         self::STREET_NAME_WITH_NUMBER
     ];
 
+
     /**
      * @var Address
      */
