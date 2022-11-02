@@ -470,7 +470,7 @@ class Config
 
     public function getApplePayUrlPath($storeId = null)
     {
-        return $this->getConfigData('apple_pay_certificate_url',self::XML_ADYEN_HPP,$storeId);
+        return $this->getConfigData('apple_pay_certificate_url', self::XML_ADYEN_HPP, $storeId);
     }
 
     public function getAdyenPosCloudConfigData(string $field, int $storeId = null, bool $flag = false)

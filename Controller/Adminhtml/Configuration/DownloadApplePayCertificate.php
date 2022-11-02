@@ -85,7 +85,7 @@ class DownloadApplePayCertificate extends Action
 
         $applepayUrl = $this->configHelper->getApplePayUrlPath();
 
-        if ($this->fileIo->checkAndCreateFolder($wellknownPath, 0700 )){
+        if ($this->fileIo->checkAndCreateFolder($wellknownPath, 0700)){
             $this->downloadAndUnzip($applepayUrl, $wellknownPath);
         }
 
