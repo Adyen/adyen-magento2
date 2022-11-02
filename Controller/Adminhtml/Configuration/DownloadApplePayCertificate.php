@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2022 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -29,11 +29,21 @@ class DownloadApplePayCertificate extends Action
      */
     private $directoryList;
 
+    /**
+     * @var File
+     */
     private $fileIo;
+
+    /**
+     * @var Config
+     */
+    private $configHelper;
 
     /**
      * @param Context $context
      * @param DirectoryList $directoryList
+     * @param Config $configHelper
+     * @param File $fileIo
      */
     public function __construct(
         Context $context,
@@ -47,25 +57,23 @@ class DownloadApplePayCertificate extends Action
         $this->fileIo = $fileIo;
     }
 
-
-
-
     /**
      * @param $applepayUrl
      * @param $applepayPath
      * @return void
      */
-    private function downloadAndUnzip($applepayUrl, $applepayPath) {
+    private function downloadAndUnzip($applepayUrl, $applepayPath)
+    {
         $tmpPath ='/tmp/xyz';
-        if(FALSE !== file_put_contents($tmpPath,file_get_contents($applepayUrl))) {
+        if (false !== file_put_contents($tmpPath, file_get_contents($applepayUrl))) {
             $zip = new \ZipArchive;
-            if($zip->open($tmpPath) === TRUE){
-                $zip->extractTo($applepayPath);
+            if ($zip->open($tmpPath) === true) {
+                $zip->extractTo($tmpPath);
+                $zip->move($applepayPath);
                 $zip->close();
             }
         }
     }
-
 
     /**
      * @return ResponseInterface|Redirect|Redirect&ResultInterface|ResultInterface
@@ -78,18 +86,16 @@ class DownloadApplePayCertificate extends Action
 
         $pubPath = $this->directoryList->getPath('pub');
         $directoryName = '.well-known';
-        $filename = "apple-developer-merchantid-domain-association";
+        $filename = 'apple-developer-merchantid-domain-association';
 
         $wellknownPath = $pubPath . '/' . $directoryName;
         $applepayPath = $wellknownPath . '/' . $filename;
 
         $applepayUrl = $this->configHelper->getApplePayUrlPath();
 
-        if ($this->fileIo->checkAndCreateFolder($wellknownPath, 0700)){
+        if ($this->fileIo->checkAndCreateFolder($wellknownPath, 0700)) {
             $this->downloadAndUnzip($applepayUrl, $wellknownPath);
-        }
-
-        else {
+        } else {
             $this->fileIo->chmod($wellknownPath, 0700);
             if (!$this->fileIo->fileExists($applepayPath)) {
                 $this->downloadAndUnzip($applepayUrl, $wellknownPath);
@@ -98,6 +104,4 @@ class DownloadApplePayCertificate extends Action
 
         return $redirect;
     }
-
-
 }

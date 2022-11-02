@@ -468,11 +468,6 @@ class Config
         return $this->getConfigData('auto_capture_openinvoice', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId, true);
     }
 
-    public function getApplePayUrlPath($storeId = null)
-    {
-        return $this->getConfigData('apple_pay_certificate_url', self::XML_ADYEN_HPP, $storeId);
-    }
-
     public function getAdyenPosCloudConfigData(string $field, int $storeId = null, bool $flag = false)
     {
         return $this->getConfigData($field, self::XML_ADYEN_POS_CLOUD, $storeId, $flag);
@@ -503,5 +498,4 @@ class Config
         $path = implode("/", [self::XML_PAYMENT_PREFIX, $xmlPrefix, $field]);
         $this->configWriter->save($path, $value, $scope);
     }
-
 }
