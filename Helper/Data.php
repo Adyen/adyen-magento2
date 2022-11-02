@@ -1355,14 +1355,14 @@ class Data extends AbstractHelper
     public function getPosApiKey($storeId = null)
     {
         if ($this->isDemoMode($storeId)) {
-            $encryptedApiKeyTest = $this->getAdyenPosCloudConfigData('api_key_test', $storeId);
+            $encryptedApiKeyTest = $this->configHelper->getAdyenPosCloudConfigData('api_key_test', $storeId);
             if (is_null($encryptedApiKeyTest)) {
                 return null;
             }
 
             $apiKey = $this->_encryptor->decrypt(trim($encryptedApiKeyTest));
         } else {
-            $encryptedApiKeyLive = $this->getAdyenPosCloudConfigData('api_key_live', $storeId);
+            $encryptedApiKeyLive = $this->configHelper->getAdyenPosCloudConfigData('api_key_live', $storeId);
             if (is_null($encryptedApiKeyLive)) {
                 return null;
             }
@@ -1380,7 +1380,7 @@ class Data extends AbstractHelper
      */
     public function getPosStoreId($storeId = null)
     {
-        return $this->getAdyenPosCloudConfigData('pos_store_id', $storeId);
+        return $this->configHelper->getAdyenPosCloudConfigData('pos_store_id', $storeId);
     }
 
     /**
@@ -1399,7 +1399,7 @@ class Data extends AbstractHelper
         }
 
         $merchantAccount = $this->getAdyenAbstractConfigData("merchant_account", $storeId);
-        $merchantAccountPos = $this->getAdyenPosCloudConfigData('pos_merchant_account', $storeId);
+        $merchantAccountPos = $this->configHelper->getAdyenPosCloudConfigData('pos_merchant_account', $storeId);
 
         if ($paymentMethod == 'adyen_pos_cloud' && !empty($merchantAccountPos)) {
             return $merchantAccountPos;
@@ -1791,5 +1791,14 @@ class Data extends AbstractHelper
         return array_filter($matches, function($index) {
             return is_string($index);
         }, ARRAY_FILTER_USE_KEY);
+    }
+
+    /**
+     * @param $shopperReference
+     * @return string
+     */
+    public function padShopperReference(string $shopperReference): string
+    {
+        return str_pad($shopperReference, 3, '0', STR_PAD_LEFT);
     }
 }

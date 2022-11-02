@@ -34,6 +34,10 @@ class TokenizedPaymentMethods implements OptionSourceInterface
                 'value' => PaymentMethods\SepaPaymentMethod::TX_VARIANT,
                 'label' => PaymentMethods\SepaPaymentMethod::NAME
             ],
+            [
+                'value' => PaymentMethods\TwintPaymentMethod::TX_VARIANT,
+                'label' => PaymentMethods\TwintPaymentMethod::NAME
+            ]
         ];
     }
 }
