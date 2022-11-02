@@ -34,13 +34,16 @@ RUN apt-get update \
 		libssl-dev \
 		libxslt-dev \
 		default-mysql-client \
+        ssl-cert \
 		wget \
 		cron \
-		unzip 
+		unzip
 
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg
 RUN docker-php-ext-install -j$(nproc) bcmath gd intl pdo_mysql simplexml soap sockets xsl zip
-
+RUN a2enmod ssl
+RUN a2ensite default-ssl.conf #can be removed if not needed
+WORKDIR /var/www/html
 COPY config/php.ini /usr/local/etc/php/
 COPY config/install_magento.sh /tmp/install_magento.sh
 
