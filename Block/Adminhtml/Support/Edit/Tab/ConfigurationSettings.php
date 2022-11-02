@@ -170,8 +170,8 @@ class ConfigurationSettings extends Generic implements TabInterface
             'textarea',
             [
                 'name' => 'orderHistoryComments',
-                'label' => __('Attach config values'),
-                'title' => __('Attach config values'),
+                'label' => __('Order History Comments'),
+                'title' => __('Order History Comments'),
                 'class' => '',
                 'required' => false,
             ]

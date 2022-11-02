@@ -1,8 +1,7 @@
 <?php declare(strict_types=1);
 
 namespace Adyen\Payment\Controller\Adminhtml\Configuration;
-
-use Adyen\Payment\Model\Email\TransportBuilder;
+use Magento\Framework\Mail\Template\TransportBuilder;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Controller\ResultFactory;
