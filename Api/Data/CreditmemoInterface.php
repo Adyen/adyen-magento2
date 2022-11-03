@@ -46,9 +46,9 @@ interface CreditmemoInterface
     /**
      * Gets the Pspreference for the creditmemo(capture)
      *
-     * @return int|null Pspreference.
+     * @return string|null Pspreference.
      */
-    public function getPspreference(): ?int;
+    public function getPspreference(): ?string;
 
     /**
      * Sets Pspreference.
@@ -56,7 +56,7 @@ interface CreditmemoInterface
      * @param string $pspreference
      * @return $this
      */
-    public function setPspreference($pspreference): CreditmemoInterface;
+    public function setPspreference(string $pspreference): CreditmemoInterface;
 
     /**
      * @return string
@@ -64,10 +64,10 @@ interface CreditmemoInterface
     public function getOriginalReference(): string;
 
     /**
-     * @param  $originalReference
+     * @param  string $originalReference
      * @return $this
      */
-    public function setOriginalReference($originalReference): CreditmemoInterface;
+    public function setOriginalReference(string $originalReference): CreditmemoInterface;
 
     /**
      * Gets the CreditmemoID for the creditmemo.
@@ -80,7 +80,7 @@ interface CreditmemoInterface
      * @param int $creditMemoId
      * @return $this
      */
-    public function setCreditmemoId($creditmemoId): CreditmemoInterface;
+    public function setCreditmemoId(int $creditmemoId): CreditmemoInterface;
 
     /**
      * @return int|null
@@ -88,10 +88,10 @@ interface CreditmemoInterface
     public function getAmount(): ?int;
 
     /**
-     * @param $amount
+     * @param string $amount
      * @return $this
      */
-    public function setAmount($amount): CreditmemoInterface;
+    public function setAmount(string $amount): CreditmemoInterface;
 
     /**
      * @return int|null
@@ -99,10 +99,10 @@ interface CreditmemoInterface
     public function getAdyenPaymentOrderId(): ?int;
 
     /**
-     * @param $id
+     * @param int $id
      * @return $this
      */
-    public function setAdyenPaymentOrderId($id): CreditmemoInterface;
+    public function setAdyenPaymentOrderId(int $id): CreditmemoInterface;
 
     /**
      * @return string|null
@@ -110,30 +110,30 @@ interface CreditmemoInterface
     public function getStatus(): ?string;
 
     /**
-     * @param $status
+     * @param string $status
      * @return $this
      */
-    public function setStatus($status): CreditmemoInterface;
+    public function setStatus(string $status): CreditmemoInterface;
 
     /**
-     * @return string
+     * @return \DateTime
      */
-    public function getCreatedAt(): string;
+    public function getCreatedAt(): \DateTime;
 
     /**
-     * @param $createdAt
+     * @param \DateTime $createdAt
      * @return $this
      */
-    public function setCreatedAt($createdAt): CreditmemoInterface;
+    public function setCreatedAt(\DateTime $createdAt): CreditmemoInterface;
 
     /**
-     * @return string
+     * @return \DateTime
      */
-    public function getUpdatedAt(): string;
+    public function getUpdatedAt(): \DateTime;
 
     /**
-     * @param $updatedAt
+     * @param \DateTime $updatedAt
      * @return $this
      */
-    public function setUpdatedAt($updatedAt): CreditmemoInterface;
+    public function setUpdatedAt(\DateTime $updatedAt): CreditmemoInterface;
 }
