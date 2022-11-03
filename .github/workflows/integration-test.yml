@@ -45,16 +45,13 @@ jobs:
         run: docker exec magento2-container make graphql
 
       - name: Switch to production mode
-        if: github.event.pull_request.base.ref == 'main'
         run: docker exec -u www-data magento2-container make production
 
       - name: Setup permissions
-        if: github.event.pull_request.base.ref == 'main'
         run: docker exec magento2-container make fs
 
       - name: Run E2E tests
-        if: github.event.pull_request.base.ref == 'main'
-        continue-on-error: true
+        if: ${{ matrix.php-version == '8.1'}} 
         run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm playwright /e2e.sh
         env:
           INTEGRATION_TESTS_BRANCH: develop
@@ -65,7 +62,7 @@ jobs:
           PAYPAL_PASSWORD: ${{secrets.PLAYWRIGHT_PAYPAL_PASSWORD}}
 
       - name: Archive test result artifacts
-        if: github.event.pull_request.base.ref == 'main'
+        if: always()
         uses: actions/upload-artifact@v3
         with:
           name: html-report
