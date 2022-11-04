@@ -88,10 +88,10 @@ interface CreditmemoInterface
     public function getAmount(): ?int;
 
     /**
-     * @param string $amount
+     * @param int $amount
      * @return $this
      */
-    public function setAmount(string $amount): CreditmemoInterface;
+    public function setAmount(int $amount): CreditmemoInterface;
 
     /**
      * @return int|null

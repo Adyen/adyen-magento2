@@ -139,10 +139,10 @@ class Creditmemo extends AbstractModel implements CreditMemoInterface
     }
 
     /**
-     * @param string $amount
+     * @param int $amount
      * @return Creditmemo
      */
-    public function setAmount(string $amount): Creditmemo
+    public function setAmount(int $amount): Creditmemo
     {
         return $this->setData(self::AMOUNT, $amount);
     }
