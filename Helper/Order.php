@@ -617,7 +617,7 @@ class Order extends AbstractHelper
 
         $orders = $this->orderRepository->getList($searchCriteria)->getItems();
 
-        return reset($orders);
+        return reset($orders) ?? null;
     }
 
     /**
