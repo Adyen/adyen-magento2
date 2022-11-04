@@ -30,7 +30,7 @@ class ApplepayCertificateButton extends Field
      * @param Data $backendHelper
      * @param array $data
      */
-    public function __construct(
+     public function __construct(
         Context $context,
         Data $backendHelper,
         array $data = []
