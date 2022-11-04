@@ -22,6 +22,7 @@ use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 use Magento\Catalog\Helper\Image;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
+use \Adyen\Service\Builder\OpenInvoice;
 
 class CheckoutDataBuilder implements BuilderInterface
 {
@@ -58,12 +59,18 @@ class CheckoutDataBuilder implements BuilderInterface
     private $configHelper;
 
     /**
+     * @var OpenInvoice
+     */
+    private $openInvoiceBuilder;
+
+    /**
      * CheckoutDataBuilder constructor.
      * @param Data $adyenHelper
      * @param StateData $stateData
      * @param CartRepositoryInterface $cartRepository
      * @param ChargedCurrency $chargedCurrency
      * @param Image $imageHelper
+     * @param OpenInvoiceBuilder $openInvoiceBuilder
      */
     public function __construct(
         Data $adyenHelper,
@@ -71,7 +78,8 @@ class CheckoutDataBuilder implements BuilderInterface
         CartRepositoryInterface $cartRepository,
         ChargedCurrency $chargedCurrency,
         Image $imageHelper,
-        Config $configHelper
+        Config $configHelper,
+        OpenInvoiceBuilder $openInvoiceBuilder
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->stateData = $stateData;
@@ -79,6 +87,7 @@ class CheckoutDataBuilder implements BuilderInterface
         $this->chargedCurrency = $chargedCurrency;
         $this->imageHelper = $imageHelper;
         $this->configHelper = $configHelper;
+        $this->openInvoiceBuilder = $openInvoiceBuilder;
     }
 
     /**
@@ -284,17 +293,17 @@ class CheckoutDataBuilder implements BuilderInterface
 
             $formattedTaxPercentage = $this->adyenHelper->formatAmount($item->getTaxPercent(), $currency);
 
-            $formFields['lineItems'][] = [
-                'id' => $item->getId(),
-                'amountExcludingTax' => $formattedPriceExcludingTax,
-                'amountIncludingTax' => $formattedPriceIncludingTax,
-                'taxAmount' => $formattedTaxAmount,
-                'description' => $item->getName(),
-                'quantity' => $numberOfItems,
-                'taxPercentage' => $formattedTaxPercentage,
-                'productUrl' => $item->getProduct()->getUrlModel()->getUrl($item->getProduct()),
-                'imageUrl' => $this->getImageUrl($item)
-            ];
+            $formFields['lineItems'][] = $this->openInvoiceBuilder->buildOpenInvoiceLineItem(
+                $item->getName(),
+                $formattedPriceExcludingTax,
+                $formattedTaxAmount,
+                $formattedTaxPercentage,
+                $numberOfItems,
+                '',
+                $item->getId(),
+                $item->getProduct()->getUrlModel()->getUrl($item->getProduct()),
+                $this->getImageUrl($item)
+            );
         }
 
         // Discount cost
