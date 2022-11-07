@@ -279,7 +279,7 @@ class Webhook
     {
         $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize(
             $notification->getAdditionalData()
-        ) : "";
+        ) : [];
 
         if (is_array($additionalData)) {
             $additionalData2 = $additionalData['additionalData'] ?? null;
