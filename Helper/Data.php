@@ -68,6 +68,7 @@ class Data extends AbstractHelper
     const PAYBRIGHT = 'paybright';
     const SEPA = 'sepadirectdebit';
     const MOLPAY = 'molpay_';
+    const ATOME = 'atome';
 
     /**
      * @var EncryptorInterface
@@ -1038,7 +1039,8 @@ class Data extends AbstractHelper
             strpos($paymentMethod, self::AFFIRM) !== false ||
             strpos($paymentMethod, self::CLEARPAY) !== false ||
             strpos($paymentMethod, self::ZIP) !== false ||
-            strpos($paymentMethod, self::PAYBRIGHT) !== false
+            strpos($paymentMethod, self::PAYBRIGHT) !== false ||
+            strpos($paymentMethod, self::ATOME) !== false
         ) {
             return true;
         }
