@@ -132,9 +132,11 @@ define(
                 // installments
                 let allInstallments = self.getAllInstallments();
 
+                debugger;
+
                 let componentConfig = {
                     enableStoreDetails: self.getEnableStoreDetails(),
-                    brands: self.paymentMethodsResponse.getPaymentMethods(),
+                    brands: self.getBrands(),
                     hasHolderName: adyenConfiguration.getHasHolderName(),
                     holderNameRequired: adyenConfiguration.getHasHolderName() &&
                         adyenConfiguration.getHolderNameRequired(),
@@ -365,6 +367,24 @@ define(
                 }
 
                 return '';
+            },
+
+            /**
+             * Fetches the brands array of the credit cards
+             *
+             * @returns {array}
+             */
+            getBrands: function() {
+                let emptyArr = [];
+                let paymentMethods =
+                    adyenPaymentService.getPaymentMethods()._latestValue.paymentMethodsResponse.paymentMethods;
+
+                for (let i = 0; i < paymentMethods.length; i++) {
+                    let paymentMethod = paymentMethods[i];
+                    if (Object.values(paymentMethod).includes("Credit Card")) {
+                        return paymentMethod.brands;
+                    }
+                }
             },
             /**
              * Return Payment method code
