@@ -132,8 +132,6 @@ define(
                 // installments
                 let allInstallments = self.getAllInstallments();
 
-                debugger;
-
                 let componentConfig = {
                     enableStoreDetails: self.getEnableStoreDetails(),
                     brands: self.getBrands(),
