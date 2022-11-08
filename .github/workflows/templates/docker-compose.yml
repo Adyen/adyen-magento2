@@ -73,6 +73,9 @@ services:
       - MAGENTO_ADMIN_PASSWORD
       - PAYPAL_USERNAME
       - PAYPAL_PASSWORD
+      - ADYEN_API_KEY
+      - ADYEN_CLIENT_KEY
+      - ADYEN_MERCHANT
     volumes:
       - ../../scripts/e2e.sh:/e2e.sh
       - ../../../test-report:/tmp/test-report
