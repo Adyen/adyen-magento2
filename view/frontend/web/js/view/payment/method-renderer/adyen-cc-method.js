@@ -375,7 +375,6 @@ define(
              * @returns {array}
              */
             getBrands: function() {
-                let emptyArr = [];
                 let paymentMethods =
                     adyenPaymentService.getPaymentMethods()._latestValue.paymentMethodsResponse.paymentMethods;
 
