@@ -85,7 +85,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentIdealFacade" type="Adyen\Payment\Model\Method\Adapter">
         <arguments>
-            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenIdealConfigProvider::CODE</argument>
+            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenPaymentMethodConfigProvider::CODE_IDEAL</argument>
             <argument name="infoBlockType" xsi:type="string">Magento\Payment\Block\ConfigurableInfo</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentHppValueHandlerPool</argument>
             <argument name="validatorPool" xsi:type="object">AdyenPaymentHppValidatorPool</argument>
