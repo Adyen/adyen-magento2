@@ -1339,7 +1339,7 @@ class Data extends AbstractHelper
 
         if ($this->isVatCategoryHigh(
             $payment->getAdditionalInformation(
-                \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE
+                \Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver::BRAND_CODE
             )
         )
         ) {

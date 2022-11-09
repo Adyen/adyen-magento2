@@ -14,7 +14,7 @@ namespace Adyen\Payment\Helper;
 use Adyen\Payment\Model\Billing\AgreementFactory;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\ResourceModel\Billing\Agreement;
-use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
+use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 
 class Recurring
 {
