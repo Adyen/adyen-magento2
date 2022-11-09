@@ -133,9 +133,15 @@ class Webhook
         // log the executed notification
         $order = $this->orderHelper->getOrderByIncrementId($notification->getMerchantReference());
         if (!$order) {
-            $this->logger->addAdyenNotification(
-                sprintf('Order w/merchant reference %s not found', $notification->getMerchantReference()),
+            $errorMessage = sprintf(
+                'Order w/merchant reference %s not found',
+                $notification->getMerchantReference()
             );
+
+            $this->logger->addAdyenNotification($errorMessage);
+
+            $this->updateNotification($notification, false, true);
+            $this->setNotificationError($notification, $errorMessage);
 
             return false;
         }
@@ -167,13 +173,9 @@ class Webhook
 
             $transitionState = $this->getTransitionState($notification, $currentState);
 
-            try {
-                $webhookHandler = self::$webhookHandlerFactory::create($notification->getEventCode());
-                $order = $webhookHandler->handleWebhook($order, $notification, $transitionState);
-                $this->orderRepository->save($order);
-            } catch (Exception $e) {
-                $this->logger->addAdyenWarning($e->getMessage());
-            }
+            $webhookHandler = self::$webhookHandlerFactory::create($notification->getEventCode());
+            $order = $webhookHandler->handleWebhook($order, $notification, $transitionState);
+            $this->orderRepository->save($order);
 
             $this->updateNotification($notification, false, true);
             $this->logger->addAdyenNotification(
@@ -189,6 +191,9 @@ class Webhook
             /*
              * Webhook Module throws InvalidDataException if the eventCode is not supported.
              * Prevent re-process attempts and change the state of the notification to `done`.
+             *
+             * Same exception type is being thrown from the WebhookHandlerFactory
+             * for webhook events that are not yet handled by the Adyen Magento plugin.
              */
             $this->updateNotification($notification, false, true);
             $this->handleNotificationError(
