@@ -181,14 +181,14 @@ define(
                         return accumulator;
                     }, []);
 
-                return paymentList;
+                return [paymentList[0]];
             },
             buildPaymentMethodComponentResult: function (paymentMethod, paymentMethodsExtraInfo) {
                 var self = this;
                 var result = {
                     isAvailable: ko.observable(true),
                     paymentMethod: paymentMethod,
-                    method: self.item.method,
+                    method: 'adyen_ideal',
                     item: {
                         'title': paymentMethod.name,
                         'method': paymentMethod.methodIdentifier
@@ -533,7 +533,7 @@ define(
                 return window.checkoutConfig.payment.adyenHpp.deviceIdentToken;
             },
             getCode: function() {
-                return window.checkoutConfig.payment.adyenHpp.methodCode;
+                return 'adyen_ideal';
             },
 
             /**

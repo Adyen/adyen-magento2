@@ -37,13 +37,17 @@ define(
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-oneclick-method'
             },
             {
+                type: 'adyen_ideal',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-hpp-method'
+            },
+            {
                 type: 'adyen_cc',
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method'
             },
-            {
+            /*{
                 type: 'adyen_hpp',
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-hpp-method'
-            },
+            },*/
             {
                 type: 'adyen_boleto',
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-boleto-method'

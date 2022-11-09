@@ -62,6 +62,8 @@
         </arguments>
     </virtualType>
 
+
+
     <virtualType name="AdyenPaymentOneclickFacade" type="Adyen\Payment\Model\Method\Adapter">
         <arguments>
             <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider::CODE</argument>
@@ -77,6 +79,15 @@
             <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenHppConfigProvider::CODE</argument>
             <argument name="formBlockType" xsi:type="string">Adyen\Payment\Block\Form\Hpp</argument>
             <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\Hpp</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentHppValueHandlerPool</argument>
+            <argument name="validatorPool" xsi:type="object">AdyenPaymentHppValidatorPool</argument>
+            <argument name="commandPool" xsi:type="object">AdyenPaymentHppCommandPool</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentIdealFacade" type="Adyen\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenIdealConfigProvider::CODE</argument>
+            <argument name="infoBlockType" xsi:type="string">Magento\Payment\Block\ConfigurableInfo</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentHppValueHandlerPool</argument>
             <argument name="validatorPool" xsi:type="object">AdyenPaymentHppValidatorPool</argument>
             <argument name="commandPool" xsi:type="object">AdyenPaymentHppCommandPool</argument>
