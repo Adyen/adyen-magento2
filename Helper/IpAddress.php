@@ -42,6 +42,11 @@ class IpAddress
     private $serializer;
 
     /**
+     * @var Config
+     */
+    private $configHelper;
+
+    /**
      * @var AdyenLogger $adyenLogger
      */
     protected $adyenLogger;
@@ -53,17 +58,20 @@ class IpAddress
      * @param CacheInterface $cache
      * @param SerializerInterface $serializer
      * @param AdyenLogger $adyenLogger
+     * @param config $configHelper
      */
     public function __construct(
         IpAddressUtil $ipAddressUtil,
         CacheInterface $cache,
         SerializerInterface $serializer,
-        AdyenLogger $adyenLogger
+        AdyenLogger $adyenLogger,
+        config $configHelper
     ) {
         $this->ipAddressUtil = $ipAddressUtil;
         $this->cache = $cache;
         $this->serializer = $serializer;
         $this->adyenLogger = $adyenLogger;
+        $this->configHelper = $configHelper;
     }
 
     /**
@@ -74,6 +82,12 @@ class IpAddress
      */
     public function isIpAddressValid($ipAddresses)
     {
+        $isNotificationsIpCheckEnabled = $this->configHelper->getNotificationsIpCheck();
+
+        if (!$isNotificationsIpCheckEnabled) {
+            return true;
+        }
+
         if (empty($ipAddresses)) {
             return false;
         }
