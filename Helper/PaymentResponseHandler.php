@@ -18,7 +18,7 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
-use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
+use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Exception;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order\Payment;
@@ -229,7 +229,7 @@ class PaymentResponseHandler
                     $storePaymentMethods = $this->configHelper->isStoreAlternativePaymentMethodEnabled($storeId);
 
                     if ($storePaymentMethods && $paymentInstanceCode === AdyenHppConfigProvider::CODE) {
-                        $brand = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
+                        $brand = $payment->getAdditionalInformation(AdyenPaymentMethodDataAssignObserver::BRAND_CODE);
                         try {
                             $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($brand);
                             if ($adyenPaymentMethod instanceof AbstractWalletPaymentMethod) {
