@@ -12,15 +12,18 @@
 namespace Adyen\Payment\Controller\Adminhtml\Configuration;
 
 use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\FileSystemException;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Filesystem\DirectoryList;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Backend\App\Action;
 use Magento\Framework\Filesystem\Io\File;
+use Exception;
 
 class DownloadApplePayCertificate extends Action
 {
@@ -40,43 +43,35 @@ class DownloadApplePayCertificate extends Action
     private $configHelper;
 
     /**
+     * @var AdyenLogger
+     */
+    private $adyenLogger;
+
+    /**
      * @param Context $context
      * @param DirectoryList $directoryList
      * @param Config $configHelper
      * @param File $fileIo
+     * @param AdyenLogger $adyenLogger
      */
     public function __construct(
         Context $context,
         DirectoryList $directoryList,
         Config $configHelper,
-        File $fileIo
+        File $fileIo,
+        AdyenLogger $adyenLogger
     ) {
         parent::__construct($context);
         $this->directoryList = $directoryList;
         $this->configHelper = $configHelper;
         $this->fileIo = $fileIo;
-    }
-
-    /**
-     * @param $applepayUrl
-     * @param $applepayPath
-     * @return void
-     */
-    private function downloadAndUnzip($applepayUrl, $applepayPath)
-    {
-        $tmpPath = tempnam(sys_get_temp_dir(), 'apple-developer-merchantid-domain-association');
-        if (false !== file_put_contents($tmpPath, file_get_contents($applepayUrl))) {
-            $zip = new \ZipArchive;
-            if ($zip->open($tmpPath) === true) {
-                $zip->extractTo($applepayPath);
-                $zip->close();
-            }
-        }
+        $this->adyenLogger = $adyenLogger;
     }
 
     /**
      * @return ResponseInterface|Redirect|Redirect&ResultInterface|ResultInterface
      * @throws FileSystemException
+     * @throws LocalizedException
      */
     public function execute()
     {
@@ -102,5 +97,27 @@ class DownloadApplePayCertificate extends Action
         }
 
         return $redirect;
+    }
+
+    /**
+     * @param string $applepayUrl
+     * @param string $applepayPath
+     * @return void
+     * @throws LocalizedException
+     */
+    private function downloadAndUnzip(string $applepayUrl, string $applepayPath)
+    {
+        try {
+            $tmpPath = tempnam(sys_get_temp_dir(), 'apple-developer-merchantid-domain-association');
+            file_put_contents($tmpPath, file_get_contents($applepayUrl));
+            $zip = new \ZipArchive;
+            $zip->open($tmpPath);
+            $zip->extractTo($applepayPath);
+            $zip->close();
+        } catch (Exception $e) {
+            $errormessage = 'Failed to download the ApplePay certificate please do so manually';
+            $this->adyenLogger->addAdyenWarning($errormessage);
+            throw new LocalizedException(__($errormessage ));
+        }
     }
 }
