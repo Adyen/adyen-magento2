@@ -68,6 +68,7 @@ type AdyenPaymentMethodsArray {
 type AdyenPaymentMethodsConfiguration {
     merchantId: String @doc(description: "ID of the merchant.")
     merchantName: String  @doc(description: "Name of the merchant.")
+    gatewayMerchantId: String @doc(description: "Name of the merchant for Google Pay.")
 }
 
 type AdyenPaymentMethodsDetails {
