@@ -80,7 +80,7 @@ class IpAddress
      * @param string[] $ipAddresses
      * @return bool
      */
-    public function isIpAddressValid($ipAddresses)
+    public function isIpAddressValid($ipAddresses): bool
     {
         $isNotificationsIpCheckEnabled = $this->configHelper->getNotificationsIpCheck();
 
