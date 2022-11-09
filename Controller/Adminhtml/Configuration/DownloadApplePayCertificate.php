@@ -87,13 +87,19 @@ class DownloadApplePayCertificate extends Action
 
         $applepayUrl = $this->configHelper->getApplePayUrlPath();
 
-        if ($this->fileIo->checkAndCreateFolder($wellknownPath, 0700)) {
-            $this->downloadAndUnzip($applepayUrl, $wellknownPath);
-        } else {
-            $this->fileIo->chmod($wellknownPath, 0700);
-            if (!$this->fileIo->fileExists($applepayPath)) {
+        try {
+            if ($this->fileIo->checkAndCreateFolder($wellknownPath, 0700)) {
                 $this->downloadAndUnzip($applepayUrl, $wellknownPath);
+            } else {
+                $this->fileIo->chmod($wellknownPath, 0700);
+                if (!$this->fileIo->fileExists($applepayPath)) {
+                    $this->downloadAndUnzip($applepayUrl, $wellknownPath);
+                }
             }
+        } catch (Exception $e) {
+            $errormessage = 'Failed to download the ApplePay certificate please do so manually';
+            $this->adyenLogger->addAdyenWarning($errormessage);
+            $this->messageManager->addErrorMessage($errormessage);
         }
 
         return $redirect;
@@ -107,17 +113,12 @@ class DownloadApplePayCertificate extends Action
      */
     private function downloadAndUnzip(string $applepayUrl, string $applepayPath)
     {
-        try {
-            $tmpPath = tempnam(sys_get_temp_dir(), 'apple-developer-merchantid-domain-association');
-            file_put_contents($tmpPath, file_get_contents($applepayUrl));
-            $zip = new \ZipArchive;
-            $zip->open($tmpPath);
-            $zip->extractTo($applepayPath);
-            $zip->close();
-        } catch (Exception $e) {
-            $errormessage = 'Failed to download the ApplePay certificate please do so manually';
-            $this->adyenLogger->addAdyenWarning($errormessage);
-            throw new LocalizedException(__($errormessage ));
-        }
+        $tmpPath = tempnam(sys_get_temp_dir(), 'apple-developer-merchantid-domain-association');
+        file_put_contents($tmpPath, file_get_contents($applepayUrl));
+
+        $zip = new \ZipArchive;
+        $zip->open($tmpPath);
+        $zip->extractTo($applepayPath);
+        $zip->close();
     }
 }
