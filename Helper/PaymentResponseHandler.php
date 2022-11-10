@@ -21,7 +21,6 @@ use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 use Exception;
 use Magento\Sales\Api\Data\OrderInterface;
-use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\ResourceModel\Order;
 
