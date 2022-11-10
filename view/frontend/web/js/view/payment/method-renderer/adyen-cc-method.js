@@ -378,7 +378,7 @@ define(
 
                 for (let i = 0; i < paymentMethods.length; i++) {
                     let paymentMethod = paymentMethods[i];
-                    if (Object.values(paymentMethod).includes("Credit Card")) {
+                    if (Object.values(paymentMethod).includes("scheme")) {
                         return paymentMethod.brands;
                     }
                 }
