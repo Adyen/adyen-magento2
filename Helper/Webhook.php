@@ -302,9 +302,9 @@ class Webhook
     {
         $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize(
             $notification->getAdditionalData()
-        ) : "";
+        ) : [];
 
-        if (is_array($additionalData)) {
+        if (!empty($additionalData)) {
             $additionalData2 = $additionalData['additionalData'] ?? null;
             if ($additionalData2 && is_array($additionalData2)) {
                 $this->klarnaReservationNumber = isset($additionalData2['acquirerReference']) ? trim(
@@ -429,7 +429,7 @@ class Webhook
 
         $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize(
             $notification->getAdditionalData()
-        ) : "";
+        ) : [];
 
         if ($notification->getEventCode() == Notification::AUTHORISATION
             || $notification->getEventCode() == Notification::HANDLED_EXTERNALLY
