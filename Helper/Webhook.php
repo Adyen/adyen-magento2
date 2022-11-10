@@ -12,6 +12,7 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Exception\AdyenWebhookException;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\Order as OrderHelper;
 use Adyen\Payment\Helper\Webhook\WebhookHandlerFactory;
@@ -215,12 +216,29 @@ class Webhook
             );
 
             return false;
+        } catch (AdyenWebhookException $e) {
+            $this->updateNotification($notification, false, false);
+            $this->handleNotificationError($order, $notification, $e->getMessage());
+            $this->logger->addAdyenNotification(
+                sprintf(
+                    "Webhook notification error occurred. Notification %s had an error: %s \n %s",
+                    $notification->getEntityId(),
+                    $e->getMessage(),
+                    $e->getTraceAsString()
+                ),
+                array_merge(
+                    $this->logger->getOrderContext($order),
+                    ['pspReference' => $notification->getPspReference()]
+                )
+            );
+
+            return false;
         } catch (Exception $e) {
             $this->updateNotification($notification, false, false);
             $this->handleNotificationError($order, $notification, $e->getMessage());
             $this->logger->addAdyenNotification(
                 sprintf(
-                    "Notification %s had an error: %s \n %s",
+                    "Critical error occurred. Notification %s had an error: %s \n %s",
                     $notification->getEntityId(),
                     $e->getMessage(),
                     $e->getTraceAsString()
