@@ -12,6 +12,7 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Exception\AdyenWebhookException;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\Order as OrderHelper;
 use Adyen\Payment\Helper\Webhook\WebhookHandlerFactory;
@@ -133,9 +134,15 @@ class Webhook
         // log the executed notification
         $order = $this->orderHelper->getOrderByIncrementId($notification->getMerchantReference());
         if (!$order) {
-            $this->logger->addAdyenNotification(
-                sprintf('Order w/merchant reference %s not found', $notification->getMerchantReference()),
+            $errorMessage = sprintf(
+                'Order w/merchant reference %s not found',
+                $notification->getMerchantReference()
             );
+
+            $this->logger->addAdyenNotification($errorMessage);
+
+            $this->updateNotification($notification, false, true);
+            $this->setNotificationError($notification, $errorMessage);
 
             return false;
         }
@@ -167,13 +174,9 @@ class Webhook
 
             $transitionState = $this->getTransitionState($notification, $currentState);
 
-            try {
-                $webhookHandler = self::$webhookHandlerFactory::create($notification->getEventCode());
-                $order = $webhookHandler->handleWebhook($order, $notification, $transitionState);
-                $this->orderRepository->save($order);
-            } catch (Exception $e) {
-                $this->logger->addAdyenWarning($e->getMessage());
-            }
+            $webhookHandler = self::$webhookHandlerFactory::create($notification->getEventCode());
+            $order = $webhookHandler->handleWebhook($order, $notification, $transitionState);
+            $this->orderRepository->save($order);
 
             $this->updateNotification($notification, false, true);
             $this->logger->addAdyenNotification(
@@ -189,6 +192,9 @@ class Webhook
             /*
              * Webhook Module throws InvalidDataException if the eventCode is not supported.
              * Prevent re-process attempts and change the state of the notification to `done`.
+             *
+             * Same exception type is being thrown from the WebhookHandlerFactory
+             * for webhook events that are not yet handled by the Adyen Magento plugin.
              */
             $this->updateNotification($notification, false, true);
             $this->handleNotificationError(
@@ -210,12 +216,29 @@ class Webhook
             );
 
             return false;
+        } catch (AdyenWebhookException $e) {
+            $this->updateNotification($notification, false, false);
+            $this->handleNotificationError($order, $notification, $e->getMessage());
+            $this->logger->addAdyenNotification(
+                sprintf(
+                    "Webhook notification error occurred. Notification %s had an error: %s \n %s",
+                    $notification->getEntityId(),
+                    $e->getMessage(),
+                    $e->getTraceAsString()
+                ),
+                array_merge(
+                    $this->logger->getOrderContext($order),
+                    ['pspReference' => $notification->getPspReference()]
+                )
+            );
+
+            return false;
         } catch (Exception $e) {
             $this->updateNotification($notification, false, false);
             $this->handleNotificationError($order, $notification, $e->getMessage());
             $this->logger->addAdyenNotification(
                 sprintf(
-                    "Notification %s had an error: %s \n %s",
+                    "Critical error occurred. Notification %s had an error: %s \n %s",
                     $notification->getEntityId(),
                     $e->getMessage(),
                     $e->getTraceAsString()
