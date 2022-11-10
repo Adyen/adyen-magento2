@@ -36,7 +36,7 @@ class IpAddressTest extends AbstractAdyenTestCase
         $ipAddressUtil = $this->createMock(\Adyen\Util\IpAddress::class);
         $adyenLogger = $this->createMock(AdyenLogger::class);
         $configHelper = $this->createMock(Config::class);
-        $configHelper->method('getNotificationsIpCheck')->willReturnArgument(true);
+        $configHelper->method('getNotificationsIpCheck')->willReturn(true);
 
         $this->ipAddressHelper = new IpAddress(
             $ipAddressUtil,
