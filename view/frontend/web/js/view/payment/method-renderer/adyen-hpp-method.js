@@ -177,7 +177,10 @@ define(
 
                         var result = self.buildPaymentMethodComponentResult(paymentMethod, paymentMethodsExtraInfo);
 
-                        accumulator.push(result);
+                        if (self.getTxVariant() === paymentMethod.type) {
+                            accumulator.push(result);
+                        }
+
                         return accumulator;
                     }, []);
 
@@ -188,7 +191,7 @@ define(
                 var result = {
                     isAvailable: ko.observable(true),
                     paymentMethod: paymentMethod,
-                    method: 'adyen_ideal',
+                    method: self.item.method,
                     item: {
                         'title': paymentMethod.name,
                         'method': paymentMethod.methodIdentifier
@@ -519,21 +522,20 @@ define(
                 }, 10000);
             },
             validate: function() {
-                var form = '#payment_form_' + this.getCode() + '_' +
+                var form = '#payment_form_' +
                     selectedAlternativePaymentMethodType();
                 var validate = $(form).validation() &&
                     $(form).validation('isValid');
                 return validate && additionalValidators.validate();
             },
             isButtonActive: function() {
-                return this.getCode() == this.isChecked() &&
-                    this.isPlaceOrderActionAllowed();
+                return this.isPlaceOrderActionAllowed();
             },
             getRatePayDeviceIdentToken: function() {
                 return window.checkoutConfig.payment.adyenHpp.deviceIdentToken;
             },
-            getCode: function() {
-                return 'adyen_ideal';
+            getTxVariant: function () {
+                return this.item.method.split('_')[1]
             },
 
             /**
@@ -817,7 +819,7 @@ define(
 
                     result.component = adyenCheckout.mountPaymentMethodComponent(
                         self.checkoutComponent,
-                        paymentMethod.methodIdentifier,
+                        self.getTxVariant(),
                         configuration,
                         containerId,
                         result
