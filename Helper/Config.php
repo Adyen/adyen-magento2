@@ -258,7 +258,7 @@ class Config
      * @param int $storeId
      * @return bool
      */
-    public function getNotificationsIpCheck($storeId = null): bool
+    public function getNotificationsIpCheck(int $storeId = null): bool
     {
         return (bool) $this->getConfigData(
             self::XML_NOTIFICATIONS_IP_CHECK,
