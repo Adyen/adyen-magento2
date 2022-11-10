@@ -166,8 +166,9 @@ class PaymentResponseHandler
             return false;
         }
 
-        if (!empty($paymentsResponse['resultCode']))
+        if (!empty($paymentsResponse['resultCode'])) {
             $payment->setAdditionalInformation('resultCode', $paymentsResponse['resultCode']);
+        }
 
         if (!empty($paymentsResponse['action'])) {
             $payment->setAdditionalInformation('action', $paymentsResponse['action']);
@@ -248,19 +249,19 @@ class PaymentResponseHandler
                                 $brand
                             ));
                         }
-                    } else {
+                    } elseif ($paymentInstanceCode === AdyenCcConfigProvider::CODE) {
                         $order = $payment->getOrder();
                         $recurringMode = $this->configHelper->getCardRecurringMode($storeId);
 
-                        // if adyen tokenization set up, create entry in paypal_billing_agreement table
+                        // if Adyen Tokenization set up, create entry in paypal_billing_agreement table
                         if ($recurringMode === self::ADYEN_TOKENIZATION) {
                             $this->recurringHelper->createAdyenBillingAgreement(
                                 $order,
                                 $paymentsResponse['additionalData'],
                                 $payment->getAdditionalInformation()
                             );
-                            // if vault set up, create entry in vault_payment_token table
-                        } elseif ($recurringMode === self::VAULT && $paymentInstanceCode === AdyenCcConfigProvider::CODE) {
+                        // if Vault set up, create entry in vault_payment_token table
+                        } elseif ($recurringMode === self::VAULT) {
                             $this->vaultHelper->saveRecurringCardDetails($payment, $paymentsResponse['additionalData']);
                         }
                     }
