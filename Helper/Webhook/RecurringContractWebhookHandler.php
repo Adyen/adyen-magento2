@@ -12,6 +12,7 @@
 
 namespace Adyen\Payment\Helper\Webhook;
 
+use Adyen\Payment\Exception\AdyenWebhookException;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\Vault;
@@ -25,13 +26,11 @@ use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use DateInterval;
 use DateTime;
 use DateTimeZone;
-use Exception;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Vault\Model\PaymentTokenManagement;
-
 
 class RecurringContractWebhookHandler implements WebhookHandlerInterface
 {
@@ -151,7 +150,7 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
             $recurringReferencesList = [];
 
             if (!$listRecurringContracts) {
-                throw new Exception("Empty list recurring contracts");
+                throw new AdyenWebhookException(__("Empty list recurring contracts"));
             }
             // Find the reference on the list
             foreach ($listRecurringContracts as $rc) {
@@ -175,7 +174,7 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
                     'Failed to create billing agreement for this order ' .
                     '(listRecurringCall did not contain contract)'
                 );
-                throw new Exception($message);
+                throw new AdyenWebhookException($message);
             }
 
             $billingAgreements = $this->billingAgreementCollectionFactory->create();
@@ -248,9 +247,9 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
                 }
             } else {
                 $message = __('Failed to create billing agreement for this order.');
-                throw new Exception($message);
+                throw new AdyenWebhookException($message);
             }
-        } catch (Exception $exception) {
+        } catch (AdyenWebhookException $exception) {
             $message = $exception->getMessage();
         }
 
@@ -276,77 +275,66 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
      */
     private function handlePaymentMethodContract(MagentoOrder $order, Notification $notification): MagentoOrder
     {
-        try {
-            //get the payment
-            $payment = $order->getPayment();
-            $customerId = $order->getCustomerId();
+        //get the payment
+        $payment = $order->getPayment();
+        $customerId = $order->getCustomerId();
 
-            $this->adyenLogger->addAdyenNotification(
-                '$paymentMethodCode ' . $notification->getPaymentMethod(),
-                [
-                    'pspReference' => $notification->getPspreference(),
-                    'merchantReference' => $notification->getMerchantReference()
-                ]
+        $this->adyenLogger->addAdyenNotification(
+            '$paymentMethodCode ' . $notification->getPaymentMethod(),
+            [
+                'pspReference' => $notification->getPspreference(),
+                'merchantReference' => $notification->getMerchantReference()
+            ]
+        );
+        if (!empty($notification->getPspreference())) {
+            // Check if $paymentTokenAlternativePaymentMethod exists already
+            $paymentTokenAlternativePaymentMethod = $this->paymentTokenManagement->getByGatewayToken(
+                $notification->getPspreference(),
+                $payment->getMethodInstance()->getCode(),
+                $payment->getOrder()->getCustomerId()
             );
-            if (!empty($notification->getPspreference())) {
-                // Check if $paymentTokenAlternativePaymentMethod exists already
-                $paymentTokenAlternativePaymentMethod = $this->paymentTokenManagement->getByGatewayToken(
-                    $notification->getPspreference(),
-                    $payment->getMethodInstance()->getCode(),
-                    $payment->getOrder()->getCustomerId()
+
+
+            // In case the payment token for this payment method does not exist, create it based on the additionalData
+            if ($paymentTokenAlternativePaymentMethod === null) {
+                $this->adyenLogger->addAdyenNotification(
+                    'Creating new gateway token',
+                    [
+                        'pspReference' => $notification->getPspreference(),
+                        'merchantReference' => $notification->getMerchantReference()
+                    ]
+                );
+                $paymentTokenAlternativePaymentMethod = $this->paymentTokenFactory->create(
+                    PaymentTokenFactoryInterface::TOKEN_TYPE_ACCOUNT
                 );
 
+                $details = [
+                    'type' => $notification->getPaymentMethod(),
+                ];
 
-                // In case the payment token for this payment method does not exist, create it based on the additionalData
-                if ($paymentTokenAlternativePaymentMethod === null) {
-                    $this->adyenLogger->addAdyenNotification(
-                        'Creating new gateway token',
-                        [
-                            'pspReference' => $notification->getPspreference(),
-                            'merchantReference' => $notification->getMerchantReference()
-                        ]
-                    );
-                    $paymentTokenAlternativePaymentMethod = $this->paymentTokenFactory->create(
-                        PaymentTokenFactoryInterface::TOKEN_TYPE_ACCOUNT
-                    );
-
-                    $details = [
-                        'type' => $notification->getPaymentMethod(),
-                    ];
-
-                    $paymentTokenAlternativePaymentMethod->setCustomerId($customerId)
-                        ->setGatewayToken($notification->getPspreference())
-                        ->setPaymentMethodCode(AdyenCcConfigProvider::CODE)
-                        ->setPublicHash($this->encryptor->getHash($customerId . $notification->getPspreference()))
-                        ->setTokenDetails(json_encode($details));
-                } else {
-                    $this->adyenLogger->addAdyenNotification(
-                        'Gateway token already exists',
-                        [
-                            'pspReference' => $notification->getPspreference(),
-                            'merchantReference' => $notification->getMerchantReference()
-                        ]
-                    );
-                }
-
-                //SEPA tokens don't expire. The expiration date is set 10 years from now
-                $expDate = new DateTime('now', new DateTimeZone('UTC'));
-                $expDate->add(new DateInterval('P10Y'));
-                $paymentTokenAlternativePaymentMethod->setExpiresAt($expDate->format('Y-m-d H:i:s'));
-
-                $this->paymentTokenRepository->save($paymentTokenAlternativePaymentMethod);
+                $paymentTokenAlternativePaymentMethod->setCustomerId($customerId)
+                    ->setGatewayToken($notification->getPspreference())
+                    ->setPaymentMethodCode(AdyenCcConfigProvider::CODE)
+                    ->setPublicHash($this->encryptor->getHash($customerId . $notification->getPspreference()))
+                    ->setTokenDetails(json_encode($details));
+            } else {
                 $this->adyenLogger->addAdyenNotification(
-                    'New gateway token saved',
+                    'Gateway token already exists',
                     [
                         'pspReference' => $notification->getPspreference(),
                         'merchantReference' => $notification->getMerchantReference()
                     ]
                 );
             }
-        } catch (Exception $exception) {
-            $message = $exception->getMessage();
+
+            //SEPA tokens don't expire. The expiration date is set 10 years from now
+            $expDate = new DateTime('now', new DateTimeZone('UTC'));
+            $expDate->add(new DateInterval('P10Y'));
+            $paymentTokenAlternativePaymentMethod->setExpiresAt($expDate->format('Y-m-d H:i:s'));
+
+            $this->paymentTokenRepository->save($paymentTokenAlternativePaymentMethod);
             $this->adyenLogger->addAdyenNotification(
-                "An error occurred while saving the payment method " . $message,
+                'New gateway token saved',
                 [
                     'pspReference' => $notification->getPspreference(),
                     'merchantReference' => $notification->getMerchantReference()
