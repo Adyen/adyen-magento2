@@ -15,6 +15,7 @@ use Adyen\Payment\Exception\PaymentMethodException;
 use Adyen\Payment\Helper\PaymentMethods\AbstractWalletPaymentMethod;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
@@ -36,6 +37,8 @@ class PaymentResponseHandler
     const PRESENT_TO_SHOPPER = 'PresentToShopper';
     const ERROR = 'Error';
     const CANCELLED = 'Cancelled';
+    const ADYEN_TOKENIZATION = 'Adyen Tokenization';
+    const VAULT = 'Magento Vault';
 
     /**
      * @var AdyenLogger
@@ -164,7 +167,7 @@ class PaymentResponseHandler
         }
 
         if (!empty($paymentsResponse['resultCode']))
-        $payment->setAdditionalInformation('resultCode', $paymentsResponse['resultCode']);
+            $payment->setAdditionalInformation('resultCode', $paymentsResponse['resultCode']);
 
         if (!empty($paymentsResponse['action'])) {
             $payment->setAdditionalInformation('action', $paymentsResponse['action']);
@@ -247,11 +250,19 @@ class PaymentResponseHandler
                         }
                     } else {
                         $order = $payment->getOrder();
-                        $this->recurringHelper->createAdyenBillingAgreement(
-                            $order,
-                            $paymentsResponse['additionalData'],
-                            $payment->getAdditionalInformation()
-                        );
+                        $recurringMode = $this->configHelper->getCardRecurringMode($storeId);
+
+                        // if adyen tokenization set up, create entry in paypal_billing_agreement table
+                        if ($recurringMode === self::ADYEN_TOKENIZATION) {
+                            $this->recurringHelper->createAdyenBillingAgreement(
+                                $order,
+                                $paymentsResponse['additionalData'],
+                                $payment->getAdditionalInformation()
+                            );
+                            // if vault set up, create entry in vault_payment_token table
+                        } elseif ($recurringMode === self::VAULT && $paymentInstanceCode === AdyenCcConfigProvider::CODE) {
+                            $this->vaultHelper->saveRecurringCardDetails($payment, $paymentsResponse['additionalData']);
+                        }
                     }
                 }
 
@@ -282,8 +293,8 @@ class PaymentResponseHandler
             default:
                 $this->adyenLogger->error(
                     sprintf("Payment details call failed for action, resultCode is %s Raw API responds: %s",
-                            $paymentsResponse['resultCode'],
-                            json_encode($paymentsResponse)
+                        $paymentsResponse['resultCode'],
+                        json_encode($paymentsResponse)
                     ));
 
                 return false;
