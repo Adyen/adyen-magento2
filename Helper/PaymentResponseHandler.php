@@ -15,7 +15,6 @@ use Adyen\Payment\Exception\PaymentMethodException;
 use Adyen\Payment\Helper\PaymentMethods\AbstractWalletPaymentMethod;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
@@ -37,8 +36,6 @@ class PaymentResponseHandler
     const PRESENT_TO_SHOPPER = 'PresentToShopper';
     const ERROR = 'Error';
     const CANCELLED = 'Cancelled';
-    const ADYEN_TOKENIZATION = 'Adyen Tokenization';
-    const VAULT = 'Magento Vault';
 
     /**
      * @var AdyenLogger
@@ -250,19 +247,11 @@ class PaymentResponseHandler
                         }
                     } else {
                         $order = $payment->getOrder();
-                        $recurringMode = $this->configHelper->getCardRecurringMode($storeId);
-
-                        // if adyen tokenization set up, create entry in paypal_billing_agreement table
-                        if ($recurringMode === self::ADYEN_TOKENIZATION) {
-                            $this->recurringHelper->createAdyenBillingAgreement(
-                                $order,
-                                $paymentsResponse['additionalData'],
-                                $payment->getAdditionalInformation()
-                            );
-                        // if vault set up, create entry in vault_payment_token table
-                        } elseif ($recurringMode === self::VAULT  && $paymentInstanceCode === AdyenCcConfigProvider::CODE) {
-                            $this->vaultHelper->saveRecurringCardDetails($payment, $paymentsResponse['additionalData']);
-                        }
+                        $this->recurringHelper->createAdyenBillingAgreement(
+                            $order,
+                            $paymentsResponse['additionalData'],
+                            $payment->getAdditionalInformation()
+                        );
                     }
                 }
 
