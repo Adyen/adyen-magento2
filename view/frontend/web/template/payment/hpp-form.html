@@ -26,8 +26,8 @@
             <input type="radio"
                    name="payment[method]"
                    class="radio"
-                   data-bind="attr: {'id': 'adyen_' + paymentMethod.methodIdentifier}, value: 'adyen_' + paymentMethod.methodIdentifier, checked: paymentMethod.methodIdentifier == $parent.getSelectedAlternativePaymentMethodType, click: $parent.selectPaymentMethodType"/>
-            <label data-bind="attr: {'for': 'adyen_' + paymentMethod.methodIdentifier}" class="label">
+                   data-bind="attr: {'id': paymentMethod.methodIdentifier}, value: paymentMethod.methodIdentifier, checked: paymentMethod.methodIdentifier == $parent.getSelectedAlternativePaymentMethodType, click: $parent.selectPaymentMethodType"/>
+            <label data-bind="attr: {'for': paymentMethod.methodIdentifier}" class="label">
 
                 <!-- ko if: icon -->
                 <img data-bind="attr: {
@@ -55,8 +55,8 @@
                 <!--/ko-->
             </div>
 
-            <form class="form" data-role="adyen-hpp-form" action="#" method="post"
-                  data-bind="mageInit: { 'validation':[]}, attr: {id: 'payment_form_' + $parent.getCode() + '_' + paymentMethod.methodIdentifier}">
+            <form class="form" data-role="adyen-pm-form" action="#" method="post"
+                  data-bind="mageInit: { 'validation':[]}, attr: {id: 'payment_form_' + paymentMethod.methodIdentifier}">
 
                 <!-- ko ifnot: showPlaceOrderButton() -->
                 <div class="checkout-agreements-block">
