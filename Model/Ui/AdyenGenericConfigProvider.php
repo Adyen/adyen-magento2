@@ -36,18 +36,23 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
     private $adyenConfigHelper;
 
     /**
-     * AdyenGenericConfigProvider constructor.
+     * This data member will be passed to the js frontend. It will be used to map the method code (adyen_ideal) to the
+     * corresponding txVariant (ideal). The txVariant will then be used to instantiate the component
      *
-     * @param Data $adyenHelper
+     * @var array
      */
+    private $txVariants;
+
     public function __construct(
         Data $adyenHelper,
         Config $adyenConfigHelper,
-        StoreManagerInterface $storeManager
+        StoreManagerInterface $storeManager,
+        array $txVariants = []
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenConfigHelper = $adyenConfigHelper;
         $this->storeManager = $storeManager;
+        $this->txVariants = $txVariants;
     }
 
     /**
@@ -78,6 +83,8 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
         $config['payment']['adyen']['houseNumberStreetLine'] = $this->adyenConfigHelper
             ->getHouseNumberStreetLine($storeId);
         $config['payment']['customerStreetLinesEnabled'] = $this->adyenHelper->getCustomerStreetLinesEnabled($storeId);
+        /* TODO: Do some filtering to only pass the payment methods that are enabled */
+        $config['payment']['adyen']['txVariants'] = $this->txVariants;
 
         return $config;
     }

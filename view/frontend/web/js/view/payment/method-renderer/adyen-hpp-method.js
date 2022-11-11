@@ -177,6 +177,7 @@ define(
 
                         var result = self.buildPaymentMethodComponentResult(paymentMethod, paymentMethodsExtraInfo);
 
+                        // TODO: Change the filtering so we won't need the for loop and this if condition
                         if (self.getTxVariant() === paymentMethod.type) {
                             accumulator.push(result);
                         }
@@ -535,7 +536,7 @@ define(
                 return window.checkoutConfig.payment.adyenHpp.deviceIdentToken;
             },
             getTxVariant: function () {
-                return this.item.method.split('_')[1]
+                return window.checkoutConfig.payment.adyen.txVariants[this.item.method]
             },
 
             /**
