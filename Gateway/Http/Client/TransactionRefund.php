@@ -18,6 +18,10 @@ use Magento\Payment\Gateway\Http\ClientInterface;
  */
 class TransactionRefund implements ClientInterface
 {
+    const REFUND_AMOUNT = 'refund_amount';
+    const REFUND_CURRENCY = 'refund_currency';
+    const ORIGINAL_REFERENCE = 'original_reference';
+
     /**
      * @var \Adyen\Payment\Helper\Data
      */
@@ -40,7 +44,6 @@ class TransactionRefund implements ClientInterface
     public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
     {
         $requests = $transferObject->getBody();
-        $responses = [];
 
         foreach ($requests as $request) {
             // call lib
@@ -48,7 +51,15 @@ class TransactionRefund implements ClientInterface
                 $this->adyenHelper->initializeAdyenClient($transferObject->getClientConfig()['storeId'])
             );
             try {
-                $responses[] = $service->refund($request);
+                $response = $service->refund($request);
+
+                // Add amount original reference and amount information to response
+                $response[self::REFUND_AMOUNT] = $request['modificationAmount']['value'];
+                $response[self::REFUND_CURRENCY] = $request['modificationAmount']['currency'];
+
+                $response[self::ORIGINAL_REFERENCE] = $request['originalReference'];
+
+                $responses[] = $response;
             } catch (\Adyen\AdyenException $e) {
                 $responses[] = ['error' => $e->getMessage()];
             }
