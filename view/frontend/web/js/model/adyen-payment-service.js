@@ -108,6 +108,12 @@ define(
                     JSON.stringify(request),
                     true
                 );
+            },
+
+            getPaymentMethodFromResponse: function (txVariant, paymentMethodResponse) {
+                return paymentMethodResponse.find((paymentMethod) => {
+                    return txVariant === paymentMethod.type
+                });
             }
         };
     }
