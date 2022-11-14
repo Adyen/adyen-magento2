@@ -80,7 +80,7 @@ define(
                 this._super().observe([
                     'selectedAlternativePaymentMethodType',
                     'paymentMethod',
-                    'adyenPaymentMethods',
+                    'adyenPaymentMethod',
                 ]);
                 return this;
             },
@@ -134,7 +134,7 @@ define(
                         document.body.appendChild(ratepayScriptTag);
                     }
 
-                    self.adyenPaymentMethods(self.getAdyenHppPaymentMethods(paymentMethodsResponse));
+                    self.adyenPaymentMethod(self.getAdyenHppPaymentMethods(paymentMethodsResponse))
                 }
                 fullScreenLoader.stopLoader();
             },
@@ -144,48 +144,35 @@ define(
                 var paymentMethods = paymentMethodsResponse.paymentMethodsResponse.paymentMethods;
                 var paymentMethodsExtraInfo = paymentMethodsResponse.paymentMethodsExtraDetails;
 
-                var paymentList = _.reduce(paymentMethods,
-                    function(accumulator, paymentMethod) {
+                let builtPaymentMethod;
+                const paymentMethod = adyenPaymentService.getPaymentMethodFromResponse(self.getTxVariant(), paymentMethods);
+                if (paymentMethod) {
+                    // Some methods belong to a group with brands
+                    // Use the brand as identifier
+                    const brandMethods = ['giftcard'];
+                    if (brandMethods.includes(paymentMethod.type) && !!paymentMethod.brand){
+                        paymentMethod.methodGroup = paymentMethod.type;
+                        paymentMethod.methodIdentifier = paymentMethod.brand;
+                    } else {
+                        paymentMethod.methodGroup = paymentMethod.methodIdentifier = paymentMethod.type;
+                    }
 
-                        // Some methods belong to a group with brands
-                        // Use the brand as identifier
-                        const brandMethods = ['giftcard'];
-                        if (brandMethods.includes(paymentMethod.type) && !!paymentMethod.brand){
-                            paymentMethod.methodGroup = paymentMethod.type;
-                            paymentMethod.methodIdentifier = paymentMethod.brand;
-                        } else {
-                            paymentMethod.methodGroup = paymentMethod.methodIdentifier = paymentMethod.type;
-                        }
+                    var messageContainer = new Messages();
+                    var name = 'messages-' + paymentMethod.methodIdentifier;
+                    var messagesComponent = {
+                        parent: self.name,
+                        name: name,
+                        displayArea: name,
+                        component: 'Magento_Ui/js/view/messages',
+                        config: {
+                            messageContainer: messageContainer,
+                        },
+                    };
+                    layout([messagesComponent]);
+                    builtPaymentMethod = self.buildPaymentMethodComponentResult(paymentMethod, paymentMethodsExtraInfo);
 
-                        if (!self.isPaymentMethodSupported(
-                            paymentMethod.methodGroup)) {
-                            return accumulator;
-                        }
-
-                        var messageContainer = new Messages();
-                        var name = 'messages-' + paymentMethod.methodIdentifier;
-                        var messagesComponent = {
-                            parent: self.name,
-                            name: name,
-                            displayArea: name,
-                            component: 'Magento_Ui/js/view/messages',
-                            config: {
-                                messageContainer: messageContainer,
-                            },
-                        };
-                        layout([messagesComponent]);
-
-                        var result = self.buildPaymentMethodComponentResult(paymentMethod, paymentMethodsExtraInfo);
-
-                        // TODO: Change the filtering so we won't need the for loop and this if condition
-                        if (self.getTxVariant() === paymentMethod.type) {
-                            accumulator.push(result);
-                        }
-
-                        return accumulator;
-                    }, []);
-
-                return [paymentList[0]];
+                    return builtPaymentMethod;
+                }
             },
             buildPaymentMethodComponentResult: function (paymentMethod, paymentMethodsExtraInfo) {
                 var self = this;
@@ -523,10 +510,8 @@ define(
                 }, 10000);
             },
             validate: function() {
-                var form = '#payment_form_' +
-                    selectedAlternativePaymentMethodType();
-                var validate = $(form).validation() &&
-                    $(form).validation('isValid');
+                const form = 'adyen-' + this.getTxVariant() + '-form';
+                const validate = $(form).validation() && $(form).validation('isValid');
                 return validate && additionalValidators.validate();
             },
             isButtonActive: function() {
@@ -760,8 +745,7 @@ define(
             {
                 var self = this;
                 try {
-                    const containerId = '#adyen-alternative-payment-container-' +
-                        paymentMethod.methodIdentifier;
+                    const containerId = '#' + paymentMethod.methodIdentifier + 'Container';
                     var url = new URL(location.href);
                     //Handles the redirect back to checkout page with amazonSessionKey in url
                     if (
