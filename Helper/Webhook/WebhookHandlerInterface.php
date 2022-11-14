@@ -12,10 +12,18 @@
 
 namespace Adyen\Payment\Helper\Webhook;
 
+use Adyen\Payment\Exception\AdyenWebhookException;
 use Adyen\Payment\Model\Notification;
 use Magento\Sales\Model\Order;
 
 interface WebhookHandlerInterface
 {
+    /**
+     * @param Order $order
+     * @param Notification $notification
+     * @param string $transitionState
+     * @return Order
+     * @throws AdyenWebhookException
+     */
     public function handleWebhook(Order $order, Notification $notification, string $transitionState): Order;
 }
