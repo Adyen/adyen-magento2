@@ -124,9 +124,15 @@ class CheckoutDataBuilder implements BuilderInterface
         ) {
             $openInvoiceFields = $this->getOpenInvoiceData($order);
             $requestBody = array_merge($requestBody, $openInvoiceFields);
+
             if ($this->adyenHelper->isPaymentMethodOfType($brandCode, Data::KLARNA) &&
                 $this->configHelper->getAutoCaptureOpenInvoice($storeId)) {
                 $requestBody['captureDelayHours'] = 0;
+            }
+
+            if($payment->getMethod() === AdyenPayByLinkConfigProvider::CODE) {
+                $requestBody['additionalData']['openinvoicedata.merchantData'] =
+                    base64_encode(json_encode($this->getOtherDeliveryInformation($order)));
             }
         }
 
@@ -196,6 +202,11 @@ class CheckoutDataBuilder implements BuilderInterface
             unset($requestBody['installments']);
         }
 
+        if ($this->adyenHelper->isPaymentMethodOfType($brandCode, Data::KLARNA)) {
+            $requestBody['additionalData']['openinvoicedata.merchantData'] =
+                base64_encode(json_encode($this->getOtherDeliveryInformation($order)));
+        }
+
         $requestBody['additionalData']['allow3DS2'] = true;
 
         if (isset($requestBodyPaymentMethod)) {
@@ -204,6 +215,23 @@ class CheckoutDataBuilder implements BuilderInterface
 
         return [
             'body' => $requestBody
+        ];
+    }
+
+    private function getOtherDeliveryInformation($order) : array
+    {
+        $shippingMethod = $order->getShippingMethod();
+        $firstName = $order->getCustomerFirstname();
+        $lastName = $order-> getCustomerLastname();
+        $shippingAddress = $order->getShippingAddress();
+        return [
+            "shipping_method" => $shippingMethod,
+            "first_name" => $firstName,
+            "last_name" => $lastName,
+            "street_address" => implode(' ', $shippingAddress->getStreet()),
+            "postal_code" => $shippingAddress->getPostcode(),
+            "city" => $shippingAddress->getCity(),
+            "country" => $shippingAddress->getCountryId()
         ];
     }
 
