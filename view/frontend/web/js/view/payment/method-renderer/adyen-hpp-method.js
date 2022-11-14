@@ -134,18 +134,17 @@ define(
                         document.body.appendChild(ratepayScriptTag);
                     }
 
-                    self.adyenPaymentMethod(self.getAdyenHppPaymentMethods(paymentMethodsResponse))
+                    self.adyenPaymentMethod(self.createAdyenPaymentMethod(paymentMethodsResponse))
                 }
                 fullScreenLoader.stopLoader();
             },
-            getAdyenHppPaymentMethods: function(paymentMethodsResponse) {
-                var self = this;
+            createAdyenPaymentMethod: function(paymentMethodsResponse) {
+                let self = this;
 
-                var paymentMethods = paymentMethodsResponse.paymentMethodsResponse.paymentMethods;
-                var paymentMethodsExtraInfo = paymentMethodsResponse.paymentMethodsExtraDetails;
-
-                let builtPaymentMethod;
+                const paymentMethods = paymentMethodsResponse.paymentMethodsResponse.paymentMethods;
+                const paymentMethodsExtraInfo = paymentMethodsResponse.paymentMethodsExtraDetails;
                 const paymentMethod = adyenPaymentService.getPaymentMethodFromResponse(self.getTxVariant(), paymentMethods);
+
                 if (paymentMethod) {
                     // Some methods belong to a group with brands
                     // Use the brand as identifier
@@ -169,9 +168,8 @@ define(
                         },
                     };
                     layout([messagesComponent]);
-                    builtPaymentMethod = self.buildPaymentMethodComponentResult(paymentMethod, paymentMethodsExtraInfo);
 
-                    return builtPaymentMethod;
+                    return self.buildPaymentMethodComponentResult(paymentMethod, paymentMethodsExtraInfo);
                 }
             },
             buildPaymentMethodComponentResult: function (paymentMethod, paymentMethodsExtraInfo) {
