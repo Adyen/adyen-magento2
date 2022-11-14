@@ -39,9 +39,6 @@
         </div>
 
         <div class="payment-method-content">
-            <div class = "error-message-hpp" style = "display:none" >
-                <span class="message message-error error hpp-message" data-bind="attr: {id: 'messages-' + paymentMethod.methodIdentifier}"></span>
-            </div>
 
             <div class="payment-method-billing-address">
                 <!-- ko foreach: $parent.getRegion(getBillingAddressFormName()) -->
@@ -52,6 +49,10 @@
 
             <form class="form" data-role="'adyen-' + adyenPaymentMethod().item.method + '-form'" action="#" method="post"
                   data-bind="mageInit: { 'validation':[]}, attr: {id: 'adyen-' + adyenPaymentMethod().item.method + '-form'}">
+
+                <!-- ko foreach: getRegion('messages') -->
+                <!-- ko template: getTemplate() --><!-- /ko -->
+                <!--/ko-->
 
                 <!-- ko ifnot: adyenPaymentMethod().showPlaceOrderButton -->
                 <div class="checkout-agreements-block">
@@ -77,7 +78,7 @@
                     <div class="primary">
                         <button class="action primary checkout"
                                 type="submit"
-                                data-bind="click: placeOrder,
+                                data-bind="click: adyenPaymentMethod().placeOrder,
                                 attr: {title: $t('Place Order')},
                                 enable: isButtonActive(),
                                 visible: adyenPaymentMethod().showPlaceOrderButton"
