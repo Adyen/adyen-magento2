@@ -12,12 +12,10 @@
 
 namespace Adyen\Payment\Helper\Webhook;
 
-use Adyen\Payment\Exception\AdyenWebhookException;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\CaseManagement;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
-use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Invoice;
 use Adyen\Payment\Helper\Order;
 use Adyen\Payment\Helper\PaymentMethods;
@@ -31,6 +29,7 @@ use Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory as Agr
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as OrderPaymentCollectionFactory;
 use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel;
+use Adyen\Webhook\Exception\InvalidDataException;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Sales\Model\Order\InvoiceFactory as MagentoInvoiceFactory;
@@ -76,9 +75,6 @@ class WebhookHandlerFactory
     /** @var OrderPaymentCollectionFactory */
     private static $adyenOrderPaymentCollectionFactory;
 
-    /** @var Data */
-    private static $adyenDataHelper;
-
     /** @var Vault */
     private static $vaultHelper;
 
@@ -122,7 +118,6 @@ class WebhookHandlerFactory
         MagentoInvoiceFactory $magentoInvoiceFactory,
         PaymentMethods $paymentMethodsHelper,
         OrderPaymentCollectionFactory $adyenOrderPaymentCollectionFactory,
-        Data $adyenDataHelper,
         Vault $vaultHelper,
         PaymentRequest $paymentRequest,
         AgreementCollectionFactory $agreementCollectionFactory,
@@ -146,7 +141,6 @@ class WebhookHandlerFactory
         self::$magentoInvoiceFactory = $magentoInvoiceFactory;
         self::$paymentMethodsHelper = $paymentMethodsHelper;
         self::$adyenOrderPaymentCollectionFactory = $adyenOrderPaymentCollectionFactory;
-        self::$adyenDataHelper = $adyenDataHelper;
         self::$vaultHelper = $vaultHelper;
         self::$paymentRequest = $paymentRequest;
         self::$agreementCollectionFactory = $agreementCollectionFactory;
@@ -160,7 +154,9 @@ class WebhookHandlerFactory
     }
 
     /**
-     * @throws AdyenWebhookException
+     * @param string $eventCode
+     * @return WebhookHandlerInterface
+     * @throws InvalidDataException
      */
     public static function create(string $eventCode): WebhookHandlerInterface
     {
@@ -262,6 +258,10 @@ class WebhookHandlerFactory
         );
 
         self::$adyenLogger->addAdyenWarning($exceptionMessage);
-        throw new AdyenWebhookException(__($exceptionMessage));
+        /*
+         * InvalidDataException is used for consistency. Since Webhook Module
+         * throws the same exception for unknown webhook event codes.
+         */
+        throw new InvalidDataException(__($exceptionMessage));
     }
 }
