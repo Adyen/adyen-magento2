@@ -229,26 +229,28 @@ define(
                         self.mountPaymentMethodComponent(paymentMethod, configuration, result);
                     },
                     placeOrder: function() {
-                        var innerSelf = this;
+                        // TODO: Is there a better way to do this? (Has to be)
+                        const component = this.checkoutComponent.components[0];
 
                         // Skip in case of pms without a component (giftcards)
-                        if (innerSelf.component) {
-                            innerSelf.component.showValidation();
-                            if (innerSelf.component.state.isValid === false) {
+                        if (component) {
+                            component.showValidation();
+                            if (component.state.isValid === false) {
                                 return false;
                             }
                         }
 
-                        if (innerSelf.validate()) {
-                            var data = {};
-                            data.method = innerSelf.method;
+                        if (this.validate()) {
+                            let data = {
+                                'method': this.item.method
+                            };
 
-                            var additionalData = {};
-                            additionalData.brand_code = selectedAlternativePaymentMethodType();
+                            let additionalData = {};
+                            additionalData.brand_code = paymentMethod.methodIdentifier;
 
                             let stateData;
-                            if (innerSelf.component) {
-                                stateData = innerSelf.component.data;
+                            if (component) {
+                                stateData = component.data;
                             } else {
                                 if (paymentMethod.methodGroup === paymentMethod.methodIdentifier){
                                     stateData = {
@@ -265,16 +267,13 @@ define(
                                     };
                                 }
                             }
-
-                            additionalData.stateData = JSON.stringify(stateData);
-
                             if (selectedAlternativePaymentMethodType() == 'ratepay') {
-                                additionalData.df_value = innerSelf.getRatePayDeviceIdentToken();
+                                additionalData.df_value = this.getRatePayDeviceIdentToken();
                             }
 
+                            additionalData.stateData = JSON.stringify(stateData);
                             data.additional_data = additionalData;
-
-                            self.placeRedirectOrder(data, innerSelf.component);
+                            self.placeRedirectOrder(data, component);
                         }
 
                         return false;
@@ -290,7 +289,7 @@ define(
                 return result;
             },
             placeRedirectOrder: async function(data, component) {
-                var self = this;
+                const self = this;
 
                 // Place Order but use our own redirect url after
                 fullScreenLoader.startLoader();
@@ -301,7 +300,6 @@ define(
                     function(response) {
                         self.isPlaceOrderActionAllowed(true);
                         fullScreenLoader.stopLoader();
-                        self.showErrorMessage(response);
                         component.handleReject(response);
                     }
                 ).done(
@@ -482,30 +480,7 @@ define(
                     errorProcessor.process(response,
                         self.currentMessageContainer);
                     self.isPlaceOrderActionAllowed(true);
-                    self.showErrorMessage(response);
                 });
-            },
-            /**
-             * Issue with the default currentMessageContainer needs to be resolved for now just throw manually the eror message
-             * @param response
-             */
-            showErrorMessage: function(response) {
-                $(".error-message-hpp").show();
-                if (!!response['responseJSON'].parameters) {
-                    $('#messages-' + selectedAlternativePaymentMethodType()).
-                    text((response['responseJSON'].message).replace('%1',
-                        response['responseJSON'].parameters[0])).
-                    slideDown();
-                } else {
-                    $('#messages-' + selectedAlternativePaymentMethodType()).
-                    text(response['responseJSON'].message).
-                    slideDown();
-                }
-
-                setTimeout(function() {
-                    $('#messages-' + selectedAlternativePaymentMethodType()).
-                    slideUp();
-                }, 10000);
             },
             validate: function() {
                 const form = 'adyen-' + this.getTxVariant() + '-form';
