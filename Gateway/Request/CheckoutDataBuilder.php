@@ -130,7 +130,7 @@ class CheckoutDataBuilder implements BuilderInterface
                 $requestBody['captureDelayHours'] = 0;
             }
 
-            if($payment->getMethod() === AdyenPayByLinkConfigProvider::CODE) {
+            if ($payment->getMethod() === AdyenPayByLinkConfigProvider::CODE) {
                 $requestBody['additionalData']['openinvoicedata.merchantData'] =
                     base64_encode(json_encode($this->getOtherDeliveryInformation($order)));
             }
