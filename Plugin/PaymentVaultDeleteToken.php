@@ -79,16 +79,16 @@ class PaymentVaultDeleteToken
             $recurringService->disable($request);
         } catch (AdyenException $e) {
             $this->adyenLogger->error(sprintf(
-            'Error while attempting to disable token with id %s: %s',
-            $paymentToken->getEntityId(),
-            $e->getMessage())
-            );
+                'Error while attempting to disable token with id %s: %s',
+                $paymentToken->getEntityId(),
+                $e->getMessage()
+            ));
         } catch (NoSuchEntityException $e) {
             $this->adyenLogger->error(sprintf(
-            'No such entity while attempting to disable token with id %s: %s',
-            $paymentToken->getEntityId(),
-            $e->getMessage())
-            );
+                'No such entity while attempting to disable token with id %s: %s',
+                $paymentToken->getEntityId(),
+                $e->getMessage()
+            ));
         }
     }
 
