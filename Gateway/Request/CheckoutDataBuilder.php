@@ -14,6 +14,7 @@ namespace Adyen\Payment\Gateway\Request;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Order;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
@@ -129,11 +130,11 @@ class CheckoutDataBuilder implements BuilderInterface
                 $this->configHelper->getAutoCaptureOpenInvoice($storeId)) {
                 $requestBody['captureDelayHours'] = 0;
             }
+        }
 
-            if ($payment->getMethod() === AdyenPayByLinkConfigProvider::CODE) {
-                $requestBody['additionalData']['openinvoicedata.merchantData'] =
-                    base64_encode(json_encode($this->getOtherDeliveryInformation($order)));
-            }
+        if ($payment->getMethod() === AdyenPayByLinkConfigProvider::CODE) {
+            $requestBody['additionalData']['openinvoicedata.merchantData'] =
+                base64_encode(json_encode($this->getOtherDeliveryInformation($order)));
         }
 
         // Ratepay specific Fingerprint
@@ -218,16 +219,18 @@ class CheckoutDataBuilder implements BuilderInterface
         ];
     }
 
-    private function getOtherDeliveryInformation($order) : array
+    /**
+     * @param \Magento\Sales\Model\Order $order
+     * @return array
+     */
+    private function getOtherDeliveryInformation(\Magento\Sales\Model\Order $order) : array
     {
-        $shippingMethod = $order->getShippingMethod();
-        $firstName = $order->getCustomerFirstname();
-        $lastName = $order-> getCustomerLastname();
         $shippingAddress = $order->getShippingAddress();
+
         return [
-            "shipping_method" => $shippingMethod,
-            "first_name" => $firstName,
-            "last_name" => $lastName,
+            "shipping_method" => $order->getShippingMethod(),
+            "first_name" => $order->getCustomerFirstname(),
+            "last_name" =>  $lastName = $order-> getCustomerLastname(),
             "street_address" => implode(' ', $shippingAddress->getStreet()),
             "postal_code" => $shippingAddress->getPostcode(),
             "city" => $shippingAddress->getCity(),
