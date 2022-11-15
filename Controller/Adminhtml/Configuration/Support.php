@@ -5,6 +5,7 @@ use Magento\Framework\Mail\Template\TransportBuilder;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Controller\ResultFactory;
+use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
 
 class Support extends Action
 {
@@ -12,6 +13,10 @@ class Support extends Action
      * @var TransportBuilder
      */
     private $transportBuilder;
+    /**
+     * @var MessageManagerInterface
+     */
+    protected $messageManager;
 
     public function __construct(
         Context          $context,
@@ -28,7 +33,12 @@ class Support extends Action
         $resultPage->setActiveMenu('Adyen_Payment::configuration_support')
             ->getConfig()->getTitle()->prepend(__('Adyen Support'));
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            $this->save();
+            try {
+                $this->save();
+                return $this->_redirect('*/*/success');
+            } catch (\Exception $exception) {
+                $this->messageManager->addErrorMessage(__('Form unsuccessfully submitted'));
+            }
         }
         return $resultPage;
     }
@@ -60,6 +70,5 @@ class Support extends Action
             ->getTransport();
         //$transport->sendMessage();
         $this->messageManager->addSuccess(__('Form successfully submitted'));
-
     }
 }
