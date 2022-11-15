@@ -229,7 +229,7 @@ class CheckoutDataBuilder implements BuilderInterface
         return [
             "shipping_method" => $order->getShippingMethod(),
             "first_name" => $order->getCustomerFirstname(),
-            "last_name" =>  $lastName = $order-> getCustomerLastname(),
+            "last_name" => $order->getCustomerLastname(),
             "street_address" => implode(' ', $shippingAddress->getStreet()),
             "postal_code" => $shippingAddress->getPostcode(),
             "city" => $shippingAddress->getCity(),
