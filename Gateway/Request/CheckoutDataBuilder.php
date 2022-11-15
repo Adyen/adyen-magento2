@@ -222,7 +222,7 @@ class CheckoutDataBuilder implements BuilderInterface
      * @param \Magento\Sales\Model\Order $order
      * @return array
      */
-    private function getOtherDeliveryInformation(\Magento\Sales\Model\Order $order) : array
+    private function getOtherDeliveryInformation(\Magento\Sales\Model\Order $order): array
     {
         $shippingAddress = $order->getShippingAddress();
 
