@@ -202,7 +202,7 @@ class CheckoutDataBuilder implements BuilderInterface
             unset($requestBody['installments']);
         }
 
-        if ($this->adyenHelper->isPaymentMethodOfType($brandCode, Data::KLARNA)) {
+        if (isset($brandCode) && $this->adyenHelper->isPaymentMethodOfType($brandCode, Data::KLARNA)) {
             $requestBody['additionalData']['openinvoicedata.merchantData'] =
                 base64_encode(json_encode($this->getOtherDeliveryInformation($order)));
         }
