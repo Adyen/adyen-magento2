@@ -118,14 +118,15 @@ class CheckoutDataBuilder implements BuilderInterface
         }
 
         $brandCode = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
-        if ((isset($brandCode) && ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode))
-            || $payment->getMethod() === AdyenPayByLinkConfigProvider::CODE)
+        if (
+            (isset($brandCode) && $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) ||
+            $payment->getMethod() === AdyenPayByLinkConfigProvider::CODE
         ) {
             $openInvoiceFields = $this->getOpenInvoiceData($order);
             $requestBody = array_merge($requestBody, $openInvoiceFields);
 
-            if ((isset($brandCode) && $this->adyenHelper->isPaymentMethodOfType($brandCode, Data::KLARNA)) &&
-
+            if (isset($brandCode) &&
+                $this->adyenHelper->isPaymentMethodOfType($brandCode, Data::KLARNA) &&
                 $this->configHelper->getAutoCaptureOpenInvoice($storeId)) {
                 $requestBody['captureDelayHours'] = 0;
             }
