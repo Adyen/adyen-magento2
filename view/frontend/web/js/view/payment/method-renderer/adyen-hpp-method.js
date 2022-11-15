@@ -751,6 +751,14 @@ define(
                     }
                 }
 
+                if (paymentMethod.methodIdentifier.includes('affirm')) {
+                    configuration.visibility = {
+                        personalDetails: "hidden",
+                        billingAddress: "hidden",
+                        deliveryAddress: "hidden"
+                    }
+                }
+
                 return configuration;
             },
             mountPaymentMethodComponent(paymentMethod, configuration, result)
