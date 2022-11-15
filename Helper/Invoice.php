@@ -433,10 +433,12 @@ class Invoice extends AbstractHelper
 
         $transactionSave = $this->transaction->addObject(
             $invoice
-        )->addObject(
+        );
+        $transactionSave->addObject(
             $invoice->getOrder()
         );
         $transactionSave->save();
+
         $this->invoiceSender->send($invoice);
 
         //Send Invoice mail to customer
@@ -450,22 +452,22 @@ class Invoice extends AbstractHelper
             $this->invoiceSender->send($invoice);
             $order->addStatusHistoryComment(
                 __('Notified customer about invoice creation #%1.', $invoice->getId())
-            )
-                ->setIsCustomerNotified(true)
-                ->save();
+            );
+            $order->setIsCustomerNotified(true);
+            $order->save();
         } else {
             $order->addStatusHistoryComment(
                 __('Created invoice #%1.', $invoice->getId())
-            )
-                ->setIsCustomerNotified(false)
-                ->save();
+            );
+            $order->setIsCustomerNotified(false);
+            $order->save();
         }
 
         //Create entry in adyen_invoice table
         $adyenInvoice = $this->createAdyenInvoice(
             $order->getPayment(),
-            $notification->getData()['pspreference'],
-            $notification->getData()['original_reference'],
+            $notification->getPspreference(),
+            $notification->getOriginalReference(),
             $notification->getAmountValue(),
             $invoice->getId()
         );
