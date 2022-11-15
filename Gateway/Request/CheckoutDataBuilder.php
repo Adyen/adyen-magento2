@@ -14,7 +14,6 @@ namespace Adyen\Payment\Gateway\Request;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
-use Adyen\Payment\Helper\Order;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
