@@ -154,7 +154,8 @@ class InvoiceTest extends AbstractAdyenTestCase
         $magentoInvoiceFactoryMock->method('create')->willReturn($invoiceMock);
 
         $magentoOrderResourceModelMock = $this->createGeneratedMock(
-            \Magento\Sales\Model\ResourceModel\Order::class, ['save']
+            \Magento\Sales\Model\ResourceModel\Order::class,
+            ['save']
         );
         $magentoOrderResourceModelMock->method('save')->willReturn($invoiceMock);
 
