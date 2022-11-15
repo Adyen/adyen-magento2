@@ -125,6 +125,7 @@ class CheckoutDataBuilder implements BuilderInterface
             $requestBody = array_merge($requestBody, $openInvoiceFields);
 
             if ((isset($brandCode) && $this->adyenHelper->isPaymentMethodOfType($brandCode, Data::KLARNA)) &&
+
                 $this->configHelper->getAutoCaptureOpenInvoice($storeId)) {
                 $requestBody['captureDelayHours'] = 0;
             }
@@ -134,6 +135,11 @@ class CheckoutDataBuilder implements BuilderInterface
                 $requestBody['additionalData']['openinvoicedata.merchantData'] =
                     base64_encode(json_encode($this->getOtherDeliveryInformation($order)));
             }
+        }
+
+        if ($payment->getMethod() === AdyenPayByLinkConfigProvider::CODE) {
+            $requestBody['additionalData']['openinvoicedata.merchantData'] =
+                base64_encode(json_encode($this->getOtherDeliveryInformation($order)));
         }
 
         // Ratepay specific Fingerprint
