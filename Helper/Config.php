@@ -30,6 +30,7 @@ class Config
     const XML_NOTIFICATIONS_CAN_CANCEL_FIELD = "notifications_can_cancel";
     const XML_NOTIFICATIONS_HMAC_KEY_LIVE = "notification_hmac_key_live";
     const XML_NOTIFICATIONS_HMAC_KEY_TEST = "notification_hmac_key_test";
+    const XML_NOTIFICATIONS_IP_CHECK = "notifications_ip_check";
     const XML_CHARGED_CURRENCY = "charged_currency";
     const XML_HAS_HOLDER_NAME = "has_holder_name";
     const XML_HOLDER_NAME_REQUIRED = "holder_name_required";
@@ -249,6 +250,22 @@ class Config
         }
 
         return $this->encryptor->decrypt(trim($key));
+    }
+
+    /**
+     * Retrieve flag for notifications_ip_check
+     *
+     * @param int $storeId
+     * @return bool
+     */
+    public function getNotificationsIpCheck(int $storeId = null): bool
+    {
+        return (bool) $this->getConfigData(
+            self::XML_NOTIFICATIONS_IP_CHECK,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId,
+            true
+        );
     }
 
     public function isDemoMode($storeId = null): bool
