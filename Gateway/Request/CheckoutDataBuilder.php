@@ -192,13 +192,14 @@ class CheckoutDataBuilder implements BuilderInterface
         if ($numberOfInstallments > 0) {
             $requestBody['installments']['value'] = $numberOfInstallments;
         }
-        // if card type is debit then change the issuer type and unset the installments field
+
+        /*
+         * if the combo card type is debit then add the funding source
+         * and unset the installments & brand fields
+         */
         if ($comboCardType == 'debit') {
-            if ($selectedDebitBrand = $this->getSelectedDebitBrand($payment->getAdditionalInformation('cc_type'))) {
-                $requestBody['additionalData']['overwriteBrand'] = true;
-                $requestBody['selectedBrand'] = $selectedDebitBrand;
-                $requestBody['paymentMethod']['type'] = $selectedDebitBrand;
-            }
+            $requestBody['paymentMethod']['fundingSource'] = 'debit';
+            unset($requestBody['paymentMethod']['brand']);
             unset($requestBody['installments']);
         }
 
@@ -235,21 +236,6 @@ class CheckoutDataBuilder implements BuilderInterface
             "city" => $shippingAddress->getCity(),
             "country" => $shippingAddress->getCountryId()
         ];
-    }
-
-    /**
-     * @param string $brand
-     * @return string
-     */
-    private function getSelectedDebitBrand($brand)
-    {
-        if ($brand == 'VI') {
-            return 'electron';
-        }
-        if ($brand == 'MC') {
-            return 'maestro';
-        }
-        return null;
     }
 
     /**
