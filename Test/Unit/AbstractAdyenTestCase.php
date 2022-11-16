@@ -66,13 +66,14 @@ abstract class AbstractAdyenTestCase extends TestCase
         ]);
     }
 
-    protected function createWebhook(?string $originalReference = null)
+    protected function createWebhook(?string $originalReference = null, ?string $pspReference = null)
     {
         return $this->createConfiguredMock(Notification::class, [
             'getAmountValue' => 1000,
             'getEventCode' => 'AUTHORISATION',
             'getAmountCurrency' => 'EUR',
-            'getOriginalReference' => $originalReference
+            'getOriginalReference' => $originalReference,
+            'getPspreference' => $pspReference
         ]);
     }
 
