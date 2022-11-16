@@ -7,4 +7,4 @@
 <!-- Description of tested scenarios -->
 <!-- Please verify that the unit tests are passing by running "vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist vendor/adyen/module-payment/Test/" -->
 
-**Fixes**:  <!-- #-prefixed issue number -->
+Fixes  <!-- #-prefixed github issue number -->
