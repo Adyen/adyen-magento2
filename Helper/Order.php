@@ -571,30 +571,35 @@ class Order extends AbstractHelper
          */
         $lastTransactionId = $order->getPayment()->getLastTransId();
         $matches = $this->dataHelper->parseTransactionId($lastTransactionId);
-        if (($matches['pspReference'] ?? '') == $notification->getOriginalReference() && empty($matches['suffix'])) {
-            if (empty($matches['suffix']) || $matches['suffix'] === '-capture') {
-                // refund is done through adyen backoffice so create a credit memo
-                if ($order->canCreditmemo()) {
-                    $amount = $this->dataHelper->originalAmount($notification->getAmountValue(), $notification->getAmountCurrency());
-                    $order->getPayment()->registerRefundNotification($amount);
 
-                    $this->adyenLogger->addAdyenNotification(sprintf(
-                        'Created credit memo for order %s', $order->getIncrementId()),
-                        [
-                            'pspReference' => $notification->getPspreference(),
-                            'merchantReference' => $notification->getMerchantReference()
-                        ]
-                    );
-                } else {
-                    $this->adyenLogger->addAdyenNotification(sprintf(
-                        'Could not create a credit memo for order %s while processing notification %s',
-                        $order->getIncrementId(),
-                        $notification->getId()
-                    ), [
-                        'pspReference' => $order->getPayment()->getData('adyen_psp_reference'),
-                        'merchantReference' => $order->getPayment()->getData('entity_id')
-                    ]);
-                }
+        if (
+            ($matches['pspReference'] ?? '') == $notification->getOriginalReference() &&
+            (empty($matches['suffix']) || strpos($matches['suffix'], 'refund') === false)
+        ) {
+            // Refund is done through Adyen Customer Area, a credit memo will be created.
+            if ($order->canCreditmemo()) {
+                $amount = $this->dataHelper->originalAmount($notification->getAmountValue(), $notification->getAmountCurrency());
+                $order->getPayment()->registerRefundNotification($amount);
+
+                $order->setState(MagentoOrder::STATE_CLOSED);
+                $order->setStatus($order->getConfig()->getStateDefaultStatus(MagentoOrder::STATE_CLOSED));
+
+                $this->adyenLogger->addAdyenNotification(sprintf(
+                    'Created credit memo for order %s', $order->getIncrementId()),
+                    [
+                        'pspReference' => $notification->getPspreference(),
+                        'merchantReference' => $notification->getMerchantReference()
+                    ]
+                );
+            } else {
+                $this->adyenLogger->addAdyenNotification(sprintf(
+                    'Could not create a credit memo for order %s while processing notification %s',
+                    $order->getIncrementId(),
+                    $notification->getId()
+                ), [
+                    'pspReference' => $order->getPayment()->getData('adyen_psp_reference'),
+                    'merchantReference' => $order->getPayment()->getData('entity_id')
+                ]);
             }
         } else {
             $this->adyenLogger->addAdyenNotification(sprintf(
