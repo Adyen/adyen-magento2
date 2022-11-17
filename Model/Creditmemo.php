@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2021 Adyen B.V.
+ * Copyright (c) 2022 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -12,17 +12,17 @@
 // phpcs:disable Generic.CodeAnalysis.UselessOverridingMethod.Found
 namespace Adyen\Payment\Model;
 
-use Adyen\Payment\Api\Data\InvoiceInterface;
+use Adyen\Payment\Api\Data\CreditmemoInterface;
 use Magento\Framework\Data\Collection\AbstractDb;
 use Magento\Framework\Model\AbstractModel;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
 use Magento\Framework\Registry;
 
-class Invoice extends AbstractModel implements InvoiceInterface
+class Creditmemo extends AbstractModel implements CreditMemoInterface
 {
     /**
-     * Invoice constructor.
+     * Creditmemo constructor.
      *
      * @param Context $context
      * @param Registry $registry
@@ -47,15 +47,15 @@ class Invoice extends AbstractModel implements InvoiceInterface
      */
     protected function _construct()
     {
-        $this->_init(\Adyen\Payment\Model\ResourceModel\Invoice\Invoice::class);
+        $this->_init(\Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo::class);
     }
 
     /**
-     * Gets the Pspreference for the invoice(capture).
+     * Gets the Pspreference for the creditmemo(capture).
      *
-     * @return int|null Pspreference.
+     * @return string|null Pspreference.
      */
-    public function getPspreference()
+    public function getPspreference(): ?string
     {
         return $this->getData(self::PSPREFERENCE);
     }
@@ -66,89 +66,83 @@ class Invoice extends AbstractModel implements InvoiceInterface
      * @param string $pspreference
      * @return $this
      */
-    public function setPspreference($pspreference)
+    public function setPspreference(string $pspreference): Creditmemo
     {
         return $this->setData(self::PSPREFERENCE, $pspreference);
     }
 
     /**
-     * Gets the Pspreference of the original Payment
+     * Gets the ID for the creditmemo.
      *
-     * @deprecated
-     * @return mixed
+     * @return int|null Entity ID.
      */
-    public function getOriginalReference()
+    public function getEntityId(): ?int
+    {
+        return $this->getData(self::ENTITY_ID);
+    }
+
+    /**
+     * Sets entity ID.
+     *
+     * @param int $entityId
+     * @return $this
+     */
+    public function setEntityId($entityId): CreditmemoInterface
+    {
+        return $this->getData(self::ENTITY_ID, $entityId);
+    }
+
+    /**
+     * @return string
+     */
+    public function getOriginalReference(): string
     {
         return $this->getData(self::ORIGINAL_REFERENCE);
     }
 
     /**
-     * Sets the OriginalReference
-     *
-     * @deprecated
-     * @param $originalReference
+     * @param string $originalReference
      * @return $this
      */
-    public function setOriginalReference($originalReference)
+    public function setOriginalReference(string $originalReference): Creditmemo
     {
         return $this->setData(self::ORIGINAL_REFERENCE, $originalReference);
     }
 
     /**
-     * Gets the AcquirerReference for the invoice.
+     * Gets the CreditmemoID for the invoice.
      *
-     * @return int|null Acquirerreference.
+     * @return int|null Creditmemo ID.
      */
-    public function getAcquirerReference()
+    public function getCreditmemoId(): ?int
     {
-        return $this->getData(self::ACQUIRER_REFERENCE);
+        return $this->getData(self::CREDITMEMO_ID);
     }
 
     /**
-     * Sets AcquirerReference.
+     * Sets CreditmemoID.
      *
-     * @param string $acquirerReference
+     * @param int $creditmemoId
      * @return $this
      */
-    public function setAcquirerReference($acquirerReference)
+    public function setCreditmemoId(int $creditmemoId): Creditmemo
     {
-        return $this->setData(self::ACQUIRER_REFERENCE, $acquirerReference);
-    }
-
-    /**
-     * Gets the InvoiceID for the invoice.
-     *
-     * @return int|null Invoice ID.
-     */
-    public function getInvoiceId()
-    {
-        return $this->getData(self::INVOICE_ID);
-    }
-
-    /**
-     * Sets InvoiceID.
-     *
-     * @param int $invoiceId
-     * @return $this
-     */
-    public function setInvoiceId($invoiceId)
-    {
-        return $this->setData(self::INVOICE_ID, $invoiceId);
+        return $this->setData(self::CREDITMEMO_ID, $creditmemoId);
     }
 
     /**
      * @return int|null
      */
-    public function getAmount()
+    public function getAmount(): ?int
     {
         return $this->getData(self::AMOUNT);
     }
 
     /**
-     * @param $amount
-     * @return Invoice
+     * @param int $amount
+     * @return Creditmemo
      */
-    public function setAmount($amount)
+    public function setAmount(int $amount): Creditmemo
     {
         return $this->setData(self::AMOUNT, $amount);
     }
@@ -156,16 +150,16 @@ class Invoice extends AbstractModel implements InvoiceInterface
     /**
      * @return int|null
      */
-    public function getAdyenPaymentOrderId()
+    public function getAdyenPaymentOrderId(): ?int
     {
         return $this->getData(self::ADYEN_ORDER_PAYMENT_ID);
     }
 
     /**
-     * @param $id
-     * @return Invoice
+     * @param int $id
+     * @return Creditmemo
      */
-    public function setAdyenPaymentOrderId($id)
+    public function setAdyenPaymentOrderId(int $id): Creditmemo
     {
         return $this->setData(self::ADYEN_ORDER_PAYMENT_ID, $id);
     }
@@ -173,50 +167,50 @@ class Invoice extends AbstractModel implements InvoiceInterface
     /**
      * @return string|null
      */
-    public function getStatus()
+    public function getStatus(): ?string
     {
         return $this->getData(self::STATUS);
     }
 
     /**
-     * @param $status
-     * @return Invoice
+     * @param string $status
+     * @return Creditmemo
      */
-    public function setStatus($status)
+    public function setStatus(string $status): Creditmemo
     {
         return $this->setData(self::STATUS, $status);
     }
 
     /**
-     * @return mixed
+     * @return \DateTime
      */
-    public function getCreatedAt()
+    public function getCreatedAt(): \DateTime
     {
         return $this->getData(self::CREATED_AT);
     }
 
     /**
-     * @param $createdAt
-     * @return Invoice
+     * @param \DateTime $createdAt
+     * @return Creditmemo
      */
-    public function setCreatedAt($createdAt)
+    public function setCreatedAt(\DateTime $createdAt): Creditmemo
     {
         return $this->setData(self::CREATED_AT, $createdAt);
     }
 
     /**
-     * @return mixed
+     * @return \DateTime
      */
-    public function getUpdatedAt()
+    public function getUpdatedAt(): \DateTime
     {
         return $this->getData(self::UPDATED_AT);
     }
 
     /**
-     * @param $updatedAt
-     * @return Invoice
+     * @param \DateTime $updatedAt
+     * @return Creditmemo
      */
-    public function setUpdatedAt($updatedAt)
+    public function setUpdatedAt(\DateTime $updatedAt): Creditmemo
     {
         return $this->setData(self::UPDATED_AT, $updatedAt);
     }
