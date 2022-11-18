@@ -373,15 +373,17 @@ define(
              * @returns {array}
              */
             getBrands: function() {
-                let paymentMethods =
-                    adyenPaymentService.getPaymentMethods()._latestValue.paymentMethodsResponse.paymentMethods;
+                const methods = adyenPaymentService.getPaymentMethods()();
+                if (!methods.paymentMethodsResponse) {
+                    return [];
+                }
 
-                for (let i = 0; i < paymentMethods.length; i++) {
-                    let paymentMethod = paymentMethods[i];
-                    if (Object.values(paymentMethod).includes("scheme")) {
-                        return paymentMethod.brands;
+                for (const method of methods.paymentMethodsResponse.paymentMethods) {
+                    if (method.type === 'scheme' && method.brands) {
+                        return method.brands;
                     }
                 }
+                return [];
             },
             /**
              * Return Payment method code
