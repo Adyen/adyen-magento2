@@ -200,4 +200,14 @@ class SupportMenu extends Generic implements TabInterface
         $this->setForm($form);
         return parent::_prepareForm();
     }
+
+    public function orderProcessingUrl()
+    {
+        return $this->getUrl('adyen/support/orderprocessing/');
+    }
+
+    public function configurationSettingsUrl()
+    {
+        return $this->getUrl('adyen/support/settings');
+    }
 }

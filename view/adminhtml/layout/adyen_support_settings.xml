@@ -6,8 +6,9 @@
                template="Adyen_Payment::support/settings.phtml"/>
     </referenceContainer>
     <referenceContainer name="left">
-        <block class="Adyen\Payment\Block\Adminhtml\Support\Edit\Tab\SupportMenu" name="adyen_configuration_supportmenu"
-               template="Adyen_Payment::support/support_menu.phtml"/>
+        <block class="Adyen\Payment\Block\Adminhtml\Support\Edit\Tab\SupportMenu"
+               name="adyen_configuration_supportmenu"
+               template="Adyen_Payment::support/menu.phtml"/>
     </referenceContainer>
     <referenceContainer name="js">
         <block class="Magento\Backend\Block\Template" name="adyen_support_form_js" template="Adyen_Payment::support/js.phtml" />

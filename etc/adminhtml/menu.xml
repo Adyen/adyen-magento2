@@ -3,6 +3,6 @@
     <menu>
         <add id="Adyen_Payment::adyen" title="Adyen" module="Adyen_Payment" sortOrder="100" parent="Magento_Backend::system" resource="Adyen_Payment::adyen"/>
         <add id="Adyen_Payment::notifications_overview" title="Webhooks Overview" module="Adyen_Payment" sortOrder="10" parent="Adyen_Payment::adyen" action="adyen/notifications/overview" resource="Adyen_Payment::notifications_overview"/>
-        <add id="Adyen_Payment::configuration_support" title="Support" module="Adyen_Payment" sortOrder="20" parent="Adyen_Payment::adyen" action="adyen/configuration/support" resource="Adyen_Payment::support"/>
+        <add id="Adyen_Payment::support" title="Support" module="Adyen_Payment" sortOrder="20" parent="Adyen_Payment::adyen" action="adyen/support/orderprocessing" resource="Adyen_Payment::support"/>
     </menu>
 </config>

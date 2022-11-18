@@ -25,6 +25,8 @@ class OrderProcessing extends Action
     public function execute()
     {
         $resultPage = $this->resultFactory->create(ResultFactory::TYPE_PAGE);
+        $resultPage->setActiveMenu('Adyen_Payment::support')
+            ->getConfig()->getTitle()->prepend(__('Adyen Support'));
 
         $resultPage->getConfig()->getTitle()->prepend(__('Order Processing'));
 
