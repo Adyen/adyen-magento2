@@ -7,9 +7,6 @@ use Magento\Backend\Block\Template\Context;
 
 class Menu extends Template
 {
-    const HEADLESS_YES = 1;
-    const HEADLESS_NO = 0;
-
     /**
      * @param Context $context
      */
@@ -20,11 +17,16 @@ class Menu extends Template
 
     public function orderProcessingUrl()
     {
-        return $this->getUrl('adyen/support/orderprocessing/');
+        return $this->getUrl('adyen/support/orderprocessing');
     }
 
     public function configurationSettingsUrl()
     {
-        return $this->getUrl('adyen/support/settings');
+        return $this->getUrl('adyen/support/configurationsettings');
+    }
+
+    public function getCurrentSection()
+    {
+        return $this->getRequest()->getActionName();
     }
 }
