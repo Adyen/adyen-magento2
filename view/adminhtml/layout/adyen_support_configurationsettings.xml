@@ -2,12 +2,12 @@
 <page layout="admin-2columns-left" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
 <body>
     <referenceContainer name="content">
-        <block class="Adyen\Payment\Block\Adminhtml\Support\Settings" name="adyen_support_settings"
-               template="Adyen_Payment::support/settings.phtml"/>
+        <block class="Adyen\Payment\Block\Adminhtml\Support\ConfigurationSettings" name="adyen_support_configurationsettings"
+               template="Adyen_Payment::support/configurationsettings.phtml"/>
     </referenceContainer>
     <referenceContainer name="left">
-        <block class="Adyen\Payment\Block\Adminhtml\Support\Edit\Tab\SupportMenu"
-               name="adyen_configuration_supportmenu"
+        <block class="Adyen\Payment\Block\Adminhtml\Support\Menu"
+               name="adyen_support_menu"
                template="Adyen_Payment::support/menu.phtml"/>
     </referenceContainer>
     <referenceContainer name="js">
