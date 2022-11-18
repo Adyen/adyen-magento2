@@ -118,16 +118,29 @@ class CheckoutDataBuilder implements BuilderInterface
         }
 
         $brandCode = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
-        if (isset($brandCode) && ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)
-            || $this->adyenHelper->isPaymentMethodOfType($brandCode, Data::FACILYPAY)
-            || $payment->getMethod() === AdyenPayByLinkConfigProvider::CODE)
+        if (
+            (isset($brandCode) && $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) ||
+            $payment->getMethod() === AdyenPayByLinkConfigProvider::CODE
         ) {
             $openInvoiceFields = $this->getOpenInvoiceData($order);
             $requestBody = array_merge($requestBody, $openInvoiceFields);
-            if ($this->adyenHelper->isPaymentMethodOfType($brandCode, Data::KLARNA) &&
+
+            if (isset($brandCode) &&
+                $this->adyenHelper->isPaymentMethodOfType($brandCode, Data::KLARNA) &&
                 $this->configHelper->getAutoCaptureOpenInvoice($storeId)) {
                 $requestBody['captureDelayHours'] = 0;
             }
+
+            if ($payment->getMethod() === AdyenPayByLinkConfigProvider::CODE
+                || $this->adyenHelper->isPaymentMethodOfType($brandCode, Data::KLARNA)) {
+                $requestBody['additionalData']['openinvoicedata.merchantData'] =
+                    base64_encode(json_encode($this->getOtherDeliveryInformation($order)));
+            }
+        }
+
+        if ($payment->getMethod() === AdyenPayByLinkConfigProvider::CODE) {
+            $requestBody['additionalData']['openinvoicedata.merchantData'] =
+                base64_encode(json_encode($this->getOtherDeliveryInformation($order)));
         }
 
         // Ratepay specific Fingerprint
@@ -196,6 +209,11 @@ class CheckoutDataBuilder implements BuilderInterface
             unset($requestBody['installments']);
         }
 
+        if (isset($brandCode) && $this->adyenHelper->isPaymentMethodOfType($brandCode, Data::KLARNA)) {
+            $requestBody['additionalData']['openinvoicedata.merchantData'] =
+                base64_encode(json_encode($this->getOtherDeliveryInformation($order)));
+        }
+
         $requestBody['additionalData']['allow3DS2'] = true;
 
         if (isset($requestBodyPaymentMethod)) {
@@ -204,6 +222,25 @@ class CheckoutDataBuilder implements BuilderInterface
 
         return [
             'body' => $requestBody
+        ];
+    }
+
+    /**
+     * @param \Magento\Sales\Model\Order $order
+     * @return array
+     */
+    private function getOtherDeliveryInformation(\Magento\Sales\Model\Order $order): array
+    {
+        $shippingAddress = $order->getShippingAddress();
+
+        return [
+            "shipping_method" => $order->getShippingMethod(),
+            "first_name" => $order->getCustomerFirstname(),
+            "last_name" => $order->getCustomerLastname(),
+            "street_address" => implode(' ', $shippingAddress->getStreet()),
+            "postal_code" => $shippingAddress->getPostcode(),
+            "city" => $shippingAddress->getCity(),
+            "country" => $shippingAddress->getCountryId()
         ];
     }
 
