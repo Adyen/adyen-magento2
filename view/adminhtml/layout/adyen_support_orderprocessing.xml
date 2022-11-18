@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<page layout="admin-2columns-left" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+<body>
+    <referenceContainer name="content">
+        <block class="Adyen\Payment\Block\Adminhtml\Support\OrderProcessing" name="adyen_configuration_orderprocessing"
+               template="Adyen_Payment::support/orderprocessing.phtml"/>
+    </referenceContainer>
+    <referenceContainer name="left">
+        <block class="Adyen\Payment\Block\Adminhtml\Support\Edit\Tab\SupportMenu" name="adyen_configuration_supportmenu"
+               template="Adyen_Payment::support/support_menu.phtml"/>
+    </referenceContainer>
+    <referenceContainer name="js">
+        <block class="Magento\Backend\Block\Template" name="adyen_support_form_js" template="Adyen_Payment::support/js.phtml" />
+    </referenceContainer>
+</body>
+</page>
