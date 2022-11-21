@@ -16,14 +16,12 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Tests\Unit\AbstractAdyenTestCase;
 use Magento\Framework\App\Helper\Context;
+use Magento\Sales\Model\Order;
 use PHPUnit\Framework\TestCase;
 
 class CaseManagementTest extends AbstractAdyenTestCase
 {
-    /**
-     * @return bool
-     */
-    public function testRequiresManualReviewTrue()
+    public function testRequiresManualReviewTrue(): bool
     {
         $additionalData = [CaseManagement::FRAUD_MANUAL_REVIEW => 'true'];
         $caseManagementHelper = $this->createCaseManagementHelper();
@@ -31,10 +29,7 @@ class CaseManagementTest extends AbstractAdyenTestCase
         $this->assertTrue($caseManagementHelper->requiresManualReview($additionalData));
     }
 
-    /**
-     * @return bool
-     */
-    public function testRequiresManualReviewNoFraudKey()
+    public function testRequiresManualReviewNoFraudKey(): bool
     {
         $additionalData = ['test' => 'myPatience'];
         $caseManagementHelper = $this->createCaseManagementHelper();
@@ -42,15 +37,17 @@ class CaseManagementTest extends AbstractAdyenTestCase
         $this->assertFalse($caseManagementHelper->requiresManualReview($additionalData));
     }
 
-    /**
-     * @return bool
-     */
-    public function testRequiresManualReviewUnexpectedValue()
+    public function testRequiresManualReviewUnexpectedValue(): bool
     {
         $additionalData = [CaseManagement::FRAUD_MANUAL_REVIEW => '1'];
         $caseManagementHelper = $this->createCaseManagementHelper();
 
         $this->assertFalse($caseManagementHelper->requiresManualReview($additionalData));
+    }
+
+    public function testMarkCaseAsPendingReview(): Order
+    {
+
     }
 
     /**
