@@ -13,6 +13,7 @@ namespace Adyen\Payment\Gateway\Response;
 
 use Adyen\Payment\Gateway\Http\Client\TransactionRefund;
 use Adyen\Payment\Helper\Creditmemo;
+use Adyen\Payment\Helper\Data;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Response\HandlerInterface;
@@ -25,10 +26,15 @@ class PaymentRefundDetailsHandler implements HandlerInterface
      */
     private $creditmemoHelper;
 
+    /** @var Data */
+    private $adyenDataHelper;
+
     public function __construct(
-        Creditmemo $creditmemoHelper
+        Creditmemo $creditmemoHelper,
+        Data $adyenDataHelper
     ) {
         $this->creditmemoHelper = $creditmemoHelper;
+        $this->adyenDataHelper = $adyenDataHelper;
     }
 
     /**
@@ -60,7 +66,7 @@ class PaymentRefundDetailsHandler implements HandlerInterface
                 $payment,
                 $singleResponse['pspReference'],
                 $singleResponse[TransactionRefund::ORIGINAL_REFERENCE],
-                $currencyConverter->sanitize(
+                $this->adyenDataHelper->originalAmount(
                     $singleResponse[TransactionRefund::REFUND_AMOUNT],
                     $singleResponse[TransactionRefund::REFUND_CURRENCY]
                 )

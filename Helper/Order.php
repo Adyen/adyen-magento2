@@ -16,6 +16,8 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Config\Source\Status\AdyenState;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as OrderPaymentCollectionFactory;
+use Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo as AdyenCreditMemoResourceModel;
+use Adyen\Payment\Helper\Creditmemo as AdyenCreditmemoHelper;
 use Exception;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Helper\AbstractHelper;
@@ -75,6 +77,12 @@ class Order extends AbstractHelper
     /** @var PaymentMethods */
     private $paymentMethodsHelper;
 
+    /** @var AdyenCreditMemoResourceModel */
+    private $adyenCreditmemoResourceModel;
+
+    /** @var AdyenCreditmemoHelper */
+    private $adyenCreditmemoHelper;
+
     public function __construct(
         Context $context,
         Builder $transactionBuilder,
@@ -90,7 +98,9 @@ class Order extends AbstractHelper
         OrderRepository $orderRepository,
         NotifierPool $notifierPool,
         OrderPaymentCollectionFactory $adyenOrderPaymentCollectionFactory,
-        PaymentMethods $paymentMethodsHelper
+        PaymentMethods $paymentMethodsHelper,
+        AdyenCreditMemoResourceModel $adyenCreditmemoResourceModel,
+        AdyenCreditmemoHelper $adyenCreditmemoHelper
     ) {
         parent::__construct($context);
         $this->transactionBuilder = $transactionBuilder;
@@ -107,6 +117,8 @@ class Order extends AbstractHelper
         $this->notifierPool = $notifierPool;
         $this->adyenOrderPaymentCollectionFactory = $adyenOrderPaymentCollectionFactory;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
+        $this->adyenCreditmemoResourceModel = $adyenCreditmemoResourceModel;
+        $this->adyenCreditmemoHelper = $adyenCreditmemoHelper;
     }
 
     /**
@@ -531,66 +543,70 @@ class Order extends AbstractHelper
      */
     public function refundOrder(MagentoOrder $order, Notification $notification): MagentoOrder
     {
-        // check if it is a partial payment if so save the refunded data
-        // TODO: Refactor this to use adyen_order_payment
-        if ($notification->getOriginalReference() != "") {
+        /*
+         * Update AdyenOrderPayment entity with the refund
+         */
+        /** @var OrderPaymentInterface $orderPayment */
+        $orderPayment = $this->adyenOrderPaymentCollectionFactory
+            ->create()
+            ->addFieldToFilter(Notification::PSPREFRENCE, $notification->getOriginalReference())
+            ->getFirstItem();
 
-            /** @var OrderPaymentInterface $orderPayment */
-            $orderPayment = $this->adyenOrderPaymentCollectionFactory
-                ->create()
-                ->addFieldToFilter(Notification::PSPREFRENCE, $notification->getOriginalReference())
-                ->getFirstItem();
-
-            if ($orderPayment->getEntityId() > 0) {
-                $this->adyenOrderPaymentHelper->refundAdyenOrderPayment($orderPayment, $notification);
-                $this->adyenLogger->addAdyenNotification(sprintf(
-                    'Refunding %s from AdyenOrderPayment %s',
-                    $notification->getAmountCurrency() . $notification->getAmountValue(),
-                    $orderPayment->getEntityId()
-                ),
-                    array_merge(
-                        $this->adyenLogger->getOrderContext($order),
-                        ['pspReference' => $notification->getPspreference()]
-                    )
-                );
-            } else {
-                $this->adyenLogger->addAdyenNotification(sprintf(
-                    'AdyenOrderPayment with pspReference %s and merchantReference %s was not found. This should be linked to order %s',
-                    $notification->getOriginalReference(),
-                    $notification->getMerchantReference(),
-                    $order->getRemoteIp()
-                ), $this->adyenLogger->getOrderContext($order));
-            }
-        }
+        // TODO Check for the linked order check that is removed. If there is no adyen_order_payment record there should be an exception if we will rely on this table.
+        $this->adyenOrderPaymentHelper->refundAdyenOrderPayment($orderPayment, $notification);
+        $this->adyenLogger->addAdyenNotification(sprintf(
+            'Refunding %s from AdyenOrderPayment %s',
+            $notification->getAmountCurrency() . $notification->getAmountValue(),
+            $orderPayment->getEntityId()
+        ),
+            array_merge(
+                $this->adyenLogger->getOrderContext($order),
+                ['pspReference' => $notification->getPspreference()]
+            )
+        );
 
         /*
-         * Don't create a credit memo if refund is initialized in Magento
-         * because in this case the credit memo already exists.
-         * Refunds initialized in Magento have a suffix such as '-refund', '-capture' or '-capture-refund' appended
-         * to the original reference.
+         * Check adyen_creditmemo table.
+         * If credit memo doesn't exist for this notification, create it.
          */
-        $lastTransactionId = $order->getPayment()->getLastTransId();
-        $matches = $this->dataHelper->parseTransactionId($lastTransactionId);
+        $linkedAdyenCreditmemo = $this->adyenCreditmemoResourceModel->getAdyenCreditmemoByPspreference(
+            $notification->getPspreference()
+        );
 
-        if (
-            ($matches['pspReference'] ?? '') == $notification->getOriginalReference() &&
-            (empty($matches['suffix']) || strpos($matches['suffix'], 'refund') === false)
-        ) {
-            // Refund is done through Adyen Customer Area, a credit memo will be created.
+        if (is_null($linkedAdyenCreditmemo)) {
             if ($order->canCreditmemo()) {
                 $amount = $this->dataHelper->originalAmount($notification->getAmountValue(), $notification->getAmountCurrency());
+
+                $this->adyenCreditmemoHelper->createAdyenCreditMemo(
+                    $order->getPayment(),
+                    $notification->getPspreference(),
+                    $notification->getOriginalReference(),
+                    $amount
+                );
+
+                // TODO this function calculates the left amount by baseAmount. What will happen if the order currency is different than the base currency?
+                // TODO this function doesn't return anything. So the next dummy check is required.
+                /*
+                 * Following method will try to create the credit memo for this order.
+                 * If the credit memo can't be created, this method will also provide comment history.
+                 * Additional comment history for the failed creation process was skipped due to this reason.
+                 * For the failed case, offline credit memo creation is suggested by comments to the merchant.
+                 */
                 $order->getPayment()->registerRefundNotification($amount);
 
-                $order->setState(MagentoOrder::STATE_CLOSED);
-                $order->setStatus($order->getConfig()->getStateDefaultStatus(MagentoOrder::STATE_CLOSED));
+                $leftAmount = $order->getGrandTotal() - $order->getTotalRefunded();
+                if ($leftAmount == 0) {
+                    $order->setState(MagentoOrder::STATE_CLOSED);
+                    $order->setStatus($order->getConfig()->getStateDefaultStatus(MagentoOrder::STATE_CLOSED));
 
-                $this->adyenLogger->addAdyenNotification(sprintf(
-                    'Created credit memo for order %s', $order->getIncrementId()),
-                    [
-                        'pspReference' => $notification->getPspreference(),
-                        'merchantReference' => $notification->getMerchantReference()
-                    ]
-                );
+                    $this->adyenLogger->addAdyenNotification(sprintf(
+                        'Created credit memo for order %s', $order->getIncrementId()),
+                        [
+                            'pspReference' => $notification->getPspreference(),
+                            'merchantReference' => $notification->getMerchantReference()
+                        ]
+                    );
+                }
             } else {
                 $this->adyenLogger->addAdyenNotification(sprintf(
                     'Could not create a credit memo for order %s while processing notification %s',
@@ -603,7 +619,9 @@ class Order extends AbstractHelper
             }
         } else {
             $this->adyenLogger->addAdyenNotification(sprintf(
-                'Did not create a credit memo for order %s because refund was done through Magento back office', $order->getIncrementId()
+                'Did not create a credit memo for order %s because credit memo already exist for this refund request %s',
+                $order->getIncrementId(),
+                $notification->getPspreference()
             ), [
                 'pspReference' => $order->getPayment()->getData('adyen_psp_reference'),
                 'merchantReference' => $order->getPayment()->getData('entity_id')

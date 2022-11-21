@@ -66,7 +66,7 @@ class Creditmemo extends AbstractModel implements CreditMemoInterface
      * @param string $pspreference
      * @return $this
      */
-    public function setPspreference(string $pspreference): Creditmemo
+    public function setPspreference(string $pspreference): CreditmemoInterface
     {
         return $this->setData(self::PSPREFERENCE, $pspreference);
     }
@@ -104,7 +104,7 @@ class Creditmemo extends AbstractModel implements CreditMemoInterface
      * @param string $originalReference
      * @return $this
      */
-    public function setOriginalReference(string $originalReference): Creditmemo
+    public function setOriginalReference(string $originalReference): CreditmemoInterface
     {
         return $this->setData(self::ORIGINAL_REFERENCE, $originalReference);
     }
@@ -125,24 +125,24 @@ class Creditmemo extends AbstractModel implements CreditMemoInterface
      * @param int $creditmemoId
      * @return $this
      */
-    public function setCreditmemoId(int $creditmemoId): Creditmemo
+    public function setCreditmemoId(int $creditmemoId): CreditmemoInterface
     {
         return $this->setData(self::CREDITMEMO_ID, $creditmemoId);
     }
 
     /**
-     * @return int|null
+     * @return float|null
      */
-    public function getAmount(): ?int
+    public function getAmount(): ?float
     {
         return $this->getData(self::AMOUNT);
     }
 
     /**
-     * @param int $amount
+     * @param float $amount
      * @return Creditmemo
      */
-    public function setAmount(int $amount): Creditmemo
+    public function setAmount(float $amount): CreditmemoInterface
     {
         return $this->setData(self::AMOUNT, $amount);
     }
@@ -159,7 +159,7 @@ class Creditmemo extends AbstractModel implements CreditMemoInterface
      * @param int $id
      * @return Creditmemo
      */
-    public function setAdyenPaymentOrderId(int $id): Creditmemo
+    public function setAdyenPaymentOrderId(int $id): CreditmemoInterface
     {
         return $this->setData(self::ADYEN_ORDER_PAYMENT_ID, $id);
     }
@@ -176,7 +176,7 @@ class Creditmemo extends AbstractModel implements CreditMemoInterface
      * @param string $status
      * @return Creditmemo
      */
-    public function setStatus(string $status): Creditmemo
+    public function setStatus(string $status): CreditmemoInterface
     {
         return $this->setData(self::STATUS, $status);
     }
@@ -193,7 +193,7 @@ class Creditmemo extends AbstractModel implements CreditMemoInterface
      * @param \DateTime $createdAt
      * @return Creditmemo
      */
-    public function setCreatedAt(\DateTime $createdAt): Creditmemo
+    public function setCreatedAt(\DateTime $createdAt): CreditmemoInterface
     {
         return $this->setData(self::CREATED_AT, $createdAt);
     }
@@ -210,7 +210,7 @@ class Creditmemo extends AbstractModel implements CreditMemoInterface
      * @param \DateTime $updatedAt
      * @return Creditmemo
      */
-    public function setUpdatedAt(\DateTime $updatedAt): Creditmemo
+    public function setUpdatedAt(\DateTime $updatedAt): CreditmemoInterface
     {
         return $this->setData(self::UPDATED_AT, $updatedAt);
     }
