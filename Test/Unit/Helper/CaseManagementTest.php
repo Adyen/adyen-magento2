@@ -21,36 +21,59 @@ use PHPUnit\Framework\TestCase;
 class CaseManagementTest extends AbstractAdyenTestCase
 {
     /**
-     * @var CaseManagement
+     * @return bool
      */
-    private $caseManagementHelper;
-
-    public function setUp(): void
-    {
-        $this->caseManagementHelper = new CaseManagement(
-            $this->createMock(AdyenLogger::class),
-            $this->createMock(Config::class)
-        );
-    }
-
     public function testRequiresManualReviewTrue()
     {
         $additionalData = [CaseManagement::FRAUD_MANUAL_REVIEW => 'true'];
+        $caseManagementHelper = $this->createCaseManagementHelper();
 
-        $this->assertTrue($this->caseManagementHelper->requiresManualReview($additionalData));
+        $this->assertTrue($caseManagementHelper->requiresManualReview($additionalData));
     }
 
+    /**
+     * @return bool
+     */
     public function testRequiresManualReviewNoFraudKey()
     {
         $additionalData = ['test' => 'myPatience'];
+        $caseManagementHelper = $this->createCaseManagementHelper();
 
-        $this->assertFalse($this->caseManagementHelper->requiresManualReview($additionalData));
+        $this->assertFalse($caseManagementHelper->requiresManualReview($additionalData));
     }
 
+    /**
+     * @return bool
+     */
     public function testRequiresManualReviewUnexpectedValue()
     {
         $additionalData = [CaseManagement::FRAUD_MANUAL_REVIEW => '1'];
+        $caseManagementHelper = $this->createCaseManagementHelper();
 
-        $this->assertFalse($this->caseManagementHelper->requiresManualReview($additionalData));
+        $this->assertFalse($caseManagementHelper->requiresManualReview($additionalData));
+    }
+
+    /**
+     * @param $adyenLoggerMock
+     * @param $adyenConfigHelperMock
+     * @return CaseManagement
+     */
+    public function createCaseManagementHelper(
+        $adyenLoggerMock = null,
+        $adyenConfigHelperMock = null
+    ): CaseManagement
+    {
+        if (is_null($adyenLoggerMock)) {
+            $adyenLoggerMock = $this->createMock(AdyenLogger::class);
+        }
+
+        if (is_null($adyenConfigHelperMock)) {
+            $adyenConfigHelperMock = $this->createMock(Config::class);
+        }
+
+        return new CaseManagement(
+            $adyenLoggerMock,
+            $adyenConfigHelperMock
+        );
     }
 }
