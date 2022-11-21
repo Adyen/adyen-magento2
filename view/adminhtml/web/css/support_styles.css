@@ -1,0 +1,16 @@
+.adyen_support-main {
+    text-justify: auto;
+}
+
+.adyen_support-content {
+    margin-left: auto;
+    margin-right: auto;
+}
+.adyen_support-label {
+    padding: 0 10px;
+}
+
+.adyen_support-label:after {
+    content: "\002a";
+    color: red;
+}
