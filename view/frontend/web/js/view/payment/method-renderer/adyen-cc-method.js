@@ -134,7 +134,7 @@ define(
 
                 let componentConfig = {
                     enableStoreDetails: self.getEnableStoreDetails(),
-                    brands: self.getAvailableCardTypeAltCodes(),
+                    brands: self.getBrands(),
                     hasHolderName: adyenConfiguration.getHasHolderName(),
                     holderNameRequired: adyenConfiguration.getHasHolderName() &&
                         adyenConfiguration.getHolderNameRequired(),
@@ -366,16 +366,24 @@ define(
 
                 return '';
             },
+
             /**
-             * Get available card types translated to the Adyen card type codes
-             * (The card type alt code is the Adyen card type code)
+             * Fetches the brands array of the credit cards
              *
-             * @returns {string[]}
+             * @returns {array}
              */
-            // TODO check if we still need to rely on this or we can rely on the paymentMethods response types
-            getAvailableCardTypeAltCodes: function() {
-                var ccTypes = window.checkoutConfig.payment.ccform.availableTypesByAlt[this.getCode()];
-                return Object.keys(ccTypes);
+            getBrands: function() {
+                const methods = adyenPaymentService.getPaymentMethods()();
+                if (!methods.paymentMethodsResponse) {
+                    return [];
+                }
+
+                for (const method of methods.paymentMethodsResponse.paymentMethods) {
+                    if (method.type === 'scheme' && method.brands) {
+                        return method.brands;
+                    }
+                }
+                return [];
             },
             /**
              * Return Payment method code
