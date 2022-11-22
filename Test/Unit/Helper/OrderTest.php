@@ -13,11 +13,14 @@ namespace Adyen\Payment\Tests\Unit\Helper;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\Creditmemo as AdyenCreditmemoHelper;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Order;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Model\AdyenAmountCurrency;
 use Adyen\Payment\Model\Config\Source\Status\AdyenState;
+use Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo as AdyenCreditMemoResourceModel;
+use Adyen\Payment\Model\ResourceModel\Order\Payment\Collection;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as OrderPaymentCollectionFactory;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Tests\Unit\AbstractAdyenTestCase;
@@ -175,9 +178,7 @@ class OrderTest extends AbstractAdyenTestCase
 
     public function testRefundOrderSuccessful()
     {
-        $dataHelper = $this->createConfiguredMock(Data::class, [
-            'parseTransactionId' => ['pspReference' => '123-refund']
-        ]);
+        $dataHelper = $this->createPartialMock(Data::class, []);
 
         $adyenOrderPaymentHelper = $this->createMock(AdyenOrderPayment::class);
         $adyenOrderPaymentHelper->expects($this->once())->method('refundAdyenOrderPayment');
@@ -191,22 +192,40 @@ class OrderTest extends AbstractAdyenTestCase
             $this->createAdyenOrderPaymentCollection(1)
         );
 
-        $order = $this->createOrder();
-        $order->method('canCreditmemo')->willReturn(true);
-        $order->getPayment()->expects($this->once())->method('registerRefundNotification');
-        $notification = $this->createWebhook('123-refund');
+        $orderPaymentReturnMock = $this->createConfiguredMock(MagentoOrder\Payment::class, [
+            'getCreditmemo' => $this->createMock(MagentoOrder\Creditmemo::class)
+        ]);
+        $orderPaymentMock = $this->createConfiguredMock(MagentoOrder\Payment::class, [
+            'registerRefundNotification' => $orderPaymentReturnMock
+        ]);
+        $orderConfigMock = $this->createConfiguredMock(\Magento\Sales\Model\Order\Config::class, [
+            'getStateDefaultStatus' => MagentoOrder::STATE_CLOSED
+        ]);
+        $order = $this->createConfiguredMock(MagentoOrder::class, [
+            'getPayment' => $orderPaymentMock,
+            'getConfig' => $orderConfigMock,
+            'canCreditmemo' => true
+        ]);
 
+        $notification = $this->createWebhook('123-refund', '123-pspref');
         $orderHelper->refundOrder($order, $notification);
     }
 
     public function testRefundOrderAdyenOrderPaymentNotFound()
     {
-        $dataHelper = $this->createConfiguredMock(Data::class, [
-            'parseTransactionId' => ['pspReference' => '123-refund']
-        ]);
+        // TypeError will be thrown from `refundAdyenOrderPayment()` method for null $orderPayment
+        $this->expectError();
 
-        $adyenOrderPaymentHelper = $this->createMock(AdyenOrderPayment::class);
-        $adyenOrderPaymentHelper->expects($this->never())->method('refundAdyenOrderPayment');
+        $adyenOrderPaymentCollection = $this->createConfiguredMock(Collection::class, [
+            'getFirstItem' => null
+        ]);
+        $adyenOrderPaymentCollection->method('addFieldToFilter')->willReturn($adyenOrderPaymentCollection);
+
+        $adyenOrderPaymentCollectionFactory = $this->createGeneratedMock(OrderPaymentCollectionFactory::class, ['create']);
+        $adyenOrderPaymentCollectionFactory->method('create')->willReturn($adyenOrderPaymentCollection);
+
+        $dataHelper = $this->createPartialMock(Data::class, []);
+        $adyenOrderPaymentHelper = $this->createPartialMock(AdyenOrderPayment::class, []);
 
         $orderHelper = $this->createOrderHelper(
             null,
@@ -214,13 +233,10 @@ class OrderTest extends AbstractAdyenTestCase
             $adyenOrderPaymentHelper,
             null,
             $dataHelper,
-            $this->createAdyenOrderPaymentCollection(0)
+            $adyenOrderPaymentCollectionFactory
         );
 
         $order = $this->createOrder();
-        $order->method('canCreditmemo')->willReturn(true);
-        // registerRefundNotification is still being called when the adyen_order_payment is not found
-        $order->getPayment()->expects($this->once())->method('registerRefundNotification');
         $notification = $this->createWebhook('123-refund');
 
         $orderHelper->refundOrder($order, $notification);
@@ -240,7 +256,10 @@ class OrderTest extends AbstractAdyenTestCase
         $searchCriteriaBuilder = null,
         $orderRepository = null,
         $notifierPool = null,
-        $paymentMethodsHelper = null
+        $paymentMethodsHelper = null,
+        $adyenCreditmemoResourceModel = null,
+        $adyenCreditmemoHelper = null
+
     ): Order {
         $context = $this->createMock(Context::class);
 
@@ -300,6 +319,14 @@ class OrderTest extends AbstractAdyenTestCase
             $paymentMethodsHelper = $this->createMock(PaymentMethods::class);
         }
 
+        if (is_null($adyenCreditmemoResourceModel)) {
+            $adyenCreditmemoResourceModel = $this->createMock(AdyenCreditMemoResourceModel::class);
+        }
+
+        if (is_null($adyenCreditmemoHelper)) {
+            $adyenCreditmemoHelper = $this->createMock(AdyenCreditmemoHelper::class);
+        }
+
         return new Order(
             $context,
             $builder,
@@ -315,7 +342,9 @@ class OrderTest extends AbstractAdyenTestCase
             $orderRepository,
             $notifierPool,
             $orderPaymentCollectionFactory,
-            $paymentMethodsHelper
+            $paymentMethodsHelper,
+            $adyenCreditmemoResourceModel,
+            $adyenCreditmemoHelper
         );
     }
 }
