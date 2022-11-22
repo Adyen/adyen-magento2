@@ -221,7 +221,10 @@ class OrderTest extends AbstractAdyenTestCase
         ]);
         $adyenOrderPaymentCollection->method('addFieldToFilter')->willReturn($adyenOrderPaymentCollection);
 
-        $adyenOrderPaymentCollectionFactory = $this->createGeneratedMock(OrderPaymentCollectionFactory::class, ['create']);
+        $adyenOrderPaymentCollectionFactory = $this->createGeneratedMock(
+            OrderPaymentCollectionFactory::class,
+            ['create']
+        );
         $adyenOrderPaymentCollectionFactory->method('create')->willReturn($adyenOrderPaymentCollection);
 
         $dataHelper = $this->createPartialMock(Data::class, []);
@@ -259,7 +262,6 @@ class OrderTest extends AbstractAdyenTestCase
         $paymentMethodsHelper = null,
         $adyenCreditmemoResourceModel = null,
         $adyenCreditmemoHelper = null
-
     ): Order {
         $context = $this->createMock(Context::class);
 
