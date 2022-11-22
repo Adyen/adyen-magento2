@@ -6,7 +6,7 @@
     <body>
     <referenceContainer name="content">
         <block class="Adyen\Payment\Block\Adminhtml\Support\ConfigurationSettings" name="adyen_support_configurationsettings"
-               template="Adyen_Payment::support/configurationsettings.phtml"/>
+               template="Adyen_Payment::support/support_links.phtml"/>
     </referenceContainer>
     <referenceContainer name="left">
         <block class="Adyen\Payment\Block\Adminhtml\Support\Menu"

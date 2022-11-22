@@ -1,0 +1,36 @@
+<?php /** @var SupportTabInterface $block */
+use Adyen\Payment\Block\Adminhtml\Support\SupportTabInterface; ?>
+<div class="adyen_support-main">
+    <table class="adyen_support-content">
+        <tr>
+            <th class="adyen_support-label">Topic</th>
+            <td>
+                <div class="adyen_support-value">
+                    <select id="support_topic_value">
+                        <option value="">Please select a topic</option>
+                        <?php foreach ($block->getSupportTopics() as $key => $topic): ?>
+                            <option value="<?=$key;?>"><?=$topic;?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td>
+                <div class="adyen_support-links--container adyen_support-value">
+                    <h3><strong>Related articles</strong></h3>
+                    <div class="adyen_support-links"></div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td>
+                <div class="adyen_support-value">
+                    <button class="adyen_support-form_link btn btn-large btn-prime">I still need help</button>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>

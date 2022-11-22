@@ -2,7 +2,17 @@
 
 namespace Adyen\Payment\Block\Adminhtml\Support;
 
-class OrderProcessing extends \Magento\Backend\Block\Page
-{
+use Magento\Backend\Block\Page;
 
+class OrderProcessing extends Page implements SupportTabInterface
+{
+    public function getSupportTopics(): array
+    {
+        return [
+            'payment_status' => 'Payment status',
+            'failed_transaction' => 'Failed transaction',
+            'offer' => 'Offer',
+            'webhooks' => 'Notification &amp; webhooks',
+        ];
+    }
 }
