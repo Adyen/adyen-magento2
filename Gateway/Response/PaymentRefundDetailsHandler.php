@@ -60,8 +60,6 @@ class PaymentRefundDetailsHandler implements HandlerInterface
             // set pspReference as lastTransId only!
             $payment->setLastTransId($singleResponse['pspReference']);
 
-            $currencyConverter = new Currency();
-
             $this->creditmemoHelper->createAdyenCreditMemo(
                 $payment,
                 $singleResponse['pspReference'],

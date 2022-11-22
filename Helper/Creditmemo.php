@@ -92,8 +92,6 @@ class Creditmemo extends AbstractHelper
         string $originalReference,
         float $refundAmount
     ): AdyenCreditmemoModel {
-        $order = $payment->getOrder();
-
         // get adyen_order_payment record
         /** @var OrderPaymentInterface $adyenOrderPayment */
         $adyenOrderPayment = $this->orderPaymentResourceModel->getOrderPaymentDetails(

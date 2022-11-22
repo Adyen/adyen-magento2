@@ -575,7 +575,10 @@ class Order extends AbstractHelper
 
         if (is_null($linkedAdyenCreditmemo)) {
             if ($order->canCreditmemo()) {
-                $amount = $this->dataHelper->originalAmount($notification->getAmountValue(), $notification->getAmountCurrency());
+                $amount = $this->dataHelper->originalAmount(
+                    $notification->getAmountValue(),
+                    $notification->getAmountCurrency()
+                );
 
                 $this->adyenCreditmemoHelper->createAdyenCreditMemo(
                     $order->getPayment(),
@@ -622,7 +625,8 @@ class Order extends AbstractHelper
         } else {
             $this->adyenLogger->addAdyenNotification(
                 sprintf(
-                    'Did not create a credit memo for order %s because credit memo already exist for this refund request %s',
+                    'Did not create a credit memo for order %s. '
+                    . 'Because credit memo already exists for this refund request %s',
                     $order->getIncrementId(),
                     $notification->getPspreference()
                 ),
