@@ -163,7 +163,7 @@ class RefundDataBuilder implements BuilderInterface
             ];
 
             $brandCode = $payment->getAdditionalInformation(
-                \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE
+                \Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver::BRAND_CODE
             );
 
             if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) {

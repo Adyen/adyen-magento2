@@ -16,65 +16,59 @@
     </div>
 </div>
 
-<!-- ko foreach: adyenPaymentMethods -->
-    <div class="payment-method"
-         data-bind="
-         css: {'_active': (paymentMethod.methodIdentifier == $parent.getSelectedAlternativePaymentMethodType())},
-         visible: isAvailable()">
+<!-- ko if: adyenPaymentMethod -->
+<div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}">
+    <div class="payment-method-title field choice">
         <div class="payment-method-title field choice">
             <span data-bind="text: payment[method]"></span>
             <input type="radio"
                    name="payment[method]"
                    class="radio"
-                   data-bind="attr: {'id': 'adyen_' + paymentMethod.methodIdentifier}, value: 'adyen_' + paymentMethod.methodIdentifier, checked: paymentMethod.methodIdentifier == $parent.getSelectedAlternativePaymentMethodType, click: $parent.selectPaymentMethodType"/>
-            <label data-bind="attr: {'for': 'adyen_' + paymentMethod.methodIdentifier}" class="label">
+                   data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()"/>
+            <label data-bind="attr: {'for': getCode()}" class="label">
 
-                <!-- ko if: icon -->
+                <!-- ko if: adyenPaymentMethod().icon -->
                 <img data-bind="attr: {
-                            'src': icon.url,
-                            'alt': paymentMethod.name + ' logo'
-                            }">
+                'src': adyenPaymentMethod().icon.url,
+                'alt': adyenPaymentMethod().item.title + ' logo'
+                }">
                 <!--/ko-->
 
-                <span data-bind="text: paymentMethod.name"></span>
+                <span data-bind="text: adyenPaymentMethod().item.title"></span>
             </label>
         </div>
+
         <div class="payment-method-content">
 
-
-            <!-- ko foreach: $parent.getRegion(getMessageName()) -->
-            <!-- ko template: getTemplate() --><!-- /ko -->
-            <!--/ko-->
-            <div class = "error-message-hpp" style = "display:none" >
-                <span class="message message-error error hpp-message" data-bind="attr: {id: 'messages-' + paymentMethod.methodIdentifier}"></span>
-            </div>
-
             <div class="payment-method-billing-address">
-                <!-- ko foreach: $parents[1].getRegion($parent.getBillingAddressFormName()) -->
+                <!-- ko foreach: $parent.getRegion(getBillingAddressFormName()) -->
                 <!-- ko template: getTemplate() --><!-- /ko -->
                 <!--/ko-->
             </div>
 
-            <form class="form" data-role="adyen-hpp-form" action="#" method="post"
-                  data-bind="mageInit: { 'validation':[]}, attr: {id: 'payment_form_' + $parent.getCode() + '_' + paymentMethod.methodIdentifier}">
 
-                <!-- ko ifnot: showPlaceOrderButton() -->
+            <form class="form" data-role="'adyen-' + adyenPaymentMethod().item.method + '-form'" action="#" method="post"
+                  data-bind="mageInit: { 'validation':[]}, attr: {id: 'adyen-' + adyenPaymentMethod().item.method + '-form'}">
+
+                <!-- ko foreach: getRegion('messages') -->
+                <!-- ko template: getTemplate() --><!-- /ko -->
+                <!--/ko-->
+
+                <!-- ko ifnot: adyenPaymentMethod().showPlaceOrderButton -->
                 <div class="checkout-agreements-block">
-                    <!-- ko foreach: $parents[1].getRegion('before-place-order') -->
+                    <!-- ko foreach: $parent.getRegion('before-place-order') -->
                     <!-- ko template: getTemplate() --><!-- /ko -->
                     <!--/ko-->
                 </div>
                 <!--/ko-->
 
-                <fieldset class="fieldset"
-                          data-bind='attr: {id: "payment_fieldset_" + $parent.getCode() + "_" + paymentMethod.methodIdentifier}'>
-                    <div data-bind='attr: {id: "adyen-alternative-payment-container-" + paymentMethod.methodIdentifier}'
-                         afterRender="renderCheckoutComponent()"></div>
+                <fieldset class="fieldset" data-bind='attr: {id: "payment_fieldset_" + getCode()}'>
+                    <div class="checkout-component-dock" afterRender="adyenPaymentMethod().renderCheckoutComponent" data-bind="attr: { id: adyenPaymentMethod().item.method + 'Container'}"></div>
                 </fieldset>
 
-                <!-- ko if: showPlaceOrderButton() -->
+                <!-- ko if: adyenPaymentMethod().showPlaceOrderButton -->
                 <div class="checkout-agreements-block">
-                    <!-- ko foreach: $parents[1].getRegion('before-place-order') -->
+                    <!-- ko foreach: $parent.getRegion('before-place-order') -->
                     <!-- ko template: getTemplate() --><!-- /ko -->
                     <!--/ko-->
                 </div>
@@ -84,10 +78,10 @@
                     <div class="primary">
                         <button class="action primary checkout"
                                 type="submit"
-                                data-bind="click: placeOrder,
+                                data-bind="click: adyenPaymentMethod().placeOrder,
                                 attr: {title: $t('Place Order')},
-                                enable: $parent.isButtonActive(),
-                                visible: showPlaceOrderButton()"
+                                enable: isButtonActive(),
+                                visible: adyenPaymentMethod().showPlaceOrderButton"
                                 disabled>
                             <span data-bind="text: $t('Place Order')"></span>
                         </button>
@@ -96,4 +90,5 @@
             </form>
         </div>
     </div>
+</div>
 <!--/ko-->
