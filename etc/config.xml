@@ -118,7 +118,7 @@
             </adyen_hpp_vault>
             <adyen_ideal>
                 <active>1</active>
-                <model>AdyenPaymentIdealFacade</model>
+                <model>Adyen\Payment\Model\Methods\Ideal</model>
                 <order_status>pending</order_status>
                 <title>iDeal</title>
                 <allowspecific>0</allowspecific>
@@ -138,7 +138,7 @@
             </adyen_ideal>
             <adyen_klarna>
                 <active>1</active>
-                <model>AdyenPaymentKlarnaFacade</model>
+                <model>Adyen\Payment\Model\Methods\Klarna</model>
                 <order_status>pending</order_status>
                 <title>Klarna</title>
                 <allowspecific>0</allowspecific>

@@ -9,22 +9,16 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-namespace Adyen\Payment\Helper\PaymentMethods;
+namespace Adyen\Payment\Model\Methods;
 
-class IdealPaymentMethod implements PaymentMethodInterface
+use Adyen\Payment\Helper\PaymentMethods\PaymentMethodInterface;
+use Adyen\Payment\Model\AdyenPaymentMethod;
+
+class Klarna extends AdyenPaymentMethod implements PaymentMethodInterface
 {
-    const TX_VARIANT = 'ideal';
-    const NAME = 'iDeal';
-
-    public function getTxVariant(): string
-    {
-        return self::TX_VARIANT;
-    }
-
-    public function getPaymentMethodName(): string
-    {
-        return self::NAME;
-    }
+    const CODE = 'adyen_klarna';
+    const TX_VARIANT = 'klarna';
+    const NAME = 'Klarna';
 
     public function supportsRecurring(): bool
     {

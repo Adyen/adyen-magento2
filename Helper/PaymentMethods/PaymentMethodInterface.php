@@ -14,10 +14,6 @@ namespace Adyen\Payment\Helper\PaymentMethods;
 
 interface PaymentMethodInterface
 {
-    public function getTxVariant(): string;
-
-    public function getPaymentMethodName(): string;
-
     public function supportsCardOnFile(): bool;
 
     public function supportsSubscription(): bool;

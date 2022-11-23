@@ -16,9 +16,6 @@ use Magento\Framework\App\RequestInterface;
 
 class AdyenPaymentMethodConfigProvider implements ConfigProviderInterface
 {
-    const CODE_IDEAL = 'adyen_ideal';
-    const CODE_KLARNA = 'adyen_klarna';
-
     /** @var RequestInterface  */
     protected $request;
 
