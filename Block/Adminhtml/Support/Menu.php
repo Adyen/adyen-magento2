@@ -3,18 +3,9 @@
 namespace Adyen\Payment\Block\Adminhtml\Support;
 
 use Magento\Backend\Block\Template;
-use Magento\Backend\Block\Template\Context;
 
 class Menu extends Template
 {
-    /**
-     * @param Context $context
-     */
-    public function __construct(Context $context)
-    {
-        parent::__construct($context);
-    }
-
     public function orderProcessingUrl()
     {
         return $this->getUrl('adyen/support/orderprocessing');
