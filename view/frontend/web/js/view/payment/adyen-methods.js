@@ -2,7 +2,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -31,27 +31,20 @@ define(
         cancelCouponAction
     ) {
         'use strict';
+        const paymentMethodComponent = 'Adyen_Payment/js/view/payment/method-renderer/adyen-hpp-method';
+        const paymentMethodCodes = [
+            'adyen_ideal',
+            'adyen_klarna'
+        ];
         rendererList.push(
             {
                 type: 'adyen_oneclick',
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-oneclick-method'
             },
             {
-                type: 'adyen_ideal',
-                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-hpp-method'
-            },
-            {
-                type: 'adyen_klarna',
-                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-hpp-method'
-            },
-            {
                 type: 'adyen_cc',
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method'
             },
-            /*{
-                type: 'adyen_hpp',
-                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-hpp-method'
-            },*/
             {
                 type: 'adyen_boleto',
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-boleto-method'
@@ -61,6 +54,11 @@ define(
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-pos-cloud-method'
             }
         );
+
+        paymentMethodCodes.forEach((paymentMethodCode) => {
+            rendererList.push({type: paymentMethodCode, component: paymentMethodComponent});
+        });
+
         /** Add view logic here if needed */
         return Component.extend({
             initialize: function () {

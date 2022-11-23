@@ -27,8 +27,8 @@
     <type name="Adyen\Payment\Model\Ui\AdyenGenericConfigProvider">
         <arguments>
             <argument name="txVariants" xsi:type="array">
-                <item name="adyen_ideal" xsi:type="const">Adyen\Payment\Helper\PaymentMethods\IdealPaymentMethod::TX_VARIANT</item>
-                <item name="adyen_klarna" xsi:type="const">Adyen\Payment\Helper\PaymentMethods\KlarnaPaymentMethod::TX_VARIANT</item>
+                <item name="adyen_ideal" xsi:type="const">Adyen\Payment\Model\Methods\Ideal::TX_VARIANT</item>
+                <item name="adyen_klarna" xsi:type="const">Adyen\Payment\Model\Methods\Klarna::TX_VARIANT</item>
             </argument>
         </arguments>
     </type>
