@@ -5,8 +5,7 @@
     </head>
     <body>
         <referenceContainer name="content">
-            <block class="Adyen\Payment\Block\Adminhtml\Support\OrderProcessingForm" name="adyen_support_orderprocessing_form"
-                   template="Adyen_Payment::support/orderprocessing.phtml"/>
+            <block class="Adyen\Payment\Block\Adminhtml\Support\OrderProcessingForm" name="adyen_support_orderprocessing_form"/>
         </referenceContainer>
         <referenceContainer name="left">
             <block class="Adyen\Payment\Block\Adminhtml\Support\Menu"
