@@ -1,0 +1,56 @@
+<div class="adyen_support-main">
+    <form id="contact-form"
+          method="post"
+          data-hasrequired="<?= $block->escapeHtmlAttr(__('* Required Fields')) ?>"
+          data-mage-init='{"validation":{}}'>
+    <table class="adyen_support-form-content">
+        <tr>
+            <th class="adyen_support-label">Topic</th>
+            <td>
+                <div class="adyen_support-value">
+                    <select id="support_topic_value">
+                        <option value="">Topic</option>
+                        <?php foreach ($block->getSupportTopics() as $key => $topic): ?>
+                            <option value="<?=$key;?>"><?=$topic;?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <th class="adyen_support-label">Issues</th>
+            <td>
+                <div class="adyen_support-value">
+                    <select id="support_issues_value">
+                        <option value="">Select one of the following issues</option>
+                        <?php foreach ($block->getIssuesTopics() as $key => $topic): ?>
+                            <option value="<?=$key;?>"><?=$topic;?></option>
+                        <?php endforeach; ?>
+                    </select>
+            </td>
+        </tr>
+        <tr>
+            <th class="adyen_support-label">Subject</th>
+            <td>
+                <div class="adyen_support-value">
+
+                    <div class="control">
+                        <input name="name"
+                               id="name"
+                               class="input-text"
+                               type="text"
+                               data-validate="{required:true}"/>
+                    </div>
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td>
+                <div class="adyen_support-value">
+                    <button class="adyen_support-form_link btn btn-large btn-prime">Send email</button>
+                </div>
+            </td>
+        </tr>
+    </table>
+        </form>
+</div>
