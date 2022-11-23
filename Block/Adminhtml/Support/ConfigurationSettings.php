@@ -19,4 +19,9 @@ class ConfigurationSettings extends Page implements SupportTabInterface
             'advanced_settings' => 'Advanced settings',
         ];
     }
+
+    public function supportFormUrl()
+    {
+        return $this->getUrl('adyen/support/configurationsettingsform');
+    }
 }

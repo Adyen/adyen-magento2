@@ -15,4 +15,9 @@ class OrderProcessing extends Page implements SupportTabInterface
             'webhooks' => 'Notification &amp; webhooks',
         ];
     }
+
+    public function supportFormUrl()
+    {
+        return $this->getUrl('adyen/support/orderprocessingform');
+    }
 }
