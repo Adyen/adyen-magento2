@@ -9,7 +9,7 @@ class ConfigurationSettings extends Page implements SupportTabInterface
     public function getSupportTopics(): array
     {
         return [
-            'required_settings' => 'Required Settings',
+            'required_settings' => 'Required settings',
             'card_payments' => 'Card payments',
             'card_tokenization' => 'Card tokenization',
             'alt_payment_methods' => 'Alternative payment methods',
