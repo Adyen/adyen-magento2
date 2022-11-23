@@ -25,6 +25,48 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
         ]);
         $fieldset = $form->addFieldset('base_fieldset', ['legend' => __('Order processing')]);
         $this->_addElementTypes($fieldset);
+
+        $fieldset->addField(
+            'topic',
+            'select',
+            [
+                'name' => 'topic',
+                'label' => __('Topic'),
+                'title' => __('Topic'),
+                'class' => '',
+                'options' => [
+                    'payment_status' => 'Payment status',
+                    'failed_transaction' => 'Failed transaction',
+                    'offer' => 'Offer',
+                    'webhooks' => 'Notification &amp; webhooks',
+                ],
+                'required' => true
+            ]
+        );
+
+        $fieldset->addField(
+            'subject',
+            'text',
+            [
+                'name' => 'subject',
+                'label' => __('Subject'),
+                'title' => __('Subject'),
+                'class' => '',
+                'required' => true
+            ]
+        );
+        $fieldset->addField(
+            'email',
+            'text',
+            [
+                'name' => 'email',
+                'label' => __('Email'),
+                'title' => __('Email'),
+                'class' => '',
+                'required' => false,
+            ]
+        );
+
         $fieldset->addField(
             'pspReference',
             'text',
@@ -102,6 +144,18 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'name' => 'orderHistoryComments',
                 'label' => __('Order history comments'),
                 'title' => __('Order history comments'),
+                'class' => '',
+                'required' => false,
+            ]
+        );
+
+        $fieldset->addField(
+            'orderDescription',
+            'textarea',
+            [
+                'name' => 'orderDescription',
+                'label' => __('Description'),
+                'title' => __('Description'),
                 'class' => '',
                 'required' => false,
             ]

@@ -27,24 +27,50 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
 
         $fieldset = $form->addFieldset('base_fieldset', ['legend' => __('Configuration settings')]);
         $this->_addElementTypes($fieldset);
+
         $fieldset->addField(
-            'pspReference',
+            'topic',
+            'select',
+            [
+                'name' => 'topic',
+                'label' => __('Topic'),
+                'title' => __('Topic'),
+                'class' => '',
+                'options' => $this->getSupportTopics(),
+                'required' => true
+            ]
+        );
+
+        $fieldset->addField(
+            'issue',
+            'select',
+            [
+                'name' => 'issue',
+                'label' => __('Issue'),
+                'title' => __('Issue'),
+                'class' => '',
+                'options' => $this->getIssuesTopics(),
+                'required' => true
+            ]
+        );
+        $fieldset->addField(
+            'subject',
             'text',
             [
-                'name' => 'pspReferenceConfigurationSettings',
-                'label' => __('PSP Reference'),
-                'title' => __('PSP Reference'),
+                'name' => 'subject',
+                'label' => __('Subject'),
+                'title' => __('Subject'),
                 'class' => '',
                 'required' => true
             ]
         );
         $fieldset->addField(
-            'merchantReference',
+            'email',
             'text',
             [
-                'name' => 'merchantReference',
-                'label' => __('Merchant Reference'),
-                'title' => __('Merchant Reference'),
+                'name' => 'email',
+                'label' => __('Email'),
+                'title' => __('Email'),
                 'class' => '',
                 'required' => false,
             ]
@@ -64,17 +90,7 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
                 ]
             ]
         );
-        $fieldset->addField(
-            'terminalId',
-            'text',
-            [
-                'name' => 'terminalId',
-                'label' => __('Terminal ID number'),
-                'title' => __('Terminal ID number'),
-                'class' => '',
-                'required' => false,
-            ]
-        );
+
         $fieldset->addField(
             'logs',
             'file',
@@ -87,12 +103,12 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
             ]
         );
         $fieldset->addField(
-            'orderHistoryComments',
+            'description',
             'textarea',
             [
-                'name' => 'orderHistoryComments',
-                'label' => __('Order History Comments'),
-                'title' => __('Order History Comments'),
+                'name' => 'descriptionComments',
+                'label' => __('Description'),
+                'title' => __('Description'),
                 'class' => '',
                 'required' => false,
             ]
