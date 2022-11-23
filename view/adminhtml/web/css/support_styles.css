@@ -1,0 +1,37 @@
+.adyen_support-main {
+    text-justify: auto;
+}
+
+.adyen_support-content {
+    margin-left: auto;
+    margin-right: auto;
+}
+.adyen_support-label {
+    padding: 0 10px;
+}
+
+.adyen_support-label:after {
+    content: "\002a";
+    color: red;
+}
+
+.adyen_support-value {
+    min-width: 500px !important;
+    margin: 5px;
+    padding: 5px;
+}
+
+.adyen_support-value select {
+    width: 100%;
+}
+
+.adyen_support-links--container {
+    border: 1px grey solid;
+    margin-left: 10px;
+    padding-left: 10px;
+}
+
+.adyen_support-links li {
+    list-style-type: none;
+    line-height: 2em;
+}

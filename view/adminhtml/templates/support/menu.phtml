@@ -1,0 +1,29 @@
+<?php /** @var \Adyen\Payment\Block\Adminhtml\Support\Menu $block */ ?>
+<div class="admin__page-nav ui-tabs ui-corner-all ui-widget ui-widget-content" data-role="container" id="support_form_tabs">
+    <div class="admin__page-nav-title" data-role="title" data-ui-id="support-form-tabs-title">
+        <strong>Troubleshoot an issue</strong>
+        <span data-role="title-messages" class="admin__page-nav-title-messages"></span>
+    </div>
+    <ul data-ui-id="support-form-tabs-tab-support-form-tabs" class="tabs admin__page-nav-items ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all" role="tablist">
+        <li class="admin__page-nav-item ui-state-default ui-corner-top<?="configurationsettings"==$block->getCurrentSection()?' ui-tabs-active ui-state-active':''?>"
+            id="support_form_tabs_config_section"
+            data-ui-id="support-form-tabs-tab-item-config-section"
+            role="tab"
+            aria-controls="support_form_tabs_config_section_content"
+            aria-labelledby="support_form_tabs_config_section">
+            <a href="<?=$block->configurationSettingsUrl();?>" id="support_form_tabs_config_section" name="config_section" title="Configuration settings" class="admin__page-nav-link tab-item-link ui-tabs-anchor" data-tab-type="" data-ui-id="support-form-tabs-tab-link-config-section" role="presentation" tabindex="-1">
+                <span>Configuration Settings</span>
+            </a>
+        </li>
+        <li class="admin__page-nav-item ui-state-default ui-corner-top<?="orderprocessing"==$block->getCurrentSection()?' ui-tabs-active ui-state-active':''?>"
+            id="support_form_tabs_order_section"
+            data-ui-id="support-form-tabs-tab-item-order-section"
+            role="tab"
+            aria-controls="support_form_tabs_order_section_content"
+            aria-labelledby="support_form_tabs_order_section">
+            <a href="<?=$block->orderProcessingUrl();?>" id="support_form_tabs_order_section" name="order_section" title="Order processing" class="admin__page-nav-link tab-item-link ui-tabs-anchor" data-tab-type="" data-ui-id="support-form-tabs-tab-link-order-section" role="presentation" tabindex="-1">
+                <span>Order Processing</span>
+            </a>
+        </li>
+    </ul>
+</div>
