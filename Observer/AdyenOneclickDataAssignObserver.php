@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Observer;
 
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Model\ResourceModel\StateData\Collection;
 use Adyen\Service\Validator\CheckoutStateDataValidator;
@@ -61,6 +62,12 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
      * @var Collection
      */
     private $stateDataCollection;
+
+
+    /**
+     * @var Config
+     */
+    private $configHelper;
     /**
      * @var StateData
      */
@@ -77,12 +84,14 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
     public function __construct(
         CheckoutStateDataValidator $checkoutStateDataValidator,
         Data $adyenHelper,
+        Config $configHelper,
         Context $context,
         Collection $stateDataCollection,
         StateData $stateData
     ) {
         $this->checkoutStateDataValidator = $checkoutStateDataValidator;
         $this->adyenHelper = $adyenHelper;
+        $this->configHelper = $configHelper;
         $this->appState = $context->getAppState();
         $this->stateDataCollection = $stateDataCollection;
         $this->stateData = $stateData;
@@ -160,7 +169,7 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
         if ($this->appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
             return \Adyen\Payment\Model\RecurringType::RECURRING;
         } else {
-            return $this->adyenHelper->getAdyenOneclickConfigData('recurring_payment_type');
+            return $this->configHelper->getAdyenOneclickConfigData('recurring_payment_type');
         }
     }
 }

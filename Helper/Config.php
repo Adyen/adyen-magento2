@@ -121,6 +121,9 @@ class Config
         );
     }
 
+
+
+
     /**
      * @param $storeId
      * @return bool|mixed
@@ -265,6 +268,12 @@ class Config
     public function getAlternativePaymentMethodTokenType($storeId = null)
     {
         return $this->getConfigData('token_type', self::XML_ADYEN_HPP, $storeId);
+    }
+
+
+    public function isMotoDemoMode(array $motoMerchantAccountProperties): bool
+    {
+        return $motoMerchantAccountProperties['demo_mode'] === '1';
     }
 
     /**
@@ -473,6 +482,144 @@ class Config
         return $this->getConfigData($field, self::XML_ADYEN_POS_CLOUD, $storeId, $flag);
     }
 
+    /**
+     * Returns global configuration values
+     *
+     * @param $field
+     * @param null|int|string $storeId
+     * @return mixed
+     */
+    public function getAdyenAbstractConfigData($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_abstract', $storeId);
+    }
+
+    /**
+     * Retrieve the Live endpoint prefix key
+     *
+     * @param null|int|string $storeId
+     * @return string
+     */
+    public function getLiveEndpointPrefix($storeId = null)
+    {
+        $prefix = $this->configHelper->getAdyenAbstractConfigData('live_endpoint_url_prefix', $storeId);
+
+        if (is_null($prefix)) {
+            return null;
+        }
+
+        return trim($prefix);
+    }
+
+
+    /**
+     * @param $field
+     * @param $storeId
+     * @return bool|mixed
+     */
+    public function getAdyenAbstractConfigDataFlag($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_abstract', $storeId, true);
+    }
+
+    /**
+     * Gives back adyen_cc configuration values
+     *
+     * @param $field
+     * @param null|int|string $storeId
+     * @return mixed
+     */
+    public function getAdyenCcConfigData($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_cc', $storeId);
+    }
+
+    /**
+     * @param $field
+     * @param $storeId
+     * @return bool|mixed
+     */
+    public function getAdyenHppConfigData($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_hpp', $storeId);
+    }
+
+    /**
+     * @param $field
+     * @param $storeId
+     * @return bool|mixed
+     */
+    public function getAdyenHppVaultConfigDataFlag($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_hpp_vault', $storeId, true);
+    }
+
+    /**
+     * @param $storeId
+     * @return bool|mixed
+     */
+    public function isHppVaultEnabled($storeId = null)
+    {
+        return $this->getAdyenHppVaultConfigDataFlag('active', $storeId);
+    }
+
+
+    /**
+     * @param $field
+     * @param $storeId
+     * @return bool|mixed
+     */
+    public function getAdyenOneclickConfigData($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_oneclick', $storeId);
+    }
+
+    /**
+     * Returns adyen_oneclick configuraiton values as flag.
+     *
+     * @param $field
+     * @param $storeId
+     * @return bool|mixed
+     */
+    public function getAdyenOneclickConfigDataFlag($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_oneclick', $storeId, true);
+    }
+
+    public function isPerStoreBillingAgreement($storeId) //Only use of Flag above
+    {
+        return !$this->getAdyenOneclickConfigDataFlag('share_billing_agreement', $storeId);
+    }
+
+
+    /**
+     * Gives back adyen_boleto configuration values
+     *
+     * @param $field
+     * @param null|int|string $storeId
+     * @return mixed
+     */
+    public function getAdyenBoletoConfigData($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_boleto', $storeId);
+    }
+
+    /**
+     * Retrieve the Checkout frontend region
+     *
+     * @param null|int|string $storeId
+     * @return string
+     */
+    public function getCheckoutFrontendRegion($storeId = null)
+    {
+        $checkoutFrontendRegion = $this->configHelper->getAdyenAbstractConfigData('checkout_frontend_region', $storeId);
+
+        if (is_null($checkoutFrontendRegion)) {
+            return null;
+        }
+
+        return trim($checkoutFrontendRegion);
+    }
     /**
      * Retrieve information from payment configuration
      *

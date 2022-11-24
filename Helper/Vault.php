@@ -138,7 +138,7 @@ class Vault
         AbstractWalletPaymentMethod $paymentMethod = null
     ) {
         if (!$this->isCardVaultEnabled($payment->getOrder()->getStoreId()) &&
-            !$this->adyenHelper->isHppVaultEnabled($payment->getOrder()->getStoreId())) {
+            !$this->config->isHppVaultEnabled($payment->getOrder()->getStoreId())) {
             return;
         }
 

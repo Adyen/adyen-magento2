@@ -21,11 +21,6 @@ class Moto extends AbstractInfo
      */
     protected $_template = 'Adyen_Payment::info/adyen_moto.phtml';
 
-    /**
-     * @var \Adyen\Payment\Helper\Config
-     */
-    private $adyenConfigHelper;
-
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory,
@@ -33,8 +28,7 @@ class Moto extends AbstractInfo
         \Adyen\Payment\Helper\Config $adyenConfigHelper,
         array $data = []
     ) {
-        parent::__construct($adyenHelper, $adyenOrderPaymentCollectionFactory, $context, $data);
-        $this->adyenConfigHelper = $adyenConfigHelper;
+        parent::__construct($adyenConfigHelper, $adyenHelper, $adyenOrderPaymentCollectionFactory, $context, $data);
     }
 
     /**
@@ -64,9 +58,9 @@ class Moto extends AbstractInfo
 
         if (!empty($pspReference) && !empty($motoMerchantAccount)) {
             try {
-                $motoMerchantAccountProperties = $this->adyenConfigHelper->getMotoMerchantAccountProperties($motoMerchantAccount, $storeId);
+                $motoMerchantAccountProperties = $this->_configHelper->getMotoMerchantAccountProperties($motoMerchantAccount, $storeId);
 
-                if ($this->_adyenHelper->isMotoDemoMode($motoMerchantAccountProperties)) {
+                if ($this->_configHelper->isMotoDemoMode($motoMerchantAccountProperties)) {
                     $url = 'https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=';
                 }
                 else {

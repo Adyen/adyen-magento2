@@ -239,7 +239,7 @@ class PaymentMethods extends AbstractHelper
         $quote = $this->getQuote();
         $store = $quote->getStore();
 
-        $merchantAccount = $this->adyenHelper->getAdyenAbstractConfigData('merchant_account', $store->getId());
+        $merchantAccount = $this->configHelper->getAdyenAbstractConfigData('merchant_account', $store->getId());
         if (!$merchantAccount) {
             return json_encode([]);
         }
@@ -306,7 +306,7 @@ class PaymentMethods extends AbstractHelper
     protected function getCurrentCountryCode($store, $country = null)
     {
         // if fixed countryCode is setup in config use this
-        $countryCode = $this->adyenHelper->getAdyenHppConfigData('country_code', $store->getId());
+        $countryCode = $this->configHelper->getAdyenHppConfigData('country_code', $store->getId());
 
         if ($countryCode != "") {
             return $countryCode;
@@ -589,7 +589,7 @@ class PaymentMethods extends AbstractHelper
     {
         $types = [];
         $ccTypes = $this->adyenHelper->getAdyenCcTypes();
-        $availableTypes = $this->adyenHelper->getAdyenCcConfigData('cctypes');
+        $availableTypes = $this->configHelper->getAdyenCcConfigData('cctypes');
         if ($availableTypes) {
             $availableTypes = explode(',', $availableTypes);
             foreach (array_keys($ccTypes) as $code) {
@@ -611,7 +611,7 @@ class PaymentMethods extends AbstractHelper
     {
         $types = [];
         $ccTypes = $this->adyenHelper->getAdyenCcTypes();
-        $availableTypes = $this->adyenHelper->getAdyenCcConfigData('cctypes');
+        $availableTypes = $this->configHelper->getAdyenCcConfigData('cctypes');
         if ($availableTypes) {
             $availableTypes = explode(',', $availableTypes);
             foreach (array_keys($ccTypes) as $code) {

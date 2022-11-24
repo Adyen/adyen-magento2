@@ -29,6 +29,11 @@ class RefundDataBuilder implements BuilderInterface
     private $adyenHelper;
 
     /**
+     * @var \Adyen\Payment\Helper\Config
+     */
+    private $configHelper;
+
+    /**
      * @var \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory
      */
     private $orderPaymentCollectionFactory;
@@ -90,7 +95,7 @@ class RefundDataBuilder implements BuilderInterface
 
         // partial refund if multiple payments check refund strategy
         if ($orderPaymentCollection->getSize() > self::REFUND_STRATEGY_ASCENDING_ORDER) {
-            $refundStrategy = $this->adyenHelper->getAdyenAbstractConfigData(
+            $refundStrategy = $this->configHelper->getAdyenAbstractConfigData(
                 'partial_payments_refund_strategy',
                 $order->getStoreId()
             );

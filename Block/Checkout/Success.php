@@ -182,7 +182,7 @@ class Success extends Template
 
     public function getClientKey()
     {
-        return $this->adyenHelper->getClientKey();
+        return $this->configHelper->getClientKey();
     }
 
     public function getEnvironment()

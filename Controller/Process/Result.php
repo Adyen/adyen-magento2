@@ -12,12 +12,14 @@
 namespace Adyen\Payment\Controller\Process;
 
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Model\Notification;
 use Adyen\Service\Validator\DataArrayValidator;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
+
 
 class Result extends \Magento\Framework\App\Action\Action
 {
@@ -47,6 +49,11 @@ class Result extends \Magento\Framework\App\Action\Action
      * @var \Adyen\Payment\Helper\Data
      */
     protected $_adyenHelper;
+
+    /**
+     * @var \Adyen\Payment\Helper\Config
+     */
+    protected $_configHelper;
 
     /**
      * @var \Magento\Sales\Model\OrderFactory
@@ -145,7 +152,8 @@ class Result extends \Magento\Framework\App\Action\Action
         StateData $stateDataHelper,
         Data $dataHelper,
         OrderRepositoryInterface $orderRepository,
-        Recurring $recurringHelper
+        Recurring $recurringHelper,
+        Config $configHelper
     ) {
         $this->_adyenHelper = $adyenHelper;
         $this->_orderFactory = $orderFactory;
@@ -160,6 +168,7 @@ class Result extends \Magento\Framework\App\Action\Action
         $this->dataHelper = $dataHelper;
         $this->orderRepository = $orderRepository;
         $this->recurringHelper = $recurringHelper;
+        $this->_configHelper = $configHelper;
         parent::__construct($context);
     }
 
@@ -182,12 +191,12 @@ class Result extends \Magento\Framework\App\Action\Action
                 $successPath = $failPath = 'multishipping/checkout/success';
                 $setQuoteAsActive = true;
             } else {
-                $successPath = $this->_adyenHelper->getAdyenAbstractConfigData('custom_success_redirect_path') ?? 'checkout/onepage/success';
-                $failPath = $this->_adyenHelper->getAdyenAbstractConfigData('return_path');
+                $successPath = $this->_configHelper->getAdyenAbstractConfigData('custom_success_redirect_path') ?? 'checkout/onepage/success';
+                $failPath = $this->_configHelper->getAdyenAbstractConfigData('return_path');
                 $setQuoteAsActive = false;
             }
         } else {
-            $this->_redirect($this->_adyenHelper->getAdyenAbstractConfigData('return_path'));
+            $this->_redirect($this->_configHelper->getAdyenAbstractConfigData('return_path'));
         }
 
         if ($result) {
@@ -204,7 +213,7 @@ class Result extends \Magento\Framework\App\Action\Action
             }
 
             // Add OrderIncrementId to redirect parameters for headless support.
-            $redirectParams = $this->_adyenHelper->getAdyenAbstractConfigData('custom_success_redirect_path')
+            $redirectParams = $this->_configHelper->getAdyenAbstractConfigData('custom_success_redirect_path')
                 ? ['_query' => ['utm_nooverride' => '1', 'order_increment_id' => $this->_order->getIncrementId()]]
                 : ['_query' => ['utm_nooverride' => '1']];
             $this->_redirect($successPath, $redirectParams);
@@ -418,42 +427,42 @@ class Result extends \Magento\Framework\App\Action\Action
 
         return $result;
     }
-
-    /**
-     * Authenticate using sha256 Merchant signature
-     *
-     * @param $response
-     * @return bool
-     */
-    protected function _authenticate($response)
-    {
-        $merchantSigNotification = $response['merchantSig'];
-
-        // do it like this because $_GET is converting dot to underscore
-        $queryString = $_SERVER['QUERY_STRING'];
-        $result = [];
-        $pairs = explode("&", $queryString);
-
-        foreach ($pairs as $pair) {
-            $nv = explode("=", $pair);
-            $name = urldecode($nv[0]);
-            $value = urldecode($nv[1]);
-            $result[$name] = $value;
-        }
-
-        // do not include the merchantSig in the merchantSig calculation
-        unset($result['merchantSig']);
-
-        // Sign request using secret key
-        $hmacKey = $this->_adyenHelper->getHmac();
-        $merchantSig = \Adyen\Util\Util::calculateSha256Signature($hmacKey, $result);
-
-        if (strcmp($merchantSig, $merchantSigNotification) === 0) {
-            return true;
-        }
-
-        return false;
-    }
+//
+//    /**
+//     * Authenticate using sha256 Merchant signature
+//     *
+//     * @param $response
+//     * @return bool
+//     */
+//    protected function _authenticate($response)
+//    {
+//        $merchantSigNotification = $response['merchantSig'];
+//
+//        // do it like this because $_GET is converting dot to underscore
+//        $queryString = $_SERVER['QUERY_STRING'];
+//        $result = [];
+//        $pairs = explode("&", $queryString);
+//
+//        foreach ($pairs as $pair) {
+//            $nv = explode("=", $pair);
+//            $name = urldecode($nv[0]);
+//            $value = urldecode($nv[1]);
+//            $result[$name] = $value;
+//        }
+//
+//        // do not include the merchantSig in the merchantSig calculation
+//        unset($result['merchantSig']);
+//
+//        // Sign request using secret key
+//        $hmacKey = $this->_adyenHelper->getHmac();
+//        $merchantSig = \Adyen\Util\Util::calculateSha256Signature($hmacKey, $result);
+//
+//        if (strcmp($merchantSig, $merchantSigNotification) === 0) {
+//            return true;
+//        }
+//
+//        return false;
+//    }
 
     /**
      * The character escape function is called from the array_map function in _signRequestParams

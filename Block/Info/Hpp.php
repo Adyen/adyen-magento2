@@ -23,6 +23,7 @@ class Hpp extends AbstractInfo
     private $chargedCurrency;
 
     public function __construct(
+        \Adyen\Payment\Helper\Config $configHelper,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory,
         Template\Context $context,
@@ -30,7 +31,7 @@ class Hpp extends AbstractInfo
         array $data = []
     ) {
         $this->chargedCurrency = $chargedCurrency;
-        parent::__construct($adyenHelper, $adyenOrderPaymentCollectionFactory, $context, $data);
+        parent::__construct($configHelper, $adyenHelper, $adyenOrderPaymentCollectionFactory, $context, $data);
     }
 
     /**

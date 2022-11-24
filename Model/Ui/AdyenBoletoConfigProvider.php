@@ -28,6 +28,11 @@ class AdyenBoletoConfigProvider implements ConfigProviderInterface
     protected $_adyenHelper;
 
     /**
+     * @var \Adyen\Payment\Helper\Config
+     */
+    protected $_configHelper;
+
+    /**
      * @var \Magento\Framework\UrlInterface
      */
     protected $_urlBuilder;
@@ -50,10 +55,12 @@ class AdyenBoletoConfigProvider implements ConfigProviderInterface
     public function __construct(
         \Magento\Payment\Helper\Data $paymentHelper,
         \Adyen\Payment\Helper\Data $adyenHelper,
+        \Adyen\Payment\Helper\Config $configHelper,
         \Magento\Framework\UrlInterface $urlBuilder,
         \Magento\Framework\App\RequestInterface $request
     ) {
         $this->_paymentHelper = $paymentHelper;
+        $this->_configHelper = $configHelper;
         $this->_adyenHelper = $adyenHelper;
         $this->_urlBuilder = $urlBuilder;
         $this->_request = $request;
@@ -88,7 +95,7 @@ class AdyenBoletoConfigProvider implements ConfigProviderInterface
     {
         $types = [];
         $boletoTypes = $this->_adyenHelper->getBoletoTypes();
-        $availableTypes = $this->_adyenHelper->getAdyenBoletoConfigData('boletotypes');
+        $availableTypes = $this->_configHelper->getAdyenBoletoConfigData('boletotypes');
         if ($availableTypes) {
             $availableTypes = explode(',', $availableTypes);
             foreach ($boletoTypes as $boletoType) {

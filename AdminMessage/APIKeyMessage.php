@@ -20,6 +20,11 @@ class APIKeyMessage implements \Magento\Framework\Notification\MessageInterface
     protected $adyenHelper;
 
     /**
+     * @var \Adyen\Payment\Helper\Config
+     */
+    protected $configHelper;
+
+    /**
      * @var \Magento\AdminNotification\Model\InboxFactory
      */
     protected $inboxFactory;
@@ -46,11 +51,13 @@ class APIKeyMessage implements \Magento\Framework\Notification\MessageInterface
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
+        \Adyen\Payment\Helper\Config $configHelper,
         \Magento\AdminNotification\Model\InboxFactory $inboxFactory,
         \Magento\Store\Model\StoreManagerInterface $storeManagerInterface,
         \Magento\Backend\Model\Auth\Session $authSession
     ) {
         $this->adyenHelper = $adyenHelper;
+        $this->configHelper = $configHelper;
         $this->inboxFactory = $inboxFactory;
         $this->storeManagerInterface = $storeManagerInterface;
         $this->authSession = $authSession;
@@ -73,10 +80,11 @@ class APIKeyMessage implements \Magento\Framework\Notification\MessageInterface
      */
     public function isDisplayed()
     {
+        $environment = $this->configHelper->isDemoMode() ? 'test' : 'live';
         // Only execute the query the first time you access the Admin page
         if ($this->authSession->isFirstPageAfterLogin()
-            && !empty($this->adyenHelper->getWsUsername())
-            && empty($this->adyenHelper->getAPIKey())
+            && !empty($this->configHelper->getNotificationsUsername())
+            && empty($this->configHelper->getAPIKey($environment))
         ) {
             try {
                 $title = 'Adyen extension requires the API KEY!';
@@ -113,7 +121,7 @@ class APIKeyMessage implements \Magento\Framework\Notification\MessageInterface
     public function getText()
     {
         return 'Please provide API-KEY for the webservice user ' .
-            $this->adyenHelper->getWsUsername() . ' for default/store ' .
+            $this->configHelper->getNotificationsUsername() . ' for default/store ' .
             $this->storeManagerInterface->getStore()->getName();
     }
 
