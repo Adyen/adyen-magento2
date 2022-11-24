@@ -12,6 +12,7 @@ on:
 jobs:
   build:
     runs-on:
+      group: larger-runners
       labels: ubuntu-latest-4-cores
     env:
       PHP_VERSION: "8.1"
