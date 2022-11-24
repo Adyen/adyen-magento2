@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<page layout="admin-2columns-left" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <css src="Adyen_Payment::css/support_styles.css"/>
+    </head>
+    <body>
+        <referenceContainer name="content">
+            <block class="Adyen\Payment\Block\Adminhtml\Support\ConfigurationSettingsForm" name="adyen_support_configurationsettings_form"/>
+
+        </referenceContainer>
+        <referenceContainer name="left">
+            <block class="Adyen\Payment\Block\Adminhtml\Support\Menu"
+                   name="adyen_support_menu"
+                   template="Adyen_Payment::support/menu.phtml"/>
+        </referenceContainer>
+        <referenceContainer name="js">
+            <block class="Magento\Backend\Block\Template" name="adyen_support_form_js" template="Adyen_Payment::support/js.phtml" />
+        </referenceContainer>
+    </body>
+</page>

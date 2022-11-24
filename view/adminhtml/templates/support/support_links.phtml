@@ -29,7 +29,9 @@ use Adyen\Payment\Block\Adminhtml\Support\SupportTabInterface; ?>
             <td>&nbsp;</td>
             <td>
                 <div class="adyen_support-value">
-                    <button class="adyen_support-form_link btn btn-large btn-prime">I still need help</button>
+                    <a href="<?= $block->supportFormUrl();?>">
+                        <button class="adyen_support-form_link btn btn-large btn-prime">I still need help</button>
+                    </a>
                 </div>
             </td>
         </tr>
