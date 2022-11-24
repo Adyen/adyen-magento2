@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest-4core
+    runs-on: ubuntu-latest-4cores
     env:
       PHP_VERSION: "8.1"
       MAGENTO_VERSION: "2.4.5"
