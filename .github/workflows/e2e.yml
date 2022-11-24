@@ -11,7 +11,9 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on:
+      group: larger-runners
+      labels: ubuntu-latest-4-cores
     env:
       PHP_VERSION: "8.1"
       MAGENTO_VERSION: "2.4.5"
@@ -55,8 +57,8 @@ jobs:
           MAGENTO_BASE_URL: ${{secrets.MAGENTO_BASE_URL}}
           PAYPAL_USERNAME: ${{secrets.PLAYWRIGHT_PAYPAL_USERNAME}}
           PAYPAL_PASSWORD: ${{secrets.PLAYWRIGHT_PAYPAL_PASSWORD}}
-          ADYEN_API_KEY : ${{secrets.ADYEN_API_KEY}}
-          ADYEN_CLIENT_KEY : ${{secrets.ADYEN_CLIENT_KEY}}
+          ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
+          ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
           ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
 
       - name: Archive test result artifacts
