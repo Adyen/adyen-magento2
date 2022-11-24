@@ -126,17 +126,7 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'required' => false,
             ]
         );
-        $fieldset->addField(
-            'logs',
-            'file',
-            [
-                'name' => 'logs',
-                'label' => __('Attach Logs'),
-                'title' => __('Attach Logs'),
-                'class' => '',
-                'required' => false,
-            ]
-        );
+
         $fieldset->addField(
             'orderHistoryComments',
             'textarea',

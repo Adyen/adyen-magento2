@@ -92,17 +92,6 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
         );
 
         $fieldset->addField(
-            'logs',
-            'file',
-            [
-                'name' => 'logs',
-                'label' => __('Attach Logs'),
-                'title' => __('Attach Logs'),
-                'class' => '',
-                'required' => false,
-            ]
-        );
-        $fieldset->addField(
             'description',
             'textarea',
             [
