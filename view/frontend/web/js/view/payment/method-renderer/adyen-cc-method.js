@@ -157,13 +157,13 @@ define(
 
                                 if (creditCardType in allInstallments) {
                                     // get for the creditcard the installments
-                                    var installmentCreditcard = allInstallments[creditCardType];
+                                    var cardInstallments = allInstallments[creditCardType];
                                     var grandTotal = self.grandTotal();
                                     var precision = quote.getPriceFormat().precision;
                                     var currencyCode = quote.totals().quote_currency_code;
 
                                     numberOfInstallments = installmentsHelper.getInstallmentsWithPrices(
-                                        installmentCreditcard, grandTotal,
+                                        cardInstallments, grandTotal,
                                         precision, currencyCode);
                                 }
 

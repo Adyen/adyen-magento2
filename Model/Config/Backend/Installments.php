@@ -61,6 +61,8 @@ class Installments extends \Magento\Framework\App\Config\Value
             return $this;
         }
         $result = [];
+        $counter = 0;
+
         foreach ($value as $data) {
             if (!$data) {
                 continue;
@@ -77,7 +79,7 @@ class Installments extends \Magento\Framework\App\Config\Value
             $ccTypes = $data['cc_types'];
 
             foreach ($ccTypes as $ccType) {
-                $result[$ccType][$amount] = $installments;
+                $result[$ccType][$amount][$counter++] = $installments;
             }
         }
 
@@ -126,13 +128,15 @@ class Installments extends \Magento\Framework\App\Config\Value
             // sort on amount
             ksort($items);
 
-            foreach ($items as $amount => $installment) {
-                if (!isset($list[$installment][$amount])) {
-                    $list[$installment][$amount] = [$ccType];
-                } else {
-                    $ccTypes = $list[$installment][$amount];
-                    $ccTypes[] = $ccType;
-                    $list[$installment][$amount] = $ccTypes;
+            foreach ($items as $amount => $installments) {
+                foreach ($installments as $installment) {
+                    if (!isset($list[$installment][$amount])) {
+                        $list[$installment][$amount] = [$ccType];
+                    } else {
+                        $ccTypes = $list[$installment][$amount];
+                        $ccTypes[] = $ccType;
+                        $list[$installment][$amount] = $ccTypes;
+                    }
                 }
             }
         }

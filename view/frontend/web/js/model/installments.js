@@ -18,20 +18,22 @@ define(
              * @param currencyCode
              * @returns {Array}
              */
-            getInstallmentsWithPrices: function (installments, grandTotal, precision, currencyCode) {
+            getInstallmentsWithPrices: function (allInstallments, grandTotal, precision, currencyCode) {
                 let numberOfInstallments = [];
                 let dividedAmount = 0;
                 let dividedString = "";
 
-                $.each(installments, function (amount, installment) {
-                    if (grandTotal >= amount) {
-                        dividedAmount = (grandTotal / installment).toFixed(precision);
-                        dividedString = installment + " x " + dividedAmount + " " + currencyCode;
-                        numberOfInstallments.push({
-                            key: [dividedString],
-                            value: installment
-                        });
-                    }
+                $.each(allInstallments, function (amount, installmentOptions) {
+                    $.each(installmentOptions, function (key, installment) {
+                        if (grandTotal >= amount) {
+                            dividedAmount = (grandTotal / installment).toFixed(precision);
+                            dividedString = installment + " x " + dividedAmount + " " + currencyCode;
+                            numberOfInstallments.push({
+                                key: [dividedString],
+                                value: installment
+                            });
+                        }
+                    });
                 });
 
                 return numberOfInstallments;
