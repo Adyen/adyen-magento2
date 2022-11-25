@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on:
       group: larger-runners
-      labels: ubuntu-latest-4-cores
+      labels: ubuntu-latest-8-cores
     env:
       PHP_VERSION: "8.1"
       MAGENTO_VERSION: "2.4.5"
