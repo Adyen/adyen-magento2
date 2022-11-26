@@ -8,6 +8,16 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
 {
     const HEADLESS_YES = 1;
     const HEADLESS_NO = 0;
+
+    /**
+     * Internal constructor
+     */
+    protected function _construct()
+    {
+        parent::_construct();
+        $this->setActive(true);
+    }
+
     /**
      * Prepare form before rendering HTML
      *
@@ -21,9 +31,14 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
             'data' => [
                 'id' => 'configurationsettings_form',
                 'action' => $this->getData('action'),
-                'method' => 'post'
+                'method' => 'post',
+                'enctype' => 'multipart/form-data'
             ]
         ]);
+
+        $form = $this->_formFactory->create(
+            ['data' => ['id' => 'edit_form', 'action' => $this->getData('action'), 'method' => 'post', 'enctype' => 'multipart/form-data']]
+        );
 
         $fieldset = $form->addFieldset('base_fieldset', ['legend' => __('Configuration settings')]);
         $this->_addElementTypes($fieldset);
@@ -72,6 +87,18 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
                 'label' => __('Email'),
                 'title' => __('Email'),
                 'class' => '',
+                'required' => true,
+            ]
+        );
+
+        $fieldset->addField(
+            'logs',
+            'file',
+            [
+                'name' => 'logs',
+                'label' => __('Attach Logs'),
+                'title' => __('Attach Logs'),
+                'class' => '',
                 'required' => false,
             ]
         );
@@ -102,25 +129,25 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
                 'required' => false,
             ]
         );
+
         $fieldset->addField(
-            'upload_button',
-            'button',
+            'submit_button',
+            'submit',
             [
                 'name' => 'submit',
-
                 'title' => __('click'),
-                'class' => 'primary',
+                'class' => 'button',
                 'data_attribute' => '',
                 'value' => 'Submit',
-                'data_attribute' => [
-                    'mage-init' => ['button' => ['event' => 'send', 'target' => '#support_form']],
-                ]
+                'onclick' => "setLocation('{$this->getUrl('adyen/support/configurationsettingsform')}')",
             ]
         );
 
-
+        $form->setMethod('post');
+        $form->setUseContainer(true);
+        $form->setId('configurationsettings_form');
         $this->setForm($form);
-        return parent::_prepareForm();
+        return $this;
     }
 
 

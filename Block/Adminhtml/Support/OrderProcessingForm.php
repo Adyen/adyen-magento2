@@ -126,7 +126,17 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'required' => false,
             ]
         );
-
+        $fieldset->addField(
+            'logs',
+            'file',
+            [
+                'name' => 'logs',
+                'label' => __('Attach Logs'),
+                'title' => __('Attach Logs'),
+                'class' => '',
+                'required' => false,
+            ]
+        );
         $fieldset->addField(
             'orderHistoryComments',
             'textarea',
@@ -152,19 +162,23 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
         );
 
         $fieldset->addField(
-            'upload_button',
-            'button',
+            'submit_button',
+            'submit',
             [
                 'name' => 'submit',
-
                 'title' => __('click'),
-                'class' => 'upload_button',
+                'class' => 'button',
                 'data_attribute' => '',
-                'value' => 'Submit'
+                'value' => 'Submit',
+                'onclick' => "setLocation('{$this->getUrl('adyen/support/orderprocessingform')}')",
             ]
         );
 
+
+        $form->setMethod('post');
+        $form->setUseContainer(true);
+        $form->setId('orderprocessing_form');
         $this->setForm($form);
-        return parent::_prepareForm();
+        return $this;
     }
 }
