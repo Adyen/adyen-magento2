@@ -48,6 +48,7 @@ class ConfigurationSettingsForm extends Action
         $templateVars = [
             'topic' => $request['topic'],
             'issue' => $request['issue'],
+            'subject' => $request['subject'],
             'email' => $request['email'],
             'headless' => $request['headless'],
             'descriptionComments' => $request['descriptionComments']
@@ -60,7 +61,7 @@ class ConfigurationSettingsForm extends Action
         $from = ['email' => 'test@test.com', 'name' => 'Adyen test'];
         $to = ['email' => 'test@test.com', 'name' => 'Adyen test'];
         //the template identifier is set in the etc/email_templates.xml
-        $transport = $this->transportBuilder->setTemplateIdentifier('contact_email_template')
+        $transport = $this->transportBuilder->setTemplateIdentifier('configuration_settings_email_template')
             ->setTemplateOptions($templateOptions)
             ->setTemplateVars($templateVars)
             ->setFromByScope($from)
