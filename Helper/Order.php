@@ -597,7 +597,11 @@ class Order extends AbstractHelper
                 $payment = $order->getPayment()->registerRefundNotification($amount);
 
                 if (isset($payment->getCreditmemo())) {
-                    // add a comment why we are closing
+                    /*
+                     * Since the full amount is refunded and the credit memo is created,
+                     * now the order can be closed by plugin. This call is required since
+                     * `registerRefundNotification()` function changes the status to `processing` again.
+                     */
                     $order->setState(MagentoOrder::STATE_CLOSED);
                     $order->setStatus($order->getConfig()->getStateDefaultStatus(MagentoOrder::STATE_CLOSED));
 
