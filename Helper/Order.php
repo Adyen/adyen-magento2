@@ -596,7 +596,7 @@ class Order extends AbstractHelper
                  */
                 $payment = $order->getPayment()->registerRefundNotification($amount);
 
-                if (!is_null($payment->getCreditmemo())) {
+                if (isset($payment->getCreditmemo())) {
                     // add a comment why we are closing
                     $order->setState(MagentoOrder::STATE_CLOSED);
                     $order->setStatus($order->getConfig()->getStateDefaultStatus(MagentoOrder::STATE_CLOSED));
