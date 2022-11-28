@@ -596,7 +596,7 @@ class Order extends AbstractHelper
                  */
                 $payment = $order->getPayment()->registerRefundNotification($amount);
 
-                if (isset($payment->getCreditmemo())) {
+                if (!is_null($payment->getCreditmemo())) {
                     /*
                      * Since the full amount is refunded and the credit memo is created,
                      * now the order can be closed by plugin. This call is required since
