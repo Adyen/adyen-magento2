@@ -132,26 +132,6 @@ class DataTest extends AbstractAdyenTestCase
         $this->assertEquals($expectedResult, $pspSearchUrl);
     }
 
-    public function testGetPspReferenceWithNoAdditions()
-    {
-        $this->assertEquals(
-            ['pspReference' => '852621234567890A', 'suffix' => ''],
-            $this->dataHelper->parseTransactionId('852621234567890A')
-        );
-        $this->assertEquals(
-            ['pspReference' => '852621234567890A', 'suffix' => '-refund'],
-            $this->dataHelper->parseTransactionId('852621234567890A-refund')
-        );
-        $this->assertEquals(
-            ['pspReference' => '852621234567890A', 'suffix' => '-capture'],
-            $this->dataHelper->parseTransactionId('852621234567890A-capture')
-        );
-        $this->assertEquals(
-            ['pspReference' => '852621234567890A', 'suffix' => '-capture-refund'],
-            $this->dataHelper->parseTransactionId('852621234567890A-capture-refund')
-        );
-    }
-
     public static function checkoutEnvironmentsProvider(): array
     {
         return [
