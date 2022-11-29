@@ -8,7 +8,7 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-namespace Adyen\Payment\Tests\Unit\Helper;
+namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\ChargedCurrency;
@@ -23,7 +23,7 @@ use Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo as AdyenCreditMemoRe
 use Adyen\Payment\Model\ResourceModel\Order\Payment\Collection;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as OrderPaymentCollectionFactory;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Tests\Unit\AbstractAdyenTestCase;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\DB\TransactionFactory;

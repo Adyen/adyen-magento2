@@ -9,7 +9,7 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Tests\Block\Form;
+namespace Adyen\Payment\Test\Block\Form;
 
 use Adyen\Payment\Block\Form\PayByLink;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
