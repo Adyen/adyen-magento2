@@ -61,7 +61,7 @@ class Converter implements \Magento\Framework\Config\ConverterInterface
             $ccId = $typeAttributes->getNamedItem('id')->nodeValue;
             $creditCards[$ccId] = $typeArray;
         }
-        uasort($creditCards, [$this, '_compareCcTypes']);
+        uasort($creditCards, $this->_compareCcTypes(...));
         $config = [];
         foreach ($creditCards as $code => $data) {
             $config[$code] = $data;

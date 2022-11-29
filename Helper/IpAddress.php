@@ -23,8 +23,8 @@ use Magento\Framework\Serialize\SerializerInterface;
 class IpAddress
 {
 
-    const IP_ADDRESS_CACHE_ID = "Adyen_ip_address";
-    const IP_ADDRESS_CACHE_LIFETIME = 86400;
+    final const IP_ADDRESS_CACHE_ID = "Adyen_ip_address";
+    final const IP_ADDRESS_CACHE_LIFETIME = 86400;
 
     /**
      * @var IpAddressUtil

@@ -15,8 +15,8 @@ namespace Adyen\Payment\Helper\PaymentMethods;
 /** TODO: This PM can be enabled for recurring purposes once tested */
 class AmazonPayPaymentMethod extends AbstractWalletPaymentMethod
 {
-    const TX_VARIANT = 'amazonpay';
-    const NAME = 'Amazon Pay';
+    final const TX_VARIANT = 'amazonpay';
+    final const NAME = 'Amazon Pay';
 
     public function getTxVariant(): string
     {

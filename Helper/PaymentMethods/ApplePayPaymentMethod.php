@@ -14,8 +14,8 @@ namespace Adyen\Payment\Helper\PaymentMethods;
 /** TODO: This PM can be enabled for recurring purposes once tested */
 class ApplePayPaymentMethod extends AbstractWalletPaymentMethod
 {
-    const TX_VARIANT = 'applepay';
-    const NAME = 'Apple Pay';
+    final const TX_VARIANT = 'applepay';
+    final const NAME = 'Apple Pay';
 
     public function getTxVariant(): string
     {

@@ -24,7 +24,7 @@ class ChargedCurrency
      * @var string
      * Charged currency value when Global/Website is selected
      */
-    const BASE = "base";
+    final const BASE = "base";
 
     /**
      * @var Config

@@ -13,9 +13,9 @@ namespace Adyen\Payment\Model;
 
 class ApplicationInfo
 {
-    const APPLICATION_INFO = 'applicationInfo';
-    const MERCHANT_APPLICATION = 'merchantApplication';
-    const EXTERNAL_PLATFORM = 'externalPlatform';
-    const NAME = 'name';
-    const VERSION = 'version';
+    final const APPLICATION_INFO = 'applicationInfo';
+    final const MERCHANT_APPLICATION = 'merchantApplication';
+    final const EXTERNAL_PLATFORM = 'externalPlatform';
+    final const NAME = 'name';
+    final const VERSION = 'version';
 }

@@ -16,13 +16,13 @@ class AdyenInitiateTerminalApiTest extends \PHPUnit\Framework\TestCase
 {
     private $adyenInitiateTerminalApi;
 
-    const MODULE_VERSION = '1.0.0';
-    const MODULE_NAME = 'ModuleVersion';
-    const PLATFORM_VERSION = '2.0.0';
-    const PLATFORM_NAME = 'PlatformName';
-    const CUSTOMER_ID = '001';
-    const CUSTOMER_EMAIL = 'customer@example.com';
-    const RECURRING_TYPE = 'ONECLICK,RECURRING';
+    final const MODULE_VERSION = '1.0.0';
+    final const MODULE_NAME = 'ModuleVersion';
+    final const PLATFORM_VERSION = '2.0.0';
+    final const PLATFORM_NAME = 'PlatformName';
+    final const CUSTOMER_ID = '001';
+    final const CUSTOMER_EMAIL = 'customer@example.com';
+    final const RECURRING_TYPE = 'ONECLICK,RECURRING';
 
     private function getSimpleMock($originalClassName)
     {

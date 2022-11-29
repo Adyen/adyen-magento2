@@ -26,7 +26,7 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class AdyenOneclickConfigProvider implements ConfigProviderInterface
 {
-    const CODE = 'adyen_oneclick';
+    final const CODE = 'adyen_oneclick';
 
     /**
      * @var Config

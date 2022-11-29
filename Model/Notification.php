@@ -15,28 +15,28 @@ use Adyen\Payment\Api\Data\NotificationInterface;
 
 class Notification extends \Magento\Framework\Model\AbstractModel implements NotificationInterface
 {
-    const AUTHORISATION = 'AUTHORISATION';
-    const PENDING = 'PENDING';
-    const AUTHORISED = 'AUTHORISED';
-    const RECEIVED = 'RECEIVED';
-    const CANCELLED = 'CANCELLED';
-    const REFUSED = 'REFUSED';
-    const ERROR = 'ERROR';
-    const REFUND = 'REFUND';
-    const REFUND_FAILED = 'REFUND_FAILED';
-    const CANCEL_OR_REFUND = 'CANCEL_OR_REFUND';
-    const CAPTURE = 'CAPTURE';
-    const CAPTURE_FAILED = 'CAPTURE_FAILED';
-    const CANCELLATION = 'CANCELLATION';
-    const POSAPPROVED = 'POS_APPROVED';
-    const HANDLED_EXTERNALLY = 'HANDLED_EXTERNALLY';
-    const MANUAL_REVIEW_ACCEPT = 'MANUAL_REVIEW_ACCEPT';
-    const MANUAL_REVIEW_REJECT = 'MANUAL_REVIEW_REJECT';
-    const RECURRING_CONTRACT = "RECURRING_CONTRACT";
-    const REPORT_AVAILABLE = "REPORT_AVAILABLE";
-    const ORDER_CLOSED = "ORDER_CLOSED";
-    const OFFER_CLOSED = "OFFER_CLOSED";
-    const MAX_ERROR_COUNT = 5;
+    final const AUTHORISATION = 'AUTHORISATION';
+    final const PENDING = 'PENDING';
+    final const AUTHORISED = 'AUTHORISED';
+    final const RECEIVED = 'RECEIVED';
+    final const CANCELLED = 'CANCELLED';
+    final const REFUSED = 'REFUSED';
+    final const ERROR = 'ERROR';
+    final const REFUND = 'REFUND';
+    final const REFUND_FAILED = 'REFUND_FAILED';
+    final const CANCEL_OR_REFUND = 'CANCEL_OR_REFUND';
+    final const CAPTURE = 'CAPTURE';
+    final const CAPTURE_FAILED = 'CAPTURE_FAILED';
+    final const CANCELLATION = 'CANCELLATION';
+    final const POSAPPROVED = 'POS_APPROVED';
+    final const HANDLED_EXTERNALLY = 'HANDLED_EXTERNALLY';
+    final const MANUAL_REVIEW_ACCEPT = 'MANUAL_REVIEW_ACCEPT';
+    final const MANUAL_REVIEW_REJECT = 'MANUAL_REVIEW_REJECT';
+    final const RECURRING_CONTRACT = "RECURRING_CONTRACT";
+    final const REPORT_AVAILABLE = "REPORT_AVAILABLE";
+    final const ORDER_CLOSED = "ORDER_CLOSED";
+    final const OFFER_CLOSED = "OFFER_CLOSED";
+    final const MAX_ERROR_COUNT = 5;
 
     /**
      * Notification constructor.

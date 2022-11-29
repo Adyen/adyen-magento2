@@ -19,9 +19,9 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
  */
 class RefundDataBuilder implements BuilderInterface
 {
-    const REFUND_STRATEGY_ASCENDING_ORDER = '1';
-    const REFUND_STRATEGY_DESCENDING_ORDER = '2';
-    const REFUND_STRATEGY_BASED_ON_RATIO = '3';
+    final const REFUND_STRATEGY_ASCENDING_ORDER = '1';
+    final const REFUND_STRATEGY_DESCENDING_ORDER = '2';
+    final const REFUND_STRATEGY_BASED_ON_RATIO = '3';
 
     /**
      * @var \Adyen\Payment\Helper\Data

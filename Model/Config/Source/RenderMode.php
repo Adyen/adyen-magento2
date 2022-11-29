@@ -13,8 +13,8 @@ namespace Adyen\Payment\Model\Config\Source;
 
 class RenderMode implements \Magento\Framework\Option\ArrayInterface
 {
-    const MODE_TITLE = 'title';
-    const MODE_TITLE_IMAGE = 'title_image';
+    final const MODE_TITLE = 'title';
+    final const MODE_TITLE_IMAGE = 'title_image';
 
     /**
      * @return array

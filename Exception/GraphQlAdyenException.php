@@ -17,7 +17,7 @@ use Magento\Framework\Exception\LocalizedException;
 
 class GraphQlAdyenException extends AbstractAdyenException implements AggregateExceptionInterface, ClientAware
 {
-    const ADYEN_CATEGORY = 'adyen';
+    final const ADYEN_CATEGORY = 'adyen';
 
     /**
      * The array of errors that have been added via the addError() method

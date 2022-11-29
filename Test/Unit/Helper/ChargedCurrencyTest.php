@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 class ChargedCurrencyTest extends AbstractAdyenTestCase
 {
 
-    const AMOUNT_CURRENCY = [
+    final const AMOUNT_CURRENCY = [
         'base' =>
             [
                 'amount' => 123.45,

@@ -21,12 +21,12 @@ class AdyenCache extends TagScope
     /**
      * Cache type code unique among all cache types
      */
-    const TYPE_IDENTIFIER = 'adyen';
+    final const TYPE_IDENTIFIER = 'adyen';
 
     /**
      * The tag name that limits the cache cleaning scope within a particular tag
      */
-    const CACHE_TAG = 'ADYEN';
+    final const CACHE_TAG = 'ADYEN';
 
     /**
      * Adyen cache constructor.

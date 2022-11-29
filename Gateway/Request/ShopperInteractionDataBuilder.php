@@ -23,9 +23,9 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
 
 class ShopperInteractionDataBuilder implements BuilderInterface
 {
-    const SHOPPER_INTERACTION_MOTO = 'Moto';
-    const SHOPPER_INTERACTION_CONTAUTH = 'ContAuth';
-    const SHOPPER_INTERACTION_ECOMMERCE = 'Ecommerce';
+    final const SHOPPER_INTERACTION_MOTO = 'Moto';
+    final const SHOPPER_INTERACTION_CONTAUTH = 'ContAuth';
+    final const SHOPPER_INTERACTION_ECOMMERCE = 'Ecommerce';
 
     /**
      * @var State

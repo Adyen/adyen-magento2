@@ -15,8 +15,8 @@ use Magento\Checkout\Model\ConfigProviderInterface;
 
 class AdyenMotoConfigProvider implements ConfigProviderInterface
 {
-    const CODE = 'adyen_moto';
-    const API_KEY_PLACEHOLDER = 'api_key_placeholder';
+    final const CODE = 'adyen_moto';
+    final const API_KEY_PLACEHOLDER = 'api_key_placeholder';
 
     /**
      * @return array

@@ -25,11 +25,11 @@ use Magento\Payment\Gateway\Http\TransferInterface;
  */
 class TransactionMotoCapture implements ClientInterface
 {
-    const MULTIPLE_AUTHORIZATIONS = 'multiple_authorizations';
-    const FORMATTED_CAPTURE_AMOUNT = 'formatted_capture_amount';
-    const CAPTURE_AMOUNT = 'capture_amount';
-    const ORIGINAL_REFERENCE = 'original_reference';
-    const CAPTURE_RECEIVED = '[capture-received]';
+    final const MULTIPLE_AUTHORIZATIONS = 'multiple_authorizations';
+    final const FORMATTED_CAPTURE_AMOUNT = 'formatted_capture_amount';
+    final const CAPTURE_AMOUNT = 'capture_amount';
+    final const ORIGINAL_REFERENCE = 'original_reference';
+    final const CAPTURE_RECEIVED = '[capture-received]';
 
     /**
      * @var Data

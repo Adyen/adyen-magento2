@@ -21,14 +21,14 @@ use \Adyen\Service\Validator\DataArrayValidator;
 
 class AdyenMotoDataAssignObserver extends AbstractDataAssignObserver
 {
-    const CC_TYPE = 'cc_type';
-    const NUMBER_OF_INSTALLMENTS = 'number_of_installments';
-    const STORE_CC = 'store_cc';
-    const GUEST_EMAIL = 'guestEmail';
-    const COMBO_CARD_TYPE = 'combo_card_type';
-    const STATE_DATA = 'stateData';
-    const STORE_PAYMENT_METHOD = 'storePaymentMethod';
-    const MOTO_MERCHANT_ACCOUNT = 'motoMerchantAccount';
+    final const CC_TYPE = 'cc_type';
+    final const NUMBER_OF_INSTALLMENTS = 'number_of_installments';
+    final const STORE_CC = 'store_cc';
+    final const GUEST_EMAIL = 'guestEmail';
+    final const COMBO_CARD_TYPE = 'combo_card_type';
+    final const STATE_DATA = 'stateData';
+    final const STORE_PAYMENT_METHOD = 'storePaymentMethod';
+    final const MOTO_MERCHANT_ACCOUNT = 'motoMerchantAccount';
 
     /**
      * Approved root level keys from additional data array
@@ -99,7 +99,7 @@ class AdyenMotoDataAssignObserver extends AbstractDataAssignObserver
 
         // JSON decode state data from the frontend or fetch it from the DB entity with the quote ID
         if (!empty($additionalData[self::STATE_DATA])) {
-            $orderStateData = json_decode($additionalData[self::STATE_DATA], true);
+            $orderStateData = json_decode((string) $additionalData[self::STATE_DATA], true);
         } else {
             $orderStateData = $this->stateDataCollection->getStateDataArrayWithQuoteId($paymentInfo->getData('quote_id'));
         }

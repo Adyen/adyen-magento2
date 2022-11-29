@@ -14,6 +14,6 @@ namespace Adyen\Payment\Model\Config\Source\Status;
 
 class AdyenState
 {
-    const STATE_MAINTAIN = "maintain";
-    const STATE_MAINTAIN_STATUS = [self::STATE_MAINTAIN => "Maintain status"];
+    final const STATE_MAINTAIN = "maintain";
+    final const STATE_MAINTAIN_STATUS = [self::STATE_MAINTAIN => "Maintain status"];
 }

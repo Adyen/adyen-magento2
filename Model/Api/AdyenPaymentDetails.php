@@ -23,7 +23,7 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 
 class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
 {
-    const PAYMENTS_DETAILS_KEYS = [
+    final const PAYMENTS_DETAILS_KEYS = [
         'details',
         'paymentData',
         'threeDSAuthenticationOnly'

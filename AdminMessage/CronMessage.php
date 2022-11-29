@@ -35,7 +35,7 @@ class CronMessage implements \Magento\Framework\Notification\MessageInterface
         $this->backendHelper = $backendHelper;
     }
 
-    const MESSAGE_IDENTITY = 'Adyen Cronjob system message';
+    final const MESSAGE_IDENTITY = 'Adyen Cronjob system message';
 
     /**
      * Retrieve unique system message identity

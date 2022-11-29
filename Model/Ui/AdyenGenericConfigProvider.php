@@ -19,7 +19,7 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class AdyenGenericConfigProvider implements ConfigProviderInterface
 {
-    const CODE = 'adyen_abstract';
+    final const CODE = 'adyen_abstract';
 
     /**
      * @var Data

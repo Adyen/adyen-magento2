@@ -13,8 +13,8 @@ namespace Adyen\Payment\Helper\PaymentMethods;
 
 class TwintPaymentMethod implements PaymentMethodInterface
 {
-    const TX_VARIANT = 'twint';
-    const NAME = 'TWINT';
+    final const TX_VARIANT = 'twint';
+    final const NAME = 'TWINT';
 
     public function getTxVariant(): string
     {

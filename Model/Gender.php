@@ -13,12 +13,12 @@ namespace Adyen\Payment\Model;
 
 class Gender
 {
-    const MALE = '1';
-    const FEMALE = '2';
-    const OTHER = '3';
-    const MALE_VALUE = 'MALE';
-    const FEMALE_VALUE = 'FEMALE';
-    const OTHER_VALUE = 'OTHER';
+    final const MALE = '1';
+    final const FEMALE = '2';
+    final const OTHER = '3';
+    final const MALE_VALUE = 'MALE';
+    final const FEMALE_VALUE = 'FEMALE';
+    final const OTHER_VALUE = 'OTHER';
 
     /**
      * @return array

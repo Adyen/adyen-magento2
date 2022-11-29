@@ -25,8 +25,8 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class AdyenCcConfigProvider implements ConfigProviderInterface
 {
-    const CODE = 'adyen_cc';
-    const CC_VAULT_CODE = 'adyen_cc_vault';
+    final const CODE = 'adyen_cc';
+    final const CC_VAULT_CODE = 'adyen_cc_vault';
 
     /**
      * @var Data

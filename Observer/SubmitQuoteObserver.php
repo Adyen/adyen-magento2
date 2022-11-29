@@ -9,7 +9,7 @@ use Magento\Sales\Model\Order;
 
 class SubmitQuoteObserver implements ObserverInterface
 {
-    const PAYMENT_COMPLETE = ['Authorised', 'Received', 'PresentToShopper'];
+    final const PAYMENT_COMPLETE = ['Authorised', 'Received', 'PresentToShopper'];
 
     public function execute(Observer $observer)
     {

@@ -34,12 +34,12 @@ use Magento\Vault\Model\PaymentTokenManagement;
 
 class Vault
 {
-    const RECURRING_DETAIL_REFERENCE = 'recurring.recurringDetailReference';
-    const CARD_SUMMARY = 'cardSummary';
-    const EXPIRY_DATE = 'expiryDate';
-    const PAYMENT_METHOD = 'paymentMethod';
-    const TOKEN_TYPE = 'tokenType';
-    const ADDITIONAL_DATA_ERRORS = [
+    final const RECURRING_DETAIL_REFERENCE = 'recurring.recurringDetailReference';
+    final const CARD_SUMMARY = 'cardSummary';
+    final const EXPIRY_DATE = 'expiryDate';
+    final const PAYMENT_METHOD = 'paymentMethod';
+    final const TOKEN_TYPE = 'tokenType';
+    final const ADDITIONAL_DATA_ERRORS = [
         self::RECURRING_DETAIL_REFERENCE => 'Missing Token in Result please enable in ' .
             'Settings -> API URLs and Response menu in the Adyen Customer Area Recurring details setting',
         self::CARD_SUMMARY => 'Missing cardSummary in Result please login to the adyen portal ' .
@@ -254,7 +254,7 @@ class Vault
 
         $tokenizedPaymentMethods = array_map(
             'trim',
-            explode(',', $this->config->getTokenizedPaymentMethods($storeId))
+            explode(',', (string) $this->config->getTokenizedPaymentMethods($storeId))
         );
         $shouldTokenize = in_array($adyenPaymentMethod->getTxVariant(), $tokenizedPaymentMethods);
 
@@ -408,7 +408,7 @@ class Vault
      */
     private function getExpirationDate($expirationDate)
     {
-        $expirationDate = explode('/', $expirationDate);
+        $expirationDate = explode('/', (string) $expirationDate);
 
         $expDate = new DateTime(
         //add leading zero to month

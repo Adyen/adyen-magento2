@@ -19,22 +19,22 @@ use Magento\Payment\Gateway\Data\AddressAdapterInterface;
 
 class AddressTest extends AbstractAdyenTestCase
 {
-    const HOUSE_NUMBER = '123';
-    const HOUSE_NUMBER_LETTER = '456B';
-    const HOUSE_NUMBER_SPACE_LETTER = '789 C';
-    const HOUSE_NUMBER_SEPARATOR_LETTER = '103, 45/47 BG';
-    const HOUSE_NUMBER_RANGE = '45-53';
-    const HOUSE_NUMBERS = [
+    final const HOUSE_NUMBER = '123';
+    final const HOUSE_NUMBER_LETTER = '456B';
+    final const HOUSE_NUMBER_SPACE_LETTER = '789 C';
+    final const HOUSE_NUMBER_SEPARATOR_LETTER = '103, 45/47 BG';
+    final const HOUSE_NUMBER_RANGE = '45-53';
+    final const HOUSE_NUMBERS = [
         self::HOUSE_NUMBER,
         self::HOUSE_NUMBER_LETTER,
         self::HOUSE_NUMBER_SPACE_LETTER,
         self::HOUSE_NUMBER_SEPARATOR_LETTER,
         self::HOUSE_NUMBER_RANGE
     ];
-    const STREET_NAME_SPECIAL_CHARS = "Wróblewskiego";
-    const STREET_NAME = "John-Paul's Ave.";
-    const STREET_NAME_WITH_NUMBER = "Simon 2e Carmiggeltstraat";
-    const STREET_NAMES = [
+    final const STREET_NAME_SPECIAL_CHARS = "Wróblewskiego";
+    final const STREET_NAME = "John-Paul's Ave.";
+    final const STREET_NAME_WITH_NUMBER = "Simon 2e Carmiggeltstraat";
+    final const STREET_NAMES = [
         self::STREET_NAME_SPECIAL_CHARS,
         self::STREET_NAME,
         self::STREET_NAME_WITH_NUMBER

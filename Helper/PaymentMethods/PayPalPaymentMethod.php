@@ -13,8 +13,8 @@ namespace Adyen\Payment\Helper\PaymentMethods;
 
 class PayPalPaymentMethod implements PaymentMethodInterface
 {
-    const TX_VARIANT = 'paypal';
-    const NAME = 'PayPal';
+    final const TX_VARIANT = 'paypal';
+    final const NAME = 'PayPal';
 
     public function getTxVariant(): string
     {

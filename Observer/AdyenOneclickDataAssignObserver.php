@@ -24,12 +24,12 @@ use Magento\Quote\Api\Data\PaymentInterface;
 
 class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
 {
-    const CC_TYPE = 'cc_type';
-    const BRAND = 'brand';
-    const NUMBER_OF_INSTALLMENTS = 'number_of_installments';
-    const STATE_DATA = 'stateData';
-    const PAYMENT_METHOD = 'paymentMethod';
-    const RETURN_URL = 'returnUrl';
+    final const CC_TYPE = 'cc_type';
+    final const BRAND = 'brand';
+    final const NUMBER_OF_INSTALLMENTS = 'number_of_installments';
+    final const STATE_DATA = 'stateData';
+    final const PAYMENT_METHOD = 'paymentMethod';
+    final const RETURN_URL = 'returnUrl';
 
     /**
      * Approved root level keys from additional data array
@@ -115,7 +115,7 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
 
         // JSON decode state data from the frontend or fetch it from the DB entity with the quote ID
         if (!empty($additionalData[self::STATE_DATA])) {
-            $stateData = json_decode($additionalData[self::STATE_DATA], true);
+            $stateData = json_decode((string) $additionalData[self::STATE_DATA], true);
         } else {
             $stateData = $this->stateDataCollection->getStateDataArrayWithQuoteId($paymentInfo->getData('quote_id'));
         }

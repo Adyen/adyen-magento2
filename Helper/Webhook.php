@@ -31,7 +31,7 @@ use Magento\Sales\Model\OrderRepository;
 
 class Webhook
 {
-    const WEBHOOK_ORDER_STATE_MAPPING = [
+    final const WEBHOOK_ORDER_STATE_MAPPING = [
         Order::STATE_NEW => PaymentStates::STATE_NEW,
         Order::STATE_PENDING_PAYMENT => PaymentStates::STATE_PENDING,
         Order::STATE_PAYMENT_REVIEW => PaymentStates::STATE_PENDING,
@@ -44,7 +44,7 @@ class Webhook
     /**
      * Indicative matrix for possible states to enter after given event
      */
-    const STATE_TRANSITION_MATRIX = [
+    final const STATE_TRANSITION_MATRIX = [
         'payment_pre_authorized' => [Order::STATE_NEW, Order::STATE_PENDING_PAYMENT],
         'payment_authorized' => [Order::STATE_PROCESSING]
     ];
@@ -308,7 +308,7 @@ class Webhook
             $additionalData2 = $additionalData['additionalData'] ?? null;
             if ($additionalData2 && is_array($additionalData2)) {
                 $this->klarnaReservationNumber = isset($additionalData2['acquirerReference']) ? trim(
-                    $additionalData2['acquirerReference']
+                    (string) $additionalData2['acquirerReference']
                 ) : "";
             }
             $ratepayDescriptor = $additionalData['openinvoicedata.descriptor'] ?? "";
@@ -526,7 +526,7 @@ class Webhook
         $result = "";
 
         if ($reason != "") {
-            $reasonArray = explode(":", $reason);
+            $reasonArray = explode(":", (string) $reason);
             if ($reasonArray != null && is_array($reasonArray) && isset($reasonArray[1])) {
                 $result = $reasonArray[1];
             }

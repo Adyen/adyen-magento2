@@ -23,7 +23,7 @@ use Magento\Sales\Model\Order as MagentoOrder;
 
 class CancelOrRefundWebhookHandler implements WebhookHandlerInterface
 {
-    const MODIFICATION_ACTION = 'modification.action';
+    final const MODIFICATION_ACTION = 'modification.action';
 
     /** @var AdyenLogger */
     private $adyenLogger;

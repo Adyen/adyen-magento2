@@ -18,7 +18,7 @@ use Magento\Quote\Api\Data\PaymentInterface;
 
 class AdyenPayByLinkDataAssignObserver extends AbstractDataAssignObserver
 {
-    const PBL_EXPIRY_DATE = 'adyen_pbl_expires_at';
+    final const PBL_EXPIRY_DATE = 'adyen_pbl_expires_at';
 
     /**
      * Approved root level keys from additional data array

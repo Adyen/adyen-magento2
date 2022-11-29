@@ -22,9 +22,9 @@ class AdyenLogger extends Logger
     /**
      * Detailed debug information
      */
-    const ADYEN_DEBUG = 101;
-    const ADYEN_NOTIFICATION = 201;
-    const ADYEN_RESULT = 202;
+    final const ADYEN_DEBUG = 101;
+    final const ADYEN_NOTIFICATION = 201;
+    final const ADYEN_RESULT = 202;
     /**
      * Logging levels from syslog protocol defined in RFC 5424
      * Overrule the default to add Adyen specific loggers to log into seperate files

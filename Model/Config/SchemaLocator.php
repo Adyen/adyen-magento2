@@ -22,12 +22,12 @@ class SchemaLocator implements \Magento\Framework\Config\SchemaLocatorInterface
     /**
      * Merged config schema file name
      */
-    const MERGED_CONFIG_SCHEMA = 'adyen_payment_file.xsd';
+    final const MERGED_CONFIG_SCHEMA = 'adyen_payment_file.xsd';
 
     /**
      * Per file validation schema file name
      */
-    const PER_FILE_VALIDATION_SCHEMA = 'adyen_payment.xsd';
+    final const PER_FILE_VALIDATION_SCHEMA = 'adyen_payment.xsd';
 
     /**
      * Path to corresponding XSD file with validation rules for merged config

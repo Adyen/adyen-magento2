@@ -13,8 +13,8 @@ namespace Adyen\Payment\Model\Config\Source;
 
 class SepaFlow implements \Magento\Framework\Option\ArrayInterface
 {
-    const SEPA_FLOW_SALE = 'sale';
-    const SEPA_FLOW_AUTHCAP = 'authcap';
+    final const SEPA_FLOW_SALE = 'sale';
+    final const SEPA_FLOW_AUTHCAP = 'authcap';
 
     /**
      * @return array

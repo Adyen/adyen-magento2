@@ -13,9 +13,9 @@ namespace Adyen\Payment\Model\Config\Source;
 
 class PartialPaymentRefundStrategy implements \Magento\Framework\Option\ArrayInterface
 {
-    const REFUND_FIRST_PAYEMENT_FIRST = 1;
-    const REFUND_LAST_PAYEMENT_FIRST = 2;
-    const REFUND_ON_RATIO = 3;
+    final const REFUND_FIRST_PAYEMENT_FIRST = 1;
+    final const REFUND_LAST_PAYEMENT_FIRST = 2;
+    final const REFUND_ON_RATIO = 3;
 
     /**
      * @return array

@@ -13,8 +13,8 @@ namespace Adyen\Payment\Helper\PaymentMethods;
 
 class SepaPaymentMethod implements PaymentMethodInterface
 {
-    const TX_VARIANT = 'sepadirectdebit';
-    const NAME = 'SEPA Direct Debit';
+    final const TX_VARIANT = 'sepadirectdebit';
+    final const NAME = 'SEPA Direct Debit';
 
     public function getTxVariant(): string
     {

@@ -34,7 +34,7 @@ class APIKeyMessage implements \Magento\Framework\Notification\MessageInterface
      */
     protected $authSession;
 
-    const MESSAGE_IDENTITY = 'Adyen API Key Control message';
+    final const MESSAGE_IDENTITY = 'Adyen API Key Control message';
 
     /**
      * APIKeyMessage constructor.

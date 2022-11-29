@@ -18,12 +18,12 @@ use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 
 class Recurring
 {
-    const MODE_MAGENTO_VAULT = 'Magento Vault';
-    const MODE_ADYEN_TOKENIZATION = 'Adyen Tokenization';
+    final const MODE_MAGENTO_VAULT = 'Magento Vault';
+    final const MODE_ADYEN_TOKENIZATION = 'Adyen Tokenization';
 
-    const CARD_ON_FILE = 'CardOnFile';
-    const SUBSCRIPTION = 'Subscription';
-    const UNSCHEDULED_CARD_ON_FILE = 'UnscheduledCardOnFile';
+    final const CARD_ON_FILE = 'CardOnFile';
+    final const SUBSCRIPTION = 'Subscription';
+    final const UNSCHEDULED_CARD_ON_FILE = 'UnscheduledCardOnFile';
 
     /** @var AdyenLogger */
     private $adyenLogger;

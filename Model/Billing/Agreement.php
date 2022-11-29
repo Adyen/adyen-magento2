@@ -101,7 +101,7 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
             ->setReferenceId($data['recurringDetailReference'])
             ->setCreatedAt($data['creationDate']);
 
-        $creationDate = str_replace(' ', '-', $data['creationDate']);
+        $creationDate = str_replace(' ', '-', (string) $data['creationDate']);
         $this->setCreatedAt($creationDate);
 
         //Billing agreement SEPA
@@ -175,7 +175,7 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
      */
     public function getAgreementData()
     {
-        return json_decode($this->getData('agreement_data'), true);
+        return json_decode((string) $this->getData('agreement_data'), true);
     }
 
     /**
@@ -228,7 +228,7 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
 
         $this->setAgreementLabel($label);
 
-        $expiryDate = explode('/', $contractDetail['expiryDate']);
+        $expiryDate = explode('/', (string) $contractDetail['expiryDate']);
 
         $recurringType = !empty($contractDetail['pos_payment'])
             ? $this->configHelper->getAdyenPosCloudConfigData('recurring_type', $storeId)
@@ -244,7 +244,7 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
             'variant' => $variant,
             // contractTypes should be changed from an array to a single value in the future. It has not been done yet
             // to ensure past tokens are still operational.
-            'contractTypes' => $recurringType ? explode(',', $recurringType) : []
+            'contractTypes' => $recurringType ? explode(',', (string) $recurringType) : []
         ];
 
         if (!empty($contractDetail['pos_payment'])) {

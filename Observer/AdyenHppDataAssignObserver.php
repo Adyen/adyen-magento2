@@ -22,11 +22,11 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
 {
-    const BRAND_CODE = 'brand_code';
-    const DF_VALUE = 'df_value';
-    const GUEST_EMAIL = 'guestEmail';
-    const STATE_DATA = 'stateData';
-    const RETURN_URL = 'returnUrl';
+    final const BRAND_CODE = 'brand_code';
+    final const DF_VALUE = 'df_value';
+    final const GUEST_EMAIL = 'guestEmail';
+    final const STATE_DATA = 'stateData';
+    final const RETURN_URL = 'returnUrl';
 
     /**
      * Approved root level keys from additional data array
@@ -106,7 +106,7 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
 
         // JSON decode state data from the frontend or fetch it from the DB entity with the quote ID
         if (!empty($additionalData[self::STATE_DATA])) {
-            $stateData = json_decode($additionalData[self::STATE_DATA], true);
+            $stateData = json_decode((string) $additionalData[self::STATE_DATA], true);
         } else {
             $stateData = $this->stateDataCollection->getStateDataArrayWithQuoteId($paymentInfo->getData('quote_id'));
         }

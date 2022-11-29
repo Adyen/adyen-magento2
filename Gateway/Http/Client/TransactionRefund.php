@@ -18,9 +18,9 @@ use Magento\Payment\Gateway\Http\ClientInterface;
  */
 class TransactionRefund implements ClientInterface
 {
-    const REFUND_AMOUNT = 'refund_amount';
-    const REFUND_CURRENCY = 'refund_currency';
-    const ORIGINAL_REFERENCE = 'original_reference';
+    final const REFUND_AMOUNT = 'refund_amount';
+    final const REFUND_CURRENCY = 'refund_currency';
+    final const ORIGINAL_REFERENCE = 'original_reference';
 
     /**
      * @var \Adyen\Payment\Helper\Data

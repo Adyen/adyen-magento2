@@ -45,17 +45,17 @@ class RateLimiter
     /**
      * Initial cache lifetime
      */
-    const INITIAL_COOLDOWN_PERIOD = 300;
+    final const INITIAL_COOLDOWN_PERIOD = 300;
 
     /**
      * Power base value
      */
-    const POWER = 2;
+    final const POWER = 2;
 
     /**
      * Number of allowed notification requests
      */
-    const NUMBER_OF_ATTEMPTS = 6;
+    final const NUMBER_OF_ATTEMPTS = 6;
 
 
     /**

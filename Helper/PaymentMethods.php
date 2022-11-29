@@ -40,23 +40,23 @@ use Adyen\Payment\Helper\Data as AdyenDataHelper;
  */
 class PaymentMethods extends AbstractHelper
 {
-    const ADYEN_HPP = 'adyen_hpp';
-    const ADYEN_CC = 'adyen_cc';
-    const ADYEN_ONE_CLICK = 'adyen_oneclick';
-    const ADYEN_PAY_BY_LINK = 'adyen_pay_by_link';
+    final const ADYEN_HPP = 'adyen_hpp';
+    final const ADYEN_CC = 'adyen_cc';
+    final const ADYEN_ONE_CLICK = 'adyen_oneclick';
+    final const ADYEN_PAY_BY_LINK = 'adyen_pay_by_link';
 
-    const ADYEN_PREFIX = 'adyen_';
+    final const ADYEN_PREFIX = 'adyen_';
 
-    const METHODS_WITH_BRAND_LOGO = [
+    final const METHODS_WITH_BRAND_LOGO = [
         "giftcard"
     ];
 
-    const METHODS_WITH_LOGO_FILE_MAPPING = [
+    final const METHODS_WITH_LOGO_FILE_MAPPING = [
         "scheme" => "card"
     ];
 
-    const FUNDING_SOURCE_DEBIT = 'debit';
-    const FUNDING_SOURCE_CREDIT = 'credit';
+    final const FUNDING_SOURCE_DEBIT = 'debit';
+    final const FUNDING_SOURCE_CREDIT = 'credit';
 
     /**
      * @var CartRepositoryInterface
@@ -591,7 +591,7 @@ class PaymentMethods extends AbstractHelper
         $ccTypes = $this->adyenHelper->getAdyenCcTypes();
         $availableTypes = $this->adyenHelper->getAdyenCcConfigData('cctypes');
         if ($availableTypes) {
-            $availableTypes = explode(',', $availableTypes);
+            $availableTypes = explode(',', (string) $availableTypes);
             foreach (array_keys($ccTypes) as $code) {
                 if (in_array($code, $availableTypes)) {
                     $types[$code] = $ccTypes[$code]['name'];
@@ -613,7 +613,7 @@ class PaymentMethods extends AbstractHelper
         $ccTypes = $this->adyenHelper->getAdyenCcTypes();
         $availableTypes = $this->adyenHelper->getAdyenCcConfigData('cctypes');
         if ($availableTypes) {
-            $availableTypes = explode(',', $availableTypes);
+            $availableTypes = explode(',', (string) $availableTypes);
             foreach (array_keys($ccTypes) as $code) {
                 if (in_array($code, $availableTypes)) {
                     $types[$ccTypes[$code]['code_alt']] = $code;
@@ -636,14 +636,14 @@ class PaymentMethods extends AbstractHelper
         // validate if payment methods allows manual capture
         if ($this->manualCapture->isManualCaptureSupported($notificationPaymentMethod)) {
             $captureMode = trim(
-                $this->configHelper->getConfigData(
+                (string) $this->configHelper->getConfigData(
                     'capture_mode',
                     'adyen_abstract',
                     $order->getStoreId()
                 )
             );
             $sepaFlow = trim(
-                $this->configHelper->getConfigData(
+                (string) $this->configHelper->getConfigData(
                     'sepa_flow',
                     'adyen_abstract',
                     $order->getStoreId()
@@ -652,7 +652,7 @@ class PaymentMethods extends AbstractHelper
             $paymentCode = $order->getPayment()->getMethod();
             $autoCaptureOpenInvoice = $this->configHelper->getAutoCaptureOpenInvoice($order->getStoreId());
             $manualCapturePayPal = trim(
-                $this->configHelper->getConfigData(
+                (string) $this->configHelper->getConfigData(
                     'paypal_capture_mode',
                     'adyen_abstract',
                     $order->getStoreId()
@@ -692,7 +692,7 @@ class PaymentMethods extends AbstractHelper
                     'capture_mode_pos',
                     $order->getStoreId()
                 );
-                if (strcmp($captureModePos, 'auto') === 0) {
+                if (strcmp((string) $captureModePos, 'auto') === 0) {
                     $this->adyenLogger->addAdyenNotification(
                         'This payment method is POS Cloud and configured to be working as auto capture ',
                         array_merge(
@@ -701,7 +701,7 @@ class PaymentMethods extends AbstractHelper
                         )
                     );
                     return true;
-                } elseif (strcmp($captureModePos, 'manual') === 0) {
+                } elseif (strcmp((string) $captureModePos, 'manual') === 0) {
                     $this->adyenLogger->addAdyenNotification(
                         'This payment method is POS Cloud and configured to be working as manual capture ',
                         array_merge(
@@ -854,8 +854,8 @@ class PaymentMethods extends AbstractHelper
         $boletobancario = $additionalData['boletobancario'] ?? null;
         if ($boletobancario && is_array($boletobancario)) {
             // check if paid amount is the same as orginal amount
-            $originalAmount = isset($boletobancario['originalAmount']) ? trim($boletobancario['originalAmount']) : "";
-            $paidAmount = isset($boletobancario['paidAmount']) ? trim($boletobancario['paidAmount']) : "";
+            $originalAmount = isset($boletobancario['originalAmount']) ? trim((string) $boletobancario['originalAmount']) : "";
+            $paidAmount = isset($boletobancario['paidAmount']) ? trim((string) $boletobancario['paidAmount']) : "";
 
             if ($originalAmount != $paidAmount) {
                 // not the full amount is paid. Check if it is underpaid or overpaid

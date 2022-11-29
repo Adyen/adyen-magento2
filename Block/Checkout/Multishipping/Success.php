@@ -27,7 +27,7 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 
 class Success extends \Magento\Multishipping\Block\Checkout\Success
 {
-    const FINAL_RESULT_CODES = array(
+    final const FINAL_RESULT_CODES = array(
         PaymentResponseHandler::AUTHORISED,
         PaymentResponseHandler::PENDING,
         PaymentResponseHandler::REFUSED,

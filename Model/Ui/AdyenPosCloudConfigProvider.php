@@ -21,7 +21,7 @@ use Magento\Framework\UrlInterface;
 
 class AdyenPosCloudConfigProvider implements ConfigProviderInterface
 {
-    const CODE = 'adyen_pos_cloud';
+    final const CODE = 'adyen_pos_cloud';
 
     /** @var RequestInterface  */
     protected $request;

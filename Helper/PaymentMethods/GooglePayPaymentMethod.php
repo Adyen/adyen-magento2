@@ -13,8 +13,8 @@ namespace Adyen\Payment\Helper\PaymentMethods;
 
 class GooglePayPaymentMethod extends AbstractWalletPaymentMethod
 {
-    const TX_VARIANT = 'googlepay';
-    const NAME = 'Google Pay';
+    final const TX_VARIANT = 'googlepay';
+    final const NAME = 'Google Pay';
 
     public function getTxVariant(): string
     {

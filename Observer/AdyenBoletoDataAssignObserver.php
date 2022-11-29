@@ -17,10 +17,10 @@ use Magento\Quote\Api\Data\PaymentInterface;
 
 class AdyenBoletoDataAssignObserver extends AbstractDataAssignObserver
 {
-    const SOCIAL_SECURITY_NUMBER = 'social_security_number';
-    const BOLETO_TYPE = 'boleto_type';
-    const FIRSTNAME = 'firstname';
-    const LASTNAME = 'lastname';
+    final const SOCIAL_SECURITY_NUMBER = 'social_security_number';
+    final const BOLETO_TYPE = 'boleto_type';
+    final const FIRSTNAME = 'firstname';
+    final const LASTNAME = 'lastname';
 
     /**
      * @var array

@@ -34,7 +34,7 @@ class CheckoutResponseValidator extends AbstractValidator
     /**
      * @var Array
      */
-    const ALLOWED_ERROR_CODES = ['124'];
+    final const ALLOWED_ERROR_CODES = ['124'];
 
     /**
      * CheckoutResponseValidator constructor.

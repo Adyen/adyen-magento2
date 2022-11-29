@@ -19,7 +19,7 @@ use Adyen\Payment\Model\StateDataFactory;
 
 class StateData
 {
-    const CLEANUP_RESULT_CODES = array(
+    final const CLEANUP_RESULT_CODES = array(
         "Authorised"
     );
 

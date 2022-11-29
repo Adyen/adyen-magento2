@@ -33,8 +33,8 @@ class Address
     }
 
     // Regex to extract the house number from the street line if needed (e.g. 'Street address 1 A' => '1 A')
-    const STREET_FIRST_REGEX = "/(?<streetName>[\d\p{L}.'\-\s]+[\p{L}.'])\s+(?<houseNumber>[\d\s\-\/,.]+[\d\p{L}\s\-\/,.]{0,10})$/u";
-    const NUMBER_FIRST_REGEX = "/^(?<houseNumber>[\d\s\-\/,.]+[\d\p{L}\s\-\/,.]{0,2})\s+(?<streetName>[\d\p{L}.'\-\s]+[\p{L}.'])/u";
+    final const STREET_FIRST_REGEX = "/(?<streetName>[\d\p{L}.'\-\s]+[\p{L}.'])\s+(?<houseNumber>[\d\s\-\/,.]+[\d\p{L}\s\-\/,.]{0,10})$/u";
+    final const NUMBER_FIRST_REGEX = "/^(?<houseNumber>[\d\s\-\/,.]+[\d\p{L}\s\-\/,.]{0,2})\s+(?<streetName>[\d\p{L}.'\-\s]+[\p{L}.'])/u";
 
     /**
      * @param AddressAdapterInterface $address
@@ -118,6 +118,6 @@ class Address
      */
     private function formatAddressArray($street, $houseNumber): array
     {
-        return ['name' => trim($street), 'house_number' => trim($houseNumber)];
+        return ['name' => trim((string) $street), 'house_number' => trim((string) $houseNumber)];
     }
 }

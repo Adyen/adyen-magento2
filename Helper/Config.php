@@ -20,31 +20,31 @@ use Magento\Framework\Serialize\SerializerInterface;
 
 class Config
 {
-    const XML_PAYMENT_PREFIX = "payment";
-    const XML_ADYEN_ABSTRACT_PREFIX = "adyen_abstract";
-    const XML_ADYEN_GIVING_PREFIX = "adyen_giving";
-    const XML_MERCHANT_ACCOUNT = "merchant_account";
-    const XML_NOTIFICATIONS_USERNAME = "notification_username";
-    const XML_NOTIFICATIONS_PASSWORD = "notification_password";
-    const XML_WEBHOOK_URL = "webhook_url";
-    const XML_NOTIFICATIONS_CAN_CANCEL_FIELD = "notifications_can_cancel";
-    const XML_NOTIFICATIONS_HMAC_KEY_LIVE = "notification_hmac_key_live";
-    const XML_NOTIFICATIONS_HMAC_KEY_TEST = "notification_hmac_key_test";
-    const XML_CHARGED_CURRENCY = "charged_currency";
-    const XML_HAS_HOLDER_NAME = "has_holder_name";
-    const XML_HOLDER_NAME_REQUIRED = "holder_name_required";
-    const XML_HOUSE_NUMBER_STREET_LINE = "house_number_street_line";
-    const XML_ADYEN_ONECLICK = 'adyen_oneclick';
-    const XML_ADYEN_HPP = 'adyen_hpp';
-    const XML_ADYEN_HPP_VAULT = 'adyen_hpp_vault';
-    const XML_ADYEN_CC_VAULT = 'adyen_cc_vault';
-    const XML_ADYEN_MOTO = 'adyen_moto';
-    const XML_PAYMENT_ORIGIN_URL = 'payment_origin_url';
-    const XML_PAYMENT_RETURN_URL = 'payment_return_url';
-    const XML_STATUS_FRAUD_MANUAL_REVIEW = 'fraud_manual_review_status';
-    const XML_STATUS_FRAUD_MANUAL_REVIEW_ACCEPT = 'fraud_manual_review_accept_status';
-    const XML_MOTO_MERCHANT_ACCOUNTS = 'moto_merchant_accounts';
-    const XML_ADYEN_POS_CLOUD = 'adyen_pos_cloud';
+    final const XML_PAYMENT_PREFIX = "payment";
+    final const XML_ADYEN_ABSTRACT_PREFIX = "adyen_abstract";
+    final const XML_ADYEN_GIVING_PREFIX = "adyen_giving";
+    final const XML_MERCHANT_ACCOUNT = "merchant_account";
+    final const XML_NOTIFICATIONS_USERNAME = "notification_username";
+    final const XML_NOTIFICATIONS_PASSWORD = "notification_password";
+    final const XML_WEBHOOK_URL = "webhook_url";
+    final const XML_NOTIFICATIONS_CAN_CANCEL_FIELD = "notifications_can_cancel";
+    final const XML_NOTIFICATIONS_HMAC_KEY_LIVE = "notification_hmac_key_live";
+    final const XML_NOTIFICATIONS_HMAC_KEY_TEST = "notification_hmac_key_test";
+    final const XML_CHARGED_CURRENCY = "charged_currency";
+    final const XML_HAS_HOLDER_NAME = "has_holder_name";
+    final const XML_HOLDER_NAME_REQUIRED = "holder_name_required";
+    final const XML_HOUSE_NUMBER_STREET_LINE = "house_number_street_line";
+    final const XML_ADYEN_ONECLICK = 'adyen_oneclick';
+    final const XML_ADYEN_HPP = 'adyen_hpp';
+    final const XML_ADYEN_HPP_VAULT = 'adyen_hpp_vault';
+    final const XML_ADYEN_CC_VAULT = 'adyen_cc_vault';
+    final const XML_ADYEN_MOTO = 'adyen_moto';
+    final const XML_PAYMENT_ORIGIN_URL = 'payment_origin_url';
+    final const XML_PAYMENT_RETURN_URL = 'payment_return_url';
+    final const XML_STATUS_FRAUD_MANUAL_REVIEW = 'fraud_manual_review_status';
+    final const XML_STATUS_FRAUD_MANUAL_REVIEW_ACCEPT = 'fraud_manual_review_accept_status';
+    final const XML_MOTO_MERCHANT_ACCOUNTS = 'moto_merchant_accounts';
+    final const XML_ADYEN_POS_CLOUD = 'adyen_pos_cloud';
 
     /**
      * @var ScopeConfigInterface
@@ -183,7 +183,7 @@ class Config
         if (is_null($key)) {
             return null;
         }
-        return $this->encryptor->decrypt(trim($key));
+        return $this->encryptor->decrypt(trim((string) $key));
     }
 
     /**
@@ -248,7 +248,7 @@ class Config
             return null;
         }
 
-        return $this->encryptor->decrypt(trim($key));
+        return $this->encryptor->decrypt(trim((string) $key));
     }
 
     public function isDemoMode($storeId = null): bool

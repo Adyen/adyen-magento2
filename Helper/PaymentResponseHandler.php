@@ -26,18 +26,18 @@ use Magento\Sales\Model\ResourceModel\Order;
 
 class PaymentResponseHandler
 {
-    const AUTHORISED = 'Authorised';
-    const REFUSED = 'Refused';
-    const REDIRECT_SHOPPER = 'RedirectShopper';
-    const IDENTIFY_SHOPPER = 'IdentifyShopper';
-    const CHALLENGE_SHOPPER = 'ChallengeShopper';
-    const RECEIVED = 'Received';
-    const PENDING = 'Pending';
-    const PRESENT_TO_SHOPPER = 'PresentToShopper';
-    const ERROR = 'Error';
-    const CANCELLED = 'Cancelled';
-    const ADYEN_TOKENIZATION = 'Adyen Tokenization';
-    const VAULT = 'Magento Vault';
+    final const AUTHORISED = 'Authorised';
+    final const REFUSED = 'Refused';
+    final const REDIRECT_SHOPPER = 'RedirectShopper';
+    final const IDENTIFY_SHOPPER = 'IdentifyShopper';
+    final const CHALLENGE_SHOPPER = 'ChallengeShopper';
+    final const RECEIVED = 'Received';
+    final const PENDING = 'Pending';
+    final const PRESENT_TO_SHOPPER = 'PresentToShopper';
+    final const ERROR = 'Error';
+    final const CANCELLED = 'Cancelled';
+    final const ADYEN_TOKENIZATION = 'Adyen Tokenization';
+    final const VAULT = 'Magento Vault';
 
     /**
      * @var AdyenLogger

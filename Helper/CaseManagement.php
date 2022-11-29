@@ -24,7 +24,7 @@ use Magento\Sales\Model\Order;
  */
 class CaseManagement
 {
-    const FRAUD_MANUAL_REVIEW = 'fraudManualReview';
+    final const FRAUD_MANUAL_REVIEW = 'fraudManualReview';
 
     /**
      * @var AdyenLogger
