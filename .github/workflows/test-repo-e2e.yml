@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       testBranch:
-        description: "Test Branch from Integration Tools Repo"
+        description: "Integration Test Repository Pipeline"
         required: true
         default: "develop"
 
