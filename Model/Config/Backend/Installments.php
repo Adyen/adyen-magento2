@@ -61,7 +61,6 @@ class Installments extends \Magento\Framework\App\Config\Value
             return $this;
         }
         $result = [];
-        $counter = 0;
 
         foreach ($value as $data) {
             if (!$data) {
@@ -79,7 +78,7 @@ class Installments extends \Magento\Framework\App\Config\Value
             $ccTypes = $data['cc_types'];
 
             foreach ($ccTypes as $ccType) {
-                $result[$ccType][$amount][$counter++] = $installments;
+                $result[$ccType][$amount][] = $installments;
             }
         }
 
