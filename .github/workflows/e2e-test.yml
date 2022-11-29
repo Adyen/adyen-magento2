@@ -1,0 +1,69 @@
+name: E2E Test
+run-name: Headless E2E tests for Adyen Magento2 Plugin
+
+on: [pull_request]
+
+jobs:
+  build:
+    runs-on:
+      group: larger-runners
+      labels: ubuntu-latest-8-cores
+    env:
+      PHP_VERSION: "8.1"
+      MAGENTO_VERSION: "2.4.5"
+      ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
+      ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Magento
+        run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm web make magento
+
+      - name: Start web server in background
+        run: docker-compose -f .github/workflows/templates/docker-compose.yml up -d web
+        env:
+          DONATION_ACCOUNT: ${{secrets.DONATION_ACCOUNT}}
+          ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
+          ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
+          ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
+
+      - name: Setup permissions
+        run: docker exec magento2-container make fs
+
+      - name: Check install
+        run: docker exec magento2-container make sys-check
+
+      - name: Install plugin
+        run: docker exec -u www-data magento2-container make plugin
+
+      - run: docker exec magento2-container /etc/init.d/cron stop
+
+      - name: Run GraphQL tests
+        run: docker exec magento2-container make graphql
+
+      - name: Switch to production mode
+        run: docker exec -u www-data magento2-container make production
+
+      - name: Setup permissions
+        run: docker exec magento2-container make fs
+
+      - name: Run E2E tests
+        if: ${{ matrix.php-version == '8.1'}}
+        run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm playwright /e2e.sh
+        env:
+          INTEGRATION_TESTS_BRANCH: develop
+          MAGENTO_ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
+          MAGENTO_ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
+          MAGENTO_BASE_URL: ${{secrets.MAGENTO_BASE_URL}}
+          PAYPAL_USERNAME: ${{secrets.PLAYWRIGHT_PAYPAL_USERNAME}}
+          PAYPAL_PASSWORD: ${{secrets.PLAYWRIGHT_PAYPAL_PASSWORD}}
+          ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
+          ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
+          ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
+
+      - name: Archive test result artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: html-report
+          path: test-report
