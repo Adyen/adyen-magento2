@@ -854,7 +854,8 @@ class PaymentMethods extends AbstractHelper
         $boletobancario = $additionalData['boletobancario'] ?? null;
         if ($boletobancario && is_array($boletobancario)) {
             // check if paid amount is the same as orginal amount
-            $originalAmount = isset($boletobancario['originalAmount']) ? trim((string) $boletobancario['originalAmount']) : "";
+            $originalAmount =
+                isset($boletobancario['originalAmount']) ? trim((string) $boletobancario['originalAmount']) : "";
             $paidAmount = isset($boletobancario['paidAmount']) ? trim((string) $boletobancario['paidAmount']) : "";
 
             if ($originalAmount != $paidAmount) {
