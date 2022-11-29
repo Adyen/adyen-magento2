@@ -46,9 +46,11 @@ class Installments
         foreach ($installmentsArray as $card => $cardInstallments) {
             $values[] = 1; // Always allow payment in full amount if installments are available
 
-            foreach ($cardInstallments as $minimumAmount => $installment) {
-                if ($quoteAmount >= $minimumAmount) {
-                    $values[] = (int)$installment;
+            foreach ($cardInstallments as $minimumAmount => $installments) {
+                foreach ($installments as $installment) {
+                    if ($quoteAmount >= $minimumAmount) {
+                        $values[] = (int)$installment;
+                    }
                 }
             }
 

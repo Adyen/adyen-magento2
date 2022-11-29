@@ -42,4 +42,19 @@ class Creditmemo extends AbstractDb
 
         return empty($result) ? null : $result;
     }
+
+    /**
+     * @param string $pspreference
+     * @return array|null
+     */
+    public function getAdyenCreditmemoByPspreference(string $pspreference): ?array
+    {
+        $select = $this->getConnection()->select()
+            ->from(['adyen_creditmemo' => $this->getTable('adyen_creditmemo')])
+            ->where('adyen_creditmemo.pspreference=?', $pspreference);
+
+        $result = $this->getConnection()->fetchRow($select);
+
+        return empty($result) ? null : $result;
+    }
 }
