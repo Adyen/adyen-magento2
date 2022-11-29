@@ -67,7 +67,7 @@ class OrderProcessingForm extends Action
         $from = ['email' => 'test@test.com', 'name' => 'Adyen test'];
         $to = ['email' => 'test@test.com', 'name' => 'Adyen test'];
         //the template identifier is set in the etc/email_templates.xml
-        $transport = $this->transportBuilder->setTemplateIdentifier('contact_email_template')
+        $transport = $this->transportBuilder->setTemplateIdentifier('order_processing_email_template')
             ->setTemplateOptions($templateOptions)
             ->setTemplateVars($templateVars)
             ->setFromByScope($from)

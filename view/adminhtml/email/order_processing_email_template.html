@@ -1,10 +1,46 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<table class="message-details" >
+    <caption>Mail message from magento</caption>
+    <th>Topic {{var topic}} Magento<th>
+      <tr>
+        <td><strong>{{trans "Subject"}}</strong></td>
+        <td>{{var subject}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Merchant email"}}</strong></td>
+        <td>{{var email}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Psp reference"}}</strong></td>
+        <td>{{var pspReference}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans " Merchant reference"}}</strong></td>
+        <td>{{var merchantReference}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Are you using headless integration?"}}</strong></td>
+        <td>{{var headless}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "TerminalId"}}</strong></td>
+        <td>{{var terminalId}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Order History comments"}}</strong></td>
+        <td>{{var orderHistoryComments}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "What is the description of the problem?"}}</strong></td>
+        <td>{{var orderDescription}}</td>
+    </tr>
+    <!--Configuration settings-->
+    <tr>
+        <td><strong>{{trans "Magento version"}}</strong></td>
+        <td>{{var magentoVersion}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Plugin version"}}</strong></td>
+        <td>{{var pluginVersion}}</td>
+    </tr>
 
-</body>
-</html>
+</table>

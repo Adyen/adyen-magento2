@@ -63,7 +63,7 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'label' => __('Email'),
                 'title' => __('Email'),
                 'class' => '',
-                'required' => false,
+                'required' => true,
             ]
         );
 
