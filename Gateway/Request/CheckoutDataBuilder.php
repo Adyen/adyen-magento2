@@ -118,16 +118,23 @@ class CheckoutDataBuilder implements BuilderInterface
         }
 
         $brandCode = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
-        if (isset($brandCode) && ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)
-            || $this->adyenHelper->isPaymentMethodOfType($brandCode, Data::FACILYPAY)
-            || $payment->getMethod() === AdyenPayByLinkConfigProvider::CODE)
+        if (
+            (isset($brandCode) && $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) ||
+            $payment->getMethod() === AdyenPayByLinkConfigProvider::CODE
         ) {
             $openInvoiceFields = $this->getOpenInvoiceData($order);
             $requestBody = array_merge($requestBody, $openInvoiceFields);
 
-            if ($this->adyenHelper->isPaymentMethodOfType($brandCode, Data::KLARNA) &&
+            if (isset($brandCode) &&
+                $this->adyenHelper->isPaymentMethodOfType($brandCode, Data::KLARNA) &&
                 $this->configHelper->getAutoCaptureOpenInvoice($storeId)) {
                 $requestBody['captureDelayHours'] = 0;
+            }
+
+            if ($payment->getMethod() === AdyenPayByLinkConfigProvider::CODE
+                || $this->adyenHelper->isPaymentMethodOfType($brandCode, Data::KLARNA)) {
+                $requestBody['additionalData']['openinvoicedata.merchantData'] =
+                    base64_encode(json_encode($this->getOtherDeliveryInformation($order)));
             }
         }
 
@@ -192,13 +199,14 @@ class CheckoutDataBuilder implements BuilderInterface
         if ($numberOfInstallments > 0) {
             $requestBody['installments']['value'] = $numberOfInstallments;
         }
-        // if card type is debit then change the issuer type and unset the installments field
+
+        /*
+         * if the combo card type is debit then add the funding source
+         * and unset the installments & brand fields
+         */
         if ($comboCardType == 'debit') {
-            if ($selectedDebitBrand = $this->getSelectedDebitBrand($payment->getAdditionalInformation('cc_type'))) {
-                $requestBody['additionalData']['overwriteBrand'] = true;
-                $requestBody['selectedBrand'] = $selectedDebitBrand;
-                $requestBody['paymentMethod']['type'] = $selectedDebitBrand;
-            }
+            $requestBody['paymentMethod']['fundingSource'] = 'debit';
+            unset($requestBody['paymentMethod']['brand']);
             unset($requestBody['installments']);
         }
 
@@ -235,21 +243,6 @@ class CheckoutDataBuilder implements BuilderInterface
             "city" => $shippingAddress->getCity(),
             "country" => $shippingAddress->getCountryId()
         ];
-    }
-
-    /**
-     * @param string $brand
-     * @return string
-     */
-    private function getSelectedDebitBrand($brand)
-    {
-        if ($brand == 'VI') {
-            return 'electron';
-        }
-        if ($brand == 'MC') {
-            return 'maestro';
-        }
-        return null;
     }
 
     /**
