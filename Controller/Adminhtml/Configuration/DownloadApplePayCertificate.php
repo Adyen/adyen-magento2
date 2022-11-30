@@ -119,7 +119,7 @@ class DownloadApplePayCertificate extends Action
      */
     private function downloadAndUnzip(string $applepayUrl, string $applepayPath)
     {
-        $tmpPath = tempnam(sys_get_temp_dir(), self::FILE_NAME);
+        $tmpPath = tempnam(sys_get_temp_dir(), self::FILE_NAME );
         file_put_contents($tmpPath, file_get_contents($applepayUrl));
 
         $zip = new \ZipArchive;
@@ -129,13 +129,14 @@ class DownloadApplePayCertificate extends Action
         if ($zip->open($tmpPath) === true) {
             for ($i = 0; $i < $zip->numFiles; $i++) {
                 $filename = $zip->getNameIndex($i);
-                if(self::FILE_NAME !== $filename){
+                if (self::FILE_NAME !== $filename) {
                     continue;
                 }
                 $stats = $zip->statIndex($i);
 
                 // Prevent ZipSlip path traversal (S6096)
-                if (strpos($filename, '../') !== false || substr($filename, 0, 1) === '/') {
+                if (strpos($filename, '../') !== false ||
+                    substr($filename, 0, 1) === '/') {
                     throw new Exception('');
                 }
 
@@ -143,7 +144,8 @@ class DownloadApplePayCertificate extends Action
                     $fileCount++;
                     if ($fileCount > 10) {
                         // Reached max. number of files
-                        throw new Exception('The zip file you are trying to expand has morefile than it should for this function');
+                        throw new Exception('The zip file you are trying to expand
+                         has morefile than it should for this function');
                     }
 
                     $applepayCerticateFilestream = $zip->getStream($filename); // Compliant
@@ -154,7 +156,8 @@ class DownloadApplePayCertificate extends Action
 
                         if ($totalSize > self::MAX_SIZE) {
                             // Reached max. size
-                            throw new Exception('The zip file you are trying to expand is much larger htan expected');
+                            throw new Exception('The zip file you are t
+                            rying to expand is much larger htan expected');
                         }
 
                         // Additional protection: check compression ratio
@@ -162,10 +165,12 @@ class DownloadApplePayCertificate extends Action
                             $ratio = $currentSize / $stats['comp_size'];
                             if ($ratio > self::MAX_RATIO) {
                                 // Reached max. compression ratio
-                                throw new Exception('Maximum compression ratio reached. Something is might be wrong with your zip file.');
+                                throw new Exception('Maximum compression ratio reached.
+                                 Something is might be wrong with your zip file.');
                             }
                         }
-                        file_put_contents($applepayPath .'/' . $filename, fread($applepayCerticateFilestream, $totalSize), FILE_APPEND);
+                        file_put_contents($applepayPath .'/' . $filename,
+                            fread($applepayCerticateFilestream, $totalSize), FILE_APPEND);
 
                     }
 
