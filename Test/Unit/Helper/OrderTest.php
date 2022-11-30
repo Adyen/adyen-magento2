@@ -211,40 +211,6 @@ class OrderTest extends AbstractAdyenTestCase
         $orderHelper->refundOrder($order, $notification);
     }
 
-    public function testRefundOrderAdyenOrderPaymentNotFound()
-    {
-        // TypeError will be thrown from `refundAdyenOrderPayment()` method for null $orderPayment
-        $this->expectError();
-
-        $adyenOrderPaymentCollection = $this->createConfiguredMock(Collection::class, [
-            'getFirstItem' => null
-        ]);
-        $adyenOrderPaymentCollection->method('addFieldToFilter')->willReturn($adyenOrderPaymentCollection);
-
-        $adyenOrderPaymentCollectionFactory = $this->createGeneratedMock(
-            OrderPaymentCollectionFactory::class,
-            ['create']
-        );
-        $adyenOrderPaymentCollectionFactory->method('create')->willReturn($adyenOrderPaymentCollection);
-
-        $dataHelper = $this->createPartialMock(Data::class, []);
-        $adyenOrderPaymentHelper = $this->createPartialMock(AdyenOrderPayment::class, []);
-
-        $orderHelper = $this->createOrderHelper(
-            null,
-            null,
-            $adyenOrderPaymentHelper,
-            null,
-            $dataHelper,
-            $adyenOrderPaymentCollectionFactory
-        );
-
-        $order = $this->createOrder();
-        $notification = $this->createWebhook('123-refund');
-
-        $orderHelper->refundOrder($order, $notification);
-    }
-
     protected function createOrderHelper(
         $orderStatusCollectionFactory = null,
         $configHelper = null,
