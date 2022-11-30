@@ -9,7 +9,7 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Tests\Gateway\Validator;
+namespace Adyen\Payment\Test\Gateway\Validator;
 
 use Adyen\Payment\Gateway\Validator\PayByLinkValidator;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;

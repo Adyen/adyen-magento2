@@ -9,10 +9,10 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Tests\Unit\Helper;
+namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Payment\Helper\Locale;
-use Adyen\Payment\Tests\Unit\AbstractAdyenTestCase;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 
 class LocaleTest extends AbstractAdyenTestCase
 {

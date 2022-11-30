@@ -8,7 +8,7 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-namespace Adyen\Payment\Tests\Unit;
+namespace Adyen\Payment\Test\Unit;
 
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Model\Notification;
