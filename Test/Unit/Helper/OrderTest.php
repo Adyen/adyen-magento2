@@ -8,7 +8,7 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-namespace Adyen\Payment\Tests\Unit\Helper;
+namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\ChargedCurrency;
@@ -23,7 +23,7 @@ use Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo as AdyenCreditMemoRe
 use Adyen\Payment\Model\ResourceModel\Order\Payment\Collection;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as OrderPaymentCollectionFactory;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Tests\Unit\AbstractAdyenTestCase;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\DB\TransactionFactory;
@@ -208,40 +208,6 @@ class OrderTest extends AbstractAdyenTestCase
         ]);
 
         $notification = $this->createWebhook('123-refund', '123-pspref');
-        $orderHelper->refundOrder($order, $notification);
-    }
-
-    public function testRefundOrderAdyenOrderPaymentNotFound()
-    {
-        // TypeError will be thrown from `refundAdyenOrderPayment()` method for null $orderPayment
-        $this->expectError();
-
-        $adyenOrderPaymentCollection = $this->createConfiguredMock(Collection::class, [
-            'getFirstItem' => null
-        ]);
-        $adyenOrderPaymentCollection->method('addFieldToFilter')->willReturn($adyenOrderPaymentCollection);
-
-        $adyenOrderPaymentCollectionFactory = $this->createGeneratedMock(
-            OrderPaymentCollectionFactory::class,
-            ['create']
-        );
-        $adyenOrderPaymentCollectionFactory->method('create')->willReturn($adyenOrderPaymentCollection);
-
-        $dataHelper = $this->createPartialMock(Data::class, []);
-        $adyenOrderPaymentHelper = $this->createPartialMock(AdyenOrderPayment::class, []);
-
-        $orderHelper = $this->createOrderHelper(
-            null,
-            null,
-            $adyenOrderPaymentHelper,
-            null,
-            $dataHelper,
-            $adyenOrderPaymentCollectionFactory
-        );
-
-        $order = $this->createOrder();
-        $notification = $this->createWebhook('123-refund');
-
         $orderHelper->refundOrder($order, $notification);
     }
 
