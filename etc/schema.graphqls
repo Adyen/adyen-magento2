@@ -159,4 +159,5 @@ type StoreConfig @doc(description: "The type contains information about a store 
     adyen_title_renderer: String @doc(description: "Adyen Render Mode for Payment Method.")
     adyen_return_path_error: String @doc(description: "Adyen Return path in case of error")
     adyen_oneclick_card_mode: String @doc(description: "Use Magento Vault (one-click CVC-less payments) or the more secure Adyen Tokens (one-click CVC required payments) functionality")
+    adyen_checkout_frontend_region : String @doc(description: "Adyen front end resources region.")
 }
