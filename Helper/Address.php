@@ -118,6 +118,6 @@ class Address
      */
     private function formatAddressArray($street, $houseNumber): array
     {
-        return ['name' => trim($street), 'house_number' => trim($houseNumber)];
+        return ['name' => trim((string) $street), 'house_number' => trim((string) $houseNumber)];
     }
 }

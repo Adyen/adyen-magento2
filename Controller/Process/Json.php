@@ -155,7 +155,7 @@ class Json extends Action
         }
 
         // Read JSON encoded notification body
-        $notificationItems = json_decode($this->getRequest()->getContent(), true);
+        $notificationItems = json_decode((string) $this->getRequest()->getContent(), true);
 
         // Check notification mode
         if (!isset($notificationItems['live'])) {
@@ -371,12 +371,12 @@ class Json extends Action
     {
         $originalReference = null;
         if (isset($response['originalReference'])) {
-            $originalReference = trim($response['originalReference']);
+            $originalReference = trim((string) $response['originalReference']);
         }
         $notification = $this->notificationFactory->create();
-        $notification->setPspreference(trim($response['pspReference']));
-        $notification->setEventCode(trim($response['eventCode']));
-        $notification->setSuccess(trim($response['success']));
+        $notification->setPspreference(trim((string) $response['pspReference']));
+        $notification->setEventCode(trim((string) $response['eventCode']));
+        $notification->setSuccess(trim((string) $response['success']));
         $notification->setOriginalReference($originalReference);
 
         return $notification->isDuplicate();
@@ -396,27 +396,27 @@ class Json extends Action
             list(
                 $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']
                 ) =
-                explode(':', base64_decode($_SERVER['REDIRECT_REMOTE_AUTHORIZATION']), 2);
+                explode(':', base64_decode((string) $_SERVER['REDIRECT_REMOTE_AUTHORIZATION']), 2);
         } elseif (!empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
             list(
                 $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']
                 ) =
-                explode(':', base64_decode(substr($_SERVER['REDIRECT_HTTP_AUTHORIZATION'], 6)), 2);
+                explode(':', base64_decode(substr((string) $_SERVER['REDIRECT_HTTP_AUTHORIZATION'], 6)), 2);
         } elseif (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
             list(
                 $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']
                 ) =
-                explode(':', base64_decode(substr($_SERVER['HTTP_AUTHORIZATION'], 6)), 2);
+                explode(':', base64_decode(substr((string) $_SERVER['HTTP_AUTHORIZATION'], 6)), 2);
         } elseif (!empty($_SERVER['REMOTE_USER'])) {
             list(
                 $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']
                 ) =
-                explode(':', base64_decode(substr($_SERVER['REMOTE_USER'], 6)), 2);
+                explode(':', base64_decode(substr((string) $_SERVER['REMOTE_USER'], 6)), 2);
         } elseif (!empty($_SERVER['REDIRECT_REMOTE_USER'])) {
             list(
                 $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']
                 ) =
-                explode(':', base64_decode(substr($_SERVER['REDIRECT_REMOTE_USER'], 6)), 2);
+                explode(':', base64_decode(substr((string) $_SERVER['REDIRECT_REMOTE_USER'], 6)), 2);
         }
     }
 

@@ -308,7 +308,7 @@ class Webhook
             $additionalData2 = $additionalData['additionalData'] ?? null;
             if ($additionalData2 && is_array($additionalData2)) {
                 $this->klarnaReservationNumber = isset($additionalData2['acquirerReference']) ? trim(
-                    $additionalData2['acquirerReference']
+                    (string) $additionalData2['acquirerReference']
                 ) : "";
             }
             $ratepayDescriptor = $additionalData['openinvoicedata.descriptor'] ?? "";
@@ -526,7 +526,7 @@ class Webhook
         $result = "";
 
         if ($reason != "") {
-            $reasonArray = explode(":", $reason);
+            $reasonArray = explode(":", (string) $reason);
             if ($reasonArray != null && is_array($reasonArray) && isset($reasonArray[1])) {
                 $result = $reasonArray[1];
             }
