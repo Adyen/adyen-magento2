@@ -26,6 +26,7 @@ class Requests extends AbstractHelper
         'ideal' => 'sepadirectdebit',
         'storedPaymentMethods' => 'scheme',
         'googlepay' => 'scheme',
+        'paywithgoogle' => 'scheme',
     ];
     const SHOPPER_INTERACTION_CONTAUTH = 'ContAuth';
 
