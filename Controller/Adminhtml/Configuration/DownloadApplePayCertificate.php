@@ -166,7 +166,11 @@ class DownloadApplePayCertificate extends Action
                                 throw new AdyenException('The uncompressed file is larger than expected');
                             }
                         }
-                        file_put_contents($applepayPath .'/' . $filename, fread($applepayCerticateFilestream, $totalSize), FILE_APPEND);
+                        file_put_contents(
+                            $applepayPath .'/' . $filename,
+                            fread($applepayCerticateFilestream, $totalSize),
+                            FILE_APPEND
+                        );
                     }
                     fclose($applepayCerticateFilestream);
                 }

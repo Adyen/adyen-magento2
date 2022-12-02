@@ -31,9 +31,9 @@ class ApplepayCertificateButton extends Field
      * @param array $data
      */
      public function __construct(
-        Context $context,
-        Data $backendHelper,
-        array $data = []
+         Context $context,
+         Data $backendHelper,
+         array $data = []
     ) {
         $this->backendHelper = $backendHelper;
         parent::__construct($context, $data);
