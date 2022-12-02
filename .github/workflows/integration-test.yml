@@ -5,11 +5,8 @@ jobs:
   build:
     strategy:
       matrix:
-        php-version: ["7.4"]
-        magento-version: ["2.3.7", "2.4.3"]
-        include:
-          - php-version: "8.1"
-            magento-version: "2.4.5"
+        php-version: ["8.1"]
+        magento-version: ["2.4.5"]
     runs-on: ubuntu-latest
     env:
       PHP_VERSION: ${{ matrix.php-version }}
@@ -51,7 +48,6 @@ jobs:
         run: docker exec magento2-container make fs
 
       - name: Run E2E tests
-        if: ${{ matrix.php-version == '8.1'}} 
         run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm playwright /e2e.sh
         env:
           INTEGRATION_TESTS_BRANCH: develop
