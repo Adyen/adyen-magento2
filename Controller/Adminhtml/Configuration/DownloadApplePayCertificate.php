@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Controller\Adminhtml\Configuration;
 
+use Adyen\AdyenException;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\App\ResponseInterface;
@@ -32,7 +33,6 @@ class DownloadApplePayCertificate extends Action
     const MAX_SIZE = 1000000;
     const MAX_RATIO = 5;
     const FILE_NAME = 'apple-developer-merchantid-domain-association';
-
     /**
      * @var DirectoryList
      */
@@ -78,7 +78,7 @@ class DownloadApplePayCertificate extends Action
     /**
      * @return ResponseInterface|Redirect|Redirect&ResultInterface|ResultInterface
      * @throws FileSystemException
-     * @throws LocalizedException
+     * @throws LocalizedExceptionff
      */
     public function execute()
     {
@@ -119,7 +119,7 @@ class DownloadApplePayCertificate extends Action
      */
     private function downloadAndUnzip(string $applepayUrl, string $applepayPath)
     {
-        $tmpPath = tempnam(sys_get_temp_dir(), self::FILE_NAME );
+        $tmpPath = tempnam(sys_get_temp_dir(), self::FILE_NAME);
         file_put_contents($tmpPath, file_get_contents($applepayUrl));
 
         $zip = new \ZipArchive;
@@ -137,15 +137,14 @@ class DownloadApplePayCertificate extends Action
                 // Prevent ZipSlip path traversal (S6096)
                 if (strpos($filename, '../') !== false ||
                     substr($filename, 0, 1) === '/') {
-                    throw new Exception('');
+                    throw new AdyenException('The zip file is trying to ZipSlip please check the file');
                 }
 
                 if (substr($filename, -1) !== '/') {
                     $fileCount++;
                     if ($fileCount > 10) {
                         // Reached max. number of files
-                        throw new Exception('The zip file you are trying to expand
-                         has morefile than it should for this function');
+                        throw new AdyenException('Reached max number of files please check the zip file');
                     }
 
                     $applepayCerticateFilestream = $zip->getStream($filename); // Compliant
@@ -156,8 +155,7 @@ class DownloadApplePayCertificate extends Action
 
                         if ($totalSize > self::MAX_SIZE) {
                             // Reached max. size
-                            throw new Exception('The zip file you are t
-                            rying to expand is much larger htan expected');
+                            throw new AdyenException('The file is larger than expected please check the zip file');
                         }
 
                         // Additional protection: check compression ratio
@@ -165,12 +163,10 @@ class DownloadApplePayCertificate extends Action
                             $ratio = $currentSize / $stats['comp_size'];
                             if ($ratio > self::MAX_RATIO) {
                                 // Reached max. compression ratio
-                                throw new Exception('Maximum compression ratio reached.
-                                 Something is might be wrong with your zip file.');
+                                throw new AdyenException('The uncompressed file is larger than expected');
                             }
                         }
-                        file_put_contents($applepayPath .'/' . $filename,
-                            fread($applepayCerticateFilestream, $totalSize), FILE_APPEND);
+                        file_put_contents($applepayPath .'/' . $filename,   fread($applepayCerticateFilestream, $totalSize), FILE_APPEND);
 
                     }
 
