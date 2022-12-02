@@ -48,6 +48,6 @@ class DonateResponseValidator extends AbstractValidator
             throw new LocalizedException(__('An error occurred with the donation.'));
         }
 
-        return $this->createResult($response['payment']['resultCode'] === 'Authorised');
+        return $this->createResult(in_array($response['payment']['resultCode'], ['Authorised', 'Received']));
     }
 }
