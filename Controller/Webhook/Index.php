@@ -9,7 +9,7 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Controller\Process;
+namespace Adyen\Payment\Controller\Webhook;
 
 use Adyen\Exception\AuthenticationException;
 use Adyen\Exception\MerchantAccountCodeException;
@@ -37,7 +37,7 @@ use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 /**
  * Class Json extends Action
  */
-class Json extends Action
+class Index extends Action
 {
     /**
      * @var NotificationFactory

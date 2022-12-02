@@ -57,9 +57,9 @@ class ReturnUrlHelper
         }
         
         if ('adminhtml' === $this->state->getAreaCode()) {
-            return rtrim($this->backendHelper->getHomePageUrl(), '/') . '/adyen/process/result';
+            return rtrim($this->backendHelper->getHomePageUrl(), '/') . '/adyen/redirect';
         }
         
-        return rtrim($this->url->getBaseUrl(), '/') . '/adyen/process/result';
+        return rtrim($this->url->getBaseUrl(), '/') . '/adyen/redirect';
     }
 }

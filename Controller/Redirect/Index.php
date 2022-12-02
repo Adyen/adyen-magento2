@@ -9,7 +9,7 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Controller\Process;
+namespace Adyen\Payment\Controller\Redirect;
 
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Recurring;
@@ -19,7 +19,7 @@ use Adyen\Service\Validator\DataArrayValidator;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 
-class Result extends \Magento\Framework\App\Action\Action
+class Index extends \Magento\Framework\App\Action\Action
 {
 
     const BRAND_CODE_DOTPAY = 'dotpay';
