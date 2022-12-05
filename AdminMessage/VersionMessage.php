@@ -72,8 +72,8 @@ class VersionMessage implements MessageInterface
     public function isDisplayed()
     {
         // Only execute the query the first time you access the Admin page
-        if ($this->_authSession->isFirstPageAfterLogin()) {
-            try {
+        try {
+            if ($this->_authSession->isFirstPageAfterLogin()) {
                 $githubContent = $this->getDecodedContentFromGithub();
                 $this->setSessionData("AdyenGithubVersion", $githubContent);
                 $title = "Adyen extension version " . $githubContent['tag_name'] . " available!";
@@ -99,16 +99,16 @@ class VersionMessage implements MessageInterface
                 if ($this->_adyenHelper->getModuleVersion() != $githubContent['tag_name']) {
                     return true;
                 }
-            } catch (\Exception $e) {
-                return false;
+            } elseif ($this->request->getModuleName() === 'mui' && $this->isNewVersionAvailable()) {
+                /*
+                 * If the message has already been added to `$persistedMessage` array
+                 * in AdminNotification/Model/ResourceModel/System/Message/Collection/Synchronized
+                 * allow the UI validation and return true.
+                 */
+                return true;
             }
-        } elseif ($this->request->getModuleName() === 'mui' && $this->isNewVersionAvailable()) {
-            /*
-             * If the message has already been added to `$persistedMessage` array
-             * in AdminNotification/Model/ResourceModel/System/Message/Collection/Synchronized
-             * allow the UI validation and return true.
-             */
-            return true;
+        } catch (\Exception $e) {
+            return false;
         }
 
         return false;
