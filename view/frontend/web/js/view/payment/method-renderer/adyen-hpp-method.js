@@ -431,7 +431,7 @@ define(
 
             },
             handleOnCancel: function(state, component) {
-                var self = this;
+                const self = this;
 
                 // call endpoint with state.data if available
                 let request = {};
