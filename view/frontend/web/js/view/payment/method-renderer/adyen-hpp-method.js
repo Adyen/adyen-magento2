@@ -494,7 +494,7 @@ define(
                 return window.checkoutConfig.payment.adyenHpp.deviceIdentToken;
             },
             getTxVariant: function () {
-                return window.checkoutConfig.payment.adyen.txVariants[this.item.method]
+                return window.checkoutConfig.payment.adyen.txVariants[this.item.method];
             },
 
             /**

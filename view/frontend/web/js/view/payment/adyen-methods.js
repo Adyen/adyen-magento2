@@ -34,7 +34,8 @@ define(
         const paymentMethodComponent = 'Adyen_Payment/js/view/payment/method-renderer/adyen-hpp-method';
         const paymentMethodCodes = [
             'adyen_ideal',
-            'adyen_klarna'
+            'adyen_klarna',
+            'adyen_paypal'
         ];
         rendererList.push(
             {

@@ -54,7 +54,7 @@
                 <!-- ko template: getTemplate() --><!-- /ko -->
                 <!--/ko-->
 
-                <!-- ko ifnot: adyenPaymentMethod().showPlaceOrderButton -->
+                <!-- ko ifnot: adyenPaymentMethod().showPlaceOrderButton() -->
                 <div class="checkout-agreements-block">
                     <!-- ko foreach: $parent.getRegion('before-place-order') -->
                     <!-- ko template: getTemplate() --><!-- /ko -->
@@ -66,7 +66,7 @@
                     <div class="checkout-component-dock" afterRender="adyenPaymentMethod().renderCheckoutComponent" data-bind="attr: { id: adyenPaymentMethod().item.method + 'Container'}"></div>
                 </fieldset>
 
-                <!-- ko if: adyenPaymentMethod().showPlaceOrderButton -->
+                <!-- ko if: adyenPaymentMethod().showPlaceOrderButton() -->
                 <div class="checkout-agreements-block">
                     <!-- ko foreach: $parent.getRegion('before-place-order') -->
                     <!-- ko template: getTemplate() --><!-- /ko -->
@@ -81,7 +81,7 @@
                                 data-bind="click: adyenPaymentMethod().placeOrder,
                                 attr: {title: $t('Place Order')},
                                 enable: isButtonActive(),
-                                visible: adyenPaymentMethod().showPlaceOrderButton"
+                                visible: adyenPaymentMethod().showPlaceOrderButton()"
                                 disabled>
                             <span data-bind="text: $t('Place Order')"></span>
                         </button>
