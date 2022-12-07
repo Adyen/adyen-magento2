@@ -233,7 +233,10 @@ define(
                     },
 
                     placeOrder: function() {
-                        // result.component is the
+                        // TODO: Is there a better way to do this? (Has to be)
+                        //const component = this.checkoutComponent.components[0];
+                        // console.log('This should show the paymentMethodsResponse', this.checkoutComponent.paymentMethodsResponse.paymentMethods)
+                        // Skip in case of pms without a component (giftcards)
                         if (result.component) {
 
                             result.component.showValidation();
