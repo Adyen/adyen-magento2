@@ -383,7 +383,7 @@ define(
                 if (!!response.isFinal) {
                     // Status is final redirect to the success page
                     $.mage.redirect(
-                        window.checkoutConfig.payment[quote.paymentMethod().method].successPage
+                        window.checkoutConfig.payment.adyen.successPage
                     );
                 } else {
                     // render component
@@ -397,7 +397,7 @@ define(
                 fullScreenLoader.stopLoader();
 
                 // If this is a handleAction method then do it that way, otherwise createFrom action
-                if (self.handleActionPaymentMethods.includes(selectedAlternativePaymentMethodType())) {
+                if (self.handleActionPaymentMethods.includes(this.getTxVariant())) {
                     self.actionComponent = component.handleAction(action);
                 } else {
                     if (resultCode !== 'RedirectShopper') {
@@ -413,13 +413,13 @@ define(
                     data.method = this.getCode();
 
                     var additionalData = {};
-                    additionalData.brand_code = selectedAlternativePaymentMethodType();
+                    additionalData.brand_code = this.getTxVariant();
 
                     let stateData = component.data;
 
                     additionalData.stateData = JSON.stringify(stateData);
 
-                    if (selectedAlternativePaymentMethodType() == 'ratepay') {
+                    if (this.getTxVariant() == 'ratepay') {
                         additionalData.df_value = this.getRatePayDeviceIdentToken();
                     }
 
@@ -431,7 +431,7 @@ define(
 
             },
             handleOnCancel: function(state, component) {
-                var self = this;
+                const self = this;
 
                 // call endpoint with state.data if available
                 let request = {};
@@ -444,7 +444,7 @@ define(
 
                 adyenPaymentService.paymentDetails(request).done(function() {
                     $.mage.redirect(
-                        window.checkoutConfig.payment[quote.paymentMethod().method].successPage,
+                        window.checkoutConfig.payment.adyen.successPage,
                     );
                 }).fail(function(response) {
                     fullScreenLoader.stopLoader();
@@ -458,8 +458,7 @@ define(
                 });
             },
             handleOnAdditionalDetails: function(state, component) {
-                var self = this;
-
+                const self = this;
                 // call endpoint with state.data if available
                 let request = {};
                 if (!!state.data) {
@@ -470,7 +469,7 @@ define(
 
                 adyenPaymentService.paymentDetails(request).done(function() {
                     $.mage.redirect(
-                        window.checkoutConfig.payment[quote.paymentMethod().method].successPage,
+                        window.checkoutConfig.payment.adyen.successPage,
                     );
                 }).fail(function(response) {
                     fullScreenLoader.stopLoader();
@@ -494,7 +493,7 @@ define(
                 return window.checkoutConfig.payment.adyenHpp.deviceIdentToken;
             },
             getTxVariant: function () {
-                return window.checkoutConfig.payment.adyen.txVariants[this.item.method]
+                return window.checkoutConfig.payment.adyen.txVariants[this.item.method];
             },
 
             /**
@@ -633,7 +632,7 @@ define(
                         },
                         onClick: function(resolve, reject) {
                             // for paypal add a workaround, remove when component fixes it
-                            if (selectedAlternativePaymentMethodType() === 'paypal') {
+                            if (self.getTxVariant() === 'paypal') {
                                 return self.validate();
                             } else {
                                 if (self.validate()) {
