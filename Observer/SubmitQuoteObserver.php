@@ -25,7 +25,7 @@ class SubmitQuoteObserver implements ObserverInterface
         }
 
         // Further shopper action required (e.g. redirect or 3DS authentication)
-        if (in_array($payment->getMethod(), ['adyen_hpp', 'adyen_cc', 'adyen_oneclick'], true)) {
+        if (in_array($payment->getMethod(), ['adyen_hpp', 'adyen_cc', 'adyen_oneclick', 'adyen_paypal', 'adyen_ideal'], true)) {
             /** @var Quote $quote */
             $quote = $observer->getEvent()->getQuote();
             // Keep cart active until such actions are taken

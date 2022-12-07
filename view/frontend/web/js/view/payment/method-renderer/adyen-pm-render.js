@@ -1,9 +1,8 @@
-
 /**
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2022 Adyen NV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -55,10 +54,10 @@ define(
             'ratepay'
         ];
 
-        var popupModal;
         var selectedAlternativePaymentMethodType = ko.observable(null);
         var paymentMethod = ko.observable(null);
         const amazonSessionKey = 'amazonCheckoutSessionId';
+
 
         return Component.extend({
             self: this,
@@ -270,7 +269,7 @@ define(
                                     };
                                 }
                             }
-                            if (this.getTxVariant() == 'ratepay') {
+                            if (selectedAlternativePaymentMethodType() == 'ratepay') {
                                 additionalData.df_value = this.getRatePayDeviceIdentToken();
                             }
 
@@ -386,7 +385,7 @@ define(
                 if (!!response.isFinal) {
                     // Status is final redirect to the success page
                     $.mage.redirect(
-                        window.checkoutConfig.payment.adyen.successPage
+                        window.checkoutConfig.payment[quote.paymentMethod().method].successPage
                     );
                 } else {
                     // render component
@@ -400,7 +399,7 @@ define(
                 fullScreenLoader.stopLoader();
 
                 // If this is a handleAction method then do it that way, otherwise createFrom action
-                if (self.handleActionPaymentMethods.includes(this.getTxVariant())) {
+                if (self.handleActionPaymentMethods.includes(selectedAlternativePaymentMethodType())) {
                     self.actionComponent = component.handleAction(action);
                 } else {
                     if (resultCode !== 'RedirectShopper') {
@@ -416,7 +415,7 @@ define(
                     data.method = this.getCode();
 
                     var additionalData = {};
-                    additionalData.brand_code = this.getTxVariant();
+                    additionalData.brand_code = selectedAlternativePaymentMethodType();
 
                     let stateData = component.data;
 
@@ -434,7 +433,7 @@ define(
 
             },
             handleOnCancel: function(state, component) {
-                const self = this;
+                var self = this;
 
                 // call endpoint with state.data if available
                 let request = {};
@@ -461,7 +460,7 @@ define(
                 });
             },
             handleOnAdditionalDetails: function(state, component) {
-                const self = this;
+                var self = this;
 
                 // call endpoint with state.data if available
                 let request = {};
@@ -473,7 +472,7 @@ define(
 
                 adyenPaymentService.paymentDetails(request).done(function() {
                     $.mage.redirect(
-                        window.checkoutConfig.payment.adyen.successPage,
+                        window.checkoutConfig.payment[quote.paymentMethod().method].successPage,
                     );
                 }).fail(function(response) {
                     fullScreenLoader.stopLoader();
@@ -497,7 +496,7 @@ define(
                 return window.checkoutConfig.payment.adyenHpp.deviceIdentToken;
             },
             getTxVariant: function () {
-                return window.checkoutConfig.payment.adyen.txVariants[this.item.method];
+                return window.checkoutConfig.payment.adyen.txVariants[this.item.method]
             },
 
             /**
@@ -505,63 +504,63 @@ define(
              * @returns {{country: (string|*), firstName: (string|*), lastName: (string|*), city: (*|string), street: *, postalCode: (*|string), houseNumber: string, telephone: (string|*)}}
              */
             getFormattedAddress: function(address) {
-            function getStreetAndHouseNumberFromAddress(address, houseNumberStreetLine, customerStreetLinesEnabled) {
-                let street = address.street.slice(0, customerStreetLinesEnabled);
-                let drawHouseNumberWithRegex = parseInt(houseNumberStreetLine) === 0 || // Config is disabled
-                    houseNumberStreetLine > customerStreetLinesEnabled || // Not enough street lines enabled
-                    houseNumberStreetLine > street.length; // House number field is empty
+                function getStreetAndHouseNumberFromAddress(address, houseNumberStreetLine, customerStreetLinesEnabled) {
+                    let street = address.street.slice(0, customerStreetLinesEnabled);
+                    let drawHouseNumberWithRegex = parseInt(houseNumberStreetLine) === 0 || // Config is disabled
+                        houseNumberStreetLine > customerStreetLinesEnabled || // Not enough street lines enabled
+                        houseNumberStreetLine > street.length; // House number field is empty
 
-                let addressArray;
-                if (drawHouseNumberWithRegex) {
-                    addressArray = getStreetAndHouseNumberWithRegex(street.join(' ').trim());
-                } else {
-                    let houseNumber = street.splice(houseNumberStreetLine - 1, 1);
-                    addressArray = {
-                        streetName: street.join(' ').trim(),
-                        houseNumber: houseNumber.join(' ').trim()
+                    let addressArray;
+                    if (drawHouseNumberWithRegex) {
+                        addressArray = getStreetAndHouseNumberWithRegex(street.join(' ').trim());
+                    } else {
+                        let houseNumber = street.splice(houseNumberStreetLine - 1, 1);
+                        addressArray = {
+                            streetName: street.join(' ').trim(),
+                            houseNumber: houseNumber.join(' ').trim()
+                        }
                     }
+                    return addressArray;
                 }
-                return addressArray;
-            }
 
-            function getStreetAndHouseNumberWithRegex(addressString) {
-                // Match addresses where the street name comes first, e.g. John-Paul's Ave. 1 B
-                let streetFirstRegex = /(?<streetName>[a-zA-Z0-9.'\- ]+)\s+(?<houseNumber>\d{1,10}((\s)?\w{1,3})?)$/;
-                // Match addresses where the house number comes first, e.g. 10 D John-Paul's Ave.
-                let numberFirstRegex = /^(?<houseNumber>\d{1,10}((\s)?\w{1,3})?)\s+(?<streetName>[a-zA-Z0-9.'\- ]+)/;
+                function getStreetAndHouseNumberWithRegex(addressString) {
+                    // Match addresses where the street name comes first, e.g. John-Paul's Ave. 1 B
+                    let streetFirstRegex = /(?<streetName>[a-zA-Z0-9.'\- ]+)\s+(?<houseNumber>\d{1,10}((\s)?\w{1,3})?)$/;
+                    // Match addresses where the house number comes first, e.g. 10 D John-Paul's Ave.
+                    let numberFirstRegex = /^(?<houseNumber>\d{1,10}((\s)?\w{1,3})?)\s+(?<streetName>[a-zA-Z0-9.'\- ]+)/;
 
-                let streetFirstAddress = addressString.match(streetFirstRegex);
-                let numberFirstAddress = addressString.match(numberFirstRegex);
+                    let streetFirstAddress = addressString.match(streetFirstRegex);
+                    let numberFirstAddress = addressString.match(numberFirstRegex);
 
-                if (streetFirstAddress) {
-                    return streetFirstAddress.groups;
-                } else if (numberFirstAddress) {
-                    return numberFirstAddress.groups;
+                    if (streetFirstAddress) {
+                        return streetFirstAddress.groups;
+                    } else if (numberFirstAddress) {
+                        return numberFirstAddress.groups;
+                    }
+
+                    return {
+                        streetName: addressString,
+                        houseNumber: 'N/A'
+                    };
                 }
+
+                let street = getStreetAndHouseNumberFromAddress(
+                    address,
+                    adyenConfiguration.getHouseNumberStreetLine(),
+                    adyenConfiguration.getCustomerStreetLinesEnabled()
+                );
 
                 return {
-                    streetName: addressString,
-                    houseNumber: 'N/A'
+                    city: address.city,
+                    country: address.countryId,
+                    postalCode: address.postcode,
+                    street: street.streetName,
+                    houseNumber: street.houseNumber,
+                    firstName: address.firstname,
+                    lastName: address.lastname,
+                    telephone: address.telephone
                 };
-            }
-
-            let street = getStreetAndHouseNumberFromAddress(
-                address,
-                adyenConfiguration.getHouseNumberStreetLine(),
-                adyenConfiguration.getCustomerStreetLinesEnabled()
-            );
-
-            return {
-                city: address.city,
-                country: address.countryId,
-                postalCode: address.postcode,
-                street: street.streetName,
-                houseNumber: street.houseNumber,
-                firstName: address.firstname,
-                lastName: address.lastname,
-                telephone: address.telephone
-            };
-        },
+            },
 
             buildComponentConfiguration: function(paymentMethod, paymentMethodsExtraInfo, result) {
                 var self = this;
@@ -636,7 +635,7 @@ define(
                         },
                         onClick: function(resolve, reject) {
                             // for paypal add a workaround, remove when component fixes it
-                            if (self.getTxVariant() === 'paypal') {
+                            if (selectedAlternativePaymentMethodType() === 'paypal') {
                                 return self.validate();
                             } else {
                                 if (self.validate()) {
@@ -765,5 +764,7 @@ define(
                 }
             }
         });
-    },
-);
+
+
+
+    }
