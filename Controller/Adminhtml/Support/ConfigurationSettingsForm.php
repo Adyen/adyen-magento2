@@ -6,6 +6,7 @@ use Magento\Backend\App\Action\Context;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Mail\Template\TransportBuilder;
 use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
+use Adyen\Payment\Controller\Adminhtml\Support\ConfigurationData;
 
 class ConfigurationSettingsForm extends Action
 {
@@ -18,13 +19,20 @@ class ConfigurationSettingsForm extends Action
      */
     protected $messageManager;
 
+    /**
+     * @var ConfigurationData
+     */
+    protected $configurationData;
+
     public function __construct(
         Context          $context,
-        TransportBuilder $transportBuilder
+        TransportBuilder $transportBuilder,
+        ConfigurationData $configurationData
     )
     {
         parent::__construct($context);
         $this->transportBuilder = $transportBuilder;
+        $this->configurationData = $configurationData;
     }
 
     public function execute()
@@ -45,6 +53,7 @@ class ConfigurationSettingsForm extends Action
     private function save()
     {
         $request = $this->getRequest()->getParams();
+        $configurationData = $this->configurationData->getConfigData();
         $templateVars = [
             'topic' => $request['topic'],
             'issue' => $request['issue'],
