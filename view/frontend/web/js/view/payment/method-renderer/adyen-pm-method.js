@@ -1,3 +1,4 @@
+
 /**
  *
  * Adyen Payment module (https://www.adyen.com/)
@@ -112,7 +113,7 @@ define(
 
                 if (!!paymentMethodsResponse.paymentMethodsResponse) {
                     var paymentMethods = paymentMethodsResponse.paymentMethodsResponse.paymentMethods;
-
+                    // console.log(paymentMethodsResponse)
                     // Needed until the new ratepay component is released
                     if (JSON.stringify(paymentMethods).indexOf('ratepay') >
                         -1) {
@@ -120,6 +121,7 @@ define(
                         var dfValueRatePay = self.getRatePayDeviceIdentToken();
 
                         // TODO check if still needed with checkout component
+
                         window.di = {
                             t: dfValueRatePay.replace(':', ''),
                             v: ratePayId,
@@ -222,20 +224,24 @@ define(
                         return true;
                     },
                     renderCheckoutComponent: function() {
+                        debugger;
                         result.isPlaceOrderAllowed(false);
 
                         var configuration = self.buildComponentConfiguration(paymentMethod, paymentMethodsExtraInfo, result);
 
                         self.mountPaymentMethodComponent(paymentMethod, configuration, result);
                     },
+
                     placeOrder: function() {
                         // TODO: Is there a better way to do this? (Has to be)
-                        const component = this.checkoutComponent.components[0];
-
+                        //const component = this.checkoutComponent.components[0];
+                        // console.log('This should show the paymentMethodsResponse', this.checkoutComponent.paymentMethodsResponse.paymentMethods)
                         // Skip in case of pms without a component (giftcards)
-                        if (component) {
-                            component.showValidation();
-                            if (component.state.isValid === false) {
+                        if (result.component) {
+
+                            result.component.showValidation();
+                            if (result.component.state.isValid === false) {
+                                debugger;
                                 return false;
                             }
                         }
@@ -249,8 +255,8 @@ define(
                             additionalData.brand_code = paymentMethod.methodIdentifier;
 
                             let stateData;
-                            if (component) {
-                                stateData = component.data;
+                            if (result.component) {
+                                stateData = result.component.data;
                             } else {
                                 if (paymentMethod.methodGroup === paymentMethod.methodIdentifier){
                                     stateData = {
@@ -273,7 +279,7 @@ define(
 
                             additionalData.stateData = JSON.stringify(stateData);
                             data.additional_data = additionalData;
-                            self.placeRedirectOrder(data, component);
+                            self.placeRedirectOrder(data, result.component);
                         }
 
                         return false;

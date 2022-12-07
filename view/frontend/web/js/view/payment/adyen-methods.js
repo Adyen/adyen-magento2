@@ -31,7 +31,7 @@ define(
         cancelCouponAction
     ) {
         'use strict';
-        const paymentMethodComponent = 'Adyen_Payment/js/view/payment/method-renderer/adyen-hpp-method';
+        const paymentMethodComponent = 'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-method';
         const paymentMethodCodes = [
             'adyen_ideal',
             'adyen_klarna'
