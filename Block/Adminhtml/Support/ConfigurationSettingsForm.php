@@ -20,7 +20,7 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
         $form = $this->_formFactory->create([
             'data' => [
                 'id' => 'configurationsettings_form',
-                'action' => $this->getData('action'),
+                'action' => $this->getUrl('adyen/support/configurationsettingsform'),
                 'method' => 'post'
             ]
         ]);
@@ -40,7 +40,6 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
                 'required' => true
             ]
         );
-
         $fieldset->addField(
             'issue',
             'select',
@@ -90,7 +89,6 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
                 ]
             ]
         );
-
         $fieldset->addField(
             'description',
             'textarea',
@@ -103,26 +101,21 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
             ]
         );
         $fieldset->addField(
-            'upload_button',
-            'button',
+            'submit_support_configuration_settings',
+            'submit',
             [
                 'name' => 'submit',
-
-                'title' => __('click'),
+                'title' => __('Submit'),
                 'class' => 'primary',
-                'data_attribute' => '',
-                'value' => 'Submit',
-                'data_attribute' => [
-                    'mage-init' => ['button' => ['event' => 'send', 'target' => '#support_form']],
-                ]
+                'value' => 'Submit'
             ]
         );
 
+        $form->setUseContainer(true);
 
         $this->setForm($form);
         return parent::_prepareForm();
     }
-
 
     public function getSupportTopics(): array
     {
@@ -142,7 +135,7 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
     {
         return [
             'invalid_origin' => 'Invalid Origin',
-            'headles_state_data_actions' => 'Headless state data actions',
+            'headless_state_data_actions' => 'Headless state data actions',
             'refund' => 'Refund',
             'other' => 'Other'
         ];

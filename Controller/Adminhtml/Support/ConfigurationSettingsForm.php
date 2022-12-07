@@ -18,6 +18,22 @@ class ConfigurationSettingsForm extends Action
         $resultPage->setActiveMenu('Adyen_Payment::support')
             ->getConfig()->getTitle()->prepend(__('Configuration settings'));
 
+        if ('POST' === $this->getRequest()->getMethod()) {
+            $this->handleSubmit();
+        }
+
         return $resultPage;
+    }
+
+    private function handleSubmit()
+    {
+        $topic = $this->getRequest()->getParam('topic');
+        $issue = $this->getRequest()->getParam('issue');
+        $subject = $this->getRequest()->getParam('subject');
+        $email = $this->getRequest()->getParam('email');
+        $headless = $this->getRequest()->getParam('headless');
+        $description = $this->getRequest()->getParam('description');
+
+        // TODO Process form data
     }
 }

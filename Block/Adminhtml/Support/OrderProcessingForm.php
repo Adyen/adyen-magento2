@@ -19,7 +19,7 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
         $form = $this->_formFactory->create([
             'data' => [
                 'id' => 'support_form',
-                'action' => $this->getData('action'),
+                'action' => $this->getUrl('adyen/support/orderprocessingform'),
                 'method' => 'post',
             ]
         ]);
@@ -43,7 +43,6 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'required' => true
             ]
         );
-
         $fieldset->addField(
             'subject',
             'text',
@@ -66,7 +65,6 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'required' => false,
             ]
         );
-
         $fieldset->addField(
             'pspReference',
             'text',
@@ -126,7 +124,6 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'required' => false,
             ]
         );
-
         $fieldset->addField(
             'orderHistoryComments',
             'textarea',
@@ -138,7 +135,6 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'required' => false,
             ]
         );
-
         $fieldset->addField(
             'orderDescription',
             'textarea',
@@ -150,19 +146,18 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'required' => false,
             ]
         );
-
         $fieldset->addField(
-            'upload_button',
-            'button',
+            'submit_support_order_processing',
+            'submit',
             [
                 'name' => 'submit',
-
-                'title' => __('click'),
-                'class' => 'upload_button',
-                'data_attribute' => '',
+                'title' => __('Submit'),
+                'class' => 'primary',
                 'value' => 'Submit'
             ]
         );
+
+        $form->setUseContainer(true);
 
         $this->setForm($form);
         return parent::_prepareForm();
