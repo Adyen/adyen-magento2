@@ -30,15 +30,10 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
         $form = $this->_formFactory->create([
             'data' => [
                 'id' => 'configurationsettings_form',
-                'action' => $this->getData('action'),
-                'method' => 'post',
-                'enctype' => 'multipart/form-data'
+                'action' => $this->getUrl('adyen/support/configurationsettingsform'),
+                'method' => 'post'
             ]
         ]);
-
-        $form = $this->_formFactory->create(
-            ['data' => ['id' => 'edit_form', 'action' => $this->getData('action'), 'method' => 'post', 'enctype' => 'multipart/form-data']]
-        );
 
         $fieldset = $form->addFieldset('base_fieldset', ['legend' => __('Configuration settings')]);
         $this->_addElementTypes($fieldset);
@@ -131,23 +126,20 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
         );
 
         $fieldset->addField(
-            'submit_button',
+            'submit_support_configuration_settings',
             'submit',
             [
                 'name' => 'submit',
-                'title' => __('click'),
-                'class' => 'button',
-                'data_attribute' => '',
-                'value' => 'Submit',
-                'onclick' => "setLocation('{$this->getUrl('adyen/support/configurationsettingsform')}')",
+                'title' => __('Submit'),
+                'class' => 'primary',
+                'value' => 'Submit'
             ]
         );
 
-        $form->setMethod('post');
         $form->setUseContainer(true);
-        $form->setId('configurationsettings_form');
+
         $this->setForm($form);
-        return $this;
+        return parent::_prepareForm();
     }
 
 
@@ -169,7 +161,7 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
     {
         return [
             'invalid_origin' => 'Invalid Origin',
-            'headles_state_data_actions' => 'Headless state data actions',
+            'headless_state_data_actions' => 'Headless state data actions',
             'refund' => 'Refund',
             'other' => 'Other'
         ];

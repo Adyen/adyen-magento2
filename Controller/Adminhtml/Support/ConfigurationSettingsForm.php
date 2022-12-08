@@ -40,9 +40,9 @@ class ConfigurationSettingsForm extends Action
         $resultPage = $this->resultFactory->create(ResultFactory::TYPE_PAGE);
         $resultPage->setActiveMenu('Adyen_Payment::support')
             ->getConfig()->getTitle()->prepend(__('Configuration settings'));
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        if ('POST' === $this->getRequest()->getMethod()) {
             try {
-                $this->save();
+                $this->handleSubmit();
                 return $this->_redirect('*/*/success');
             } catch (\Exception $exception) {
                 $this->messageManager->addErrorMessage(__('Form unsuccessfully submitted'));
@@ -50,7 +50,7 @@ class ConfigurationSettingsForm extends Action
         }
         return $resultPage;
     }
-    private function save()
+    private function handleSubmit()
     {
         $request = $this->getRequest()->getParams();
         $configurationData = $this->configurationData->getConfigData();

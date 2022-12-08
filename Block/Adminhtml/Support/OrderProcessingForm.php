@@ -19,7 +19,7 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
         $form = $this->_formFactory->create([
             'data' => [
                 'id' => 'support_form',
-                'action' => $this->getData('action'),
+                'action' => $this->getUrl('adyen/support/orderprocessingform'),
                 'method' => 'post',
             ]
         ]);
@@ -162,23 +162,18 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
         );
 
         $fieldset->addField(
-            'submit_button',
+            'submit_support_order_processing',
             'submit',
             [
                 'name' => 'submit',
-                'title' => __('click'),
-                'class' => 'button',
-                'data_attribute' => '',
-                'value' => 'Submit',
-                'onclick' => "setLocation('{$this->getUrl('adyen/support/orderprocessingform')}')",
+                'title' => __('Submit'),
+                'class' => 'primary',
+                'value' => 'Submit'
             ]
         );
 
-
-        $form->setMethod('post');
         $form->setUseContainer(true);
-        $form->setId('orderprocessing_form');
         $this->setForm($form);
-        return $this;
+        return parent::_prepareForm();
     }
 }
