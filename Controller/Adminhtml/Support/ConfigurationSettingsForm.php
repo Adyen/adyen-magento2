@@ -1,38 +1,28 @@
 <?php declare(strict_types=1);
 
 namespace Adyen\Payment\Controller\Adminhtml\Support;
+
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Controller\ResultFactory;
-use Magento\Framework\Mail\Template\TransportBuilder;
-use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
+use Adyen\Payment\Helper\SupportFormHelper;
 
 class ConfigurationSettingsForm extends Action
 {
     const CONFIGURATION_SETTINGS_EMAIL_TEMPLATE = 'configuration_settings_email_template';
-    /**
-     * @var TransportBuilder
-     */
-    private $transportBuilder;
-    /**
-     * @var MessageManagerInterface
-     */
-    protected $messageManager;
 
     /**
-     * @var ConfigurationData
+     * @var SupportFormHelper
      */
-    protected $configurationData;
+    protected SupportFormHelper $supportFormHelper;
 
     public function __construct(
-        Context          $context,
-        TransportBuilder $transportBuilder,
-        ConfigurationData $configurationData
+        Context           $context,
+        SupportFormHelper $supportFormHelper
     )
     {
+        $this->supportFormHelper = $supportFormHelper;
         parent::__construct($context);
-        $this->transportBuilder = $transportBuilder;
-        $this->configurationData = $configurationData;
     }
 
     public function execute()
@@ -51,42 +41,12 @@ class ConfigurationSettingsForm extends Action
                     'headless' => $request['headless'],
                     'descriptionComments' => $request['descriptionComments']
                 ];
-                $this->handleSubmit($formData, self::CONFIGURATION_SETTINGS_EMAIL_TEMPLATE);
+                $this->supportFormHelper->handleSubmit($formData, self::CONFIGURATION_SETTINGS_EMAIL_TEMPLATE);
                 return $this->_redirect('*/*/success');
             } catch (\Exception $exception) {
                 $this->messageManager->addErrorMessage(__('Form unsuccessfully submitted'));
             }
         }
         return $resultPage;
-    }
-
-    /**
-     * @param array $formData
-     * @param string $template
-     *
-     * @return void
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Magento\Framework\Exception\MailException
-     */
-    private function  handleSubmit(array $formData, string $template) : void
-    {
-        $configurationData = $this->configurationData->getConfigData();
-        $templateVars = array_merge($configurationData, $formData);
-        $templateOptions = [
-            'area' => \Magento\Framework\App\Area::AREA_ADMINHTML,
-            'store' => $configurationData['storeId']
-        ];
-
-        $from = ['email' => 'support@example.com', 'name' => 'Adyen test'];
-        $to = 'amoraitis@outlook.com';
-
-        $transport = $this->transportBuilder->setTemplateIdentifier(self::CONFIGURATION_SETTINGS_EMAIL_TEMPLATE,)
-            ->setTemplateOptions($templateOptions)
-            ->setTemplateVars($templateVars)
-            ->setFromByScope($from)
-            ->addTo($to)
-            ->getTransport();
-        $transport->sendMessage();
-        $this->messageManager->addSuccess(__('Form successfully submitted'));
     }
 }

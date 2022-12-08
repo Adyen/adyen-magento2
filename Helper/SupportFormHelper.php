@@ -1,13 +1,14 @@
 <?php
 
-namespace Adyen\Payment\Controller\Adminhtml\Support;
+namespace Adyen\Payment\Helper;
 
-use Adyen\Payment\Helper\Config;
-use Adyen\Payment\Helper\Data;
 use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Mail\Template\TransportBuilder;
+use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
-class ConfigurationData
+class SupportFormHelper
 {
     /**
      * @var Config
@@ -21,15 +22,31 @@ class ConfigurationData
      * @var StoreManagerInterface
      */
     private StoreManagerInterface $storeManager;
-
-
+    /**
+     * @var ProductMetadataInterface
+     */
     protected ProductMetadataInterface $productMetadata;
+    /**
+     * @var TransportBuilder
+     */
+    private TransportBuilder $transportBuilder;
+    /**
+     * @var MessageManagerInterface
+     */
+    protected MessageManagerInterface $messageManager;
 
-    public function __construct(Config                   $config,
-                                Data                     $adyenHelper,
-                                StoreManagerInterface    $storeManager,
-                                ProductMetadataInterface $productMetadata)
+    public function __construct(
+
+        TransportBuilder  $transportBuilder,
+              MessageManagerInterface    $messageManager,
+        Config                   $config,
+        Data                     $adyenHelper,
+        StoreManagerInterface    $storeManager,
+        ProductMetadataInterface $productMetadata
+    )
     {
+        $this->transportBuilder = $transportBuilder;
+        $this->messageManager = $messageManager;
         $this->storeManager = $storeManager;
         $this->config = $config;
         $this->adyenHelper = $adyenHelper;
@@ -37,8 +54,38 @@ class ConfigurationData
     }
 
     /**
+     * @param array $formData
+     * @param string $template
+     *
+     * @return void
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\MailException
+     */
+    public function handleSubmit(array $formData, string $template): void
+    {
+        $configurationData = $this->getConfigData();
+        $templateVars = array_merge($configurationData, $formData);
+        $templateOptions = [
+            'area' => \Magento\Framework\App\Area::AREA_ADMINHTML,
+            'store' => $configurationData['storeId']
+        ];
+
+        $from = ['email' => 'support@example.com', 'name' => 'Adyen test'];
+        $to = 'amoraitis@outlook.com';
+
+        $transport = $this->transportBuilder->setTemplateIdentifier($template)
+            ->setTemplateOptions($templateOptions)
+            ->setTemplateVars($templateVars)
+            ->setFromByScope($from)
+            ->addTo($to)
+            ->getTransport();
+        $transport->sendMessage();
+        $this->messageManager->addSuccess(__('Form successfully submitted'));
+    }
+
+    /**
      * @return array
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws NoSuchEntityException
      */
     public function getConfigData(): array
     {
@@ -63,16 +110,15 @@ class ConfigurationData
             'paymentMethodsEnabled' => $alternativePaymentMethods,
             'notificationUsername' => $notificationUsername,
             'notificationPassword' => $notificationPassword,
-
             'motoEnabled' => $moto
         ];
     }
 
     /**
      * @return int
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws NoSuchEntityException
      */
-    public function getStoreId() : int
+    public function getStoreId(): int
     {
         return $this->storeManager->getStore()->getId();
     }
