@@ -77,8 +77,8 @@ class ConfigurationSettingsForm extends Action
             'store' => $configurationData['storeId']
         ];
 
-        $from = ['email' => 'alexandros.moraitis@adyen.com', 'name' => 'Adyen test'];
-        $to = ['email' => 'alexandros.moraitis@adyen.com', 'name' => 'Adyen test'];
+        $from = ['email' => 'support@example.com', 'name' => 'Adyen test'];
+        $to = 'amoraitis@outlook.com';
 
         $transport = $this->transportBuilder->setTemplateIdentifier(self::CONFIGURATION_SETTINGS_EMAIL_TEMPLATE,)
             ->setTemplateOptions($templateOptions)
