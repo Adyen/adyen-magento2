@@ -44,6 +44,7 @@ class Config
     const XML_STATUS_FRAUD_MANUAL_REVIEW = 'fraud_manual_review_status';
     const XML_STATUS_FRAUD_MANUAL_REVIEW_ACCEPT = 'fraud_manual_review_accept_status';
     const XML_MOTO_MERCHANT_ACCOUNTS = 'moto_merchant_accounts';
+    const XML_ADYEN_SUPPORT_PREFIX = "adyen_support";
 
     /**
      * @var ScopeConfigInterface
@@ -467,6 +468,22 @@ class Config
         return $this->getConfigData('auto_capture_openinvoice', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId, true);
     }
 
+    public function getSupportMailAddress(int $storeId): ?string
+    {
+        return $this->getConfigData('adyen_support_email_address', self::XML_ADYEN_SUPPORT_PREFIX, $storeId);
+    }
+
+    /**
+     * When enabled includes a snapshot from admin configuration in the support form email
+     *
+     * @param int $storeId
+     * @return bool
+     */
+    public function isSendAdminConfigurationEnabled(int $storeId): bool
+    {
+        return $this->getConfigData('adyen_support_send_admin_config', self::XML_ADYEN_SUPPORT_PREFIX, $storeId,true);
+    }
+
     /**
      * Retrieve information from payment configuration
      *
@@ -492,5 +509,4 @@ class Config
         $path = implode("/", [self::XML_PAYMENT_PREFIX, $xmlPrefix, $field]);
         $this->configWriter->save($path, $value, $scope);
     }
-
 }

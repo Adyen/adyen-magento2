@@ -1,7 +1,10 @@
+<!--@subject {{var subject}} @-->
 <table class="message-details">
     <caption>Mail message from magento</caption>
-    <th>Topic {{var topic}} Magento
-    <th>
+    <tr>
+        <td><strong>{{trans "Topic"}}</strong></td>
+        <td>{{var topic}}</td>
+    </tr>
         <tr>
             <td><strong>{{trans "Issue"}}</strong></td>
             <td>{{var issue}}</td>
@@ -63,6 +66,5 @@
             <td><strong>{{trans "PBL enabled or not?"}}</strong></td>
             <td>{{var pblEnabled}}</td>
         </tr>
-
 
 </table>

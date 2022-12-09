@@ -63,15 +63,21 @@ class SupportFormHelper
      */
     public function handleSubmit(array $formData, string $template): void
     {
-        $configurationData = $this->getConfigData();
-        $templateVars = array_merge($configurationData, $formData);
+        $storeId = $this->getStoreId();
+        if($this->config->isSendAdminConfigurationEnabled($storeId)){
+            $configurationData = $this->getConfigData();
+            $templateVars = array_merge($configurationData, $formData);
+        }else{
+            $templateVars = $formData;
+        }
+
         $templateOptions = [
             'area' => \Magento\Framework\App\Area::AREA_ADMINHTML,
-            'store' => $configurationData['storeId']
+            'store' => $storeId
         ];
 
-        $from = ['email' => 'support@example.com', 'name' => 'Adyen test'];
-        $to = 'amoraitis@outlook.com';
+        $from = ['email' => $templateVars['email'], 'name' => $this->config->getMerchantAccount($storeId)];
+        $to = $this->config->getSupportMailAddress($storeId);
 
         $transport = $this->transportBuilder->setTemplateIdentifier($template)
             ->setTemplateOptions($templateOptions)

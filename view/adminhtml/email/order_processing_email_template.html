@@ -1,3 +1,4 @@
+<!--@subject {{var subject}} @-->
 <table class="message-details" >
     <caption>Mail message from magento</caption>
     <th>Topic {{var topic}} Magento<th>
@@ -22,6 +23,10 @@
         <td>{{var headless}}</td>
     </tr>
     <tr>
+        <td><strong>{{trans "What payment method is causing the problem? "}}</strong></td>
+        <td>{{var paymentMethod}}</td>
+    </tr>
+    <tr>
         <td><strong>{{trans "TerminalId"}}</strong></td>
         <td>{{var terminalId}}</td>
     </tr>
@@ -30,10 +35,14 @@
         <td>{{var orderHistoryComments}}</td>
     </tr>
     <tr>
-        <td><strong>{{trans "What is the description of the problem?"}}</strong></td>
+        <td><strong>{{trans "Description"}}</strong></td>
         <td>{{var orderDescription}}</td>
     </tr>
     <!--Configuration settings-->
+    <tr>
+        <td><strong>{{trans "Magento edition"}}</strong></td>
+        <td>{{var magentoEdition}}</td>
+    </tr>
     <tr>
         <td><strong>{{trans "Magento version"}}</strong></td>
         <td>{{var magentoVersion}}</td>
@@ -47,28 +56,12 @@
         <td>{{var merchantAccount}}</td>
     </tr>
     <tr>
-        <td><strong>{{trans "Environment test mode"}}</strong></td>
-        <td>{{var isDemoMode}}</td>
+        <td><strong>{{trans "Environment live or test"}}</strong></td>
+        <td>{{var environmentMode}}</td>
     </tr>
     <tr>
-        <td><strong>{{trans "Is test Mode"}}</strong></td>
-        <td>{{var configurationMode}}</td>
-    </tr>
-    <tr>
-        <td><strong>{{trans "Is payment methods enabled"}}</strong></td>
+        <td><strong>{{trans "Are payment methods enabled"}}</strong></td>
         <td>{{var paymentMethodsEnabled}}</td>
-    </tr>
-    <tr>
-        <td><strong>{{trans "Is POS enabled ?"}}</strong></td>
-        <td>{{var posEnabled}}</td>
-    </tr>
-    <tr>
-        <td><strong>{{trans "PBL enabled or not?"}}</strong></td>
-        <td>{{var pblEnabled}}</td>
-    </tr>
-    <tr>
-        <td><strong>{{trans "Moto enabled"}}</strong></td>
-        <td>{{var motoEnabled}}</td>
     </tr>
     <tr>
         <td><strong>{{trans "Notification username set"}}</strong></td>
@@ -77,6 +70,14 @@
     <tr>
         <td><strong>{{trans "Notification password set"}}</strong></td>
         <td>{{var notificationPassword}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Moto enabled"}}</strong></td>
+        <td>{{var motoEnabled}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "PBL enabled or not?"}}</strong></td>
+        <td>{{var pblEnabled}}</td>
     </tr>
 
 </table>
