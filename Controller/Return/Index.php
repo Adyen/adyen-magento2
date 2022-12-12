@@ -9,7 +9,7 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Controller\Redirect;
+namespace Adyen\Payment\Controller\Return;
 
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Recurring;
