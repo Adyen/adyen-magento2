@@ -30,7 +30,7 @@ class RecurringVaultDataBuilder implements BuilderInterface
         $payment = $paymentDataObject->getPayment();
         $extensionAttributes = $payment->getExtensionAttributes();
         $paymentToken = $extensionAttributes->getVaultPaymentToken();
-        $details = json_decode($paymentToken->getTokenDetails() ?: '{}', true);
+        $details = json_decode((string) ($paymentToken->getTokenDetails() ?: '{}'), true);
 
         // Add paymentMethod object in array, since currently checkout component is not loaded for vault payment methods
         $requestBody['paymentMethod'] = ['storedPaymentMethodId' => $paymentToken->getGatewayToken()];

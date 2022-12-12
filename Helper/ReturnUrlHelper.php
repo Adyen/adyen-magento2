@@ -53,7 +53,7 @@ class ReturnUrlHelper
     public function getStoreReturnUrl($storeId)
     {
         if ($paymentReturnUrl = $this->config->getPWAReturnUrl($storeId)) {
-            return rtrim($paymentReturnUrl, '/');
+            return rtrim((string) $paymentReturnUrl, '/');
         }
         
         if ('adminhtml' === $this->state->getAreaCode()) {
