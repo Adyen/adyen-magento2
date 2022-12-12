@@ -4,11 +4,26 @@ namespace Adyen\Payment\Controller\Adminhtml\Support;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Controller\ResultFactory;
+use Adyen\Payment\Helper\SupportFormHelper;
 
 class OrderProcessingForm extends Action
 {
-    public function __construct(Context $context)
+    const ORDER_PROCESSING = 'order_processing_email_template';
+    /**
+     * @var SupportFormHelper
+     */
+    private $supportFormHelper;
+    /**
+     * @var MessageManagerInterface
+     */
+    protected $messageManager;
+
+    public function __construct(
+        Context          $context,
+        SupportFormHelper $supportFormHelper
+    )
     {
+        $this->supportFormHelper = $supportFormHelper;
         parent::__construct($context);
     }
 
@@ -18,26 +33,30 @@ class OrderProcessingForm extends Action
         $resultPage->setActiveMenu('Adyen_Payment::support')
             ->getConfig()->getTitle()->prepend(__('Order processing'));
 
-        if ('POST' === $this->getRequest()->getMethod()) {
-            $this->handleSubmit();
+        if ('POST' === $this->getRequest()->getMethod()){
+            try {
+                $request = $this->getRequest()->getParams();
+                $formData = [
+                    'topic' => $request['topic'],
+                    'subject' => $request['subject'],
+                    'email' => $request['email'],
+                    'pspReference' => $request['pspReference'],
+                    'merchantReference' => $request['merchantReference'],
+                    'headless' => $request['headless'],
+                    'paymentMethod' => $request['paymentMethod'],
+                    'terminalId' => $request['terminalId'],
+                    'orderHistoryComments' => $request['orderHistoryComments'],
+                    'orderDescription' => $request['orderDescription']
+                ];
+                $this->supportFormHelper->handleSubmit($formData, self::ORDER_PROCESSING);
+                return $this->_redirect('*/*/success');
+
+
+            } catch (\Exception $exception) {
+                $this->messageManager->addErrorMessage(__('Form unsuccessfully submitted'));
+            }
         }
 
         return $resultPage;
-    }
-
-    private function handleSubmit()
-    {
-        $topic = $this->getRequest()->getParam('topic');
-        $subject = $this->getRequest()->getParam('subject');
-        $email = $this->getRequest()->getParam('email');
-        $pspReference = $this->getRequest()->getParam('pspReference');
-        $merchantReference = $this->getRequest()->getParam('merchantReference');
-        $headless = $this->getRequest()->getParam('headless');
-        $paymentMethod = $this->getRequest()->getParam('paymentMethod');
-        $terminalId = $this->getRequest()->getParam('terminalId');
-        $orderHistoryComments = $this->getRequest()->getParam('orderHistoryComments');
-        $description = $this->getRequest()->getParam('description');
-
-        // TODO Process form data
     }
 }

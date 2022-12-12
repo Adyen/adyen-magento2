@@ -23,5 +23,6 @@
         <include path="Adyen_Payment::system/adyen_refunds.xml"/>
         <include path="Adyen_Payment::system/adyen_pwa.xml"/>
         <include path="Adyen_Payment::system/adyen_additional_payment_settings.xml"/>
+        <include path="Adyen_Payment::system/adyen_support.xml"/>
     </group>
 </include>

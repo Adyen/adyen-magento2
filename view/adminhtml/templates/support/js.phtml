@@ -6,21 +6,15 @@ require([
     'jquery',
     'mage/mage'
 ], function($) {
-    $('#support_form').mage('form').mage('validation', {
-        highlight: function(element) {
-            var detailsElement = $(element).closest('details');
-            if (detailsElement.length && detailsElement.is('.details')) {
-                var summaryElement = detailsElement.find('summary');
-                if (summaryElement.length && summaryElement.attr('aria-expanded') === "false") {
-                    summaryElement.trigger('click');
-                }
-            }
-            $(element).trigger('highlight.validate');
-        }
-    });
+    $('#support_topic_value').change(function() {
+        // enable/disable the submit button
+        let topic = $("#support_topic_value").val();
 
-    $('#send').click(() => {
-        $('#support_form').submit();
+        if (0 !== topic.length) {
+            $('#adyen_support-need-help').prop('disabled', false);
+        } else {
+            $('#adyen_support-need-help').prop('disabled', true);
+        }
     });
 
     const linksMapping = {

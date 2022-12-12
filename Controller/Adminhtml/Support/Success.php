@@ -1,6 +1,6 @@
 <?php
 
-namespace Adyen\Payment\Controller\Adminhtml\Configuration;
+namespace Adyen\Payment\Controller\Adminhtml\Support;
 
 use Magento\Backend\App\Action;
 
