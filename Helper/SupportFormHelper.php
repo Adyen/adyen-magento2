@@ -76,8 +76,11 @@ class SupportFormHelper
             'store' => $storeId
         ];
 
-        $from = ['email' => $templateVars['email'], 'name' => $this->config->getMerchantAccount($storeId)];
         $to = $this->config->getSupportMailAddress($storeId);
+        $from = ['email' => $templateVars['email'], 'name' => $this->config->getMerchantAccount($storeId)];
+        if(!isset($from['email'])){
+            $from['email'] = $this->getGeneralContactSenderEmail();
+        }
 
         $transport = $this->transportBuilder->setTemplateIdentifier($template)
             ->setTemplateOptions($templateOptions)
@@ -127,5 +130,17 @@ class SupportFormHelper
     public function getStoreId(): int
     {
         return $this->storeManager->getStore()->getId();
+    }
+
+    /**
+     * Get the email from the general contact
+     *
+     * @return string
+     */
+    public function getGeneralContactSenderEmail():string
+    {
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $scopeConfig = $objectManager->create('\Magento\Framework\App\Config\ScopeConfigInterface');
+        return $scopeConfig->getValue('trans_email/ident_general/email',\Magento\Store\Model\ScopeInterface::SCOPE_STORE);
     }
 }

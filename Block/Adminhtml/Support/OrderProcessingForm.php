@@ -2,10 +2,25 @@
 
 namespace Adyen\Payment\Block\Adminhtml\Support;
 
+use Adyen\Payment\Helper\SupportFormHelper;
+
 class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
 {
     const HEADLESS_YES = 1;
     const HEADLESS_NO = 0;
+
+    private SupportFormHelper $supportFormHelper;
+
+    public function __construct(
+        \Magento\Backend\Block\Template\Context $context,
+        \Magento\Framework\Registry $registry,
+        \Magento\Framework\Data\FormFactory $formFactory,
+        SupportFormHelper $supportFormHelper
+    )
+    {
+        $this->supportFormHelper = $supportFormHelper;
+        parent::__construct($context, $registry, $formFactory);
+    }
 
     /**
      * Prepare form before rendering HTML
@@ -64,6 +79,7 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'title' => __('Email'),
                 'class' => '',
                 'required' => true,
+                'value'=>$this->supportFormHelper->getGeneralContactSenderEmail()
             ]
         );
 

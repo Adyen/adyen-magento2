@@ -3,18 +3,24 @@
 namespace Adyen\Payment\Block\Adminhtml\Support;
 
 use Adyen\Payment\Block\Adminhtml\Support\Edit\Tab\ConfigurationSettings;
+use Adyen\Payment\Helper\SupportFormHelper;
 
 class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Generic
 {
     const HEADLESS_YES = 1;
     const HEADLESS_NO = 0;
 
-    /**
-     * Internal constructor
-     */
-    protected function _construct()
+    private SupportFormHelper $supportFormHelper;
+
+    public function __construct(
+        \Magento\Backend\Block\Template\Context $context,
+        \Magento\Framework\Registry $registry,
+        \Magento\Framework\Data\FormFactory $formFactory,
+        SupportFormHelper $supportFormHelper
+    )
     {
-        parent::_construct();
+        $this->supportFormHelper = $supportFormHelper;
+        parent::__construct($context, $registry, $formFactory);
         $this->setActive(true);
     }
 
@@ -83,6 +89,7 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
                 'title' => __('Email'),
                 'class' => '',
                 'required' => true,
+                'value' => $this->supportFormHelper->getGeneralContactSenderEmail()
             ]
         );
 
