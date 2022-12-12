@@ -62,7 +62,7 @@ class MerchantAccounts extends Action
             $apiKey = $this->getRequest()->getParam('apiKey', '');
             $demoMode = (int) $this->getRequest()->getParam('demoMode');
             //Use the stored xapi key if the return value is encrypted chars only or it is empty,
-            if (!empty($apiKey) && preg_match('/^\*+$/', $apiKey)) {
+            if (!empty($apiKey) && preg_match('/^\*+$/', (string) $apiKey)) {
                 $apiKey = '';
             }
 

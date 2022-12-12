@@ -45,7 +45,7 @@ class RecurringVaultDataBuilder implements BuilderInterface
         $order = $payment->getOrder();
         $extensionAttributes = $payment->getExtensionAttributes();
         $paymentToken = $extensionAttributes->getVaultPaymentToken();
-        $details = json_decode($paymentToken->getTokenDetails() ?: '{}', true);
+        $details = json_decode((string) ($paymentToken->getTokenDetails() ?: '{}'), true);
 
         // Initialize the request body with the current state data
         $requestBody = $this->stateData->getStateData($order->getQuoteId());

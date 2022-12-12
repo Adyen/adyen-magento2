@@ -577,7 +577,7 @@ class PaymentMethods extends AbstractHelper
         $ccTypes = $this->adyenHelper->getAdyenCcTypes();
         $availableTypes = $this->adyenHelper->getAdyenCcConfigData('cctypes');
         if ($availableTypes) {
-            $availableTypes = explode(',', $availableTypes);
+            $availableTypes = explode(',', (string) $availableTypes);
             foreach (array_keys($ccTypes) as $code) {
                 if (in_array($code, $availableTypes)) {
                     $types[$code] = $ccTypes[$code]['name'];
@@ -599,7 +599,7 @@ class PaymentMethods extends AbstractHelper
         $ccTypes = $this->adyenHelper->getAdyenCcTypes();
         $availableTypes = $this->adyenHelper->getAdyenCcConfigData('cctypes');
         if ($availableTypes) {
-            $availableTypes = explode(',', $availableTypes);
+            $availableTypes = explode(',', (string) $availableTypes);
             foreach (array_keys($ccTypes) as $code) {
                 if (in_array($code, $availableTypes)) {
                     $types[$ccTypes[$code]['code_alt']] = $code;
@@ -622,14 +622,14 @@ class PaymentMethods extends AbstractHelper
         // validate if payment methods allows manual capture
         if (PaymentMethodUtil::isManualCaptureSupported($notificationPaymentMethod)) {
             $captureMode = trim(
-                $this->configHelper->getConfigData(
+                (string) $this->configHelper->getConfigData(
                     'capture_mode',
                     'adyen_abstract',
                     $order->getStoreId()
                 )
             );
             $sepaFlow = trim(
-                $this->configHelper->getConfigData(
+                (string) $this->configHelper->getConfigData(
                     'sepa_flow',
                     'adyen_abstract',
                     $order->getStoreId()
@@ -638,7 +638,7 @@ class PaymentMethods extends AbstractHelper
             $paymentCode = $order->getPayment()->getMethod();
             $autoCaptureOpenInvoice = $this->configHelper->getAutoCaptureOpenInvoice($order->getStoreId());
             $manualCapturePayPal = trim(
-                $this->configHelper->getConfigData(
+                (string) $this->configHelper->getConfigData(
                     'paypal_capture_mode',
                     'adyen_abstract',
                     $order->getStoreId()
@@ -678,7 +678,7 @@ class PaymentMethods extends AbstractHelper
                     'capture_mode_pos',
                     $order->getStoreId()
                 );
-                if (strcmp($captureModePos, 'auto') === 0) {
+                if (strcmp((string) $captureModePos, 'auto') === 0) {
                     $this->adyenLogger->addAdyenNotification(
                         'This payment method is POS Cloud and configured to be working as auto capture ',
                         array_merge(
@@ -687,7 +687,7 @@ class PaymentMethods extends AbstractHelper
                         )
                     );
                     return true;
-                } elseif (strcmp($captureModePos, 'manual') === 0) {
+                } elseif (strcmp((string) $captureModePos, 'manual') === 0) {
                     $this->adyenLogger->addAdyenNotification(
                         'This payment method is POS Cloud and configured to be working as manual capture ',
                         array_merge(
@@ -840,8 +840,11 @@ class PaymentMethods extends AbstractHelper
         $boletobancario = $additionalData['boletobancario'] ?? null;
         if ($boletobancario && is_array($boletobancario)) {
             // check if paid amount is the same as orginal amount
-            $originalAmount = isset($boletobancario['originalAmount']) ? trim($boletobancario['originalAmount']) : "";
-            $paidAmount = isset($boletobancario['paidAmount']) ? trim($boletobancario['paidAmount']) : "";
+            $originalAmount =
+                isset($boletobancario['originalAmount']) ?
+                trim((string) $boletobancario['originalAmount']) :
+                "";
+            $paidAmount = isset($boletobancario['paidAmount']) ? trim((string) $boletobancario['paidAmount']) : "";
 
             if ($originalAmount != $paidAmount) {
                 // not the full amount is paid. Check if it is underpaid or overpaid

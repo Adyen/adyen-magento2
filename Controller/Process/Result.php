@@ -416,7 +416,7 @@ class Result extends Action
             $paymentMethod = '';
         }
 
-        $pspReference = isset($response['pspReference']) ? trim($response['pspReference']) : '';
+        $pspReference = isset($response['pspReference']) ? trim((string) $response['pspReference']) : '';
 
         $type = 'Adyen Result URL response:';
         $comment = __(
@@ -435,14 +435,14 @@ class Result extends Action
         $orderPayment->setAdditionalInformation('resultCode', $authResult);
         $this->orderResourceModel->save($order);
 
-        switch (strtoupper($authResult)) {
+        switch (strtoupper((string) $authResult)) {
             case Notification::AUTHORISED:
                 $result = true;
                 $this->_adyenLogger->addAdyenResult('Do nothing wait for the notification');
                 break;
             case Notification::RECEIVED:
                 $result = true;
-                if (strpos($paymentMethod, "alipay_hk") !== false) {
+                if (strpos((string) $paymentMethod, "alipay_hk") !== false) {
                     $result = false;
                 }
                 $this->_adyenLogger->addAdyenResult('Do nothing wait for the notification');
@@ -450,7 +450,7 @@ class Result extends Action
             case Notification::PENDING:
                 // do nothing wait for the notification
                 $result = true;
-                if (strpos($paymentMethod, "bankTransfer") !== false) {
+                if (strpos((string) $paymentMethod, "bankTransfer") !== false) {
                     $comment .= "<br /><br />Waiting for the customer to transfer the money.";
                 } elseif ($paymentMethod == "sepadirectdebit") {
                     $comment .= "<br /><br />This request will be send to the bank at the end of the day.";
@@ -521,7 +521,7 @@ class Result extends Action
         // do it like this because $_GET is converting dot to underscore
         $queryString = $_SERVER['QUERY_STRING'];
         $result = [];
-        $pairs = explode("&", $queryString);
+        $pairs = explode("&", (string) $queryString);
 
         foreach ($pairs as $pair) {
             $nv = explode("=", $pair);
@@ -537,7 +537,7 @@ class Result extends Action
         $hmacKey = $this->_adyenHelper->getHmac();
         $merchantSig = \Adyen\Util\Util::calculateSha256Signature($hmacKey, $result);
 
-        if (strcmp($merchantSig, $merchantSigNotification) === 0) {
+        if (strcmp($merchantSig, (string) $merchantSigNotification) === 0) {
             return true;
         }
 
@@ -552,7 +552,7 @@ class Result extends Action
      */
     protected function escapeString($val)
     {
-        return str_replace(':', '\\:', str_replace('\\', '\\\\', $val));
+        return str_replace(':', '\\:', str_replace('\\', '\\\\', (string) $val));
     }
 
     /**
