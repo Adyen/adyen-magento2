@@ -13,27 +13,27 @@ class SupportFormHelper
     /**
      * @var Config
      */
-    protected Config $config;
+    protected $config;
     /**
      * @var Data
      */
-    private Data $adyenHelper;
+    private $adyenHelper;
     /**
      * @var StoreManagerInterface
      */
-    private StoreManagerInterface $storeManager;
+    private $storeManager;
     /**
      * @var ProductMetadataInterface
      */
-    protected ProductMetadataInterface $productMetadata;
+    protected $productMetadata;
     /**
      * @var TransportBuilder
      */
-    private TransportBuilder $transportBuilder;
+    private $transportBuilder;
     /**
      * @var MessageManagerInterface
      */
-    protected MessageManagerInterface $messageManager;
+    protected $messageManager;
 
     public function __construct(
 
@@ -64,10 +64,10 @@ class SupportFormHelper
     public function handleSubmit(array $formData, string $template): void
     {
         $storeId = $this->getStoreId();
-        if($this->config->isSendAdminConfigurationEnabled($storeId)){
+        if ($this->config->isSendAdminConfigurationEnabled($storeId)) {
             $configurationData = $this->getConfigData();
             $templateVars = array_merge($configurationData, $formData);
-        }else{
+        } else {
             $templateVars = $formData;
         }
 
@@ -78,7 +78,7 @@ class SupportFormHelper
 
         $to = $this->config->getSupportMailAddress($storeId);
         $from = ['email' => $templateVars['email'], 'name' => $this->config->getMerchantAccount($storeId)];
-        if(!isset($from['email'])){
+        if (!isset($from['email'])) {
             $from['email'] = $this->getGeneralContactSenderEmail();
         }
 
@@ -137,10 +137,10 @@ class SupportFormHelper
      *
      * @return string
      */
-    public function getGeneralContactSenderEmail():string
+    public function getGeneralContactSenderEmail(): string
     {
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         $scopeConfig = $objectManager->create('\Magento\Framework\App\Config\ScopeConfigInterface');
-        return $scopeConfig->getValue('trans_email/ident_general/email',\Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $scopeConfig->getValue('trans_email/ident_general/email', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
     }
 }

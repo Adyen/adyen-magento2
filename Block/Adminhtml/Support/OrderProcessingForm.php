@@ -9,7 +9,7 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
     const HEADLESS_YES = 1;
     const HEADLESS_NO = 0;
 
-    private SupportFormHelper $supportFormHelper;
+    private $supportFormHelper;
 
     public function __construct(
         \Magento\Backend\Block\Template\Context $context,

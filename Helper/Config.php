@@ -44,7 +44,7 @@ class Config
     const XML_STATUS_FRAUD_MANUAL_REVIEW = 'fraud_manual_review_status';
     const XML_STATUS_FRAUD_MANUAL_REVIEW_ACCEPT = 'fraud_manual_review_accept_status';
     const XML_MOTO_MERCHANT_ACCOUNTS = 'moto_merchant_accounts';
-    const XML_ADYEN_SUPPORT_PREFIX = "adyen_support";
+    const XML_ADYEN_SUPPORT_PREFIX = 'adyen_support';
 
     /**
      * @var ScopeConfigInterface
@@ -481,7 +481,10 @@ class Config
      */
     public function isSendAdminConfigurationEnabled(int $storeId): bool
     {
-        return $this->getConfigData('adyen_support_send_admin_config', self::XML_ADYEN_SUPPORT_PREFIX, $storeId,true);
+        return $this->getConfigData('adyen_support_send_admin_config',
+            self::XML_ADYEN_SUPPORT_PREFIX,
+            $storeId,
+            true);
     }
 
     /**

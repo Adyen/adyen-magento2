@@ -23,7 +23,7 @@
         </comment>
         <field id="adyen_support_send_admin_configuration" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Send config values</label>
-            <tooltip>Enabling this, each support form includes the admin configuration values in the support email</tooltip>
+            <tooltip>When enabled, admin configuration values will be included in the support email</tooltip>
             <config_path>payment/adyen_support/adyen_support_send_admin_config</config_path>
             <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
         </field>

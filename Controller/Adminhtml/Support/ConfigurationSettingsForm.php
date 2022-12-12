@@ -14,7 +14,7 @@ class ConfigurationSettingsForm extends Action
     /**
      * @var SupportFormHelper
      */
-    protected SupportFormHelper $supportFormHelper;
+    protected $supportFormHelper;
 
     public function __construct(
         Context           $context,

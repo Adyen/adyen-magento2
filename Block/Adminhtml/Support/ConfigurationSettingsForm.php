@@ -2,7 +2,6 @@
 
 namespace Adyen\Payment\Block\Adminhtml\Support;
 
-use Adyen\Payment\Block\Adminhtml\Support\Edit\Tab\ConfigurationSettings;
 use Adyen\Payment\Helper\SupportFormHelper;
 
 class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Generic
@@ -10,7 +9,7 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
     const HEADLESS_YES = 1;
     const HEADLESS_NO = 0;
 
-    private SupportFormHelper $supportFormHelper;
+    private $supportFormHelper;
 
     public function __construct(
         \Magento\Backend\Block\Template\Context $context,

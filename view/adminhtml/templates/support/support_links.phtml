@@ -1,7 +1,8 @@
 <?php /** @var SupportTabInterface $block */
+
 use Adyen\Payment\Block\Adminhtml\Support\SupportTabInterface; ?>
 <div class="adyen_support-main">
-    <form action="<?= $block->supportFormUrl();?>" method="GET">
+    <form action="<?= $block->supportFormUrl(); ?>" method="GET">
         <table class="adyen_support-content">
             <caption>Table containing support topics</caption>
             <tr>
@@ -11,7 +12,7 @@ use Adyen\Payment\Block\Adminhtml\Support\SupportTabInterface; ?>
                         <select name="topic" id="support_topic_value">
                             <option value="">Please select a topic</option>
                             <?php foreach ($block->getSupportTopics() as $key => $topic): ?>
-                                <option value="<?=$key;?>"><?=$topic;?></option>
+                                <option value="<?= $key; ?>"><?= $topic; ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -30,7 +31,9 @@ use Adyen\Payment\Block\Adminhtml\Support\SupportTabInterface; ?>
                 <td>&nbsp;</td>
                 <td>
                     <div class="adyen_support-value">
-                        <button type="submit" disabled="disabled" id="adyen_support-need-help" class="adyen_support-form_link btn btn-large btn-prime">I still need help</button>
+                        <button type="submit" disabled="disabled" id="adyen_support-need-help"
+                                class="adyen_support-form_link btn btn-large btn-prime">I still need help
+                        </button>
                     </div>
                 </td>
             </tr>
