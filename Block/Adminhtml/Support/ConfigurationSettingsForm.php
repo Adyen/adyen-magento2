@@ -2,12 +2,27 @@
 
 namespace Adyen\Payment\Block\Adminhtml\Support;
 
-use Adyen\Payment\Block\Adminhtml\Support\Edit\Tab\ConfigurationSettings;
+use Adyen\Payment\Helper\SupportFormHelper;
 
 class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Generic
 {
     const HEADLESS_YES = 1;
     const HEADLESS_NO = 0;
+
+    private $supportFormHelper;
+
+    public function __construct(
+        \Magento\Backend\Block\Template\Context $context,
+        \Magento\Framework\Registry $registry,
+        \Magento\Framework\Data\FormFactory $formFactory,
+        SupportFormHelper $supportFormHelper
+    )
+    {
+        $this->supportFormHelper = $supportFormHelper;
+        parent::__construct($context, $registry, $formFactory);
+        $this->setActive(true);
+    }
+
     /**
      * Prepare form before rendering HTML
      *
@@ -20,7 +35,7 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
         $form = $this->_formFactory->create([
             'data' => [
                 'id' => 'configurationsettings_form',
-                'action' => $this->getData('action'),
+                'action' => $this->getUrl('adyen/support/configurationsettingsform'),
                 'method' => 'post'
             ]
         ]);
@@ -72,6 +87,19 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
                 'label' => __('Email'),
                 'title' => __('Email'),
                 'class' => '',
+                'required' => true,
+                'value' => $this->supportFormHelper->getGeneralContactSenderEmail()
+            ]
+        );
+
+        $fieldset->addField(
+            'logs',
+            'file',
+            [
+                'name' => 'logs',
+                'label' => __('Attach Logs'),
+                'title' => __('Attach Logs'),
+                'class' => '',
                 'required' => false,
             ]
         );
@@ -102,22 +130,19 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
                 'required' => false,
             ]
         );
+
         $fieldset->addField(
-            'upload_button',
-            'button',
+            'submit_support_configuration_settings',
+            'submit',
             [
                 'name' => 'submit',
-
-                'title' => __('click'),
+                'title' => __('Submit'),
                 'class' => 'primary',
-                'data_attribute' => '',
-                'value' => 'Submit',
-                'data_attribute' => [
-                    'mage-init' => ['button' => ['event' => 'send', 'target' => '#support_form']],
-                ]
+                'value' => 'Submit'
             ]
         );
 
+        $form->setUseContainer(true);
 
         $this->setForm($form);
         return parent::_prepareForm();
@@ -142,7 +167,7 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
     {
         return [
             'invalid_origin' => 'Invalid Origin',
-            'headles_state_data_actions' => 'Headless state data actions',
+            'headless_state_data_actions' => 'Headless state data actions',
             'refund' => 'Refund',
             'other' => 'Other'
         ];

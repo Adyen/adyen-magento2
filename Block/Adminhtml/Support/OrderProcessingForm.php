@@ -2,10 +2,25 @@
 
 namespace Adyen\Payment\Block\Adminhtml\Support;
 
+use Adyen\Payment\Helper\SupportFormHelper;
+
 class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
 {
     const HEADLESS_YES = 1;
     const HEADLESS_NO = 0;
+
+    private $supportFormHelper;
+
+    public function __construct(
+        \Magento\Backend\Block\Template\Context $context,
+        \Magento\Framework\Registry $registry,
+        \Magento\Framework\Data\FormFactory $formFactory,
+        SupportFormHelper $supportFormHelper
+    )
+    {
+        $this->supportFormHelper = $supportFormHelper;
+        parent::__construct($context, $registry, $formFactory);
+    }
 
     /**
      * Prepare form before rendering HTML
@@ -19,7 +34,7 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
         $form = $this->_formFactory->create([
             'data' => [
                 'id' => 'support_form',
-                'action' => $this->getData('action'),
+                'action' => $this->getUrl('adyen/support/orderprocessingform'),
                 'method' => 'post',
             ]
         ]);
@@ -63,7 +78,8 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'label' => __('Email'),
                 'title' => __('Email'),
                 'class' => '',
-                'required' => false,
+                'required' => true,
+                'value'=>$this->supportFormHelper->getGeneralContactSenderEmail()
             ]
         );
 
@@ -126,7 +142,17 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'required' => false,
             ]
         );
-
+        $fieldset->addField(
+            'logs',
+            'file',
+            [
+                'name' => 'logs',
+                'label' => __('Attach Logs'),
+                'title' => __('Attach Logs'),
+                'class' => '',
+                'required' => false,
+            ]
+        );
         $fieldset->addField(
             'orderHistoryComments',
             'textarea',
@@ -152,18 +178,17 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
         );
 
         $fieldset->addField(
-            'upload_button',
-            'button',
+            'submit_support_order_processing',
+            'submit',
             [
                 'name' => 'submit',
-
-                'title' => __('click'),
-                'class' => 'upload_button',
-                'data_attribute' => '',
+                'title' => __('Submit'),
+                'class' => 'primary',
                 'value' => 'Submit'
             ]
         );
 
+        $form->setUseContainer(true);
         $this->setForm($form);
         return parent::_prepareForm();
     }
