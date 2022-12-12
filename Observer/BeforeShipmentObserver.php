@@ -126,6 +126,6 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
      */
     public function isPaymentMethodAdyen($order)
     {
-        return strpos($order->getPayment()->getMethod(), 'adyen') !== false;
+        return strpos((string) $order->getPayment()->getMethod(), 'adyen') !== false;
     }
 }

@@ -254,7 +254,7 @@ class Vault
 
         $tokenizedPaymentMethods = array_map(
             'trim',
-            explode(',', $this->config->getTokenizedPaymentMethods($storeId))
+            explode(',', (string) $this->config->getTokenizedPaymentMethods($storeId))
         );
         $shouldTokenize = in_array($adyenPaymentMethod->getTxVariant(), $tokenizedPaymentMethods);
 
@@ -408,7 +408,7 @@ class Vault
      */
     private function getExpirationDate($expirationDate)
     {
-        $expirationDate = explode('/', $expirationDate);
+        $expirationDate = explode('/', (string) $expirationDate);
 
         $expDate = new DateTime(
         //add leading zero to month

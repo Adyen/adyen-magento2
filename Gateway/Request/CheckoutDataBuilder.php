@@ -99,7 +99,7 @@ class CheckoutDataBuilder implements BuilderInterface
         $requestBody = $this->stateData->getStateData($order->getQuoteId());
 
         if (empty($requestBody) && !is_null($payment->getCcNumber())) {
-            $requestBody = json_decode($payment->getCcNumber(), true);
+            $requestBody = json_decode((string) $payment->getCcNumber(), true);
         }
 
         $order->setCanSendNewEmailFlag(in_array($payment->getMethod(), self::ORDER_EMAIL_REQUIRED_METHODS));
@@ -151,7 +151,7 @@ class CheckoutDataBuilder implements BuilderInterface
 
         if ($payment->getMethod() == AdyenBoletoConfigProvider::CODE) {
             $boletoTypes = $this->adyenHelper->getAdyenBoletoConfigData('boletotypes');
-            $boletoTypes = explode(',', $boletoTypes);
+            $boletoTypes = explode(',', (string) $boletoTypes);
 
             if (count($boletoTypes) == 1) {
                 $requestBody['selectedBrand'] = $boletoTypes[0];

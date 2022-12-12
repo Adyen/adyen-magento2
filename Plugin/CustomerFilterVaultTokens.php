@@ -30,8 +30,8 @@ class CustomerFilterVaultTokens
         array $customerSessionTokens
     ): array {
         foreach ($customerSessionTokens as $key => $token) {
-            if (strpos($token->getPaymentMethodCode(), 'adyen_') === 0) {
-                $tokenDetails = json_decode($token->getTokenDetails());
+            if (strpos((string) $token->getPaymentMethodCode(), 'adyen_') === 0) {
+                $tokenDetails = json_decode((string) $token->getTokenDetails());
                 if (property_exists($tokenDetails, Vault::TOKEN_TYPE) &&
                     in_array($tokenDetails->tokenType, [
                         Recurring::SUBSCRIPTION,

@@ -82,7 +82,7 @@ class Moto extends \Magento\Framework\App\Config\Value
 
             if ($data['api_key'] != AdyenMotoConfigProvider::API_KEY_PLACEHOLDER) {
                 $apiKey = $data['api_key'];
-                $apiKey = $this->encryptor->encrypt(trim($apiKey));
+                $apiKey = $this->encryptor->encrypt(trim((string) $apiKey));
             }
             else {
                 $oldRowValue = $this->getOldValue();

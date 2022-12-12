@@ -143,7 +143,7 @@ class Requests extends AbstractHelper
                 $payment->getMethodInstance()->getCode() != AdyenPayByLinkConfigProvider::CODE &&
                 !is_null($billingAddress->getTelephone())
             ) {
-                $request['telephoneNumber'] = trim($billingAddress->getTelephone());
+                $request['telephoneNumber'] = trim((string) $billingAddress->getTelephone());
             }
 
             if ($firstName = $billingAddress->getFirstname()) {
@@ -236,7 +236,7 @@ class Requests extends AbstractHelper
                     $requestBilling["postalCode"] = preg_replace(
                         '/[^\d]/',
                         '',
-                        $requestBilling["postalCode"]
+                        (string) $requestBilling["postalCode"]
                     );
                 }
             }
@@ -293,7 +293,7 @@ class Requests extends AbstractHelper
                     $requestDelivery["postalCode"] = preg_replace(
                         '/[^\d]/',
                         '',
-                        $requestDelivery["postalCode"]
+                        (string) $requestDelivery["postalCode"]
                     );
                 }
             }
@@ -358,7 +358,7 @@ class Requests extends AbstractHelper
         // Initialize the request body with the current state data
         // Multishipping checkout uses the cc_number field for state data
         $stateData = $this->stateData->getStateData($payment->getOrder()->getQuoteId()) ?:
-            (json_decode($payment->getCcNumber(), true) ?: []);
+            (json_decode((string) $payment->getCcNumber(), true) ?: []);
 
         // If PayByLink
         // Else, if option to store token exists, get the value from the checkbox
