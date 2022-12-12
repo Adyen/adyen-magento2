@@ -12,7 +12,7 @@ class OrderProcessingForm extends Action
     /**
      * @var SupportFormHelper
      */
-    private SupportFormHelper $supportFormHelper;
+    private $supportFormHelper;
     /**
      * @var MessageManagerInterface
      */

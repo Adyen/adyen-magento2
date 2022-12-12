@@ -36,9 +36,8 @@ class SupportFormHelper
     protected $messageManager;
 
     public function __construct(
-
-        TransportBuilder  $transportBuilder,
-              MessageManagerInterface    $messageManager,
+        TransportBuilder         $transportBuilder,
+        MessageManagerInterface  $messageManager,
         Config                   $config,
         Data                     $adyenHelper,
         StoreManagerInterface    $storeManager,
