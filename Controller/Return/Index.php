@@ -11,33 +11,15 @@
 
 namespace Adyen\Payment\Controller\Process;
 
-use Adyen\Payment\Exception\PaymentMethodException;
-use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
-use Adyen\Payment\Helper\Idempotency;
-use Adyen\Payment\Helper\PaymentMethods\AbstractWalletPaymentMethod;
-use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
-use Adyen\Payment\Helper\Quote;
 use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\StateData;
-use Adyen\Payment\Helper\Util\DataArrayValidator;
-use Adyen\Payment\Helper\Vault;
-use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
-use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
-use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
-use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
-use Magento\Checkout\Model\Session;
-use Magento\Framework\App\Action\Action;
-use Magento\Framework\App\Action\Context;
+use Adyen\Service\Validator\DataArrayValidator;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
-use Magento\Sales\Model\Order\Status\HistoryFactory;
-use Magento\Sales\Model\OrderFactory;
-use Magento\Store\Model\StoreManagerInterface;
-use Magento\Vault\Model\Ui\VaultConfigProvider;
 
-class Result extends Action
+class Result extends \Magento\Framework\App\Action\Action
 {
 
     const BRAND_CODE_DOTPAY = 'dotpay';
@@ -62,49 +44,49 @@ class Result extends Action
     ];
 
     /**
-     * @var Data
+     * @var \Adyen\Payment\Helper\Data
      */
     protected $_adyenHelper;
 
     /**
-     * @var OrderFactory
+     * @var \Magento\Sales\Model\OrderFactory
      */
     protected $_orderFactory;
 
     /**
-     * @var Order
+     * @var \Magento\Sales\Model\Order
      */
     protected $_order;
 
     /**
-     * @var HistoryFactory
+     * @var \Magento\Sales\Model\Order\Status\HistoryFactory
      */
     protected $_orderHistoryFactory;
 
     /**
-     * @var Session
+     * @var \Magento\Checkout\Model\Session
      */
     protected $_session;
 
     /**
-     * @var AdyenLogger
+     * @var \Adyen\Payment\Logger\AdyenLogger
      */
     protected $_adyenLogger;
 
     /**
-     * @var StoreManagerInterface
+     * @var \Magento\Store\Model\StoreManagerInterface
      */
     protected $storeManager;
 
     /**
-     * @var Quote
+     * @var \Adyen\Payment\Helper\Quote
      */
     private $quoteHelper;
 
     private $payment;
 
     /**
-     * @var Vault
+     * @var \Adyen\Payment\Helper\Vault
      */
     private $vaultHelper;
 
@@ -124,11 +106,6 @@ class Result extends Action
     private $dataHelper;
 
     /**
-     * @var Config
-     */
-    private $configHelper;
-
-    /**
      * @var OrderRepositoryInterface
      */
     private $orderRepository;
@@ -139,55 +116,37 @@ class Result extends Action
     private $recurringHelper;
 
     /**
-     * @var PaymentMethodFactory
-     */
-    private $paymentMethodFactory;
-
-    /**
-     * @var Idempotency
-     */
-    private $idempotencyHelper;
-
-    /**
-     * @param Context $context
-     * @param Data $adyenHelper
-     * @param OrderFactory $orderFactory
-     * @param HistoryFactory $orderHistoryFactory
-     * @param Session $session
-     * @param AdyenLogger $adyenLogger
-     * @param StoreManagerInterface $storeManager
-     * @param Quote $quoteHelper
-     * @param Vault $vaultHelper
+     * Result constructor.
+     *
+     * @param \Magento\Framework\App\Action\Context $context
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Magento\Sales\Model\OrderFactory $orderFactory
+     * @param \Magento\Sales\Model\Order\Status\HistoryFactory $orderHistoryFactory
+     * @param \Magento\Checkout\Model\Session $session
+     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Adyen\Payment\Helper\Quote $quoteHelper
+     * @param \Adyen\Payment\Helper\Vault $vaultHelper
      * @param \Magento\Sales\Model\ResourceModel\Order $orderResourceModel
      * @param StateData $stateDataHelper
-     * @param Data $dataHelper
-     * @param OrderRepositoryInterface $orderRepository
-     * @param Recurring $recurringHelper
-     * @param Config $configHelper
-     * @param PaymentMethodFactory $paymentMethodFactory
-     * @param Idempotency $idempotencyHelper
+     * @param \Adyen\Payment\Helper\Data $dataHelper
      */
     public function __construct(
-        Context $context,
-        Data $adyenHelper,
-        OrderFactory $orderFactory,
-        HistoryFactory $orderHistoryFactory,
-        Session $session,
-        AdyenLogger $adyenLogger,
-        StoreManagerInterface $storeManager,
-        Quote $quoteHelper,
-        Vault $vaultHelper,
+        \Magento\Framework\App\Action\Context $context,
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Magento\Sales\Model\OrderFactory $orderFactory,
+        \Magento\Sales\Model\Order\Status\HistoryFactory $orderHistoryFactory,
+        \Magento\Checkout\Model\Session $session,
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Adyen\Payment\Helper\Quote $quoteHelper,
+        \Adyen\Payment\Helper\Vault $vaultHelper,
         \Magento\Sales\Model\ResourceModel\Order $orderResourceModel,
         StateData $stateDataHelper,
         Data $dataHelper,
         OrderRepositoryInterface $orderRepository,
-        Recurring $recurringHelper,
-        Config $configHelper,
-        PaymentMethodFactory $paymentMethodFactory,
-        Idempotency $idempotencyHelper
+        Recurring $recurringHelper
     ) {
-        parent::__construct($context);
-
         $this->_adyenHelper = $adyenHelper;
         $this->_orderFactory = $orderFactory;
         $this->_orderHistoryFactory = $orderHistoryFactory;
@@ -201,9 +160,7 @@ class Result extends Action
         $this->dataHelper = $dataHelper;
         $this->orderRepository = $orderRepository;
         $this->recurringHelper = $recurringHelper;
-        $this->configHelper = $configHelper;
-        $this->paymentMethodFactory = $paymentMethodFactory;
-        $this->idempotencyHelper = $idempotencyHelper;
+        parent::__construct($context);
     }
 
     /**
@@ -216,13 +173,6 @@ class Result extends Action
 
         if ($response) {
             $result = $this->validateResponse($response);
-            $order = $this->_order;
-            $additionalInformation = $order->getPayment()->getAdditionalInformation();
-            $resultCode = isset($response['resultCode']) ? $response['resultCode'] : null;
-            $paymentBrandCode = isset($additionalInformation['brand_code']) ? $additionalInformation['brand_code'] : null;
-            if ($resultCode === 'cancelled' && $paymentBrandCode === 'svs') {
-                $this->dataHelper->cancelOrder($order);
-            }
 
             // Adjust the success path, fail path, and restore quote based on if it is a multishipping quote
             if (
@@ -244,11 +194,11 @@ class Result extends Action
             $session = $this->_session;
             $session->getQuote()->setIsActive($setQuoteAsActive)->save();
 
-            /**
-             * Prevent action component to redirect page again after returning to the shop.
-             */
-            $paymentAction = $this->_order->getPayment()->getAdditionalInformation('action');
-            if (isset($paymentAction) && $paymentAction['type'] === 'redirect') {
+            // Prevent action component to redirect page with the payment method Dotpay Bank transfer / postal
+            if (
+                $this->_order->getPayment()->getAdditionalInformation('brand_code') == self::BRAND_CODE_DOTPAY &&
+                $this->_order->getPayment()->getAdditionalInformation('resultCode') == self::RESULT_CODE_RECEIVED
+            ) {
                 $this->payment->unsAdditionalInformation('action');
                 $this->_order->save();
             }
@@ -314,55 +264,16 @@ class Result extends Action
             $this->payment->setAdditionalInformation('pspReference', $response['pspReference']);
         }
 
-        if ($this->vaultHelper->hasRecurringDetailReference($response) &&
-            $this->payment->getMethodInstance()->getCode() !== AdyenOneclickConfigProvider::CODE
-        ) {
-            $storeId = $this->payment->getMethodInstance()->getStore();
-            $paymentInstanceCode = $this->payment->getMethodInstance()->getCode();
-            $storePaymentMethods = $this->configHelper->isStoreAlternativePaymentMethodEnabled($storeId);
-            $cardVaultEnabled = $this->vaultHelper->isCardVaultEnabled($storeId);
-            $adyenTokensEnabled = $this->recurringHelper->areAdyenTokensEnabled($storeId);
-
-            // If payment method is HPP and hpp config enabled
-            // Else if payment method is card and vault is enabled
-            // Else if payment method is card and vault is disabled and adyen tokens are enabled
-            if ($storePaymentMethods && $paymentInstanceCode === AdyenHppConfigProvider::CODE) {
-                $paymentMethod = $response['paymentMethod']['type'];
-                try {
-                    $this->payment->setAdditionalInformation(VaultConfigProvider::IS_ACTIVE_CODE, true);
-                    $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($paymentMethod);
-                    if ($adyenPaymentMethod instanceof AbstractWalletPaymentMethod) {
-                        $this->vaultHelper->saveRecurringCardDetails(
-                            $this->payment,
-                            $response['additionalData'],
-                            $adyenPaymentMethod
-                        );
-                    } else {
-                        $this->vaultHelper->saveRecurringPaymentMethodDetails(
-                            $this->payment,
-                            $response['additionalData']
-                        );
-                    }
-                } catch (PaymentMethodException $e) {
-                    $this->_adyenLogger->error(sprintf(
-                        'Unable to create payment method with tx variant %s in details handler',
-                        $paymentMethod
-                    ));
-                }
-            } elseif ($cardVaultEnabled && $paymentInstanceCode === AdyenCcConfigProvider::CODE) {
+        // Save payment token if available in the response
+        if (!empty($response['additionalData']['recurring.recurringDetailReference']) &&
+            $this->payment->getMethodInstance()->getCode() !== \Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider::CODE) {
+            if ($this->vaultHelper->isCardVaultEnabled()) {
                 $this->vaultHelper->saveRecurringCardDetails($this->payment, $response['additionalData']);
-            } elseif (
-                !$cardVaultEnabled &&
-                $adyenTokensEnabled &&
-                $paymentInstanceCode === AdyenCcConfigProvider::CODE
-            ) {
+            } else {
                 $order = $this->payment->getOrder();
-                $this->recurringHelper->createAdyenBillingAgreement(
-                    $order,
-                    $response['additionalData'],
-                    $this->payment->getAdditionalInformation()
-                );
+                $this->recurringHelper->createAdyenBillingAgreement($order, $response['additionalData']);
             }
+            $this->orderResourceModel->save($order);
         }
 
         // Save donation token if available in the response
@@ -477,7 +388,7 @@ class Result extends Action
                 $result = false;
 
                 if (!$order->canCancel()) {
-                    $order->setState(Order::STATE_NEW);
+                    $order->setState(\Magento\Sales\Model\Order::STATE_NEW);
                     $this->orderRepository->save($order);
                 }
                 $this->dataHelper->cancelOrder($order);
@@ -559,7 +470,7 @@ class Result extends Action
      * Get order based on increment_id
      *
      * @param $incrementId
-     * @return Order
+     * @return \Magento\Sales\Model\Order
      */
     protected function _getOrder($incrementId = null)
     {
@@ -615,10 +526,9 @@ class Result extends Action
         }
 
         $request["details"] = $details;
-        $requestOptions['idempotencyKey'] = $this->idempotencyHelper->generateIdempotencyKey($request);
 
         try {
-            $response = $service->paymentsDetails($request, $requestOptions);
+            $response = $service->paymentsDetails($request);
             $responseMerchantReference = !empty($response['merchantReference']) ? $response['merchantReference'] : null;
             $resultMerchantReference = !empty($result['merchantReference']) ? $result['merchantReference'] : null;
             $merchantReference = $responseMerchantReference ?: $resultMerchantReference;
