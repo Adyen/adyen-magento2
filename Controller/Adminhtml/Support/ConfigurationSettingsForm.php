@@ -1,4 +1,13 @@
 <?php declare(strict_types=1);
+/**
+ * Adyen Payment Module
+ *
+ * Copyright (c) 2022 Adyen N.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
 
 namespace Adyen\Payment\Controller\Adminhtml\Support;
 
@@ -16,10 +25,7 @@ class ConfigurationSettingsForm extends Action
      */
     protected $supportFormHelper;
 
-    public function __construct(
-        Context           $context,
-        SupportFormHelper $supportFormHelper
-    )
+    public function __construct(Context $context, SupportFormHelper $supportFormHelper)
     {
         $this->supportFormHelper = $supportFormHelper;
         parent::__construct($context);
@@ -44,8 +50,8 @@ class ConfigurationSettingsForm extends Action
                 ];
                 $this->supportFormHelper->handleSubmit($formData, self::CONFIGURATION_SETTINGS_EMAIL_TEMPLATE);
                 return $this->_redirect('*/*/success');
-            } catch (\Exception $exception) {
-                $this->messageManager->addErrorMessage(__('Form unsuccessfully submitted'));
+            } catch (\Exception $e) {
+                $this->messageManager->addErrorMessage(__('Unable to send support message. ' . $e->getMessage()));
             }
         }
         return $resultPage;
