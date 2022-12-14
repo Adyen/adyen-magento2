@@ -63,6 +63,7 @@ class SupportFormHelper
     public function handleSubmit(array $formData, string $template): void
     {
         $storeId = $this->getStoreId();
+        $formData['subject'] = '['.$formData['topic'].'] '.$formData['subject'];
         if ($this->config->isSendAdminConfigurationEnabled($storeId)) {
             $configurationData = $this->getConfigData();
             $templateVars = array_merge($configurationData, $formData);
