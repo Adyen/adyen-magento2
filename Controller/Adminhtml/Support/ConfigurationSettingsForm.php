@@ -52,6 +52,7 @@ class ConfigurationSettingsForm extends Action
                 return $this->_redirect('*/*/success');
             } catch (\Exception $e) {
                 $this->messageManager->addErrorMessage(__('Unable to send support message. ' . $e->getMessage()));
+                $this->_redirect($this->_redirect->getRefererUrl());
             }
         }
         return $resultPage;

@@ -11,9 +11,9 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Model\TransportBuilder;
 use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Mail\Template\TransportBuilder;
 use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
@@ -91,11 +91,20 @@ class SupportFormHelper
             $from['email'] = $this->getGeneralContactSenderEmail();
         }
 
+        $attachmentBody = null;
+        $attachmentFilename = null;
+
+        if (isset($formData['attachment'])) {
+            $attachmentBody = $formData['attachment']; // todo move uploaded file
+            $attachmentFilename = 'attachment.txt';
+        }
+
         $transport = $this->transportBuilder->setTemplateIdentifier($template)
             ->setTemplateOptions($templateOptions)
             ->setTemplateVars($templateVars)
             ->setFromByScope($from)
             ->addTo($to)
+            ->setAttachment($attachmentBody, $attachmentFilename)
             ->getTransport();
         $transport->sendMessage();
         $this->messageManager->addSuccess(__('Form successfully submitted'));

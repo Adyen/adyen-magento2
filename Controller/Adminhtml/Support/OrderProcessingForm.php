@@ -57,6 +57,7 @@ class OrderProcessingForm extends Action
 
             } catch (\Exception $e) {
                 $this->messageManager->addErrorMessage(__('Unable to send support message. ' . $e->getMessage()));
+                $this->_redirect($this->_redirect->getRefererUrl());
             }
         }
 
