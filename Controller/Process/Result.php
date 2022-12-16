@@ -320,7 +320,10 @@ class Result extends Action
                             $adyenPaymentMethod
                         );
                     } else {
-                        $this->vaultHelper->saveRecurringPaymentMethodDetails($this->payment, $response['additionalData']);
+                        $this->vaultHelper->saveRecurringPaymentMethodDetails(
+                            $this->payment,
+                            $response['additionalData']
+                        );
                     }
                 } catch (PaymentMethodException $e) {
                     $this->_adyenLogger->error(sprintf(
