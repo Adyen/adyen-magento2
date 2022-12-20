@@ -151,13 +151,15 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'required' => false,
             ]
         );
+        $fieldset->addType('file', 'Adyen\Payment\Block\Adminhtml\Support\Form\Element\MultipleFileElement');
         $fieldset->addField(
-            'logs',
+            'attachments',
             'file',
             [
-                'name' => 'logs',
-                'label' => __('Attach Logs'),
-                'title' => __('Attach Logs'),
+                'name' => 'attachments[]',
+                'multiple'  => 'multiple',
+                'label' => __('Attachments'),
+                'title' => __('Attachments'),
                 'class' => '',
                 'required' => false,
             ]

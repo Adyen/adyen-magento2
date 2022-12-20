@@ -127,8 +127,8 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
      * @var AddressConverter|null
      */
     private $addressConverter;
-    private $attachmentBody;
-    private $attachmentFilename;
+
+    private $attachments = [];
 
     /**
      * TransportBuilder constructor
@@ -327,8 +327,10 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
     public function setAttachment($content = null, $filename = null)
     {
         if ($content) {
-            $this->attachmentBody = $content;
-            $this->attachmentFilename = $filename;
+            $this->attachments[] = [
+                'content' => $content,
+                'filename' => $filename
+            ];
         }
 
         return $this;
@@ -391,8 +393,10 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
 
         $messageParts = [$messageContent];
 
-        if ($this->attachmentBody) {
-            $messageParts[] = $this->prepareAttachmentPart();
+        if (!empty($this->attachments)) {
+            foreach ($this->attachments as $attachment) {
+                $messageParts[] = $this->prepareAttachmentPart($attachment['content'], $attachment['filename']);
+            }
         }
 
         $this->messageData['encoding'] = $messageContent->getCharset();
@@ -437,15 +441,15 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
         );
     }
 
-    private function prepareAttachmentPart()
+    private function prepareAttachmentPart($content, $filename)
     {
         return $this->mimePartInterfaceFactory->create(
             [
-                'content' => $this->attachmentBody,
+                'content' => $content,
                 'type' => Mime::TYPE_OCTETSTREAM,
                 'disposition' => Mime::DISPOSITION_ATTACHMENT,
                 'encoding' => Mime::ENCODING_BASE64,
-                'fileName' => $this->attachmentFilename
+                'fileName' => $filename
             ]
         );
     }

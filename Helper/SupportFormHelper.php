@@ -27,6 +27,12 @@ use Magento\Store\Model\StoreManagerInterface;
 class SupportFormHelper
 {
     const MAX_ATTACHMENT_SIZE = 7000000;
+    const MAX_TOTAL_SIZE = 10000000;
+
+    /**
+     * @var int
+     */
+    private $attachmentSize = 0;
 
     /**
      * @var Config
@@ -118,21 +124,20 @@ class SupportFormHelper
             $from['email'] = $this->getGeneralContactSenderEmail();
         }
 
-        $attachment = null;
-        $attachmentFilename = null;
-
-        if (isset($formData['attachment'])) {
-            $attachmentFilename = $formData['attachment']['name'];
-            $attachment = $this->uploadAttachment($formData['attachment']);
-        }
-
-        $transport = $this->transportBuilder->setTemplateIdentifier($template)
+        $transportBuilder = $this->transportBuilder->setTemplateIdentifier($template)
             ->setTemplateOptions($templateOptions)
             ->setTemplateVars($templateVars)
             ->setFromByScope($from)
-            ->addTo($to)
-            ->setAttachment(file_get_contents($attachment), $attachmentFilename)
-            ->getTransport();
+            ->addTo($to);
+
+        if (isset($formData['attachments']) && is_array($formData['attachments'])) {
+            foreach ($formData['attachments'] as $file) {
+                list($path, $filename) = $this->uploadAttachment($file);
+                $transportBuilder->setAttachment(file_get_contents($path), $filename);
+            }
+        }
+
+        $transport = $transportBuilder->getTransport();
 
         $transport->sendMessage();
         $this->messageManager->addSuccess(__('Form successfully submitted'));
@@ -193,13 +198,17 @@ class SupportFormHelper
 
     private function uploadAttachment($file)
     {
-        if ($file['size'] > self::MAX_ATTACHMENT_SIZE) {
-            throw new FileUploadException(__('Invalid attachment file size.'));
+        $this->attachmentSize += $file['size'];
+        if ($file['size'] > self::MAX_ATTACHMENT_SIZE || $this->attachmentSize > self::MAX_TOTAL_SIZE) {
+            throw new FileUploadException(
+                __('Invalid file size. Each file must 7MB or less and total upload size must be 10MB or less.')
+            );
         }
 
         $fileInfo = $this->fileUtil->getPathInfo($file['name']);
-        if (!in_array($fileInfo['extension'], ['zip', 'txt', 'log', 'rar', 'jpeg', 'jpg', 'pdf' ])) {
-            throw new FileUploadException(__('Invalid attachment file type.'));
+        $allowedTypes = ['zip', 'txt', 'log', 'rar', 'jpeg', 'jpg', 'pdf' ];
+        if (!in_array($fileInfo['extension'], $allowedTypes)) {
+            throw new FileUploadException(__('Invalid file type. Allowed types: ' . join(', ', $allowedTypes)));
         }
 
         $uploadDir = $this->writeFactory
@@ -214,6 +223,6 @@ class SupportFormHelper
             throw new FileUploadException(__('Unable to upload attachment.'));
         }
 
-        return $targetPath;
+        return [$targetPath, $file['name']];
     }
 }

@@ -47,7 +47,7 @@ class ConfigurationSettingsForm extends Action
                     'email' => $request['email'],
                     'headless' => $request['headless'],
                     'descriptionComments' => $request['descriptionComments'],
-                    'attachment' => $this->getRequest()->getFiles('logs'),
+                    'attachments' => $this->getRequest()->getFiles('attachments'),
                 ];
                 $this->supportFormHelper->handleSubmit($formData, self::CONFIGURATION_SETTINGS_EMAIL_TEMPLATE);
                 return $this->_redirect('*/*/success');
