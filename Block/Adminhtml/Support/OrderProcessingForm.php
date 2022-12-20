@@ -45,6 +45,7 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'id' => 'support_form',
                 'action' => $this->getUrl('adyen/support/orderprocessingform'),
                 'method' => 'post',
+                'enctype' => 'multipart/form-data',
             ]
         ]);
         $fieldset = $form->addFieldset('base_fieldset', ['legend' => __('Order processing')]);

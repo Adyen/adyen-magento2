@@ -11,14 +11,23 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Exception\FileUploadException;
 use Adyen\Payment\Model\TransportBuilder;
+use Magento\Framework\App\Filesystem\DirectoryList;
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\MailException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Filesystem;
 use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
+use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
 class SupportFormHelper
 {
+    const MAX_ATTACHMENT_SIZE = 7000000;
+
     /**
      * @var Config
      */
@@ -43,22 +52,39 @@ class SupportFormHelper
      * @var MessageManagerInterface
      */
     protected $messageManager;
+    /**
+     * @var Filesystem
+     */
+    private $filesystem;
+    /**
+     * @var Filesystem\Directory\WriteFactory
+     */
+    private $writeFactory;
+    /**
+     * @var Filesystem\Io\File
+     */
+    private $fileUtil;
 
     public function __construct(
-        TransportBuilder         $transportBuilder,
-        MessageManagerInterface  $messageManager,
-        Config                   $config,
-        Data                     $adyenHelper,
-        StoreManagerInterface    $storeManager,
+        TransportBuilder $transportBuilder,
+        MessageManagerInterface $messageManager,
+        Config $config,
+        Data $adyenHelper,
+        StoreManagerInterface $storeManager,
+        Filesystem\Io\File $fileUtil,
+        Filesystem $filesystem,
+        Filesystem\Directory\WriteFactory $writeFactory,
         ProductMetadataInterface $productMetadata
-    )
-    {
+    ) {
         $this->transportBuilder = $transportBuilder;
         $this->messageManager = $messageManager;
         $this->storeManager = $storeManager;
         $this->config = $config;
         $this->adyenHelper = $adyenHelper;
         $this->productMetadata = $productMetadata;
+        $this->filesystem = $filesystem;
+        $this->writeFactory = $writeFactory;
+        $this->fileUtil = $fileUtil;
     }
 
     /**
@@ -66,8 +92,9 @@ class SupportFormHelper
      * @param string $template
      *
      * @return void
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Magento\Framework\Exception\MailException
+     * @throws LocalizedException
+     * @throws MailException
+     * @throws FileUploadException
      */
     public function handleSubmit(array $formData, string $template): void
     {
@@ -91,12 +118,12 @@ class SupportFormHelper
             $from['email'] = $this->getGeneralContactSenderEmail();
         }
 
-        $attachmentBody = null;
+        $attachment = null;
         $attachmentFilename = null;
 
         if (isset($formData['attachment'])) {
-            $attachmentBody = $formData['attachment']; // todo move uploaded file
-            $attachmentFilename = 'attachment.txt';
+            $attachmentFilename = $formData['attachment']['name'];
+            $attachment = $this->uploadAttachment($formData['attachment']);
         }
 
         $transport = $this->transportBuilder->setTemplateIdentifier($template)
@@ -104,8 +131,9 @@ class SupportFormHelper
             ->setTemplateVars($templateVars)
             ->setFromByScope($from)
             ->addTo($to)
-            ->setAttachment($attachmentBody, $attachmentFilename)
+            ->setAttachment(file_get_contents($attachment), $attachmentFilename)
             ->getTransport();
+
         $transport->sendMessage();
         $this->messageManager->addSuccess(__('Form successfully submitted'));
     }
@@ -157,8 +185,35 @@ class SupportFormHelper
      */
     public function getGeneralContactSenderEmail(): string
     {
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $objectManager = ObjectManager::getInstance();
         $scopeConfig = $objectManager->create('\Magento\Framework\App\Config\ScopeConfigInterface');
-        return $scopeConfig->getValue('trans_email/ident_general/email', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+
+        return $scopeConfig->getValue('trans_email/ident_general/email', ScopeInterface::SCOPE_STORE);
+    }
+
+    private function uploadAttachment($file)
+    {
+        if ($file['size'] > self::MAX_ATTACHMENT_SIZE) {
+            throw new FileUploadException(__('Invalid attachment file size.'));
+        }
+
+        $fileInfo = $this->fileUtil->getPathInfo($file['name']);
+        if (!in_array($fileInfo['extension'], ['zip', 'txt', 'log', 'rar', 'jpeg', 'jpg', 'pdf' ])) {
+            throw new FileUploadException(__('Invalid attachment file type.'));
+        }
+
+        $uploadDir = $this->writeFactory
+            ->create($this->filesystem->getDirectoryRead(DirectoryList::TMP)->getAbsolutePath());
+
+        $targetPath = $uploadDir->getDriver()->getRealPathSafety($uploadDir->getAbsolutePath($file['name']));
+
+        // copy to target
+        $result = $uploadDir->getDriver()->copy($file['tmp_name'], $targetPath);
+
+        if (!$result) {
+            throw new FileUploadException(__('Unable to upload attachment.'));
+        }
+
+        return $targetPath;
     }
 }

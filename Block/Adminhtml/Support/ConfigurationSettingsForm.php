@@ -45,7 +45,8 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
             'data' => [
                 'id' => 'configurationsettings_form',
                 'action' => $this->getUrl('adyen/support/configurationsettingsform'),
-                'method' => 'post'
+                'method' => 'post',
+                'enctype' => 'multipart/form-data',
             ]
         ]);
 

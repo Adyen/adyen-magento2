@@ -49,7 +49,8 @@ class OrderProcessingForm extends Action
                     'paymentMethod' => $request['paymentMethod'],
                     'terminalId' => $request['terminalId'],
                     'orderHistoryComments' => $request['orderHistoryComments'],
-                    'orderDescription' => $request['orderDescription']
+                    'orderDescription' => $request['orderDescription'],
+                    'attachment' => $this->getRequest()->getFiles('logs'),
                 ];
                 $this->supportFormHelper->handleSubmit($formData, self::ORDER_PROCESSING);
                 return $this->_redirect('*/*/success');

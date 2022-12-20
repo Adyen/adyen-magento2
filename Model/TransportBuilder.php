@@ -324,7 +324,7 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
         return $this;
     }
 
-    public function setAttachment($content = null, $filename = 'attachment')
+    public function setAttachment($content = null, $filename = null)
     {
         if ($content) {
             $this->attachmentBody = $content;
@@ -388,11 +388,16 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
     {
         $template = $this->getTemplate();
         $messageContent = $this->prepareMessageContentPart($template);
-        $attachment = $this->prepareAttachmentPart($template);
+
+        $messageParts = [$messageContent];
+
+        if ($this->attachmentBody) {
+            $messageParts[] = $this->prepareAttachmentPart();
+        }
 
         $this->messageData['encoding'] = $messageContent->getCharset();
         $this->messageData['body'] = $this->mimeMessageInterfaceFactory->create(
-            ['parts' => [$messageContent]]
+            ['parts' => $messageParts]
         );
 
         $this->messageData['subject'] = html_entity_decode(
@@ -432,16 +437,17 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
         );
     }
 
-    private function prepareAttachmentPart($content, $filename)
+    private function prepareAttachmentPart()
     {
-        $attachment = $this->mimePartInterfaceFactory->create(['content' => $content]);
-        $attachment->setType(Mime::TYPE_OCTETSTREAM);
-        $attachment->setDisposition(Mime::DISPOSITION_ATTACHMENT);
-        $attachment->setEncoding(Mime::ENCODING_BASE64);
-
-        $attachment->setFileName($filename);
-
-        return $attachment;
+        return $this->mimePartInterfaceFactory->create(
+            [
+                'content' => $this->attachmentBody,
+                'type' => Mime::TYPE_OCTETSTREAM,
+                'disposition' => Mime::DISPOSITION_ATTACHMENT,
+                'encoding' => Mime::ENCODING_BASE64,
+                'fileName' => $this->attachmentFilename
+            ]
+        );
     }
 
     /**
