@@ -561,7 +561,7 @@ define(
             }
 
             function getStreetAndHouseNumberWithRegex(addressString) {
-                // Match addresses where the street name comes first, e.g. John-Paul's Ave. 1 B
+                // Match addresses where the street name comes first, e.g. John-Paul's Ave 1 B
                 let streetFirstRegex = /(?<streetName>[a-zA-Z0-9.'\- ]+)\s+(?<houseNumber>\d{1,10}((\s)?\w{1,3})?)$/;
                 // Match addresses where the house number comes first, e.g. 10 D John-Paul's Ave.
                 let numberFirstRegex = /^(?<houseNumber>\d{1,10}((\s)?\w{1,3})?)\s+(?<streetName>[a-zA-Z0-9.'\- ]+)/;
@@ -589,6 +589,7 @@ define(
 
             return {
                 city: address.city,
+                stateOrRegion: address.regionCode,
                 country: address.countryId,
                 postalCode: address.postcode,
                 street: street.streetName,
@@ -734,6 +735,9 @@ define(
                             countryCode: formattedShippingAddress.country,
                             phoneNumber: formattedShippingAddress.telephone
                         };
+                        if (configuration.addressDetails.countryCode === 'US') {
+                            configuration.addressDetails.stateOrRegion = quote.shippingAddress().regionCode
+                        }
                     }
                     else if (formattedBillingAddress &&
                         formattedBillingAddress.telephone) {
@@ -743,11 +747,15 @@ define(
                                 formattedBillingAddress.lastName,
                             addressLine1: formattedBillingAddress.street,
                             addressLine2: formattedBillingAddress.houseNumber,
+
                             city: formattedBillingAddress.city,
                             postalCode: formattedBillingAddress.postalCode,
                             countryCode: formattedBillingAddress.country,
                             phoneNumber: formattedBillingAddress.telephone
                         };
+                        if (configuration.addressDetails.countryCode === 'US') {
+                            configuration.addressDetails.stateOrRegion = quote.billingAddress().regionCode
+                        }
                     }
                 }
 
