@@ -734,9 +734,11 @@ define(
                             countryCode: formattedShippingAddress.country,
                             phoneNumber: formattedShippingAddress.telephone
                         };
-                        if (configuration.addressDetails.countryCode === 'US') {
-                            configuration.addressDetails.stateOrRegion = quote.shippingAddress().regionCode
-                        }
+                        // if (configuration.addressDetails.countryCode === 'US') {
+                        //     debugger;
+                        //     configuration.addressDetails.stateOrRegion = quote.shippingAddress().regionCode
+                        //     console.log(configuration.addressDetails)
+                        // }
                     }
                     else if (formattedBillingAddress &&
                         formattedBillingAddress.telephone) {
@@ -752,9 +754,9 @@ define(
                             countryCode: formattedBillingAddress.country,
                             phoneNumber: formattedBillingAddress.telephone
                         };
-                        if (configuration.addressDetails.countryCode === 'US') {
-                            configuration.addressDetails.stateOrRegion = quote.billingAddress().regionCode
-                        }
+                        // if (configuration.addressDetails.countryCode === 'US') {
+                        //     configuration.addressDetails.stateOrRegion = quote.billingAddress().regionCode
+                        // }
                     }
                 }
 
