@@ -589,7 +589,6 @@ define(
 
             return {
                 city: address.city,
-                stateOrRegion: address.regionCode,
                 country: address.countryId,
                 postalCode: address.postcode,
                 street: street.streetName,
