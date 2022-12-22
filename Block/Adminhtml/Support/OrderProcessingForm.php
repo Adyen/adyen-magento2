@@ -55,7 +55,8 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                     'offer' => 'Offer',
                     'webhooks' => 'Notification &amp; webhooks',
                 ],
-                'required' => true
+                'required' => true,
+                'value' => $this->supportFormHelper->getSelectedTopic()
             ]
         );
 

@@ -32,7 +32,18 @@ class ConfigurationSettingsForm extends Action
             ->getConfig()->getTitle()->prepend(__('Configuration settings'));
         if ('POST' === $this->getRequest()->getMethod()) {
             try {
+                $requiredFields = [
+                    'topic',
+                    'subject',
+                    'email',
+                    'descriptionComments'
+                ];
                 $request = $this->getRequest()->getParams();
+                $requiredFieldsMissing = $this->supportFormHelper->requiredFieldsMissing($request, $requiredFields);
+                if(!empty($requiredFieldsMissing)){
+                    $this->messageManager->addErrorMessage(__('Form unsuccessfully submitted, Required field '.$requiredFieldsMissing.' is missing'));
+                    return $this->supportFormUrl();
+                }
                 $formData = [
                     'topic' => $request['topic'],
                     'issue' => $request['issue'],
@@ -45,8 +56,16 @@ class ConfigurationSettingsForm extends Action
                 return $this->_redirect('*/*/success');
             } catch (\Exception $exception) {
                 $this->messageManager->addErrorMessage(__('Form unsuccessfully submitted'));
+                return $this->supportFormUrl();
             }
         }
         return $resultPage;
     }
+
+    private function supportFormUrl(): \Magento\Framework\App\ResponseInterface
+    {
+        return $this->_redirect('adyen/support/configurationsettingsform');
+    }
+
+
 }

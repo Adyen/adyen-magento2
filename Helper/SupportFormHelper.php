@@ -142,4 +142,26 @@ class SupportFormHelper
         $scopeConfig = $objectManager->create('\Magento\Framework\App\Config\ScopeConfigInterface');
         return $scopeConfig->getValue('trans_email/ident_general/email', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
     }
+
+    public function requiredFieldsMissing($request, $requiredFields): string
+    {
+       $requiredFieldsMissing = [];
+        foreach ($requiredFields as $field) {
+            if (empty($request[$field])) {
+                $requiredFieldsMissing[] = $field;
+            }
+        }
+        return implode(', ', $requiredFieldsMissing);
+    }
+
+    public function getSelectedTopic() : string
+    {
+        $url =  "//{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
+        $parts = parse_url($url);
+        if(isset($parts['query'])) {
+            parse_str($parts['query'], $query);
+            return $query['topic'];
+        }
+        return '';
+    }
 }

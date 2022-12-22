@@ -52,7 +52,8 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
                 'title' => __('Topic'),
                 'class' => '',
                 'options' => $this->getSupportTopics(),
-                'required' => true
+                'required' => true,
+                'value'=>$this->supportFormHelper->getSelectedTopic()
             ]
         );
 

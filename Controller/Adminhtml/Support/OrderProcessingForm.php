@@ -34,7 +34,19 @@ class OrderProcessingForm extends Action
             ->getConfig()->getTitle()->prepend(__('Order processing'));
         if ('POST' === $this->getRequest()->getMethod()){
             try {
+                $requiredFields = [
+                    'topic',
+                    'subject',
+                    'email',
+                    'pspReference'
+                ];
                 $request = $this->getRequest()->getParams();
+                $requiredFieldsMissing = $this->supportFormHelper->requiredFieldsMissing($request, $requiredFields);
+                if(!empty($requiredFieldsMissing)){
+                    $this->messageManager->addErrorMessage(__('Form unsuccessfully submitted, Required field '.$requiredFieldsMissing.' is missing'));
+                    return $this->supportFormUrl();
+                }
+
                 $formData = [
                     'topic' => $request['topic'],
                     'subject' => $request['subject'],
@@ -55,5 +67,10 @@ class OrderProcessingForm extends Action
             }
         }
         return $resultPage;
+    }
+
+    private function supportFormUrl(): \Magento\Framework\App\ResponseInterface
+    {
+        return $this->_redirect('adyen/support/orderprocessingform');
     }
 }
