@@ -1,4 +1,13 @@
 <?php
+/**
+ * Adyen Payment Module
+ *
+ * Copyright (c) 2022 Adyen N.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
 
 namespace Adyen\Payment\Block\Adminhtml\Support;
 
@@ -36,7 +45,8 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
             'data' => [
                 'id' => 'configurationsettings_form',
                 'action' => $this->getUrl('adyen/support/configurationsettingsform'),
-                'method' => 'post'
+                'method' => 'post',
+                'enctype' => 'multipart/form-data',
             ]
         ]);
 
@@ -52,10 +62,10 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
                 'title' => __('Topic'),
                 'class' => '',
                 'options' => $this->getSupportTopics(),
-                'required' => true
+                'required' => true,
+                'value' => $this->getRequest()->getParam('topic'),
             ]
         );
-
         $fieldset->addField(
             'issue',
             'select',
@@ -91,14 +101,15 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
                 'value' => $this->supportFormHelper->getGeneralContactSenderEmail()
             ]
         );
-
+        $fieldset->addType('file', 'Adyen\Payment\Block\Adminhtml\Support\Form\Element\MultipleFileElement');
         $fieldset->addField(
-            'logs',
+            'attachments',
             'file',
             [
-                'name' => 'logs',
-                'label' => __('Attach Logs'),
-                'title' => __('Attach Logs'),
+                'name' => 'attachments[]',
+                'multiple'  => 'multiple',
+                'label' => __('Attachments'),
+                'title' => __('Attachments'),
                 'class' => '',
                 'required' => false,
             ]
@@ -118,7 +129,6 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
                 ]
             ]
         );
-
         $fieldset->addField(
             'description',
             'textarea',
@@ -130,7 +140,6 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
                 'required' => false,
             ]
         );
-
         $fieldset->addField(
             'submit_support_configuration_settings',
             'submit',
@@ -147,7 +156,6 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
         $this->setForm($form);
         return parent::_prepareForm();
     }
-
 
     public function getSupportTopics(): array
     {

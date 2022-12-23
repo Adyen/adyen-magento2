@@ -1,4 +1,13 @@
 <?php
+/**
+ * Adyen Payment Module
+ *
+ * Copyright (c) 2022 Adyen N.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
 
 namespace Adyen\Payment\Block\Adminhtml\Support;
 
@@ -36,6 +45,7 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'id' => 'support_form',
                 'action' => $this->getUrl('adyen/support/orderprocessingform'),
                 'method' => 'post',
+                'enctype' => 'multipart/form-data',
             ]
         ]);
         $fieldset = $form->addFieldset('base_fieldset', ['legend' => __('Order processing')]);
@@ -55,10 +65,10 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                     'offer' => 'Offer',
                     'webhooks' => 'Notification &amp; webhooks',
                 ],
-                'required' => true
+                'required' => true,
+                'value' => $this->getRequest()->getParam('topic'),
             ]
         );
-
         $fieldset->addField(
             'subject',
             'text',
@@ -82,7 +92,6 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'value'=>$this->supportFormHelper->getGeneralContactSenderEmail()
             ]
         );
-
         $fieldset->addField(
             'pspReference',
             'text',
@@ -142,13 +151,15 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'required' => false,
             ]
         );
+        $fieldset->addType('file', 'Adyen\Payment\Block\Adminhtml\Support\Form\Element\MultipleFileElement');
         $fieldset->addField(
-            'logs',
+            'attachments',
             'file',
             [
-                'name' => 'logs',
-                'label' => __('Attach Logs'),
-                'title' => __('Attach Logs'),
+                'name' => 'attachments[]',
+                'multiple'  => 'multiple',
+                'label' => __('Attachments'),
+                'title' => __('Attachments'),
                 'class' => '',
                 'required' => false,
             ]
@@ -164,7 +175,6 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'required' => false,
             ]
         );
-
         $fieldset->addField(
             'orderDescription',
             'textarea',
@@ -176,7 +186,6 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'required' => false,
             ]
         );
-
         $fieldset->addField(
             'submit_support_order_processing',
             'submit',
@@ -189,6 +198,7 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
         );
 
         $form->setUseContainer(true);
+
         $this->setForm($form);
         return parent::_prepareForm();
     }
