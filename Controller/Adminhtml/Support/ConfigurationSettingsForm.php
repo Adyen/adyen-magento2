@@ -47,8 +47,8 @@ class ConfigurationSettingsForm extends Action
                 $request = $this->getRequest()->getParams();
                 $requiredFieldMissing = $this->supportFormHelper->requiredFieldsMissing($request, $requiredFields);
                 if (!empty($requiredFieldMissing)) {
-                    $this->messageManager->addErrorMessage(__('Form unsuccessfully submitted, Missing required field(s): '
-                        . $requiredFieldMissing));
+                    $this->messageManager->addErrorMessage(__('Form unsuccessfully submitted, 
+                    Missing required field(s): ' . $requiredFieldMissing));
                     return $this->_redirect('adyen/support/configurationsettingsform');
                 }
                 $formData = [
