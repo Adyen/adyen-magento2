@@ -37,6 +37,10 @@ class TokenizedPaymentMethods implements OptionSourceInterface
             [
                 'value' => PaymentMethods\TwintPaymentMethod::TX_VARIANT,
                 'label' => PaymentMethods\TwintPaymentMethod::NAME
+            ],
+            [
+                'value' => PaymentMethods\KlarnaPayLaterPaymentMethod::TX_VARIANT,
+                'label' => PaymentMethods\KlarnaPayLaterPaymentMethod::NAME
             ]
         ];
     }
