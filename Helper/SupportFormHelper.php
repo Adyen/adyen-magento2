@@ -1,15 +1,39 @@
 <?php
+/**
+ * Adyen Payment Module
+ *
+ * Copyright (c) 2022 Adyen N.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Exception\FileUploadException;
+use Adyen\Payment\Model\TransportBuilder;
+use Magento\Framework\App\Filesystem\DirectoryList;
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\MailException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Mail\Template\TransportBuilder;
+use Magento\Framework\Filesystem;
 use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
+use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
 class SupportFormHelper
 {
+    const MAX_ATTACHMENT_SIZE = 7000000;
+    const MAX_TOTAL_SIZE = 10000000;
+
+    /**
+     * @var int
+     */
+    private $attachmentSize = 0;
+
     /**
      * @var Config
      */
@@ -34,22 +58,39 @@ class SupportFormHelper
      * @var MessageManagerInterface
      */
     protected $messageManager;
+    /**
+     * @var Filesystem
+     */
+    private $filesystem;
+    /**
+     * @var Filesystem\Directory\WriteFactory
+     */
+    private $writeFactory;
+    /**
+     * @var Filesystem\Io\File
+     */
+    private $fileUtil;
 
     public function __construct(
-        TransportBuilder         $transportBuilder,
-        MessageManagerInterface  $messageManager,
-        Config                   $config,
-        Data                     $adyenHelper,
-        StoreManagerInterface    $storeManager,
+        TransportBuilder $transportBuilder,
+        MessageManagerInterface $messageManager,
+        Config $config,
+        Data $adyenHelper,
+        StoreManagerInterface $storeManager,
+        Filesystem\Io\File $fileUtil,
+        Filesystem $filesystem,
+        Filesystem\Directory\WriteFactory $writeFactory,
         ProductMetadataInterface $productMetadata
-    )
-    {
+    ) {
         $this->transportBuilder = $transportBuilder;
         $this->messageManager = $messageManager;
         $this->storeManager = $storeManager;
         $this->config = $config;
         $this->adyenHelper = $adyenHelper;
         $this->productMetadata = $productMetadata;
+        $this->filesystem = $filesystem;
+        $this->writeFactory = $writeFactory;
+        $this->fileUtil = $fileUtil;
     }
 
     /**
@@ -57,12 +98,14 @@ class SupportFormHelper
      * @param string $template
      *
      * @return void
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Magento\Framework\Exception\MailException
+     * @throws LocalizedException
+     * @throws MailException
+     * @throws FileUploadException
      */
     public function handleSubmit(array $formData, string $template): void
     {
         $storeId = $this->getStoreId();
+        $formData['subject'] = '['.$formData['topic'].'] '.$formData['subject'];
         if ($this->config->isSendAdminConfigurationEnabled($storeId)) {
             $configurationData = $this->getConfigData();
             $templateVars = array_merge($configurationData, $formData);
@@ -81,12 +124,23 @@ class SupportFormHelper
             $from['email'] = $this->getGeneralContactSenderEmail();
         }
 
-        $transport = $this->transportBuilder->setTemplateIdentifier($template)
+        $transportBuilder = $this->transportBuilder->setTemplateIdentifier($template)
             ->setTemplateOptions($templateOptions)
             ->setTemplateVars($templateVars)
             ->setFromByScope($from)
-            ->addTo($to)
-            ->getTransport();
+            ->addTo($to);
+
+        if (isset($formData['attachments']) && is_array($formData['attachments'])) {
+            foreach ($formData['attachments'] as $file) {
+                if (!empty($file['name'])) {
+                    list($path, $filename) = $this->uploadAttachment($file);
+                    $transportBuilder->setAttachment(file_get_contents($path), $filename);
+                }
+            }
+        }
+
+        $transport = $transportBuilder->getTransport();
+
         $transport->sendMessage();
         $this->messageManager->addSuccess(__('Form successfully submitted'));
     }
@@ -138,9 +192,40 @@ class SupportFormHelper
      */
     public function getGeneralContactSenderEmail(): string
     {
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $objectManager = ObjectManager::getInstance();
         $scopeConfig = $objectManager->create('\Magento\Framework\App\Config\ScopeConfigInterface');
-        return $scopeConfig->getValue('trans_email/ident_general/email', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+
+        return $scopeConfig->getValue('trans_email/ident_general/email', ScopeInterface::SCOPE_STORE);
+    }
+
+    private function uploadAttachment($file)
+    {
+        $this->attachmentSize += $file['size'];
+        if ($file['size'] > self::MAX_ATTACHMENT_SIZE || $this->attachmentSize > self::MAX_TOTAL_SIZE) {
+            throw new FileUploadException(
+                __('Invalid file size. Each file must 7MB or less and total upload size must be 10MB or less.')
+            );
+        }
+
+        $fileInfo = $this->fileUtil->getPathInfo($file['name']);
+        $allowedTypes = ['zip', 'txt', 'log', 'rar', 'jpeg', 'jpg', 'pdf' ];
+        if (!in_array($fileInfo['extension'], $allowedTypes)) {
+            throw new FileUploadException(__('Invalid file type. Allowed types: ' . join(', ', $allowedTypes)));
+        }
+
+        $uploadDir = $this->writeFactory
+            ->create($this->filesystem->getDirectoryRead(DirectoryList::TMP)->getAbsolutePath());
+
+        $targetPath = $uploadDir->getDriver()->getRealPathSafety($uploadDir->getAbsolutePath($file['name']));
+
+        // copy to target
+        $result = $uploadDir->getDriver()->copy($file['tmp_name'], $targetPath);
+
+        if (!$result) {
+            throw new FileUploadException(__('Unable to upload attachment.'));
+        }
+
+        return [$targetPath, $file['name']];
     }
 
     public function requiredFieldsMissing($request, $requiredFields): string
@@ -152,16 +237,5 @@ class SupportFormHelper
             }
         }
         return implode(', ', $requiredFieldsMissing);
-    }
-
-    public function getSelectedTopic() : string
-    {
-        $url =  "//{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
-        $parts = parse_url($url);
-        if(isset($parts['query'])) {
-            parse_str($parts['query'], $query);
-            return $query['topic'];
-        }
-        return '';
     }
 }
