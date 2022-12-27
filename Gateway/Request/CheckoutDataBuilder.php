@@ -136,7 +136,11 @@ class CheckoutDataBuilder implements BuilderInterface
                 (isset($brandCode) && $this->adyenHelper->isPaymentMethodOfType($brandCode, Data::KLARNA)) ||
                 $payment->getMethod() === AdyenPayByLinkConfigProvider::CODE
             ) {
-                $requestBody = $this->addOtherDeliveryInformation($requestBody, $order);
+                $otherDeliveryInformation = $this->getOtherDeliveryInformation($order);
+                if (isset($otherDeliveryInformation)) {
+                    $requestBody['additionalData']['openinvoicedata.merchantData'] =
+                        base64_encode(json_encode($otherDeliveryInformation));
+                }
             }
         }
 
@@ -219,11 +223,10 @@ class CheckoutDataBuilder implements BuilderInterface
     }
 
     /**
-     * @param array $requestBody
      * @param Order $order
-     * @return array
+     * @return array|null
      */
-    private function addOtherDeliveryInformation(array $requestBody, Order $order): array
+    private function getOtherDeliveryInformation(Order $order): ?array
     {
         $shippingAddress = $order->getShippingAddress();
 
@@ -237,12 +240,9 @@ class CheckoutDataBuilder implements BuilderInterface
                 "city" => $shippingAddress->getCity(),
                 "country" => $shippingAddress->getCountryId()
             ];
-
-            $requestBody['additionalData']['openinvoicedata.merchantData'] =
-                base64_encode(json_encode($otherDeliveryInformation));
         }
 
-        return $requestBody;
+        return $otherDeliveryInformation ?? null;
     }
 
     /**
