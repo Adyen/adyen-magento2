@@ -46,11 +46,11 @@ class OrderProcessingForm extends Action
                 ];
                 $request = $this->getRequest()->getParams();
                 $requiredFieldMissing = $this->supportFormHelper->requiredFieldsMissing($request, $requiredFields);
-                if(!empty($requiredFieldMissing)){
-                    $this->messageManager->addErrorMessage(__('Form unsuccessfully submitted, Required field '.$requiredFieldMissing.' is missing'));
-                    return $this->supportFormUrl();
+                if (!empty($requiredFieldMissing)) {
+                    $this->messageManager->addErrorMessage(__('Form unsuccessfully submitted, Required field '
+                        . $requiredFieldMissing . ' is missing'));
+                    return $this->_redirect('adyen/support/orderprocessingform');
                 }
-
                 $formData = [
                     'topic' => $request['topic'],
                     'subject' => $request['subject'],
@@ -67,18 +67,12 @@ class OrderProcessingForm extends Action
                 $this->supportFormHelper->handleSubmit($formData, self::ORDER_PROCESSING);
                 return $this->_redirect('*/*/success');
 
-
             } catch (\Exception $e) {
-                $this->messageManager->addErrorMessage(__('Unable to send support message. ' . $e->getMessage()));
+                $this->messageManager->addErrorMessage(__('Unable to send support message. '
+                    . $e->getMessage()));
                 $this->_redirect($this->_redirect->getRefererUrl());
             }
         }
-
         return $resultPage;
-    }
-
-    private function supportFormUrl(): \Magento\Framework\App\ResponseInterface
-    {
-        return $this->_redirect('adyen/support/orderprocessingform');
     }
 }
