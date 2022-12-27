@@ -561,7 +561,7 @@ define(
             }
 
             function getStreetAndHouseNumberWithRegex(addressString) {
-                // Match addresses where the street name comes first, e.g. John-Paul's Ave 1 B
+                // Match addresses where the street name comes first, e.g. John-Paul's Ave. 1 B
                 let streetFirstRegex = /(?<streetName>[a-zA-Z0-9.'\- ]+)\s+(?<houseNumber>\d{1,10}((\s)?\w{1,3})?)$/;
                 // Match addresses where the house number comes first, e.g. 10 D John-Paul's Ave.
                 let numberFirstRegex = /^(?<houseNumber>\d{1,10}((\s)?\w{1,3})?)\s+(?<streetName>[a-zA-Z0-9.'\- ]+)/;
