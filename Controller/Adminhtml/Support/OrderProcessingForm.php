@@ -45,9 +45,9 @@ class OrderProcessingForm extends Action
                     'pspReference'
                 ];
                 $request = $this->getRequest()->getParams();
-                $requiredFieldsMissing = $this->supportFormHelper->requiredFieldsMissing($request, $requiredFields);
-                if(!empty($requiredFieldsMissing)){
-                    $this->messageManager->addErrorMessage(__('Form unsuccessfully submitted, Required field '.$requiredFieldsMissing.' is missing'));
+                $requiredFieldMissing = $this->supportFormHelper->requiredFieldsMissing($request, $requiredFields);
+                if(!empty($requiredFieldMissing)){
+                    $this->messageManager->addErrorMessage(__('Form unsuccessfully submitted, Required field '.$requiredFieldMissing.' is missing'));
                     return $this->supportFormUrl();
                 }
 
