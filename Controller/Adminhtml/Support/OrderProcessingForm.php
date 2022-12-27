@@ -47,8 +47,8 @@ class OrderProcessingForm extends Action
                 $request = $this->getRequest()->getParams();
                 $requiredFieldMissing = $this->supportFormHelper->requiredFieldsMissing($request, $requiredFields);
                 if (!empty($requiredFieldMissing)) {
-                    $this->messageManager->addErrorMessage(__('Form unsuccessfully submitted, Required field '
-                        . $requiredFieldMissing . ' is missing'));
+                    $this->messageManager->addErrorMessage(__('Form unsuccessfully submitted, Missing required field(s): '
+                        . $requiredFieldMissing));
                     return $this->_redirect('adyen/support/orderprocessingform');
                 }
                 $formData = [
