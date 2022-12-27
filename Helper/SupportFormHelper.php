@@ -132,8 +132,10 @@ class SupportFormHelper
 
         if (isset($formData['attachments']) && is_array($formData['attachments'])) {
             foreach ($formData['attachments'] as $file) {
-                list($path, $filename) = $this->uploadAttachment($file);
-                $transportBuilder->setAttachment(file_get_contents($path), $filename);
+                if (!empty($file['name'])) {
+                    list($path, $filename) = $this->uploadAttachment($file);
+                    $transportBuilder->setAttachment(file_get_contents($path), $filename);
+                }
             }
         }
 
@@ -224,5 +226,16 @@ class SupportFormHelper
         }
 
         return [$targetPath, $file['name']];
+    }
+
+    public function requiredFieldsMissing($request, $requiredFields): string
+    {
+       $requiredFieldsMissing = [];
+        foreach ($requiredFields as $field) {
+            if (empty($request[$field])) {
+                $requiredFieldsMissing[] = $field;
+            }
+        }
+        return implode(', ', $requiredFieldsMissing);
     }
 }

@@ -38,7 +38,19 @@ class OrderProcessingForm extends Action
 
         if ('POST' === $this->getRequest()->getMethod()){
             try {
+                $requiredFields = [
+                    'topic',
+                    'subject',
+                    'email',
+                    'pspReference'
+                ];
                 $request = $this->getRequest()->getParams();
+                $requiredFieldMissing = $this->supportFormHelper->requiredFieldsMissing($request, $requiredFields);
+                if (!empty($requiredFieldMissing)) {
+                    $this->messageManager->addErrorMessage(__('Form unsuccessfully submitted, 
+                    Missing required field(s): ' . $requiredFieldMissing));
+                    return $this->_redirect('adyen/support/orderprocessingform');
+                }
                 $formData = [
                     'topic' => $request['topic'],
                     'subject' => $request['subject'],
@@ -55,13 +67,12 @@ class OrderProcessingForm extends Action
                 $this->supportFormHelper->handleSubmit($formData, self::ORDER_PROCESSING);
                 return $this->_redirect('*/*/success');
 
-
             } catch (\Exception $e) {
-                $this->messageManager->addErrorMessage(__('Unable to send support message. ' . $e->getMessage()));
+                $this->messageManager->addErrorMessage(__('Unable to send support message. '
+                    . $e->getMessage()));
                 $this->_redirect($this->_redirect->getRefererUrl());
             }
         }
-
         return $resultPage;
     }
 }

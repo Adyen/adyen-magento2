@@ -43,7 +43,7 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
     {
         $form = $this->_formFactory->create([
             'data' => [
-                'id' => 'configurationsettings_form',
+                'id' => 'support_form',
                 'action' => $this->getUrl('adyen/support/configurationsettingsform'),
                 'method' => 'post',
                 'enctype' => 'multipart/form-data',
@@ -96,7 +96,7 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
                 'name' => 'email',
                 'label' => __('Email'),
                 'title' => __('Email'),
-                'class' => '',
+                'class' => 'validate-emails required',
                 'required' => true,
                 'value' => $this->supportFormHelper->getGeneralContactSenderEmail()
             ]

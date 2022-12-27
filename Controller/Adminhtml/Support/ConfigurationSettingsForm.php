@@ -39,7 +39,18 @@ class ConfigurationSettingsForm extends Action
 
         if ('POST' === $this->getRequest()->getMethod()) {
             try {
+                $requiredFields = [
+                    'topic',
+                    'subject',
+                    'email'
+                ];
                 $request = $this->getRequest()->getParams();
+                $requiredFieldMissing = $this->supportFormHelper->requiredFieldsMissing($request, $requiredFields);
+                if (!empty($requiredFieldMissing)) {
+                    $this->messageManager->addErrorMessage(__('Form unsuccessfully submitted, 
+                    Missing required field(s): ' . $requiredFieldMissing));
+                    return $this->_redirect('adyen/support/configurationsettingsform');
+                }
                 $formData = [
                     'topic' => $request['topic'],
                     'issue' => $request['issue'],
@@ -51,8 +62,10 @@ class ConfigurationSettingsForm extends Action
                 ];
                 $this->supportFormHelper->handleSubmit($formData, self::CONFIGURATION_SETTINGS_EMAIL_TEMPLATE);
                 return $this->_redirect('*/*/success');
+
             } catch (\Exception $e) {
-                $this->messageManager->addErrorMessage(__('Unable to send support message. ' . $e->getMessage()));
+                $this->messageManager->addErrorMessage(__('Unable to send support message. '
+                    . $e->getMessage()));
                 $this->_redirect($this->_redirect->getRefererUrl());
             }
         }
