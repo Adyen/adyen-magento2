@@ -33,8 +33,8 @@ define(
         'use strict';
         const paymentMethodComponent = 'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-method';
         const paymentMethodCodes = [
-            'adyen_ideal',
-            'adyen_klarna',
+            // 'adyen_ideal',
+            // 'adyen_klarna',
             'adyen_paypal'
         ];
         rendererList.push(
@@ -53,6 +53,18 @@ define(
             {
                 type: 'adyen_pos_cloud',
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-pos-cloud-method'
+            },
+            {
+                type: 'adyen_ideal',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-ideal-method'
+            },
+            {
+                type: 'adyen_klarna',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-klarna-method'
+            },
+            {
+                type: 'adyen_paypal',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-paypal-method'
             }
         );
 
