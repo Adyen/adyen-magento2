@@ -1046,7 +1046,6 @@ class Data extends AbstractHelper
             strpos($paymentMethod, self::ATOME) !== false ||
             strpos($paymentMethod, self::WALLEY) !== false ||
             strpos($paymentMethod, self::WALLEYB2B) !== false
-
         ) {
             return true;
         }
