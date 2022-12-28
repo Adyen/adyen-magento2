@@ -44,21 +44,7 @@ define(
                     {
                         showPayButton: showPayButton,
                         countryCode: formattedShippingAddress.country ? formattedShippingAddress.country : formattedBillingAddress.country, // Use shipping address details as default and fall back to billing address if missing
-                        data: {
-                            personalDetails: {
-                                firstName: formattedBillingAddress.firstName,
-                                lastName: formattedBillingAddress.lastName,
-                                telephoneNumber: formattedBillingAddress.telephone,
-                                shopperEmail: email,
-                            },
-                            billingAddress: {
-                                city: formattedBillingAddress.city,
-                                country: formattedBillingAddress.country,
-                                houseNumberOrName: formattedBillingAddress.houseNumber,
-                                postalCode: formattedBillingAddress.postalCode,
-                                street: formattedBillingAddress.street,
-                            },
-                        },
+                        data: {},
                         onChange: function (state) {
                             result.isPlaceOrderAllowed(state.isValid);
                         },
