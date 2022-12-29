@@ -14,6 +14,8 @@ namespace Adyen\Payment\Model\Api;
 
 use Adyen\Payment\Api\AdyenDonationsInterface;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Adyen\Util\Uuid;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Exception\LocalizedException;
@@ -94,6 +96,14 @@ class AdyenDonations implements AdyenDonationsInterface
 
         $payload['donationToken'] = $donationToken;
         $payload['donationOriginalPspReference'] = $order->getPayment()->getAdditionalInformation('pspReference');
+
+        if ($order->getPayment()->getMethod() === AdyenCcConfigProvider::CODE) {
+            $payload['paymentMethod'] = 'scheme';
+        } elseif ($order->getPayment()->getMethod() === AdyenHppConfigProvider::CODE) {
+            $payload['paymentMethod'] = $order->getPayment()->getAdditionalInformation('brand_code');
+        } else {
+            throw new LocalizedException(__('Donation failed!'));
+        }
 
         $customerId = $order->getCustomerId();
         if ($customerId) {

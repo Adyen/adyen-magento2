@@ -22,6 +22,13 @@ class Requests extends AbstractHelper
     const MERCHANT_ACCOUNT = 'merchantAccount';
     const SHOPPER_REFERENCE = 'shopperReference';
     const RECURRING_DETAIL_REFERENCE = 'recurringDetailReference';
+    const DONATION_PAYMENT_METHOD_CODE_MAPPING = [
+        'ideal' => 'sepadirectdebit',
+        'storedPaymentMethods' => 'scheme',
+        'googlepay' => 'scheme',
+        'paywithgoogle' => 'scheme',
+    ];
+    const SHOPPER_INTERACTION_CONTAUTH = 'ContAuth';
 
     /**
      * @var Data
@@ -405,17 +412,25 @@ class Requests extends AbstractHelper
 
     public function buildDonationData($buildSubject, $storeId): array
     {
+        $paymentMethodCode = $buildSubject['paymentMethod'];
+
+        if (isset(self::DONATION_PAYMENT_METHOD_CODE_MAPPING[$paymentMethodCode])) {
+            $paymentMethodCode = self::DONATION_PAYMENT_METHOD_CODE_MAPPING[$paymentMethodCode];
+        }
+
         return [
             'amount' => $buildSubject['amount'],
             'reference' => Uuid::generateV4(),
             'shopperReference' => $buildSubject['shopperReference'],
-            'paymentMethod' => $buildSubject['paymentMethod'],
+            'paymentMethod' => [
+                'type' => $paymentMethodCode
+            ],
             'donationToken' => $buildSubject['donationToken'],
             'donationOriginalPspReference' => $buildSubject['donationOriginalPspReference'],
             'donationAccount' => $this->adyenConfig->getCharityMerchantAccount($storeId),
             'returnUrl' => $buildSubject['returnUrl'],
             'merchantAccount' => $this->adyenHelper->getAdyenMerchantAccount('adyen_giving', $storeId),
-            'shopperInteraction' => 'Ecommerce'
+            'shopperInteraction' => self::SHOPPER_INTERACTION_CONTAUTH
         ];
     }
 
