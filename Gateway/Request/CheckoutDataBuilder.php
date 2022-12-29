@@ -22,6 +22,7 @@ use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 use Magento\Catalog\Helper\Image;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Sales\Model\Order;
 
 class CheckoutDataBuilder implements BuilderInterface
 {
@@ -90,7 +91,7 @@ class CheckoutDataBuilder implements BuilderInterface
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
-        /** @var \Magento\Sales\Model\Order $order */
+        /** @var Order $order */
         $order = $payment->getOrder();
         $storeId = $order->getStoreId();
 
@@ -131,16 +132,16 @@ class CheckoutDataBuilder implements BuilderInterface
                 $requestBody['captureDelayHours'] = 0;
             }
 
-            if ($payment->getMethod() === AdyenPayByLinkConfigProvider::CODE
-                || $this->adyenHelper->isPaymentMethodOfType($brandCode, Data::KLARNA)) {
-                $requestBody['additionalData']['openinvoicedata.merchantData'] =
-                    base64_encode(json_encode($this->getOtherDeliveryInformation($order)));
+            if (
+                (isset($brandCode) && $this->adyenHelper->isPaymentMethodOfType($brandCode, Data::KLARNA)) ||
+                $payment->getMethod() === AdyenPayByLinkConfigProvider::CODE
+            ) {
+                $otherDeliveryInformation = $this->getOtherDeliveryInformation($order);
+                if (isset($otherDeliveryInformation)) {
+                    $requestBody['additionalData']['openinvoicedata.merchantData'] =
+                        base64_encode(json_encode($otherDeliveryInformation));
+                }
             }
-        }
-
-        if ($payment->getMethod() === AdyenPayByLinkConfigProvider::CODE) {
-            $requestBody['additionalData']['openinvoicedata.merchantData'] =
-                base64_encode(json_encode($this->getOtherDeliveryInformation($order)));
         }
 
         // Ratepay specific Fingerprint
@@ -210,11 +211,6 @@ class CheckoutDataBuilder implements BuilderInterface
             unset($requestBody['installments']);
         }
 
-        if (isset($brandCode) && $this->adyenHelper->isPaymentMethodOfType($brandCode, Data::KLARNA)) {
-            $requestBody['additionalData']['openinvoicedata.merchantData'] =
-                base64_encode(json_encode($this->getOtherDeliveryInformation($order)));
-        }
-
         $requestBody['additionalData']['allow3DS2'] = true;
 
         if (isset($requestBodyPaymentMethod)) {
@@ -227,22 +223,26 @@ class CheckoutDataBuilder implements BuilderInterface
     }
 
     /**
-     * @param \Magento\Sales\Model\Order $order
-     * @return array
+     * @param Order $order
+     * @return array|null
      */
-    private function getOtherDeliveryInformation(\Magento\Sales\Model\Order $order): array
+    private function getOtherDeliveryInformation(Order $order): ?array
     {
         $shippingAddress = $order->getShippingAddress();
 
-        return [
-            "shipping_method" => $order->getShippingMethod(),
-            "first_name" => $order->getCustomerFirstname(),
-            "last_name" => $order->getCustomerLastname(),
-            "street_address" => implode(' ', $shippingAddress->getStreet()),
-            "postal_code" => $shippingAddress->getPostcode(),
-            "city" => $shippingAddress->getCity(),
-            "country" => $shippingAddress->getCountryId()
-        ];
+        if ($shippingAddress) {
+            $otherDeliveryInformation = [
+                "shipping_method" => $order->getShippingMethod(),
+                "first_name" => $order->getCustomerFirstname(),
+                "last_name" => $order->getCustomerLastname(),
+                "street_address" => implode(' ', $shippingAddress->getStreet()),
+                "postal_code" => $shippingAddress->getPostcode(),
+                "city" => $shippingAddress->getCity(),
+                "country" => $shippingAddress->getCountryId()
+            ];
+        }
+
+        return $otherDeliveryInformation ?? null;
     }
 
     /**
@@ -264,7 +264,7 @@ class CheckoutDataBuilder implements BuilderInterface
     }
 
     /**
-     * @param \Magento\Sales\Model\Order $order
+     * @param Order $order
      *
      * @return array
      * @throws \Magento\Framework\Exception\NoSuchEntityException
