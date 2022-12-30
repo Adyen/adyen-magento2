@@ -103,7 +103,7 @@ class DownloadApplePayCertificate extends Action
                 }
             }
         } catch (Exception $e) {
-            $errormessage = 'Failed to download the ApplePay certificate please do so manually';
+            $errormessage = 'Failed to download the ApplePay certificate, please do so manually';
             $this->adyenLogger->addAdyenWarning($errormessage);
             $this->messageManager->addErrorMessage($errormessage);
         }
