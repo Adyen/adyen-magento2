@@ -33,6 +33,9 @@
     <event name="payment_method_assign_data_adyen_paypal">
         <observer name="adyen_paypal_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_bcmc_mobile">
+        <observer name="adyen_bcmc_mobile_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
     <event name="payment_method_assign_data_adyen_pos_cloud">
         <observer name="adyen_pos_cloud_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPosCloudDataAssignObserver" />
     </event>
