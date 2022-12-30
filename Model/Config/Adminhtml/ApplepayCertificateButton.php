@@ -61,7 +61,7 @@ class ApplepayCertificateButton extends Field
     {
         $this->addData([
             'id' => 'addbutton_button',
-            'button_label' => _(''),
+            'button_label' => null,
             'onclick' => 'javascript:check(); return false;'
         ]);
 
