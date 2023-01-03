@@ -77,7 +77,7 @@ class VaultConfigObserver implements ObserverInterface
         if ($vaultEnabledConfig !== $vaultActiveConfig) {
             $this->configWriter->save(
                 'payment/' . Config::XML_ADYEN_CC_VAULT . '/active',
-                intval($vaultEnabledConfig),
+                intval($vaultEnabledConfig)
             );
         }
     }

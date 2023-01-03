@@ -59,6 +59,14 @@
                 <field id="adyen_hpp_vault_active">1</field>
             </depends>
         </field>
+        <!--ApplePay certificate settings -->
+        <group id="adyen_applepay_certificate" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="90">
+            <label>Apple Pay Certificate</label>
+            <comment>You need a certificate to use Apple Pay as one of your payment methods within Magento 2</comment>
+            <field id="apple_pay_certificate_download" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                <frontend_model>Adyen\Payment\Model\Config\Adminhtml\ApplepayCertificateButton</frontend_model>
+            </field>
+        </group>
         <!--klarna\ratePay\afterpay settings-->
         <group id="adyen_hpp_openinvoice_settings" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="100">
             <label>RatePay</label>
