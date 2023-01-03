@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2021 Adyen N.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -34,49 +34,25 @@ interface StateDataInterface
     const STATE_DATA = 'state_data';
 
     /**
-     * Gets the ID for the state data.
+     * Cannot use PHP typing due to Magento constraints
      *
      * @return int|null Entity ID.
      */
     public function getEntityId();
 
     /**
-     * Sets entity ID.
+     * Cannot use PHP typing due to Magento constraints
      *
      * @param int $entityId
      * @return $this
      */
     public function setEntityId($entityId);
 
+    public function getQuoteId(): int;
 
-    /**
-     * Gets the quote ID for the state data.
-     *
-     * @return int|null Quote ID.
-     */
-    public function getQuoteId();
+    public function setQuoteId(int $quoteId): StateDataInterface;
 
-    /**
-     * Sets quote ID.
-     *
-     * @param int $quoteId
-     * @return $this
-     */
-    public function setQuoteId($quoteId);
+    public function getStateData(): ?string;
 
-    /**
-     * Gets the state data.
-     *
-     * @return string|null State Data.
-     */
-    public function getStateData();
-
-    /**
-     * Sets state data
-     *
-     * @param string $stateData
-     * @return $this
-     */
-    public function setStateData($stateData);
-
+    public function setStateData(string $stateData): StateDataInterface;
 }
