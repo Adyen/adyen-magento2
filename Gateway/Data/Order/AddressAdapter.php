@@ -25,7 +25,7 @@ class AddressAdapter extends \Magento\Payment\Gateway\Data\Order\AddressAdapter 
         parent::__construct($address);
     }
 
-    public function getStreetLine3(): ?string
+    public function getStreetLine3(): string
     {
         $street = $this->address->getStreet();
 

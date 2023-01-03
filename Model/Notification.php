@@ -134,7 +134,7 @@ class Notification extends AbstractModel implements NotificationInterface
         return $this->getData(self::ORIGINAL_REFERENCE);
     }
 
-    public function setOriginalReference(string $originalReference): NotificationInterface
+    public function setOriginalReference(?string $originalReference): NotificationInterface
     {
         return $this->setData(self::ORIGINAL_REFERENCE, $originalReference);
     }

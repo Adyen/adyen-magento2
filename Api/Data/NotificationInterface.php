@@ -60,7 +60,7 @@ interface NotificationInterface
 
     public function getOriginalReference(): ?string;
 
-    public function setOriginalReference(string $originalReference): NotificationInterface;
+    public function setOriginalReference(?string $originalReference): NotificationInterface;
 
     public function getMerchantReference(): ?string;
 
