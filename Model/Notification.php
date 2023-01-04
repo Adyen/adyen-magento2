@@ -98,27 +98,6 @@ class Notification extends AbstractModel implements NotificationInterface
         return false;
     }
 
-    /**
-     * Cannot use PHP typing due to Magento constraints
-     *
-     * @return int
-     */
-    public function getEntityId()
-    {
-        return $this->getData(self::ENTITY_ID);
-    }
-
-    /**
-     * Cannot use PHP typing due to Magento constraints
-     *
-     * @param int $entityId
-     * @return $this
-     */
-    public function setEntityId($entityId)
-    {
-        return $this->setData(self::ENTITY_ID, $entityId);
-    }
-
     public function getPspreference(): ?string
     {
         return $this->getData(self::PSPREFRENCE);

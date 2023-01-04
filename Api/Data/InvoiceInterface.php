@@ -35,15 +35,11 @@ interface InvoiceInterface
     const STATUS_FAILED = 'Failed';
 
     /**
-     * Cannot use PHP typing due to Magento constraints
-     *
      * @return int|null
      */
     public function getEntityId();
 
     /**
-     * Cannot use PHP typing due to Magento constraints
-     *
      * @param int $entityId
      * @return InvoiceInterface
      */

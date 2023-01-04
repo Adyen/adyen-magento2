@@ -57,7 +57,7 @@ class Invoice extends AbstractModel implements InvoiceInterface
         return $this->getData(self::ACQUIRER_REFERENCE);
     }
 
-    public function setAcquirerReference(string $acquirerReference): InvoiceInterface
+    public function setAcquirerReference(?string $acquirerReference): InvoiceInterface
     {
         return $this->setData(self::ACQUIRER_REFERENCE, $acquirerReference);
     }

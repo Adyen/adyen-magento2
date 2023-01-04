@@ -40,15 +40,11 @@ interface NotificationInterface
     const UPDATED_AT = 'updated_at';
 
     /**
-     * Cannot use PHP typing due to Magento constraints
-     *
      * @return int|null Entity ID.
      */
     public function getEntityId();
 
     /**
-     * Cannot use PHP typing due to Magento constraints
-     *
      * @param int $entityId
      * @return $this
      */

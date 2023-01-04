@@ -44,15 +44,11 @@ interface OrderPaymentInterface
     const CAPTURE_STATUS_NO_CAPTURE = 'Not captured';
 
     /**
-     * Cannot use PHP typing due to Magento constraints
-     *
      * @return int|null Entity ID.
      */
     public function getEntityId();
 
     /**
-     * Cannot use PHP typing due to Magento constraints
-     *
      * @param int $entityId
      * @return $this
      */
