@@ -1499,7 +1499,6 @@ class Data extends AbstractHelper
         $client->setExternalPlatform($this->productMetadata->getName(), $this->productMetadata->getVersion(), 'Adyen');
         if ($isDemo) {
             $client->setEnvironment(\Adyen\Environment::TEST);
-            $client->setLogger($this->adyenLogger);
         } else {
             $client->setEnvironment(\Adyen\Environment::LIVE, $this->getLiveEndpointPrefix($storeId));
         }
@@ -1786,5 +1785,39 @@ class Data extends AbstractHelper
     public function padShopperReference(string $shopperReference): string
     {
         return str_pad($shopperReference, 3, '0', STR_PAD_LEFT);
+    }
+
+    public function logRequest(array $request, $apiVersion, $endpoint)
+    {
+        $storeId = $this->storeManager->getStore()->getId();
+        $isDemo = $this->configHelper->isDemoMode($storeId);
+        $context = ['apiVersion' => $apiVersion];
+        if ($isDemo) {
+            // log full request
+            $context['body'] = $request;
+        } else {
+            // log important details
+            $context['livePrefix'] = $this->getLiveEndpointPrefix($storeId);
+            $context['body'] = ['merchantReference' => $request['reference']];
+        }
+
+        $this->adyenLogger->info("Request to Adyen API resource: /" . $endpoint, $context);
+    }
+
+    public function logResponse(array $response)
+    {
+        $storeId = $this->storeManager->getStore()->getId();
+        $isDemo = $this->configHelper->isDemoMode($storeId);
+        $context = [];
+        if ($isDemo) {
+            $context['body'] = $response;
+        } else {
+            $context['body'] = [
+                'pspReference' => $response['pspReference'] ?? null,
+                'merchantReference' => $response['merchantReference'] ?? null,
+            ];
+        }
+
+        $this->adyenLogger->info('Response from Adyen API', $context);
     }
 }
