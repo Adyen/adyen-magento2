@@ -62,12 +62,12 @@ class TransactionRefund implements ClientInterface
                 $response[self::REFUND_CURRENCY] = $request['modificationAmount']['currency'];
 
                 $response[self::ORIGINAL_REFERENCE] = $request['originalReference'];
-
-                $responses[] = $response;
             } catch (\Adyen\AdyenException $e) {
-                $responses[] = ['error' => $e->getMessage()];
+                $response = ['error' => $e->getMessage()];
             }
-            $this->adyenHelper->logResponse($responses);
+            $this->adyenHelper->logResponse($response);
+
+            $responses[] = $response;
         }
         return $responses;
     }

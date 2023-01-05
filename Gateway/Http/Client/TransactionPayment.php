@@ -77,7 +77,7 @@ class TransactionPayment implements ClientInterface
 
         $requestOptions = [];
 
-        $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, 'payments');
+        $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/payments');
         try {
             $response = $service->payments($request, $requestOptions);
 

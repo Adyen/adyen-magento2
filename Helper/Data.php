@@ -1799,7 +1799,7 @@ class Data extends AbstractHelper
             $context['body'] = $this->filterReferences($request);
         }
 
-        $this->adyenLogger->info("Request to Adyen API resource: /" . $endpoint, $context);
+        $this->adyenLogger->info("Request to Adyen API resource: " . $endpoint, $context);
     }
 
     public function logResponse(array $response)
