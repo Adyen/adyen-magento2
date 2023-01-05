@@ -170,13 +170,8 @@ class Invoice extends AbstractHelper
                 // set transaction id so you can do a online refund from credit memo
                 $invoice->setTransactionId($notification->getPspreference());
 
-                $createPendingInvoice = (bool)$this->configHelper->getConfigData(
-                    'create_pending_invoice',
-                    'adyen_abstract',
-                    $order->getStoreId()
-                );
 
-                if ((!$isAutoCapture) && ($createPendingInvoice)) {
+                if ((!$isAutoCapture)) {
                     // if amount is zero create a offline invoice
                     $value = (int)$notification->getAmountValue();
                     if ($value == 0) {
