@@ -36,7 +36,8 @@ define(
             'adyen_ideal',
             'adyen_klarna',
             'adyen_paypal',
-            'adyen_dotpay'
+            'adyen_dotpay',
+            'adyen_bcmc_mobile'
         ];
         rendererList.push(
             {
