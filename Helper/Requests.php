@@ -414,7 +414,8 @@ class Requests extends AbstractHelper
                 $recurringProcessingModel = $this->adyenConfig->getCardRecurringType($storeId);
                 $request['recurringProcessingModel'] = $recurringProcessingModel;
             } else {
-                $request['recurringProcessingModel'] = $this->adyenConfig->getAlternativePaymentMethodTokenType($storeId);
+                $request['recurringProcessingModel'] =
+                    $this->adyenConfig->getAlternativePaymentMethodTokenType($storeId);
             }
         }
 
