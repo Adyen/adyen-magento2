@@ -1793,12 +1793,10 @@ class Data extends AbstractHelper
         $isDemo = $this->configHelper->isDemoMode($storeId);
         $context = ['apiVersion' => $apiVersion];
         if ($isDemo) {
-            // log full request
             $context['body'] = $request;
         } else {
-            // log important details
             $context['livePrefix'] = $this->getLiveEndpointPrefix($storeId);
-            $context['body'] = ['merchantReference' => $request['reference']];
+            $context['body'] = $this->filterReferences($request);
         }
 
         $this->adyenLogger->info("Request to Adyen API resource: /" . $endpoint, $context);
@@ -1812,12 +1810,16 @@ class Data extends AbstractHelper
         if ($isDemo) {
             $context['body'] = $response;
         } else {
-            $context['body'] = [
-                'pspReference' => $response['pspReference'] ?? null,
-                'merchantReference' => $response['merchantReference'] ?? null,
-            ];
+            $context['body'] = $this->filterReferences($response);
         }
 
         $this->adyenLogger->info('Response from Adyen API', $context);
+    }
+
+    private function filterReferences(array $data): array
+    {
+        return array_filter($data, function($value, $key) {
+            return false !== strpos(strtolower($key), 'reference');
+        }, ARRAY_FILTER_USE_BOTH);
     }
 }
