@@ -385,7 +385,7 @@ class Requests extends AbstractHelper
 
             if (isset($recurringProcessingModel)) {
                 $request['recurringProcessingModel'] = $recurringProcessingModel;
-            }
+            } else {
             else {
                 $request['recurringProcessingModel'] = $this->adyenConfig->getCardRecurringType($storeId);
             }
