@@ -359,6 +359,11 @@ class Requests extends AbstractHelper
     public function buildCardRecurringData(int $storeId, $payment): array
     {
         $request = [];
+
+        if (!$this->adyenConfig->getCardRecurringActive($storeId)) {
+            return $request;
+        }
+
         $storePaymentMethod = false;
 
         // Initialize the request body with the current state data
