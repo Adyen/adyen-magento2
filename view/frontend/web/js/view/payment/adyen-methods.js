@@ -35,7 +35,8 @@ define(
         const paymentMethodCodes = [
             'adyen_ideal',
             'adyen_klarna',
-            'adyen_paypal'
+            'adyen_paypal',
+            'adyen_dotpay'
         ];
         rendererList.push(
             {
