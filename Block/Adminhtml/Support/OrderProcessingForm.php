@@ -58,7 +58,7 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'name' => 'topic',
                 'label' => __('Topic'),
                 'title' => __('Topic'),
-                'class' => '',
+                'class' => 'adyen_support-form',
                 'options' => [
                     'payment_status' => 'Payment status',
                     'failed_transaction' => 'Failed transaction',
@@ -76,7 +76,7 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'name' => 'subject',
                 'label' => __('Subject'),
                 'title' => __('Subject'),
-                'class' => '',
+                'class' => 'adyen_support-form',
                 'required' => true
             ]
         );
@@ -87,7 +87,7 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'name' => 'email',
                 'label' => __('Email'),
                 'title' => __('Email'),
-                'class' => 'validate-emails required',
+                'class' => 'adyen_support-form validate-emails',
                 'required' => true,
                 'value'=>$this->supportFormHelper->getGeneralContactSenderEmail()
             ]
@@ -99,10 +99,19 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'name' => 'pspReference',
                 'label' => __('PSP Reference'),
                 'title' => __('PSP Reference'),
-                'class' => '',
+                'class' => 'adyen_support-form',
                 'required' => true
             ]
-        );
+        )->setAfterElementHtml('
+       <div class="tooltip">
+       <span class="help">
+       <span></span>
+       </span>
+       <div class="tooltip-content">This is Adyen’s unique 16-character to recognize a specific payment. 
+       To find this information, go to Sales > Orders, and select an order. 
+       The number will be listed in the comment history.
+            </div>
+       </div>');
         $fieldset->addField(
             'merchantReference',
             'text',
@@ -110,10 +119,20 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'name' => 'merchantReference',
                 'label' => __('Merchant Reference'),
                 'title' => __('Merchant Reference'),
-                'class' => '',
+                'class' => 'adyen_support-form',
                 'required' => false,
             ]
-        );
+        )->setAfterElementHtml('
+       <div class="tooltip">
+       <span class="help">
+       <span></span>
+       </span>
+       <div class="tooltip-content">This is the reference for a specific payment. 
+       To find this information, go to Sales > Orders, and select an order. 
+       The number is top left corner.
+            </div>
+       </div>');
+
         $fieldset->addField(
             'headless',
             'radios',
@@ -128,7 +147,15 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                     ['value' => self::HEADLESS_NO, 'label' => __('No')]
                 ]
             ]
-        );
+        )->setAfterElementHtml('
+       <div class="tooltip">
+       <span class="help">
+       <span></span>
+       </span>
+       <div class="tooltip-content">Headless integration is when you use Adyen 
+       pre-configured backend but have a custom store frontend.
+            </div>
+       </div>');
         $fieldset->addField(
             'paymentMethod',
             'text',
@@ -136,10 +163,11 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'name' => 'paymentMethod',
                 'label' => __('What payment method is causing the problem?'),
                 'title' => __('What payment method is causing the problem?'),
-                'class' => '',
+                'class' => 'adyen_support-form',
                 'required' => false,
             ]
         );
+
         $fieldset->addField(
             'terminalId',
             'text',
@@ -147,10 +175,18 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'name' => 'terminalId',
                 'label' => __('Terminal ID number'),
                 'title' => __('Terminal ID number'),
-                'class' => '',
+                'class' => 'adyen_support-form',
                 'required' => false,
             ]
-        );
+        )->setAfterElementHtml('
+       <div class="tooltip">
+       <span class="help">
+       <span></span>
+       </span>
+       <div class="tooltip-content">This are the model and serial number of the device you used for this payment. 
+       To find this information, go to Customer Area under Point of sale > Terminals.
+            </div>
+       </div>');
         $fieldset->addType('file', 'Adyen\Payment\Block\Adminhtml\Support\Form\Element\MultipleFileElement');
         $fieldset->addField(
             'attachments',
@@ -160,10 +196,18 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'multiple'  => 'multiple',
                 'label' => __('Attachments'),
                 'title' => __('Attachments'),
-                'class' => '',
+                'class' => 'adyen_support-form',
                 'required' => false,
             ]
-        );
+        )->setAfterElementHtml('
+       <div class="tooltip">
+       <span class="help">
+       <span></span>
+       </span>
+       <div class="tooltip-content">Sending us a file often helps us to solve your issue. 
+       We accept files in PNG, JPG, ZIP, RAR, or SVG format, with a maximum size of 10 MB.
+            </div>
+       </div>');
         $fieldset->addField(
             'orderHistoryComments',
             'textarea',
@@ -171,10 +215,19 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'name' => 'orderHistoryComments',
                 'label' => __('Order history comments'),
                 'title' => __('Order history comments'),
-                'class' => '',
+                'class' => 'adyen_support-form',
                 'required' => false,
             ]
-        );
+        )->setAfterElementHtml('
+       <div class="tooltip">
+       <span class="help">
+       <span></span>
+       </span>
+       <div class="tooltip-content">To find this information, go to Magento > Orders, and select an order. 
+       Then copy and paste the history comments here.
+            </div>
+       </div>');
+
         $fieldset->addField(
             'orderDescription',
             'textarea',
@@ -182,7 +235,7 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'name' => 'orderDescription',
                 'label' => __('Description'),
                 'title' => __('Description'),
-                'class' => '',
+                'class' => 'adyen_support-form',
                 'required' => false,
             ]
         );
@@ -192,13 +245,12 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
             [
                 'name' => 'submit',
                 'title' => __('Submit'),
-                'class' => 'primary',
+                'class' => 'adyen_support-form primary',
                 'value' => 'Submit'
             ]
         );
 
         $form->setUseContainer(true);
-
         $this->setForm($form);
         return parent::_prepareForm();
     }

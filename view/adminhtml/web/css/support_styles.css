@@ -35,3 +35,7 @@
     list-style-type: none;
     line-height: 2em;
 }
+
+.adyen_support-form {
+    width: 90% !important;
+}
