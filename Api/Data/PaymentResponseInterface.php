@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2021 Adyen N.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -39,64 +39,26 @@ interface PaymentResponseInterface
     const RESPONSE = 'response';
 
     /**
-     * Gets the ID for the state data.
-     *
      * @return int|null Entity ID.
      */
     public function getEntityId();
 
     /**
-     * Sets entity ID.
-     *
      * @param int $entityId
      * @return $this
      */
     public function setEntityId($entityId);
 
+    public function getMerchantReference(): ?string;
 
-    /**
-     * Gets the merchant reference for the payment response
-     *
-     * @return string|null Merchant Reference.
-     */
-    public function getMerchantReference();
+    public function setMerchantReference(string $merchantReference): PaymentResponseInterface;
 
-    /**
-     * Sets merchant reference.
-     *
-     * @param string $merchantReference
-     * @return $this
-     */
-    public function setMerchantReference($merchantReference);
+    public function getResultCode(): ?string;
 
-    /**
-     * Gets the result code.
-     *
-     * @return string|null Result Code.
-     */
-    public function getResultCode();
+    public function setResultCode(string $resultCode): PaymentResponseInterface;
 
-    /**
-     * Sets result code.
-     *
-     * @param string $resultCode
-     * @return $this
-     */
-    public function setResultCode($resultCode);
+    public function getResponse(): ?string;
 
-    /**
-     * Gets the payment response.
-     *
-     * @return string|null Payment Response.
-     */
-    public function getResponse();
-
-    /**
-     * Sets payment response.
-     *
-     * @param string $response
-     * @return $this
-     */
-    public function setResponse($response);
+    public function setResponse(string $response): PaymentResponseInterface;
 
 }

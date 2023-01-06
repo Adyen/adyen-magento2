@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2021 Adyen N.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -18,55 +18,27 @@ use Magento\Framework\Model\AbstractModel;
 
 class StateData extends AbstractModel implements StateDataInterface
 {
-
-    /**
-     * Initialize resource model
-     *
-     * @return void
-     */
     protected function _construct()
     {
         $this->_init(ResourceModel\StateData::class);
     }
 
-    /**
-     * Gets Quote ID
-     *
-     * @return int|null Quote ID.
-     */
-    public function getQuoteId()
+    public function getQuoteId(): int
     {
         return $this->getData(self::QUOTE_ID);
     }
 
-    /**
-     * Sets Quote ID
-     *
-     * @param int $quoteId
-     * @return $this
-     */
-    public function setQuoteId($quoteId)
+    public function setQuoteId(int $quoteId): StateDataInterface
     {
         return $this->setData(self::QUOTE_ID, $quoteId);
     }
 
-    /**
-     * Gets State Data
-     *
-     * @return string|null State Data.
-     */
-    public function getStateData()
+    public function getStateData(): ?string
     {
         return $this->getData(self::STATE_DATA);
     }
 
-    /**
-     * Sets State Data.
-     *
-     * @param string $stateData
-     * @return $this
-     */
-    public function setStateData($stateData)
+    public function setStateData(string $stateData): StateDataInterface
     {
         return $this->setData(self::STATE_DATA, $stateData);
     }
