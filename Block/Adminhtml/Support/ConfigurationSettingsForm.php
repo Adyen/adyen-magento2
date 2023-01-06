@@ -73,7 +73,7 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
                 'name' => 'issue',
                 'label' => __('Issue'),
                 'title' => __('Issue'),
-                'class' => 'tooltip',
+                'class' => '',
                 'options' => $this->getIssuesTopics(),
                 'required' => true
             ]
@@ -97,7 +97,7 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
                 'name' => 'email',
                 'label' => __('Email'),
                 'title' => __('Email'),
-                'class' => 'validate-emails required',
+                'class' => 'validate-emails',
                 'required' => true,
                 'value' => $this->supportFormHelper->getGeneralContactSenderEmail(),
             ]

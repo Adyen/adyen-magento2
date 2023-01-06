@@ -87,7 +87,7 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'name' => 'email',
                 'label' => __('Email'),
                 'title' => __('Email'),
-                'class' => 'adyen_support-form validate-emails required',
+                'class' => 'adyen_support-form validate-emails',
                 'required' => true,
                 'value'=>$this->supportFormHelper->getGeneralContactSenderEmail()
             ]
