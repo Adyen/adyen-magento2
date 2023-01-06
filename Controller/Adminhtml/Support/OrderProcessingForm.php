@@ -34,7 +34,7 @@ class OrderProcessingForm extends Action
     {
         $resultPage = $this->resultFactory->create(ResultFactory::TYPE_PAGE);
         $resultPage->setActiveMenu('Adyen_Payment::support')
-            ->getConfig()->getTitle()->prepend(__('Order processing'));
+            ->getConfig()->getTitle()->prepend(__('Adyen Support form'));
 
         if ('POST' === $this->getRequest()->getMethod()){
             try {

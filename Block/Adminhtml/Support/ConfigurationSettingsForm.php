@@ -22,9 +22,9 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
 
     public function __construct(
         \Magento\Backend\Block\Template\Context $context,
-        \Magento\Framework\Registry $registry,
-        \Magento\Framework\Data\FormFactory $formFactory,
-        SupportFormHelper $supportFormHelper
+        \Magento\Framework\Registry             $registry,
+        \Magento\Framework\Data\FormFactory     $formFactory,
+        SupportFormHelper                       $supportFormHelper
     )
     {
         $this->supportFormHelper = $supportFormHelper;
@@ -73,7 +73,7 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
                 'name' => 'issue',
                 'label' => __('Issue'),
                 'title' => __('Issue'),
-                'class' => '',
+                'class' => 'tooltip',
                 'options' => $this->getIssuesTopics(),
                 'required' => true
             ]
@@ -85,10 +85,11 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
                 'name' => 'subject',
                 'label' => __('Subject'),
                 'title' => __('Subject'),
-                'class' => '',
+                'class' => 'adyen_support-form',
                 'required' => true
             ]
         );
+
         $fieldset->addField(
             'email',
             'text',
@@ -98,22 +99,10 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
                 'title' => __('Email'),
                 'class' => 'validate-emails required',
                 'required' => true,
-                'value' => $this->supportFormHelper->getGeneralContactSenderEmail()
+                'value' => $this->supportFormHelper->getGeneralContactSenderEmail(),
             ]
         );
-        $fieldset->addType('file', 'Adyen\Payment\Block\Adminhtml\Support\Form\Element\MultipleFileElement');
-        $fieldset->addField(
-            'attachments',
-            'file',
-            [
-                'name' => 'attachments[]',
-                'multiple'  => 'multiple',
-                'label' => __('Attachments'),
-                'title' => __('Attachments'),
-                'class' => '',
-                'required' => false,
-            ]
-        );
+
         $fieldset->addField(
             'headless',
             'radios',
@@ -122,13 +111,41 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
                 'label' => __('Are you using headless integration?'),
                 'title' => __('Are you using headless integration?'),
                 'class' => '',
-                'required' => false,
-                'values' => [
-                    ['value' => self::HEADLESS_YES, 'label' => __('Yes')],
-                    ['value' => self::HEADLESS_NO, 'label' => __('No')]
-                ]
+                'required' => false, 'values' => [
+                ['value' => self::HEADLESS_YES, 'label' => __('Yes')],
+                ['value' => self::HEADLESS_NO, 'label' => __('No')]]
+            ])->setAfterElementHtml('
+       <div class="tooltip">
+       <span class="help">
+       <span></span>
+       </span>
+       <div class="tooltip-content">
+       Headless integration is when you use Adyen pre-configured backend but have a custom store frontend.
+            </div>
+       </div>');
+
+        $fieldset->addType('file', 'Adyen\Payment\Block\Adminhtml\Support\Form\Element\MultipleFileElement');
+        $fieldset->addField(
+            'attachments',
+            'file',
+            [
+                'name' => 'attachments[]',
+                'multiple' => 'multiple',
+                'label' => __('Attachments'),
+                'title' => __('Attachments'),
+                'class' => 'adyen_support-form',
+                'required' => false
             ]
-        );
+        )->setAfterElementHtml('
+       <div class="tooltip">
+       <span class="help">
+       <span></span>
+       </span>
+       <div class="tooltip-content">Sending us a file often helps us to solve your issue. 
+       We accept files in PNG, JPG, ZIP, RAR, or SVG format, with a maximum size of 10 MB.
+            </div>
+       </div>');
+
         $fieldset->addField(
             'description',
             'textarea',
@@ -140,6 +157,7 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
                 'required' => false,
             ]
         );
+
         $fieldset->addField(
             'submit_support_configuration_settings',
             'submit',
