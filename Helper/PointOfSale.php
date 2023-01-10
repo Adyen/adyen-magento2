@@ -112,11 +112,13 @@ class PointOfSale
     ): array {
         $formattedInstallments = [];
 
-        foreach ($installments as $minAmount => $installment) {
-            if ($amount >= $minAmount) {
-                $dividedAmount = number_format($amount / $installment, $precision);
-                $formattedInstallments[$installment] =
-                    sprintf("%s x %s %s", $installment, $dividedAmount, $currencyCode);
+        foreach ($installments as $minAmount => $installmentsAmounts) {
+            foreach ($installmentsAmounts as $installment) {
+                if ($amount >= $minAmount) {
+                    $dividedAmount = number_format($amount / $installment, $precision);
+                    $formattedInstallments[$installment] =
+                        sprintf("%s x %s %s", $installment, $dividedAmount, $currencyCode);
+                }
             }
         }
 

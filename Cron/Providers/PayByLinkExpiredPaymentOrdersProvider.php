@@ -27,7 +27,6 @@ class PayByLinkExpiredPaymentOrdersProvider implements OrdersProviderInterface
      * @var CollectionFactory $orderCollectionFactory
      */
     protected $orderRepository;
-
     /**
      * @var AdyenLogger $adyenLogger
      */
@@ -77,25 +76,12 @@ class PayByLinkExpiredPaymentOrdersProvider implements OrdersProviderInterface
     public function provide()
     {
         $searchCriteria = $this->searchCriteriaBuilder
-            ->setFilterGroups([$this->getPaymentMethodFilterGroup(), $this->getStateFilterGroup()])
+            ->setFilterGroups([$this->getStateFilterGroup()])
             ->create();
 
         $orders = $this->orderRepository->getList($searchCriteria)->getItems();
 
         return $this->getOrdersWithExpiredPbl($orders);
-    }
-
-    /**
-     * @return \Magento\Framework\Api\Search\FilterGroup
-     */
-    private function getPaymentMethodFilterGroup()
-    {
-        $paymentMethodFilter = $this->filterBuilder->setField('extension_attribute_payment_method.method')
-            ->setConditionType('eq')
-            ->setValue(AdyenPayByLinkConfigProvider::CODE)
-            ->create();
-
-        return $this->filterGroupBuilder->setFilters([$paymentMethodFilter])->create();
     }
 
     /**

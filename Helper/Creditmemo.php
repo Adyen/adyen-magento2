@@ -82,20 +82,16 @@ class Creditmemo extends AbstractHelper
      * @param Order\Payment $payment
      * @param string $pspReference
      * @param string $originalReference
-     * @param int $refundAmountInCents
-     * @returns \Adyen\Payment\Model\Creditmemo
+     * @param float $refundAmount
+     * @return AdyenCreditmemoModel
      * @throws AlreadyExistsException
      */
-
     public function createAdyenCreditMemo(
         Order\Payment $payment,
         string $pspReference,
         string $originalReference,
-        int $refundAmountInCents
-    ): AdyenCreditmemoModel
-    {
-        $order = $payment->getOrder();
-
+        float $refundAmount
+    ): AdyenCreditmemoModel {
         // get adyen_order_payment record
         /** @var OrderPaymentInterface $adyenOrderPayment */
         $adyenOrderPayment = $this->orderPaymentResourceModel->getOrderPaymentDetails(
@@ -111,12 +107,10 @@ class Creditmemo extends AbstractHelper
         $adyenCreditmemo->setAdyenPaymentOrderId(
             $adyenOrderPayment[OrderPaymentInterface::ENTITY_ID]
         );
-        $adyenCreditmemo->setAmount(
-            $this->adyenDataHelper->originalAmount(
-                $refundAmountInCents,
-                $order->getBaseCurrencyCode())
-        );
+        $adyenCreditmemo->setAmount($refundAmount);
+
         // Once needed, a status update for the creditmemo can be added here.
+
         $this->adyenCreditmemoResourceModel->save($adyenCreditmemo);
 
         return $adyenCreditmemo;
