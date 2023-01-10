@@ -33,7 +33,7 @@ define([
             }
             self.cardComponent = self.checkoutComponent.create('card', {
                 enableStoreDetails: self.getEnableStoreDetails(),
-                brands: self.getAvailableCardTypeAltCodes(),
+                brands: self.getBrands(),
                 hasHolderName: adyenConfiguration.getHasHolderName(),
                 holderNameRequired: adyenConfiguration.getHasHolderName() &&
                   adyenConfiguration.getHolderNameRequired(),

@@ -69,6 +69,9 @@ class Data extends AbstractHelper
     const SEPA = 'sepadirectdebit';
     const MOLPAY = 'molpay_';
     const ATOME = 'atome';
+    const WALLEYB2B = 'walley_b2b';
+    const WALLEY = 'walley';
+
 
     /**
      * @var EncryptorInterface
@@ -1040,7 +1043,9 @@ class Data extends AbstractHelper
             strpos($paymentMethod, self::CLEARPAY) !== false ||
             strpos($paymentMethod, self::ZIP) !== false ||
             strpos($paymentMethod, self::PAYBRIGHT) !== false ||
-            strpos($paymentMethod, self::ATOME) !== false
+            strpos($paymentMethod, self::ATOME) !== false ||
+            strpos($paymentMethod, self::WALLEY) !== false ||
+            strpos($paymentMethod, self::WALLEYB2B) !== false
         ) {
             return true;
         }
@@ -1494,7 +1499,6 @@ class Data extends AbstractHelper
         $client->setExternalPlatform($this->productMetadata->getName(), $this->productMetadata->getVersion(), 'Adyen');
         if ($isDemo) {
             $client->setEnvironment(\Adyen\Environment::TEST);
-            $client->setLogger($this->adyenLogger);
         } else {
             $client->setEnvironment(\Adyen\Environment::LIVE, $this->getLiveEndpointPrefix($storeId));
         }
@@ -1775,32 +1779,48 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Parse transactionId to separate PSP reference from suffix.
-     * e.g 882629192021269E-capture --> [pspReference => 882629192021269E, suffix => -capture]
-     *
-     * @param $transactionId
-     * @return mixed
-     */
-    public function parseTransactionId($transactionId)
-    {
-        preg_match(
-            self::PSP_REFERENCE_REGEX,
-            trim((string)$transactionId),
-            $matches
-        );
-
-        // Return only the named matches, i.e pspReference & suffix
-        return array_filter($matches, function($index) {
-            return is_string($index);
-        }, ARRAY_FILTER_USE_KEY);
-    }
-
-    /**
      * @param $shopperReference
      * @return string
      */
     public function padShopperReference(string $shopperReference): string
     {
         return str_pad($shopperReference, 3, '0', STR_PAD_LEFT);
+    }
+
+    public function logRequest(array $request, $apiVersion, $endpoint)
+    {
+        $storeId = $this->storeManager->getStore()->getId();
+        $isDemo = $this->configHelper->isDemoMode($storeId);
+        $context = ['apiVersion' => $apiVersion];
+        if ($isDemo) {
+            $context['body'] = $request;
+        } else {
+            $context['livePrefix'] = $this->getLiveEndpointPrefix($storeId);
+            $context['body'] = $this->filterReferences($request);
+        }
+
+        $this->adyenLogger->info('Request to Adyen API ' . $endpoint, $context);
+    }
+
+    public function logResponse(array $response)
+    {
+        $storeId = $this->storeManager->getStore()->getId();
+        $isDemo = $this->configHelper->isDemoMode($storeId);
+        $context = [];
+        if ($isDemo) {
+            $context['body'] = $response;
+        } else {
+            $context['body'] = $this->filterReferences($response);
+        }
+
+        $this->adyenLogger->info('Response from Adyen API', $context);
+    }
+
+    private function filterReferences(array $data): array
+    {
+        return array_filter($data, function($value, $key) {
+            // Keep only reference keys, e.g. reference, pspReference, merchantReference etc.
+            return false !== strpos(strtolower($key), 'reference');
+        }, ARRAY_FILTER_USE_BOTH);
     }
 }

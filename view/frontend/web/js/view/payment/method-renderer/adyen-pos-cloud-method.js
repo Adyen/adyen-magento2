@@ -54,7 +54,7 @@ define(
 
                 // installments
                 let allInstallments = self.getAllInstallments();
-                let grandTotal = quote.totals().grand_total;
+                let grandTotal = self.grandTotal();
                 let precision = quote.getPriceFormat().precision;
                 let currencyCode = quote.totals().quote_currency_code;
 
@@ -172,6 +172,14 @@ define(
              */
             isButtonActive: function () {
                 return this.isActive() && this.getCode() == this.isChecked() && this.getConnectedTerminals().length > 0 && this.validate();
+            },
+            grandTotal: function () {
+                for (const totalsegment of quote.getTotals()()['total_segments']) {
+                    if (totalsegment.code === 'grand_total') {
+                        return totalsegment.value;
+                    }
+                }
+                return quote.totals().grand_total;
             },
         });
     }
