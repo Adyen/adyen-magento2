@@ -8,7 +8,7 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-namespace Adyen\Payment\Tests\Unit;
+namespace Adyen\Payment\Test\Unit;
 
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Model\Notification;
@@ -66,13 +66,14 @@ abstract class AbstractAdyenTestCase extends TestCase
         ]);
     }
 
-    protected function createWebhook(?string $originalReference = null)
+    protected function createWebhook(?string $originalReference = null, ?string $pspReference = null)
     {
         return $this->createConfiguredMock(Notification::class, [
             'getAmountValue' => 1000,
             'getEventCode' => 'AUTHORISATION',
             'getAmountCurrency' => 'EUR',
-            'getOriginalReference' => $originalReference
+            'getOriginalReference' => $originalReference,
+            'getPspreference' => $pspReference
         ]);
     }
 

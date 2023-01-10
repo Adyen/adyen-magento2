@@ -122,7 +122,7 @@ define(
              * set up the installments
              */
             renderCCPaymentMethod: function() {
-                var self = this;
+                let self = this;
                 if (!self.getClientKey) {
                     return false;
                 }
@@ -134,7 +134,7 @@ define(
 
                 let componentConfig = {
                     enableStoreDetails: self.getEnableStoreDetails(),
-                    brands: self.getAvailableCardTypeAltCodes(),
+                    brands: self.getBrands(),
                     hasHolderName: adyenConfiguration.getHasHolderName(),
                     holderNameRequired: adyenConfiguration.getHasHolderName() &&
                         adyenConfiguration.getHolderNameRequired(),
@@ -146,24 +146,24 @@ define(
                     onBrand: function(state) {
                         // Define the card type
                         // translate adyen card type to magento card type
-                        var creditCardType = self.getCcCodeByAltCode(
+                        let creditCardType = self.getCcCodeByAltCode(
                             state.brand);
                         if (creditCardType) {
                             // If the credit card type is already set, check if it changed or not
                             if (!self.creditCardType() ||
                                 self.creditCardType() &&
                                 self.creditCardType() != creditCardType) {
-                                var numberOfInstallments = [];
+                                let numberOfInstallments = [];
 
                                 if (creditCardType in allInstallments) {
                                     // get for the creditcard the installments
-                                    var installmentCreditcard = allInstallments[creditCardType];
-                                    var grandTotal = self.grandTotal();
-                                    var precision = quote.getPriceFormat().precision;
-                                    var currencyCode = quote.totals().quote_currency_code;
+                                    let cardInstallments = allInstallments[creditCardType];
+                                    let grandTotal = self.grandTotal();
+                                    let precision = quote.getPriceFormat().precision;
+                                    let currencyCode = quote.totals().quote_currency_code;
 
                                     numberOfInstallments = installmentsHelper.getInstallmentsWithPrices(
-                                        installmentCreditcard, grandTotal,
+                                        cardInstallments, grandTotal,
                                         precision, currencyCode);
                                 }
 
@@ -366,16 +366,24 @@ define(
 
                 return '';
             },
+
             /**
-             * Get available card types translated to the Adyen card type codes
-             * (The card type alt code is the Adyen card type code)
+             * Fetches the brands array of the credit cards
              *
-             * @returns {string[]}
+             * @returns {array}
              */
-            // TODO check if we still need to rely on this or we can rely on the paymentMethods response types
-            getAvailableCardTypeAltCodes: function() {
-                var ccTypes = window.checkoutConfig.payment.ccform.availableTypesByAlt[this.getCode()];
-                return Object.keys(ccTypes);
+            getBrands: function() {
+                const methods = adyenPaymentService.getPaymentMethods()();
+                if (!methods.paymentMethodsResponse) {
+                    return [];
+                }
+
+                for (const method of methods.paymentMethodsResponse.paymentMethods) {
+                    if (method.type === 'scheme' && method.brands) {
+                        return method.brands;
+                    }
+                }
+                return [];
             },
             /**
              * Return Payment method code

@@ -9,12 +9,12 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Tests\Unit\Helper;
+namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Payment\Gateway\Data\Order\AddressAdapter;
 use Adyen\Payment\Helper\Address;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Tests\Unit\AbstractAdyenTestCase;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Payment\Gateway\Data\AddressAdapterInterface;
 
 class AddressTest extends AbstractAdyenTestCase
