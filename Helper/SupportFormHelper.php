@@ -347,7 +347,8 @@ class SupportFormHelper
             'useManualCaptureForPaypal' => $useManualCaptureForPaypal ? 'Yes' : 'No',
             'captureOnShipmentForOpenInvoice' => $captureOnShipmentForOpenInvoice ? 'Yes' : 'No',
             'autoCaptureOpenInvoice' => $autoCaptureOpenInvoice ? 'Yes' : 'No',
-            'sendOrderConfirmationForSepaAndBankTransfer' => $sendOrderConfirmationForSepaAndBankTransfer ? 'Yes' : 'No',
+            'sendOrderConfirmationForSepaAndBankTransfer' =>
+                $sendOrderConfirmationForSepaAndBankTransfer ? 'Yes' : 'No',
             'sepaPaymentFlow' => $sepaPaymentFlow,
             'captureDelay' => $captureDelay,
             'orderStatusCreation' => $orderStatusCreation,
