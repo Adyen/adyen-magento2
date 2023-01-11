@@ -159,8 +159,12 @@ class SupportFormHelper
         $merchantAccount = $this->config->getMerchantAccount($storeId);
         $environmentMode = $this->config->isDemoMode($storeId) ? 'Test' : 'Live';
         $moduleVersion = $this->adyenHelper->getModuleVersion();
-        $alternativePaymentMethods = $this->config->getConfigData('active', Config::XML_ADYEN_HPP, $storeId);
-        $moto = $this->config->getConfigData('active', Config::XML_ADYEN_MOTO, $storeId);
+        $alternativePaymentMethods = $this->config->isAlternativePaymentMethodsEnabled($storeId);
+        $moto = $this->config->isMotoPaymentMethodEnabled($storeId);
+
+        $configurationMode = $this->config->getConfigurationMode($storeId);
+        $isAdyenCcEnabled = $this->config->getConfigData('active', 'adyen_cc', $storeId, true);
+        $isCardTokenizationEnabled = $this->getConfigData('active', 'adyen_oneclick', $storeId, true);
 
         return [
             'magentoEdition' => $magentoEdition,
