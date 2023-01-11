@@ -124,9 +124,9 @@ class Config
 
     /**
      * @param $storeId
-     * @return bool|mixed
+     * @return array|null
      */
-    public function getMotoMerchantAccounts($storeId = null)
+    public function getMotoMerchantAccounts($storeId = null): ?array
     {
         $serializedData = $this->getConfigData(
             self::XML_MOTO_MERCHANT_ACCOUNTS,
