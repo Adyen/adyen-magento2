@@ -75,7 +75,8 @@ class RequestsTest extends AbstractAdyenTestCase
 
 
         $configHelperMock = $this->createConfiguredMock(Config::class, [
-            'getCardRecurringType' => $tokenType
+            'getCardRecurringType' => $tokenType,
+            'getCardRecurringActive' => true
         ]);
 
         $this->sut = new Requests(
