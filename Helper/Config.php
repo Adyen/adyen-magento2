@@ -445,9 +445,9 @@ class Config
 
     /**
      * @param $storeId
-     * @return string|null
+     * @return bool|null
      */
-    public function getCardRecurringActive($storeId): ?string
+    public function getCardRecurringActive($storeId): ?bool
     {
         return $this->getConfigData('active', self::XML_ADYEN_ONECLICK, $storeId, true);
     }
