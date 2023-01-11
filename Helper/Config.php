@@ -308,7 +308,7 @@ class Config
         return $this->getConfigData(self::XML_CHARGED_CURRENCY, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
     }
 
-    /**ƒ
+    /**
      * Retrieve has_holder_name config
      *
      * @param null|int|string $storeId
