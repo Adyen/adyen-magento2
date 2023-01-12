@@ -186,6 +186,45 @@ class CaseManagementTest extends AbstractAdyenTestCase
         $caseManagementHelper->markCaseAsAccepted($order, $comment);
     }
 
+    public function testMarkCaseAsRejectedRefunded(): void
+    {
+        $originalPspReference = 'PSPREFERENCE';
+        $comment = 'Manual review was rejected for order w/pspReference: %s. The order will be automatically refunded.';
+        $autoCapture = true;
+        $order = $this->createMock(Order::class);
+        $logger = $this->createMock(AdyenLogger::class);
+        $configHelper = $this->createMock(Config::class);
+
+        $order->expects($this->once())
+            ->method('addStatusHistoryComment')
+            ->with(sprintf(
+                $comment,
+                $originalPspReference
+            ));
+
+        $caseManagementHelper = new CaseManagement($logger, $configHelper);
+        $caseManagementHelper->markCaseAsRejected($order, $originalPspReference, $autoCapture);
+    }
+
+    public function testMarkCaseAsRejectedCancelled(): void
+    {
+        $originalPspReference = 'PSPREFERENCE';
+        $comment = 'Manual review was rejected for order w/pspReference: %s. The order will be automatically cancelled.';
+        $autoCapture = false;
+        $order = $this->createMock(Order::class);
+        $logger = $this->createMock(AdyenLogger::class);
+        $configHelper = $this->createMock(Config::class);
+
+        $order->expects($this->once())
+            ->method('addStatusHistoryComment')
+            ->with(sprintf(
+                $comment,
+                $originalPspReference
+            ));
+
+        $caseManagementHelper = new CaseManagement($logger, $configHelper);
+        $caseManagementHelper->markCaseAsRejected($order, $originalPspReference, $autoCapture);
+    }
 
     /**
      * @param $adyenLoggerMock
