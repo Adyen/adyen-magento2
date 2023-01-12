@@ -121,6 +121,72 @@ class CaseManagementTest extends AbstractAdyenTestCase
         $this->assertSame($order, $returnOrder);
     }
 
+    public function testMarkCaseAsAcceptedWithReviewAcceptStatus(): void
+    {
+        $comment = 'Order accepted';
+        $reviewAcceptStatus = 'fraud_manual_review_accept_status';
+        $storeId = 1;
+        $order = $this->createMock(Order::class);
+        $payment = $this->createGeneratedMock(Payment::class, ['getData']);
+        $logger = $this->createMock(AdyenLogger::class);
+        $configHelper = $this->createMock(Config::class);
+        $caseManagementHelper = new CaseManagement($logger, $configHelper);
+
+        $order->method('getPayment')->willReturn($payment);
+        $order->method('getStoreId')->willReturn($storeId);
+        $configHelper->method('getFraudStatus')->willReturn($reviewAcceptStatus);
+        $payment->method('getData')->willReturn('entity_id');
+
+        $order->expects($this->once())
+            ->method('addStatusHistoryComment')
+            ->with(__($comment), $reviewAcceptStatus);
+
+        $logger->expects($this->once())
+            ->method('addAdyenNotification')
+            ->with(
+                $this->stringContains('Order'),
+                $this->logicalAnd(
+                    $this->arrayHasKey('pspReference'),
+                    $this->arrayHasKey('merchantReference')
+                )
+            );
+
+        $caseManagementHelper->markCaseAsAccepted($order, $comment);
+    }
+
+    public function testMarkCaseAsAcceptedWithoutReviewAcceptStatus(): void
+    {
+        $comment = 'Order accepted';
+        $reviewAcceptStatus = null;
+        $storeId = 1;
+        $order = $this->createMock(Order::class);
+        $payment = $this->createGeneratedMock(Payment::class, ['getData']);
+        $logger = $this->createMock(AdyenLogger::class);
+        $configHelper = $this->createMock(Config::class);
+        $caseManagementHelper = new CaseManagement($logger, $configHelper);
+
+        $order->method('getPayment')->willReturn($payment);
+        $order->method('getStoreId')->willReturn($storeId);
+        $configHelper->method('getFraudStatus')->willReturn($reviewAcceptStatus);
+        $logger->method('getOrderContext')->willReturn([]);
+
+        $order->expects($this->once())
+            ->method('addStatusHistoryComment')
+            ->with(__($comment));
+
+        $logger->expects($this->once())
+            ->method('addAdyenNotification')
+            ->with(
+                $this->stringContains('Order'),
+                $this->logicalAnd(
+                    $this->arrayHasKey('pspReference'),
+                )
+            );
+
+        $caseManagementHelper->markCaseAsAccepted($order, $comment);
+    }
+
+
     /**
      * @param $adyenLoggerMock
      * @param $adyenConfigHelperMock
