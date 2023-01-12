@@ -18,7 +18,6 @@ define(
     ) {
         return adyenPaymentMethod.extend({
             initialize: function () {
-                console.log('I have reached paypal');
                 this._super();
             },
             buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo, result) {
