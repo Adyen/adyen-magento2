@@ -48,9 +48,9 @@ class CaseManagementTest extends AbstractAdyenTestCase
 
     public function testMarkCaseAsPendingReviewWithReviewRequiredStatus(): void
     {
-        $pspReference = '87161728741214';
+        $pspReference = 'PSPREFERENCE';
         $reviewRequiredStatus = 'fraud_manual_review_status';
-        $expectedManualReviewComment = 'Manual review required for order w/pspReference: 87161728741214. Please check the Adyen platform.';
+        $expectedManualReviewComment = 'Manual review required for order w/pspReference: PSPREFERENCE. Please check the Adyen platform.';
         $order = $this->createMock(Order::class);
         $payment = $this->createGeneratedMock(Payment::class, ['getData']);
         $configHelper = $this->createMock(Config::class);
@@ -65,6 +65,7 @@ class CaseManagementTest extends AbstractAdyenTestCase
             ->willReturn(Order::STATE_NEW);
         $order->method('getPayment')->willReturn($payment);
         $payment->method('getData')->willReturn('entity_id');
+        $this->assertTrue(method_exists($payment, 'getData'));
 
         $order->expects($this->once())
             ->method('addStatusHistoryComment')
@@ -87,7 +88,38 @@ class CaseManagementTest extends AbstractAdyenTestCase
         $this->assertSame($order, $returnOrder);
     }
 
+    public function testMarkCaseAsPendingReviewWithoutReviewRequiredStatus(): void
+    {
+        $pspReference = 'PSPREFERENCE';
+        $reviewRequiredStatus = null;
+        $expectedManualReviewComment = 'Manual review required for order w/pspReference: PSPREFERENCE. Please check the Adyen platform.';
+        $order = $this->createMock(Order::class);
+        $payment = $this->createGeneratedMock(Payment::class, ['getData']);
+        $configHelper = $this->createMock(Config::class);
+        $logger = $this->createMock(AdyenLogger::class);
 
+        $configHelper->method('getFraudStatus')->willReturn($reviewRequiredStatus);
+        $order->method('getPayment')->willReturn($payment);
+        $payment->method('getData')->willReturn('entity_id');
+
+        $order->expects($this->once())
+            ->method('addStatusHistoryComment')
+            ->with($expectedManualReviewComment);
+
+        $logger->expects($this->once())
+            ->method('addAdyenNotification')
+            ->with(
+                $this->stringContains('Order'),
+                $this->logicalAnd(
+                    $this->arrayHasKey('pspReference'),
+                    $this->arrayHasKey('merchantReference')
+                )
+            );
+
+        $caseManagementHelper = new CaseManagement($logger, $configHelper);
+        $returnOrder = $caseManagementHelper->markCaseAsPendingReview($order, $pspReference);
+        $this->assertSame($order, $returnOrder);
+    }
 
     /**
      * @param $adyenLoggerMock
