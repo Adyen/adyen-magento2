@@ -13,7 +13,6 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Model\Config\Source\CcType;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
-use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 use Adyen\Util\Uuid;
 use Magento\Framework\App\Helper\AbstractHelper;
 
@@ -360,6 +359,11 @@ class Requests extends AbstractHelper
     public function buildCardRecurringData(int $storeId, $payment): array
     {
         $request = [];
+
+        if (!$this->adyenConfig->getCardRecurringActive($storeId)) {
+            return $request;
+        }
+
         $storePaymentMethod = false;
 
         // Initialize the request body with the current state data
@@ -377,11 +381,12 @@ class Requests extends AbstractHelper
         }
 
         if ($storePaymentMethod) {
-            if ($this->vaultHelper->isCardVaultEnabled()) {
-                $request['recurringProcessingModel'] = $this->adyenConfig->getCardRecurringType($storeId);
+            $recurringProcessingModel = $payment->getAdditionalInformation('recurringProcessingModel');
+
+            if (isset($recurringProcessingModel)) {
+                $request['recurringProcessingModel'] = $recurringProcessingModel;
             } else {
-                $recurringType = $this->adyenConfig->getCardRecurringType($storeId);
-                $request['recurringProcessingModel'] = $recurringType;
+                $request['recurringProcessingModel'] = $this->adyenConfig->getCardRecurringType($storeId);
             }
         }
 
@@ -400,11 +405,18 @@ class Requests extends AbstractHelper
     {
         $request = [];
 
-        if (in_array($payment->getAdditionalInformation('cc_type'), CcType::ALLOWED_TYPES)) {
-            $recurringType = $this->adyenConfig->getCardRecurringType($storeId);
-            $request['recurringProcessingModel'] = $recurringType;
+        $recurringProcessingModel = $payment->getAdditionalInformation('recurringProcessingModel');
+
+        if (isset($recurringProcessingModel)) {
+            $request['recurringProcessingModel'] = $recurringProcessingModel;
         } else {
-            $request['recurringProcessingModel'] = $this->adyenConfig->getAlternativePaymentMethodTokenType($storeId);
+            if (in_array($payment->getAdditionalInformation('cc_type'), CcType::ALLOWED_TYPES)) {
+                $recurringProcessingModel = $this->adyenConfig->getCardRecurringType($storeId);
+                $request['recurringProcessingModel'] = $recurringProcessingModel;
+            } else {
+                $request['recurringProcessingModel'] =
+                    $this->adyenConfig->getAlternativePaymentMethodTokenType($storeId);
+            }
         }
 
         return $request;

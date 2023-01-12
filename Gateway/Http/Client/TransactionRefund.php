@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Gateway\Http\Client;
 
+use Adyen\Client;
 use Magento\Payment\Gateway\Http\ClientInterface;
 
 /**
@@ -50,6 +51,9 @@ class TransactionRefund implements ClientInterface
             $service = new \Adyen\Service\Modification(
                 $this->adyenHelper->initializeAdyenClient($transferObject->getClientConfig()['storeId'])
             );
+
+            $this->adyenHelper
+                ->logRequest($request, Client::API_PAYMENT_VERSION, '/pal/servlet/Payment/{version}/refund');
             try {
                 $response = $service->refund($request);
 
@@ -58,11 +62,12 @@ class TransactionRefund implements ClientInterface
                 $response[self::REFUND_CURRENCY] = $request['modificationAmount']['currency'];
 
                 $response[self::ORIGINAL_REFERENCE] = $request['originalReference'];
-
-                $responses[] = $response;
             } catch (\Adyen\AdyenException $e) {
-                $responses[] = ['error' => $e->getMessage()];
+                $response = ['error' => $e->getMessage()];
             }
+            $this->adyenHelper->logResponse($response);
+
+            $responses[] = $response;
         }
         return $responses;
     }
