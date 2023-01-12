@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Gateway\Http\Client;
 
+use Adyen\Client;
 use Adyen\Payment\Model\PaymentResponse;
 use Adyen\Payment\Model\PaymentResponseFactory;
 use Magento\Payment\Gateway\Http\ClientInterface;
@@ -81,6 +82,7 @@ class TransactionMotoPayment implements ClientInterface
 
         $requestOptions = [];
 
+        $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/payments');
         try {
             $response = $service->payments($request, $requestOptions);
 
@@ -96,6 +98,7 @@ class TransactionMotoPayment implements ClientInterface
             $response['error'] = $e->getMessage();
             $response['errorCode'] = $e->getAdyenErrorCode();
         }
+        $this->adyenHelper->logResponse($response);
 
         return $response;
     }

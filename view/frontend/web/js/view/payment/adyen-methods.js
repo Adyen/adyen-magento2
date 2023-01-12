@@ -35,7 +35,10 @@ define(
         const paymentMethodCodes = [
             // 'adyen_ideal',
             // 'adyen_klarna',
-            'adyen_paypal'
+            //'adyen_paypal'
+            'adyen_dotpay',
+            'adyen_bcmc_mobile',
+            'adyen_amazonpay'
         ];
         rendererList.push(
             {

@@ -25,13 +25,18 @@ class TransactionDonate implements ClientInterface
      * @var Client
      */
     private $client;
+    /**
+     * @var Data
+     */
+    private $adyenHelper;
 
     /**
      * @throws AdyenException
      */
     public function __construct(Data $adyenHelper)
     {
-        $this->client = $adyenHelper->initializeAdyenClient();
+        $this->adyenHelper = $adyenHelper;
+        $this->client = $this->adyenHelper->initializeAdyenClient();
     }
 
     /**
@@ -43,11 +48,14 @@ class TransactionDonate implements ClientInterface
         $request = $transferObject->getBody();
         $service = new Checkout($this->client);
 
+
+        $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, 'donations');
         try {
             $response = $service->donations($request);
         } catch (AdyenException $e) {
             $response = ['error' => $e->getMessage()];
         }
+        $this->adyenHelper->logResponse($response);
 
         return $response;
     }

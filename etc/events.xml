@@ -33,6 +33,15 @@
     <event name="payment_method_assign_data_adyen_paypal">
         <observer name="adyen_paypal_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_bcmc_mobile">
+        <observer name="adyen_bcmc_mobile_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
+    <event name="payment_method_assign_data_adyen_dotpay">
+        <observer name="adyen_dotpay_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
+    <event name="payment_method_assign_data_adyen_amazonpay">
+        <observer name="adyen_amazonpay_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
     <event name="payment_method_assign_data_adyen_pos_cloud">
         <observer name="adyen_pos_cloud_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPosCloudDataAssignObserver" />
     </event>
@@ -56,9 +65,6 @@
     </event>
     <event name="admin_system_config_changed_section_payment">
         <observer name="adyen_admin_vault_config_change" instance="Adyen\Payment\Observer\VaultConfigObserver"/>
-    </event>
-    <event name="controller_action_postdispatch_vault_cards_deleteAction">
-        <observer name="adyen_vault_delete" instance="Adyen\Payment\Observer\VaultDeleteTokenObserver"/>
     </event>
     <event name="payment_method_assign_data_adyen_pay_by_link">
         <observer name="adyen_pay_by_link_gateway_data_assign"

@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Gateway\Http\Client;
 
+use Adyen\Client;
 use Magento\Payment\Gateway\Http\ClientInterface;
 
 /**
@@ -45,11 +46,15 @@ class TransactionCancel implements ClientInterface
             $this->adyenHelper->initializeAdyenClient($transferObject->getClientConfig()['storeId'])
         );
 
+        $this->adyenHelper
+            ->logRequest($request, Client::API_PAYMENT_VERSION, '/pal/servlet/Payment/{version}/cancel');
         try {
             $response = $service->cancel($request);
         } catch (\Adyen\AdyenException $e) {
             $response['error'] = $e->getMessage();
         }
+        $this->adyenHelper->logResponse($response);
+
         return $response;
     }
 }

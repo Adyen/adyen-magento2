@@ -30,6 +30,9 @@
                 <item name="adyen_ideal" xsi:type="const">Adyen\Payment\Model\Methods\Ideal::TX_VARIANT</item>
                 <item name="adyen_klarna" xsi:type="const">Adyen\Payment\Model\Methods\Klarna::TX_VARIANT</item>
                 <item name="adyen_paypal" xsi:type="const">Adyen\Payment\Model\Methods\Paypal::TX_VARIANT</item>
+                <item name="adyen_bcmc_mobile" xsi:type="const">Adyen\Payment\Model\Methods\BcmcMobile::TX_VARIANT</item>
+                <item name="adyen_dotpay" xsi:type="const">Adyen\Payment\Model\Methods\Dotpay::TX_VARIANT</item>
+                <item name="adyen_amazonpay" xsi:type="const">Adyen\Payment\Model\Methods\AmazonPay::TX_VARIANT</item>
             </argument>
         </arguments>
     </type>

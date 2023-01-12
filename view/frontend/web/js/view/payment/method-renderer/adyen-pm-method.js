@@ -419,7 +419,7 @@ define(
 
                     additionalData.stateData = JSON.stringify(stateData);
 
-                    if (selectedAlternativePaymentMethodType() == 'ratepay') {
+                    if (this.getTxVariant() == 'ratepay') {
                         additionalData.df_value = this.getRatePayDeviceIdentToken();
                     }
 
@@ -444,7 +444,7 @@ define(
 
                 adyenPaymentService.paymentDetails(request).done(function() {
                     $.mage.redirect(
-                        window.checkoutConfig.payment[quote.paymentMethod().method].successPage,
+                        window.checkoutConfig.payment.adyen.successPage,
                     );
                 }).fail(function(response) {
                     fullScreenLoader.stopLoader();
@@ -459,7 +459,6 @@ define(
             },
             handleOnAdditionalDetails: function(state, component) {
                 const self = this;
-
                 // call endpoint with state.data if available
                 let request = {};
                 if (!!state.data) {
