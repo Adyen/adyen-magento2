@@ -72,7 +72,11 @@ define(
             {
             type: 'adyen_dotpay',
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-dotpay-method'
-            }
+            },
+            {
+            type: 'adyen_bcmc_mobile',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-bcmc-method'
+            },
         );
 
         paymentMethodCodes.forEach((paymentMethodCode) => {
