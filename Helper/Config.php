@@ -45,6 +45,7 @@ class Config
     const XML_STATUS_FRAUD_MANUAL_REVIEW_ACCEPT = 'fraud_manual_review_accept_status';
     const XML_MOTO_MERCHANT_ACCOUNTS = 'moto_merchant_accounts';
     const XML_ADYEN_SUPPORT_PREFIX = 'adyen_support';
+    const XML_CONFIGURATION_MODE = 'configuration_mode';
 
     /**
      * @var ScopeConfigInterface
@@ -123,9 +124,9 @@ class Config
 
     /**
      * @param $storeId
-     * @return bool|mixed
+     * @return array|null
      */
-    public function getMotoMerchantAccounts($storeId = null)
+    public function getMotoMerchantAccounts($storeId = null): ?array
     {
         $serializedData = $this->getConfigData(
             self::XML_MOTO_MERCHANT_ACCOUNTS,
@@ -134,6 +135,15 @@ class Config
         );
 
         return $this->serializer->unserialize($serializedData);
+    }
+
+    /**
+     * @param $storeId
+     * @return bool|mixed
+     */
+    public function isMotoPaymentMethodEnabled($storeId = null): bool
+    {
+        return $this->getConfigData('active', Config::XML_ADYEN_MOTO, $storeId, true);
     }
 
     /**
@@ -265,6 +275,15 @@ class Config
     public function getAlternativePaymentMethodTokenType($storeId = null)
     {
         return $this->getConfigData('token_type', self::XML_ADYEN_HPP, $storeId);
+    }
+
+    /**
+     * @param $storeId
+     * @return bool|mixed
+     */
+    public function isAlternativePaymentMethodsEnabled($storeId = null): bool
+    {
+        return $this->getConfigData('active', Config::XML_ADYEN_HPP, $storeId, true);
     }
 
     /**
@@ -485,6 +504,19 @@ class Config
             self::XML_ADYEN_SUPPORT_PREFIX,
             $storeId,
             true);
+    }
+
+    /**
+     * @param int $storeId
+     * @return string
+     */
+    public function getConfigurationMode(int $storeId): string
+    {
+        return $this->getConfigData(
+            self::XML_CONFIGURATION_MODE,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId
+        );
     }
 
     /**

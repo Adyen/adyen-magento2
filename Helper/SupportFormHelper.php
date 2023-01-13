@@ -159,8 +159,169 @@ class SupportFormHelper
         $merchantAccount = $this->config->getMerchantAccount($storeId);
         $environmentMode = $this->config->isDemoMode($storeId) ? 'Test' : 'Live';
         $moduleVersion = $this->adyenHelper->getModuleVersion();
-        $alternativePaymentMethods = $this->config->getConfigData('active', Config::XML_ADYEN_HPP, $storeId);
-        $moto = $this->config->getConfigData('active', Config::XML_ADYEN_MOTO, $storeId);
+        $isAlternativePaymentMethodsEnabled = $this->config->isAlternativePaymentMethodsEnabled($storeId);
+        $isMotoEnabled = $this->config->isMotoPaymentMethodEnabled($storeId);
+        $configurationMode = $this->config->getConfigurationMode($storeId);
+        $isAdyenCcEnabled = $this->config->getConfigData('active', 'adyen_cc', $storeId, true);
+        $isCardTokenizationEnabled = $this->config->getConfigData(
+            'active',
+            'adyen_oneclick',
+            $storeId,
+            true
+        );
+        $cardTokenizationMode = $this->config->getConfigData('card_type', 'adyen_oneclick', $storeId);
+        $isStoreAlternativePaymentMethodsEnabled = $this->config->getConfigData(
+            'active',
+            'adyen_hpp_vault',
+            $storeId,
+            true
+        );
+        $alternativePaymentMethodTokenizationType = $this->config->getConfigData(
+            'token_type',
+            'adyen_hpp',
+            $storeId
+        );
+        $isBoletoEnabled = $this->config->getConfigData('active', 'adyen_boleto', $storeId, true);
+        $boletoDeliveryDays = $this->config->getConfigData('delivery_days', 'adyen_boleto', $storeId);
+        $isPayByLinkEnabled = $this->config->getConfigData(
+            'active',
+            'adyen_pay_by_link',
+            $storeId,
+            true
+        );
+        $motoMerchantAccounts = json_encode($this->config->getMotoMerchantAccounts($storeId));
+        $useManualCaptureForPaypal = $this->config->getConfigData(
+            'paypal_capture_mode',
+            'adyen_abstract',
+            $storeId,
+            true
+        );
+        $captureOnShipmentForOpenInvoice = $this->config->getConfigData(
+            'capture_on_shipment',
+            'adyen_abstract',
+            $storeId,
+            true
+        );
+        $autoCaptureOpenInvoice = $this->config->getConfigData(
+            'auto_capture_openinvoice',
+            'adyen_abstract',
+            $storeId,
+            true
+        );
+        $sendOrderConfirmationForSepaAndBankTransfer = $this->config->getConfigData(
+            'send_email_bank_sepa_on_pending',
+            'adyen_abstract',
+            $storeId,
+            true
+        );
+        $sepaPaymentFlow = $this->config->getConfigData(
+            'sepa_flow',
+            'adyen_abstract',
+            $storeId
+        );
+        $captureDelay = $this->config->getConfigData(
+            'capture_mode',
+            'adyen_abstract',
+            $storeId
+        );
+        $orderStatusCreation = $this->config->getConfigData(
+            'order_status',
+            'adyen_abstract',
+            $storeId
+        );
+        $orderStatusPaymentAuthorisation = $this->config->getConfigData(
+            'payment_pre_authorized',
+            'adyen_abstract',
+            $storeId
+        );
+        $orderStatusPaymentConfirmed = $this->config->getConfigData(
+            'payment_authorized',
+            'adyen_abstract',
+            $storeId
+        );
+        $orderStatusCancellation = $this->config->getConfigData(
+            'payment_cancelled',
+            'adyen_abstract',
+            $storeId
+        );
+        $orderStatusPaymentCaptureVirtualProducts = $this->config->getConfigData(
+            'payment_authorized_virtual',
+            'adyen_abstract',
+            $storeId
+        );
+        $orderStatusPendingBankTransferSepa = $this->config->getConfigData(
+            'pending_status',
+            'adyen_abstract',
+            $storeId
+        );
+        $manualReviewStatus = $this->config->getConfigData(
+            'fraud_manual_review_status',
+            'adyen_abstract',
+            $storeId
+        );
+        $manualReviewAcceptedStatus = $this->config->getConfigData(
+            'fraud_manual_review_accept_status',
+            'adyen_abstract',
+            $storeId
+        );
+        $ignoreRefundNotification = $this->config->getConfigData(
+            'ignore_refund_notification',
+            'adyen_abstract',
+            $storeId,
+            true
+        );
+        $refundStrategy = $this->config->getConfigData(
+            'partial_payments_refund_strategy',
+            'adyen_abstract',
+            $storeId
+        );
+        $sendAdditionalRiskData = $this->config->getConfigData(
+            'send_additional_risk_data',
+            'adyen_abstract',
+            $storeId,
+            true
+        );
+        $sendLevel23Data = $this->config->getConfigData(
+            'send_level23_data',
+            'adyen_abstract',
+            $storeId,
+            true
+        );
+        $headlessPaymentOriginUrl = $this->config->getConfigData(
+            'payment_origin_url',
+            'adyen_abstract',
+            $storeId
+        );
+        $headlessPaymentReturnUrl = $this->config->getConfigData(
+            'payment_return_url',
+            'adyen_abstract',
+            $storeId
+        );
+        $customSuccessRedirectPath = $this->config->getConfigData(
+            'custom_success_redirect_path',
+            'adyen_abstract',
+            $storeId
+        );
+        $isTestApiKeyConfigured = (bool) $this->config->getApiKey('test', $storeId);
+        $isLiveApiKeyConfigured = (bool) $this->config->getApiKey('live', $storeId);
+        $isTestClientKeyConfigured = (bool) $this->config->getClientKey('test', $storeId);
+        $isLiveClientKeyConfigured = (bool) $this->config->getClientKey('live', $storeId);
+        $isHmacKeyConfigured = (bool) $this->config->getNotificationsHmacKey($storeId);
+        $isPosTestApiKeyConfigured = (bool) $this->config->getConfigData(
+            'api_key_test',
+            'adyen_pos_cloud',
+            $storeId
+        );
+        $isPosLiveApiKeyConfigured = (bool) $this->config->getConfigData(
+            'api_key_live',
+            'adyen_pos_cloud',
+            $storeId
+        );
+        $posMerchantAccount = $this->config->getConfigData(
+            'pos_merchant_account',
+            'adyen_pos_cloud',
+            $storeId
+        );
 
         return [
             'magentoEdition' => $magentoEdition,
@@ -169,10 +330,50 @@ class SupportFormHelper
             'pluginVersion' => $moduleVersion,
             'merchantAccount' => $merchantAccount,
             'environmentMode' => $environmentMode,
-            'paymentMethodsEnabled' => $alternativePaymentMethods,
+            'paymentMethodsEnabled' => $isAlternativePaymentMethodsEnabled ? 'Yes' : 'No',
             'notificationUsername' => $notificationUsername,
             'notificationPassword' => $notificationPassword,
-            'motoEnabled' => $moto
+            'motoEnabled' => $isMotoEnabled ? 'Yes' : 'No',
+            'configurationMode' => $configurationMode,
+            'isAdyenCcEnabled' => $isAdyenCcEnabled ? 'Yes' : 'No',
+            'isCardTokenizationEnabled' => $isCardTokenizationEnabled ? 'Yes' : 'No',
+            'cardTokenizationMode' => $cardTokenizationMode,
+            'isStoreAlternativePaymentMethodsEnabled' => $isStoreAlternativePaymentMethodsEnabled ? 'Yes' : 'No',
+            'alternativePaymentMethodTokenizationType' => $alternativePaymentMethodTokenizationType,
+            'isBoletoEnabled' => $isBoletoEnabled ? 'Yes' : 'No',
+            'boletoDeliveryDays' => $boletoDeliveryDays,
+            'isPayByLinkEnabled' => $isPayByLinkEnabled ? 'Yes' : 'No',
+            'motoMerchantAccounts' => $motoMerchantAccounts,
+            'useManualCaptureForPaypal' => $useManualCaptureForPaypal ? 'Yes' : 'No',
+            'captureOnShipmentForOpenInvoice' => $captureOnShipmentForOpenInvoice ? 'Yes' : 'No',
+            'autoCaptureOpenInvoice' => $autoCaptureOpenInvoice ? 'Yes' : 'No',
+            'sendOrderConfirmationForSepaAndBankTransfer' =>
+                $sendOrderConfirmationForSepaAndBankTransfer ? 'Yes' : 'No',
+            'sepaPaymentFlow' => $sepaPaymentFlow,
+            'captureDelay' => $captureDelay,
+            'orderStatusCreation' => $orderStatusCreation,
+            'orderStatusPaymentAuthorisation' => $orderStatusPaymentAuthorisation,
+            'orderStatusPaymentConfirmed' => $orderStatusPaymentConfirmed,
+            'orderStatusCancellation' => $orderStatusCancellation,
+            'orderStatusPaymentCaptureVirtualProducts' => $orderStatusPaymentCaptureVirtualProducts,
+            'orderStatusPendingBankTransferSepa' => $orderStatusPendingBankTransferSepa,
+            'manualReviewStatus' => $manualReviewStatus,
+            'manualReviewAcceptedStatus' => $manualReviewAcceptedStatus,
+            'ignoreRefundNotification' => $ignoreRefundNotification ? 'Yes' : 'No',
+            'refundStrategy' => $refundStrategy,
+            'sendAdditionalRiskData' => $sendAdditionalRiskData ? 'Yes' : 'No',
+            'sendLevel23Data' => $sendLevel23Data ? 'Yes' : 'No',
+            'headlessPaymentOriginUrl' => $headlessPaymentOriginUrl,
+            'headlessPaymentReturnUrl' => $headlessPaymentReturnUrl,
+            'customSuccessRedirectPath' => $customSuccessRedirectPath,
+            'isTestApiKeyConfigured' => $isTestApiKeyConfigured ? 'Yes' : 'No',
+            'isLiveApiKeyConfigured' => $isLiveApiKeyConfigured ? 'Yes' : 'No',
+            'isTestClientKeyConfigured' => $isTestClientKeyConfigured ? 'Yes' : 'No',
+            'isLiveClientKeyConfigured' => $isLiveClientKeyConfigured ? 'Yes' : 'No',
+            'isHmacKeyConfigured' => $isHmacKeyConfigured ? 'Yes' : 'No',
+            'isPosTestApiKeyConfigured' => $isPosTestApiKeyConfigured ? 'Yes' : 'No',
+            'isPosLiveApiKeyConfigured' => $isPosLiveApiKeyConfigured ? 'Yes' : 'No',
+            'posMerchantAccount' => $posMerchantAccount
         ];
     }
 
