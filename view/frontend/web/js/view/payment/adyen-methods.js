@@ -36,7 +36,7 @@ define(
             // 'adyen_ideal',
             // 'adyen_klarna',
             //'adyen_paypal'
-            'adyen_dotpay',
+            // 'adyen_dotpay',
             'adyen_bcmc_mobile',
             'adyen_amazonpay'
         ];
@@ -68,6 +68,10 @@ define(
             {
                 type: 'adyen_paypal',
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-paypal-method'
+            },
+            {
+            type: 'adyen_dotpay',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-dotpay-method'
             }
         );
 

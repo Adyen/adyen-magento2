@@ -11,6 +11,7 @@ define(
     [
         'Magento_Checkout/js/model/quote',
         'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-method',
+
     ],
     function(
         quote,
@@ -23,8 +24,7 @@ define(
             buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo, result) {
                 var self = this;
                 var email = '';
-                var showPayButton = true;
-
+                var showPayButton = false;
 
                 if (!!quote.guestEmail) {
                     email = quote.guestEmail;
@@ -39,33 +39,15 @@ define(
                 if (!!quote.billingAddress()) {
                     formattedBillingAddress = self.getFormattedAddress(quote.billingAddress());
                 }
-
                 /*Use the storedPaymentMethod object and the custom onChange function as the configuration object together*/
                 var configuration = Object.assign(paymentMethod,
                     {
                         showPayButton: showPayButton,
                         countryCode: formattedShippingAddress.country ? formattedShippingAddress.country : formattedBillingAddress.country, // Use shipping address details as default and fall back to billing address if missing
-                        data: {
-                            personalDetails: {
-                                firstName: formattedBillingAddress.firstName,
-                                lastName: formattedBillingAddress.lastName,
-                                telephoneNumber: formattedBillingAddress.telephone,
-                                shopperEmail: email,
-                            },
-                            billingAddress: {
-                                city: formattedBillingAddress.city,
-                                country: formattedBillingAddress.country,
-                                houseNumberOrName: formattedBillingAddress.houseNumber,
-                                postalCode: formattedBillingAddress.postalCode,
-                                street: formattedBillingAddress.street,
-                            },
-                        },
+                        data: {},
                         onChange: function (state) {
                             result.isPlaceOrderAllowed(state.isValid);
                         },
-                        onClick: function(resolve, reject) {
-                            return self.validate();
-                        }
                     });
 
                 if (formattedShippingAddress) {
