@@ -51,6 +51,11 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
         $fieldset = $form->addFieldset('base_fieldset', ['legend' => __('Order processing')]);
         $this->_addElementTypes($fieldset);
 
+        $fieldset->addType(
+            'textarea',
+            'Adyen\Payment\Block\Adminhtml\Support\Form\Element\CustomTextareaElement'
+        );
+
         $fieldset->addField(
             'topic',
             'select',
@@ -76,6 +81,7 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'name' => 'subject',
                 'label' => __('Subject'),
                 'title' => __('Subject'),
+                'placeholder' => __('Type a subject for your issue'),
                 'class' => 'adyen_support-form',
                 'required' => true
             ]
@@ -163,6 +169,7 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'name' => 'paymentMethod',
                 'label' => __('What payment method is causing the problem?'),
                 'title' => __('What payment method is causing the problem?'),
+                'placeholder' => __('Use comma for multiple payment methods'),
                 'class' => 'adyen_support-form',
                 'required' => false,
             ]
@@ -215,6 +222,7 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'name' => 'orderHistoryComments',
                 'label' => __('Order history comments'),
                 'title' => __('Order history comments'),
+                'placeholder' => __('Copy and paste the order history comments here'),
                 'class' => 'adyen_support-form',
                 'required' => false,
             ]
@@ -235,6 +243,7 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'name' => 'orderDescription',
                 'label' => __('Description'),
                 'title' => __('Description'),
+                'placeholder' => __('Tell us what is happening in detail'),
                 'class' => 'adyen_support-form',
                 'required' => false,
             ]

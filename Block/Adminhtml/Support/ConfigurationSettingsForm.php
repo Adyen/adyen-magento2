@@ -53,6 +53,11 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
         $fieldset = $form->addFieldset('base_fieldset', ['legend' => __('Configuration settings')]);
         $this->_addElementTypes($fieldset);
 
+        $fieldset->addType(
+            'textarea',
+            'Adyen\Payment\Block\Adminhtml\Support\Form\Element\CustomTextareaElement'
+        );
+
         $fieldset->addField(
             'topic',
             'select',
@@ -85,6 +90,7 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
                 'name' => 'subject',
                 'label' => __('Subject'),
                 'title' => __('Subject'),
+                'placeholder' => __('Type a subject for your issue'),
                 'class' => 'adyen_support-form',
                 'required' => true
             ]
@@ -153,6 +159,7 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
                 'name' => 'descriptionComments',
                 'label' => __('Description'),
                 'title' => __('Description'),
+                'placeholder' => __('Tell us what is happening in  detail'),
                 'class' => '',
                 'required' => false,
             ]
