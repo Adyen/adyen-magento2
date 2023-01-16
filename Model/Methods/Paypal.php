@@ -49,4 +49,9 @@ class Paypal extends AdyenPaymentMethod implements PaymentMethodInterface
     {
         return true;
     }
+
+    public function isWallet(): bool
+    {
+        return false;
+    }
 }

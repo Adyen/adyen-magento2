@@ -14,6 +14,8 @@ namespace Adyen\Payment\Helper\PaymentMethods;
 
 interface PaymentMethodInterface
 {
+    public function isWallet(): bool;
+
     public function supportsCardOnFile(): bool;
 
     public function supportsSubscription(): bool;

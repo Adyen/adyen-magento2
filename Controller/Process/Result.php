@@ -21,6 +21,7 @@ use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Methods\Paypal;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
@@ -308,7 +309,7 @@ class Result extends Action
             // If payment method is HPP and hpp config enabled
             // Else if payment method is card and vault is enabled
             // Else if payment method is card and vault is disabled and adyen tokens are enabled
-            if ($storePaymentMethods && $paymentInstanceCode === AdyenHppConfigProvider::CODE) {
+            if ($storePaymentMethods && $paymentInstanceCode === Paypal::CODE) {
                 $paymentMethod = $response['paymentMethod']['type'];
                 try {
                     $this->payment->setAdditionalInformation(VaultConfigProvider::IS_ACTIVE_CODE, true);

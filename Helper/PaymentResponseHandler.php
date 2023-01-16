@@ -15,6 +15,7 @@ use Adyen\Payment\Exception\PaymentMethodException;
 use Adyen\Payment\Helper\PaymentMethods\AbstractWalletPaymentMethod;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Methods\Paypal;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
@@ -227,7 +228,7 @@ class PaymentResponseHandler
                     $paymentInstanceCode = $paymentMethodInstance->getCode();
                     $storePaymentMethods = $this->configHelper->isStoreAlternativePaymentMethodEnabled($storeId);
 
-                    if ($storePaymentMethods && $paymentInstanceCode === AdyenHppConfigProvider::CODE) {
+                    if ($storePaymentMethods && $paymentInstanceCode === Paypal::CODE) {
                         $brand = $payment->getAdditionalInformation(AdyenPaymentMethodDataAssignObserver::BRAND_CODE);
                         try {
                             $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($brand);

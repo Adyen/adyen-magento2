@@ -49,4 +49,9 @@ class AmazonPay extends AdyenPaymentMethod implements PaymentMethodInterface
     {
         return true;
     }
+
+    public function isWallet(): bool
+    {
+        return true;
+    }
 }

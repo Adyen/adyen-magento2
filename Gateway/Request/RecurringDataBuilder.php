@@ -16,6 +16,7 @@ use Adyen\Payment\Helper\Requests;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Methods\Paypal;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
@@ -61,7 +62,7 @@ class RecurringDataBuilder implements BuilderInterface
         $method = $payment->getMethod();
         if ($method === PaymentMethods::ADYEN_CC) {
             $body = $this->adyenRequestsHelper->buildCardRecurringData($storeId, $payment);
-        } elseif ($method === PaymentMethods::ADYEN_HPP) {
+        } elseif ($method === Paypal::CODE) {
             $brand = $this->stateData->getPaymentMethodVariant($order->getQuoteId());
             $body = $this->vaultHelper->buildPaymentMethodRecurringData($storeId, $brand);
         } elseif ($method === PaymentMethods::ADYEN_ONE_CLICK) {

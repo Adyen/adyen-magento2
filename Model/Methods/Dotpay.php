@@ -49,4 +49,9 @@ class Dotpay extends AdyenPaymentMethod implements PaymentMethodInterface
     {
         return false;
     }
+
+    public function isWallet(): bool
+    {
+        return false;
+    }
 }
