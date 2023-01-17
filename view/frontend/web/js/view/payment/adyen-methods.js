@@ -70,7 +70,7 @@ define(
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-paypal-method'
             },
             {
-            type: 'adyen_dotpay',
+                type: 'adyen_dotpay',
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-dotpay-method'
             },
             {
