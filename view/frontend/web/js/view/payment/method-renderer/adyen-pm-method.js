@@ -113,7 +113,6 @@ define(
 
                 if (!!paymentMethodsResponse.paymentMethodsResponse) {
                     var paymentMethods = paymentMethodsResponse.paymentMethodsResponse.paymentMethods;
-                    // console.log(paymentMethodsResponse)
                     // Needed until the new ratepay component is released
                     if (JSON.stringify(paymentMethods).indexOf('ratepay') >
                         -1) {
