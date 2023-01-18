@@ -49,3 +49,9 @@
     text-align: center;
     margin-top: 50px;
 }
+
+.adyen-support-logo {
+    width: 175px;
+    max-width: 100%;
+    margin-bottom: -30px;
+}

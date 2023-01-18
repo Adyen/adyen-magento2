@@ -16,12 +16,12 @@ class OtherTopics extends Generic implements TabInterface
     /**
      * @var Store
      */
-    protected $_store;
+    protected $store;
 
     /**
      * @var LabelFactory
      */
-    protected $_themeLabelFactory;
+    protected $themeLabelFactory;
 
     /**
      * @param Context $context
@@ -40,8 +40,8 @@ class OtherTopics extends Generic implements TabInterface
         array        $data = []
     )
     {
-        $this->_store = $store;
-        $this->_themeLabelFactory = $themeLabelFactory;
+        $this->store = $store;
+        $this->themeLabelFactory = $themeLabelFactory;
         parent::__construct($context, $registry, $formFactory, $data);
     }
 
