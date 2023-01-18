@@ -33,4 +33,9 @@ class ConfigurationSettings extends Page implements SupportTabInterface
     {
         return $this->getUrl('adyen/support/configurationsettingsform');
     }
+
+    public function getPageTitle()
+    {
+        return __("Configuration Settings");
+    }
 }

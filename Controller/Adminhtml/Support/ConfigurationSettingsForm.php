@@ -35,7 +35,7 @@ class ConfigurationSettingsForm extends Action
     {
         $resultPage = $this->resultFactory->create(ResultFactory::TYPE_PAGE);
         $resultPage->setActiveMenu('Adyen_Payment::support')
-            ->getConfig()->getTitle()->prepend(__('Adyen Support form'));
+            ->getConfig()->getTitle()->prepend(__('Adyen Support Form'));
 
         if ('POST' === $this->getRequest()->getMethod()) {
             try {

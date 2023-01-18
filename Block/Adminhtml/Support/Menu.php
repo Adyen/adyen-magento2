@@ -20,6 +20,8 @@ class Menu extends Template
         'orderprocessingform' => 'orderprocessing',
         'configurationsettings' => 'configurationsettings',
         'configurationsettingsform' => 'configurationsettings',
+        'othertopicsform' => 'othertopicsform',
+        'success' => 'success'
     ];
 
     public function orderProcessingUrl()
@@ -30,6 +32,11 @@ class Menu extends Template
     public function configurationSettingsUrl()
     {
         return $this->getUrl('adyen/support/configurationsettings');
+    }
+
+    public function otherTopicsFormUrl()
+    {
+        return $this->getUrl('adyen/support/othertopicsform');
     }
 
     public function getCurrentSection()

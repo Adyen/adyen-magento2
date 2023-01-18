@@ -15,9 +15,6 @@ use Adyen\Payment\Helper\SupportFormHelper;
 
 class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Generic
 {
-    const HEADLESS_YES = 1;
-    const HEADLESS_NO = 0;
-
     private $supportFormHelper;
 
     public function __construct(
@@ -118,8 +115,9 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
                 'title' => __('Are you using headless integration?'),
                 'class' => '',
                 'required' => false, 'values' => [
-                ['value' => self::HEADLESS_YES, 'label' => __('Yes')],
-                ['value' => self::HEADLESS_NO, 'label' => __('No')]]
+                ['value' => 'Yes', 'label' => __('Yes')],
+                ['value' => 'No', 'label' => __('No')]],
+                'value' => 'No'
             ])->setAfterElementHtml('
        <div class="tooltip">
        <span class="help">

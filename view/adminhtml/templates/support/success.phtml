@@ -1,5 +1,12 @@
+<?php /** @var \Adyen\Payment\Block\Adminhtml\Support\Success $block */ ?>
+
 <div>
-    <h2>We’ve received your request, and created a ticket for it.
-        You will receive a respond within 1 working day.
-    </h2>
+    <h1><?= $block->getSuccessTitle() ?></h1>
+    <p class="adyen_support-success_message"><?= $block->getSuccessMessage() ?></p>
+
+    <form action="<?= $block->getDashboardUrl(); ?>" method="GET" class="adyen_support-redirect_form">
+        <button class="adyen_support-form_link btn btn-large btn-prime">
+            <?= __("Return to Dashboard") ?>
+        </button>
+    </form>
 </div>

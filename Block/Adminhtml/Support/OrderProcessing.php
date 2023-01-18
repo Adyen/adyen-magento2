@@ -29,4 +29,9 @@ class OrderProcessing extends Page implements SupportTabInterface
     {
         return $this->getUrl('adyen/support/orderprocessingform');
     }
+
+    public function getPageTitle()
+    {
+        return __("Order Processing");
+    }
 }

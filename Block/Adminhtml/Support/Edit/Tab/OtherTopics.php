@@ -6,15 +6,13 @@ use Magento\Backend\Block\Template\Context;
 use Magento\Backend\Block\Widget\Form\Generic;
 use Magento\Backend\Block\Widget\Tab\TabInterface;
 use Magento\Framework\Data\FormFactory;
+use Magento\Framework\Phrase;
 use Magento\Framework\Registry;
 use Magento\Framework\View\Design\Theme\LabelFactory;
 use Magento\Store\Model\System\Store;
 
-class ConfigurationSettings extends Generic implements TabInterface
+class OtherTopics extends Generic implements TabInterface
 {
-    const HEADLESS_YES = 1;
-    const HEADLESS_NO = 0;
-
     /**
      * @var Store
      */
@@ -34,13 +32,14 @@ class ConfigurationSettings extends Generic implements TabInterface
      * @param array $data
      */
     public function __construct(
-        Context $context,
-        Registry $registry,
-        FormFactory $formFactory,
-        Store $store,
+        Context      $context,
+        Registry     $registry,
+        FormFactory  $formFactory,
+        Store        $store,
         LabelFactory $themeLabelFactory,
-        array $data = []
-    ) {
+        array        $data = []
+    )
+    {
         $this->_store = $store;
         $this->_themeLabelFactory = $themeLabelFactory;
         parent::__construct($context, $registry, $formFactory, $data);
@@ -48,6 +47,8 @@ class ConfigurationSettings extends Generic implements TabInterface
 
     /**
      * Internal constructor
+     *
+     * @return void
      */
     protected function _construct()
     {
@@ -57,22 +58,28 @@ class ConfigurationSettings extends Generic implements TabInterface
 
     /**
      * Prepare label for tab
+     *
+     * @return Phrase
      */
     public function getTabLabel()
     {
-        return __('Configuration settings');
+        return __('Other topics');
     }
 
     /**
      * Prepare title for tab
+     *
+     * @return Phrase
      */
     public function getTabTitle()
     {
-        return __('Configuration settings');
+        return __('Other topics');
     }
 
     /**
      * Returns status flag about this tab can be shown or not
+     *
+     * @return true
      */
     public function canShowTab()
     {

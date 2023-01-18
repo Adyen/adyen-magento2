@@ -2,7 +2,7 @@
 /**
  * Adyen Payment Module
  *
- * Copyright (c) 2022 Adyen N.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -12,15 +12,29 @@
 namespace Adyen\Payment\Block\Adminhtml\Support;
 
 use Adyen\Payment\Helper\SupportFormHelper;
+use Magento\Backend\Block\Template\Context;
+use Magento\Backend\Block\Widget\Form\Generic;
+use Magento\Framework\Data\FormFactory;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Registry;
 
-class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
+class OtherTopicsForm extends Generic
 {
+    /**
+     * @var SupportFormHelper
+     */
     private $supportFormHelper;
 
+    /**
+     * @param Context $context
+     * @param Registry $registry
+     * @param FormFactory $formFactory
+     * @param SupportFormHelper $supportFormHelper
+     */
     public function __construct(
-        \Magento\Backend\Block\Template\Context $context,
-        \Magento\Framework\Registry $registry,
-        \Magento\Framework\Data\FormFactory $formFactory,
+        Context $context,
+        Registry $registry,
+        FormFactory $formFactory,
         SupportFormHelper $supportFormHelper
     )
     {
@@ -33,56 +47,43 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
      *
      * @return $this
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
-    protected function _prepareForm()
+    protected function _prepareForm(): OtherTopicsForm
     {
         $form = $this->_formFactory->create([
             'data' => [
                 'id' => 'support_form',
-                'action' => $this->getUrl('adyen/support/orderprocessingform'),
+                'action' => $this->getUrl('adyen/support/othertopicsform'),
                 'method' => 'post',
                 'enctype' => 'multipart/form-data',
             ]
         ]);
-        $fieldset = $form->addFieldset('base_fieldset', ['legend' => __('Order processing')]);
+        $fieldset = $form->addFieldset('base_fieldset', ['legend' => __('Other Topics')]);
         $this->_addElementTypes($fieldset);
 
         $fieldset->addType(
             'textarea',
             'Adyen\Payment\Block\Adminhtml\Support\Form\Element\CustomTextareaElement'
         );
-
-        $fieldset->addField(
-            'topic',
-            'select',
-            [
-                'name' => 'topic',
-                'label' => __('Topic'),
-                'title' => __('Topic'),
-                'class' => 'adyen_support-form',
-                'options' => [
-                    'payment_status' => 'Payment status',
-                    'failed_transaction' => 'Failed transaction',
-                    'offer' => 'Offer',
-                    'webhooks' => 'Notification &amp; webhooks',
-                ],
-                'required' => true,
-                'value' => $this->getRequest()->getParam('topic'),
-            ]
+        $fieldset->addType(
+            'file',
+            'Adyen\Payment\Block\Adminhtml\Support\Form\Element\MultipleFileElement'
         );
+
         $fieldset->addField(
             'subject',
             'text',
             [
                 'name' => 'subject',
-                'label' => __('Subject'),
-                'title' => __('Subject'),
-                'placeholder' => __('Type a subject for your issue'),
+                'label' => __('What can we help you with?'),
+                'title' => __('What can we help you with?'),
+                'placeholder' => __('Select the topic you need help with'),
                 'class' => 'adyen_support-form',
                 'required' => true
             ]
         );
+
         $fieldset->addField(
             'email',
             'text',
@@ -92,9 +93,10 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'title' => __('Email'),
                 'class' => 'adyen_support-form validate-emails',
                 'required' => true,
-                'value'=>$this->supportFormHelper->getGeneralContactSenderEmail()
+                'value' => $this->supportFormHelper->getGeneralContactSenderEmail()
             ]
         );
+
         $fieldset->addField(
             'pspReference',
             'text',
@@ -115,6 +117,7 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
        The number will be listed in the comment history.
             </div>
        </div>');
+
         $fieldset->addField(
             'merchantReference',
             'text',
@@ -123,7 +126,7 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
                 'label' => __('Merchant Reference'),
                 'title' => __('Merchant Reference'),
                 'class' => 'adyen_support-form',
-                'required' => false,
+                'required' => true,
             ]
         )->setAfterElementHtml('
        <div class="tooltip">
@@ -160,18 +163,6 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
        pre-configured backend but have a custom store frontend.
             </div>
        </div>');
-        $fieldset->addField(
-            'paymentMethod',
-            'text',
-            [
-                'name' => 'paymentMethod',
-                'label' => __('What payment method is causing the problem?'),
-                'title' => __('What payment method is causing the problem?'),
-                'placeholder' => __('Use comma for multiple payment methods'),
-                'class' => 'adyen_support-form',
-                'required' => false,
-            ]
-        );
 
         $fieldset->addField(
             'terminalId',
@@ -192,7 +183,7 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
        To find this information, go to Customer Area under Point of sale > Terminals.
             </div>
        </div>');
-        $fieldset->addType('file', 'Adyen\Payment\Block\Adminhtml\Support\Form\Element\MultipleFileElement');
+
         $fieldset->addField(
             'attachments',
             'file',
@@ -213,39 +204,20 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
        We accept files in PNG, JPG, ZIP, RAR, or SVG format, with a maximum size of 10 MB.
             </div>
        </div>');
-        $fieldset->addField(
-            'orderHistoryComments',
-            'textarea',
-            [
-                'name' => 'orderHistoryComments',
-                'label' => __('Order history comments'),
-                'title' => __('Order history comments'),
-                'placeholder' => __('Copy and paste the order history comments here'),
-                'class' => 'adyen_support-form',
-                'required' => false,
-            ]
-        )->setAfterElementHtml('
-       <div class="tooltip">
-       <span class="help">
-       <span></span>
-       </span>
-       <div class="tooltip-content">To find this information, go to Magento > Orders, and select an order. 
-       Then copy and paste the history comments here.
-            </div>
-       </div>');
 
         $fieldset->addField(
-            'orderDescription',
+            'description',
             'textarea',
             [
-                'name' => 'orderDescription',
-                'label' => __('Description'),
-                'title' => __('Description'),
+                'name' => 'description',
+                'label' => __('Describe your issue'),
+                'title' => __('Describe your issue'),
                 'placeholder' => __('Tell us what is happening in detail'),
                 'class' => 'adyen_support-form',
                 'required' => false,
             ]
         );
+
         $fieldset->addField(
             'submit_support_order_processing',
             'submit',
