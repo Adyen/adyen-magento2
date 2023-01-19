@@ -12,6 +12,7 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\AdyenException;
 use Adyen\Payment\Exception\InvalidAdditionalDataException;
 use Adyen\Payment\Exception\PaymentMethodException;
 use Adyen\Payment\Helper\PaymentMethods\AbstractWalletPaymentMethod;
@@ -196,13 +197,14 @@ class Vault
     }
 
     /**
-     * Build the recurring data when payment is done trough a payment method (not card)
+     * Build the recurring data when payment is done through a payment method (not card)
      *
      * @param int $storeId
+     * @param $brand
      * @param $payment
      * @return array
      */
-    public function buildPaymentMethodRecurringData(int $storeId, $brand): array
+    public function buildPaymentMethodRecurringData(int $storeId, $brand, $payment): array
     {
         $request = [];
         if (!$this->config->isStoreAlternativePaymentMethodEnabled()) {
@@ -223,11 +225,18 @@ class Vault
             return $request;
         }
 
-        $recurringModel = $this->config->getAlternativePaymentMethodTokenType($storeId);
-        if (isset($recurringModel)) {
+        $recurringProcessingModel = $payment->getAdditionalInformation('recurringProcessingModel');
+        if (isset($recurringProcessingModel)) {
             $request['storePaymentMethod'] = true;
-            $request['recurringProcessingModel'] = $recurringModel;
+            $request['recurringProcessingModel'] = $recurringProcessingModel;
+        } else {
+            $recurringProcessingModel = $this->config->getAlternativePaymentMethodTokenType($storeId);
+            if (isset($recurringProcessingModel)) {
+                $request['storePaymentMethod'] = true;
+                $request['recurringProcessingModel'] = $recurringProcessingModel;
+            }
         }
+
         return $request;
     }
 
@@ -254,7 +263,7 @@ class Vault
 
         $tokenizedPaymentMethods = array_map(
             'trim',
-            explode(',', $this->config->getTokenizedPaymentMethods($storeId))
+            explode(',', (string) $this->config->getTokenizedPaymentMethods($storeId))
         );
         $shouldTokenize = in_array($adyenPaymentMethod->getTxVariant(), $tokenizedPaymentMethods);
 
@@ -296,8 +305,12 @@ class Vault
 
         // In case the payment token does not exist, create it based on the additionalData
         if (is_null($paymentToken)) {
-            $storeId = $payment->getOrder()->getStoreId();
-            $recurringModel = $this->config->getAlternativePaymentMethodTokenType($storeId);
+            $recurringProcessingModel = $payment->getAdditionalInformation('recurringProcessingModel');
+            if (is_null($recurringProcessingModel)) {
+                $storeId = $payment->getOrder()->getStoreId();
+                $recurringProcessingModel = $this->config->getAlternativePaymentMethodTokenType($storeId);
+            }
+
             $paymentToken = $this->paymentTokenFactory->create(PaymentTokenFactoryInterface::TOKEN_TYPE_ACCOUNT);
             $paymentToken->setGatewayToken($additionalData[self::RECURRING_DETAIL_REFERENCE]);
             $expiryDate = new DateTime();
@@ -305,7 +318,7 @@ class Vault
             $paymentToken->setExpiresAt($expiryDate);
             $details = [
                 'type' => $payment->getCcType(),
-                self::TOKEN_TYPE => $recurringModel
+                self::TOKEN_TYPE => $recurringProcessingModel
             ];
 
             $paymentToken->setTokenDetails(json_encode($details, JSON_FORCE_OBJECT));
@@ -362,13 +375,17 @@ class Vault
 
         // Set token type (alternative payment methods) for card tokens created using googlepay, applepay.
         // This will be done for all card tokens once all vault changes are implemented
-        if ($payment->getMethodInstance()->getCode() === AdyenHppConfigProvider::CODE) {
+        if ($payment->getAdditionalInformation('recurringProcessingModel')) {
+            $recurringModel = $payment->getAdditionalInformation('recurringProcessingModel');
+        } elseif ($payment->getMethodInstance()->getCode() === AdyenHppConfigProvider::CODE) {
             $storeId = $payment->getOrder()->getStoreId();
             $recurringModel = $this->config->getAlternativePaymentMethodTokenType($storeId);
-            $details[self::TOKEN_TYPE] = $recurringModel;
         } elseif ($payment->getMethodInstance()->getCode() === AdyenCcConfigProvider::CODE) {
             $storeId = $payment->getOrder()->getStoreId();
             $recurringModel = $this->config->getCardRecurringType($storeId);
+        }
+
+        if (isset($recurringModel)) {
             $details[self::TOKEN_TYPE] = $recurringModel;
         }
 
@@ -408,7 +425,7 @@ class Vault
      */
     private function getExpirationDate($expirationDate)
     {
-        $expirationDate = explode('/', $expirationDate);
+        $expirationDate = explode('/', (string) $expirationDate);
 
         $expDate = new DateTime(
         //add leading zero to month
@@ -435,5 +452,14 @@ class Vault
             $payment->setExtensionAttributes($extensionAttributes);
         }
         return $extensionAttributes;
+    }
+
+    /**
+     * @param string $recurringProcessingModel
+     * @return bool
+     */
+    public function validateRecurringProcessingModel(string $recurringProcessingModel): bool
+    {
+        return in_array($recurringProcessingModel, Recurring::getRecurringTypes());
     }
 }

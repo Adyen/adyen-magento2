@@ -240,7 +240,7 @@
                 <active>0</active>
                 <model>AdyenPaymentPosCloudFacade</model>
                 <order_status>pending</order_status>
-                <title>Adyen POS Cloud API</title>
+                <title>Adyen POS Terminal Payment</title>
                 <allowspecific>0</allowspecific>
                 <sort_order>6</sort_order>
                 <payment_action>authorize</payment_action>

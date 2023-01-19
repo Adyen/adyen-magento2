@@ -184,7 +184,7 @@ class Config
         if (is_null($key)) {
             return null;
         }
-        return $this->encryptor->decrypt(trim($key));
+        return $this->encryptor->decrypt(trim((string) $key));
     }
 
     /**
@@ -249,7 +249,7 @@ class Config
             return null;
         }
 
-        return $this->encryptor->decrypt(trim($key));
+        return $this->encryptor->decrypt(trim((string) $key));
     }
 
     /**
@@ -445,9 +445,9 @@ class Config
 
     /**
      * @param $storeId
-     * @return string|null
+     * @return bool|null
      */
-    public function getCardRecurringActive($storeId): ?string
+    public function getCardRecurringActive($storeId): ?bool
     {
         return $this->getConfigData('active', self::XML_ADYEN_ONECLICK, $storeId, true);
     }

@@ -625,14 +625,14 @@ class Data extends AbstractHelper
                 if (is_null($hmacTest)) {
                     return null;
                 }
-                $secretWord = $this->_encryptor->decrypt(trim($hmacTest));
+                $secretWord = $this->_encryptor->decrypt(trim((string) $hmacTest));
                 break;
             default:
                 $hmacLive = $this->getAdyenHppConfigData('hmac_live', $storeId);
                 if (is_null($hmacLive)) {
                     return null;
                 }
-                $secretWord = $this->_encryptor->decrypt(trim($hmacLive));
+                $secretWord = $this->_encryptor->decrypt(trim((string) $hmacLive));
                 break;
         }
         return $secretWord;
@@ -669,13 +669,13 @@ class Data extends AbstractHelper
             if (is_null($encryptedApiKeyTest)) {
                 return null;
             }
-            $apiKey = $this->_encryptor->decrypt(trim($encryptedApiKeyTest));
+            $apiKey = $this->_encryptor->decrypt(trim((string) $encryptedApiKeyTest));
         } else {
             $encryptedApiKeyLive = $this->getAdyenAbstractConfigData('api_key_live', $storeId);
             if (is_null($encryptedApiKeyLive)) {
                 return null;
             }
-            $apiKey = $this->_encryptor->decrypt(trim($encryptedApiKeyLive));
+            $apiKey = $this->_encryptor->decrypt(trim((string) $encryptedApiKeyLive));
         }
         return $apiKey;
     }
@@ -697,7 +697,7 @@ class Data extends AbstractHelper
             return null;
         }
 
-        return trim($clientKey);
+        return trim((string) $clientKey);
     }
 
     /**
@@ -713,13 +713,13 @@ class Data extends AbstractHelper
             if (is_null($wsUsernameTest)) {
                 return null;
             }
-            $wsUsername = trim($wsUsernameTest);
+            $wsUsername = trim((string) $wsUsernameTest);
         } else {
             $wsUsernameLive = $this->getAdyenAbstractConfigData('ws_username_live', $storeId);
             if (is_null($wsUsernameLive)) {
                 return null;
             }
-            $wsUsername = trim($wsUsernameLive);
+            $wsUsername = trim((string) $wsUsernameLive);
         }
         return $wsUsername;
     }
@@ -738,7 +738,7 @@ class Data extends AbstractHelper
             return null;
         }
 
-        return trim($prefix);
+        return trim((string) $prefix);
     }
 
     /**
@@ -755,7 +755,7 @@ class Data extends AbstractHelper
             return null;
         }
 
-        return trim($checkoutFrontendRegion);
+        return trim((string) $checkoutFrontendRegion);
     }
 
     /**
@@ -1075,7 +1075,7 @@ class Data extends AbstractHelper
     public function isVatCategoryHigh($paymentMethod)
     {
         if ($paymentMethod == self::KLARNA ||
-            strlen($paymentMethod) >= 9 && substr($paymentMethod, 0, 9) == 'afterpay_'
+            strlen((string) $paymentMethod) >= 9 && substr((string) $paymentMethod, 0, 9) == 'afterpay_'
         ) {
             return true;
         }
@@ -1127,7 +1127,7 @@ class Data extends AbstractHelper
      */
     public function formatLocaleCode($localeCode)
     {
-        return str_replace("_", "-", $localeCode);
+        return str_replace("_", "-", (string) $localeCode);
     }
 
     public function getUnprocessedNotifications()
@@ -1164,7 +1164,7 @@ class Data extends AbstractHelper
         $payment,
         $itemId = null
     ) {
-        $description = str_replace("\n", '', trim($name));
+        $description = str_replace("\n", '', trim((string) $name));
         $itemAmount = $this->formatAmount($price, $currency);
 
         $itemVatAmount = $this->getItemVatAmount(
@@ -1367,14 +1367,14 @@ class Data extends AbstractHelper
                 return null;
             }
 
-            $apiKey = $this->_encryptor->decrypt(trim($encryptedApiKeyTest));
+            $apiKey = $this->_encryptor->decrypt(trim((string) $encryptedApiKeyTest));
         } else {
             $encryptedApiKeyLive = $this->configHelper->getAdyenPosCloudConfigData('api_key_live', $storeId);
             if (is_null($encryptedApiKeyLive)) {
                 return null;
             }
 
-            $apiKey = $this->_encryptor->decrypt(trim($encryptedApiKeyLive));
+            $apiKey = $this->_encryptor->decrypt(trim((string) $encryptedApiKeyLive));
         }
         return $apiKey;
     }
@@ -1427,7 +1427,7 @@ class Data extends AbstractHelper
         foreach ($paymentReceipt as $receipt) {
             if ($receipt['DocumentQualifier'] == "CustomerReceipt") {
                 foreach ($receipt['OutputContent']['OutputText'] as $item) {
-                    parse_str($item['Text'], $textParts);
+                    parse_str((string) $item['Text'], $textParts);
                     $formattedHtml .= "<tr class='terminal-api-receipt'>";
                     if (!empty($textParts['name'])) {
                         $formattedHtml .= "<td class='terminal-api-receipt-name'>" . $textParts['name'] . "</td>";
@@ -1541,7 +1541,7 @@ class Data extends AbstractHelper
         if ('adminhtml' === $state->getAreaCode()) {
             $baseUrl = $this->backendHelper->getHomePageUrl();
         }
-        $parsed = parse_url($baseUrl);
+        $parsed = parse_url((string) $baseUrl);
         $origin = $parsed['scheme'] . "://" . $parsed['host'];
         if (!empty($parsed['port'])) {
             $origin .= ":" . $parsed['port'];
