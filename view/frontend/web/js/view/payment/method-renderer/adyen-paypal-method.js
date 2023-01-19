@@ -76,6 +76,10 @@ define(
                         street: formattedShippingAddress.street
                     };
                 }
+
+                // Paypal requires extra configuration
+                configuration = Object.assign(configuration, paymentMethodsExtraInfo[paymentMethod.methodIdentifier].configuration);
+
                 return configuration;
             }
         })
