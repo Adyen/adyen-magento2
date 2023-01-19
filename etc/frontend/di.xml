@@ -33,6 +33,7 @@
                 <item name="adyen_bcmc_mobile" xsi:type="const">Adyen\Payment\Model\Methods\BcmcMobile::TX_VARIANT</item>
                 <item name="adyen_dotpay" xsi:type="const">Adyen\Payment\Model\Methods\Dotpay::TX_VARIANT</item>
                 <item name="adyen_amazonpay" xsi:type="const">Adyen\Payment\Model\Methods\AmazonPay::TX_VARIANT</item>
+                <item name="adyen_googlepay" xsi:type="const">Adyen\Payment\Model\Methods\GooglePay::TX_VARIANT</item>
             </argument>
         </arguments>
     </type>
