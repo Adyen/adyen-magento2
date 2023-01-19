@@ -3,7 +3,5 @@
   "extends": [
     "config:base"
   ],
-  "properties": {
-    "stabilityDays": 21
-  }
+  "stabilityDays": 21
 }
