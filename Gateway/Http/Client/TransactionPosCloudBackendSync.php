@@ -111,6 +111,7 @@ class TransactionPosCloudBackendSync implements ClientInterface
 
         $service = $this->adyenHelper->createAdyenPosPaymentService($this->client);
 
+        $this->adyenHelper->logRequest($request, '', '/sync');
         try {
             $response = $service->runTenderSync($request);
         } catch (AdyenException $e) {
@@ -120,6 +121,7 @@ class TransactionPosCloudBackendSync implements ClientInterface
             $response['error'] = $e->getMessage();
             throw $e;
         }
+        $this->adyenHelper->logResponse($response);
     }
 
     /**

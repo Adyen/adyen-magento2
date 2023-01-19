@@ -734,6 +734,9 @@ define(
                             countryCode: formattedShippingAddress.country,
                             phoneNumber: formattedShippingAddress.telephone
                         };
+                        if (configuration.addressDetails.countryCode === 'US') {
+                            configuration.addressDetails.stateOrRegion = quote.shippingAddress().regionCode
+                        }
                     }
                     else if (formattedBillingAddress &&
                         formattedBillingAddress.telephone) {
@@ -743,11 +746,23 @@ define(
                                 formattedBillingAddress.lastName,
                             addressLine1: formattedBillingAddress.street,
                             addressLine2: formattedBillingAddress.houseNumber,
+
                             city: formattedBillingAddress.city,
                             postalCode: formattedBillingAddress.postalCode,
                             countryCode: formattedBillingAddress.country,
                             phoneNumber: formattedBillingAddress.telephone
                         };
+                        if (configuration.addressDetails.countryCode === 'US') {
+                            configuration.addressDetails.stateOrRegion = quote.billingAddress().regionCode
+                        }
+                    }
+                }
+
+                if (paymentMethod.methodIdentifier.includes('affirm')) {
+                    configuration.visibility = {
+                        personalDetails: "hidden",
+                        billingAddress: "hidden",
+                        deliveryAddress: "hidden"
                     }
                 }
 

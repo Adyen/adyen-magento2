@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Gateway\Http\Client;
 
 use Adyen\AdyenException;
+use Adyen\Client;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Requests;
@@ -75,12 +76,15 @@ class TransactionMotoCapture implements ClientInterface
             return $this->placeMultipleCaptureRequests($service, $request);
         }
 
+        $this->adyenHelper
+            ->logRequest($request, Client::API_PAYMENT_VERSION, '/pal/servlet/Payment/{version}/capture');
         try {
             $response = $service->capture($request);
             $response = $this->copyParamsToResponse($response, $request);
         } catch (AdyenException $e) {
             $response['error'] = $e->getMessage();
         }
+        $this->adyenHelper->logResponse($response);
 
         return $response;
     }

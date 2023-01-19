@@ -2,7 +2,7 @@ name: Functional Tests
 on:
   workflow_dispatch:
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build:
@@ -32,7 +32,7 @@ jobs:
       - name: Sleep for 120 seconds
         run: sleep 120s
         shell: bash
-  
+
       - name: Show install logs
         run: docker logs --tail 100 magento2-container
 
