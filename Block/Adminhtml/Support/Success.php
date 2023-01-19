@@ -13,8 +13,6 @@ namespace Adyen\Payment\Block\Adminhtml\Support;
 
 use Magento\Backend\Block\Template;
 use Magento\Backend\Helper\Data;
-use Magento\Directory\Helper\Data as DirectoryHelper;
-use Magento\Framework\Json\Helper\Data as JsonHelper;
 
 class Success extends Template
 {
@@ -27,17 +25,13 @@ class Success extends Template
      * @param Template\Context $context
      * @param Data $backendDataHelper
      * @param array $data
-     * @param JsonHelper|null $jsonHelper
-     * @param DirectoryHelper|null $directoryHelper
      */
     public function __construct(
         Template\Context $context,
         Data $backendDataHelper,
-        array $data = [],
-        ?JsonHelper $jsonHelper = null,
-        ?DirectoryHelper $directoryHelper = null
+        array $data = []
     ) {
-        parent::__construct($context, $data, $jsonHelper, $directoryHelper);
+        parent::__construct($context, $data);
         $this->backendDataHelper = $backendDataHelper;
     }
 
