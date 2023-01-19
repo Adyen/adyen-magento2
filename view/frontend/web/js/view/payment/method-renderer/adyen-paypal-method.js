@@ -25,7 +25,6 @@ define(
                 var email = '';
                 var showPayButton = true;
 
-
                 if (!!quote.guestEmail) {
                     email = quote.guestEmail;
                 }

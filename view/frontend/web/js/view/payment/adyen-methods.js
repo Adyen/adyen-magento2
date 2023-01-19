@@ -32,14 +32,6 @@ define(
     ) {
         'use strict';
         const paymentMethodComponent = 'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-method';
-        const paymentMethodCodes = [
-            // 'adyen_ideal',
-            // 'adyen_klarna',
-            //'adyen_paypal'
-            // 'adyen_dotpay',
-            'adyen_bcmc_mobile',
-            'adyen_amazonpay'
-        ];
         rendererList.push(
             {
                 type: 'adyen_oneclick',
@@ -78,10 +70,6 @@ define(
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-bcmc-method'
             },
         );
-
-        paymentMethodCodes.forEach((paymentMethodCode) => {
-            rendererList.push({type: paymentMethodCode, component: paymentMethodComponent});
-        });
 
         /** Add view logic here if needed */
         return Component.extend({
