@@ -3,5 +3,6 @@
   "extends": [
     "config:base"
   ],
-  "stabilityDays": 21
+  "stabilityDays": 21,
+  "baseBranches": ["renovate-configuration"]
 }
