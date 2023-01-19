@@ -78,14 +78,6 @@
         </resources>
     </route>
 
-    <route url="/V1/adyen/state-data" method="POST">
-        <service class="Adyen\Payment\Api\AdyenStateDataInterface" method="save"/>
-        <resources>
-            <resource ref="Adyen_Payment::stateData"/>
-        </resources>
-    </route>
-
-
     <route url="/V1/adyen/guest-carts/:cartId/state-data" method="POST">
         <service class="Adyen\Payment\Api\AdyenStateDataInterface" method="save"/>
         <resources>
@@ -108,6 +100,15 @@
         </resources>
     </route>
 
+    <route url="/V1/adyen/orders/carts/mine/payment-status" method="POST">
+        <service class="Adyen\Payment\Api\AdyenOrderPaymentStatusInterface" method="getOrderPaymentStatus"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+    </route>
+
+
+
 
     <route url="/V1/internal/adyen/orders/payment-status" method="POST">
         <service class="Adyen\Payment\Api\Internal\InternalAdyenOrderPaymentStatusInterface" method="handleInternalRequest"/>
@@ -122,6 +123,23 @@
             <resource ref="Adyen_Payment::donations"/>
         </resources>
     </route>
+
+
+    <route url="/V1/adyen/orders/carts/mine/donations" method="POST">
+        <service class="Adyen\Payment\Api\AdyenDonationsInterface" method="donate"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+    </route>
+
+    <route url="/V1/adyen/orders/carts/mine/donations" method="POST">
+        <service class="Adyen\Payment\Api\AdyenDonationsInterface" method="donate"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+    </route>
+
+
 
     <route url="/V1/internal/adyen/donations" method="POST">
         <service class="Adyen\Payment\Api\Internal\InternalAdyenDonationsInterface" method="handleInternalRequest"/>
