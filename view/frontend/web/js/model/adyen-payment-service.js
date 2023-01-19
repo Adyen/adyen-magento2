@@ -85,7 +85,7 @@ define(
                     form_key: $.mage.cookies.get('form_key')
                 };
 
-                var serviceUrl = urlBuilder.createUrl('/internal/adyen/paymentDetails',
+                var serviceUrl = urlBuilder.createUrl('/internal/adyen/payment-details',
                     {});
 
                 return storage.post(

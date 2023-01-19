@@ -18,7 +18,7 @@
     <route url="/V1/guest-carts/:cartId/retrieve-adyen-payment-methods" method="POST">
         <service class="Adyen\Payment\Api\GuestAdyenPaymentMethodManagementInterface" method="getPaymentMethods"/>
         <resources>
-            <resource ref="Adyen_Payment::guestPaymentMethods"/>
+            <resource ref="anonymous"/>
         </resources>
     </route>
 
@@ -32,7 +32,7 @@
     <route url="/V1/carts/mine/retrieve-adyen-payment-methods" method="POST">
         <service class="Adyen\Payment\Api\AdyenPaymentMethodManagementInterface" method="getPaymentMethods"/>
         <resources>
-            <resource ref="Adyen_Payment::paymentMethods"/>
+            <resource ref="self"/>
         </resources>
         <data>
             <parameter name="cartId" force="true">%cart_id%</parameter>
@@ -49,48 +49,65 @@
         </data>
     </route>
 
-    <route url="/V1/adyen/initiate" method="POST">
+    <route url="/V1/adyen/initiate-terminal" method="POST">
         <service class="Adyen\Payment\Api\AdyenInitiateTerminalApiInterface" method="initiate"/>
         <resources>
             <resource ref="anonymous"/>
         </resources>
     </route>
 
-    <route url="/V1/adyen/paymentDetails" method="POST">
+
+    <route url="/V1/adyen/guest-carts/:cartId/payment-details" method="POST">
         <service class="Adyen\Payment\Api\AdyenPaymentDetailsInterface" method="initiate"/>
         <resources>
-            <resource ref="Adyen_Payment::paymentDetails"/>
+            <resource ref="anonymous"/>
         </resources>
     </route>
 
-    <route url="/V1/internal/adyen/paymentDetails" method="POST">
+    <route url="/V1/adyen/carts/mine/payment-details" method="POST">
+        <service class="Adyen\Payment\Api\AdyenPaymentDetailsInterface" method="initiate"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+    </route>
+
+    <route url="/V1/internal/adyen/payment-details" method="POST">
         <service class="Adyen\Payment\Api\Internal\InternalAdyenPaymentDetailsInterface" method="handleInternalRequest"/>
         <resources>
             <resource ref="anonymous"/>
         </resources>
     </route>
 
-    <route url="/V1/adyen/stateData" method="POST">
+    <route url="/V1/adyen/state-data" method="POST">
         <service class="Adyen\Payment\Api\AdyenStateDataInterface" method="save"/>
         <resources>
             <resource ref="Adyen_Payment::stateData"/>
         </resources>
     </route>
 
-    <!-- @deprecated endpoint to be removed in the next major version -->
-    <route url="/V1/adyen/originKey" method="GET">
-        <service class="Adyen\Payment\Api\AdyenOriginKeyInterface" method="getOriginKey"/>
+
+    <route url="/V1/adyen/guest-carts/:cartId/state-data" method="POST">
+        <service class="Adyen\Payment\Api\AdyenStateDataInterface" method="save"/>
         <resources>
             <resource ref="anonymous"/>
         </resources>
     </route>
 
-    <route url="/V1/adyen/orders/payment-status" method="POST">
-        <service class="Adyen\Payment\Api\AdyenOrderPaymentStatusInterface" method="getOrderPaymentStatus"/>
+    <route url="/V1/adyen/orders/carts/mine/state-data" method="POST">
+        <service class="Adyen\Payment\Api\AdyenStateDataInterface" method="save"/>
         <resources>
-            <resource ref="Adyen_Payment::paymentStatus"/>
+            <resource ref="self"/>
         </resources>
     </route>
+
+
+    <route url="/V1/adyen/orders/guest-carts/:cartId/payment-status" method="POST">
+        <service class="Adyen\Payment\Api\AdyenOrderPaymentStatusInterface" method="getOrderPaymentStatus"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
 
     <route url="/V1/internal/adyen/orders/payment-status" method="POST">
         <service class="Adyen\Payment\Api\Internal\InternalAdyenOrderPaymentStatusInterface" method="handleInternalRequest"/>
