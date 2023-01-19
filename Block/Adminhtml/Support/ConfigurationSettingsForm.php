@@ -135,8 +135,8 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
             [
                 'name' => 'attachments[]',
                 'multiple' => 'multiple',
-                'label' => __('Attachments'),
-                'title' => __('Attachments'),
+                'label' => __('Relevant logs & screenshots'),
+                'title' => __('Relevant logs & screenshots'),
                 'class' => 'adyen_support-form',
                 'required' => false
             ]

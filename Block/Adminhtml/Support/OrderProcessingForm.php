@@ -178,8 +178,8 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
             'text',
             [
                 'name' => 'terminalId',
-                'label' => __('Terminal ID number'),
-                'title' => __('Terminal ID number'),
+                'label' => __('POS terminal model & serial number'),
+                'title' => __('POS terminal model & serial number'),
                 'class' => 'adyen_support-form',
                 'required' => false,
             ]
@@ -199,8 +199,8 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
             [
                 'name' => 'attachments[]',
                 'multiple'  => 'multiple',
-                'label' => __('Attachments'),
-                'title' => __('Attachments'),
+                'label' => __('Relevant logs & screenshots'),
+                'title' => __('Relevant logs & screenshots'),
                 'class' => 'adyen_support-form',
                 'required' => false,
             ]
