@@ -1,5 +1,6 @@
 <?php /** @var \Adyen\Payment\Model\Config\Adminhtml\ConfigurationWizard $block */ ?>
 <?php echo $block->getNextButtonHtml() ?>
+<?php echo $block->getTestWebhookButtonHtml() . '<br>' . '<br>' ?>
 <span class="adyen-required-settings-config-admin" id="progress" style="display: none">
     <img class="processing" hidden="hidden" alt="Configuring" style="margin:0 5px" src="<?php echo $block->getViewFileUrl('images/process_spinner.gif') ?>"/>
     <img class="configured" hidden="hidden" alt="Configured" style="margin:-3px 5px" src="<?php echo $block->getViewFileUrl('images/rule_component_apply.gif') ?>"/>
@@ -18,7 +19,9 @@
             const webhookPasswordSelector = "div.adyen_required_config_settings input[name*='notification_password']";
             const actionButton = $("#adyen_configuration_action");
             const resetButton = $("#adyen_configuration_action_reset");
+            const testWebhookButton = $("#adyen_configuration_webhook_test");
             resetButton.hide();
+            testWebhookButton.hide();
 
             let configured;
             if (parseInt($(demoModeSelector).val())) {
@@ -75,6 +78,30 @@
             renderAutoConfiguration();
 
             configMode.on('change', renderAutoConfiguration.bind(configMode));
+
+            testWebhookButton.on('click', function() {
+                if (window.confirm('Do you want to test your webhook configuration?')) {
+                    testWebhookConfiguration();
+                }
+            });
+
+            function testWebhookConfiguration() {
+                progressUpdate('start');
+                let demoMode = $(demoModeSelector).val();
+                let apiKey = parseInt(demoMode)
+                    ? $(testApiKeySelector).val()
+                    : $(liveApiKeySelector).val();
+                $.ajax('<?php echo $block->initiateWebhookConfigurationTest() ?>', {
+                    data: { apiKey, demoMode },
+                    method: "POST"
+                }).done(function (response) {
+                    console.log('response:', response);
+                    testWebhookButton.off()
+                    progressUpdate('success', 'Your webhook is correctly configured.');
+                }).fail(function (response) {
+                    progressUpdate('error', 'Your webhook is not correctly configured: ' + response.responseJSON.error);
+                })
+            }
 
             let merchantAccounts = [];
 
@@ -164,6 +191,11 @@
                 let passwordField = $(webhookPasswordSelector);
                 usernameField.val(username);
                 passwordField.val(password);
+
+                let webhookIdConfigured = <?=$block->isWebhookIdConfigured() ? 'true' : 'false' ?>;
+                if (webhookIdConfigured) {
+                    testWebhookButton.show();
+                }
 
                 showConfigField(usernameField);
                 showConfigField(passwordField);

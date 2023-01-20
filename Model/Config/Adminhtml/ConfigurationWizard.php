@@ -15,6 +15,7 @@ use Adyen\Payment\Helper\Config;
 use Magento\Backend\Block\Template\Context;
 use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\Data\Form\Element\AbstractElement;
+use Magento\Store\Model\StoreManager;
 
 class ConfigurationWizard extends Field
 {
@@ -25,13 +26,20 @@ class ConfigurationWizard extends Field
      */
     private $configHelper;
 
+    /**
+     * @var StoreManager
+     */
+    private $storeManager;
+
     public function __construct(
         Context $context,
         Config $configHelper,
+        StoreManager $storeManager,
         array $data = []
     ) {
         parent::__construct($context, $data);
         $this->configHelper = $configHelper;
+        $this->storeManager = $storeManager;
     }
 
     public function render(AbstractElement $element)
@@ -75,9 +83,28 @@ class ConfigurationWizard extends Field
         return $button->toHtml();
     }
 
+    public function getTestWebhookButtonHtml()
+    {
+        $button = $this->getLayout()->createBlock(
+            'Magento\Backend\Block\Widget\Button'
+        )->setData(
+            [
+                'id' => 'adyen_configuration_webhook_test',
+                'label' => __('Test Webhook')
+            ]
+        );
+
+        return $button->toHtml();
+    }
+
     public function getMerchantAccountsUrl(): string
     {
         return $this->getUrl('adyen/configuration/merchantaccounts');
+    }
+
+    public function initiateWebhookConfigurationTest()
+    {
+        return $this->getUrl('adyen/configuration/webhooktest');
     }
 
     public function getStoreId()
@@ -105,5 +132,11 @@ class ConfigurationWizard extends Field
         $notificationPassword = boolval($this->configHelper->getNotificationsPassword($this->getStoreId()));
 
         return $merchantAccount || $livePrefixUrl || $clientKeyLive || $notificationUsername || $notificationPassword;
+    }
+
+    public function isWebhookIdConfigured(): bool {
+        $storeId = $this->storeManager->getStore()->getId();
+
+        return boolval($this->configHelper->getWebhookId($storeId));
     }
 }
