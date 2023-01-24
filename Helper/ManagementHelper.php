@@ -250,18 +250,7 @@ class ManagementHelper
     public function webhookTest(string $merchantId)
     {
         //this is what we send from the customer area too
-        $params = [
-            "notification" => [
-                "paymentMethod" => "visa",
-                "eventCode" => "AUTHORISATION",
-                "amount" => "10",
-                "reason" => "Authorize visa payment",
-                "success" => true
-            ],
-            "types" => [
-                "CUSTOM"
-            ]
-        ];
+        $params = ["types" => ["AUTHORISATION"]];
         $storeId = $this->storeManager->getStore()->getId();
         $webhookId = $this->configHelper->getWebhookId($storeId);
         try {
