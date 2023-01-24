@@ -51,15 +51,15 @@
 </script>
 <?php if ($block->isWebhookIdConfigured()) : ?>
     <?php echo $block->getButtonHtml() ?>
+    <span class="adyen_webhook_test_config" id="webhook_progress">
+        <img class="processing" hidden="hidden" alt="Configuring" style="margin:0 5px" src="<?php echo $block->getViewFileUrl('images/process_spinner.gif') ?>"/>
+        <img class="configured" hidden="hidden" alt="Configured" style="margin:-3px 5px" src="<?php echo $block->getViewFileUrl('images/rule_component_apply.gif') ?>"/>
+        <span id="adyen_webhook_test_message"></span>
+        <div id="adyen_webhook_test_errors" class="message-system-inner">
+            <div class="message message-warning"></div>
+        </div>
+    </span>
     <p class="note">
         <span><?php echo __('Sends sample notifications to test if the webhook is set up correctly.'); ?></span>
     </p>
 <?php endif; ?>
-<span class="adyen_webhook_test_config" id="webhook_progress">
-    <img class="processing" hidden="hidden" alt="Configuring" style="margin:0 5px" src="<?php echo $block->getViewFileUrl('images/process_spinner.gif') ?>"/>
-    <img class="configured" hidden="hidden" alt="Configured" style="margin:-3px 5px" src="<?php echo $block->getViewFileUrl('images/rule_component_apply.gif') ?>"/>
-    <span id="adyen_webhook_test_message"></span>
-    <div id="adyen_webhook_test_errors" class="message-system-inner">
-        <div class="message message-warning"></div>
-    </div>
-</span>
