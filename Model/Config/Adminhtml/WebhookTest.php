@@ -87,7 +87,8 @@ class WebhookTest extends \Magento\Config\Block\System\Config\Form\Field
         return $button->toHtml();
     }
 
-    public function isWebhookIdConfigured(): bool {
+    public function isWebhookIdConfigured(): bool
+    {
         $storeId = $this->storeManager->getStore()->getId();
 
         return boolval($this->configHelper->getWebhookId($storeId));
