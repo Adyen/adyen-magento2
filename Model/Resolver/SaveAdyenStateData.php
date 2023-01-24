@@ -40,8 +40,8 @@ class SaveAdyenStateData
      * @param AdyenStateDataInterface $stateData
      */
     public function __construct(
-        \Magento\QuoteGraphQl\Model\Cart\GetCartForUser $cartForUser,
-        \Adyen\Payment\Api\AdyenStateDataInterface $stateData
+        GetCartForUser $cartForUser,
+        AdyenStateDataInterface $stateData
     ) {
         $this->cartForUser = $cartForUser;
         $this->stateData = $stateData;
