@@ -1,3 +1,4 @@
+<?php /** @var Adyen\Payment\Model\Config\Adminhtml\WebhookTest $block */ ?>
 <script>
     require([
             'jquery',
@@ -48,8 +49,12 @@
 
         });
 </script>
-
-<?php echo $block->getButtonHtml() ?>
+<?php if ($block->isWebhookIdConfigured()) : ?>
+    <?php echo $block->getButtonHtml() ?>
+    <p class="note">
+        <span><?php echo __('Sends sample notifications to test if the webhook is set up correctly.'); ?></span>
+    </p>
+<?php endif; ?>
 <span class="adyen_webhook_test_config" id="webhook_progress">
     <img class="processing" hidden="hidden" alt="Configuring" style="margin:0 5px" src="<?php echo $block->getViewFileUrl('images/process_spinner.gif') ?>"/>
     <img class="configured" hidden="hidden" alt="Configured" style="margin:-3px 5px" src="<?php echo $block->getViewFileUrl('images/rule_component_apply.gif') ?>"/>
@@ -58,7 +63,3 @@
         <div class="message message-warning"></div>
     </div>
 </span>
-<!--if we want to add a note under the button-->
-<p class="note">
-    <span><?php echo __('Sends sample notifications to test if the webhook is set up correctly.'); ?></span>
-</p>

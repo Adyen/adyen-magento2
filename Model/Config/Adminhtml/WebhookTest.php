@@ -12,10 +12,34 @@
 namespace Adyen\Payment\Model\Config\Adminhtml;
 
 use Magento\Framework\Data\Form\Element\AbstractElement;
+use Magento\Backend\Block\Template\Context;
+use Magento\Store\Model\StoreManager;
+use Adyen\Payment\Helper\Config;
 
 class WebhookTest extends \Magento\Config\Block\System\Config\Form\Field
 {
     protected $_template = 'Adyen_Payment::config/webhook_test.phtml';
+
+    /**
+     * @var StoreManager
+     */
+    private $storeManager;
+
+    /**
+     * @var Config
+     */
+    private $configHelper;
+
+    public function __construct(
+        Context $context,
+        Config $configHelper,
+        StoreManager $storeManager,
+        array $data = []
+    ) {
+        parent::__construct($context, $data);
+        $this->configHelper = $configHelper;
+        $this->storeManager = $storeManager;
+    }
 
     public function render(AbstractElement $element)
     {
@@ -61,5 +85,11 @@ class WebhookTest extends \Magento\Config\Block\System\Config\Form\Field
         );
 
         return $button->toHtml();
+    }
+
+    public function isWebhookIdConfigured(): bool {
+        $storeId = $this->storeManager->getStore()->getId();
+
+        return boolval($this->configHelper->getWebhookId($storeId));
     }
 }
