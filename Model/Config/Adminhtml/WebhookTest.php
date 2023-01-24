@@ -65,22 +65,7 @@ class WebhookTest extends \Magento\Config\Block\System\Config\Form\Field
         )->setData(
             [
                 'id' => 'adyen_webhook_test',
-                'label' => __('Test Webhook URL'),
-            ]
-        );
-
-        return $button->toHtml();
-    }
-
-    public function getDisabledButtonHtml()
-    {
-        $button = $this->getLayout()->createBlock(
-            'Magento\Backend\Block\Widget\Button'
-        )->setData(
-            [
-                'id' => 'adyen_webhook_test',
-                'label' => __('Test'),
-                'disabled' => true
+                'label' => __('Test Webhook'),
             ]
         );
 
