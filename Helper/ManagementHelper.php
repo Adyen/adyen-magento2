@@ -250,7 +250,7 @@ class ManagementHelper
     public function webhookTest(string $merchantId)
     {
         //this is what we send from the customer area too
-        $params = ["types" => ["AUTHORISATION"]];
+        $params = ['types' => ['AUTHORISATION']];
         $storeId = $this->storeManager->getStore()->getId();
         $webhookId = $this->configHelper->getWebhookId($storeId);
         try {
