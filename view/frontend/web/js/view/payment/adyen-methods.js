@@ -69,6 +69,10 @@ define(
                 type: 'adyen_bcmc_mobile',
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-bcmc-method'
             },
+            {
+                type: 'adyen_googlepay',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-googlepay-method'
+            },
         );
 
         /** Add view logic here if needed */
