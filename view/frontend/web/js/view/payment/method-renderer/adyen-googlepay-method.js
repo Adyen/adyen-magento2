@@ -63,7 +63,11 @@ define(
                             result.isPlaceOrderAllowed(state.isValid);
                         },
                         onClick: function(resolve, reject) {
-                            return self.validate();
+                            if (self.validate()) {
+                                resolve();
+                            } else {
+                                reject();
+                            }
                         }
                     });
 
