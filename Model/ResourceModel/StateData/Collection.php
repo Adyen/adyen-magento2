@@ -37,7 +37,7 @@ class Collection extends AbstractCollection
         $stateData = $this->getStateDataRowsWithQuoteId($quoteId)
             ->getFirstItem()
             ->getData(StateDataInterface::STATE_DATA);
-        return !empty($stateData) ? json_decode($stateData, true) : [];
+        return !empty($stateData) ? json_decode((string) $stateData, true) : [];
     }
 
     /**

@@ -31,15 +31,7 @@ define(
         cancelCouponAction
     ) {
         'use strict';
-        const paymentMethodComponent = 'Adyen_Payment/js/view/payment/method-renderer/adyen-hpp-method';
-        const paymentMethodCodes = [
-            'adyen_ideal',
-            'adyen_klarna',
-            'adyen_paypal',
-            'adyen_dotpay',
-            'adyen_bcmc_mobile',
-            'adyen_amazonpay'
-        ];
+        const paymentMethodComponent = 'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-method';
         rendererList.push(
             {
                 type: 'adyen_oneclick',
@@ -56,12 +48,28 @@ define(
             {
                 type: 'adyen_pos_cloud',
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-pos-cloud-method'
-            }
+            },
+            {
+                type: 'adyen_ideal',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-ideal-method'
+            },
+            {
+                type: 'adyen_klarna',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-klarna-method'
+            },
+            {
+                type: 'adyen_paypal',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-paypal-method'
+            },
+            {
+                type: 'adyen_dotpay',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-dotpay-method'
+            },
+            {
+                type: 'adyen_bcmc_mobile',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-bcmc-method'
+            },
         );
-
-        paymentMethodCodes.forEach((paymentMethodCode) => {
-            rendererList.push({type: paymentMethodCode, component: paymentMethodComponent});
-        });
 
         /** Add view logic here if needed */
         return Component.extend({

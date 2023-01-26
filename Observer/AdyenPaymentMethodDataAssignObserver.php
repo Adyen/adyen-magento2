@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Observer;
 
 use Adyen\Payment\Helper\StateData;
+use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Model\ResourceModel\StateData\Collection;
 use Adyen\Service\Validator\CheckoutStateDataValidator;
 use Adyen\Service\Validator\DataArrayValidator;
@@ -27,6 +28,7 @@ class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
     const GUEST_EMAIL = 'guestEmail';
     const STATE_DATA = 'stateData';
     const RETURN_URL = 'returnUrl';
+    const RECURRING_PROCESSING_MODEL = 'recurringProcessingModel';
 
     /**
      * Approved root level keys from additional data array
@@ -39,24 +41,23 @@ class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
         self::GUEST_EMAIL,
         self::STATE_DATA,
         self::RETURN_URL,
+        self::RECURRING_PROCESSING_MODEL
     ];
 
-    /**
-     * @var CheckoutStateDataValidator
-     */
+    /** @var CheckoutStateDataValidator */
     protected $checkoutStateDataValidator;
 
-    /**
-     * @var Collection
-     */
+    /** @var Collection */
     protected $stateDataCollection;
-    /**
-     * @var StateData
-     */
+
+    /** @var StateData */
     private $stateData;
 
     /** @var StoreManagerInterface */
     private $storeManager;
+
+    /** @var Vault */
+    private $vaultHelper;
 
     /**
      * AdyenPaymentMethodDataAssignObserver constructor.
@@ -70,12 +71,14 @@ class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
         CheckoutStateDataValidator $checkoutStateDataValidator,
         Collection $stateDataCollection,
         StateData $stateData,
-        StoreManagerInterface $storeManager
+        StoreManagerInterface $storeManager,
+        Vault $vaultHelper
     ) {
         $this->checkoutStateDataValidator = $checkoutStateDataValidator;
         $this->stateDataCollection = $stateDataCollection;
         $this->stateData = $stateData;
         $this->storeManager = $storeManager;
+        $this->vaultHelper = $vaultHelper;
     }
 
     /**
@@ -103,7 +106,7 @@ class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
 
         // JSON decode state data from the frontend or fetch it from the DB entity with the quote ID
         if (!empty($additionalData[self::STATE_DATA])) {
-            $stateData = json_decode($additionalData[self::STATE_DATA], true);
+            $stateData = json_decode((string) $additionalData[self::STATE_DATA], true);
         } else {
             $stateData = $this->stateDataCollection->getStateDataArrayWithQuoteId($paymentInfo->getData('quote_id'));
         }
@@ -114,8 +117,15 @@ class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
             $this->stateData->setStateData($stateData, $paymentInfo->getData('quote_id'));
         }
 
-
         unset($additionalData[self::STATE_DATA]);
+
+        if (
+            !empty($additionalData[self::RECURRING_PROCESSING_MODEL]) &&
+            !$this->vaultHelper->validateRecurringProcessingModel($additionalData[self::RECURRING_PROCESSING_MODEL])
+        ) {
+            unset($additionalData[self::RECURRING_PROCESSING_MODEL]);
+            $paymentInfo->unsAdditionalInformation(self::RECURRING_PROCESSING_MODEL);
+        }
 
         // Set additional data in the payment
         foreach (array_merge($additionalData, $additionalDataToSave) as $key => $data) {

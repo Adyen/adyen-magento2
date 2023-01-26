@@ -64,7 +64,7 @@ class RecurringDataBuilder implements BuilderInterface
             $body = $this->adyenRequestsHelper->buildCardRecurringData($storeId, $payment);
         } elseif ($method === Paypal::CODE) {
             $brand = $this->stateData->getPaymentMethodVariant($order->getQuoteId());
-            $body = $this->vaultHelper->buildPaymentMethodRecurringData($storeId, $brand);
+            $body = $this->vaultHelper->buildPaymentMethodRecurringData($storeId, $brand, $payment);
         } elseif ($method === PaymentMethods::ADYEN_ONE_CLICK) {
             $body = $this->adyenRequestsHelper->buildAdyenTokenizedPaymentRecurringData($storeId, $payment);
         } elseif ($method !== PaymentMethods::ADYEN_PAY_BY_LINK) {

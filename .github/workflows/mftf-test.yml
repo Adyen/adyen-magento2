@@ -9,8 +9,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - php-version: "8.1"
-            magento-version: "2.4.4"
+          - php-version: '8.1'
+            magento-version: '2.4.5'
     runs-on: ubuntu-latest
     env:
       PHP_VERSION: ${{ matrix.php-version }}

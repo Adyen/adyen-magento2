@@ -71,7 +71,7 @@ class PaymentPosCloudHandler implements HandlerInterface
 
         if (!empty($paymentResponse['Response']['AdditionalResponse'])
         ) {
-            $pairs = \explode('&', $paymentResponse['Response']['AdditionalResponse']);
+            $pairs = \explode('&', (string) $paymentResponse['Response']['AdditionalResponse']);
 
             foreach ($pairs as $pair) {
                 $nv = \explode('=', $pair);
@@ -88,7 +88,7 @@ class PaymentPosCloudHandler implements HandlerInterface
                 $maskedPan = $paymentResponse['PaymentResult']['PaymentInstrumentData']['CardData']['MaskedPan'];
                 $expiryDate = $paymentResponse['PaymentResult']['PaymentInstrumentData']['CardData']
                 ['SensitiveCardData']['ExpiryDate']; // 1225
-                $expiryDate = \substr($expiryDate, 0, 2) . '/' . \substr($expiryDate, 2, 2);
+                $expiryDate = \substr((string) $expiryDate, 0, 2) . '/' . \substr((string) $expiryDate, 2, 2);
                 $brand = $paymentResponse['PaymentResult']['PaymentInstrumentData']['CardData']['PaymentBrand'];
 
                 // create additionalData so we can use the helper
@@ -96,7 +96,7 @@ class PaymentPosCloudHandler implements HandlerInterface
                 $additionalData['recurring.recurringDetailReference'] = $recurringDetailReference;
                 $additionalData['cardBin'] = $recurringDetailReference;
                 $additionalData['cardHolderName'] = '';
-                $additionalData['cardSummary'] = \substr($maskedPan, -4);
+                $additionalData['cardSummary'] = \substr((string) $maskedPan, -4);
                 $additionalData['expiryDate'] = $expiryDate;
                 $additionalData['paymentMethod'] = $brand;
                 $additionalData['recurring.recurringDetailReference'] = $recurringDetailReference;
