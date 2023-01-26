@@ -218,6 +218,9 @@
             </depends>
             <frontend_model>Adyen\Payment\Model\Config\Adminhtml\ConfigurationWizard</frontend_model>
         </field>
+        <field id="webhook_test" translate="label" type="button" sortOrder="140" showInDefault="1" showInWebsite="1" showInStore="1">
+            <frontend_model>Adyen\Payment\Model\Config\Adminhtml\WebhookTest</frontend_model>
+        </field>
         <field id="webhook_notification_processor" translate="label" type="select" sortOrder="140" showInDefault="1" showInWebsite="0" showInStore="0">
             <label>Webhook Notification Processor</label>
             <source_model>Adyen\Payment\Model\Config\Source\NotificationProcessor</source_model>
