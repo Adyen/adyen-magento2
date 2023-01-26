@@ -27,6 +27,7 @@ use DateTimeZone;
 use Exception;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Model\InfoInterface;
+use Magento\Payment\Model\MethodInterface;
 use Magento\Sales\Api\Data\OrderPaymentExtensionInterface;
 use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
@@ -199,42 +200,23 @@ class Vault
     /**
      * Build the recurring data when payment is done through a payment method (not card)
      *
-     * @param int $storeId
-     * @param $brand
-     * @param $payment
-     * @return array
      */
-    public function buildPaymentMethodRecurringData(int $storeId, $brand, $payment): array
+    public function buildPaymentMethodRecurringData(InfoInterface $payment, int $storeId): array
     {
         $request = [];
+        /** @var PaymentMethodInterface $paymentMethod */
+        $paymentMethod = $payment->getMethodInstance();
         if (!$this->config->isStoreAlternativePaymentMethodEnabled()) {
             return $request;
         }
-        try {
-            $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($brand);
-            $allowRecurring = $this->allowRecurringOnPaymentMethod($adyenPaymentMethod, $storeId);
-        } catch (PaymentMethodException $exception) {
-            $this->adyenLogger->error(sprintf('Unable to create payment method with tx variant %s', $brand));
-            return $request;
-        } catch (NoSuchEntityException $exception) {
-            $this->adyenLogger->error(sprintf('Unable to find payment method with tx variant %s', $brand));
-            return $request;
-        }
 
-        if (!$allowRecurring) {
-            return $request;
-        }
+        $requestRpm = $payment->getAdditionalInformation('recurringProcessingModel');
+        $configuredRpm = $this->config->getAlternativePaymentMethodTokenType($storeId);
+        $recurringProcessingModel = $requestRpm ?? $configuredRpm;
 
-        $recurringProcessingModel = $payment->getAdditionalInformation('recurringProcessingModel');
-        if (isset($recurringProcessingModel)) {
+        if (isset($recurringProcessingModel) && $this->paymentMethodSupportsRpm($paymentMethod, $recurringProcessingModel)) {
             $request['storePaymentMethod'] = true;
             $request['recurringProcessingModel'] = $recurringProcessingModel;
-        } else {
-            $recurringProcessingModel = $this->config->getAlternativePaymentMethodTokenType($storeId);
-            if (isset($recurringProcessingModel)) {
-                $request['storePaymentMethod'] = true;
-                $request['recurringProcessingModel'] = $recurringProcessingModel;
-            }
         }
 
         return $request;
@@ -461,5 +443,16 @@ class Vault
     public function validateRecurringProcessingModel(string $recurringProcessingModel): bool
     {
         return in_array($recurringProcessingModel, Recurring::getRecurringTypes());
+    }
+
+    private function paymentMethodSupportsRpm(PaymentMethodInterface $paymentMethod, string $rpm): bool
+    {
+        if (($rpm === Recurring::SUBSCRIPTION && $paymentMethod->supportsSubscription()) ||
+            ($rpm === Recurring::CARD_ON_FILE && $paymentMethod->supportsCardOnFile()) ||
+            ($rpm === Recurring::UNSCHEDULED_CARD_ON_FILE && $paymentMethod->supportsUnscheduledCardOnFile())) {
+            return true;
+        }
+
+        return false;
     }
 }
