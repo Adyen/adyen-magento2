@@ -63,7 +63,11 @@ define(
                             result.isPlaceOrderAllowed(state.isValid);
                         },
                         onClick: function(resolve, reject) {
-                            return self.validate();
+                            if (self.validate()) {
+                                resolve();
+                            } else {
+                                reject();
+                            }
                         }
                     });
 
@@ -77,8 +81,8 @@ define(
                     };
                 }
 
-                // Paypal requires extra configuration
-                configuration = Object.assign(configuration, paymentMethodsExtraInfo[paymentMethod.methodIdentifier].configuration);
+                // GooglePay requires extra configuration
+                //configuration = Object.assign(configuration, paymentMethodsExtraInfo[paymentMethod.methodIdentifier].configuration);
 
                 return configuration;
             }
