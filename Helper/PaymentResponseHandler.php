@@ -14,6 +14,7 @@ namespace Adyen\Payment\Helper;
 use Adyen\Payment\Exception\PaymentMethodException;
 use Adyen\Payment\Helper\PaymentMethods\AbstractWalletPaymentMethod;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
+use Adyen\Payment\Helper\PaymentMethods\PaymentMethodInterface;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Methods\Paypal;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
@@ -220,29 +221,18 @@ class PaymentResponseHandler
                     // set transaction
                     $payment->setTransactionId($paymentsResponse['pspReference']);
                 }
-                $paymentMethodInstance = $payment->getMethodInstance();
+                $paymentMethod = $payment->getMethodInstance();
 
                 if ($this->vaultHelper->hasRecurringDetailReference($paymentsResponse) &&
-                    $paymentMethodInstance->getCode() !== AdyenOneclickConfigProvider::CODE) {
-                    $storeId = $paymentMethodInstance->getStore();
-                    $paymentInstanceCode = $paymentMethodInstance->getCode();
+                    $paymentMethod->getCode() !== AdyenOneclickConfigProvider::CODE) {
+                    $storeId = $paymentMethod->getStore();
+                    $paymentInstanceCode = $paymentMethod->getCode();
                     $storePaymentMethods = $this->configHelper->isStoreAlternativePaymentMethodEnabled($storeId);
 
-                    if ($storePaymentMethods && $paymentInstanceCode === Paypal::CODE) {
+                    if ($storePaymentMethods && $paymentMethod instanceof PaymentMethodInterface) {
                         $brand = $payment->getAdditionalInformation(AdyenPaymentMethodDataAssignObserver::BRAND_CODE);
                         try {
-                            $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($brand);
-                            if ($adyenPaymentMethod instanceof AbstractWalletPaymentMethod) {
-                                $this->vaultHelper->saveRecurringCardDetails(
-                                    $payment,
-                                    $paymentsResponse['additionalData']
-                                );
-                            } else {
-                                $this->vaultHelper->saveRecurringPaymentMethodDetails(
-                                    $payment,
-                                    $paymentsResponse['additionalData']
-                                );
-                            }
+                            $this->vaultHelper->saveRecurringDetails($payment, $paymentsResponse['additionalData']);
                         } catch (PaymentMethodException $e) {
                             $this->adyenLogger->error(sprintf(
                                 'Unable to create payment method with tx variant %s in details handler',

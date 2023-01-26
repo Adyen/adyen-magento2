@@ -25,10 +25,13 @@ use DateInterval;
 use DateTime;
 use DateTimeZone;
 use Exception;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Model\InfoInterface;
 use Magento\Payment\Model\MethodInterface;
 use Magento\Sales\Api\Data\OrderPaymentExtensionInterface;
+use Magento\Sales\Api\Data\OrderPaymentInterface;
+use Magento\Sales\Model\Order\Payment;
 use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
@@ -134,6 +137,20 @@ class Vault
         return false;
     }
 
+    /**
+     * @throws LocalizedException
+     */
+    public function saveRecurringDetails(OrderPaymentInterface $payment, array $additionalData): void
+    {
+        /** @var PaymentMethodInterface $paymentMethod */
+        $paymentMethod = $payment->getMethodInstance();
+        if ($paymentMethod->isWallet()) {
+            $this->saveRecurringCardDetails($payment, $additionalData);
+        } else {
+            $this->saveRecurringPaymentMethodDetails($payment, $additionalData);
+        }
+    }
+
     public function saveRecurringCardDetails(
         $payment,
         array $additionalData,
@@ -175,7 +192,7 @@ class Vault
      * @param array $additionalData
      * @return PaymentTokenInterface|null
      */
-    public function saveRecurringPaymentMethodDetails($payment, array $additionalData): ?PaymentTokenInterface
+    public function saveRecurringPaymentMethodDetails(OrderPaymentInterface $payment, array $additionalData): ?PaymentTokenInterface
     {
         try {
             $paymentToken = $this->createVaultAccountToken($payment, $additionalData);
@@ -199,6 +216,7 @@ class Vault
 
     /**
      * Build the recurring data when payment is done through a payment method (not card)
+     * TODO: Still to add, check configuration to see if pm is actually enabled for tokenization
      *
      */
     public function buildPaymentMethodRecurringData(InfoInterface $payment, int $storeId): array
@@ -272,11 +290,10 @@ class Vault
     /**
      * Create an entry in the vault table w/type=Account (for pms such as PayPal)
      * If the token has already been created, do nothing
-     * Before doing this, validate the additionalData sent by Adyen, based on the params required by the payment method
      *
-     * @throws InvalidAdditionalDataException
+     * @throws InvalidAdditionalDataException|\Magento\Framework\Exception\LocalizedException
      */
-    private function createVaultAccountToken($payment, array $additionalData): PaymentTokenInterface
+    private function createVaultAccountToken(OrderPaymentInterface $payment, array $additionalData): PaymentTokenInterface
     {
         // Check if paymentToken exists already
         $paymentToken = $this->paymentTokenManagement->getByGatewayToken(
@@ -287,11 +304,10 @@ class Vault
 
         // In case the payment token does not exist, create it based on the additionalData
         if (is_null($paymentToken)) {
-            $recurringProcessingModel = $payment->getAdditionalInformation('recurringProcessingModel');
-            if (is_null($recurringProcessingModel)) {
-                $storeId = $payment->getOrder()->getStoreId();
-                $recurringProcessingModel = $this->config->getAlternativePaymentMethodTokenType($storeId);
-            }
+            $storeId = $payment->getOrder()->getStoreId();
+            $requestRpm = $payment->getAdditionalInformation('recurringProcessingModel');
+            $configuredRpm = $this->config->getAlternativePaymentMethodTokenType($storeId);
+            $recurringProcessingModel = $requestRpm ?? $configuredRpm;
 
             $paymentToken = $this->paymentTokenFactory->create(PaymentTokenFactoryInterface::TOKEN_TYPE_ACCOUNT);
             $paymentToken->setGatewayToken($additionalData[self::RECURRING_DETAIL_REFERENCE]);
