@@ -18,6 +18,7 @@ use Adyen\Payment\Exception\PaymentMethodException;
 use Adyen\Payment\Helper\PaymentMethods\AbstractWalletPaymentMethod;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodInterface;
+use Adyen\Payment\Helper\PaymentMethods\TxVariant;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
@@ -151,46 +152,42 @@ class Vault
         }
     }
 
-    public function saveRecurringCardDetails(
-        $payment,
-        array $additionalData,
-        AbstractWalletPaymentMethod $paymentMethod = null
-    ) {
+    /**
+     * Save token in vault for card payments OR payments done using wallet payment methods (googlepay)
+     */
+    public function saveRecurringCardDetails(OrderPaymentInterface $payment, array $additionalData): ?PaymentTokenInterface {
         if (!$this->isCardVaultEnabled($payment->getOrder()->getStoreId()) &&
             !$this->adyenHelper->isHppVaultEnabled($payment->getOrder()->getStoreId())) {
-            return;
+            return null;
         }
 
         if (!$this->validateAdditionalData($additionalData)) {
-            return;
+            return null;
         }
 
         try {
-            $paymentToken = $this->getVaultPaymentToken($payment, $additionalData, $paymentMethod);
+            $paymentToken = $this->getVaultCardToken($payment, $additionalData);
         } catch (Exception $exception) {
-            $this->adyenLogger->error(json_encode($exception));
-            return;
-        }
-
-        if (null !== $paymentToken) {
-            $extensionAttributes = $this->getExtensionAttributes($payment);
-            $extensionAttributes->setVaultPaymentToken($paymentToken);
-        } else {
             $this->adyenLogger->error(
                 sprintf(
-                    'Failure trying to save credit card token in vault for order %s',
-                    $payment->getOrder()->getIncrementId()
+                    'Failure trying to save card token in vault for order %s, with exception message %s',
+                    $payment->getOrder()->getIncrementId(),
+                    $exception->getMessage()
                 )
             );
+
+            return null;
         }
+
+        $extensionAttributes = $this->getExtensionAttributes($payment);
+        $extensionAttributes->setVaultPaymentToken($paymentToken);
+
+        return $paymentToken;
     }
 
     /**
-     * Save recurring details related to the payment method.
+     * Save token in vault for non-card and non-wallet payment methods
      *
-     * @param $payment
-     * @param array $additionalData
-     * @return PaymentTokenInterface|null
      */
     public function saveRecurringPaymentMethodDetails(OrderPaymentInterface $payment, array $additionalData): ?PaymentTokenInterface
     {
@@ -328,11 +325,7 @@ class Vault
     /**
      * @throws Exception
      */
-    private function getVaultPaymentToken(
-        $payment,
-        array $additionalData,
-        AbstractWalletPaymentMethod $paymentMethod = null
-    ): PaymentTokenInterface {
+    private function getVaultCardToken(OrderPaymentInterface $payment, array $additionalData): PaymentTokenInterface {
         // Check if paymentToken exists already
         $paymentToken = $this->paymentTokenManagement->getByGatewayToken(
             $additionalData[self::RECURRING_DETAIL_REFERENCE],
@@ -340,6 +333,8 @@ class Vault
             $payment->getOrder()->getCustomerId()
         );
 
+        $paymentMethodInstance = $payment->getMethodInstance();
+        $paymentMethodCode = $paymentMethodInstance->getCode();
         $paymentTokenSaveRequired = false;
 
         // In case the payment token does not exist, create it based on the additionalData
@@ -354,10 +349,12 @@ class Vault
 
         $paymentToken->setExpiresAt($this->getExpirationDate($additionalData[self::EXPIRY_DATE]));
 
-        if (isset($paymentMethod)) {
+        // If wallet payment method
+        if ($paymentMethodCode !== PaymentMethods::ADYEN_CC && $paymentMethodInstance instanceof PaymentMethodInterface) {
+            $txVariant = new TxVariant($payment->getCcType());
             $details = [
-                'type' => $paymentMethod->getCardScheme(),
-                'walletType' => $paymentMethod->getTxVariant()
+                'type' => $txVariant->getCard(),
+                'walletType' => $txVariant->getPaymentMethod()
             ];
         } else {
             $details = ['type' => $additionalData[self::PAYMENT_METHOD]];
@@ -371,20 +368,23 @@ class Vault
             $details['expirationDate'] =  $additionalData[self::EXPIRY_DATE];
         }
 
-        // Set token type (alternative payment methods) for card tokens created using googlepay, applepay.
-        // This will be done for all card tokens once all vault changes are implemented
-        if ($payment->getAdditionalInformation('recurringProcessingModel')) {
-            $recurringModel = $payment->getAdditionalInformation('recurringProcessingModel');
-        } elseif ($payment->getMethodInstance()->getCode() === AdyenHppConfigProvider::CODE) {
+        $requestRpm = $payment->getAdditionalInformation('recurringProcessingModel');
+
+        // If rpm was included in initial request, use it
+        // Else, depending if card payment or not, get rpm from the configuration
+        if (isset($requestRpm)) {
+            $recurringProcessingModel = $payment->getAdditionalInformation('recurringProcessingModel');
+        } else {
             $storeId = $payment->getOrder()->getStoreId();
-            $recurringModel = $this->config->getAlternativePaymentMethodTokenType($storeId);
-        } elseif ($payment->getMethodInstance()->getCode() === AdyenCcConfigProvider::CODE) {
-            $storeId = $payment->getOrder()->getStoreId();
-            $recurringModel = $this->config->getCardRecurringType($storeId);
+            if ($paymentMethodCode === AdyenCcConfigProvider::CODE) {
+                $recurringProcessingModel = $this->config->getCardRecurringType($storeId);
+            } elseif ($paymentMethodInstance instanceof PaymentMethodInterface) {
+                $recurringProcessingModel = $this->config->getAlternativePaymentMethodTokenType($storeId);
+            }
         }
 
-        if (isset($recurringModel)) {
-            $details[self::TOKEN_TYPE] = $recurringModel;
+        if (isset($recurringProcessingModel)) {
+            $details[self::TOKEN_TYPE] = $recurringProcessingModel;
         }
 
         $paymentToken->setTokenDetails(json_encode($details));
@@ -393,6 +393,7 @@ class Vault
         if ($paymentTokenSaveRequired) {
             $this->paymentTokenRepository->save($paymentToken);
         }
+
         return $paymentToken;
     }
 
