@@ -9,8 +9,6 @@ use Exception;
 
 class Consumer
 {
-    public const TOPIC_NAME = "adyen.notification";
-
     /** @var Webhook $webhookHelper */
     private $webhookHelper;
 
@@ -23,7 +21,7 @@ class Consumer
      */
     public function __construct(
         Webhook $webhookHelper,
-        AdyenLogger $adyenLogger,
+        AdyenLogger $adyenLogger
     ) {
         $this->webhookHelper = $webhookHelper;
         $this->adyenLogger = $adyenLogger;

@@ -10,7 +10,7 @@ class Publisher
     private const TOPIC_NAME = "adyen.notification";
 
     /** @var PublisherInterface $publisher */
-    private PublisherInterface $publisher;
+    private $publisher;
 
     /**
      * @param PublisherInterface $publisher
