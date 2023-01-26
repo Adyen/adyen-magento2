@@ -55,4 +55,9 @@ class SepaPaymentMethod implements PaymentMethodInterface
     {
         return true;
     }
+
+    public function isWallet(): bool
+    {
+        return false;
+    }
 }

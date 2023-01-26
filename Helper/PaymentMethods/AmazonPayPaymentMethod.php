@@ -52,4 +52,9 @@ class AmazonPayPaymentMethod extends AbstractWalletPaymentMethod
     {
         return false;
     }
+
+    public function isWallet(): bool
+    {
+        return true;
+    }
 }

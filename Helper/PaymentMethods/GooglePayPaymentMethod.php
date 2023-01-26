@@ -50,4 +50,9 @@ class GooglePayPaymentMethod extends AbstractWalletPaymentMethod
     {
         return true;
     }
+
+    public function isWallet(): bool
+    {
+        return true;
+    }
 }

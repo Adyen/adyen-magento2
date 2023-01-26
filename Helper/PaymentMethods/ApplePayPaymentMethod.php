@@ -51,4 +51,9 @@ class ApplePayPaymentMethod extends AbstractWalletPaymentMethod
     {
         return false;
     }
+
+    public function isWallet(): bool
+    {
+        return true;
+    }
 }

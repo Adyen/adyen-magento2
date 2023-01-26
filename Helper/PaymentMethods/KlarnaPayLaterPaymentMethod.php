@@ -55,4 +55,9 @@ class KlarnaPayLaterPaymentMethod implements PaymentMethodInterface
     {
         return true;
     }
+
+    public function isWallet(): bool
+    {
+        return false;
+    }
 }
