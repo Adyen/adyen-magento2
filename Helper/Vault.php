@@ -229,7 +229,7 @@ class Vault
         $configuredRpm = $this->config->getAlternativePaymentMethodTokenType($storeId);
         $recurringProcessingModel = $requestRpm ?? $configuredRpm;
 
-        if (isset($recurringProcessingModel) && $this->paymentMethodSupportsRpm($paymentMethod, $recurringProcessingModel)) {
+        if (isset($recurringProcessingModel) && $this->allowRecurringOnPaymentMethod($paymentMethod, $recurringProcessingModel, $storeId)) {
             $request['storePaymentMethod'] = true;
             $request['recurringProcessingModel'] = $recurringProcessingModel;
         }
@@ -238,33 +238,20 @@ class Vault
     }
 
     /**
-     * Check if recurring should be allowed for payment method by checking:
-     * What type of recurring is currently enabled AND if the payment method supports that specific type recurring
+     * If payment method supports that specific type recurring
      * AND if the admin has enabled recurring for this payment method
-     *
-     * @param PaymentMethodInterface $adyenPaymentMethod
-     * @param int|null $storeId
-     * @return bool
-     * @throws NoSuchEntityException
      */
-    public function allowRecurringOnPaymentMethod(PaymentMethodInterface $adyenPaymentMethod, ?int $storeId): bool
+    public function allowRecurringOnPaymentMethod(PaymentMethodInterface $adyenPaymentMethod, string $rpm, ?int $storeId): bool
     {
-        $currentRecurringTokenSetting = $this->config->getAlternativePaymentMethodTokenType($storeId);
-        if ($currentRecurringTokenSetting === Recurring::CARD_ON_FILE) {
-            $methodSupportsRecurring = $adyenPaymentMethod->supportsCardOnFile();
-        } elseif ($currentRecurringTokenSetting === Recurring::UNSCHEDULED_CARD_ON_FILE) {
-            $methodSupportsRecurring = $adyenPaymentMethod->supportsUnscheduledCardOnFile();
-        } else {
-            $methodSupportsRecurring = $adyenPaymentMethod->supportsSubscription();
-        }
-
-        $tokenizedPaymentMethods = array_map(
+        $pmSupportsRpm = $this->paymentMethodSupportsRpm($adyenPaymentMethod, $rpm);
+        $tokenizablePaymentMethods = array_map(
             'trim',
             explode(',', (string) $this->config->getTokenizedPaymentMethods($storeId))
         );
-        $shouldTokenize = in_array($adyenPaymentMethod->getTxVariant(), $tokenizedPaymentMethods);
 
-        return $methodSupportsRecurring && $shouldTokenize;
+        $configuredToTokenize = in_array($adyenPaymentMethod->getTxVariant(), $tokenizablePaymentMethods);
+
+        return $pmSupportsRpm && $configuredToTokenize;
     }
 
     /**
