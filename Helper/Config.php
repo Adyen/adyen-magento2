@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
+use Adyen\Payment\Model\Config\Source\NotificationProcessor;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
@@ -46,6 +47,7 @@ class Config
     const XML_STATUS_FRAUD_MANUAL_REVIEW_ACCEPT = 'fraud_manual_review_accept_status';
     const XML_MOTO_MERCHANT_ACCOUNTS = 'moto_merchant_accounts';
     const XML_ADYEN_POS_CLOUD = 'adyen_pos_cloud';
+    const XML_WEBHOOK_NOTIFICATION_PROCESSOR = 'webhook_notification_processor';
 
     /**
      * @var ScopeConfigInterface
@@ -495,6 +497,14 @@ class Config
         return $this->getConfigData('apple_pay_certificate_url', self::XML_ADYEN_HPP, $storeId);
     }
 
+    public function useQueueProcessor($storeId = null): bool
+    {
+        return $this->getConfigData(
+            self::XML_WEBHOOK_NOTIFICATION_PROCESSOR,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId
+        ) === NotificationProcessor::QUEUE;
+    }
 
     /**
      * Retrieve information from payment configuration

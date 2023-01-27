@@ -12,9 +12,11 @@
 
 namespace Adyen\Payment\Cron;
 
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Webhook;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
+use Adyen\Payment\Model\Queue\Notification\Publisher;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory;
 use Exception;
 
@@ -38,20 +40,36 @@ class WebhookProcessor
     private $webhookHelper;
 
     /**
+     * @var Config $configHelper
+     */
+    private $configHelper;
+
+    /**
+     * @var Publisher $notificationPublisher
+     */
+    private $notificationPublisher;
+
+    /**
      * Cron constructor.
      *
      * @param AdyenLogger $adyenLogger
      * @param CollectionFactory $notificationCollectionFactory
      * @param Webhook $webhookHelper
+     * @param Config $configHelper
+     * @param Publisher $notificationPublisher
      */
     public function __construct(
         AdyenLogger $adyenLogger,
         CollectionFactory $notificationCollectionFactory,
-        Webhook $webhookHelper
+        Webhook $webhookHelper,
+        Config $configHelper,
+        Publisher $notificationPublisher
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->notificationCollectionFactory = $notificationCollectionFactory;
         $this->webhookHelper = $webhookHelper;
+        $this->configHelper = $configHelper;
+        $this->notificationPublisher = $notificationPublisher;
     }
 
     /**
@@ -108,7 +126,10 @@ class WebhookProcessor
                 continue;
             }
 
-            if ($this->webhookHelper->processNotification($notification)) {
+            if ($this->configHelper->useQueueProcessor()) {
+                $this->notificationPublisher->execute($notification);
+                $count++;
+            } elseif ($this->webhookHelper->processNotification($notification)) {
                 $count++;
             }
         }
