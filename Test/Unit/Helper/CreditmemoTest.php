@@ -49,7 +49,9 @@ class CreditmemoTest extends AbstractAdyenTestCase
         $adyenCreditmemoFactoryMock = $this->createGeneratedMock(CreditmemoFactory::class, ['create']);
         $adyenCreditmemoFactoryMock->method('create')->willReturn($adyenCreditmemoMock);
 
-        $adyenCreditmemoResourceModel = $this->createMock(\Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo::class);
+        $adyenCreditmemoResourceModel = $this->createMock(
+            \Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo::class
+        );
 
         $creditmemoHelper = $this->createCreditmemoHelper(
             null,
@@ -99,13 +101,15 @@ class CreditmemoTest extends AbstractAdyenTestCase
         ];
 
         $adyenCreditmemoResourceModelMock = $this->createConfiguredMock(
-            \Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo::class, [
-            'getAdyenCreditmemosByAdyenPaymentid' => $adyenCreditmemos,
-            'save' => $this->createPartialMock(
-                \Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo::class,
-                ['save']
-            )
-        ]);
+            \Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo::class,
+            [
+                'getAdyenCreditmemosByAdyenPaymentid' => $adyenCreditmemos,
+                'save' => $this->createPartialMock(
+                    \Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo::class,
+                    ['save']
+                )
+            ]
+        );
 
         $adyenCreditmemoResourceModelMock->expects($this->atLeastOnce())
             ->method('save')
