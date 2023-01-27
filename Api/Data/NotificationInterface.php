@@ -168,14 +168,14 @@ interface NotificationInterface
     /**
      * Gets the success for the notification.
      *
-     * @return int|null Success.
+     * @return string|null Success.
      */
     public function getSuccess();
 
     /**
      * Sets Success.
      *
-     * @param boolean $success
+     * @param string $success
      * @return $this
      */
     public function setSuccess($success);
@@ -198,7 +198,7 @@ interface NotificationInterface
     /**
      * Gets the AmountValue for the notification.
      *
-     * @return int|null AmountValue.
+     * @return string|null AmountValue.
      */
     public function getAmountValue();
 
@@ -228,7 +228,7 @@ interface NotificationInterface
     /**
      * Gets the Reason for the notification.
      *
-     * @return int|null Reason.
+     * @return string|null Reason.
      */
     public function getReason();
 
@@ -243,7 +243,7 @@ interface NotificationInterface
     /**
      * Gets the AdditionalData for the notification.
      *
-     * @return int|null AdditionalData.
+     * @return string|null AdditionalData.
      */
     public function getAdditionalData();
 
@@ -265,7 +265,7 @@ interface NotificationInterface
     /**
      * Sets Done.
      *
-     * @param string $done
+     * @param int $done
      * @return $this
      */
     public function setDone($done);

@@ -127,7 +127,7 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
     /**
      * Gets the Pspreference for the notification.
      *
-     * @return int|null Pspreference.
+     * @return string|null Pspreference.
      */
     public function getPspreference()
     {
@@ -165,7 +165,7 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
     /**
      * Gets the Merchantreference for the notification.
      *
-     * @return int|null MerchantReference.
+     * @return string|null MerchantReference.
      */
     public function getMerchantReference()
     {
@@ -186,7 +186,7 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
     /**
      * Gets the Eventcode for the notification.
      *
-     * @return int|null Eventcode.
+     * @return string|null Eventcode.
      */
     public function getEventCode()
     {
@@ -207,7 +207,7 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
     /**
      * Gets the success for the notification.
      *
-     * @return int|null Success.
+     * @return string|null Success.
      */
     public function getSuccess()
     {
@@ -217,7 +217,7 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
     /**
      * Sets Success.
      *
-     * @param boolean $success
+     * @param string $success
      * @return $this
      */
     public function setSuccess($success)
@@ -238,7 +238,7 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
     /**
      * Gets the Paymentmethod for the notification.
      *
-     * @return int|null PaymentMethod.
+     * @return string|null PaymentMethod.
      */
     public function getPaymentMethod()
     {
@@ -259,7 +259,7 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
     /**
      * Gets the AmountValue for the notification.
      *
-     * @return int|null AmountValue.
+     * @return string|null AmountValue.
      */
     public function getAmountValue()
     {
@@ -322,7 +322,7 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
     /**
      * Gets the Reason for the notification.
      *
-     * @return int|null Reason.
+     * @return string|null Reason.
      */
     public function getLive()
     {
@@ -341,7 +341,7 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
     /**
      * Gets the AdditionalData for the notification.
      *
-     * @return int|null AdditionalData.
+     * @return string|null AdditionalData.
      */
     public function getAdditionalData()
     {
@@ -372,7 +372,7 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
     /**
      * Sets Done.
      *
-     * @param string $done
+     * @param int $done
      * @return $this
      */
     public function setDone($done)
@@ -404,7 +404,7 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
     /**
      * Gets the Error Count for the notification.
      *
-     * @return bool|null ErrorCount.
+     * @return int|null ErrorCount.
      */
     public function getErrorCount()
     {
@@ -414,7 +414,7 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
     /**
      * Sets Error Count.
      *
-     * @param bool $errorCount
+     * @param int $errorCount
      * @return $this
      */
     public function setErrorCount($errorCount)
