@@ -226,11 +226,11 @@ class Result extends Action
             $session = $this->_session;
             $session->getQuote()->setIsActive($setQuoteAsActive)->save();
 
-            // Prevent action component to redirect page with the payment method Dotpay Bank transfer / postal
-            if (
-                $this->_order->getPayment()->getAdditionalInformation('brand_code') == self::BRAND_CODE_DOTPAY &&
-                $this->_order->getPayment()->getAdditionalInformation('resultCode') == self::RESULT_CODE_RECEIVED
-            ) {
+            /**
+             * Prevent action component to redirect page again after returning to the shop.
+             */
+            $paymentAction = $this->_order->getPayment()->getAdditionalInformation('action');
+            if (isset($paymentAction) && $paymentAction['type'] === 'redirect') {
                 $this->payment->unsAdditionalInformation('action');
                 $this->_order->save();
             }
