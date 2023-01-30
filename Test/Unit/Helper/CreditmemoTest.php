@@ -155,7 +155,6 @@ class CreditmemoTest extends AbstractAdyenTestCase
 
     public function testSaveMethodIsCalledCorrectNumberOfTimes()
     {
-        // Create mock objects
         $adyenCreditmemoResourceModelMock = $this->createMock(
             \Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo::class
         );
