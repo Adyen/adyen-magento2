@@ -12,10 +12,34 @@
 namespace Adyen\Payment\Model\Config\Adminhtml;
 
 use Magento\Framework\Data\Form\Element\AbstractElement;
+use Magento\Backend\Block\Template\Context;
+use Magento\Store\Model\StoreManager;
+use Adyen\Payment\Helper\Config;
 
 class WebhookTest extends \Magento\Config\Block\System\Config\Form\Field
 {
     protected $_template = 'Adyen_Payment::config/webhook_test.phtml';
+
+    /**
+     * @var StoreManager
+     */
+    private $storeManager;
+
+    /**
+     * @var Config
+     */
+    private $configHelper;
+
+    public function __construct(
+        Context $context,
+        Config $configHelper,
+        StoreManager $storeManager,
+        array $data = []
+    ) {
+        parent::__construct($context, $data);
+        $this->configHelper = $configHelper;
+        $this->storeManager = $storeManager;
+    }
 
     public function render(AbstractElement $element)
     {
@@ -41,25 +65,17 @@ class WebhookTest extends \Magento\Config\Block\System\Config\Form\Field
         )->setData(
             [
                 'id' => 'adyen_webhook_test',
-                'label' => __('Test Webhook URL'),
+                'label' => __('Test Webhook'),
             ]
         );
 
         return $button->toHtml();
     }
 
-    public function getDisabledButtonHtml()
+    public function isWebhookIdConfigured(): bool
     {
-        $button = $this->getLayout()->createBlock(
-            'Magento\Backend\Block\Widget\Button'
-        )->setData(
-            [
-                'id' => 'adyen_webhook_test',
-                'label' => __('Test'),
-                'disabled' => true
-            ]
-        );
+        $storeId = $this->storeManager->getStore()->getId();
 
-        return $button->toHtml();
+        return boolval($this->configHelper->getWebhookId($storeId));
     }
 }
