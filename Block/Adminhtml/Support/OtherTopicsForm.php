@@ -36,8 +36,7 @@ class OtherTopicsForm extends Generic
         Registry $registry,
         FormFactory $formFactory,
         SupportFormHelper $supportFormHelper
-    )
-    {
+    ) {
         $this->supportFormHelper = $supportFormHelper;
         parent::__construct($context, $registry, $formFactory);
     }

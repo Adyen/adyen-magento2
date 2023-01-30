@@ -12,18 +12,28 @@
 namespace Adyen\Payment\Block\Adminhtml\Support;
 
 use Adyen\Payment\Helper\SupportFormHelper;
+use Magento\Backend\Block\Template\Context;
+use Magento\Backend\Block\Widget\Form\Generic;
+use Magento\Framework\Data\FormFactory;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Registry;
 
-class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Generic
+class ConfigurationSettingsForm extends Generic
 {
     private $supportFormHelper;
 
+    /**
+     * @param Context $context
+     * @param Registry $registry
+     * @param FormFactory $formFactory
+     * @param SupportFormHelper $supportFormHelper
+     */
     public function __construct(
-        \Magento\Backend\Block\Template\Context $context,
-        \Magento\Framework\Registry             $registry,
-        \Magento\Framework\Data\FormFactory     $formFactory,
-        SupportFormHelper                       $supportFormHelper
-    )
-    {
+        Context $context,
+        Registry $registry,
+        FormFactory $formFactory,
+        SupportFormHelper $supportFormHelper
+    ) {
         $this->supportFormHelper = $supportFormHelper;
         parent::__construct($context, $registry, $formFactory);
         $this->setActive(true);
@@ -34,9 +44,9 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
      *
      * @return $this
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
-    protected function _prepareForm()
+    protected function _prepareForm(): ConfigurationSettingsForm
     {
         $form = $this->_formFactory->create([
             'data' => [
@@ -180,6 +190,9 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
         return parent::_prepareForm();
     }
 
+    /**
+     * @return string[]
+     */
     public function getSupportTopics(): array
     {
         return [
@@ -194,6 +207,9 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
         ];
     }
 
+    /**
+     * @return string[]
+     */
     public function getIssuesTopics(): array
     {
         return [

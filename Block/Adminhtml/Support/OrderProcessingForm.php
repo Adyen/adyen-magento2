@@ -12,18 +12,22 @@
 namespace Adyen\Payment\Block\Adminhtml\Support;
 
 use Adyen\Payment\Helper\SupportFormHelper;
+use Magento\Backend\Block\Template\Context;
+use Magento\Backend\Block\Widget\Form\Generic;
+use Magento\Framework\Data\FormFactory;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Registry;
 
-class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
+class OrderProcessingForm extends Generic
 {
     private $supportFormHelper;
 
     public function __construct(
-        \Magento\Backend\Block\Template\Context $context,
-        \Magento\Framework\Registry $registry,
-        \Magento\Framework\Data\FormFactory $formFactory,
+        Context $context,
+        Registry $registry,
+        FormFactory $formFactory,
         SupportFormHelper $supportFormHelper
-    )
-    {
+    ) {
         $this->supportFormHelper = $supportFormHelper;
         parent::__construct($context, $registry, $formFactory);
     }
@@ -33,9 +37,9 @@ class OrderProcessingForm extends \Magento\Backend\Block\Widget\Form\Generic
      *
      * @return $this
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
-    protected function _prepareForm()
+    protected function _prepareForm(): OrderProcessingForm
     {
         $form = $this->_formFactory->create([
             'data' => [

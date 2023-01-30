@@ -24,22 +24,34 @@ class Menu extends Template
         'success' => 'success'
     ];
 
-    public function orderProcessingUrl()
+    /**
+     * @return string
+     */
+    public function orderProcessingUrl(): string
     {
         return $this->getUrl('adyen/support/orderprocessing');
     }
 
-    public function configurationSettingsUrl()
+    /**
+     * @return string
+     */
+    public function configurationSettingsUrl(): string
     {
         return $this->getUrl('adyen/support/configurationsettings');
     }
 
-    public function otherTopicsFormUrl()
+    /**
+     * @return string
+     */
+    public function otherTopicsFormUrl(): string
     {
         return $this->getUrl('adyen/support/othertopicsform');
     }
 
-    public function getCurrentSection()
+    /**
+     * @return string
+     */
+    public function getCurrentSection(): string
     {
         return self::MENU_SECTIONS[$this->getRequest()->getActionName()];
     }
