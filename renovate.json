@@ -3,6 +3,17 @@
   "extends": [
     "config:base"
   ],
-  "stabilityDays": 21,
-  "baseBranches": ["renovate-configuration"]
+  "stabilityDays": 30,
+  "baseBranches": ["develop"],
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchBaseBranches": ["develop"]
+    },
+    {
+      "matchUpdateTypes": ["major", "pin", "pinDigest", "lockFileMaintenance", "rollback", "bump"],
+      "matchBaseBranches": ["develop"],
+      "enabled": false
+    }
+  ]
 }
