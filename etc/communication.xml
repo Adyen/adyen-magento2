@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Communication/etc/communication.xsd">
+    <topic name="adyen.notification"
+           is_synchronous="false"
+           response="boolean"
+           request="Adyen\Payment\Api\Data\NotificationInterface">
+        <handler name="AdyenNotificationHandler"
+                 type="Adyen\Payment\Model\Queue\Notification\Consumer"
+                 method="execute"/>
+    </topic>
+</config>

@@ -55,7 +55,7 @@ class AdyenPosCloudConfigProvider implements ConfigProviderInterface
     }
 
     /**
-     * Set configuration for POS Cloud Api payment method
+     * Set configuration for POS Terminal payment method
      *
      * @return array
      */

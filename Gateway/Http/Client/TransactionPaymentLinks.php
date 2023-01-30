@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Gateway\Http\Client;
 
 use Adyen\AdyenException;
+use Adyen\Client;
 use Adyen\Payment\Helper\Data;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
@@ -53,11 +54,13 @@ class TransactionPaymentLinks implements ClientInterface
 
         $requestOptions = [];
 
+        $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/paymentLinks');
         try {
             $response = $service->paymentLinks($request, $requestOptions);
         } catch (AdyenException $e) {
             $response['error'] = $e->getMessage();
         }
+        $this->adyenHelper->logResponse($response);
 
         return $response;
     }

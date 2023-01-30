@@ -62,6 +62,7 @@ class InstallmentsPosCloud extends \Magento\Framework\App\Config\Value
             return $this;
         }
         $result = [];
+
         foreach ($value as $data) {
             if (!$data) {
                 continue;
@@ -76,7 +77,7 @@ class InstallmentsPosCloud extends \Magento\Framework\App\Config\Value
             $amount = $data['amount'];
             $installments = $data['installments'];
 
-            $result[$amount] = $installments;
+            $result[$amount][] = $installments;
         }
 
         asort($result);
@@ -117,9 +118,11 @@ class InstallmentsPosCloud extends \Magento\Framework\App\Config\Value
         // sort on amount
         ksort($items);
 
-        foreach ($items as $amount => $installment) {
-            $resultId = $this->mathRandom->getUniqueHash('_');
-            $result[$resultId] = ['amount' => $amount, 'installments' => $installment];
+        foreach ($items as $amount => $installments) {
+            foreach ($installments as $installment) {
+                $resultId = $this->mathRandom->getUniqueHash('_');
+                $result[$resultId] = ['amount' => $amount, 'installments' => $installment];
+            }
         }
 
         return $result;

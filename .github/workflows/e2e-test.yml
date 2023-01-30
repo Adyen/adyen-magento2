@@ -5,16 +5,18 @@ on: [pull_request]
 
 jobs:
   build:
+    if: ${{ github.actor != 'renovate[bot]' || github.actor != 'lgtm-com[bot]' }}
     runs-on:
       group: larger-runners
       labels: ubuntu-latest-8-cores
+    timeout-minutes: 20
     env:
       PHP_VERSION: "8.1"
       MAGENTO_VERSION: "2.4.5"
       ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
       ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install Magento
         run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm web make magento
