@@ -78,8 +78,7 @@ class CreditmemoTest extends AbstractAdyenTestCase
         $adyenOrderPaymentId = 5;
         $magentoCreditmemoId = 10;
 
-        $adyenOrderPaymentMock = $this->createConfiguredMock(
-            \Adyen\Payment\Model\Order\Payment::class, [
+        $adyenOrderPaymentMock = $this->createConfiguredMock(\Adyen\Payment\Model\Order\Payment::class, [
                 'getEntityId' => $adyenOrderPaymentId
             ]
         );
