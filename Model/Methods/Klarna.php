@@ -37,7 +37,7 @@ class Klarna extends AdyenPaymentMethod implements PaymentMethodInterface
 
     public function supportsCardOnFile(): bool
     {
-        return false;
+        return true;
     }
 
     public function supportsSubscription(): bool
