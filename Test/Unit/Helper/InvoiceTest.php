@@ -381,7 +381,7 @@ class InvoiceTest extends AbstractAdyenTestCase
      * @param $transactionMock
      * @return Invoice
      */
-    public function createInvoiceHelper(
+    protected function createInvoiceHelper(
         $contextMock = null,
         $adyenLoggerMock = null,
         $adyenDataHelperMock = null,
