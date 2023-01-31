@@ -62,7 +62,14 @@
     </virtualType>
 
 
-    <!-- Paypal Vault -->
+    <!-- Paypal -->
+    <type name="Adyen\Payment\Model\Methods\Paypal">
+        <arguments>
+            <argument name="infoBlockType" xsi:type="string">Magento\Payment\Block\ConfigurableInfo</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentHppValueHandlerPool</argument>
+            <argument name="validatorPool" xsi:type="object">AdyenPaymentHppValidatorPool</argument>
+        </arguments>
+    </type>
     <type name="Adyen\Payment\Model\Methods\PaypalVault">
         <arguments>
             <argument name="config" xsi:type="object">AdyenPaymentHppVaultConfig</argument>
@@ -72,13 +79,20 @@
         </arguments>
     </type>
 
-
-
+    <!-- Klarna -->
     <type name="Adyen\Payment\Model\Methods\Paypal">
         <arguments>
             <argument name="infoBlockType" xsi:type="string">Magento\Payment\Block\ConfigurableInfo</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentHppValueHandlerPool</argument>
             <argument name="validatorPool" xsi:type="object">AdyenPaymentHppValidatorPool</argument>
+        </arguments>
+    </type>
+    <type name="Adyen\Payment\Model\Methods\KlarnaVault">
+        <arguments>
+            <argument name="config" xsi:type="object">AdyenPaymentHppVaultConfig</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentHppVaultPaymentValueHandlerPool</argument>
+            <argument name="vaultProvider" xsi:type="object">Adyen\Payment\Model\Methods\Klarna</argument>
+            <argument name="code" xsi:type="const">Adyen\Payment\Model\Methods\KlarnaVault::CODE</argument>
         </arguments>
     </type>
 
@@ -375,6 +389,7 @@
                 <item name="adyen_cc" xsi:type="string">AdyenPaymentCcCommandManager</item>
                 <item name="adyen_hpp" xsi:type="string">AdyenPaymentHppCommandManager</item>
                 <item name="adyen_paypal" xsi:type="string">AdyenPaymentHppCommandManager</item>
+                <item name="adyen_klarna" xsi:type="string">AdyenPaymentHppCommandManager</item>
             </argument>
         </arguments>
     </type>
