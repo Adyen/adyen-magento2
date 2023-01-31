@@ -132,7 +132,7 @@ class Webhook
             );
 
         // log the executed notification
-        if(is_null($notification->getMerchantReference())) {
+        if (is_null($notification->getMerchantReference())) {
             $errorMessage = sprintf(
                 'Invalid merchant reference for notification with the event code %s',
                 $notification->getEventCode()
@@ -147,7 +147,7 @@ class Webhook
         }
 
         $order = $this->orderHelper->getOrderByIncrementId($notification->getMerchantReference());
-        if(!$order) {
+        if (!$order) {
             $errorMessage = sprintf(
                 'Order w/merchant reference %s not found',
                 $notification->getMerchantReference()
