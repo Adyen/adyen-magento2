@@ -12,28 +12,21 @@
 
 namespace Adyen\Payment\Helper;
 
-use Adyen\AdyenException;
 use Adyen\Payment\Exception\InvalidAdditionalDataException;
 use Adyen\Payment\Exception\PaymentMethodException;
-use Adyen\Payment\Helper\PaymentMethods\AbstractWalletPaymentMethod;
-use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
-use Adyen\Payment\Helper\PaymentMethods\PaymentMethodInterface;
-use Adyen\Payment\Helper\PaymentMethods\TxVariant;
+use Adyen\Payment\Model\Method\PaymentMethodInterface;
+use Adyen\Payment\Model\Method\TxVariant;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\AdyenPaymentMethod;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
-use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use DateInterval;
 use DateTime;
 use DateTimeZone;
 use Exception;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Model\InfoInterface;
-use Magento\Payment\Model\MethodInterface;
 use Magento\Sales\Api\Data\OrderPaymentExtensionInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
-use Magento\Sales\Model\Order\Payment;
 use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;

@@ -13,7 +13,7 @@ namespace Adyen\Payment\Gateway\Response;
 
 use Adyen\Payment\Exception\PaymentMethodException;
 use Adyen\Payment\Helper\Config;
-use Adyen\Payment\Helper\PaymentMethods\PaymentMethodInterface;
+use Adyen\Payment\Model\Method\PaymentMethodInterface;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;

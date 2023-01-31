@@ -16,7 +16,7 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentMethods\AbstractWalletPaymentMethod;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
-use Adyen\Payment\Helper\PaymentMethods\PaymentMethodInterface;
+use Adyen\Payment\Model\Method\PaymentMethodInterface;
 use Adyen\Payment\Helper\Quote;
 use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\StateData;

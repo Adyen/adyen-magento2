@@ -12,13 +12,9 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Exception\PaymentMethodException;
-use Adyen\Payment\Helper\PaymentMethods\AbstractWalletPaymentMethod;
-use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
-use Adyen\Payment\Helper\PaymentMethods\PaymentMethodInterface;
+use Adyen\Payment\Model\Method\PaymentMethodInterface;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\Methods\Paypal;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
-use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Exception;
