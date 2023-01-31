@@ -20,6 +20,7 @@ use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodInterface;
 use Adyen\Payment\Helper\PaymentMethods\TxVariant;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\AdyenPaymentMethod;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use DateInterval;
@@ -45,6 +46,7 @@ class Vault
     const EXPIRY_DATE = 'expiryDate';
     const PAYMENT_METHOD = 'paymentMethod';
     const TOKEN_TYPE = 'tokenType';
+    const TOKEN_LABEL = 'tokenLabel';
     const ADDITIONAL_DATA_ERRORS = [
         self::RECURRING_DETAIL_REFERENCE => 'Missing Token in Result please enable in ' .
             'Settings -> API URLs and Response menu in the Adyen Customer Area Recurring details setting',
@@ -279,10 +281,12 @@ class Vault
      */
     private function createVaultAccountToken(OrderPaymentInterface $payment, array $additionalData): PaymentTokenInterface
     {
+        /** @var AdyenPaymentMethod $paymentMethod */
+        $paymentMethod = $payment->getMethodInstance();
         // Check if paymentToken exists already
         $paymentToken = $this->paymentTokenManagement->getByGatewayToken(
             $additionalData[self::RECURRING_DETAIL_REFERENCE],
-            $payment->getMethodInstance()->getCode(),
+            $paymentMethod->getCode(),
             $payment->getOrder()->getCustomerId()
         );
 
@@ -295,13 +299,16 @@ class Vault
 
             $paymentToken = $this->paymentTokenFactory->create(PaymentTokenFactoryInterface::TOKEN_TYPE_ACCOUNT);
             $paymentToken->setGatewayToken($additionalData[self::RECURRING_DETAIL_REFERENCE]);
-            $expiryDate = new DateTime();
-            $expiryDate->add(new DateInterval('P1Y'));
-            $paymentToken->setExpiresAt($expiryDate);
+            $today = new DateTime();
+
             $details = [
                 'type' => $payment->getCcType(),
-                self::TOKEN_TYPE => $recurringProcessingModel
+                self::TOKEN_TYPE => $recurringProcessingModel,
+                self::TOKEN_LABEL => $paymentMethod->getPaymentMethodName() . ' token created on ' . $today->format('Y-m-d')
             ];
+
+            $today->add(new DateInterval('P1Y'));
+            $paymentToken->setExpiresAt($today);
 
             $paymentToken->setTokenDetails(json_encode($details, JSON_FORCE_OBJECT));
         }
@@ -447,6 +454,11 @@ class Vault
     public function validateRecurringProcessingModel(string $recurringProcessingModel): bool
     {
         return in_array($recurringProcessingModel, Recurring::getRecurringTypes());
+    }
+
+    public function isAdyenPaymentCode(string $paymentCode): bool
+    {
+        return str_contains($paymentCode, 'adyen_');
     }
 
     private function paymentMethodSupportsRpm(PaymentMethodInterface $paymentMethod, string $rpm): bool

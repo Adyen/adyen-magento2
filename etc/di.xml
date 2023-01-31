@@ -62,6 +62,27 @@
     </virtualType>
 
 
+    <!-- Paypal Vault -->
+    <type name="Adyen\Payment\Model\Methods\PaypalVault">
+        <arguments>
+            <argument name="config" xsi:type="object">AdyenPaymentHppVaultConfig</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentHppVaultPaymentValueHandlerPool</argument>
+            <argument name="vaultProvider" xsi:type="object">Adyen\Payment\Model\Methods\Paypal</argument>
+            <argument name="code" xsi:type="const">Adyen\Payment\Model\Methods\PaypalVault::CODE</argument>
+        </arguments>
+    </type>
+
+
+
+    <type name="Adyen\Payment\Model\Methods\Paypal">
+        <arguments>
+            <argument name="infoBlockType" xsi:type="string">Magento\Payment\Block\ConfigurableInfo</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentHppValueHandlerPool</argument>
+            <argument name="validatorPool" xsi:type="object">AdyenPaymentHppValidatorPool</argument>
+        </arguments>
+    </type>
+
+
 
     <virtualType name="AdyenPaymentOneclickFacade" type="Adyen\Payment\Model\Method\Adapter">
         <arguments>
@@ -353,6 +374,7 @@
             <argument name="executors" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">AdyenPaymentCcCommandManager</item>
                 <item name="adyen_hpp" xsi:type="string">AdyenPaymentHppCommandManager</item>
+                <item name="adyen_paypal" xsi:type="string">AdyenPaymentHppCommandManager</item>
             </argument>
         </arguments>
     </type>
@@ -401,6 +423,7 @@
             </argument>
         </arguments>
     </virtualType>
+
 
     <virtualType name="AdyenPaymentHppVaultAuthorizeCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
         <arguments>
