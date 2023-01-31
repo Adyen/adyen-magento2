@@ -131,13 +131,26 @@ class Webhook
                 ],
             );
 
-        if (!is_null($notification->getMerchantReference()) &&
-            $order = $this->orderHelper->getOrderByIncrementId($notification->getMerchantReference())) {
-        } else {
+        // log the executed notification
+        if(is_null($notification->getMerchantReference())) {
             $errorMessage = sprintf(
-                'Order w/merchant reference %s and notification event code %s not found',
-                $notification->getMerchantReference(),
+                'Invalid merchant reference for notification with the event code %s',
                 $notification->getEventCode()
+            );
+
+            $this->logger->addAdyenNotification($errorMessage);
+
+            $this->updateNotification($notification, false, true);
+            $this->setNotificationError($notification, $errorMessage);
+
+            return false;
+        }
+
+        $order = $this->orderHelper->getOrderByIncrementId($notification->getMerchantReference());
+        if(!$order) {
+            $errorMessage = sprintf(
+                'Order w/merchant reference %s not found',
+                $notification->getMerchantReference()
             );
 
             $this->logger->addAdyenNotification($errorMessage);
