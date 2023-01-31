@@ -70,12 +70,12 @@
             <argument name="validatorPool" xsi:type="object">AdyenPaymentHppValidatorPool</argument>
         </arguments>
     </type>
-    <type name="Adyen\Payment\Model\Methods\PaypalVault">
+    <type name="Adyen\Payment\Model\Methods\Vault\PaypalVault">
         <arguments>
             <argument name="config" xsi:type="object">AdyenPaymentHppVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentHppVaultPaymentValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">Adyen\Payment\Model\Methods\Paypal</argument>
-            <argument name="code" xsi:type="const">Adyen\Payment\Model\Methods\PaypalVault::CODE</argument>
+            <argument name="code" xsi:type="const">Adyen\Payment\Model\Methods\Vault\PaypalVault::CODE</argument>
         </arguments>
     </type>
 
@@ -87,12 +87,12 @@
             <argument name="validatorPool" xsi:type="object">AdyenPaymentHppValidatorPool</argument>
         </arguments>
     </type>
-    <type name="Adyen\Payment\Model\Methods\KlarnaVault">
+    <type name="Adyen\Payment\Model\Methods\Vault\KlarnaVault">
         <arguments>
             <argument name="config" xsi:type="object">AdyenPaymentHppVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentHppVaultPaymentValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">Adyen\Payment\Model\Methods\Klarna</argument>
-            <argument name="code" xsi:type="const">Adyen\Payment\Model\Methods\KlarnaVault::CODE</argument>
+            <argument name="code" xsi:type="const">Adyen\Payment\Model\Methods\Vault\KlarnaVault::CODE</argument>
         </arguments>
     </type>
 

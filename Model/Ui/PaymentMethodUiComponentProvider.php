@@ -16,7 +16,6 @@ use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
 use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\Vault;
-use Adyen\Payment\Model\Methods\PaypalVault;
 use Exception;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Vault\Model\Ui\TokenUiComponentInterface;

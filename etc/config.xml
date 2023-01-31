@@ -151,7 +151,7 @@
             </adyen_klarna>
             <adyen_klarna_vault>
                 <title>Stored PayPal</title>
-                <model>Adyen\Payment\Model\Methods\KlarnaVault</model>
+                <model>Adyen\Payment\Model\Methods\Vault\KlarnaVault</model>
             </adyen_klarna_vault>
             <adyen_paypal>
                 <active>1</active>
@@ -176,7 +176,7 @@
             </adyen_paypal>
             <adyen_paypal_vault>
                 <title>Stored PayPal</title>
-                <model>Adyen\Payment\Model\Methods\PaypalVault</model>
+                <model>Adyen\Payment\Model\Methods\Vault\PaypalVault</model>
             </adyen_paypal_vault>
             <adyen_bcmc_mobile>
                 <active>1</active>
@@ -261,7 +261,7 @@
             </adyen_googlepay>
             <adyen_googlepay_vault>
                 <title>Stored GooglePay</title>
-                <model>Adyen\Payment\Model\Methods\GooglepayVault</model>
+                <model>Adyen\Payment\Model\Methods\Vault\GooglepayVault</model>
             </adyen_googlepay_vault>
             <adyen_pos_cloud>
                 <active>0</active>
