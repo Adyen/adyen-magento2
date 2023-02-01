@@ -25,6 +25,11 @@ class InternalAdyenPaymentMethodManagement extends AbstractInternalApiController
 
     protected AdyenPaymentMethodManagementInterface $adyenPaymentMethodManagement;
 
+    /**
+     * @param Http $request
+     * @param Validator $formKeyValidator
+     * @param AdyenPaymentMethodManagementInterface $adyenPaymentMethodManagement
+     */
     public function __construct(
         Http $request,
         Validator $formKeyValidator,
@@ -34,6 +39,13 @@ class InternalAdyenPaymentMethodManagement extends AbstractInternalApiController
         $this->adyenPaymentMethodManagement = $adyenPaymentMethodManagement;
     }
 
+    /**
+     * @param string $cartId
+     * @param string $formKey
+     * @param AddressInterface|null $shippingAddress
+     * @return string
+     * @throws \Adyen\AdyenException
+     */
     public function handleInternalRequest(
         string $cartId,
         string $formKey,

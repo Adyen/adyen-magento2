@@ -16,5 +16,10 @@ namespace Adyen\Payment\Api\Internal;
  */
 interface InternalAdyenOrderPaymentStatusInterface
 {
+    /**
+     * @param string $orderId
+     * @param string $formKey
+     * @return string
+     */
     public function handleInternalRequest(string $orderId, string $formKey): string;
 }

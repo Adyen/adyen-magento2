@@ -22,20 +22,41 @@ interface PaymentResponseInterface
     const RESULT_CODE = 'result_code';
     const RESPONSE = 'response';
 
-    public function getEntityId(): ?int;
+    public function getEntityId();
 
-    public function setEntityId(int $entityId): PaymentResponseInterface;
+    public function setEntityId($entityId);
 
+    /**
+     * @return string|null
+     */
     public function getMerchantReference(): ?string;
 
+    /**
+     * @param string $merchantReference
+     * @return PaymentResponseInterface
+     */
     public function setMerchantReference(string $merchantReference): PaymentResponseInterface;
 
+    /**
+     * @return string|null
+     */
     public function getResultCode(): ?string;
 
+    /**
+     * @param string $resultCode
+     * @return PaymentResponseInterface
+     */
     public function setResultCode(string $resultCode): PaymentResponseInterface;
 
+    /**
+     * @return string|null
+     */
     public function getResponse(): ?string;
 
+    /**
+     * @param string $response
+     * @return PaymentResponseInterface
+     */
     public function setResponse(string $response): PaymentResponseInterface;
 
 }

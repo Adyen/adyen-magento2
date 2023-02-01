@@ -17,5 +17,9 @@ namespace Adyen\Payment\Api;
  */
 interface AdyenOrderPaymentStatusInterface
 {
+    /**
+     * @param string $orderId
+     * @return string
+     */
     public function getOrderPaymentStatus(string $orderId): string;
 }

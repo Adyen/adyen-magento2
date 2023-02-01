@@ -24,6 +24,11 @@ class InternalAdyenPaymentDetails extends AbstractInternalApiController implemen
 
     protected AdyenPaymentDetailsInterface $adyenPaymentDetails;
 
+    /**
+     * @param Http $request
+     * @param Validator $formKeyValidator
+     * @param AdyenPaymentDetailsInterface $adyenPaymentDetails
+     */
     public function __construct(
         Http $request,
         Validator $formKeyValidator,
@@ -33,6 +38,12 @@ class InternalAdyenPaymentDetails extends AbstractInternalApiController implemen
         $this->adyenPaymentDetails = $adyenPaymentDetails;
     }
 
+    /**
+     * @param string $payload
+     * @param string $formKey
+     * @return string
+     * @throws \Adyen\AdyenException
+     */
     public function handleInternalRequest(string $payload, string $formKey): string
     {
         $this->validateInternalRequest($formKey);

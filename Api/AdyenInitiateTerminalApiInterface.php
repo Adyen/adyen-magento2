@@ -19,6 +19,9 @@ interface AdyenInitiateTerminalApiInterface
 {
     /**
      * Trigger sync call on terminal
+     *
+     * @param string $payload
+     * @return mixed
      */
     public function initiate(string $payload);
 }

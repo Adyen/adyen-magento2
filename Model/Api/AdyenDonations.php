@@ -60,6 +60,13 @@ class AdyenDonations implements AdyenDonationsInterface
      */
     protected $dataHelper;
 
+    /**
+     * @param CommandPoolInterface $commandPool
+     * @param OrderFactory $orderFactory
+     * @param Session $checkoutSession
+     * @param Json $jsonSerializer
+     * @param Data $dataHelper
+     */
     public function __construct(
         CommandPoolInterface $commandPool,
         OrderFactory $orderFactory,
@@ -74,6 +81,11 @@ class AdyenDonations implements AdyenDonationsInterface
         $this->dataHelper = $dataHelper;
     }
 
+    /**
+     * @param $payload
+     * @return void
+     * @throws LocalizedException
+     */
     public function donate($payload): void
     {
         $payload = $this->jsonSerializer->unserialize($payload);

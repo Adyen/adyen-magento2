@@ -15,10 +15,12 @@ use Adyen\AdyenException;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\RecurringType;
+use Exception;
 use Magento\Framework\App\State;
 use Magento\Framework\DataObject;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Model\Context;
 use Magento\Sales\Model\Order\Payment;
 
@@ -34,6 +36,14 @@ class PaymentRequest extends DataObject
 
     protected State $appState;
 
+    /**
+     * @param Context $context
+     * @param EncryptorInterface $encryptor
+     * @param Data $adyenHelper
+     * @param AdyenLogger $adyenLogger
+     * @param RecurringType $recurringType
+     * @param array $data
+     */
     public function __construct(
         Context $context,
         EncryptorInterface $encryptor,
@@ -49,6 +59,12 @@ class PaymentRequest extends DataObject
         $this->appState = $context->getAppState();
     }
 
+    /**
+     * @param Payment $payment
+     * @return mixed
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
     public function authorise3d(Payment $payment): mixed
     {
         $order = $payment->getOrder();
@@ -90,6 +106,12 @@ class PaymentRequest extends DataObject
         return $result;
     }
 
+    /**
+     * @param string $shopperReference
+     * @param int $storeId
+     * @return array
+     * @throws Exception
+     */
     public function getRecurringContractsForShopper(string $shopperReference, int $storeId): array
     {
         $recurringContracts = [];
@@ -123,7 +145,7 @@ class PaymentRequest extends DataObject
                         }
                     }
                 }
-            } catch (\Exception $exception) {
+            } catch (Exception $exception) {
                 // log exception
                 $this->adyenLogger->error($exception);
                 throw($exception);
@@ -132,6 +154,14 @@ class PaymentRequest extends DataObject
         return $recurringContracts;
     }
 
+    /**
+     * @param string $shopperReference
+     * @param int $storeId
+     * @param string $recurringType
+     * @return mixed
+     * @throws AdyenException
+     * @throws NoSuchEntityException
+     */
     public function listRecurringContractByType(string $shopperReference, int $storeId, string $recurringType): mixed
     {
         // rest call to get list of recurring details
@@ -148,6 +178,15 @@ class PaymentRequest extends DataObject
         return $service->listRecurringDetails($request);
     }
 
+    /**
+     * @param string $recurringDetailReference
+     * @param string $shopperReference
+     * @param int $storeId
+     * @return bool
+     * @throws AdyenException
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
     public function disableRecurringContract(
         string $recurringDetailReference,
         string $shopperReference,
@@ -167,7 +206,7 @@ class PaymentRequest extends DataObject
 
         try {
             $result = $service->disable($request);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->adyenLogger->info($e->getMessage());
         }
 

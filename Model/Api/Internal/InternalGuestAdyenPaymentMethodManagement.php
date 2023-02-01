@@ -25,6 +25,11 @@ class InternalGuestAdyenPaymentMethodManagement extends AbstractInternalApiContr
 
     protected GuestAdyenPaymentMethodManagementInterface $guestAdyenPaymentMethodManagement;
 
+    /**
+     * @param Http $request
+     * @param Validator $formKeyValidator
+     * @param GuestAdyenPaymentMethodManagementInterface $guestAdyenPaymentMethodManagement
+     */
     public function __construct(
         Http $request,
         Validator $formKeyValidator,
@@ -34,6 +39,13 @@ class InternalGuestAdyenPaymentMethodManagement extends AbstractInternalApiContr
         $this->guestAdyenPaymentMethodManagement = $guestAdyenPaymentMethodManagement;
     }
 
+    /**
+     * @param string $cartId
+     * @param string $formKey
+     * @param AddressInterface|null $shippingAddress
+     * @return string
+     * @throws \Adyen\AdyenException
+     */
     public function handleInternalRequest(
         string $cartId,
         string $formKey,

@@ -22,6 +22,11 @@ interface InternalGuestAdyenPaymentMethodManagementInterface
 {
     /**
      * Fetches Adyen payment methods for guest customers
+     *
+     * @param string $cartId
+     * @param string $formKey
+     * @param AddressInterface|null $shippingAddress
+     * @return string
      */
     public function handleInternalRequest(
         string $cartId,

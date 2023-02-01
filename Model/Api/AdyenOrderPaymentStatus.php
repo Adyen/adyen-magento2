@@ -29,6 +29,12 @@ class AdyenOrderPaymentStatus implements AdyenOrderPaymentStatusInterface
 
     private PaymentResponseHandler $paymentResponseHandler;
 
+    /**
+     * @param OrderRepositoryInterface $orderRepository
+     * @param AdyenLogger $adyenLogger
+     * @param Data $adyenHelper
+     * @param PaymentResponseHandler $paymentResponseHandler
+     */
     public function __construct(
         OrderRepositoryInterface $orderRepository,
         AdyenLogger $adyenLogger,
@@ -41,6 +47,10 @@ class AdyenOrderPaymentStatus implements AdyenOrderPaymentStatusInterface
         $this->paymentResponseHandler = $paymentResponseHandler;
     }
 
+    /**
+     * @param string $orderId
+     * @return string
+     */
     public function getOrderPaymentStatus(string $orderId): string
     {
         try {

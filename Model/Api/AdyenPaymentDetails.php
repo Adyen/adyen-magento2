@@ -39,6 +39,13 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
 
     private PaymentResponseHandler $paymentResponseHandler;
 
+    /**
+     * @param Session $checkoutSession
+     * @param Data $adyenHelper
+     * @param AdyenLogger $adyenLogger
+     * @param OrderRepositoryInterface $orderRepository
+     * @param PaymentResponseHandler $paymentResponseHandler
+     */
     public function __construct(
         Session $checkoutSession,
         Data $adyenHelper,
@@ -53,6 +60,12 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
         $this->paymentResponseHandler = $paymentResponseHandler;
     }
 
+    /**
+     * @param string $payload
+     * @return string
+     * @throws LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
     public function initiate(string $payload): string
     {
         // Decode payload from frontend

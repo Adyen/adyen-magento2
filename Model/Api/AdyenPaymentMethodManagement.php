@@ -19,12 +19,21 @@ class AdyenPaymentMethodManagement implements AdyenPaymentMethodManagementInterf
 {
     protected PaymentMethods $paymentMethodsHelper;
 
+    /**
+     * @param PaymentMethods $paymentMethodsHelper
+     */
     public function __construct(
         PaymentMethods $paymentMethodsHelper
     ) {
         $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
 
+    /**
+     * @param string $cartId
+     * @param AddressInterface|null $shippingAddress
+     * @param string|null $shopperLocale
+     * @return string
+     */
     public function getPaymentMethods(
         string $cartId,
         AddressInterface $shippingAddress = null,

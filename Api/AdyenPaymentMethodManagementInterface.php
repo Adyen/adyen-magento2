@@ -20,6 +20,11 @@ interface AdyenPaymentMethodManagementInterface
 {
     /**
      * Fetches Adyen payment methods for logged in customers
+     *
+     * @param string $cartId
+     * @param AddressInterface|null $shippingAddress
+     * @param string|null $shopperLocale
+     * @return string
      */
     public function getPaymentMethods(
         string $cartId,

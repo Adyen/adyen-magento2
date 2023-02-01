@@ -43,47 +43,117 @@ interface OrderPaymentInterface
     // Payment has not been captured yet
     const CAPTURE_STATUS_NO_CAPTURE = 'Not captured';
 
-    public function getEntityId(): ?int;
+    public function getEntityId();
 
-    public function setEntityId(int $entityId): OrderPaymentInterface;
+    public function setEntityId($entityId);
 
+    /**
+     * @return string
+     */
     public function getPspreference(): string;
 
+    /**
+     * @param string $pspReference
+     * @return OrderPaymentInterface
+     */
     public function setPspreference(string $pspReference): OrderPaymentInterface;
 
+    /**
+     * @return string
+     */
     public function getMerchantReference(): string;
 
+    /**
+     * @param string $merchantReference
+     * @return OrderPaymentInterface
+     */
     public function setMerchantReference(string $merchantReference): OrderPaymentInterface;
 
+    /**
+     * @return int
+     */
     public function getPaymentId(): int;
 
+    /**
+     * @param int $paymentId
+     * @return OrderPaymentInterface
+     */
     public function setPaymentId(int $paymentId): OrderPaymentInterface;
 
+    /**
+     * @return string|null
+     */
     public function getPaymentMethod(): ?string;
 
+    /**
+     * @param string $paymentMethod
+     * @return OrderPaymentInterface
+     */
     public function setPaymentMethod(string $paymentMethod): OrderPaymentInterface;
 
+    /**
+     * @return int
+     */
     public function getAmount(): int;
 
+    /**
+     * @param int $amount
+     * @return OrderPaymentInterface
+     */
     public function setAmount(int $amount): OrderPaymentInterface;
 
+    /**
+     * @return int
+     */
     public function getTotalRefunded(): int;
 
+    /**
+     * @param int $totalRefunded
+     * @return OrderPaymentInterface
+     */
     public function setTotalRefunded(int $totalRefunded): OrderPaymentInterface;
 
+    /**
+     * @return DateTime
+     */
     public function getCreatedAt(): DateTime;
 
+    /**
+     * @param DateTime $createdAt
+     * @return OrderPaymentInterface
+     */
     public function setCreatedAt(DateTime $createdAt): OrderPaymentInterface;
 
+    /**
+     * @return DateTime
+     */
     public function getUpdatedAt(): DateTime;
 
+    /**
+     * @param DateTime $updatedAt
+     * @return OrderPaymentInterface
+     */
     public function setUpdatedAt(DateTime $updatedAt): OrderPaymentInterface;
 
+    /**
+     * @return string|null
+     */
     public function getCaptureStatus(): ?string;
 
+    /**
+     * @param string $captureStatus
+     * @return OrderPaymentInterface
+     */
     public function setCaptureStatus(string $captureStatus): OrderPaymentInterface;
 
+    /**
+     * @return int|null
+     */
     public function getTotalCaptured(): ?int;
 
+    /**
+     * @param int $totalCaptured
+     * @return OrderPaymentInterface
+     */
     public function setTotalCaptured(int $totalCaptured): OrderPaymentInterface;
 }

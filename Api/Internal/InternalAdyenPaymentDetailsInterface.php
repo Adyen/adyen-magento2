@@ -16,5 +16,10 @@ namespace Adyen\Payment\Api\Internal;
  */
 interface InternalAdyenPaymentDetailsInterface
 {
+    /**
+     * @param string $payload
+     * @param string $formKey
+     * @return string
+     */
     public function handleInternalRequest(string $payload, string $formKey): string;
 }

@@ -27,6 +27,11 @@ class AdyenStateData implements AdyenStateDataInterface
 
     private StateDataResourceModel $stateDataResourceModel;
 
+    /**
+     * @param CheckoutStateDataValidator $checkoutStateDataValidator
+     * @param StateDataFactory $stateDataFactory
+     * @param StateDataResourceModel $stateDataResourceModel
+     */
     public function __construct(
         CheckoutStateDataValidator $checkoutStateDataValidator,
         StateDataFactory $stateDataFactory,
@@ -37,6 +42,13 @@ class AdyenStateData implements AdyenStateDataInterface
         $this->stateDataResourceModel = $stateDataResourceModel;
     }
 
+    /**
+     * @param string $stateData
+     * @param int $quoteId
+     * @return void
+     * @throws LocalizedException
+     * @throws \Magento\Framework\Exception\AlreadyExistsException
+     */
     public function save(string $stateData, int $quoteId): void
     {
         // Decode payload from frontend

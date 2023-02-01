@@ -21,6 +21,11 @@ class InternalAdyenDonations extends AbstractInternalApiController implements In
 {
     private AdyenDonations $adyenDonations;
 
+    /**
+     * @param Http $request
+     * @param Validator $formKeyValidator
+     * @param AdyenDonations $adyenDonations
+     */
     public function __construct(
         Http $request,
         Validator $formKeyValidator,
@@ -30,6 +35,13 @@ class InternalAdyenDonations extends AbstractInternalApiController implements In
         $this->adyenDonations = $adyenDonations;
     }
 
+    /**
+     * @param string $payload
+     * @param string $formKey
+     * @return void
+     * @throws \Adyen\AdyenException
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     public function handleInternalRequest(string $payload, string $formKey): void
     {
         $this->validateInternalRequest($formKey);

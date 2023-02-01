@@ -22,6 +22,10 @@ class GuestAdyenPaymentMethodManagement implements GuestAdyenPaymentMethodManage
 
     protected PaymentMethods $paymentMethodsHelper;
 
+    /**
+     * @param QuoteIdMaskFactory $quoteIdMaskFactory
+     * @param PaymentMethods $paymentMethodsHelper
+     */
     public function __construct(
         QuoteIdMaskFactory $quoteIdMaskFactory,
         PaymentMethods $paymentMethodsHelper
@@ -30,6 +34,12 @@ class GuestAdyenPaymentMethodManagement implements GuestAdyenPaymentMethodManage
         $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
 
+    /**
+     * @param string $cartId
+     * @param AddressInterface|null $shippingAddress
+     * @param string|null $shopperLocale
+     * @return string
+     */
     public function getPaymentMethods(
         string $cartId,
         AddressInterface $shippingAddress = null,

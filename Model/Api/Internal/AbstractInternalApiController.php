@@ -21,6 +21,10 @@ abstract class AbstractInternalApiController
 
     protected Validator $formKeyValidator;
 
+    /**
+     * @param Http $request
+     * @param Validator $formKeyValidator
+     */
     public function __construct(
         Http $request,
         Validator $formKeyValidator
@@ -29,6 +33,11 @@ abstract class AbstractInternalApiController
         $this->formKeyValidator = $formKeyValidator;
     }
 
+    /**
+     * @param string $formKey
+     * @return bool
+     * @throws AdyenException
+     */
     public function validateInternalRequest(string $formKey): bool
     {
         $isAjax = $this->request->isAjax();
