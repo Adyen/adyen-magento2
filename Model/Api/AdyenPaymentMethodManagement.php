@@ -17,12 +17,12 @@ use Magento\Quote\Api\Data\AddressInterface;
 
 class AdyenPaymentMethodManagement implements AdyenPaymentMethodManagementInterface
 {
-    protected PaymentMethods $_paymentMethodsHelper;
+    protected PaymentMethods $paymentMethodsHelper;
 
     public function __construct(
         PaymentMethods $paymentMethodsHelper
     ) {
-        $this->_paymentMethodsHelper = $paymentMethodsHelper;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
 
     public function getPaymentMethods(
@@ -36,6 +36,6 @@ class AdyenPaymentMethodManagement implements AdyenPaymentMethodManagementInterf
             $country = $shippingAddress->getCountryId();
         }
 
-        return $this->_paymentMethodsHelper->getPaymentMethods($cartId, $country, $shopperLocale);
+        return $this->paymentMethodsHelper->getPaymentMethods($cartId, $country, $shopperLocale);
     }
 }

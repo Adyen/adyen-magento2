@@ -18,16 +18,16 @@ use Magento\Quote\Model\QuoteIdMaskFactory;
 
 class GuestAdyenPaymentMethodManagement implements GuestAdyenPaymentMethodManagementInterface
 {
-    protected QuoteIdMaskFactory $_quoteIdMaskFactory;
+    protected QuoteIdMaskFactory $quoteIdMaskFactory;
 
-    protected PaymentMethods $_paymentMethodsHelper;
+    protected PaymentMethods $paymentMethodsHelper;
 
     public function __construct(
         QuoteIdMaskFactory $quoteIdMaskFactory,
         PaymentMethods $paymentMethodsHelper
     ) {
-        $this->_quoteIdMaskFactory = $quoteIdMaskFactory;
-        $this->_paymentMethodsHelper = $paymentMethodsHelper;
+        $this->quoteIdMaskFactory = $quoteIdMaskFactory;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
 
     public function getPaymentMethods(
@@ -35,7 +35,7 @@ class GuestAdyenPaymentMethodManagement implements GuestAdyenPaymentMethodManage
         AddressInterface $shippingAddress = null,
         ?string $shopperLocale = null
     ): string {
-        $quoteIdMask = $this->_quoteIdMaskFactory->create()->load($cartId, 'masked_id');
+        $quoteIdMask = $this->quoteIdMaskFactory->create()->load($cartId, 'masked_id');
         $quoteId = $quoteIdMask->getQuoteId();
 
         // if shippingAddress is provided use this country
@@ -44,6 +44,6 @@ class GuestAdyenPaymentMethodManagement implements GuestAdyenPaymentMethodManage
             $country = $shippingAddress->getCountryId();
         }
 
-        return $this->_paymentMethodsHelper->getPaymentMethods($quoteId, $country, $shopperLocale);
+        return $this->paymentMethodsHelper->getPaymentMethods($quoteId, $country, $shopperLocale);
     }
 }

@@ -24,15 +24,15 @@ use Magento\Sales\Model\Order\Payment;
 
 class PaymentRequest extends DataObject
 {
-    protected EncryptorInterface $_encryptor;
+    protected EncryptorInterface $encryptor;
 
-    protected Data $_adyenHelper;
+    protected Data $adyenHelper;
 
-    protected AdyenLogger $_adyenLogger;
+    protected AdyenLogger $adyenLogger;
 
-    protected RecurringType $_recurringType;
+    protected RecurringType $recurringType;
 
-    protected State $_appState;
+    protected State $appState;
 
     public function __construct(
         Context $context,
@@ -42,11 +42,11 @@ class PaymentRequest extends DataObject
         RecurringType $recurringType,
         array $data = []
     ) {
-        $this->_encryptor = $encryptor;
-        $this->_adyenHelper = $adyenHelper;
-        $this->_adyenLogger = $adyenLogger;
-        $this->_recurringType = $recurringType;
-        $this->_appState = $context->getAppState();
+        $this->encryptor = $encryptor;
+        $this->adyenHelper = $adyenHelper;
+        $this->adyenLogger = $adyenLogger;
+        $this->recurringType = $recurringType;
+        $this->appState = $context->getAppState();
     }
 
     public function authorise3d(Payment $payment): mixed
@@ -80,8 +80,8 @@ class PaymentRequest extends DataObject
         ];
 
         try {
-            $client = $this->_adyenHelper->initializeAdyenClient($storeId);
-            $service = $this->_adyenHelper->createAdyenCheckoutService($client);
+            $client = $this->adyenHelper->initializeAdyenClient($storeId);
+            $service = $this->adyenHelper->createAdyenCheckoutService($client);
             $result = $service->paymentsDetails($request);
         } catch (AdyenException $e) {
             throw new LocalizedException(__('3D secure failed'));
@@ -93,7 +93,7 @@ class PaymentRequest extends DataObject
     public function getRecurringContractsForShopper(string $shopperReference, int $storeId): array
     {
         $recurringContracts = [];
-        $recurringTypes = $this->_recurringType->getAllowedRecurringTypesForListRecurringCall();
+        $recurringTypes = $this->recurringType->getAllowedRecurringTypesForListRecurringCall();
 
         foreach ($recurringTypes as $recurringType) {
             try {
@@ -125,7 +125,7 @@ class PaymentRequest extends DataObject
                 }
             } catch (\Exception $exception) {
                 // log exception
-                $this->_adyenLogger->error($exception);
+                $this->adyenLogger->error($exception);
                 throw($exception);
             }
         }
@@ -137,14 +137,14 @@ class PaymentRequest extends DataObject
         // rest call to get list of recurring details
         $contract = ['contract' => $recurringType];
         $request = [
-            "merchantAccount" => $this->_adyenHelper->getAdyenAbstractConfigData('merchant_account', $storeId),
-            "shopperReference" => $this->_adyenHelper->padShopperReference($shopperReference),
+            "merchantAccount" => $this->adyenHelper->getAdyenAbstractConfigData('merchant_account', $storeId),
+            "shopperReference" => $this->adyenHelper->padShopperReference($shopperReference),
             "recurring" => $contract,
         ];
 
         // call lib
-        $client = $this->_adyenHelper->initializeAdyenClient($storeId);
-        $service = $this->_adyenHelper->createAdyenRecurringService($client);
+        $client = $this->adyenHelper->initializeAdyenClient($storeId);
+        $service = $this->adyenHelper->createAdyenRecurringService($client);
         return $service->listRecurringDetails($request);
     }
 
@@ -153,8 +153,8 @@ class PaymentRequest extends DataObject
         string $shopperReference,
         int $storeId
     ): bool {
-        $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account", $storeId);
-        $shopperReference = $this->_adyenHelper->padShopperReference($shopperReference);
+        $merchantAccount = $this->adyenHelper->getAdyenAbstractConfigData("merchant_account", $storeId);
+        $shopperReference = $this->adyenHelper->padShopperReference($shopperReference);
         $request = [
             "merchantAccount" => $merchantAccount,
             "shopperReference" => $shopperReference,
@@ -162,13 +162,13 @@ class PaymentRequest extends DataObject
         ];
 
         // call lib
-        $client = $this->_adyenHelper->initializeAdyenClient($storeId);
-        $service = $this->_adyenHelper->createAdyenRecurringService($client);
+        $client = $this->adyenHelper->initializeAdyenClient($storeId);
+        $service = $this->adyenHelper->createAdyenRecurringService($client);
 
         try {
             $result = $service->disable($request);
         } catch (\Exception $e) {
-            $this->_adyenLogger->info($e->getMessage());
+            $this->adyenLogger->info($e->getMessage());
         }
 
         if (isset($result['response']) && $result['response'] == '[detail-successfully-disabled]') {
