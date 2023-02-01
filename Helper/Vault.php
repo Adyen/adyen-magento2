@@ -84,9 +84,6 @@ class Vault
     /** @var PaymentMethods */
     private $paymentMethodsHelper;
 
-    /** @var PaymentMethodFactory */
-    private $paymentMethodFactory;
-
     public function __construct(
         Data $adyenHelper,
         AdyenLogger $adyenLogger,
@@ -94,8 +91,7 @@ class Vault
         PaymentTokenFactoryInterface $paymentTokenFactory,
         PaymentTokenRepositoryInterface $paymentTokenRepository,
         Config $config,
-        PaymentMethods $paymentMethodsHelper,
-        PaymentMethodFactory $paymentMethodFactory
+        PaymentMethods $paymentMethodsHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenLogger = $adyenLogger;
@@ -104,7 +100,6 @@ class Vault
         $this->paymentTokenRepository = $paymentTokenRepository;
         $this->config = $config;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
-        $this->paymentMethodFactory = $paymentMethodFactory;
     }
 
     /**

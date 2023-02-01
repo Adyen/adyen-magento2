@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -13,7 +13,6 @@ namespace Adyen\Payment\Model\Ui;
 
 use Adyen\Payment\Exception\PaymentMethodException;
 use Adyen\Payment\Helper\Data;
-use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
 use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\Vault;
 use Exception;
@@ -25,14 +24,8 @@ use Magento\Vault\Model\Ui\TokenUiComponentInterfaceFactory;
 class PaymentMethodUiComponentProvider extends AdyenUiComponentProvider implements TokenUiComponentProviderInterface
 {
 
-    private $vaultHelper;
+    private Vault $vaultHelper;
 
-    /**
-     * @param TokenUiComponentInterfaceFactory $componentFactory
-     * @param Data $dataHelper
-     * @param Vault $vaultHelper
-     * @param PaymentMethodFactory $paymentMethodFactory
-     */
     public function __construct(
         TokenUiComponentInterfaceFactory $componentFactory,
         Data $dataHelper,

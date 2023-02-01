@@ -76,18 +76,6 @@ class PaymentResponseHandler
      */
     private $configHelper;
 
-    /**
-     * @var PaymentMethodFactory
-     */
-    private $paymentMethodFactory;
-
-    /**
-     * PaymentResponseHandler constructor.
-     *
-     * @param AdyenLogger $adyenLogger
-     * @param Data $adyenHelper
-     * @param \Adyen\Payment\Helper\Vault $vaultHelper
-     */
     public function __construct(
         AdyenLogger $adyenLogger,
         Data $adyenHelper,
@@ -96,8 +84,7 @@ class PaymentResponseHandler
         Data $dataHelper,
         Recurring $recurringHelper,
         Quote $quoteHelper,
-        Config $configHelper,
-        PaymentMethodFactory $paymentMethodFactory
+        Config $configHelper
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
@@ -107,7 +94,6 @@ class PaymentResponseHandler
         $this->recurringHelper = $recurringHelper;
         $this->quoteHelper = $quoteHelper;
         $this->configHelper = $configHelper;
-        $this->paymentMethodFactory = $paymentMethodFactory;
     }
 
     public function formatPaymentResponse($resultCode, $action = null, $additionalData = null)

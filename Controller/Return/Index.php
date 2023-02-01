@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -14,22 +14,17 @@ namespace Adyen\Payment\Controller\Return;
 use Adyen\Payment\Exception\PaymentMethodException;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
-use Adyen\Payment\Helper\PaymentMethods\AbstractWalletPaymentMethod;
-use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
 use Adyen\Payment\Model\Method\PaymentMethodInterface;
 use Adyen\Payment\Helper\Quote;
 use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\Methods\Paypal;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
-use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 use Adyen\Service\Validator\DataArrayValidator;
 use Magento\Checkout\Model\Session;
-use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
@@ -140,11 +135,6 @@ class Index extends \Magento\Framework\App\Action\Action
     private $recurringHelper;
 
     /**
-     * @var PaymentMethodFactory
-     */
-    private $paymentMethodFactory;
-
-    /**
      * @param Context $context
      * @param Data $adyenHelper
      * @param OrderFactory $orderFactory
@@ -176,8 +166,7 @@ class Index extends \Magento\Framework\App\Action\Action
         Data $dataHelper,
         OrderRepositoryInterface $orderRepository,
         Recurring $recurringHelper,
-        Config $configHelper,
-        PaymentMethodFactory $paymentMethodFactory
+        Config $configHelper
     ) {
         $this->_adyenHelper = $adyenHelper;
         $this->_orderFactory = $orderFactory;
@@ -193,7 +182,6 @@ class Index extends \Magento\Framework\App\Action\Action
         $this->orderRepository = $orderRepository;
         $this->recurringHelper = $recurringHelper;
         $this->configHelper = $configHelper;
-        $this->paymentMethodFactory = $paymentMethodFactory;
         parent::__construct($context);
     }
 
