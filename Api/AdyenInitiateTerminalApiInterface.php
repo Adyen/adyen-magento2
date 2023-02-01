@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2018 Adyen B.V.
+ * Copyright (c) 2023 Adyen B.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -14,16 +14,11 @@ namespace Adyen\Payment\Api;
 
 /**
  * Interface for initiating an Adyen Terminal API connection
- *
- * @api
  */
 interface AdyenInitiateTerminalApiInterface
 {
     /**
      * Trigger sync call on terminal
-     *
-     * @param string $payload
-     * @return mixed
      */
-    public function initiate($payload);
+    public function initiate(string $payload);
 }

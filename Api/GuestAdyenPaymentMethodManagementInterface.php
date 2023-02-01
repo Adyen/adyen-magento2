@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -15,18 +15,15 @@ use Magento\Quote\Api\Data\AddressInterface;
 
 /**
  * Interface for fetching payment methods from Adyen for guest customers
- *
- * @api
  */
 interface GuestAdyenPaymentMethodManagementInterface
 {
     /**
      * Fetches Adyen payment methods for guest customers
-     *
-     * @param string $cartId
-     * @param null|AddressInterface
-     * @param string|null $shopperLocale
-     * @return \Magento\Checkout\Api\Data\PaymentDetailsInterface
      */
-    public function getPaymentMethods($cartId, AddressInterface $shippingAddress = null, ?string $shopperLocale = null);
+    public function getPaymentMethods(
+        string $cartId,
+        AddressInterface $shippingAddress = null,
+        ?string $shopperLocale = null
+    ): string;
 }

@@ -18,8 +18,6 @@ interface NotificationInterface
     /**
      * Constants for keys of data array. Identical to the name of the getter in snake case.
      */
-
-
     const ENTITY_ID = 'entity_id';
     const PSPREFRENCE = 'pspreference';
     const ORIGINAL_REFERENCE = 'original_reference';
@@ -39,16 +37,9 @@ interface NotificationInterface
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
 
-    /**
-     * @return int|null Entity ID.
-     */
-    public function getEntityId();
+    public function getEntityId(): ?int;
 
-    /**
-     * @param int $entityId
-     * @return $this
-     */
-    public function setEntityId($entityId);
+    public function setEntityId(int $entityId): NotificationInterface;
 
     public function getPspreference(): ?string;
 

@@ -22,7 +22,6 @@ interface CreditmemoInterface
     const ENTITY_ID = 'entity_id';
     const PSPREFERENCE = 'pspreference';
     const ORIGINAL_REFERENCE = 'original_reference';
-
     const CREDITMEMO_ID = 'creditmemo_id';
     const ADYEN_ORDER_PAYMENT_ID = 'adyen_order_payment_id';
     const AMOUNT = 'amount';
@@ -30,16 +29,9 @@ interface CreditmemoInterface
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
 
-    /**
-     * @return int|null Entity ID.
-     */
-    public function getEntityId();
+    public function getEntityId(): ?int;
 
-    /**
-     * @param int $entityId
-     * @return $this
-     */
-    public function setEntityId($entityId);
+    public function setEntityId(int $entityId): CreditmemoInterface;
 
     public function getPspreference(): ?string;
 

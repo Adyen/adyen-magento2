@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -11,37 +11,30 @@
 
 namespace Adyen\Payment\Model\Api;
 
-class GuestAdyenPaymentMethodManagement implements \Adyen\Payment\Api\GuestAdyenPaymentMethodManagementInterface
+use Adyen\Payment\Api\GuestAdyenPaymentMethodManagementInterface;
+use Adyen\Payment\Helper\PaymentMethods;
+use Magento\Quote\Api\Data\AddressInterface;
+use Magento\Quote\Model\QuoteIdMaskFactory;
+
+class GuestAdyenPaymentMethodManagement implements GuestAdyenPaymentMethodManagementInterface
 {
-    /**
-     * @var \Magento\Quote\Model\QuoteIdMaskFactory
-     */
-    protected $_quoteIdMaskFactory;
+    protected QuoteIdMaskFactory $_quoteIdMaskFactory;
 
-    /**
-     * @var \Adyen\Payment\Helper\PaymentMethods
-     */
-    protected $_paymentMethodsHelper;
+    protected PaymentMethods $_paymentMethodsHelper;
 
-    /**
-     * GuestAdyenPaymentMethodManagement constructor.
-     *
-     * @param \Magento\Quote\Model\QuoteIdMaskFactory $quoteIdMaskFactory
-     * @param \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper
-     */
     public function __construct(
-        \Magento\Quote\Model\QuoteIdMaskFactory $quoteIdMaskFactory,
-        \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper
+        QuoteIdMaskFactory $quoteIdMaskFactory,
+        PaymentMethods $paymentMethodsHelper
     ) {
         $this->_quoteIdMaskFactory = $quoteIdMaskFactory;
         $this->_paymentMethodsHelper = $paymentMethodsHelper;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function getPaymentMethods($cartId, \Magento\Quote\Api\Data\AddressInterface $shippingAddress = null, ?string $shopperLocale = null)
-    {
+    public function getPaymentMethods(
+        string $cartId,
+        AddressInterface $shippingAddress = null,
+        ?string $shopperLocale = null
+    ): string {
         $quoteIdMask = $this->_quoteIdMaskFactory->create()->load($cartId, 'masked_id');
         $quoteId = $quoteIdMask->getQuoteId();
 

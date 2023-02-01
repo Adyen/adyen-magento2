@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2019 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -29,40 +29,16 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
         'threeDSAuthenticationOnly'
     ];
 
-    /**
-     * @var Session
-     */
-    private $checkoutSession;
+    private Session $checkoutSession;
 
-    /**
-     * @var Data
-     */
-    private $adyenHelper;
+    private Data $adyenHelper;
 
-    /**
-     * @var AdyenLogger
-     */
-    private $adyenLogger;
+    private AdyenLogger $adyenLogger;
 
-    /**
-     * @var OrderRepositoryInterface
-     */
-    private $orderRepository;
+    private OrderRepositoryInterface $orderRepository;
 
-    /**
-     * @var PaymentResponseHandler
-     */
-    private $paymentResponseHandler;
+    private PaymentResponseHandler $paymentResponseHandler;
 
-    /**
-     * AdyenPaymentDetails constructor.
-     *
-     * @param Session $checkoutSession
-     * @param Data $adyenHelper
-     * @param AdyenLogger $adyenLogger
-     * @param OrderRepositoryInterface $orderRepository
-     * @param PaymentResponseHandler $paymentResponseHandler
-     */
     public function __construct(
         Session $checkoutSession,
         Data $adyenHelper,
@@ -77,12 +53,7 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
         $this->paymentResponseHandler = $paymentResponseHandler;
     }
 
-    /**
-     * @param string $payload
-     * @return string
-     * @api
-     */
-    public function initiate($payload)
+    public function initiate(string $payload): string
     {
         // Decode payload from frontend
         $payload = json_decode($payload, true);

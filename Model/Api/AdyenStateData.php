@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2021 Adyen N.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -17,25 +17,15 @@ use Adyen\Payment\Model\ResourceModel\StateData as StateDataResourceModel;
 use Adyen\Payment\Model\StateData;
 use Adyen\Payment\Model\StateDataFactory;
 use Adyen\Service\Validator\CheckoutStateDataValidator;
-use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 
 class AdyenStateData implements AdyenStateDataInterface
 {
-    /**
-     * @var CheckoutStateDataValidator
-     */
-    private $checkoutStateDataValidator;
+    private CheckoutStateDataValidator $checkoutStateDataValidator;
 
-    /**
-     * @var StateDataFactory
-     */
-    private $stateDataFactory;
+    private StateDataFactory $stateDataFactory;
 
-    /**
-     * @var StateDataResourceModel
-     */
-    private $stateDataResourceModel;
+    private StateDataResourceModel $stateDataResourceModel;
 
     public function __construct(
         CheckoutStateDataValidator $checkoutStateDataValidator,
@@ -47,11 +37,7 @@ class AdyenStateData implements AdyenStateDataInterface
         $this->stateDataResourceModel = $stateDataResourceModel;
     }
 
-    /**
-     * @throws AlreadyExistsException
-     * @throws LocalizedException
-     */
-    public function save($stateData, $quoteId)
+    public function save(string $stateData, int $quoteId): void
     {
         // Decode payload from frontend
         $stateData = json_decode($stateData, true);

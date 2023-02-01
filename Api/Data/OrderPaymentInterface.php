@@ -43,16 +43,9 @@ interface OrderPaymentInterface
     // Payment has not been captured yet
     const CAPTURE_STATUS_NO_CAPTURE = 'Not captured';
 
-    /**
-     * @return int|null Entity ID.
-     */
-    public function getEntityId();
+    public function getEntityId(): ?int;
 
-    /**
-     * @param int $entityId
-     * @return $this
-     */
-    public function setEntityId($entityId);
+    public function setEntityId(int $entityId): OrderPaymentInterface;
 
     public function getPspreference(): string;
 

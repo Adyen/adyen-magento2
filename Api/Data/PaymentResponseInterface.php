@@ -17,37 +17,14 @@ interface PaymentResponseInterface
     /**
      * Constants for keys of data array. Identical to the name of the getter in snake case.
      */
-
-    /*
-     * Entity ID.
-     */
     const ENTITY_ID = 'entity_id';
-
-    /*
-     * Merchant reference ID.
-     */
     const MERCHANT_REFERENCE = 'merchant_reference';
-
-    /*
-     * Payment Response Result Code.
-     */
     const RESULT_CODE = 'result_code';
-
-    /*
-     * Payment Response.
-     */
     const RESPONSE = 'response';
 
-    /**
-     * @return int|null Entity ID.
-     */
-    public function getEntityId();
+    public function getEntityId(): ?int;
 
-    /**
-     * @param int $entityId
-     * @return $this
-     */
-    public function setEntityId($entityId);
+    public function setEntityId(int $entityId): PaymentResponseInterface;
 
     public function getMerchantReference(): ?string;
 

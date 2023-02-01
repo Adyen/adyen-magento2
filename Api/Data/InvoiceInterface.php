@@ -21,7 +21,6 @@ interface InvoiceInterface
      */
     const ENTITY_ID = 'entity_id';
     const PSPREFERENCE = 'pspreference';
-
     const ACQUIRER_REFERENCE = 'acquirer_reference';
     const INVOICE_ID = 'invoice_id';
     const ADYEN_ORDER_PAYMENT_ID = 'adyen_order_payment_id';
@@ -29,21 +28,13 @@ interface InvoiceInterface
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
     const STATUS = 'status';
-
     const STATUS_PENDING_WEBHOOK = 'Pending Webhook';
     const STATUS_SUCCESSFUL = 'Successful';
     const STATUS_FAILED = 'Failed';
 
-    /**
-     * @return int|null
-     */
-    public function getEntityId();
+    public function getEntityId(): ?int;
 
-    /**
-     * @param int $entityId
-     * @return InvoiceInterface
-     */
-    public function setEntityId($entityId);
+    public function setEntityId(int $entityId): InvoiceInterface;
 
     public function getPspreference(): ?string;
 

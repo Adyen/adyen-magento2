@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2020 Adyen B.V.
+ * Copyright (c) 2023 Adyen B.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -14,14 +14,8 @@ namespace Adyen\Payment\Api;
 
 /**
  * Interface for querying the Adyen order payment status
- *
- * @api
  */
 interface AdyenOrderPaymentStatusInterface
 {
-    /**
-     * @param string $orderId
-     * @return string
-     */
-    public function getOrderPaymentStatus($orderId);
+    public function getOrderPaymentStatus(string $orderId): string;
 }

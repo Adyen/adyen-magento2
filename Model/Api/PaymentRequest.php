@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -11,51 +11,35 @@
 
 namespace Adyen\Payment\Model\Api;
 
+use Adyen\AdyenException;
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\RecurringType;
+use Magento\Framework\App\State;
 use Magento\Framework\DataObject;
+use Magento\Framework\Encryption\EncryptorInterface;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Model\Context;
+use Magento\Sales\Model\Order\Payment;
 
 class PaymentRequest extends DataObject
 {
-    /**
-     * @var \Magento\Framework\Encryption\EncryptorInterface
-     */
-    protected $_encryptor;
+    protected EncryptorInterface $_encryptor;
 
-    /**
-     * @var \Adyen\Payment\Helper\Data
-     */
-    protected $_adyenHelper;
+    protected Data $_adyenHelper;
 
-    /**
-     * @var \Adyen\Payment\Logger\AdyenLogger
-     */
-    protected $_adyenLogger;
+    protected AdyenLogger $_adyenLogger;
 
-    /**
-     * @var \Adyen\Payment\Model\RecurringType
-     */
-    protected $_recurringType;
+    protected RecurringType $_recurringType;
 
-    /**
-     * @var \Magento\Framework\App\State
-     */
-    protected $_appState;
+    protected State $_appState;
 
-    /**
-     * PaymentRequest constructor.
-     *
-     * @param \Magento\Framework\Model\Context $context
-     * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-     * @param \Adyen\Payment\Model\RecurringType $recurringType
-     * @param array $data
-     */
     public function __construct(
-        \Magento\Framework\Model\Context $context,
-        \Magento\Framework\Encryption\EncryptorInterface $encryptor,
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-        \Adyen\Payment\Model\RecurringType $recurringType,
+        Context $context,
+        EncryptorInterface $encryptor,
+        Data $adyenHelper,
+        AdyenLogger $adyenLogger,
+        RecurringType $recurringType,
         array $data = []
     ) {
         $this->_encryptor = $encryptor;
@@ -65,23 +49,7 @@ class PaymentRequest extends DataObject
         $this->_appState = $context->getAppState();
     }
 
-    /**
-     * @param $storeId
-     * @return mixed
-     * @throws \Adyen\AdyenException
-     */
-    private function createClient($storeId)
-    {
-        $client = $this->_adyenHelper->initializeAdyenClient($storeId);
-        return $client;
-    }
-
-    /**
-     * @param $payment
-     * @return mixed
-     * @throws \Magento\Framework\Exception\LocalizedException
-     */
-    public function authorise3d($payment)
+    public function authorise3d(Payment $payment): mixed
     {
         $order = $payment->getOrder();
         $storeId = $order->getStoreId();
@@ -115,20 +83,14 @@ class PaymentRequest extends DataObject
             $client = $this->_adyenHelper->initializeAdyenClient($storeId);
             $service = $this->_adyenHelper->createAdyenCheckoutService($client);
             $result = $service->paymentsDetails($request);
-        } catch (\Adyen\AdyenException $e) {
-            throw new \Magento\Framework\Exception\LocalizedException(__('3D secure failed'));
+        } catch (AdyenException $e) {
+            throw new LocalizedException(__('3D secure failed'));
         }
 
         return $result;
     }
 
-    /**
-     * @param $shopperReference
-     * @param $storeId
-     * @return array
-     * @throws \Exception
-     */
-    public function getRecurringContractsForShopper($shopperReference, $storeId)
+    public function getRecurringContractsForShopper(string $shopperReference, int $storeId): array
     {
         $recurringContracts = [];
         $recurringTypes = $this->_recurringType->getAllowedRecurringTypesForListRecurringCall();
@@ -170,13 +132,7 @@ class PaymentRequest extends DataObject
         return $recurringContracts;
     }
 
-    /**
-     * @param $shopperReference
-     * @param $storeId
-     * @param $recurringType
-     * @return mixed
-     */
-    public function listRecurringContractByType($shopperReference, $storeId, $recurringType)
+    public function listRecurringContractByType(string $shopperReference, int $storeId, string $recurringType): mixed
     {
         // rest call to get list of recurring details
         $contract = ['contract' => $recurringType];
@@ -189,22 +145,14 @@ class PaymentRequest extends DataObject
         // call lib
         $client = $this->_adyenHelper->initializeAdyenClient($storeId);
         $service = $this->_adyenHelper->createAdyenRecurringService($client);
-        $result = $service->listRecurringDetails($request);
-
-        return $result;
+        return $service->listRecurringDetails($request);
     }
 
-    /**
-     * Disable a recurring contract
-     *
-     * @param $recurringDetailReference
-     * @param $shopperReference
-     * @param $storeId
-     * @return bool
-     * @throws \Magento\Framework\Exception\LocalizedException
-     */
-    public function disableRecurringContract($recurringDetailReference, $shopperReference, $storeId)
-    {
+    public function disableRecurringContract(
+        string $recurringDetailReference,
+        string $shopperReference,
+        int $storeId
+    ): bool {
         $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account", $storeId);
         $shopperReference = $this->_adyenHelper->padShopperReference($shopperReference);
         $request = [
@@ -226,7 +174,7 @@ class PaymentRequest extends DataObject
         if (isset($result['response']) && $result['response'] == '[detail-successfully-disabled]') {
             return true;
         } else {
-            throw new \Magento\Framework\Exception\LocalizedException(__('Failed to disable this contract'));
+            throw new LocalizedException(__('Failed to disable this contract'));
         }
     }
 }
