@@ -131,7 +131,6 @@ class Webhook
                 ],
             );
 
-        // log the executed notification
         if (is_null($notification->getMerchantReference())) {
             $errorMessage = sprintf(
                 'Invalid merchant reference for notification with the event code %s',
