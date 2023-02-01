@@ -31,6 +31,7 @@ use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Vault\Model\PaymentTokenManagement;
+use Magento\Vault\Model\Ui\VaultConfigProvider;
 
 class Vault
 {
@@ -133,6 +134,7 @@ class Vault
      */
     public function saveRecurringDetails(OrderPaymentInterface $payment, array $additionalData): void
     {
+        $payment->setAdditionalInformation(VaultConfigProvider::IS_ACTIVE_CODE, true);
         /** @var PaymentMethodInterface $paymentMethod */
         $paymentMethod = $payment->getMethodInstance();
         if ($paymentMethod->isWallet()) {

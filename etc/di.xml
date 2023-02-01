@@ -61,15 +61,7 @@
         </arguments>
     </virtualType>
 
-
-    <!-- Paypal -->
-    <type name="Adyen\Payment\Model\Methods\Paypal">
-        <arguments>
-            <argument name="infoBlockType" xsi:type="string">Magento\Payment\Block\ConfigurableInfo</argument>
-            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentHppValueHandlerPool</argument>
-            <argument name="validatorPool" xsi:type="object">AdyenPaymentHppValidatorPool</argument>
-        </arguments>
-    </type>
+    <!-- Vault methods start -->
     <type name="Adyen\Payment\Model\Methods\Vault\PaypalVault">
         <arguments>
             <argument name="config" xsi:type="object">AdyenPaymentHppVaultConfig</argument>
@@ -79,14 +71,6 @@
         </arguments>
     </type>
 
-    <!-- Klarna -->
-    <type name="Adyen\Payment\Model\Methods\Klarna">
-        <arguments>
-            <argument name="infoBlockType" xsi:type="string">Magento\Payment\Block\ConfigurableInfo</argument>
-            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentHppValueHandlerPool</argument>
-            <argument name="validatorPool" xsi:type="object">AdyenPaymentHppValidatorPool</argument>
-        </arguments>
-    </type>
     <type name="Adyen\Payment\Model\Methods\Vault\KlarnaVault">
         <arguments>
             <argument name="config" xsi:type="object">AdyenPaymentHppVaultConfig</argument>
@@ -96,17 +80,6 @@
         </arguments>
     </type>
 
-
-
-
-    <type name="Adyen\Payment\Model\Methods\GooglePay">
-        <arguments>
-            <argument name="infoBlockType" xsi:type="string">Magento\Payment\Block\ConfigurableInfo</argument>
-            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentHppValueHandlerPool</argument>
-            <argument name="validatorPool" xsi:type="object">AdyenPaymentHppValidatorPool</argument>
-        </arguments>
-    </type>
-    <!-- Googlepay Vault -->
     <type name="Adyen\Payment\Model\Methods\Vault\GooglePayVault">
         <arguments>
             <argument name="config" xsi:type="object">AdyenPaymentCcVaultConfig</argument>
@@ -115,6 +88,7 @@
             <argument name="code" xsi:type="const">Adyen\Payment\Model\Methods\Vault\GooglePayVault::CODE</argument>
         </arguments>
     </type>
+    <!-- Vault methods end -->
 
     <virtualType name="AdyenPaymentOneclickFacade" type="Adyen\Payment\Model\Method\Adapter">
         <arguments>

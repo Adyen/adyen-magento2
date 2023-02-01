@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -20,8 +20,8 @@ use Magento\Vault\Model\Ui\TokenUiComponentInterfaceFactory;
 class AdyenUiComponentProvider
 {
 
-    protected $componentFactory;
-    protected $dataHelper;
+    protected TokenUiComponentInterfaceFactory $componentFactory;
+    protected Data $dataHelper;
 
     /**
      * @param TokenUiComponentInterfaceFactory $componentFactory

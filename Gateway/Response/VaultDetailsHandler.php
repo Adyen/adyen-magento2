@@ -66,7 +66,6 @@ class VaultDetailsHandler implements HandlerInterface
             // Else if card
             if ($storePaymentMethods && $paymentMethodInstance instanceof PaymentMethodInterface) {
                 try {
-                    $payment->setAdditionalInformation(VaultConfigProvider::IS_ACTIVE_CODE, true);
                     $this->vaultHelper->saveRecurringDetails($payment, $response['additionalData']);
                 } catch (PaymentMethodException $e) {
                     $this->adyenLogger->error(sprintf(

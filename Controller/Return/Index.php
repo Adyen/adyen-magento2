@@ -298,7 +298,6 @@ class Index extends \Magento\Framework\App\Action\Action
             // Else if card
             if ($storePaymentMethods && $paymentMethodInstance instanceof PaymentMethodInterface) {
                 try {
-                    $this->payment->setAdditionalInformation(VaultConfigProvider::IS_ACTIVE_CODE, true);
                     $this->vaultHelper->saveRecurringDetails($this->payment, $response['additionalData']);
                 } catch (PaymentMethodException $e) {
                     $this->_adyenLogger->error(sprintf(
