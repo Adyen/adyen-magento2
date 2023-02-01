@@ -261,7 +261,7 @@
             </adyen_googlepay>
             <adyen_googlepay_vault>
                 <title>Stored GooglePay</title>
-                <model>Adyen\Payment\Model\Methods\Vault\GooglepayVault</model>
+                <model>Adyen\Payment\Model\Methods\Vault\GooglePayVault</model>
             </adyen_googlepay_vault>
             <adyen_pos_cloud>
                 <active>0</active>
