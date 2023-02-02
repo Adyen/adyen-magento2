@@ -205,7 +205,6 @@ class Vault
 
     /**
      * Build the recurring data when payment is done through a payment method (not card)
-     * TODO: Still to add, check configuration to see if pm is actually enabled for tokenization
      *
      */
     public function buildPaymentMethodRecurringData(InfoInterface $payment, int $storeId): array
