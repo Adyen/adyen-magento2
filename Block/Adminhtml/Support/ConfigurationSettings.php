@@ -12,9 +12,13 @@
 namespace Adyen\Payment\Block\Adminhtml\Support;
 
 use Magento\Backend\Block\Page;
+use Magento\Framework\Phrase;
 
 class ConfigurationSettings extends Page implements SupportTabInterface
 {
+    /**
+     * @return string[]
+     */
     public function getSupportTopics(): array
     {
         return [
@@ -29,8 +33,19 @@ class ConfigurationSettings extends Page implements SupportTabInterface
         ];
     }
 
-    public function supportFormUrl()
+    /**
+     * @return string
+     */
+    public function supportFormUrl(): string
     {
         return $this->getUrl('adyen/support/configurationsettingsform');
+    }
+
+    /**
+     * @return Phrase
+     */
+    public function getPageTitle()
+    {
+        return __("Configuration Settings");
     }
 }

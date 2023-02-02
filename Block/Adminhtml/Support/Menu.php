@@ -20,19 +20,38 @@ class Menu extends Template
         'orderprocessingform' => 'orderprocessing',
         'configurationsettings' => 'configurationsettings',
         'configurationsettingsform' => 'configurationsettings',
+        'othertopicsform' => 'othertopicsform',
+        'success' => 'success'
     ];
 
-    public function orderProcessingUrl()
+    /**
+     * @return string
+     */
+    public function orderProcessingUrl(): string
     {
         return $this->getUrl('adyen/support/orderprocessing');
     }
 
-    public function configurationSettingsUrl()
+    /**
+     * @return string
+     */
+    public function configurationSettingsUrl(): string
     {
         return $this->getUrl('adyen/support/configurationsettings');
     }
 
-    public function getCurrentSection()
+    /**
+     * @return string
+     */
+    public function otherTopicsFormUrl(): string
+    {
+        return $this->getUrl('adyen/support/othertopicsform');
+    }
+
+    /**
+     * @return string
+     */
+    public function getCurrentSection(): string
     {
         return self::MENU_SECTIONS[$this->getRequest()->getActionName()];
     }

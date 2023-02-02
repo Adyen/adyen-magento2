@@ -105,7 +105,7 @@ class SupportFormHelper
     public function handleSubmit(array $formData, string $template): void
     {
         $storeId = $this->getStoreId();
-        $formData['subject'] = '['.$formData['topic'].'] '.$formData['subject'];
+        $formData['subject'] = '['.$formData['topic'].'] '. $formData['subject'];
         if ($this->config->isSendAdminConfigurationEnabled($storeId)) {
             $configurationData = $this->getConfigData();
             $templateVars = array_merge($configurationData, $formData);
@@ -154,8 +154,8 @@ class SupportFormHelper
         $storeId = $this->getStoreId();
         $magentoEdition = $this->productMetadata->getEdition();
         $magentoVersion = $this->productMetadata->getVersion();
-        $notificationUsername = $this->config->getNotificationsUsername($storeId) ? 'Username set' : 'No Username';
-        $notificationPassword = $this->config->getNotificationsPassword($storeId) ? 'Password set' : 'No Password';
+        $notificationUsername = $this->config->getNotificationsUsername($storeId) ? 'Yes' : 'No';
+        $notificationPassword = $this->config->getNotificationsPassword($storeId) ? 'Yes' : 'No';
         $merchantAccount = $this->config->getMerchantAccount($storeId);
         $environmentMode = $this->config->isDemoMode($storeId) ? 'Test' : 'Live';
         $moduleVersion = $this->adyenHelper->getModuleVersion();

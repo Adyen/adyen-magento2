@@ -16,9 +16,9 @@ use Magento\Backend\App\Action\Context;
 use Magento\Framework\Controller\ResultFactory;
 use Adyen\Payment\Helper\SupportFormHelper;
 
-class OrderProcessingForm extends Action
+class OtherTopicsForm extends Action
 {
-    const ORDER_PROCESSING = 'order_processing_email_template';
+    const OTHER_TOPICS = 'other_topics_email_template';
     /**
      * @var SupportFormHelper
      */
@@ -39,32 +39,30 @@ class OrderProcessingForm extends Action
         if ('POST' === $this->getRequest()->getMethod()){
             try {
                 $requiredFields = [
-                    'topic',
                     'subject',
                     'email',
-                    'pspReference'
+                    'pspReference',
+                    'merchantReference'
                 ];
                 $request = $this->getRequest()->getParams();
                 $requiredFieldMissing = $this->supportFormHelper->requiredFieldsMissing($request, $requiredFields);
                 if (!empty($requiredFieldMissing)) {
                     $this->messageManager->addErrorMessage(__('Form unsuccessfully submitted, 
                     Missing required field(s): ' . $requiredFieldMissing));
-                    return $this->_redirect('adyen/support/orderprocessingform');
+                    return $this->_redirect('adyen/support/othertopicsform');
                 }
                 $formData = [
-                    'topic' => $request['topic'],
                     'subject' => $request['subject'],
+                    'topic' =>  'Other topics',
                     'email' => $request['email'],
                     'pspReference' => $request['pspReference'],
                     'merchantReference' => $request['merchantReference'],
                     'headless' => $request['headless'],
-                    'paymentMethod' => $request['paymentMethod'],
                     'terminalId' => $request['terminalId'],
-                    'orderHistoryComments' => $request['orderHistoryComments'],
-                    'orderDescription' => $request['orderDescription'],
+                    'description' => $request['description'],
                     'attachments' => $this->getRequest()->getFiles('attachments'),
                 ];
-                $this->supportFormHelper->handleSubmit($formData, self::ORDER_PROCESSING);
+                $this->supportFormHelper->handleSubmit($formData, self::OTHER_TOPICS);
                 return $this->_redirect('*/*/success');
 
             } catch (\Exception $e) {

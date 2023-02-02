@@ -39,3 +39,19 @@
 .adyen_support-form {
     width: 90% !important;
 }
+
+.adyen_support-success_message {
+    text-align: center;
+    font-weight: bold;
+}
+
+.adyen_support-redirect_form {
+    text-align: center;
+    margin-top: 50px;
+}
+
+.adyen-support-logo {
+    width: 175px;
+    max-width: 100%;
+    margin-bottom: -30px;
+}

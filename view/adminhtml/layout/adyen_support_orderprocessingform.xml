@@ -4,8 +4,14 @@
         <css src="Adyen_Payment::css/support_styles.css"/>
     </head>
     <body>
+        <referenceContainer name="main.top">
+            <block class="Magento\Theme\Block\Html\Title"
+                   name="page.title"
+                   template="Adyen_Payment::support/custom_title.phtml" />
+        </referenceContainer>
         <referenceContainer name="content">
-            <block class="Adyen\Payment\Block\Adminhtml\Support\OrderProcessingForm" name="adyen_support_orderprocessing_form"/>
+            <block class="Adyen\Payment\Block\Adminhtml\Support\OrderProcessingForm"
+                   name="adyen_support_orderprocessing_form"/>
         </referenceContainer>
         <referenceContainer name="left">
             <block class="Adyen\Payment\Block\Adminhtml\Support\Menu"
@@ -13,7 +19,9 @@
                    template="Adyen_Payment::support/menu.phtml"/>
         </referenceContainer>
         <referenceContainer name="js">
-            <block class="Magento\Backend\Block\Template" name="adyen_support_form_js" template="Adyen_Payment::support/js.phtml" />
+            <block class="Magento\Backend\Block\Template"
+                   name="adyen_support_form_js"
+                   template="Adyen_Payment::support/js.phtml" />
         </referenceContainer>
     </body>
 </page>

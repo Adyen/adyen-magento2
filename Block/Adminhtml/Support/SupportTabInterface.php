@@ -13,5 +13,8 @@ namespace Adyen\Payment\Block\Adminhtml\Support;
 
 interface SupportTabInterface
 {
+    /**
+     * @return array
+     */
     public function getSupportTopics(): array;
 }

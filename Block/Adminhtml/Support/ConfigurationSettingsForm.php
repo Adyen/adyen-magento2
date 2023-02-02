@@ -12,21 +12,28 @@
 namespace Adyen\Payment\Block\Adminhtml\Support;
 
 use Adyen\Payment\Helper\SupportFormHelper;
+use Magento\Backend\Block\Template\Context;
+use Magento\Backend\Block\Widget\Form\Generic;
+use Magento\Framework\Data\FormFactory;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Registry;
 
-class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Generic
+class ConfigurationSettingsForm extends Generic
 {
-    const HEADLESS_YES = 1;
-    const HEADLESS_NO = 0;
-
     private $supportFormHelper;
 
+    /**
+     * @param Context $context
+     * @param Registry $registry
+     * @param FormFactory $formFactory
+     * @param SupportFormHelper $supportFormHelper
+     */
     public function __construct(
-        \Magento\Backend\Block\Template\Context $context,
-        \Magento\Framework\Registry             $registry,
-        \Magento\Framework\Data\FormFactory     $formFactory,
-        SupportFormHelper                       $supportFormHelper
-    )
-    {
+        Context $context,
+        Registry $registry,
+        FormFactory $formFactory,
+        SupportFormHelper $supportFormHelper
+    ) {
         $this->supportFormHelper = $supportFormHelper;
         parent::__construct($context, $registry, $formFactory);
         $this->setActive(true);
@@ -37,9 +44,9 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
      *
      * @return $this
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
-    protected function _prepareForm()
+    protected function _prepareForm(): ConfigurationSettingsForm
     {
         $form = $this->_formFactory->create([
             'data' => [
@@ -52,6 +59,11 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
 
         $fieldset = $form->addFieldset('base_fieldset', ['legend' => __('Configuration settings')]);
         $this->_addElementTypes($fieldset);
+
+        $fieldset->addType(
+            'textarea',
+            'Adyen\Payment\Block\Adminhtml\Support\Form\Element\CustomTextareaElement'
+        );
 
         $fieldset->addField(
             'topic',
@@ -85,6 +97,7 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
                 'name' => 'subject',
                 'label' => __('Subject'),
                 'title' => __('Subject'),
+                'placeholder' => __('Type a subject for your issue'),
                 'class' => 'adyen_support-form',
                 'required' => true
             ]
@@ -112,8 +125,9 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
                 'title' => __('Are you using headless integration?'),
                 'class' => '',
                 'required' => false, 'values' => [
-                ['value' => self::HEADLESS_YES, 'label' => __('Yes')],
-                ['value' => self::HEADLESS_NO, 'label' => __('No')]]
+                ['value' => 'Yes', 'label' => __('Yes')],
+                ['value' => 'No', 'label' => __('No')]],
+                'value' => 'No'
             ])->setAfterElementHtml('
        <div class="tooltip">
        <span class="help">
@@ -131,8 +145,8 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
             [
                 'name' => 'attachments[]',
                 'multiple' => 'multiple',
-                'label' => __('Attachments'),
-                'title' => __('Attachments'),
+                'label' => __('Relevant logs & screenshots'),
+                'title' => __('Relevant logs & screenshots'),
                 'class' => 'adyen_support-form',
                 'required' => false
             ]
@@ -153,6 +167,7 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
                 'name' => 'descriptionComments',
                 'label' => __('Description'),
                 'title' => __('Description'),
+                'placeholder' => __('Tell us what is happening in  detail'),
                 'class' => '',
                 'required' => false,
             ]
@@ -175,6 +190,9 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
         return parent::_prepareForm();
     }
 
+    /**
+     * @return string[]
+     */
     public function getSupportTopics(): array
     {
         return [
@@ -189,6 +207,9 @@ class ConfigurationSettingsForm extends \Magento\Backend\Block\Widget\Form\Gener
         ];
     }
 
+    /**
+     * @return string[]
+     */
     public function getIssuesTopics(): array
     {
         return [
