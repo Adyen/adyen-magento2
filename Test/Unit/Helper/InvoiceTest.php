@@ -212,7 +212,7 @@ class InvoiceTest extends AbstractAdyenTestCase
     {
         $adyenInvoiceResourceModelMock =  $this->createConfiguredMock(AdyenInvoiceResourceModel::class, [
             'getAdyenInvoicesByAdyenPaymentId' => [
-                ['invoice_id' => 1, 'entity_id' => 99]
+                ['invoice_id' => null, 'entity_id' => 99]
             ],
             'save' => $this->createMock(AbstractDb::class)
         ]);
@@ -241,7 +241,8 @@ class InvoiceTest extends AbstractAdyenTestCase
             'getOrder' => $this->createMock(Order::class),
             'getGrandTotal' => 1000,
             'getOrderCurrencyCode' => 'EUR',
-            'register' => $this->createMock(InvoiceModel::class)
+            'register' => $this->createMock(InvoiceModel::class),
+            'getEntityId' => 99
         ]);
 
         $linkedAmount = $invoiceHelper->linkAndUpdateAdyenInvoices(

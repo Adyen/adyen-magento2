@@ -110,7 +110,11 @@ class GetAdyenPaymentMethods implements ResolverInterface
             if ($shippingAddress) {
                 $country = $shippingAddress->getCountryId();
             }
-            $adyenPaymentMethodsResponse = $this->paymentMethodsHelper->getPaymentMethods(intval($cart->getId()), $country, $shopperLocale);
+            $adyenPaymentMethodsResponse = $this->paymentMethodsHelper->getPaymentMethods(
+                intval($cart->getId()),
+                $country,
+                $shopperLocale
+            );
 
             return $adyenPaymentMethodsResponse ? $this->preparePaymentMethodGraphQlResponse($adyenPaymentMethodsResponse) : [];
         } catch (GraphQlAuthorizationException | GraphQlInputException | GraphQlNoSuchEntityException $exception) {
