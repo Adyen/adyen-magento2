@@ -13,6 +13,7 @@ jobs:
       MAGENTO_VERSION: ${{ matrix.magento-version }}
       ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
       ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
+
     steps:
       - uses: actions/checkout@v2
 
