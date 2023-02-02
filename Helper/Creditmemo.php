@@ -127,8 +127,9 @@ class Creditmemo extends AbstractHelper
         $adyenCreditmemoLoader = $this->adyenCreditmemoFactory->create();
 
         $adyenCreditmemos = $this->adyenCreditmemoResourceModel->getAdyenCreditmemosByAdyenPaymentid(
-            $adyenOrderPayment[OrderPaymentInterface::ENTITY_ID]
+            $adyenOrderPayment->getEntityId()
         );
+
         if (isset($adyenCreditmemos)) {
             foreach ($adyenCreditmemos as $adyenCreditmemo) {
                 /** @var AdyenCreditmemoModel $currAdyenCreditmemo */
