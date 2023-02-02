@@ -80,6 +80,10 @@ class StateData
 
     public function setStateData(array $stateData, int $quoteId)
     {
+        $stateDataObject = $this->stateDataFactory->create();
+        $stateDataObject->setData('state_data', json_encode($stateData));
+        $stateDataObject->setData('quote_id', $quoteId);
+        $this->stateDataResourceModel->save($stateDataObject);
         $this->stateData[$quoteId] = $stateData;
     }
 
