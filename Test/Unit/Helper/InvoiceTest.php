@@ -212,7 +212,7 @@ class InvoiceTest extends AbstractAdyenTestCase
     {
         $adyenInvoiceResourceModelMock =  $this->createConfiguredMock(AdyenInvoiceResourceModel::class, [
             'getAdyenInvoicesByAdyenPaymentId' => [
-                ['invoice_id' => null, 'entity_id' => 99]
+                ['invoice_id' => 1, 'entity_id' => 99]
             ],
             'save' => $this->createMock(AbstractDb::class)
         ]);
