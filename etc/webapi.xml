@@ -109,7 +109,7 @@
 
 
 
-
+<!--    TODO remove internal-->
     <route url="/V1/internal/adyen/orders/payment-status" method="POST">
         <service class="Adyen\Payment\Api\Internal\InternalAdyenOrderPaymentStatusInterface" method="handleInternalRequest"/>
         <resources>
