@@ -28,5 +28,5 @@ interface InternalAdyenPaymentMethodManagementInterface
      * @param AddressInterface|null $shippingAddress
      * @return \Magento\Checkout\Api\Data\PaymentDetailsInterface
      */
-    public function handleInternalRequest($cartId, $formKey, AddressInterface $shippingAddress = null);
+    public function handleInternalRequest($cartId, $formKey, AddressInterface $billingAddress = null);
 }

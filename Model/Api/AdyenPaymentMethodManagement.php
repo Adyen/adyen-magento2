@@ -32,12 +32,12 @@ class AdyenPaymentMethodManagement implements \Adyen\Payment\Api\AdyenPaymentMet
     /**
      * {@inheritDoc}
      */
-    public function getPaymentMethods($cartId, \Magento\Quote\Api\Data\AddressInterface $shippingAddress = null, ?string $shopperLocale = null)
+    public function getPaymentMethods($cartId, \Magento\Quote\Api\Data\AddressInterface $billingAddress = null, ?string $shopperLocale = null)
     {
-        // if shippingAddress is provided use this country
+        // if billingAddress is provided use this country
         $country = null;
-        if ($shippingAddress) {
-            $country = $shippingAddress->getCountryId();
+        if ($billingAddress) {
+            $country = $billingAddress->getCountryId();
         }
 
         return $this->_paymentMethodsHelper->getPaymentMethods($cartId, $country, $shopperLocale);

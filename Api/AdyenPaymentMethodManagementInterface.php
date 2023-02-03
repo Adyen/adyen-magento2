@@ -27,5 +27,5 @@ interface AdyenPaymentMethodManagementInterface
      * @param string|null $shopperLocale
      * @return \Magento\Checkout\Api\Data\PaymentDetailsInterface
      */
-    public function getPaymentMethods($cartId, \Magento\Quote\Api\Data\AddressInterface $shippingAddress = null, ?string $shopperLocale = null);
+    public function getPaymentMethods($cartId, \Magento\Quote\Api\Data\AddressInterface $billingAddress = null, ?string $shopperLocale = null);
 }
