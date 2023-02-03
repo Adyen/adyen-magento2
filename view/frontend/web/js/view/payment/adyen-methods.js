@@ -58,6 +58,7 @@ define(
             initialize: function () {
                 this._super();
 
+                var billingAddressCountry = "";
                 var retrievePaymentMethods = function (){
                     fullScreenLoader.startLoader();
                     // Retrieve adyen payment methods
@@ -74,7 +75,15 @@ define(
                         console.log('Fetching the payment methods failed!');
                     });
                 };
-                retrievePaymentMethods();
+                quote.billingAddress.subscribe(function(address) {
+                    debugger;
+                    // In case the country hasn't changed don't retrieve new payment methods
+                    if (billingAddressCountry === quote.billingAddress().country) {
+                        return;
+                    }
+                    billingAddressCountry = quote.billingAddress().countryId;
+                    retrievePaymentMethods();
+                });
                 //Retrieve payment methods to ensure the amount is updated, when applying the discount code
                 setCouponCodeAction.registerSuccessCallback(function () {
                     retrievePaymentMethods();
