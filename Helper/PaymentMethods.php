@@ -33,7 +33,6 @@ use Magento\Framework\View\DesignInterface;
 use Magento\Payment\Helper\Data as MagentoDataHelper;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Model\Order;
-use Magento\Customer\Model\Session;
 use Adyen\Payment\Helper\Data as AdyenDataHelper;
 
 /**
@@ -138,9 +137,6 @@ class PaymentMethods extends AbstractHelper
     /** @var SerializerInterface */
     private $serializer;
 
-    /** @var Session */
-    private $session;
-
     public function __construct(
         Context $context,
         CartRepositoryInterface $quoteRepository,
@@ -158,7 +154,6 @@ class PaymentMethods extends AbstractHelper
         MagentoDataHelper $dataHelper,
         ManualCapture $manualCapture,
         SerializerInterface $serializer,
-        Session $session,
         AdyenDataHelper $adyenDataHelper
     ) {
         parent::__construct($context);
@@ -177,7 +172,6 @@ class PaymentMethods extends AbstractHelper
         $this->dataHelper = $dataHelper;
         $this->manualCapture = $manualCapture;
         $this->serializer = $serializer;
-        $this->session = $session;
         $this->adyenDataHelper = $adyenDataHelper;
     }
 
@@ -313,7 +307,8 @@ class PaymentMethods extends AbstractHelper
     {
         // if fixed countryCode is setup in config use this
         $countryCode = $this->adyenHelper->getAdyenHppConfigData('country_code', $store->getId());
-        $isCustomerLoggedIn = $this->session->isLoggedIn();
+        $quote = $this->getQuote();
+        $isCustomerLoggedIn = $quote->getCustomerId();
 
         if ($countryCode != "") {
             return $countryCode;
@@ -323,7 +318,7 @@ class PaymentMethods extends AbstractHelper
             return $country;
         }
 
-        if ($isCustomerLoggedIn && $country = $this->getQuote()->getBillingAddress()->getCountry()) {
+        if (!is_null($isCustomerLoggedIn) && $country = $this->getQuote()->getBillingAddress()->getCountry()) {
             return $country;
         }
 
