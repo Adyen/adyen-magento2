@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -11,31 +11,18 @@
 
 namespace Adyen\Payment\Model\Api\Internal;
 
-use Adyen\AdyenException;
 use Adyen\Payment\Api\AdyenOrderPaymentStatusInterface;
 use Adyen\Payment\Api\Internal\InternalAdyenOrderPaymentStatusInterface;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\Data\Form\FormKey\Validator;
 
-/**
- * Class InternalAdyenPaymentDetailsInterface
- */
 class InternalAdyenOrderPaymentStatus extends AbstractInternalApiController implements InternalAdyenOrderPaymentStatusInterface
 {
-    /**
-     * @var Http
-     */
-    protected $request;
+    protected Http $request;
 
-    /**
-     * @var Validator
-     */
-    protected $formKeyValidator;
+    protected Validator $formKeyValidator;
 
-    /**
-     * @var AdyenOrderPaymentStatusInterface
-     */
-    protected $adyenOrderPaymentStatus;
+    protected AdyenOrderPaymentStatusInterface $adyenOrderPaymentStatus;
 
     /**
      * @param Http $request
@@ -52,10 +39,12 @@ class InternalAdyenOrderPaymentStatus extends AbstractInternalApiController impl
     }
 
     /**
-     * {@inheritDoc}
-     * @throws AdyenException
+     * @param string $orderId
+     * @param string $formKey
+     * @return string
+     * @throws \Adyen\AdyenException
      */
-    public function handleInternalRequest($orderId, $formKey)
+    public function handleInternalRequest(string $orderId, string $formKey): string
     {
         $this->validateInternalRequest($formKey);
 

@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -11,35 +11,40 @@
 
 namespace Adyen\Payment\Model\Api;
 
-class AdyenPaymentMethodManagement implements \Adyen\Payment\Api\AdyenPaymentMethodManagementInterface
+use Adyen\Payment\Api\AdyenPaymentMethodManagementInterface;
+use Adyen\Payment\Helper\PaymentMethods;
+use Magento\Quote\Api\Data\AddressInterface;
+
+class AdyenPaymentMethodManagement implements AdyenPaymentMethodManagementInterface
 {
-    /**
-     * @var \Adyen\Payment\Helper\PaymentMethods
-     */
-    protected $_paymentMethodsHelper;
+    protected PaymentMethods $paymentMethodsHelper;
 
     /**
-     * AdyenPaymentMethodManagement constructor.
-     *
-     * @param \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper
+     * @param PaymentMethods $paymentMethodsHelper
      */
     public function __construct(
-        \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper
+        PaymentMethods $paymentMethodsHelper
     ) {
-        $this->_paymentMethodsHelper = $paymentMethodsHelper;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
 
     /**
-     * {@inheritDoc}
+     * @param string $cartId
+     * @param AddressInterface|null $shippingAddress
+     * @param string|null $shopperLocale
+     * @return string
      */
-    public function getPaymentMethods($cartId, \Magento\Quote\Api\Data\AddressInterface $shippingAddress = null, ?string $shopperLocale = null)
-    {
+    public function getPaymentMethods(
+        string $cartId,
+        AddressInterface $shippingAddress = null,
+        ?string $shopperLocale = null
+    ): string {
         // if shippingAddress is provided use this country
         $country = null;
         if ($shippingAddress) {
             $country = $shippingAddress->getCountryId();
         }
 
-        return $this->_paymentMethodsHelper->getPaymentMethods($cartId, $country, $shopperLocale);
+        return $this->paymentMethodsHelper->getPaymentMethods($cartId, $country, $shopperLocale);
     }
 }

@@ -15,7 +15,13 @@ use Magento\Payment\Gateway\Data\AddressAdapterInterface as CoreAddressAdapterIn
 
 interface AddressAdapterInterface extends CoreAddressAdapterInterface
 {
+    /**
+     * @return string
+     */
     public function getStreetLine3(): string;
 
+    /**
+     * @return string
+     */
     public function getStreetLine4(): string;
 }
