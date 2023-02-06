@@ -76,7 +76,6 @@ define(
                     });
                 };
                 quote.billingAddress.subscribe(function(address) {
-                    debugger;
                     // In case the country hasn't changed don't retrieve new payment methods
                     if (billingAddressCountry === quote.billingAddress().country) {
                         return;
