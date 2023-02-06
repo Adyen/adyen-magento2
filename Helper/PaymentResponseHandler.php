@@ -112,7 +112,7 @@ class PaymentResponseHandler
         $this->paymentMethodFactory = $paymentMethodFactory;
     }
 
-    public function formatPaymentResponse($resultCode, $action = null, $additionalData = null)
+    public function formatPaymentResponse($resultCode, $action = null, $additionalData = null, $donationToken = null)
     {
         switch ($resultCode) {
             case self::AUTHORISED:
@@ -121,6 +121,7 @@ class PaymentResponseHandler
                 return [
                     "isFinal" => true,
                     "resultCode" => $resultCode,
+                    "donationToken" => $donationToken
                 ];
             case self::REDIRECT_SHOPPER:
             case self::IDENTIFY_SHOPPER:
