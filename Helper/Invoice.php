@@ -240,7 +240,7 @@ class Invoice extends AbstractHelper
      * @param string $pspReference
      * @param string $originalReference
      * @param int $captureAmountCents
-     * @param string|null $invoiceId
+     * @param int|null $invoiceId
      * @return AdyenInvoice
      * @throws AlreadyExistsException
      */
@@ -249,7 +249,7 @@ class Invoice extends AbstractHelper
         string $pspReference,
         string $originalReference,
         int $captureAmountCents,
-        string $invoiceId = null
+        int $invoiceId = null
     ): AdyenInvoice {
         $order = $payment->getOrder();
         /** @var OrderPaymentInterface $adyenOrderPayment */

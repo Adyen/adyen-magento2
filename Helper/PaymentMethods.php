@@ -181,16 +181,7 @@ class PaymentMethods extends AbstractHelper
         $this->addressHelper = $addressHelper;
     }
 
-    /**
-     * @param $quoteId
-     * @param null $country
-     * @param string|null $shopperLocale
-     * @return string|array
-     * @throws AdyenException
-     * @throws LocalizedException
-     * @throws NoSuchEntityException
-     */
-    public function getPaymentMethods($quoteId, $country = null, ?string $shopperLocale = null)
+    public function getPaymentMethods(int $quoteId, string $country = null, ?string $shopperLocale = null): string
     {
         // get quote from quoteId
         $quote = $this->quoteRepository->getActive($quoteId);

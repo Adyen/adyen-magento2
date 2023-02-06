@@ -89,7 +89,7 @@ class InvoiceTest extends AbstractAdyenTestCase
 
         $orderPaymentResourceModelMock = $this->createConfiguredMock(OrderPaymentResourceModel::class, [
             'getOrderPaymentDetails' => [
-                'entity_id' => 'MOCK_ENTITY_ID'
+                'entity_id' => 1000
             ]
         ]);
 
@@ -146,7 +146,7 @@ class InvoiceTest extends AbstractAdyenTestCase
 
         $orderPaymentResourceModelMock = $this->createConfiguredMock(OrderPaymentResourceModel::class, [
             'getOrderPaymentDetails' => [
-                'entity_id' => 'MOCK_ENTITY_ID'
+                'entity_id' => 1000
             ]
         ]);
 
@@ -212,14 +212,14 @@ class InvoiceTest extends AbstractAdyenTestCase
     {
         $adyenInvoiceResourceModelMock =  $this->createConfiguredMock(AdyenInvoiceResourceModel::class, [
             'getAdyenInvoicesByAdyenPaymentId' => [
-                ['invoice_id' => null, 'entity_id' => 'ENTITY_ID']
+                ['invoice_id' => null, 'entity_id' => 99]
             ],
             'save' => $this->createMock(AbstractDb::class)
         ]);
 
         $adyenInvoiceLoadedMock = $this->createConfiguredMock(AdyenInvoice::class, [
             'getAmount' => 1000,
-            'getEntityId' => 'ENTITY_ID',
+            'getEntityId' => 99,
         ]);
         $adyenInvoiceMockForFactory = $this->createConfiguredMock(AdyenInvoice::class, [
             'load' => $adyenInvoiceLoadedMock
@@ -241,7 +241,8 @@ class InvoiceTest extends AbstractAdyenTestCase
             'getOrder' => $this->createMock(Order::class),
             'getGrandTotal' => 1000,
             'getOrderCurrencyCode' => 'EUR',
-            'register' => $this->createMock(InvoiceModel::class)
+            'register' => $this->createMock(InvoiceModel::class),
+            'getEntityId' => 99
         ]);
 
         $linkedAmount = $invoiceHelper->linkAndUpdateAdyenInvoices(
@@ -305,7 +306,7 @@ class InvoiceTest extends AbstractAdyenTestCase
 
         $orderPaymentResourceModelMock = $this->createConfiguredMock(OrderPaymentResourceModel::class, [
             'getOrderPaymentDetails' => [
-                'entity_id' => 'MOCK_ENTITY_ID'
+                'entity_id' => 1000
             ]
         ]);
 

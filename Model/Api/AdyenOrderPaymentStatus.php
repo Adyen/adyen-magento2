@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2021 Adyen B.V.
+ * Copyright (c) 2023 Adyen B.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -21,29 +21,15 @@ use \Magento\Framework\Exception\NoSuchEntityException;
 
 class AdyenOrderPaymentStatus implements AdyenOrderPaymentStatusInterface
 {
-    /**
-     * @var OrderRepositoryInterface
-     */
-    protected $orderRepository;
+    protected OrderRepositoryInterface $orderRepository;
+
+    protected AdyenLogger $adyenLogger;
+
+    protected Data $adyenHelper;
+
+    private PaymentResponseHandler $paymentResponseHandler;
 
     /**
-     * @var AdyenLogger
-     */
-    protected $adyenLogger;
-
-    /**
-     * @var Data
-     */
-    protected $adyenHelper;
-
-    /**
-     * @var PaymentResponseHandler
-     */
-    private $paymentResponseHandler;
-
-    /**
-     * AdyenOrderPaymentStatus constructor.
-     *
      * @param OrderRepositoryInterface $orderRepository
      * @param AdyenLogger $adyenLogger
      * @param Data $adyenHelper
@@ -63,9 +49,9 @@ class AdyenOrderPaymentStatus implements AdyenOrderPaymentStatusInterface
 
     /**
      * @param string $orderId
-     * @return bool|string
+     * @return string
      */
-    public function getOrderPaymentStatus($orderId)
+    public function getOrderPaymentStatus(string $orderId): string
     {
         try {
             $order = $this->orderRepository->get($orderId);

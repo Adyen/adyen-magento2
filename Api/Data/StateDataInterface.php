@@ -17,38 +17,33 @@ interface StateDataInterface
     /**
      * Constants for keys of data array. Identical to the name of the getter in snake case.
      */
-
-    /*
-     * Entity ID.
-     */
     const ENTITY_ID = 'entity_id';
-
-    /*
-     * Quote ID.
-     */
     const QUOTE_ID = 'quote_id';
-
-    /*
-     * Payment State Data.
-     */
     const STATE_DATA = 'state_data';
 
-    /**
-     * @return int|null Entity ID.
-     */
     public function getEntityId();
 
-    /**
-     * @param int $entityId
-     * @return $this
-     */
     public function setEntityId($entityId);
 
+    /**
+     * @return int
+     */
     public function getQuoteId(): int;
 
+    /**
+     * @param int $quoteId
+     * @return StateDataInterface
+     */
     public function setQuoteId(int $quoteId): StateDataInterface;
 
+    /**
+     * @return string|null
+     */
     public function getStateData(): ?string;
 
+    /**
+     * @param string $stateData
+     * @return StateDataInterface
+     */
     public function setStateData(string $stateData): StateDataInterface;
 }
