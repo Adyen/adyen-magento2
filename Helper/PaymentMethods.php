@@ -308,7 +308,7 @@ class PaymentMethods extends AbstractHelper
         // if fixed countryCode is setup in config use this
         $countryCode = $this->adyenHelper->getAdyenHppConfigData('country_code', $store->getId());
         $quote = $this->getQuote();
-        $isCustomerLoggedIn = $quote->getCustomerId();
+        $customerId = $quote->getCustomerId();
 
         if ($countryCode != "") {
             return $countryCode;
@@ -318,7 +318,7 @@ class PaymentMethods extends AbstractHelper
             return $country;
         }
 
-        if (!is_null($isCustomerLoggedIn) && $country = $this->getQuote()->getBillingAddress()->getCountry()) {
+        if (!is_null($customerId) && $country = $this->getQuote()->getBillingAddress()->getCountry()) {
             return $country;
         }
 
