@@ -318,7 +318,7 @@ class PaymentMethods extends AbstractHelper
             return $country;
         }
 
-        if (!is_null($customerId) && $country = $this->getQuote()->getBillingAddress()->getCountry()) {
+        if (isset($customerId) && $country = $this->getQuote()->getBillingAddress()->getCountry()) {
             return $country;
         }
 
