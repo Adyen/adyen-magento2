@@ -11,7 +11,7 @@
  */
 namespace Adyen\Payment\Model\Methods;
 
-use Adyen\Payment\Helper\PaymentMethods\PaymentMethodInterface;
+use Adyen\Payment\Model\Method\PaymentMethodInterface;
 use Adyen\Payment\Model\AdyenPaymentMethod;
 
 class AmazonPay extends AdyenPaymentMethod implements PaymentMethodInterface
@@ -46,6 +46,11 @@ class AmazonPay extends AdyenPaymentMethod implements PaymentMethodInterface
     }
 
     public function supportsUnscheduledCardOnFile(): bool
+    {
+        return true;
+    }
+
+    public function isWallet(): bool
     {
         return true;
     }

@@ -41,6 +41,7 @@
                 <payment_action>authorize</payment_action>
                 <is_gateway>1</is_gateway>
                 <can_use_checkout>1</can_use_checkout>
+                <can_initialize>1</can_initialize>
                 <can_authorize>1</can_authorize>
                 <can_authorize_3d>1</can_authorize_3d>
                 <can_capture>1</can_capture>
@@ -57,10 +58,6 @@
             <adyen_cc_vault>
                 <model>AdyenPaymentCcVaultFacade</model>
                 <title>Stored Cards (Adyen)</title>
-                <instant_purchase>
-                    <available>Adyen\Payment\Model\InstantPurchase\CreditCard\AvailabilityChecker</available>
-                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\CreditCard\TokenFormatter</tokenFormat>
-                </instant_purchase>
             </adyen_cc_vault>
             <adyen_oneclick>
                 <active>0</active>
@@ -111,10 +108,6 @@
             <adyen_hpp_vault>
                 <model>AdyenPaymentHppVaultFacade</model>
                 <title>Stored Payment Methods (Adyen)</title>
-                <instant_purchase>
-                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
-                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
-                </instant_purchase>
             </adyen_hpp_vault>
             <adyen_ideal>
                 <active>1</active>
@@ -144,18 +137,23 @@
                 <allowspecific>0</allowspecific>
                 <sort_order>0</sort_order>
                 <payment_action>authorize</payment_action>
-                <can_initialize>1</can_initialize>
+                <can_initialize>0</can_initialize>
                 <is_gateway>1</is_gateway>
                 <can_use_checkout>1</can_use_checkout>
                 <can_capture>1</can_capture>
                 <can_capture_partial>1</can_capture_partial>
                 <can_use_internal>0</can_use_internal>
                 <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_authorize_vault>1</can_authorize_vault>
                 <can_refund>1</can_refund>
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
                 <group>adyen</group>
             </adyen_klarna>
+            <adyen_klarna_vault>
+                <title>Stored PayPal</title>
+                <model>Adyen\Payment\Model\Methods\Vault\KlarnaVault</model>
+            </adyen_klarna_vault>
             <adyen_paypal>
                 <active>1</active>
                 <model>Adyen\Payment\Model\Methods\Paypal</model>
@@ -164,18 +162,23 @@
                 <allowspecific>0</allowspecific>
                 <sort_order>0</sort_order>
                 <payment_action>authorize</payment_action>
-                <can_initialize>1</can_initialize>
+                <can_initialize>0</can_initialize>
                 <is_gateway>1</is_gateway>
                 <can_use_checkout>1</can_use_checkout>
                 <can_capture>1</can_capture>
                 <can_capture_partial>1</can_capture_partial>
                 <can_use_internal>0</can_use_internal>
                 <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_authorize_vault>1</can_authorize_vault>
                 <can_refund>1</can_refund>
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
                 <group>adyen</group>
             </adyen_paypal>
+            <adyen_paypal_vault>
+                <title>Stored PayPal</title>
+                <model>Adyen\Payment\Model\Methods\Vault\PaypalVault</model>
+            </adyen_paypal_vault>
             <adyen_bcmc_mobile>
                 <active>1</active>
                 <model>Adyen\Payment\Model\Methods\BcmcMobile</model>
@@ -251,11 +254,16 @@
                 <can_capture_partial>1</can_capture_partial>
                 <can_use_internal>0</can_use_internal>
                 <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_authorize_vault>1</can_authorize_vault>
                 <can_refund>1</can_refund>
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
                 <group>adyen</group>
             </adyen_googlepay>
+            <adyen_googlepay_vault>
+                <title>Stored GooglePay</title>
+                <model>Adyen\Payment\Model\Methods\Vault\GooglePayVault</model>
+            </adyen_googlepay_vault>
             <adyen_pos_cloud>
                 <active>0</active>
                 <model>AdyenPaymentPosCloudFacade</model>

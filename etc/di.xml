@@ -61,7 +61,34 @@
         </arguments>
     </virtualType>
 
+    <!-- Vault methods start -->
+    <type name="Adyen\Payment\Model\Methods\Vault\PaypalVault">
+        <arguments>
+            <argument name="config" xsi:type="object">AdyenPaymentHppVaultConfig</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentHppVaultPaymentValueHandlerPool</argument>
+            <argument name="vaultProvider" xsi:type="object">Adyen\Payment\Model\Methods\Paypal</argument>
+            <argument name="code" xsi:type="const">Adyen\Payment\Model\Methods\Vault\PaypalVault::CODE</argument>
+        </arguments>
+    </type>
 
+    <type name="Adyen\Payment\Model\Methods\Vault\KlarnaVault">
+        <arguments>
+            <argument name="config" xsi:type="object">AdyenPaymentHppVaultConfig</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentHppVaultPaymentValueHandlerPool</argument>
+            <argument name="vaultProvider" xsi:type="object">Adyen\Payment\Model\Methods\Klarna</argument>
+            <argument name="code" xsi:type="const">Adyen\Payment\Model\Methods\Vault\KlarnaVault::CODE</argument>
+        </arguments>
+    </type>
+
+    <type name="Adyen\Payment\Model\Methods\Vault\GooglePayVault">
+        <arguments>
+            <argument name="config" xsi:type="object">AdyenPaymentCcVaultConfig</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentCcVaultPaymentValueHandlerPool</argument>
+            <argument name="vaultProvider" xsi:type="object">Adyen\Payment\Model\Methods\GooglePay</argument>
+            <argument name="code" xsi:type="const">Adyen\Payment\Model\Methods\Vault\GooglePayVault::CODE</argument>
+        </arguments>
+    </type>
+    <!-- Vault methods end -->
 
     <virtualType name="AdyenPaymentOneclickFacade" type="Adyen\Payment\Model\Method\Adapter">
         <arguments>
@@ -314,6 +341,7 @@
     <virtualType name="AdyenPaymentCcCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
         <arguments>
             <argument name="commands" xsi:type="array">
+                <item name="initialize" xsi:type="string">AdyenPaymentCcAuthorizeCommand</item>
                 <item name="authorize" xsi:type="string">AdyenPaymentCcAuthorizeCommand</item>
                 <item name="capture" xsi:type="string">AdyenPaymentCaptureCommand</item>
                 <item name="void" xsi:type="string">AdyenPaymentCancelCommand</item>
@@ -353,6 +381,9 @@
             <argument name="executors" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">AdyenPaymentCcCommandManager</item>
                 <item name="adyen_hpp" xsi:type="string">AdyenPaymentHppCommandManager</item>
+                <item name="adyen_paypal" xsi:type="string">AdyenPaymentHppCommandManager</item>
+                <item name="adyen_klarna" xsi:type="string">AdyenPaymentHppCommandManager</item>
+                <item name="adyen_googlepay" xsi:type="string">AdyenPaymentHppCommandManager</item>
             </argument>
         </arguments>
     </type>
@@ -401,6 +432,7 @@
             </argument>
         </arguments>
     </virtualType>
+
 
     <virtualType name="AdyenPaymentHppVaultAuthorizeCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
         <arguments>
