@@ -2,7 +2,7 @@
 /**
  * Adyen Payment Module
  *
- * Copyright (c) 2022 Adyen N.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -19,11 +19,16 @@ use Adyen\Payment\Helper\SupportFormHelper;
 class OtherTopicsForm extends Action
 {
     const OTHER_TOPICS = 'other_topics_email_template';
+
     /**
      * @var SupportFormHelper
      */
     private $supportFormHelper;
 
+    /**
+     * @param Context $context
+     * @param SupportFormHelper $supportFormHelper
+     */
     public function __construct(Context $context, SupportFormHelper $supportFormHelper)
     {
         $this->supportFormHelper = $supportFormHelper;
@@ -46,11 +51,13 @@ class OtherTopicsForm extends Action
                 ];
                 $request = $this->getRequest()->getParams();
                 $requiredFieldMissing = $this->supportFormHelper->requiredFieldsMissing($request, $requiredFields);
+
                 if (!empty($requiredFieldMissing)) {
                     $this->messageManager->addErrorMessage(__('Form unsuccessfully submitted, 
                     Missing required field(s): ' . $requiredFieldMissing));
                     return $this->_redirect('adyen/support/othertopicsform');
                 }
+
                 $formData = [
                     'subject' => $request['subject'],
                     'topic' =>  'Other topics',
@@ -62,7 +69,9 @@ class OtherTopicsForm extends Action
                     'description' => $request['description'],
                     'attachments' => $this->getRequest()->getFiles('attachments'),
                 ];
+
                 $this->supportFormHelper->handleSubmit($formData, self::OTHER_TOPICS);
+
                 return $this->_redirect('*/*/success');
 
             } catch (\Exception $e) {
@@ -71,6 +80,7 @@ class OtherTopicsForm extends Action
                 $this->_redirect($this->_redirect->getRefererUrl());
             }
         }
+
         return $resultPage;
     }
 }

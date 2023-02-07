@@ -2,7 +2,7 @@
 /**
  * Adyen Payment Module
  *
- * Copyright (c) 2022 Adyen N.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -51,8 +51,14 @@ class OrderProcessingForm extends Action
                     Missing required field(s): ' . $requiredFieldMissing));
                     return $this->_redirect('adyen/support/orderprocessingform');
                 }
+
+                $configurationFormTopics = $this->supportFormHelper->getSupportTopicsByFormType(
+                    SupportFormHelper::ORDER_PROCESSING_FORM
+                );
+                $request['topic'] = $configurationFormTopics[$request['topic']] ?? $request['topic'];
+
                 $formData = [
-                    'topic' => $request['topic'],
+                    'topic' => sprintf("Order processing / %s", $request['topic']),
                     'subject' => $request['subject'],
                     'email' => $request['email'],
                     'pspReference' => $request['pspReference'],

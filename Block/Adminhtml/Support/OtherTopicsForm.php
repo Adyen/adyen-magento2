@@ -92,7 +92,8 @@ class OtherTopicsForm extends Generic
                 'title' => __('Email'),
                 'class' => 'adyen_support-form validate-emails',
                 'required' => true,
-                'value' => $this->supportFormHelper->getGeneralContactSenderEmail()
+                'readonly' => true,
+                'value' => $this->supportFormHelper->getAdminEmail()
             ]
         );
 

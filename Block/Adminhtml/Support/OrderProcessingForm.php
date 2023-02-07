@@ -2,7 +2,7 @@
 /**
  * Adyen Payment Module
  *
- * Copyright (c) 2022 Adyen N.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -20,6 +20,9 @@ use Magento\Framework\Registry;
 
 class OrderProcessingForm extends Generic
 {
+    /**
+     * @var SupportFormHelper
+     */
     private $supportFormHelper;
 
     public function __construct(
@@ -96,7 +99,8 @@ class OrderProcessingForm extends Generic
                 'title' => __('Email'),
                 'class' => 'adyen_support-form validate-emails',
                 'required' => true,
-                'value'=>$this->supportFormHelper->getGeneralContactSenderEmail()
+                'readonly' => true,
+                'value' => $this->supportFormHelper->getAdminEmail()
             ]
         );
         $fieldset->addField(
