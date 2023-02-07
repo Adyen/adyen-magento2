@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2019 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -29,34 +29,17 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
         'threeDSAuthenticationOnly'
     ];
 
-    /**
-     * @var Session
-     */
-    private $checkoutSession;
+    private Session $checkoutSession;
+
+    private Data $adyenHelper;
+
+    private AdyenLogger $adyenLogger;
+
+    private OrderRepositoryInterface $orderRepository;
+
+    private PaymentResponseHandler $paymentResponseHandler;
 
     /**
-     * @var Data
-     */
-    private $adyenHelper;
-
-    /**
-     * @var AdyenLogger
-     */
-    private $adyenLogger;
-
-    /**
-     * @var OrderRepositoryInterface
-     */
-    private $orderRepository;
-
-    /**
-     * @var PaymentResponseHandler
-     */
-    private $paymentResponseHandler;
-
-    /**
-     * AdyenPaymentDetails constructor.
-     *
      * @param Session $checkoutSession
      * @param Data $adyenHelper
      * @param AdyenLogger $adyenLogger
@@ -80,9 +63,10 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
     /**
      * @param string $payload
      * @return string
-     * @api
+     * @throws LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function initiate($payload)
+    public function initiate(string $payload): string
     {
         // Decode payload from frontend
         $payload = json_decode($payload, true);

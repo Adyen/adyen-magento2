@@ -21,7 +21,6 @@ interface InvoiceInterface
      */
     const ENTITY_ID = 'entity_id';
     const PSPREFERENCE = 'pspreference';
-
     const ACQUIRER_REFERENCE = 'acquirer_reference';
     const INVOICE_ID = 'invoice_id';
     const ADYEN_ORDER_PAYMENT_ID = 'adyen_order_payment_id';
@@ -29,51 +28,99 @@ interface InvoiceInterface
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
     const STATUS = 'status';
-
     const STATUS_PENDING_WEBHOOK = 'Pending Webhook';
     const STATUS_SUCCESSFUL = 'Successful';
     const STATUS_FAILED = 'Failed';
 
+    public function getEntityId();
+
+    public function setEntityId($entityId);
+
+    /**
+     * @return string|null
+     */
+    public function getPspreference(): ?string;
+
+    /**
+     * @param string $pspReference
+     * @return InvoiceInterface
+     */
+    public function setPspreference(string $pspReference): InvoiceInterface;
+
+    /**
+     * @return string|null
+     */
+    public function getAcquirerReference(): ?string;
+
+    /**
+     * @param string $acquirerReference
+     * @return InvoiceInterface
+     */
+    public function setAcquirerReference(string $acquirerReference): InvoiceInterface;
+
     /**
      * @return int|null
      */
-    public function getEntityId();
-
-    /**
-     * @param int $entityId
-     * @return InvoiceInterface
-     */
-    public function setEntityId($entityId);
-
-    public function getPspreference(): ?string;
-
-    public function setPspreference(string $pspReference): InvoiceInterface;
-
-    public function getAcquirerReference(): ?string;
-
-    public function setAcquirerReference(string $acquirerReference): InvoiceInterface;
-
     public function getInvoiceId(): ?int;
 
+    /**
+     * @param int $invoiceId
+     * @return InvoiceInterface
+     */
     public function setInvoiceId(int $invoiceId): InvoiceInterface;
 
+    /**
+     * @return int|null
+     */
     public function getAmount(): ?int;
 
+    /**
+     * @param int $amount
+     * @return InvoiceInterface
+     */
     public function setAmount(int $amount): InvoiceInterface;
 
+    /**
+     * @return int|null
+     */
     public function getAdyenPaymentOrderId(): ?int;
 
+    /**
+     * @param int $id
+     * @return InvoiceInterface
+     */
     public function setAdyenPaymentOrderId(int $id): InvoiceInterface;
 
+    /**
+     * @return string|null
+     */
     public function getStatus(): ?string;
 
+    /**
+     * @param string $status
+     * @return InvoiceInterface
+     */
     public function setStatus(string $status): InvoiceInterface;
 
+    /**
+     * @return DateTime|null
+     */
     public function getCreatedAt(): ?DateTime;
 
+    /**
+     * @param DateTime $createdAt
+     * @return InvoiceInterface
+     */
     public function setCreatedAt(DateTime $createdAt): InvoiceInterface;
 
+    /**
+     * @return DateTime|null
+     */
     public function getUpdatedAt(): ?DateTime;
 
+    /**
+     * @param DateTime $updatedAt
+     * @return InvoiceInterface
+     */
     public function setUpdatedAt(DateTime $updatedAt): InvoiceInterface;
 }
