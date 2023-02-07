@@ -12,10 +12,10 @@ ul.adyen-list {
     margin: 0 20px 10px;
 }
 
-.adyen-payments > .config > .comment {
-    padding-left: 200px;
-    background-image: url("images/logos/adyen_logo_large.png");
-    background-position: left;
-    background-repeat: no-repeat;
-    background-size: 180px;
+.adyen-payments .heading {
+    background: url("images/adyen/adyen-hq.svg") no-repeat 0 50% / 18rem auto;
+    padding-left: 20rem;
+    margin-bottom: 10px;
 }
+.adyen-payments .button-container { float: right; }
+.adyen-payments.section-config.active > .admin__collapsible-block + input + fieldset { margin-left: 20px; }
