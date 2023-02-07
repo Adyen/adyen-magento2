@@ -30,5 +30,5 @@ interface AdyenPaymentMethodManagementInterface
         string $cartId,
         AddressInterface $billingAddress = null,
         ?string $shopperLocale = null
-    ): string;
+    ) :string;
 }
