@@ -9,22 +9,16 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-namespace Adyen\Payment\Helper\PaymentMethods;
+namespace Adyen\Payment\Model\Methods;
 
-class KlarnaPayLaterPaymentMethod implements PaymentMethodInterface
+use Adyen\Payment\Model\Method\PaymentMethodInterface;
+use Adyen\Payment\Model\AdyenPaymentMethod;
+
+class Paypal extends AdyenPaymentMethod implements PaymentMethodInterface
 {
-    const TX_VARIANT = 'klarna';
-    const NAME = 'Klarna Pay Later';
-
-    public function getTxVariant(): string
-    {
-        return self::TX_VARIANT;
-    }
-
-    public function getPaymentMethodName(): string
-    {
-        return self::NAME;
-    }
+    const CODE = 'adyen_paypal';
+    const TX_VARIANT = 'paypal';
+    const NAME = 'PayPal';
 
     public function supportsRecurring(): bool
     {
@@ -54,5 +48,10 @@ class KlarnaPayLaterPaymentMethod implements PaymentMethodInterface
     public function supportsUnscheduledCardOnFile(): bool
     {
         return true;
+    }
+
+    public function isWallet(): bool
+    {
+        return false;
     }
 }

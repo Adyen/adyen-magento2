@@ -24,11 +24,27 @@
             </argument>
         </arguments>
     </type>
+    <type name="Adyen\Payment\Model\Ui\AdyenGenericConfigProvider">
+        <arguments>
+            <argument name="txVariants" xsi:type="array">
+                <item name="adyen_ideal" xsi:type="const">Adyen\Payment\Model\Methods\Ideal::TX_VARIANT</item>
+                <item name="adyen_klarna" xsi:type="const">Adyen\Payment\Model\Methods\Klarna::TX_VARIANT</item>
+                <item name="adyen_paypal" xsi:type="const">Adyen\Payment\Model\Methods\Paypal::TX_VARIANT</item>
+                <item name="adyen_bcmc_mobile" xsi:type="const">Adyen\Payment\Model\Methods\BcmcMobile::TX_VARIANT</item>
+                <item name="adyen_dotpay" xsi:type="const">Adyen\Payment\Model\Methods\Dotpay::TX_VARIANT</item>
+                <item name="adyen_amazonpay" xsi:type="const">Adyen\Payment\Model\Methods\AmazonPay::TX_VARIANT</item>
+                <item name="adyen_googlepay" xsi:type="const">Adyen\Payment\Model\Methods\GooglePay::TX_VARIANT</item>
+            </argument>
+        </arguments>
+    </type>
     <type name="Magento\Vault\Model\Ui\TokensConfigProvider">
         <arguments>
             <argument name="tokenUiComponentProviders" xsi:type="array">
                 <item name="adyen_cc" xsi:type="object">Adyen\Payment\Model\Ui\TokenUiComponentProvider</item>
+                <item name="adyen_googlepay" xsi:type="object">Adyen\Payment\Model\Ui\TokenUiComponentProvider</item>
                 <item name="adyen_hpp" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodUiComponentProvider</item>
+                <item name="adyen_paypal" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodUiComponentProvider</item>
+                <item name="adyen_klarna" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodUiComponentProvider</item>
             </argument>
         </arguments>
     </type>
