@@ -41,6 +41,7 @@
                 <payment_action>authorize</payment_action>
                 <is_gateway>1</is_gateway>
                 <can_use_checkout>1</can_use_checkout>
+                <can_initialize>1</can_initialize>
                 <can_authorize>1</can_authorize>
                 <can_authorize_3d>1</can_authorize_3d>
                 <can_capture>1</can_capture>

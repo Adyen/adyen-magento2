@@ -341,6 +341,7 @@
     <virtualType name="AdyenPaymentCcCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
         <arguments>
             <argument name="commands" xsi:type="array">
+                <item name="initialize" xsi:type="string">AdyenPaymentCcAuthorizeCommand</item>
                 <item name="authorize" xsi:type="string">AdyenPaymentCcAuthorizeCommand</item>
                 <item name="capture" xsi:type="string">AdyenPaymentCaptureCommand</item>
                 <item name="void" xsi:type="string">AdyenPaymentCancelCommand</item>
