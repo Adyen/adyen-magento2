@@ -35,8 +35,8 @@ class AdyenPaymentMethodManagement implements AdyenPaymentMethodManagementInterf
      * @return string
      */
     public function getPaymentMethods(
-      string $cartId, 
-      AddressInterface $billingAddress = null, 
+      string $cartId,
+      AddressInterface $billingAddress = null,
       ?string $shopperLocale = null
     ): string {
         // if billingAddress is provided use this country

@@ -27,7 +27,7 @@ interface AdyenPaymentMethodManagementInterface
      * @return string
      */
     public function getPaymentMethods(
-      string $cartId, 
+      string $cartId,
       AddressInterface $billingAddress = null, 
       ?string $shopperLocale = null
     ): string;
