@@ -207,7 +207,6 @@
             </adyen_moto>
             <adyen_support>
                 <adyen_support_email_address>support@adyen.com</adyen_support_email_address>
-                <adyen_support_send_admin_config>1</adyen_support_send_admin_config>
             </adyen_support>
         </payment>
     </default>

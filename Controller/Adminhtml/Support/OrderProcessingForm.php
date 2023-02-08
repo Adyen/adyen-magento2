@@ -68,6 +68,7 @@ class OrderProcessingForm extends Action
                     'terminalId' => $request['terminalId'],
                     'orderHistoryComments' => $request['orderHistoryComments'],
                     'orderDescription' => $request['orderDescription'],
+                    'sendConfigurationValues' => $request['sendConfigurationValues'],
                     'attachments' => $this->getRequest()->getFiles('attachments'),
                 ];
                 $this->supportFormHelper->handleSubmit($formData, self::ORDER_PROCESSING);

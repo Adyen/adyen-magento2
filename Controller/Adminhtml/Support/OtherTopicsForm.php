@@ -67,6 +67,7 @@ class OtherTopicsForm extends Action
                     'headless' => $request['headless'],
                     'terminalId' => $request['terminalId'],
                     'description' => $request['description'],
+                    'sendConfigurationValues' => $request['sendConfigurationValues'],
                     'attachments' => $this->getRequest()->getFiles('attachments'),
                 ];
 

@@ -221,6 +221,31 @@ class OrderProcessingForm extends Generic
        We accept files in PNG, JPG, ZIP, RAR, or SVG format, with a maximum size of 10 MB.
             </div>
        </div>');
+
+        $fieldset->addField(
+            'sendConfigurationValues',
+            'radios',
+            [
+                'name' => 'sendConfigurationValues',
+                'label' => __('Do you want to include plugin configuration values?'),
+                'title' => __('Do you want to include plugin configuration values?'),
+                'class' => '',
+                'required' => false,
+                'values' => [
+                    ['value' => 1, 'label' => __('Yes')],
+                    ['value' => 0, 'label' => __('No')]
+                ],
+                'value' => 1
+            ]
+        )->setAfterElementHtml('
+       <div class="tooltip">
+       <span class="help">
+       <span></span>
+       </span>
+       <div class="tooltip-content">Includes plugin configuration values in the support email.
+            </div>
+       </div>');
+
         $fieldset->addField(
             'orderHistoryComments',
             'textarea',

@@ -130,7 +130,7 @@ class SupportFormHelper
     {
         $storeId = $this->getStoreId();
 
-        if ($this->config->isSendAdminConfigurationEnabled($storeId)) {
+        if (intval($formData['sendConfigurationValues'])) {
             $configurationData = $this->getConfigData();
             $templateVars = array_merge($configurationData, $formData);
         } else {
