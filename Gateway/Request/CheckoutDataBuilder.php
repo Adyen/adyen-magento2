@@ -22,6 +22,7 @@ use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 use Magento\Catalog\Helper\Image;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Sales\Model\Order;
 
 class CheckoutDataBuilder implements BuilderInterface
 {
@@ -90,7 +91,7 @@ class CheckoutDataBuilder implements BuilderInterface
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
-        /** @var \Magento\Sales\Model\Order $order */
+        /** @var Order $order */
         $order = $payment->getOrder();
         $storeId = $order->getStoreId();
 
@@ -118,15 +119,28 @@ class CheckoutDataBuilder implements BuilderInterface
         }
 
         $brandCode = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
-        if (isset($brandCode) && ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)
-            || $this->adyenHelper->isPaymentMethodOfType($brandCode, Data::FACILYPAY)
-            || $payment->getMethod() === AdyenPayByLinkConfigProvider::CODE)
+        if (
+            (isset($brandCode) && $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) ||
+            $payment->getMethod() === AdyenPayByLinkConfigProvider::CODE
         ) {
             $openInvoiceFields = $this->getOpenInvoiceData($order);
             $requestBody = array_merge($requestBody, $openInvoiceFields);
-            if ($this->adyenHelper->isPaymentMethodOfType($brandCode, Data::KLARNA) &&
+
+            if (isset($brandCode) &&
+                $this->adyenHelper->isPaymentMethodOfType($brandCode, Data::KLARNA) &&
                 $this->configHelper->getAutoCaptureOpenInvoice($storeId)) {
                 $requestBody['captureDelayHours'] = 0;
+            }
+
+            if (
+                (isset($brandCode) && $this->adyenHelper->isPaymentMethodOfType($brandCode, Data::KLARNA)) ||
+                $payment->getMethod() === AdyenPayByLinkConfigProvider::CODE
+            ) {
+                $otherDeliveryInformation = $this->getOtherDeliveryInformation($order);
+                if (isset($otherDeliveryInformation)) {
+                    $requestBody['additionalData']['openinvoicedata.merchantData'] =
+                        base64_encode(json_encode($otherDeliveryInformation));
+                }
             }
         }
 
@@ -186,13 +200,14 @@ class CheckoutDataBuilder implements BuilderInterface
         if ($numberOfInstallments > 0) {
             $requestBody['installments']['value'] = $numberOfInstallments;
         }
-        // if card type is debit then change the issuer type and unset the installments field
+
+        /*
+         * if the combo card type is debit then add the funding source
+         * and unset the installments & brand fields
+         */
         if ($comboCardType == 'debit') {
-            if ($selectedDebitBrand = $this->getSelectedDebitBrand($payment->getAdditionalInformation('cc_type'))) {
-                $requestBody['additionalData']['overwriteBrand'] = true;
-                $requestBody['selectedBrand'] = $selectedDebitBrand;
-                $requestBody['paymentMethod']['type'] = $selectedDebitBrand;
-            }
+            $requestBody['paymentMethod']['fundingSource'] = 'debit';
+            unset($requestBody['paymentMethod']['brand']);
             unset($requestBody['installments']);
         }
 
@@ -208,18 +223,26 @@ class CheckoutDataBuilder implements BuilderInterface
     }
 
     /**
-     * @param string $brand
-     * @return string
+     * @param Order $order
+     * @return array|null
      */
-    private function getSelectedDebitBrand($brand)
+    private function getOtherDeliveryInformation(Order $order): ?array
     {
-        if ($brand == 'VI') {
-            return 'electron';
+        $shippingAddress = $order->getShippingAddress();
+
+        if ($shippingAddress) {
+            $otherDeliveryInformation = [
+                "shipping_method" => $order->getShippingMethod(),
+                "first_name" => $order->getCustomerFirstname(),
+                "last_name" => $order->getCustomerLastname(),
+                "street_address" => implode(' ', $shippingAddress->getStreet()),
+                "postal_code" => $shippingAddress->getPostcode(),
+                "city" => $shippingAddress->getCity(),
+                "country" => $shippingAddress->getCountryId()
+            ];
         }
-        if ($brand == 'MC') {
-            return 'maestro';
-        }
-        return null;
+
+        return $otherDeliveryInformation ?? null;
     }
 
     /**
@@ -241,7 +264,7 @@ class CheckoutDataBuilder implements BuilderInterface
     }
 
     /**
-     * @param \Magento\Sales\Model\Order $order
+     * @param Order $order
      *
      * @return array
      * @throws \Magento\Framework\Exception\NoSuchEntityException

@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Gateway\Http\Client;
 
+use Adyen\Client;
 use Adyen\Payment\Model\PaymentResponse;
 use Adyen\Payment\Model\PaymentResponseFactory;
 use Magento\Payment\Gateway\Http\ClientInterface;
@@ -64,6 +65,7 @@ class TransactionMotoPayment implements ClientInterface
     public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
     {
         $request = $transferObject->getBody();
+        $clientConfig = $transferObject->getClientConfig();
 
         // If the payments call is already done return the request
         if (!empty($request['resultCode'])) {
@@ -71,11 +73,16 @@ class TransactionMotoPayment implements ClientInterface
             return $request;
         }
 
-        $client = $this->adyenHelper->initializeAdyenClient(null, null, $request['merchantAccount']);
+        $client = $this->adyenHelper->initializeAdyenClient(
+            $clientConfig['storeId'],
+            null,
+            $request['merchantAccount']
+        );
         $service = $this->adyenHelper->createAdyenCheckoutService($client);
 
         $requestOptions = [];
 
+        $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/payments');
         try {
             $response = $service->payments($request, $requestOptions);
 
@@ -91,6 +98,7 @@ class TransactionMotoPayment implements ClientInterface
             $response['error'] = $e->getMessage();
             $response['errorCode'] = $e->getAdyenErrorCode();
         }
+        $this->adyenHelper->logResponse($response);
 
         return $response;
     }

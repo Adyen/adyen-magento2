@@ -231,7 +231,7 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         $expiryDate = explode('/', $contractDetail['expiryDate']);
 
         $recurringType = !empty($contractDetail['pos_payment'])
-            ? $this->adyenHelper->getAdyenPosCloudConfigData('recurring_type', $storeId)
+            ? $this->configHelper->getAdyenPosCloudConfigData('recurring_type', $storeId)
             : $this->recurringHelper->getRecurringTypeFromSetting($storeId);
 
         $agreementData = [

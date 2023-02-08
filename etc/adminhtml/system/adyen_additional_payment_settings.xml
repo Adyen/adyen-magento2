@@ -31,7 +31,7 @@
             <config_path>payment/adyen_abstract/send_level23_data</config_path>
             <comment>
                 <![CDATA[
-                If enabled level 2/level 3 data will be sent with every payment request. Refer to
+                If enabled level 2/level 3 data will be sent for credit card payments. Refer to
                 <a target="_blank" href="https://docs.adyen.com/online-payments/classic-integrations/hosted-payment-pages/hpp-payments-with-l2l3-data">Adyen documentation</a>
                 for more information.
                 ]]>

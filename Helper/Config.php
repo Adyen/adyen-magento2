@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
+use Adyen\Payment\Model\Config\Source\NotificationProcessor;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
@@ -30,6 +31,7 @@ class Config
     const XML_NOTIFICATIONS_CAN_CANCEL_FIELD = "notifications_can_cancel";
     const XML_NOTIFICATIONS_HMAC_KEY_LIVE = "notification_hmac_key_live";
     const XML_NOTIFICATIONS_HMAC_KEY_TEST = "notification_hmac_key_test";
+    const XML_NOTIFICATIONS_IP_CHECK = "notifications_ip_check";
     const XML_CHARGED_CURRENCY = "charged_currency";
     const XML_HAS_HOLDER_NAME = "has_holder_name";
     const XML_HOLDER_NAME_REQUIRED = "holder_name_required";
@@ -46,6 +48,8 @@ class Config
     const XML_MOTO_MERCHANT_ACCOUNTS = 'moto_merchant_accounts';
     const XML_ADYEN_SUPPORT_PREFIX = 'adyen_support';
     const XML_CONFIGURATION_MODE = 'configuration_mode';
+    const XML_ADYEN_POS_CLOUD = 'adyen_pos_cloud';
+    const XML_WEBHOOK_NOTIFICATION_PROCESSOR = 'webhook_notification_processor';
 
     /**
      * @var ScopeConfigInterface
@@ -261,6 +265,22 @@ class Config
         return $this->encryptor->decrypt(trim($key));
     }
 
+    /**
+     * Retrieve flag for notifications_ip_check
+     *
+     * @param int $storeId
+     * @return bool
+     */
+    public function getNotificationsIpCheck(int $storeId = null): bool
+    {
+        return (bool) $this->getConfigData(
+            self::XML_NOTIFICATIONS_IP_CHECK,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId,
+            true
+        );
+    }
+
     public function isDemoMode($storeId = null): bool
     {
         return $this->getConfigData('demo_mode', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId, true);
@@ -447,9 +467,9 @@ class Config
 
     /**
      * @param $storeId
-     * @return string|null
+     * @return bool|null
      */
-    public function getCardRecurringActive($storeId): ?string
+    public function getCardRecurringActive($storeId): ?bool
     {
         return $this->getConfigData('active', self::XML_ADYEN_ONECLICK, $storeId, true);
     }
@@ -492,17 +512,23 @@ class Config
         return $this->getConfigData('adyen_support_email_address', self::XML_ADYEN_SUPPORT_PREFIX, $storeId);
     }
 
-    /**
-     * @param int $storeId
-     * @return string
-     */
-    public function getConfigurationMode(int $storeId): string
+    public function getAdyenPosCloudConfigData(string $field, int $storeId = null, bool $flag = false)
+    {
+        return $this->getConfigData($field, self::XML_ADYEN_POS_CLOUD, $storeId, $flag);
+    }
+
+    public function getApplePayUrlPath($storeId = null)
+    {
+        return $this->getConfigData('apple_pay_certificate_url', self::XML_ADYEN_HPP, $storeId);
+    }
+
+    public function useQueueProcessor($storeId = null): bool
     {
         return $this->getConfigData(
-            self::XML_CONFIGURATION_MODE,
+            self::XML_WEBHOOK_NOTIFICATION_PROCESSOR,
             self::XML_ADYEN_ABSTRACT_PREFIX,
             $storeId
-        );
+        ) === NotificationProcessor::QUEUE;
     }
 
     /**

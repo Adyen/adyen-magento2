@@ -22,6 +22,7 @@
                 <item name="adyen_title_renderer" xsi:type="string">payment/adyen_abstract/title_renderer</item>
                 <item name="adyen_return_path_error" xsi:type="string">payment/adyen_abstract/return_path</item>
                 <item name="adyen_oneclick_card_mode" xsi:type="string">payment/adyen_oneclick/card_mode</item>
+                <item name="adyen_checkout_frontend_region" xsi:type="string">payment/adyen_abstract/checkout_frontend_region</item>
             </argument>
         </arguments>
     </type>

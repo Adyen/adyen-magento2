@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Gateway\Http\Client;
 
+use Adyen\Client;
 use Adyen\Service\Modification;
 use Magento\Payment\Gateway\Http\ClientInterface;
 
@@ -41,15 +42,23 @@ class TransactionMotoCancel implements ClientInterface
     public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
     {
         $request = $transferObject->getBody();
+        $clientConfig = $transferObject->getClientConfig();
 
-        $client = $this->adyenHelper->initializeAdyenClient(null, null, $request['merchantAccount']);
+        $client = $this->adyenHelper->initializeAdyenClient(
+            $clientConfig['storeId'],
+            null,
+            $request['merchantAccount']
+        );
         $service = new Modification($client);
-
+        $this->adyenHelper
+            ->logRequest($request, Client::API_PAYMENT_VERSION, '/pal/servlet/Payment/{version}/cancel');
         try {
             $response = $service->cancel($request);
         } catch (\Adyen\AdyenException $e) {
             $response['error'] = $e->getMessage();
         }
+        $this->adyenHelper->logResponse($response);
+
         return $response;
     }
 }

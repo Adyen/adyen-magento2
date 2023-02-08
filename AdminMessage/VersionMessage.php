@@ -12,20 +12,44 @@
 
 namespace Adyen\Payment\AdminMessage;
 
-class VersionMessage implements \Magento\Framework\Notification\MessageInterface
+use Adyen\Payment\Helper\Data;
+use Magento\AdminNotification\Model\InboxFactory;
+use Magento\Backend\Model\Auth\Session;
+use Magento\Framework\App\RequestInterface;
+use Magento\Framework\Notification\MessageInterface;
+
+class VersionMessage implements MessageInterface
 {
+    /**
+     * @var Session
+     */
     protected $_authSession;
+
+    /**
+     * @var Data
+     */
     protected $_adyenHelper;
+
+    /**
+     * @var InboxFactory
+     */
     protected $_inboxFactory;
 
+    /**
+     * @var RequestInterface
+     */
+    protected $request;
+
     public function __construct(
-        \Magento\Backend\Model\Auth\Session $authSession,
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\AdminNotification\Model\InboxFactory $inboxFactory
+        Session $authSession,
+        Data $adyenHelper,
+        InboxFactory $inboxFactory,
+        RequestInterface $request
     ) {
         $this->_authSession = $authSession;
         $this->_adyenHelper = $adyenHelper;
         $this->_inboxFactory = $inboxFactory;
+        $this->request = $request;
     }
 
     const MESSAGE_IDENTITY = 'Adyen Version Control message';
@@ -48,8 +72,8 @@ class VersionMessage implements \Magento\Framework\Notification\MessageInterface
     public function isDisplayed()
     {
         // Only execute the query the first time you access the Admin page
-        if ($this->_authSession->isFirstPageAfterLogin()) {
-            try {
+        try {
+            if ($this->_authSession->isFirstPageAfterLogin()) {
                 $githubContent = $this->getDecodedContentFromGithub();
                 $this->setSessionData("AdyenGithubVersion", $githubContent);
                 $title = "Adyen extension version " . $githubContent['tag_name'] . " available!";
@@ -59,6 +83,7 @@ class VersionMessage implements \Magento\Framework\Notification\MessageInterface
                     'title' => $title,
                     'description' => $githubContent['body'],
                     'url' => $githubContent['html_url'],
+                    'is_read' => !$this->isNewVersionAvailable()
                 ];
 
                 /*
@@ -74,10 +99,18 @@ class VersionMessage implements \Magento\Framework\Notification\MessageInterface
                 if ($this->_adyenHelper->getModuleVersion() != $githubContent['tag_name']) {
                     return true;
                 }
-            } catch (\Exception $e) {
-                return false;
+            } elseif ($this->request->getModuleName() === 'mui' && $this->isNewVersionAvailable()) {
+                /*
+                 * If the message has already been added to `$persistedMessage` array
+                 * in AdminNotification/Model/ResourceModel/System/Message/Collection/Synchronized
+                 * allow the UI validation and return true.
+                 */
+                return true;
             }
+        } catch (\Exception $e) {
+            return false;
         }
+
         return false;
     }
 
@@ -137,5 +170,14 @@ class VersionMessage implements \Magento\Framework\Notification\MessageInterface
     public function getSessionData($key, $remove = false)
     {
         return $this->_authSession->getData($key, $remove);
+    }
+
+    private function isNewVersionAvailable()
+    {
+        $githubContent = $this->getSessionData("AdyenGithubVersion");
+
+        if (isset($githubContent)) {
+            return $this->_adyenHelper->getModuleVersion() !== $githubContent['tag_name'];
+        }
     }
 }

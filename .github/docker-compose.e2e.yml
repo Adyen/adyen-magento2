@@ -1,7 +1,7 @@
 version: '3'
 services:
   playwright:
-    image: mcr.microsoft.com/playwright:v1.20.0-focal
+    image: mcr.microsoft.com/playwright:v1.27.1-focal
     shm_size: 1gb
     ipc: host
     cap_add:
@@ -15,6 +15,10 @@ services:
       - MAGENTO_ADMIN_PASSWORD
       - PAYPAL_USERNAME
       - PAYPAL_PASSWORD
+      - ADYEN_API_KEY
+      - ADYEN_CLIENT_KEY
+      - ADYEN_MERCHANT
+
     volumes:
       - ../../scripts/e2e.sh:/e2e.sh
       - ../../../test-report:/tmp/test-report

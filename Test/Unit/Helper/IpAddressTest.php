@@ -9,11 +9,12 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Tests\Unit\Helper;
+namespace Adyen\Payment\Test\Unit\Helper;
 
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\IpAddress;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Tests\Unit\AbstractAdyenTestCase;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\App\CacheInterface;
 use Magento\Framework\Serialize\SerializerInterface;
 
@@ -34,12 +35,15 @@ class IpAddressTest extends AbstractAdyenTestCase
         $serializer->method('unserialize')->willReturnArgument(0);
         $ipAddressUtil = $this->createMock(\Adyen\Util\IpAddress::class);
         $adyenLogger = $this->createMock(AdyenLogger::class);
+        $configHelper = $this->createMock(Config::class);
+        $configHelper->method('getNotificationsIpCheck')->willReturn(true);
 
         $this->ipAddressHelper = new IpAddress(
             $ipAddressUtil,
             $cache,
             $serializer,
-            $adyenLogger
+            $adyenLogger,
+            $configHelper
         );
     }
 

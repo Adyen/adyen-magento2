@@ -13,7 +13,6 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Model\Config\Source\CcType;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
-use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 use Adyen\Util\Uuid;
 use Magento\Framework\App\Helper\AbstractHelper;
 
@@ -22,6 +21,13 @@ class Requests extends AbstractHelper
     const MERCHANT_ACCOUNT = 'merchantAccount';
     const SHOPPER_REFERENCE = 'shopperReference';
     const RECURRING_DETAIL_REFERENCE = 'recurringDetailReference';
+    const DONATION_PAYMENT_METHOD_CODE_MAPPING = [
+        'ideal' => 'sepadirectdebit',
+        'storedPaymentMethods' => 'scheme',
+        'googlepay' => 'scheme',
+        'paywithgoogle' => 'scheme',
+    ];
+    const SHOPPER_INTERACTION_CONTAUTH = 'ContAuth';
 
     /**
      * @var Data
@@ -353,6 +359,11 @@ class Requests extends AbstractHelper
     public function buildCardRecurringData(int $storeId, $payment): array
     {
         $request = [];
+
+        if (!$this->adyenConfig->getCardRecurringActive($storeId)) {
+            return $request;
+        }
+
         $storePaymentMethod = false;
 
         // Initialize the request body with the current state data
@@ -370,11 +381,12 @@ class Requests extends AbstractHelper
         }
 
         if ($storePaymentMethod) {
-            if ($this->vaultHelper->isCardVaultEnabled()) {
-                $request['recurringProcessingModel'] = $this->adyenConfig->getCardRecurringType($storeId);
+            $recurringProcessingModel = $payment->getAdditionalInformation('recurringProcessingModel');
+
+            if (isset($recurringProcessingModel)) {
+                $request['recurringProcessingModel'] = $recurringProcessingModel;
             } else {
-                $recurringType = $this->adyenConfig->getCardRecurringType($storeId);
-                $request['recurringProcessingModel'] = $recurringType;
+                $request['recurringProcessingModel'] = $this->adyenConfig->getCardRecurringType($storeId);
             }
         }
 
@@ -393,11 +405,18 @@ class Requests extends AbstractHelper
     {
         $request = [];
 
-        if (in_array($payment->getAdditionalInformation('cc_type'), CcType::ALLOWED_TYPES)) {
-            $recurringType = $this->adyenConfig->getCardRecurringType($storeId);
-            $request['recurringProcessingModel'] = $recurringType;
+        $recurringProcessingModel = $payment->getAdditionalInformation('recurringProcessingModel');
+
+        if (isset($recurringProcessingModel)) {
+            $request['recurringProcessingModel'] = $recurringProcessingModel;
         } else {
-            $request['recurringProcessingModel'] = $this->adyenConfig->getAlternativePaymentMethodTokenType($storeId);
+            if (in_array($payment->getAdditionalInformation('cc_type'), CcType::ALLOWED_TYPES)) {
+                $recurringProcessingModel = $this->adyenConfig->getCardRecurringType($storeId);
+                $request['recurringProcessingModel'] = $recurringProcessingModel;
+            } else {
+                $request['recurringProcessingModel'] =
+                    $this->adyenConfig->getAlternativePaymentMethodTokenType($storeId);
+            }
         }
 
         return $request;
@@ -405,17 +424,25 @@ class Requests extends AbstractHelper
 
     public function buildDonationData($buildSubject, $storeId): array
     {
+        $paymentMethodCode = $buildSubject['paymentMethod'];
+
+        if (isset(self::DONATION_PAYMENT_METHOD_CODE_MAPPING[$paymentMethodCode])) {
+            $paymentMethodCode = self::DONATION_PAYMENT_METHOD_CODE_MAPPING[$paymentMethodCode];
+        }
+
         return [
             'amount' => $buildSubject['amount'],
             'reference' => Uuid::generateV4(),
             'shopperReference' => $buildSubject['shopperReference'],
-            'paymentMethod' => $buildSubject['paymentMethod'],
+            'paymentMethod' => [
+                'type' => $paymentMethodCode
+            ],
             'donationToken' => $buildSubject['donationToken'],
             'donationOriginalPspReference' => $buildSubject['donationOriginalPspReference'],
             'donationAccount' => $this->adyenConfig->getCharityMerchantAccount($storeId),
             'returnUrl' => $buildSubject['returnUrl'],
             'merchantAccount' => $this->adyenHelper->getAdyenMerchantAccount('adyen_giving', $storeId),
-            'shopperInteraction' => 'Ecommerce'
+            'shopperInteraction' => self::SHOPPER_INTERACTION_CONTAUTH
         ];
     }
 
@@ -427,7 +454,7 @@ class Requests extends AbstractHelper
     public function getShopperReference($customerId, $orderIncrementId): string
     {
         if ($customerId) {
-            $shopperReference = str_pad($customerId, 3, '0', STR_PAD_LEFT);
+            $shopperReference = $this->adyenHelper->padShopperReference($customerId);
         } else {
             $uuid = Uuid::generateV4();
             $guestCustomerId = $orderIncrementId . $uuid;

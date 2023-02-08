@@ -26,6 +26,8 @@ configure: n98-magerun2.phar
 	bin/magento config:set payment/adyen_hpp/active 1
 	bin/magento config:set payment/adyen_cc/active 1
 	bin/magento config:set payment/adyen_oneclick/active 1
+	bin/magento config:set payment/adyen_oneclick/card_mode 'Magento Vault'
+	bin/magento config:set payment/adyen_oneclick/card_type 'CardOnFile'
 	bin/magento config:set payment/adyen_abstract/has_holder_name 1
 	bin/magento config:set payment/adyen_boleto/active 1
 	bin/magento config:set payment/adyen_boleto/boletotypes 'boletobancario_santander'
@@ -39,6 +41,7 @@ configure: n98-magerun2.phar
 	bin/magento config:set payment/adyen_giving/background_image ''
 	bin/magento config:set payment/adyen_abstract/merchant_account "${ADYEN_MERCHANT}"
 	bin/magento config:set payment/adyen_moto/active 1
+	bin/magento config:set payment/adyen_abstract/notifications_ip_check 0
 	./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/api_key_test "${ADYEN_API_KEY}" > /dev/null
 	bin/magento config:set payment/adyen_abstract/client_key_test "${ADYEN_CLIENT_KEY}"
 
@@ -112,7 +115,7 @@ setup-mftf:
 
 	rm -f dev/tests/acceptance/.env;
 	vendor/bin/mftf setup:env \
-		--MAGENTO_BASE_URL "http://${MAGENTO_HOST}/" \
+		--MAGENTO_BASE_URL "https://${MAGENTO_HOST}/" \
 		--MAGENTO_BACKEND_NAME "${ADMIN_URLEXT}" \
 		--MAGENTO_ADMIN_USERNAME "${ADMIN_USERNAME}" \
 		--MAGENTO_ADMIN_PASSWORD "${ADMIN_PASSWORD}" \

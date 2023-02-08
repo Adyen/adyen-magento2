@@ -14,6 +14,7 @@ namespace Adyen\Payment\Gateway\Http\Client;
 
 use Adyen\AdyenException;
 use Adyen\Client;
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\Exception\LocalizedException;
@@ -24,40 +25,40 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class TransactionPosCloudBackendSync implements ClientInterface
 {
-    /**
-     * @var int
-     */
+    /** @var int  */
     protected $storeId;
 
-    /**
-     * @var Client
-     */
+    /** @var int */
+    protected $timeout;
+
+    /** @var Client  */
     protected $client;
 
-    /**
-     * @var Data
-     */
+    /** @var Data  */
     protected $adyenHelper;
 
-    /**
-     * @var AdyenLogger
-     */
+    /** @var AdyenLogger  */
     protected $adyenLogger;
+
+    /** @var Config */
+    protected $configHelper;
 
     public function __construct(
         Data $adyenHelper,
         AdyenLogger $adyenLogger,
-        StoreManagerInterface $storeManager
+        StoreManagerInterface $storeManager,
+        Config $configHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenLogger = $adyenLogger;
+        $this->configHelper = $configHelper;
 
         $this->storeId = $storeManager->getStore()->getId();
         $apiKey = $this->adyenHelper->getPosApiKey($this->storeId);
         $client = $this->adyenHelper->initializeAdyenClient($this->storeId, $apiKey);
-        $posTimeout = $this->adyenHelper->getAdyenPosCloudConfigData('pos_timeout', $this->storeId);
-        if (!empty($posTimeout)) {
-            $client->setTimeout($posTimeout);
+        $this->timeout = $this->configHelper->getAdyenPosCloudConfigData('total_timeout', $this->storeId);
+        if (!empty($this->timeout)) {
+            $client->setTimeout($this->timeout);
         }
 
         $this->client = $client;
@@ -77,7 +78,7 @@ class TransactionPosCloudBackendSync implements ClientInterface
         $initiateDate = $request['initiateDate'];
 
         $statusDate = date("U");
-        $totalTimeout = $this->adyenHelper->getAdyenPosCloudConfigData('total_timeout', $this->storeId);
+        $totalTimeout = $this->configHelper->getAdyenPosCloudConfigData('total_timeout', $this->storeId);
 
         // Make sync payments call to Adyen
         $this->initiatePosPayment($paymentServiceRequest);
@@ -110,6 +111,7 @@ class TransactionPosCloudBackendSync implements ClientInterface
 
         $service = $this->adyenHelper->createAdyenPosPaymentService($this->client);
 
+        $this->adyenHelper->logRequest($request, '', '/sync');
         try {
             $response = $service->runTenderSync($request);
         } catch (AdyenException $e) {
@@ -119,6 +121,7 @@ class TransactionPosCloudBackendSync implements ClientInterface
             $response['error'] = $e->getMessage();
             throw $e;
         }
+        $this->adyenHelper->logResponse($response);
     }
 
     /**

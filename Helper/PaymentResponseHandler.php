@@ -15,12 +15,12 @@ use Adyen\Payment\Exception\PaymentMethodException;
 use Adyen\Payment\Helper\PaymentMethods\AbstractWalletPaymentMethod;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 use Exception;
 use Magento\Sales\Api\Data\OrderInterface;
-use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\ResourceModel\Order;
 
@@ -36,6 +36,8 @@ class PaymentResponseHandler
     const PRESENT_TO_SHOPPER = 'PresentToShopper';
     const ERROR = 'Error';
     const CANCELLED = 'Cancelled';
+    const ADYEN_TOKENIZATION = 'Adyen Tokenization';
+    const VAULT = 'Magento Vault';
 
     /**
      * @var AdyenLogger
@@ -110,7 +112,7 @@ class PaymentResponseHandler
         $this->paymentMethodFactory = $paymentMethodFactory;
     }
 
-    public function formatPaymentResponse($resultCode, $action = null, $additionalData = null)
+    public function formatPaymentResponse($resultCode, $action = null, $additionalData = null, $donationToken = null)
     {
         switch ($resultCode) {
             case self::AUTHORISED:
@@ -119,6 +121,7 @@ class PaymentResponseHandler
                 return [
                     "isFinal" => true,
                     "resultCode" => $resultCode,
+                    "donationToken" => $donationToken
                 ];
             case self::REDIRECT_SHOPPER:
             case self::IDENTIFY_SHOPPER:
@@ -163,8 +166,9 @@ class PaymentResponseHandler
             return false;
         }
 
-        if (!empty($paymentsResponse['resultCode']))
-        $payment->setAdditionalInformation('resultCode', $paymentsResponse['resultCode']);
+        if (!empty($paymentsResponse['resultCode'])) {
+            $payment->setAdditionalInformation('resultCode', $paymentsResponse['resultCode']);
+        }
 
         if (!empty($paymentsResponse['action'])) {
             $payment->setAdditionalInformation('action', $paymentsResponse['action']);
@@ -245,13 +249,21 @@ class PaymentResponseHandler
                                 $brand
                             ));
                         }
-                    } else {
+                    } elseif ($paymentInstanceCode === AdyenCcConfigProvider::CODE) {
                         $order = $payment->getOrder();
-                        $this->recurringHelper->createAdyenBillingAgreement(
-                            $order,
-                            $paymentsResponse['additionalData'],
-                            $payment->getAdditionalInformation()
-                        );
+                        $recurringMode = $this->configHelper->getCardRecurringMode($storeId);
+
+                        // if Adyen Tokenization set up, create entry in paypal_billing_agreement table
+                        if ($recurringMode === self::ADYEN_TOKENIZATION) {
+                            $this->recurringHelper->createAdyenBillingAgreement(
+                                $order,
+                                $paymentsResponse['additionalData'],
+                                $payment->getAdditionalInformation()
+                            );
+                        // if Vault set up, create entry in vault_payment_token table
+                        } elseif ($recurringMode === self::VAULT) {
+                            $this->vaultHelper->saveRecurringCardDetails($payment, $paymentsResponse['additionalData']);
+                        }
                     }
                 }
 
@@ -282,8 +294,8 @@ class PaymentResponseHandler
             default:
                 $this->adyenLogger->error(
                     sprintf("Payment details call failed for action, resultCode is %s Raw API responds: %s",
-                            $paymentsResponse['resultCode'],
-                            json_encode($paymentsResponse)
+                        $paymentsResponse['resultCode'],
+                        json_encode($paymentsResponse)
                     ));
 
                 return false;

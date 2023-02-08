@@ -27,6 +27,7 @@
                 <notifications_can_cancel>1</notifications_can_cancel>
                 <charged_currency>display</charged_currency>
                 <house_number_street_line>0</house_number_street_line>
+                <webhook_notification_processor>cron</webhook_notification_processor>
             </adyen_abstract>
             <adyen_cc>
                 <active>0</active>
@@ -120,7 +121,7 @@
                 <active>0</active>
                 <model>AdyenPaymentPosCloudFacade</model>
                 <order_status>pending</order_status>
-                <title>Adyen POS Cloud API</title>
+                <title>Adyen POS Terminal Payment</title>
                 <allowspecific>0</allowspecific>
                 <sort_order>6</sort_order>
                 <payment_action>authorize</payment_action>
@@ -134,7 +135,6 @@
                 <can_refund>1</can_refund>
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
-                <pos_timeout>30</pos_timeout>
                 <total_timeout>120</total_timeout>
                 <recurring_type>NONE</recurring_type>
                 <group>adyen</group>

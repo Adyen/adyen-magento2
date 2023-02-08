@@ -42,6 +42,10 @@ class PaymentMethodFactory
                 return new AmazonPayPaymentMethod($txVariantObject->getCard());
             case GooglePayPaymentMethod::TX_VARIANT:
                 return new GooglePayPaymentMethod($txVariantObject->getCard());
+            case TwintPaymentMethod::TX_VARIANT:
+                return new TwintPaymentMethod();
+            case KlarnaPayLaterPaymentMethod::TX_VARIANT:
+                return new KlarnaPayLaterPaymentMethod();
             default:
                 $message = sprintf('Unknown txVariant: %s', $txVariant);
                 self::$adyenLogger->debug($message);

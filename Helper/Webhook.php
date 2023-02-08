@@ -12,7 +12,9 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Exception\AdyenWebhookException;
 use Adyen\Payment\Helper\Config as ConfigHelper;
+use Adyen\Payment\Helper\Order as OrderHelper;
 use Adyen\Payment\Helper\Webhook\WebhookHandlerFactory;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
@@ -22,7 +24,6 @@ use Adyen\Webhook\PaymentStates;
 use Adyen\Webhook\Processor\ProcessorFactory;
 use DateTime;
 use Exception;
-use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Sales\Model\Order;
@@ -49,21 +50,16 @@ class Webhook
     ];
 
     /**
-     * @var Order
-     */
-    private $order;
-    /**
      * @var AdyenLogger
      */
     private $logger;
-    /**
-     * @var SearchCriteriaBuilder
-     */
-    private $searchCriteriaBuilder;
-    /**
-     * @var OrderRepository
-     */
+
+    /** @var OrderHelper */
+    private $orderHelper;
+
+    /** @var OrderRepository */
     private $orderRepository;
+
     /**
      * @var Data
      */
@@ -95,34 +91,32 @@ class Webhook
     private static $webhookHandlerFactory;
 
     public function __construct(
-        SearchCriteriaBuilder $searchCriteriaBuilder,
-        OrderRepository $orderRepository,
         Data $adyenHelper,
         SerializerInterface $serializer,
         TimezoneInterface $timezone,
         ConfigHelper $configHelper,
         ChargedCurrency $chargedCurrency,
         AdyenLogger $logger,
-        WebhookHandlerFactory $webhookHandlerFactory
+        WebhookHandlerFactory $webhookHandlerFactory,
+        OrderHelper $orderHelper,
+        OrderRepository $orderRepository
     ) {
-        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
-        $this->orderRepository = $orderRepository;
         $this->adyenHelper = $adyenHelper;
         $this->serializer = $serializer;
         $this->timezone = $timezone;
         $this->configHelper = $configHelper;
         $this->chargedCurrency = $chargedCurrency;
         $this->logger = $logger;
+        $this->orderHelper = $orderHelper;
+        $this->orderRepository = $orderRepository;
         self::$webhookHandlerFactory = $webhookHandlerFactory;
     }
 
     /**
-     * @param Notification $notification
-     * @return bool
+     * @throws Exception
      */
     public function processNotification(Notification $notification): bool
     {
-        $this->order = null;
         // set notification processing to true
         $this->updateNotification($notification, true, false);
         $this->logger
@@ -137,34 +131,54 @@ class Webhook
                 ],
             );
 
+        if (is_null($notification->getMerchantReference())) {
+            $errorMessage = sprintf(
+                'Invalid merchant reference for notification with the event code %s',
+                $notification->getEventCode()
+            );
+
+            $this->logger->addAdyenNotification($errorMessage);
+
+            $this->updateNotification($notification, false, true);
+            $this->setNotificationError($notification, $errorMessage);
+
+            return false;
+        }
+
+        $order = $this->orderHelper->getOrderByIncrementId($notification->getMerchantReference());
+        if (!$order) {
+            $errorMessage = sprintf(
+                'Order w/merchant reference %s not found',
+                $notification->getMerchantReference()
+            );
+
+            $this->logger->addAdyenNotification($errorMessage);
+
+            $this->updateNotification($notification, false, true);
+            $this->setNotificationError($notification, $errorMessage);
+
+            return false;
+        }
+
         try {
-            // log the executed notification
-            $this->setOrderByIncrementId($notification);
-            if (!$this->order) {
-                // order does not exists remove from queue
-                $notification->delete();
-
-                return false;
-            }
-
             // declare all variables that are needed
-            $this->declareVariables($this->order, $notification);
+            $this->declareVariables($notification);
 
             // add notification to comment history status is current status
-            $this->addNotificationDetailsHistoryComment($this->order, $notification);
+            $order = $this->addNotificationDetailsHistoryComment($order, $notification);
 
             // update order details
-            $this->updateAdyenAttributes($notification);
+            $order = $this->updateAdyenAttributes($order, $notification);
 
-            $this->order->getPayment()->setAdditionalInformation('payment_method', $notification->getPaymentMethod());
+            $order->getPayment()->setAdditionalInformation('payment_method', $notification->getPaymentMethod());
 
             // Get transition state
-            $currentState = $this->getCurrentState($this->order->getState());
+            $currentState = $this->getCurrentState($order->getState());
             if (!$currentState) {
                 $this->logger->addAdyenNotification(
                     "ERROR: Unhandled order state '{orderState}'",
                     array_merge(
-                        $this->logger->getOrderContext($this->order),
+                        $this->logger->getOrderContext($order),
                         ['pspReference' => $notification->getPspreference()]
                     )
                 );
@@ -173,21 +187,16 @@ class Webhook
 
             $transitionState = $this->getTransitionState($notification, $currentState);
 
-            try {
-                $webhookHandler = self::$webhookHandlerFactory::create($notification->getEventCode());
-                $this->order = $webhookHandler->handleWebhook($this->order, $notification, $transitionState);
-                // set done to true
-                $this->order->save();
-            } catch (Exception $e) {
-                $this->logger->addAdyenWarning($e->getMessage());
-            }
+            $webhookHandler = self::$webhookHandlerFactory::create($notification->getEventCode());
+            $order = $webhookHandler->handleWebhook($order, $notification, $transitionState);
+            $this->orderRepository->save($order);
 
             $this->updateNotification($notification, false, true);
             $this->logger->addAdyenNotification(
                 sprintf("Notification %s was processed", $notification->getEntityId()),
                 array_merge(
-                    $this->logger->getOrderContext($this->order),
-                    ['pspReference' => $this->order->getPayment()->getData('adyen_psp_reference')]
+                    $this->logger->getOrderContext($order),
+                    ['pspReference' => $order->getPayment()->getData('adyen_psp_reference')]
                 )
             );
 
@@ -196,9 +205,16 @@ class Webhook
             /*
              * Webhook Module throws InvalidDataException if the eventCode is not supported.
              * Prevent re-process attempts and change the state of the notification to `done`.
+             *
+             * Same exception type is being thrown from the WebhookHandlerFactory
+             * for webhook events that are not yet handled by the Adyen Magento plugin.
              */
             $this->updateNotification($notification, false, true);
-            $this->handleNotificationError($notification, sprintf("Unsupported webhook notification: %s", $notification->getEventCode()));
+            $this->handleNotificationError(
+                $order,
+                $notification,
+                sprintf("Unsupported webhook notification: %s", $notification->getEventCode())
+            );
             $this->logger->addAdyenNotification(
                 sprintf(
                     "Notification %s had an error. Unsupported webhook notification: %s. %s",
@@ -207,24 +223,41 @@ class Webhook
                     $e->getMessage()
                 ),
                 array_merge(
-                    $this->logger->getOrderContext($this->order),
+                    $this->logger->getOrderContext($order),
                     ['pspReference' => $notification->getPspreference()]
+                )
+            );
+
+            return false;
+        } catch (AdyenWebhookException $e) {
+            $this->updateNotification($notification, false, false);
+            $this->handleNotificationError($order, $notification, $e->getMessage());
+            $this->logger->addAdyenNotification(
+                sprintf(
+                    "Webhook notification error occurred. Notification %s had an error: %s \n %s",
+                    $notification->getEntityId(),
+                    $e->getMessage(),
+                    $e->getTraceAsString()
+                ),
+                array_merge(
+                    $this->logger->getOrderContext($order),
+                    ['pspReference' => $notification->getPspReference()]
                 )
             );
 
             return false;
         } catch (Exception $e) {
             $this->updateNotification($notification, false, false);
-            $this->handleNotificationError($notification, $e->getMessage());
+            $this->handleNotificationError($order, $notification, $e->getMessage());
             $this->logger->addAdyenNotification(
                 sprintf(
-                    "Notification %s had an error: %s \n %s",
+                    "Critical error occurred. Notification %s had an error: %s \n %s",
                     $notification->getEntityId(),
                     $e->getMessage(),
                     $e->getTraceAsString()
                 ),
                 array_merge(
-                    $this->logger->getOrderContext($this->order),
+                    $this->logger->getOrderContext($order),
                     ['pspReference' => $notification->getPspReference()]
                 )
             );
@@ -275,17 +308,16 @@ class Webhook
     /**
      * Declare private variables for processing notification
      *
-     * @param Order $order
      * @param Notification $notification
      * @return void
      */
-    private function declareVariables(Order $order, Notification $notification)
+    private function declareVariables(Notification $notification)
     {
         $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize(
             $notification->getAdditionalData()
-        ) : "";
+        ) : [];
 
-        if (is_array($additionalData)) {
+        if (!empty($additionalData)) {
             $additionalData2 = $additionalData['additionalData'] ?? null;
             if ($additionalData2 && is_array($additionalData2)) {
                 $this->klarnaReservationNumber = isset($additionalData2['acquirerReference']) ? trim(
@@ -302,7 +334,7 @@ class Webhook
     /**
      * @desc order comments or history
      */
-    private function addNotificationDetailsHistoryComment(Order $order, Notification $notification)
+    private function addNotificationDetailsHistoryComment(Order $order, Notification $notification): Order
     {
         $successResult = $notification->isSuccessful() ? 'true' : 'false';
         $reason = $notification->getReason();
@@ -375,11 +407,11 @@ class Webhook
                 $this->logger->addAdyenNotification(
                     'Created comment history for this notification with status change to: ' . $pendingStatus,
                     array_merge(
-                        $this->logger->getOrderContext($this->order),
+                        $this->logger->getOrderContext($order),
                         ['pspReference' => $notification->getPspreference()]
                     )
                 );
-                return;
+                return $order;
             }
         }
 
@@ -391,12 +423,14 @@ class Webhook
                 'merchantReference' => $notification->getMerchantReference()
             ]
         );
+
+        return $order;
     }
 
     /**
      * @param Notification $notification
      */
-    private function updateAdyenAttributes(Notification $notification)
+    private function updateAdyenAttributes(Order $order, Notification $notification): Order
     {
         $this->logger->addAdyenNotification(
             'Updating the Adyen attributes of the order',
@@ -408,7 +442,7 @@ class Webhook
 
         $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize(
             $notification->getAdditionalData()
-        ) : "";
+        ) : [];
 
         if ($notification->getEventCode() == Notification::AUTHORISATION
             || $notification->getEventCode() == Notification::HANDLED_EXTERNALLY
@@ -418,76 +452,76 @@ class Webhook
              * the  previous notification was authorisation : true do not update pspreference
              */
             if (!$notification->isSuccessful()) {
-                $previousAdyenEventCode = $this->order->getData('adyen_notification_event_code');
+                $previousAdyenEventCode = $order->getData('adyen_notification_event_code');
                 if ($previousAdyenEventCode != "AUTHORISATION : TRUE") {
-                    $this->updateOrderPaymentWithAdyenAttributes($notification, $additionalData);
+                    $this->updateOrderPaymentWithAdyenAttributes($order->getPayment(), $notification, $additionalData);
                 }
             } else {
-                $this->updateOrderPaymentWithAdyenAttributes($notification, $additionalData);
+                $this->updateOrderPaymentWithAdyenAttributes($order->getPayment(), $notification, $additionalData);
             }
         }
+
+        return $order;
     }
 
     /**
-     * @param Notification $notification
-     * @param $additionalData
+     * TODO: Move this function or refactor or both
      */
-    private function updateOrderPaymentWithAdyenAttributes(Notification $notification, $additionalData)
-    {
-        if (!is_array($additionalData)) {
-            return;
-        }
+    private function updateOrderPaymentWithAdyenAttributes(
+        Order\Payment $payment,
+        Notification $notification,
+        array $additionalData
+    ): void {
         if (isset($additionalData['avsResult'])) {
-            $this->order->getPayment()->setAdditionalInformation('adyen_avs_result', $additionalData['avsResult']);
+            $payment->setAdditionalInformation('adyen_avs_result', $additionalData['avsResult']);
         }
         if ((isset($additionalData['cvcResult']))) {
-            $this->order->getPayment()->setAdditionalInformation('adyen_cvc_result', $additionalData['cvcResult']);
+            $payment->setAdditionalInformation('adyen_cvc_result', $additionalData['cvcResult']);
         }
         if (isset($additionalData['totalFraudScore'])) {
-            $this->order->getPayment()
-                ->setAdditionalInformation('adyen_total_fraud_score', $additionalData['totalFraudScore']);
+            $payment->setAdditionalInformation('adyen_total_fraud_score', $additionalData['totalFraudScore']);
         }
         // if there is no server communication setup try to get last4 digits from reason field
         if (isset($additionalData['cardSummary'])) {
-            $this->order->getPayment()->setccLast4($additionalData['cardSummary']);
+            $payment->setccLast4($additionalData['cardSummary']);
         } else {
-            $this->order->getPayment()->setccLast4($this->retrieveLast4DigitsFromReason($notification->getReason()));
+            $payment->setccLast4($this->retrieveLast4DigitsFromReason($notification->getReason()));
         }
         if (isset($additionalData['refusalReasonRaw'])) {
-            $this->order->getPayment()
-                ->setAdditionalInformation('adyen_refusal_reason_raw', $additionalData['refusalReasonRaw']);
+            $payment->setAdditionalInformation('adyen_refusal_reason_raw', $additionalData['refusalReasonRaw']);
         }
         if (isset($additionalData['acquirerReference'])) {
-            $this->order->getPayment()
-                ->setAdditionalInformation('adyen_acquirer_reference', $additionalData['acquirerReference']);
+            $payment->setAdditionalInformation('adyen_acquirer_reference', $additionalData['acquirerReference']);
         }
         if (isset($additionalData['authCode'])) {
-            $this->order->getPayment()->setAdditionalInformation('adyen_auth_code', $additionalData['authCode']);
+            $payment->setAdditionalInformation('adyen_auth_code', $additionalData['authCode']);
         }
         if (isset($additionalData['cardBin'])) {
-            $this->order->getPayment()->setAdditionalInformation('adyen_card_bin', $additionalData['cardBin']);
+            $payment->setAdditionalInformation('adyen_card_bin', $additionalData['cardBin']);
         }
         if (isset($additionalData['expiryDate'])) {
-            $this->order->getPayment()->setAdditionalInformation('adyen_expiry_date', $additionalData['expiryDate']);
+            $payment->setAdditionalInformation('adyen_expiry_date', $additionalData['expiryDate']);
         }
         if (isset($additionalData['issuerCountry'])) {
-            $this->order->getPayment()
+            $payment
                 ->setAdditionalInformation('adyen_issuer_country', $additionalData['issuerCountry']);
         }
-        $this->order->getPayment()->setAdyenPspReference($notification->getPspreference());
-        $this->order->getPayment()->setAdditionalInformation('pspReference', $notification->getPspreference());
+        $payment->setAdyenPspReference($notification->getPspreference());
+        $payment->setAdditionalInformation('pspReference', $notification->getPspreference());
 
         if ($this->klarnaReservationNumber != "") {
-            $this->order->getPayment()->setAdditionalInformation(
+            $payment->setAdditionalInformation(
                 'adyen_klarna_number',
                 $this->klarnaReservationNumber
             );
         }
+
         if ($this->boletoPaidAmount != "") {
-            $this->order->getPayment()->setAdditionalInformation('adyen_boleto_paid_amount', $this->boletoPaidAmount);
+            $payment->setAdditionalInformation('adyen_boleto_paid_amount', $this->boletoPaidAmount);
         }
+
         if ($this->ratepayDescriptor !== "") {
-            $this->order->getPayment()->setAdditionalInformation(
+            $payment->setAdditionalInformation(
                 'adyen_ratepay_descriptor',
                 $this->ratepayDescriptor
             );
@@ -516,14 +550,11 @@ class Webhook
     /**
      * Add/update info on notification processing errors
      *
-     * @param Notification $notification
-     * @param string $errorMessage
-     * @return void
      */
-    private function handleNotificationError($notification, $errorMessage)
+    private function handleNotificationError(Order $order, Notification $notification, string $errorMessage): void
     {
         $this->setNotificationError($notification, $errorMessage);
-        $this->addNotificationErrorComment($errorMessage);
+        $this->addNotificationErrorComment($order, $errorMessage);
     }
 
     /**
@@ -533,7 +564,7 @@ class Webhook
      * @param string $errorMessage
      * @return void
      */
-    private function setNotificationError($notification, $errorMessage)
+    private function setNotificationError(Notification $notification, string $errorMessage)
     {
         $notification->setErrorCount($notification->getErrorCount() + 1);
         $oldMessage = $notification->getErrorMessage();
@@ -547,41 +578,20 @@ class Webhook
         } else {
             $notification->setErrorMessage($oldMessage . "\n" . $newMessage);
         }
+
         $notification->save();
     }
 
     /**
      * Adds a comment to the order history with the notification processing error
      *
-     * @param string $errorMessage
-     * @return void
      */
-    private function addNotificationErrorComment($errorMessage)
+    private function addNotificationErrorComment(Order $order, string $errorMessage): Order
     {
         $comment = __('The order failed to update: %1', $errorMessage);
-        if ($this->order) {
-            $this->order->addStatusHistoryComment($comment, $this->order->getStatus());
-            $this->order->save();
-        }
-    }
+        $order->addStatusHistoryComment($comment, $order->getStatus());
+        $this->orderRepository->save($order);
 
-    /**
-     * Set the order data member by fetching the entity from the database.
-     * This should be moved out of this file in the future.
-     * @param Notification $notification
-     */
-    private function setOrderByIncrementId(Notification $notification)
-    {
-        $incrementId = $notification->getMerchantReference();
-
-        $searchCriteria = $this->searchCriteriaBuilder
-            ->addFilter('increment_id', $incrementId, 'eq')
-            ->create();
-
-        $orderList = $this->orderRepository->getList($searchCriteria)->getItems();
-
-        /** @var Order $order */
-        $order = reset($orderList);
-        $this->order = $order;
+        return $order;
     }
 }
