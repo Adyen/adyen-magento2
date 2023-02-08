@@ -3,27 +3,26 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2022 Adyen N.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
  * Author: Adyen <magento@adyen.com>
  */
-namespace Adyen\Payment\Helper\PaymentMethods;
+namespace Adyen\Payment\Model\Methods;
 
-class GooglePayPaymentMethod extends AbstractWalletPaymentMethod
+use Adyen\Payment\Model\Method\PaymentMethodInterface;
+use Adyen\Payment\Model\AdyenPaymentMethod;
+
+class Dotpay extends AdyenPaymentMethod implements PaymentMethodInterface
 {
-    const TX_VARIANT = 'googlepay';
-    const NAME = 'Google Pay';
+    const CODE = 'adyen_dotpay';
+    const TX_VARIANT = 'dotpay';
+    const NAME = 'DotPay';
 
-    public function getTxVariant(): string
+    public function supportsRecurring(): bool
     {
-        return self::TX_VARIANT;
-    }
-
-    public function getPaymentMethodName(): string
-    {
-        return self::NAME;
+        return false;
     }
 
     public function supportsManualCapture(): bool
@@ -38,16 +37,21 @@ class GooglePayPaymentMethod extends AbstractWalletPaymentMethod
 
     public function supportsCardOnFile(): bool
     {
-        return true;
+        return false;
     }
 
     public function supportsSubscription(): bool
     {
-        return true;
+        return false;
     }
 
     public function supportsUnscheduledCardOnFile(): bool
     {
-        return true;
+        return false;
+    }
+
+    public function isWallet(): bool
+    {
+        return false;
     }
 }

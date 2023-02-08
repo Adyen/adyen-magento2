@@ -9,23 +9,20 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
+namespace Adyen\Payment\Model\Methods;
 
-namespace Adyen\Payment\Helper\PaymentMethods;
+use Adyen\Payment\Model\Method\PaymentMethodInterface;
+use Adyen\Payment\Model\AdyenPaymentMethod;
 
-/** TODO: This PM can be enabled for recurring purposes once tested */
-class AmazonPayPaymentMethod extends AbstractWalletPaymentMethod
+class BcmcMobile extends AdyenPaymentMethod implements PaymentMethodInterface
 {
-    const TX_VARIANT = 'amazonpay';
-    const NAME = 'Amazon Pay';
+    const CODE = 'adyen_bcmc_mobile';
+    const TX_VARIANT = 'bcmc_mobile';
+    const NAME = 'PayConiq';
 
-    public function getTxVariant(): string
+    public function supportsRecurring(): bool
     {
-        return self::TX_VARIANT;
-    }
-
-    public function getPaymentMethodName(): string
-    {
-        return self::NAME;
+        return true;
     }
 
     public function supportsManualCapture(): bool
@@ -45,10 +42,15 @@ class AmazonPayPaymentMethod extends AbstractWalletPaymentMethod
 
     public function supportsSubscription(): bool
     {
-        return false;
+        return true;
     }
 
     public function supportsUnscheduledCardOnFile(): bool
+    {
+        return true;
+    }
+
+    public function isWallet(): bool
     {
         return false;
     }

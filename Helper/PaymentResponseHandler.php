@@ -12,13 +12,11 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Exception\PaymentMethodException;
-use Adyen\Payment\Helper\PaymentMethods\AbstractWalletPaymentMethod;
-use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
+use Adyen\Payment\Model\Method\PaymentMethodInterface;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
-use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
-use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
+use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Exception;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order\Payment;
@@ -78,18 +76,6 @@ class PaymentResponseHandler
      */
     private $configHelper;
 
-    /**
-     * @var PaymentMethodFactory
-     */
-    private $paymentMethodFactory;
-
-    /**
-     * PaymentResponseHandler constructor.
-     *
-     * @param AdyenLogger $adyenLogger
-     * @param Data $adyenHelper
-     * @param \Adyen\Payment\Helper\Vault $vaultHelper
-     */
     public function __construct(
         AdyenLogger $adyenLogger,
         Data $adyenHelper,
@@ -98,8 +84,7 @@ class PaymentResponseHandler
         Data $dataHelper,
         Recurring $recurringHelper,
         Quote $quoteHelper,
-        Config $configHelper,
-        PaymentMethodFactory $paymentMethodFactory
+        Config $configHelper
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
@@ -109,7 +94,6 @@ class PaymentResponseHandler
         $this->recurringHelper = $recurringHelper;
         $this->quoteHelper = $quoteHelper;
         $this->configHelper = $configHelper;
-        $this->paymentMethodFactory = $paymentMethodFactory;
     }
 
     public function formatPaymentResponse($resultCode, $action = null, $additionalData = null)
@@ -219,29 +203,18 @@ class PaymentResponseHandler
                     // set transaction
                     $payment->setTransactionId($paymentsResponse['pspReference']);
                 }
-                $paymentMethodInstance = $payment->getMethodInstance();
+                $paymentMethod = $payment->getMethodInstance();
 
                 if ($this->vaultHelper->hasRecurringDetailReference($paymentsResponse) &&
-                    $paymentMethodInstance->getCode() !== AdyenOneclickConfigProvider::CODE) {
-                    $storeId = $paymentMethodInstance->getStore();
-                    $paymentInstanceCode = $paymentMethodInstance->getCode();
+                    $paymentMethod->getCode() !== AdyenOneclickConfigProvider::CODE) {
+                    $storeId = $paymentMethod->getStore();
+                    $paymentInstanceCode = $paymentMethod->getCode();
                     $storePaymentMethods = $this->configHelper->isStoreAlternativePaymentMethodEnabled($storeId);
 
-                    if ($storePaymentMethods && $paymentInstanceCode === AdyenHppConfigProvider::CODE) {
-                        $brand = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
+                    if ($storePaymentMethods && $paymentMethod instanceof PaymentMethodInterface) {
+                        $brand = $payment->getAdditionalInformation(AdyenPaymentMethodDataAssignObserver::BRAND_CODE);
                         try {
-                            $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($brand);
-                            if ($adyenPaymentMethod instanceof AbstractWalletPaymentMethod) {
-                                $this->vaultHelper->saveRecurringCardDetails(
-                                    $payment,
-                                    $paymentsResponse['additionalData']
-                                );
-                            } else {
-                                $this->vaultHelper->saveRecurringPaymentMethodDetails(
-                                    $payment,
-                                    $paymentsResponse['additionalData']
-                                );
-                            }
+                            $this->vaultHelper->saveRecurringDetails($payment, $paymentsResponse['additionalData']);
                         } catch (PaymentMethodException $e) {
                             $this->adyenLogger->error(sprintf(
                                 'Unable to create payment method with tx variant %s in details handler',

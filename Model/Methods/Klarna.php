@@ -9,22 +9,20 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-namespace Adyen\Payment\Helper\PaymentMethods;
+namespace Adyen\Payment\Model\Methods;
 
-/** TODO: This PM can be enabled for recurring purposes once tested */
-class ApplePayPaymentMethod extends AbstractWalletPaymentMethod
+use Adyen\Payment\Model\Method\PaymentMethodInterface;
+use Adyen\Payment\Model\AdyenPaymentMethod;
+
+class Klarna extends AdyenPaymentMethod implements PaymentMethodInterface
 {
-    const TX_VARIANT = 'applepay';
-    const NAME = 'Apple Pay';
+    const CODE = 'adyen_klarna';
+    const TX_VARIANT = 'klarna';
+    const NAME = 'Klarna';
 
-    public function getTxVariant(): string
+    public function supportsRecurring(): bool
     {
-        return self::TX_VARIANT;
-    }
-
-    public function getPaymentMethodName(): string
-    {
-        return self::NAME;
+        return true;
     }
 
     public function supportsManualCapture(): bool
@@ -44,10 +42,15 @@ class ApplePayPaymentMethod extends AbstractWalletPaymentMethod
 
     public function supportsSubscription(): bool
     {
-        return false;
+        return true;
     }
 
     public function supportsUnscheduledCardOnFile(): bool
+    {
+        return true;
+    }
+
+    public function isWallet(): bool
     {
         return false;
     }
