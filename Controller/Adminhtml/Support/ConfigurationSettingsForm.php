@@ -2,7 +2,7 @@
 /**
  * Adyen Payment Module
  *
- * Copyright (c) 2022 Adyen N.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -51,13 +51,25 @@ class ConfigurationSettingsForm extends Action
                     Missing required field(s): ' . $requiredFieldMissing));
                     return $this->_redirect('adyen/support/configurationsettingsform');
                 }
+
+                $configurationFormTopics = $this->supportFormHelper->getSupportTopicsByFormType(
+                    SupportFormHelper::CONFIGURATION_SETTINGS_FORM
+                );
+                $request['topic'] = $configurationFormTopics[$request['topic']] ?? $request['topic'];
+
+                $configurationFormIssues = $this->supportFormHelper->getIssuesTopicsByFormType(
+                    SupportFormHelper::CONFIGURATION_SETTINGS_FORM
+                );
+                $request['issue'] = $configurationFormIssues[$request['issue']] ?? $request['issue'];
+
                 $formData = [
-                    'topic' => $request['topic'],
+                    'topic' => sprintf("Configuration settings / %s", $request['topic']),
                     'issue' => $request['issue'],
                     'subject' => $request['subject'],
                     'email' => $request['email'],
                     'headless' => $request['headless'],
                     'descriptionComments' => $request['descriptionComments'],
+                    'sendConfigurationValues' => $request['sendConfigurationValues'],
                     'attachments' => $this->getRequest()->getFiles('attachments'),
                 ];
                 $this->supportFormHelper->handleSubmit($formData, self::CONFIGURATION_SETTINGS_EMAIL_TEMPLATE);

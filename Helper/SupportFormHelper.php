@@ -2,7 +2,7 @@
 /**
  * Adyen Payment Module
  *
- * Copyright (c) 2022 Adyen N.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -13,15 +13,17 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Exception\FileUploadException;
 use Adyen\Payment\Model\TransportBuilder;
+use Magento\Backend\Model\Auth\Session;
+use Magento\Framework\App\Area;
 use Magento\Framework\App\Filesystem\DirectoryList;
-use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Framework\Exception\FileSystemException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\MailException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Exception\ValidatorException;
 use Magento\Framework\Filesystem;
 use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
-use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
 class SupportFormHelper
@@ -29,11 +31,15 @@ class SupportFormHelper
     const MAX_ATTACHMENT_SIZE = 7000000;
     const MAX_TOTAL_SIZE = 10000000;
 
+    // Support form types
+    const CONFIGURATION_SETTINGS_FORM = 'configuration_settings';
+    const ORDER_PROCESSING_FORM = 'order_processing';
+    const OTHER_TOPICS_FORM = 'other_topics';
+
     /**
      * @var int
      */
     private $attachmentSize = 0;
-
     /**
      * @var Config
      */
@@ -70,7 +76,23 @@ class SupportFormHelper
      * @var Filesystem\Io\File
      */
     private $fileUtil;
+    /**
+     * @var Session
+     */
+    private $authSession;
 
+    /**
+     * @param TransportBuilder $transportBuilder
+     * @param MessageManagerInterface $messageManager
+     * @param Config $config
+     * @param Data $adyenHelper
+     * @param StoreManagerInterface $storeManager
+     * @param Filesystem\Io\File $fileUtil
+     * @param Filesystem $filesystem
+     * @param Filesystem\Directory\WriteFactory $writeFactory
+     * @param ProductMetadataInterface $productMetadata
+     * @param Session $authSession
+     */
     public function __construct(
         TransportBuilder $transportBuilder,
         MessageManagerInterface $messageManager,
@@ -80,7 +102,8 @@ class SupportFormHelper
         Filesystem\Io\File $fileUtil,
         Filesystem $filesystem,
         Filesystem\Directory\WriteFactory $writeFactory,
-        ProductMetadataInterface $productMetadata
+        ProductMetadataInterface $productMetadata,
+        Session $authSession
     ) {
         $this->transportBuilder = $transportBuilder;
         $this->messageManager = $messageManager;
@@ -91,6 +114,7 @@ class SupportFormHelper
         $this->filesystem = $filesystem;
         $this->writeFactory = $writeFactory;
         $this->fileUtil = $fileUtil;
+        $this->authSession = $authSession;
     }
 
     /**
@@ -105,8 +129,8 @@ class SupportFormHelper
     public function handleSubmit(array $formData, string $template): void
     {
         $storeId = $this->getStoreId();
-        $formData['subject'] = '['.$formData['topic'].'] '. $formData['subject'];
-        if ($this->config->isSendAdminConfigurationEnabled($storeId)) {
+
+        if (intval($formData['sendConfigurationValues'])) {
             $configurationData = $this->getConfigData();
             $templateVars = array_merge($configurationData, $formData);
         } else {
@@ -114,15 +138,21 @@ class SupportFormHelper
         }
 
         $templateOptions = [
-            'area' => \Magento\Framework\App\Area::AREA_ADMINHTML,
+            'area' => Area::AREA_ADMINHTML,
             'store' => $storeId
         ];
 
         $to = $this->config->getSupportMailAddress($storeId);
-        $from = ['email' => $templateVars['email'], 'name' => $this->config->getMerchantAccount($storeId)];
+        $from = ['email' => $templateVars['email'], 'name' => $this->getAdminName()];
+
         if (!isset($from['email'])) {
-            $from['email'] = $this->getGeneralContactSenderEmail();
+            $from['email'] = $this->getAdminEmail();
         }
+
+        $templateVars['emailSubject'] = sprintf(
+            "Magento 2 support form - %s",
+            $this->config->getMerchantAccount($storeId)
+        );
 
         $transportBuilder = $this->transportBuilder->setTemplateIdentifier($template)
             ->setTemplateOptions($templateOptions)
@@ -387,19 +417,28 @@ class SupportFormHelper
     }
 
     /**
-     * Get the email from the general contact
+     * Get the email from the current admin user
      *
      * @return string
      */
-    public function getGeneralContactSenderEmail(): string
+    public function getAdminEmail(): string
     {
-        $objectManager = ObjectManager::getInstance();
-        $scopeConfig = $objectManager->create('\Magento\Framework\App\Config\ScopeConfigInterface');
-
-        return $scopeConfig->getValue('trans_email/ident_general/email', ScopeInterface::SCOPE_STORE);
+        return $this->authSession->getUser()->getEmail();
     }
 
-    private function uploadAttachment($file)
+    public function getAdminName(): string
+    {
+        return $this->authSession->getUser()->getName();
+    }
+
+    /**
+     * @param $file
+     * @return array
+     * @throws FileUploadException
+     * @throws FileSystemException
+     * @throws ValidatorException
+     */
+    private function uploadAttachment($file): array
     {
         $this->attachmentSize += $file['size'];
         if ($file['size'] > self::MAX_ATTACHMENT_SIZE || $this->attachmentSize > self::MAX_TOTAL_SIZE) {
@@ -429,6 +468,11 @@ class SupportFormHelper
         return [$targetPath, $file['name']];
     }
 
+    /**
+     * @param $request
+     * @param $requiredFields
+     * @return string
+     */
     public function requiredFieldsMissing($request, $requiredFields): string
     {
        $requiredFieldsMissing = [];
@@ -439,4 +483,62 @@ class SupportFormHelper
         }
         return implode(', ', $requiredFieldsMissing);
     }
+
+    /**
+     * @param string $supportFormType
+     * @return array|null
+     */
+    public function getSupportTopicsByFormType(string $supportFormType): ?array
+    {
+        $supportTopics = [
+            'configuration_settings' => [
+                'required_settings' => 'Required settings',
+                'card_payments' => 'Card payments',
+                'card_tokenization' => 'Card tokenization',
+                'alt_payment_methods' => 'Alternative payment methods',
+                'pos_integration' => 'POS integration with cloud',
+                'pay_by_link' => 'Pay By Link',
+                'adyen_giving' => 'Adyen Giving',
+                'advanced_settings' => 'Advanced settings',
+            ],
+            'order_processing' => [
+                'payment_status' => 'Payment status',
+                'failed_transaction' => 'Failed transaction',
+                'offer' => 'Offer',
+                'webhooks' => 'Notification &amp; webhooks',
+            ],
+            'other_topics' => []
+        ];
+
+        return $supportTopics[$supportFormType] ?? null;
+    }
+
+    /**
+     * @param string $supportFormType
+     * @return string[]|null
+     */
+    public function getIssuesTopicsByFormType(string $supportFormType): ?array
+    {
+        $issuesTopics = [
+            'configuration_settings' =>  [
+                'invalid_origin' => 'Invalid Origin',
+                'headless_state_data_actions' => 'Headless state data actions',
+                'refund' => 'Refund',
+                'other' => 'Other'
+            ]
+        ];
+
+        return $issuesTopics[$supportFormType] ?? null;
+    }
 }
+
+
+
+
+
+
+
+
+
+
+

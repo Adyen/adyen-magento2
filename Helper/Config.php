@@ -493,20 +493,6 @@ class Config
     }
 
     /**
-     * When enabled includes a snapshot from admin configuration in the support form email
-     *
-     * @param int $storeId
-     * @return bool
-     */
-    public function isSendAdminConfigurationEnabled(int $storeId): bool
-    {
-        return $this->getConfigData('adyen_support_send_admin_config',
-            self::XML_ADYEN_SUPPORT_PREFIX,
-            $storeId,
-            true);
-    }
-
-    /**
      * @param int $storeId
      * @return string
      */

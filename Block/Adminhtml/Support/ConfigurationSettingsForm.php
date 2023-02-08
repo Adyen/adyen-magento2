@@ -2,7 +2,7 @@
 /**
  * Adyen Payment Module
  *
- * Copyright (c) 2022 Adyen N.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -20,6 +20,9 @@ use Magento\Framework\Registry;
 
 class ConfigurationSettingsForm extends Generic
 {
+    /**
+     * @var SupportFormHelper
+     */
     private $supportFormHelper;
 
     /**
@@ -112,7 +115,8 @@ class ConfigurationSettingsForm extends Generic
                 'title' => __('Email'),
                 'class' => 'validate-emails',
                 'required' => true,
-                'value' => $this->supportFormHelper->getGeneralContactSenderEmail(),
+                'readonly' => true,
+                'value' => $this->supportFormHelper->getAdminEmail(),
             ]
         );
 
@@ -161,6 +165,30 @@ class ConfigurationSettingsForm extends Generic
        </div>');
 
         $fieldset->addField(
+            'sendConfigurationValues',
+            'radios',
+            [
+                'name' => 'sendConfigurationValues',
+                'label' => __('Do you want to include plugin configuration values?'),
+                'title' => __('Do you want to include plugin configuration values?'),
+                'class' => '',
+                'required' => false,
+                'values' => [
+                    ['value' => 1, 'label' => __('Yes')],
+                    ['value' => 0, 'label' => __('No')]
+                ],
+                'value' => 1
+            ]
+        )->setAfterElementHtml('
+       <div class="tooltip">
+       <span class="help">
+       <span></span>
+       </span>
+       <div class="tooltip-content">Includes plugin configuration values in the support email.
+            </div>
+       </div>');
+
+        $fieldset->addField(
             'description',
             'textarea',
             [
@@ -195,16 +223,9 @@ class ConfigurationSettingsForm extends Generic
      */
     public function getSupportTopics(): array
     {
-        return [
-            'required_settings' => 'Required Settings',
-            'card_payments' => 'Card payments',
-            'card_tokenization' => 'Card tokenization',
-            'alt_payment_methods' => 'Alternative payment methods',
-            'pos_integration' => 'POS integration with cloud',
-            'pay_by_link' => 'Pay By Link',
-            'adyen_giving' => 'Adyen Giving',
-            'advanced_settings' => 'Advanced settings'
-        ];
+        return $this->supportFormHelper->getSupportTopicsByFormType(
+        SupportFormHelper::CONFIGURATION_SETTINGS_FORM
+        );
     }
 
     /**
@@ -212,11 +233,8 @@ class ConfigurationSettingsForm extends Generic
      */
     public function getIssuesTopics(): array
     {
-        return [
-            'invalid_origin' => 'Invalid Origin',
-            'headless_state_data_actions' => 'Headless state data actions',
-            'refund' => 'Refund',
-            'other' => 'Other'
-        ];
+        return $this->supportFormHelper->getIssuesTopicsByFormType(
+            SupportFormHelper::CONFIGURATION_SETTINGS_FORM
+        );
     }
 }

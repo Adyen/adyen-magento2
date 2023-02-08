@@ -2,7 +2,7 @@
 /**
  * Adyen Payment Module
  *
- * Copyright (c) 2022 Adyen N.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -11,22 +11,37 @@
 
 namespace Adyen\Payment\Block\Adminhtml\Support;
 
+use Adyen\Payment\Helper\SupportFormHelper;
 use Magento\Backend\Block\Page;
+use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Phrase;
+use Magento\Backend\Block\Template\Context;
 
 class OrderProcessing extends Page implements SupportTabInterface
 {
+    /**
+     * @var SupportFormHelper
+     */
+    private $supportFormHelper;
+
+    public function __construct(
+        Context $context,
+        ResolverInterface $localeResolver,
+        SupportFormHelper $supportFormHelper,
+        array $data = []
+    ) {
+        parent::__construct($context, $localeResolver, $data);
+        $this->supportFormHelper = $supportFormHelper;
+    }
+
     /**
      * @return string[]
      */
     public function getSupportTopics(): array
     {
-        return [
-            'payment_status' => 'Payment status',
-            'failed_transaction' => 'Failed transaction',
-            'offer' => 'Offer',
-            'webhooks' => 'Notification &amp; webhooks',
-        ];
+        return $this->supportFormHelper->getSupportTopicsByFormType(
+            SupportFormHelper::ORDER_PROCESSING_FORM
+        );
     }
 
     /**
