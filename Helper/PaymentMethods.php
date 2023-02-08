@@ -308,8 +308,7 @@ class PaymentMethods extends AbstractHelper
         }
 
         $quote = $this->getQuote();
-        $customerId = $quote->getCustomerId();
-        if (isset($customerId)) {
+        if (!is_null($quote->getCustomer()) && !is_null($quote->getCustomer()->getDefaultBillingAddress())) {
             return $quote->getCustomer()->getDefaultBillingAddress()->getCountryId();
         }
 
