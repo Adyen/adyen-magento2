@@ -184,7 +184,7 @@ class ConfigurationSettingsForm extends Generic
        <span class="help">
        <span></span>
        </span>
-       <div class="tooltip-content">Includes plugin configuration values in the support email.
+       <div class="tooltip-content">Automatically includes the configuration values in support email.
             </div>
        </div>');
 
