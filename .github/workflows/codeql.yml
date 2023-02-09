@@ -4,7 +4,7 @@ on:
   push:
     branches: [ "develop", "develop-6", "develop-7", "main", "main-6", "main-7", "rc-v9" ]
   pull_request:
-    branches: [ "develop" ]
+    branches: [ "develop", "main" ]
     paths-ignore:
       - 'view/base/web/js/*'
   schedule:
