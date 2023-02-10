@@ -313,8 +313,9 @@ class PaymentMethods extends AbstractHelper
             return $country;
         }
 
-        if ($country = $this->getQuote()->getBillingAddress()->getCountry()) {
-            return $country;
+        $quote = $this->getQuote();
+        if (!is_null($quote->getCustomer()) && !is_null($quote->getCustomer()->getDefaultBillingAddress())) {
+            return $quote->getCustomer()->getDefaultBillingAddress()->getCountryId();
         }
 
         $defaultCountry = $this->config->getValue(

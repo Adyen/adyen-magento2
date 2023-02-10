@@ -25,12 +25,12 @@ interface InternalGuestAdyenPaymentMethodManagementInterface
      *
      * @param string $cartId
      * @param string $formKey
-     * @param AddressInterface|null $shippingAddress
+     * @param AddressInterface|null $billingAddress
      * @return string
      */
     public function handleInternalRequest(
         string $cartId,
         string $formKey,
-        AddressInterface $shippingAddress = null
+        AddressInterface $billingAddress = null
     ): string;
 }

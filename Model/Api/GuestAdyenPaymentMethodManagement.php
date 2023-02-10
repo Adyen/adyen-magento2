@@ -42,7 +42,7 @@ class GuestAdyenPaymentMethodManagement implements GuestAdyenPaymentMethodManage
      */
     public function getPaymentMethods(
         string $cartId,
-        AddressInterface $shippingAddress = null,
+        AddressInterface $billingAddress = null,
         ?string $shopperLocale = null
     ): string {
         $quoteIdMask = $this->quoteIdMaskFactory->create()->load($cartId, 'masked_id');
@@ -50,8 +50,8 @@ class GuestAdyenPaymentMethodManagement implements GuestAdyenPaymentMethodManage
 
         // if shippingAddress is provided use this country
         $country = null;
-        if ($shippingAddress) {
-            $country = $shippingAddress->getCountryId();
+        if ($billingAddress) {
+            $country = $billingAddress->getCountryId();
         }
 
         return $this->paymentMethodsHelper->getPaymentMethods($quoteId, $country, $shopperLocale);

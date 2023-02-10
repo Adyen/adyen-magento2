@@ -29,6 +29,6 @@ interface InternalAdyenPaymentMethodManagementInterface
     public function handleInternalRequest(
         string $cartId,
         string $formKey,
-        AddressInterface $shippingAddress = null
+        AddressInterface $billingAddress = null
     ): string;
 }

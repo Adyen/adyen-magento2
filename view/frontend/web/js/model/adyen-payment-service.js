@@ -47,7 +47,7 @@ define(
                 // Construct payload for the retrieve payment methods request
                 var payload = {
                     cartId: quote.getQuoteId(),
-                    shippingAddress: quote.shippingAddress(),
+                    billingAddress: quote.billingAddress(),
                     form_key: $.mage.cookies.get('form_key')
                 };
 

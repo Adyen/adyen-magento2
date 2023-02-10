@@ -49,10 +49,10 @@ class InternalAdyenPaymentMethodManagement extends AbstractInternalApiController
     public function handleInternalRequest(
         string $cartId,
         string $formKey,
-        AddressInterface $shippingAddress = null
+        AddressInterface $billingAddress = null
     ): string {
         $this->validateInternalRequest($formKey);
 
-        return $this->adyenPaymentMethodManagement->getPaymentMethods($cartId, $shippingAddress);
+        return $this->adyenPaymentMethodManagement->getPaymentMethods($cartId, $billingAddress);
     }
 }
