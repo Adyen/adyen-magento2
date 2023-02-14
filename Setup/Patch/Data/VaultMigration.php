@@ -85,7 +85,7 @@ class VaultMigration implements DataPatchInterface
         $adyenBillingAgreements = $connection->fetchAll($select);
 
         $today = new DateTime();
-        $today->add(new DateInterval('P1Y'));
+        $today->add(new DateInterval('P10Y'));
 
         foreach ($adyenBillingAgreements as $adyenBillingAgreement) {
             $this->saveVaultToken(
@@ -99,7 +99,7 @@ class VaultMigration implements DataPatchInterface
     }
 
     /**
-     * TODO: Transform token details, add functionality to create public hash, update sql to only get active BA
+     * TODO: Check if gateway token already exists
      *
      *
      *
@@ -127,7 +127,7 @@ class VaultMigration implements DataPatchInterface
         $paymentToken->setIsActive(true);
         $paymentToken->setIsVisible(true);
         $paymentToken->setCreatedAt($createdAt);
-        $paymentToken->setTokenDetails($tokenDetails);
+        $paymentToken->setTokenDetails($this->transformTokenDetails($tokenDetails));
         $paymentToken->setExpiresAt($expirationDate);
         $paymentToken->setPublicHash($this->generatePublicHash($customerId, $tokenDetails));
 
@@ -136,12 +136,6 @@ class VaultMigration implements DataPatchInterface
         return $paymentToken;
     }
 
-    /**
-     * Generate vault payment public hash
-     *
-     * @param PaymentTokenInterface $paymentToken
-     * @return string
-     */
     private function generatePublicHash(int $customerId, string $tokenDetails): string
     {
         $hashKey = $customerId;
@@ -155,70 +149,15 @@ class VaultMigration implements DataPatchInterface
 
     private function transformTokenDetails(string $baAgreementData): string
     {
-        return '';
-    }
+        $baJson = json_decode($baAgreementData, true);
+        $vaultDetails = [
+            'type' => $baJson['variant'],
+            'maskedCC' => $baJson['card']['number'],
+            'expirationDate' => $baJson['expiryMonth'] . '/' . $baJson['expiryYear'],
+            'tokenType' => $baJson['contractTypes'][0]
+        ];
 
-    /**
-     * Update a config which has a specific path and a specific value
-     *
-     * @param ModuleDataSetupInterface $setup
-     * @param string $path
-     * @param string $valueToUpdate
-     * @param string $updatedValue
-     */
-    private function updateConfigValue(
-        ModuleDataSetupInterface $setup,
-        string $path,
-        string $valueToUpdate,
-        string $updatedValue
-    ): void {
-        $config = $this->findConfig($setup, $path, $valueToUpdate);
-        if (isset($config)) {
-            $this->configWriter->save(
-                $path,
-                $updatedValue,
-                $config['scope'],
-                $config['scope_id']
-            );
-        }
-        // re-initialize otherwise it will cause errors
-        $this->reinitableConfig->reinit();
-    }
-
-    /**
-     * Return the config based on the passed path and value. If value is null, return the first item in array
-     *
-     * @param ModuleDataSetupInterface $setup
-     * @param string $path
-     * @param string|null $value
-     * @return array|null
-     */
-    private function findConfig(ModuleDataSetupInterface $setup, string $path, ?string $value): ?array
-    {
-        $config = null;
-        $configDataTable = $setup->getTable('core_config_data');
-        $connection = $setup->getConnection();
-
-        $select = $connection->select()
-            ->from($configDataTable)
-            ->where(
-                'path = ?',
-                $path
-            );
-
-        $matchingConfigs = $connection->fetchAll($select);
-
-        if (!empty($matchingConfigs) && is_null($value)) {
-            $config = reset($matchingConfigs);
-        } else {
-            foreach ($matchingConfigs as $matchingConfig) {
-                if ($matchingConfig['value'] === $value) {
-                    $config = $matchingConfig;
-                }
-            }
-        }
-
-        return $config;
+        return json_encode($vaultDetails);
     }
 
     /**
