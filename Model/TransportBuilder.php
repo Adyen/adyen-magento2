@@ -19,7 +19,6 @@ use Magento\Framework\Mail\AddressConverter;
 use Magento\Framework\Mail\EmailMessageInterfaceFactory;
 use Magento\Framework\Mail\Exception\InvalidArgumentException;
 use Magento\Framework\Mail\MessageInterface;
-use Magento\Framework\Mail\MessageInterfaceFactory;
 use Magento\Framework\Mail\MimeInterface;
 use Magento\Framework\Mail\MimeMessageInterfaceFactory;
 use Magento\Framework\Mail\MimePartInterfaceFactory;
@@ -94,7 +93,7 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
      *
      * @var SenderResolverInterface
      */
-    protected $_senderResolver;
+    protected $senderResolver;
 
     /**
      * @var TransportInterfaceFactory
@@ -134,11 +133,9 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
      * TransportBuilder constructor
      *
      * @param FactoryInterface $templateFactory
-     * @param MessageInterface $message
      * @param SenderResolverInterface $senderResolver
      * @param ObjectManagerInterface $objectManager
      * @param TransportInterfaceFactory $mailTransportFactory
-     * @param MessageInterfaceFactory|null $messageFactory
      * @param EmailMessageInterfaceFactory|null $emailMessageInterfaceFactory
      * @param MimeMessageInterfaceFactory|null $mimeMessageInterfaceFactory
      * @param MimePartInterfaceFactory|null $mimePartInterfaceFactory
@@ -148,11 +145,9 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
      */
     public function __construct(
         FactoryInterface $templateFactory,
-        MessageInterface $message,
         SenderResolverInterface $senderResolver,
         ObjectManagerInterface $objectManager,
         TransportInterfaceFactory $mailTransportFactory,
-        MessageInterfaceFactory $messageFactory = null,
         EmailMessageInterfaceFactory $emailMessageInterfaceFactory = null,
         MimeMessageInterfaceFactory $mimeMessageInterfaceFactory = null,
         MimePartInterfaceFactory $mimePartInterfaceFactory = null,
@@ -160,7 +155,7 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
     ) {
         $this->templateFactory = $templateFactory;
         $this->objectManager = $objectManager;
-        $this->_senderResolver = $senderResolver;
+        $this->senderResolver = $senderResolver;
         $this->mailTransportFactory = $mailTransportFactory;
         $this->emailMessageInterfaceFactory = $emailMessageInterfaceFactory ?: $this->objectManager
             ->get(EmailMessageInterfaceFactory::class);
@@ -264,7 +259,7 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
      */
     public function setFromByScope($from, $scopeId = null)
     {
-        $result = $this->_senderResolver->resolve($from, $scopeId);
+        $result = $this->senderResolver->resolve($from, $scopeId);
         $this->addAddressByType('from', $result['email'], $result['name']);
 
         return $this;

@@ -112,8 +112,8 @@ class OtherTopicsForm extends Generic
        <span class="help">
        <span></span>
        </span>
-       <div class="tooltip-content">This is Adyen’s unique 16-character to recognize a specific payment. 
-       To find this information, go to Sales > Orders, and select an order. 
+       <div class="tooltip-content">This is Adyen’s unique 16-character to recognize a specific payment.
+       To find this information, go to Sales > Orders, and select an order.
        The number will be listed in the comment history.
             </div>
        </div>');
@@ -133,8 +133,8 @@ class OtherTopicsForm extends Generic
        <span class="help">
        <span></span>
        </span>
-       <div class="tooltip-content">This is the reference for a specific payment. 
-       To find this information, go to Sales > Orders, and select an order. 
+       <div class="tooltip-content">This is the reference for a specific payment.
+       To find this information, go to Sales > Orders, and select an order.
        The number is top left corner.
             </div>
        </div>');
@@ -159,7 +159,7 @@ class OtherTopicsForm extends Generic
        <span class="help">
        <span></span>
        </span>
-       <div class="tooltip-content">Headless integration is when you use Adyen 
+       <div class="tooltip-content">Headless integration is when you use Adyen
        pre-configured backend but have a custom store frontend.
             </div>
        </div>');
@@ -179,7 +179,7 @@ class OtherTopicsForm extends Generic
        <span class="help">
        <span></span>
        </span>
-       <div class="tooltip-content">This are the model and serial number of the device you used for this payment. 
+       <div class="tooltip-content">This are the model and serial number of the device you used for this payment.
        To find this information, go to Customer Area under Point of sale > Terminals.
             </div>
        </div>');
@@ -200,7 +200,7 @@ class OtherTopicsForm extends Generic
        <span class="help">
        <span></span>
        </span>
-       <div class="tooltip-content">Sending us a file often helps us to solve your issue. 
+       <div class="tooltip-content">Sending us a file often helps us to solve your issue.
        We accept files in PNG, JPG, ZIP, RAR, or SVG format, with a maximum size of 10 MB.
             </div>
        </div>');

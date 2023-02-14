@@ -36,7 +36,7 @@ class OrderProcessingForm extends Action
         $resultPage->setActiveMenu('Adyen_Payment::support')
             ->getConfig()->getTitle()->prepend(__('Adyen Support Form'));
 
-        if ('POST' === $this->getRequest()->getMethod()){
+        if ('POST' === $this->getRequest()->getMethod()) {
             try {
                 $requiredFields = [
                     'topic',
@@ -47,7 +47,7 @@ class OrderProcessingForm extends Action
                 $request = $this->getRequest()->getParams();
                 $requiredFieldMissing = $this->supportFormHelper->requiredFieldsMissing($request, $requiredFields);
                 if (!empty($requiredFieldMissing)) {
-                    $this->messageManager->addErrorMessage(__('Form unsuccessfully submitted, 
+                    $this->messageManager->addErrorMessage(__('Error during form submission!
                     Missing required field(s): ' . $requiredFieldMissing));
                     return $this->_redirect('adyen/support/orderprocessingform');
                 }

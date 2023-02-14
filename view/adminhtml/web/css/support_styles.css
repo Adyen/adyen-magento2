@@ -8,10 +8,11 @@
 }
 .adyen_support-label {
     padding: 0 10px;
+    font-weight: bold;
 }
 
 .adyen_support-label:after {
-    content: "\002a";
+    content: " \002a";
     color: red;
 }
 

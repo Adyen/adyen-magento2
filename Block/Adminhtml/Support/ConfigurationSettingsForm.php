@@ -132,7 +132,8 @@ class ConfigurationSettingsForm extends Generic
                 ['value' => 'Yes', 'label' => __('Yes')],
                 ['value' => 'No', 'label' => __('No')]],
                 'value' => 'No'
-            ])->setAfterElementHtml('
+            ]
+        )->setAfterElementHtml('
        <div class="tooltip">
        <span class="help">
        <span></span>
@@ -159,9 +160,9 @@ class ConfigurationSettingsForm extends Generic
        <span class="help">
        <span></span>
        </span>
-       <div class="tooltip-content">Sending us a file often helps us to solve your issue. 
+       <div class="tooltip-content">Sending us a file often helps us to solve your issue.
        We accept files in PNG, JPG, ZIP, RAR, or SVG format, with a maximum size of 10 MB.
-            </div>
+       </div>
        </div>');
 
         $fieldset->addField(
