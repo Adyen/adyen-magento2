@@ -11,13 +11,9 @@ declare(strict_types=1);
 
 namespace Adyen\Payment\Setup\Patch\Data;
 
-use Adyen\Payment\Helper\Recurring;
-use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use DateInterval;
 use DateTime;
-use Magento\Framework\App\Config\ReinitableConfigInterface;
-use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
@@ -29,8 +25,6 @@ use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 class VaultMigration implements DataPatchInterface
 {
     private ModuleDataSetupInterface $moduleDataSetup;
-    private WriterInterface $configWriter;
-    private ReinitableConfigInterface $reinitableConfig;
     private PaymentTokenManagementInterface $tokenManagement;
     private PaymentTokenFactoryInterface $tokenFactory;
     private PaymentTokenRepositoryInterface $tokenRepository;
@@ -38,16 +32,12 @@ class VaultMigration implements DataPatchInterface
 
     public function __construct(
         ModuleDataSetupInterface $moduleDataSetup,
-        WriterInterface $configWriter,
-        ReinitableConfigInterface $reinitableConfig,
         PaymentTokenManagementInterface $tokenManagement,
         PaymentTokenFactoryInterface $tokenFactory,
         PaymentTokenRepositoryInterface $tokenRepository,
         EncryptorInterface $encryptor
     ) {
         $this->moduleDataSetup = $moduleDataSetup;
-        $this->configWriter = $configWriter;
-        $this->reinitableConfig = $reinitableConfig;
         $this->tokenManagement = $tokenManagement;
         $this->tokenFactory = $tokenFactory;
         $this->tokenRepository = $tokenRepository;
@@ -84,17 +74,21 @@ class VaultMigration implements DataPatchInterface
 
         $adyenBillingAgreements = $connection->fetchAll($select);
 
-        $today = new DateTime();
-        $today->add(new DateInterval('P10Y'));
-
         foreach ($adyenBillingAgreements as $adyenBillingAgreement) {
-            $this->saveVaultToken(
-                intval($adyenBillingAgreement['customer_id']),
+            $paymentToken = $this->tokenManagement->getByGatewayToken(
                 $adyenBillingAgreement['reference_id'],
-                $today,
-                $adyenBillingAgreement['created_at'],
-                $adyenBillingAgreement['agreement_data']
+                AdyenCcConfigProvider::CODE,
+                $adyenBillingAgreement['customer_id']
             );
+
+            if (is_null($paymentToken)) {
+                $this->saveVaultToken(
+                    intval($adyenBillingAgreement['customer_id']),
+                    $adyenBillingAgreement['reference_id'],
+                    $adyenBillingAgreement['created_at'],
+                    $adyenBillingAgreement['agreement_data']
+                );
+            }
         }
     }
 
@@ -113,11 +107,13 @@ class VaultMigration implements DataPatchInterface
     private function saveVaultToken(
         int $customerId,
         string $gatewayToken,
-        DateTime $expirationDate,
         string $createdAt,
         string $tokenDetails
-    ): PaymentTokenInterface
-    {
+    ): PaymentTokenInterface {
+
+        $expirationDate = new DateTime();
+        $expirationDate->add(new DateInterval('P10Y'));
+
         $paymentToken = $this->tokenFactory->create(
             PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD
         );
@@ -147,13 +143,19 @@ class VaultMigration implements DataPatchInterface
         return $this->encryptor->getHash($hashKey);
     }
 
+    /**
+     * TODO: Handle case where there are more contract types than 1, test v7 tokens
+     *
+     * @param string $baAgreementData
+     * @return string
+     */
     private function transformTokenDetails(string $baAgreementData): string
     {
         $baJson = json_decode($baAgreementData, true);
         $vaultDetails = [
             'type' => $baJson['variant'],
             'maskedCC' => $baJson['card']['number'],
-            'expirationDate' => $baJson['expiryMonth'] . '/' . $baJson['expiryYear'],
+            'expirationDate' => $baJson['card']['expiryMonth'] . '/' . $baJson['card']['expiryYear'],
             'tokenType' => $baJson['contractTypes'][0]
         ];
 
