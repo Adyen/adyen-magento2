@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace Adyen\Payment\Setup\Patch\Data;
 
+use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use DateInterval;
 use DateTime;
@@ -144,7 +145,6 @@ class VaultMigration implements DataPatchInterface
     }
 
     /**
-     * TODO: Handle case where there are more contract types than 1, test v7 tokens
      *
      * @param string $baAgreementData
      * @return string
@@ -152,11 +152,20 @@ class VaultMigration implements DataPatchInterface
     private function transformTokenDetails(string $baAgreementData): string
     {
         $baJson = json_decode($baAgreementData, true);
+        $contractType = $baJson['contractTypes'][0];
+
+        // If contract type was defined in early v7, it can be (ONECLICK), (RECURRING) or (ONECLICK,RECURRING)
+        if (str_contains($contractType, 'ONECLICK')) {
+            $contractType = 'CardOnFile';
+        } elseif ($contractType === 'RECURRING') {
+            $contractType = 'Subscription';
+        }
+
         $vaultDetails = [
             'type' => $baJson['variant'],
             'maskedCC' => $baJson['card']['number'],
             'expirationDate' => $baJson['card']['expiryMonth'] . '/' . $baJson['card']['expiryYear'],
-            'tokenType' => $baJson['contractTypes'][0]
+            'tokenType' => $contractType
         ];
 
         return json_encode($vaultDetails);
