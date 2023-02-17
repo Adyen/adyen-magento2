@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace Adyen\Payment\Setup\Patch\Data;
 
-use Adyen\Payment\Helper\Recurring;
+use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use DateInterval;
 use DateTime;
@@ -30,26 +30,24 @@ class VaultMigration implements DataPatchInterface
     private PaymentTokenFactoryInterface $tokenFactory;
     private PaymentTokenRepositoryInterface $tokenRepository;
     private EncryptorInterface $encryptor;
+    private AdyenLogger $adyenLogger;
 
     public function __construct(
         ModuleDataSetupInterface $moduleDataSetup,
         PaymentTokenManagementInterface $tokenManagement,
         PaymentTokenFactoryInterface $tokenFactory,
         PaymentTokenRepositoryInterface $tokenRepository,
-        EncryptorInterface $encryptor
+        EncryptorInterface $encryptor,
+        AdyenLogger $adyenLogger
     ) {
         $this->moduleDataSetup = $moduleDataSetup;
         $this->tokenManagement = $tokenManagement;
         $this->tokenFactory = $tokenFactory;
         $this->tokenRepository = $tokenRepository;
         $this->encryptor = $encryptor;
+        $this->adyenLogger = $adyenLogger;
     }
 
-    /**
-     * Do Upgrade
-     *
-     * @return void
-     */
     public function apply()
     {
         $this->moduleDataSetup->getConnection()->startSetup();
@@ -83,34 +81,30 @@ class VaultMigration implements DataPatchInterface
             );
 
             if (is_null($paymentToken)) {
-                $this->saveVaultToken(
-                    intval($adyenBillingAgreement['customer_id']),
-                    $adyenBillingAgreement['reference_id'],
-                    $adyenBillingAgreement['created_at'],
-                    $adyenBillingAgreement['agreement_data']
-                );
+                try {
+                    $this->saveVaultToken(
+                        intval($adyenBillingAgreement['customer_id']),
+                        $adyenBillingAgreement['reference_id'],
+                        $adyenBillingAgreement['created_at'],
+                        $adyenBillingAgreement['agreement_data']
+                    );
+                } catch (\Exception $e) {
+                    $this->adyenLogger->addAdyenWarning(sprintf(
+                        'Unable to migrate token w/agreement_id %s, due to exception: %s',
+                        $adyenBillingAgreement['agreement_id'],
+                        $e->getMessage()
+                    ));
+                }
             }
         }
     }
 
-    /**
-     * TODO: Check if gateway token already exists
-     *
-     *
-     *
-     * @param int $customerId
-     * @param string $gatewayToken
-     * @param DateTime $expirationDate
-     * @param string $createdAt
-     * @param string $tokenDetails
-     * @return PaymentTokenInterface
-     */
     private function saveVaultToken(
         int $customerId,
         string $gatewayToken,
         string $createdAt,
         string $tokenDetails
-    ): PaymentTokenInterface {
+    ): void {
 
         $expirationDate = new DateTime();
         $expirationDate->add(new DateInterval('P10Y'));
@@ -130,7 +124,6 @@ class VaultMigration implements DataPatchInterface
 
         $this->tokenRepository->save($paymentToken);
 
-        return $paymentToken;
     }
 
     private function generatePublicHash(int $customerId, string $tokenDetails): string
