@@ -531,14 +531,3 @@ class SupportFormHelper
         return $issuesTopics[$supportFormType] ?? null;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
