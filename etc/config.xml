@@ -56,8 +56,8 @@
                 <group>adyen</group>
             </adyen_cc>
             <adyen_cc_vault>
-                <model>AdyenPaymentCcVaultFacade</model>
                 <title>Stored Cards (Adyen)</title>
+                <model>Adyen\Payment\Model\Methods\Vault\CardVault</model>
             </adyen_cc_vault>
             <adyen_oneclick>
                 <active>0</active>
