@@ -196,7 +196,7 @@ class OrderProcessingForm extends Generic
        <span class="help">
        <span></span>
        </span>
-       <div class="tooltip-content">This are the model and serial number of the device you used for this payment.
+       <div class="tooltip-content">These are the model and serial number of the device you used for this payment.
        To find this information, go to Customer Area under Point of sale > Terminals.
             </div>
        </div>');
