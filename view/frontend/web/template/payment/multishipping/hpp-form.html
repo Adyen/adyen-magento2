@@ -4,12 +4,12 @@
                name="payment[method]"
                title="Adyen Alternative payment methods"
                data-bind="
-                   attr: {'id': 'adyen_' + paymentMethod.methodIdentifier},
+                   attr: {'id': paymentMethod.methodIdentifier},
                    value: 'adyen_hpp',
                    checked: paymentMethod.methodIdentifier == $parent.getSelectedAlternativePaymentMethodType,
                    click: $parent.selectPaymentMethodType"
                class="radio"/>
-        <label data-bind="attr: {'for': 'adyen_' + paymentMethod.methodIdentifier}">
+        <label data-bind="attr: {'for': paymentMethod.methodIdentifier}">
             <!-- ko if: icon -->
             <img data-bind="attr: {
                             'src': icon.url,

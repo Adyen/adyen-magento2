@@ -29,7 +29,7 @@
         </field>
         <field id="payments_return_url" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Payment Return URL</label>
-            <tooltip>The URL that redirect payment methods will return to after the shopper completes a payment in a 3rd party gateway. Default return URL endpoint is {YOUR_MAGENTO_BASE_URL}/adyen/process/result</tooltip>
+            <tooltip>The URL that redirect payment methods will return to after the shopper completes a payment in a 3rd party gateway. Default return URL endpoint is {YOUR_MAGENTO_BASE_URL}/adyen/return</tooltip>
             <config_path>payment/adyen_abstract/payment_return_url</config_path>
         </field>
         <field id="custom_success_redirect_path" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">

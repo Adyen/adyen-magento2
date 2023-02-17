@@ -153,7 +153,7 @@ class Success extends Template
     {
         $storeId = $this->storeManager->getStore()->getId();
         $imageBaseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA).'adyen/';
-        $donationAmounts = explode(',', $this->configHelper->getAdyenGivingDonationAmounts($storeId));
+        $donationAmounts = explode(',', (string) $this->configHelper->getAdyenGivingDonationAmounts($storeId));
         $donationAmounts = array_map(function ($amount) {
             return $this->adyenHelper->formatAmount($amount, $this->getOrder()->getOrderCurrencyCode());
         }, $donationAmounts);

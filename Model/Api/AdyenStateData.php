@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2021 Adyen N.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -17,26 +17,21 @@ use Adyen\Payment\Model\ResourceModel\StateData as StateDataResourceModel;
 use Adyen\Payment\Model\StateData;
 use Adyen\Payment\Model\StateDataFactory;
 use Adyen\Service\Validator\CheckoutStateDataValidator;
-use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 
 class AdyenStateData implements AdyenStateDataInterface
 {
-    /**
-     * @var CheckoutStateDataValidator
-     */
-    private $checkoutStateDataValidator;
+    private CheckoutStateDataValidator $checkoutStateDataValidator;
+
+    private StateDataFactory $stateDataFactory;
+
+    private StateDataResourceModel $stateDataResourceModel;
 
     /**
-     * @var StateDataFactory
+     * @param CheckoutStateDataValidator $checkoutStateDataValidator
+     * @param StateDataFactory $stateDataFactory
+     * @param StateDataResourceModel $stateDataResourceModel
      */
-    private $stateDataFactory;
-
-    /**
-     * @var StateDataResourceModel
-     */
-    private $stateDataResourceModel;
-
     public function __construct(
         CheckoutStateDataValidator $checkoutStateDataValidator,
         StateDataFactory $stateDataFactory,
@@ -48,10 +43,13 @@ class AdyenStateData implements AdyenStateDataInterface
     }
 
     /**
-     * @throws AlreadyExistsException
+     * @param string $stateData
+     * @param int $quoteId
+     * @return void
      * @throws LocalizedException
+     * @throws \Magento\Framework\Exception\AlreadyExistsException
      */
-    public function save($stateData, $quoteId)
+    public function save(string $stateData, int $quoteId): void
     {
         // Decode payload from frontend
         $stateData = json_decode($stateData, true);

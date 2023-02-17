@@ -18,7 +18,7 @@ use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
-use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
+use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Magento\Catalog\Helper\Image;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
@@ -100,7 +100,7 @@ class CheckoutDataBuilder implements BuilderInterface
         $requestBody = $this->stateData->getStateData($order->getQuoteId());
 
         if (empty($requestBody) && !is_null($payment->getCcNumber())) {
-            $requestBody = json_decode($payment->getCcNumber(), true);
+            $requestBody = json_decode((string) $payment->getCcNumber(), true);
         }
 
         $order->setCanSendNewEmailFlag(in_array($payment->getMethod(), self::ORDER_EMAIL_REQUIRED_METHODS));
@@ -118,7 +118,7 @@ class CheckoutDataBuilder implements BuilderInterface
             $requestBody['bankAccount']['ownerName'] = $payment->getAdditionalInformation("bankAccountOwnerName");
         }
 
-        $brandCode = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
+        $brandCode = $payment->getAdditionalInformation(AdyenPaymentMethodDataAssignObserver::BRAND_CODE);
         if (
             (isset($brandCode) && $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) ||
             $payment->getMethod() === AdyenPayByLinkConfigProvider::CODE
@@ -145,7 +145,7 @@ class CheckoutDataBuilder implements BuilderInterface
         }
 
         // Ratepay specific Fingerprint
-        $deviceFingerprint = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::DF_VALUE);
+        $deviceFingerprint = $payment->getAdditionalInformation(AdyenPaymentMethodDataAssignObserver::DF_VALUE);
         if ($deviceFingerprint && $this->adyenHelper->isPaymentMethodOfType($brandCode, Data::RATEPAY)) {
             $requestBody['deviceFingerprint'] = $deviceFingerprint;
         }
@@ -165,7 +165,7 @@ class CheckoutDataBuilder implements BuilderInterface
 
         if ($payment->getMethod() == AdyenBoletoConfigProvider::CODE) {
             $boletoTypes = $this->adyenHelper->getAdyenBoletoConfigData('boletotypes');
-            $boletoTypes = explode(',', $boletoTypes);
+            $boletoTypes = explode(',', (string) $boletoTypes);
 
             if (count($boletoTypes) == 1) {
                 $requestBody['selectedBrand'] = $boletoTypes[0];

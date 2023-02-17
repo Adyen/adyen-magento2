@@ -3,19 +3,18 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Controller\Process;
+namespace Adyen\Payment\Controller\Return;
 
 use Adyen\Payment\Exception\PaymentMethodException;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
-use Adyen\Payment\Helper\PaymentMethods\AbstractWalletPaymentMethod;
-use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
+use Adyen\Payment\Model\Method\PaymentMethodInterface;
 use Adyen\Payment\Helper\Quote;
 use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\StateData;
@@ -23,11 +22,9 @@ use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
-use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 use Adyen\Service\Validator\DataArrayValidator;
 use Magento\Checkout\Model\Session;
-use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
@@ -36,7 +33,7 @@ use Magento\Sales\Model\OrderFactory;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Vault\Model\Ui\VaultConfigProvider;
 
-class Result extends Action
+class Index extends \Magento\Framework\App\Action\Action
 {
 
     const BRAND_CODE_DOTPAY = 'dotpay';
@@ -138,11 +135,6 @@ class Result extends Action
     private $recurringHelper;
 
     /**
-     * @var PaymentMethodFactory
-     */
-    private $paymentMethodFactory;
-
-    /**
      * @param Context $context
      * @param Data $adyenHelper
      * @param OrderFactory $orderFactory
@@ -174,8 +166,7 @@ class Result extends Action
         Data $dataHelper,
         OrderRepositoryInterface $orderRepository,
         Recurring $recurringHelper,
-        Config $configHelper,
-        PaymentMethodFactory $paymentMethodFactory
+        Config $configHelper
     ) {
         $this->_adyenHelper = $adyenHelper;
         $this->_orderFactory = $orderFactory;
@@ -191,7 +182,6 @@ class Result extends Action
         $this->orderRepository = $orderRepository;
         $this->recurringHelper = $recurringHelper;
         $this->configHelper = $configHelper;
-        $this->paymentMethodFactory = $paymentMethodFactory;
         parent::__construct($context);
     }
 
@@ -296,54 +286,27 @@ class Result extends Action
             $this->payment->setAdditionalInformation('pspReference', $response['pspReference']);
         }
 
-        if ($this->vaultHelper->hasRecurringDetailReference($response) &&
-            $this->payment->getMethodInstance()->getCode() !== AdyenOneclickConfigProvider::CODE
-        ) {
-            $storeId = $this->payment->getMethodInstance()->getStore();
-            $paymentInstanceCode = $this->payment->getMethodInstance()->getCode();
+        $paymentMethodInstance = $this->payment->getMethodInstance();
+        $paymentInstanceCode = $paymentMethodInstance->getCode();
+
+        if ($this->vaultHelper->hasRecurringDetailReference($response) && $paymentInstanceCode !== AdyenOneclickConfigProvider::CODE) {
+            $storeId = $paymentMethodInstance->getStore();
             $storePaymentMethods = $this->configHelper->isStoreAlternativePaymentMethodEnabled($storeId);
             $cardVaultEnabled = $this->vaultHelper->isCardVaultEnabled($storeId);
-            $adyenTokensEnabled = $this->recurringHelper->areAdyenTokensEnabled($storeId);
 
-            // If payment method is HPP and hpp config enabled
-            // Else if payment method is card and vault is enabled
-            // Else if payment method is card and vault is disabled and adyen tokens are enabled
-            if ($storePaymentMethods && $paymentInstanceCode === AdyenHppConfigProvider::CODE) {
-                $paymentMethod = $response['paymentMethod']['type'];
+            // If payment method is NOT card
+            // Else if card
+            if ($storePaymentMethods && $paymentMethodInstance instanceof PaymentMethodInterface) {
                 try {
-                    $this->payment->setAdditionalInformation(VaultConfigProvider::IS_ACTIVE_CODE, true);
-                    $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($paymentMethod);
-                    if ($adyenPaymentMethod instanceof AbstractWalletPaymentMethod) {
-                        $this->vaultHelper->saveRecurringCardDetails(
-                            $this->payment,
-                            $response['additionalData'],
-                            $adyenPaymentMethod
-                        );
-                    } else {
-                        $this->vaultHelper->saveRecurringPaymentMethodDetails(
-                            $this->payment,
-                            $response['additionalData']
-                        );
-                    }
+                    $this->vaultHelper->saveRecurringDetails($this->payment, $response['additionalData']);
                 } catch (PaymentMethodException $e) {
                     $this->_adyenLogger->error(sprintf(
                         'Unable to create payment method with tx variant %s in details handler',
-                        $paymentMethod
+                        $response['additionalData']['paymentMethod']
                     ));
                 }
             } elseif ($cardVaultEnabled && $paymentInstanceCode === AdyenCcConfigProvider::CODE) {
                 $this->vaultHelper->saveRecurringCardDetails($this->payment, $response['additionalData']);
-            } elseif (
-                !$cardVaultEnabled &&
-                $adyenTokensEnabled &&
-                $paymentInstanceCode === AdyenCcConfigProvider::CODE
-            ) {
-                $order = $this->payment->getOrder();
-                $this->recurringHelper->createAdyenBillingAgreement(
-                    $order,
-                    $response['additionalData'],
-                    $this->payment->getAdditionalInformation()
-                );
             }
         }
 
@@ -398,7 +361,7 @@ class Result extends Action
             $paymentMethod = '';
         }
 
-        $pspReference = isset($response['pspReference']) ? trim($response['pspReference']) : '';
+        $pspReference = isset($response['pspReference']) ? trim((string) $response['pspReference']) : '';
 
         $type = 'Adyen Result URL response:';
         $comment = __(
@@ -417,14 +380,14 @@ class Result extends Action
         $orderPayment->setAdditionalInformation('resultCode', $authResult);
         $this->orderResourceModel->save($order);
 
-        switch (strtoupper($authResult)) {
+        switch (strtoupper((string) $authResult)) {
             case Notification::AUTHORISED:
                 $result = true;
                 $this->_adyenLogger->addAdyenResult('Do nothing wait for the notification');
                 break;
             case Notification::RECEIVED:
                 $result = true;
-                if (strpos($paymentMethod, "alipay_hk") !== false) {
+                if (strpos((string) $paymentMethod, "alipay_hk") !== false) {
                     $result = false;
                 }
                 $this->_adyenLogger->addAdyenResult('Do nothing wait for the notification');
@@ -432,7 +395,7 @@ class Result extends Action
             case Notification::PENDING:
                 // do nothing wait for the notification
                 $result = true;
-                if (strpos($paymentMethod, "bankTransfer") !== false) {
+                if (strpos((string) $paymentMethod, "bankTransfer") !== false) {
                     $comment .= "<br /><br />Waiting for the customer to transfer the money.";
                 } elseif ($paymentMethod == "sepadirectdebit") {
                     $comment .= "<br /><br />This request will be send to the bank at the end of the day.";
@@ -503,7 +466,7 @@ class Result extends Action
         // do it like this because $_GET is converting dot to underscore
         $queryString = $_SERVER['QUERY_STRING'];
         $result = [];
-        $pairs = explode("&", $queryString);
+        $pairs = explode("&", (string) $queryString);
 
         foreach ($pairs as $pair) {
             $nv = explode("=", $pair);
@@ -519,7 +482,7 @@ class Result extends Action
         $hmacKey = $this->_adyenHelper->getHmac();
         $merchantSig = \Adyen\Util\Util::calculateSha256Signature($hmacKey, $result);
 
-        if (strcmp($merchantSig, $merchantSigNotification) === 0) {
+        if (strcmp($merchantSig, (string) $merchantSigNotification) === 0) {
             return true;
         }
 
@@ -534,7 +497,7 @@ class Result extends Action
      */
     protected function escapeString($val)
     {
-        return str_replace(':', '\\:', str_replace('\\', '\\\\', $val));
+        return str_replace(':', '\\:', str_replace('\\', '\\\\', (string) $val));
     }
 
     /**

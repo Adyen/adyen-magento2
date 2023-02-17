@@ -184,7 +184,7 @@ class Config
         if (is_null($key)) {
             return null;
         }
-        return $this->encryptor->decrypt(trim($key));
+        return $this->encryptor->decrypt(trim((string) $key));
     }
 
     /**
@@ -249,7 +249,7 @@ class Config
             return null;
         }
 
-        return $this->encryptor->decrypt(trim($key));
+        return $this->encryptor->decrypt(trim((string) $key));
     }
 
     /**

@@ -3,28 +3,22 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2022 Adyen N.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
  * Author: Adyen <magento@adyen.com>
  */
-namespace Adyen\Payment\Helper\PaymentMethods;
+namespace Adyen\Payment\Model\Methods;
 
-class SepaPaymentMethod implements PaymentMethodInterface
+use Adyen\Payment\Model\Method\PaymentMethodInterface;
+use Adyen\Payment\Model\AdyenPaymentMethod;
+
+class AmazonPay extends AdyenPaymentMethod implements PaymentMethodInterface
 {
-    const TX_VARIANT = 'sepadirectdebit';
-    const NAME = 'SEPA Direct Debit';
-
-    public function getTxVariant(): string
-    {
-        return self::TX_VARIANT;
-    }
-
-    public function getPaymentMethodName(): string
-    {
-        return self::NAME;
-    }
+    const CODE = 'adyen_amazonpay';
+    const TX_VARIANT = 'amazonpay';
+    const NAME = 'Amazon Pay';
 
     public function supportsRecurring(): bool
     {
@@ -43,7 +37,7 @@ class SepaPaymentMethod implements PaymentMethodInterface
 
     public function supportsCardOnFile(): bool
     {
-        return false;
+        return true;
     }
 
     public function supportsSubscription(): bool
@@ -52,6 +46,11 @@ class SepaPaymentMethod implements PaymentMethodInterface
     }
 
     public function supportsUnscheduledCardOnFile(): bool
+    {
+        return true;
+    }
+
+    public function isWallet(): bool
     {
         return true;
     }

@@ -2,7 +2,9 @@
 
 namespace Adyen\Payment\Model\Config\Source;
 
-use Adyen\Payment\Helper\PaymentMethods;
+use Adyen\Payment\Model\Methods\GooglePay;
+use Adyen\Payment\Model\Methods\Klarna;
+use Adyen\Payment\Model\Methods\Paypal;
 use Magento\Framework\Data\OptionSourceInterface;
 
 class TokenizedPaymentMethods implements OptionSourceInterface
@@ -23,24 +25,24 @@ class TokenizedPaymentMethods implements OptionSourceInterface
                 'label' => PaymentMethods\AmazonPayPaymentMethod::NAME
             ],*/
             [
-                'value' => PaymentMethods\GooglePayPaymentMethod::TX_VARIANT,
-                'label' => PaymentMethods\GooglePayPaymentMethod::NAME
+                'value' => GooglePay::TX_VARIANT,
+                'label' => GooglePay::NAME
             ],
             [
-                'value' => PaymentMethods\PayPalPaymentMethod::TX_VARIANT,
-                'label' => PaymentMethods\PayPalPaymentMethod::NAME
+                'value' => Paypal::TX_VARIANT,
+                'label' => Paypal::NAME
             ],
-            [
+            /*[
                 'value' => PaymentMethods\SepaPaymentMethod::TX_VARIANT,
                 'label' => PaymentMethods\SepaPaymentMethod::NAME
             ],
             [
                 'value' => PaymentMethods\TwintPaymentMethod::TX_VARIANT,
                 'label' => PaymentMethods\TwintPaymentMethod::NAME
-            ],
+            ],*/
             [
-                'value' => PaymentMethods\KlarnaPayLaterPaymentMethod::TX_VARIANT,
-                'label' => PaymentMethods\KlarnaPayLaterPaymentMethod::NAME
+                'value' => Klarna::TX_VARIANT,
+                'label' => Klarna::NAME
             ]
         ];
     }

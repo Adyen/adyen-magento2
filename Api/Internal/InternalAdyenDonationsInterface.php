@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2021 Adyen N.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -16,9 +16,10 @@ interface InternalAdyenDonationsInterface
 {
     /**
      * Build and send internal donation payment request
+     *
      * @param string $payload
      * @param string $formKey
-     * @return mixed
+     * @return void
      */
-    public function handleInternalRequest($payload, $formKey);
+    public function handleInternalRequest(string $payload, string $formKey): void;
 }

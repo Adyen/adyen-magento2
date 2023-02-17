@@ -21,7 +21,7 @@ use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
-class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
+class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
 {
     const BRAND_CODE = 'brand_code';
     const DF_VALUE = 'df_value';
@@ -60,7 +60,7 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
     private $vaultHelper;
 
     /**
-     * AdyenHppDataAssignObserver constructor.
+     * AdyenPaymentMethodDataAssignObserver constructor.
      *
      * @param CheckoutStateDataValidator $checkoutStateDataValidator
      * @param Collection $stateDataCollection
@@ -106,7 +106,7 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
 
         // JSON decode state data from the frontend or fetch it from the DB entity with the quote ID
         if (!empty($additionalData[self::STATE_DATA])) {
-            $stateData = json_decode($additionalData[self::STATE_DATA], true);
+            $stateData = json_decode((string) $additionalData[self::STATE_DATA], true);
         } else {
             $stateData = $this->stateDataCollection->getStateDataArrayWithQuoteId($paymentInfo->getData('quote_id'));
         }

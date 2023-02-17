@@ -9,21 +9,20 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-namespace Adyen\Payment\Helper\PaymentMethods;
+namespace Adyen\Payment\Model\Methods;
 
-class PayPalPaymentMethod implements PaymentMethodInterface
+use Adyen\Payment\Model\Method\PaymentMethodInterface;
+use Adyen\Payment\Model\AdyenPaymentMethod;
+
+class Ideal extends AdyenPaymentMethod implements PaymentMethodInterface
 {
-    const TX_VARIANT = 'paypal';
-    const NAME = 'PayPal';
+    const CODE = 'adyen_ideal';
+    const TX_VARIANT = 'ideal';
+    const NAME = 'iDeal';
 
-    public function getTxVariant(): string
+    public function supportsRecurring(): bool
     {
-        return self::TX_VARIANT;
-    }
-
-    public function getPaymentMethodName(): string
-    {
-        return self::NAME;
+        return true;
     }
 
     public function supportsManualCapture(): bool
@@ -49,5 +48,10 @@ class PayPalPaymentMethod implements PaymentMethodInterface
     public function supportsUnscheduledCardOnFile(): bool
     {
         return true;
+    }
+
+    public function isWallet(): bool
+    {
+        return false;
     }
 }

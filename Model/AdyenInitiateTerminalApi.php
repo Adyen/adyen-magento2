@@ -15,6 +15,8 @@ namespace Adyen\Payment\Model;
 use Adyen\Payment\Api\AdyenInitiateTerminalApiInterface;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\Quote;
 
 /** @deprecated v9: Identical functionality is in Helper\PointofSale and TransactionPosCloudSync */
@@ -99,11 +101,13 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         $this->client = $client;
     }
 
+
     /**
-     * Trigger sync call on terminal
-     *
+     * @param $payload
      * @return mixed
-     * @throws \Exception
+     * @throws \Adyen\AdyenException
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
     public function initiate($payload)
     {
@@ -112,7 +116,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
 
         //Validate JSON that has just been parsed if it was in a valid format
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \Magento\Framework\Exception\LocalizedException(
+            throw new LocalizedException(
                 __('Terminal API initiate request was not a valid JSON')
             );
         }
