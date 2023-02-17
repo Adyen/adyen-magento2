@@ -92,7 +92,7 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
 
             $this->adyenLogger->addAdyenNotification(
                 sprintf(
-                    "Vault payment token disabled due to the failing %s webhook notification.",
+                    "Vault payment token with entity_id: %s disabled due to the failing %s webhook notification.",
                     $notification->getEventCode()
                 ),
                 [
