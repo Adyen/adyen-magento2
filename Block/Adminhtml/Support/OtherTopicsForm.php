@@ -135,7 +135,7 @@ class OtherTopicsForm extends Generic
        </span>
        <div class="tooltip-content">This is the reference for a specific payment.
        To find this information, go to Sales > Orders, and select an order.
-       The number is top left corner.
+       The number is on the top left corner.
             </div>
        </div>');
 
