@@ -4,6 +4,7 @@
  * See COPYING.txt for license details.
  */
 -->
+<!-- ko if: checkoutComponentBuilt -->
 <div class="payment-method" css="'_active': (getId() === isChecked())">
     <div class="payment-method-title field choice">
         <input type="radio"
@@ -32,12 +33,48 @@
     </div>
 
     <div class="payment-method-content">
+
+        <!-- ko ifnot: (getClientKey()) -->
+        <span class="message message-error error"><!-- ko text: $t('Please configure an API Key, a Client Key and a live endpoint prefix(if in Production Mode) in your Adyen Required Settings')--><!-- /ko --></span>
+        <!--/ko-->
+
         <each args="getRegion('messages')" render=""></each>
         <div class="payment-method-billing-address">
             <each args="data: $parent.getRegion(getBillingAddressFormName()), as: '$item'">
                 <render args="$item.getTemplate()"/>
             </each>
         </div>
+
+        <form class="form" action="#" method="post" data-bind="
+            attr: {'id': 'card_vault_1', 'data-role': 'card_vault_1' }">
+
+            <fieldset
+                    data-bind="attr: {class: 'fieldset payment items ccard adyen_cc_vault', id: 'payment_form_' + 'adyen_cc_form' + '_' + 'card_vault_1'}">
+
+
+                <div class="field number">
+                    <label class="label">
+                        <span><!-- ko text: $t('Credit Card Number')--><!-- /ko --></span>
+                    </label>
+                    <div class="control">
+                        <span data-bind="text: getMaskedCard()"></span>
+                    </div>
+                </div>
+
+                <div class="checkout-component-dock" afterRender="renderCardVaultToken()" data-bind="attr: { id: 'cvcContainer-' + 'card_vault_1'}"></div>
+
+            </fieldset>
+
+
+        </form>
+
+
+
+
+
+
+
+
         <div class="checkout-agreements-block">
             <!-- ko foreach: $parent.getRegion('before-place-order') -->
             <!-- ko template: getTemplate() --><!-- /ko -->
@@ -53,9 +90,10 @@
                             enable: isButtonActive()
                         "
                         disabled>
-                    <span translate="'Place Order'"></span>
+                    <span translate="'Place Orderrrrrr'"></span>
                 </button>
             </div>
         </div>
     </div>
 </div>
+<!--/ko-->
