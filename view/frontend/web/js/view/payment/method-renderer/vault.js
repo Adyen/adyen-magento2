@@ -2,7 +2,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2019 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -12,12 +12,15 @@
 define([
     'jquery',
     'Magento_Vault/js/view/payment/method-renderer/vault'
-], function ($, VaultComponent) {
+], function (
+    $,
+    VaultComponent
+) {
     'use strict';
 
     return VaultComponent.extend({
         defaults: {
-            template: 'Magento_Vault/payment/form'
+            template: 'Adyen_Payment/payment/card-vault-form.html'
         },
 
         /**
