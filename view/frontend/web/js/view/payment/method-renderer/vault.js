@@ -12,6 +12,10 @@
 define([
     'jquery',
     'ko',
+    'uiLayout',
+    'Magento_Checkout/js/action/place-order',
+    'Magento_Checkout/js/model/full-screen-loader',
+    'Magento_Ui/js/model/messages',
     'Magento_Vault/js/view/payment/method-renderer/vault',
     'Adyen_Payment/js/model/adyen-payment-service',
     'Adyen_Payment/js/model/adyen-configuration',
@@ -19,6 +23,10 @@ define([
 ], function (
     $,
     ko,
+    layout,
+    placeOrderAction,
+    fullScreenLoader,
+    Messages,
     VaultComponent,
     adyenPaymentService,
     adyenConfiguration,
@@ -107,16 +115,22 @@ define([
             return this.gatewayToken;
         },
 
-        /**
-         * @param {String} type
-         * @returns {Boolean}
-         */
         getIcons: function (type) {
             return this.details.icon;
         },
+
         getClientKey: function () {
             return adyenConfiguration.getClientKey();
         },
+
+        getMessageContainer: function () {
+            return messageContainer;
+        },
+
+        afterPlaceOrder: function () {
+            return self.afterPlaceOrder(); // needed for placeOrder method
+        },
+
         renderCardVaultToken: function () {
             let self = this;
             if (!this.getClientKey()) {
@@ -143,12 +157,59 @@ define([
 
             return true
         },
+
         handleOnChange: function (state, component) {
             validTokens[this.getId()] = !!state.isValid;
             isValidObserver(validTokens)
         },
+
         isButtonActive: function () {
             return (this.getId() === this.isChecked()) && isValidObserver()[this.getId()];
+        },
+
+        // TODO check: isPlaceOrderActionAllowed, installments
+        placeOrder: function (data, event) {
+            debugger;
+            let innerSelf = this;
+
+            if (event) {
+                event.preventDefault();
+            }
+
+            fullScreenLoader.startLoader();
+            $.when(placeOrderAction(this.getData())).fail(
+                function () {
+                    fullScreenLoader.stopLoader();
+                    //innerSelf.isPlaceOrderActionAllowed(true);
+                },
+            ).done(
+                function (orderId) {
+                    innerSelf.afterPlaceOrder();
+
+                    self.orderId = orderId;
+                    adyenPaymentService.getOrderPaymentStatus(
+                        orderId).done(function (responseJSON) {
+                        self.handleAdyenResult(
+                            responseJSON,
+                            orderId);
+                    });
+                },
+            );
+        },
+
+        getData: function () {
+            debugger;
+            const self = this;
+            let stateData = self.component.data;
+            stateData = JSON.stringify(stateData);
+            window.sessionStorage.setItem('adyen.stateData', stateData);
+            return {
+                method: this.code,
+                additional_data: {
+                    stateData: stateData,
+                    'public_hash': this.publicHash
+                },
+            };
         },
     });
 });

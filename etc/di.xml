@@ -59,6 +59,7 @@
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentCcVaultPaymentValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentCcFacade</argument>
             <argument name="code" xsi:type="const">Adyen\Payment\Model\Methods\Vault\CardVault::CODE</argument>
+            <argument name="commandPool" xsi:type="object">AdyenPaymentCcCommandPool</argument>
         </arguments>
     </type>
 
