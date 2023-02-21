@@ -45,9 +45,9 @@
             </each>
         </div>
 
-        <form class="form" action="#" method="post" data-bind="attr: {'id': getTokenId(), 'data-role': getTokenId() }">
+        <form class="form" action="#" method="post" data-bind="attr: {'id': getId(), 'data-role': getId() }">
             <fieldset
-                    data-bind="attr: {class: 'fieldset payment items ccard adyen_cc_vault', id: 'payment_form_' + 'adyen_cc_form' + '_' + getTokenId()}">
+                    data-bind="attr: {class: 'fieldset payment items ccard adyen_cc_vault', id: 'payment_form_' + 'adyen_cc_form' + '_' + getId()}">
 
 
                 <div class="field number">
@@ -59,7 +59,7 @@
                     </div>
                 </div>
 
-                <div class="checkout-component-dock" afterRender="renderCardVaultToken()" data-bind="attr: { id: 'cvcContainer-' + getTokenId()}"></div>
+                <div class="checkout-component-dock" afterRender="renderCardVaultToken()" data-bind="attr: { id: 'cvcContainer-' + getId()}"></div>
             </fieldset>
         </form>
         <div class="checkout-agreements-block">

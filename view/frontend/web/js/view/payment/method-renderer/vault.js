@@ -26,6 +26,9 @@ define([
 ) {
     'use strict';
 
+    let isValidObserver = ko.observable(false);
+    let validTokens = {};
+
     return VaultComponent.extend({
         defaults: {
             template: 'Adyen_Payment/payment/card-vault-form.html',
@@ -104,10 +107,6 @@ define([
             return this.gatewayToken;
         },
 
-        getTokenId: function () {
-            return this.tokenId;
-        },
-
         /**
          * @param {String} type
          * @returns {Boolean}
@@ -120,7 +119,6 @@ define([
         },
         renderCardVaultToken: function () {
             let self = this;
-            debugger;
             if (!this.getClientKey()) {
                 return false
             }
@@ -132,18 +130,25 @@ define([
                 expiryMonth: this.getExpirationMonth(),
                 expiryYear: this.getExpirationYear(),
                 //holderName: 'First tester',
-                //onChange: this.handleOnChange.bind(this)
+                onChange: this.handleOnChange.bind(this)
             }
 
             self.component = adyenCheckout.mountPaymentMethodComponent(
                 this.checkoutComponent,
                 'card',
                 componentConfig,
-                '#cvcContainer-' + this.getTokenId()
+                '#cvcContainer-' + this.getId()
             )
             this.component = self.component
 
             return true
-        }
+        },
+        handleOnChange: function (state, component) {
+            validTokens[this.getId()] = !!state.isValid;
+            isValidObserver(validTokens)
+        },
+        isButtonActive: function () {
+            return (this.getId() === this.isChecked()) && isValidObserver()[this.getId()];
+        },
     });
 });
