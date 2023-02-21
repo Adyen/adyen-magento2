@@ -18,6 +18,8 @@ use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Exception;
+use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\ResourceModel\Order;
@@ -136,14 +138,18 @@ class PaymentResponseHandler
     }
 
     /**
-     * @param $paymentsResponse
+     * @param array ß$paymentsResponse
      * @param Payment $payment
      * @param OrderInterface|null $order
      * @return bool
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
+     * @throws AlreadyExistsException
      */
-    public function handlePaymentResponse($paymentsResponse, $payment, $order = null)
-    {
+    public function handlePaymentResponse(
+        array $paymentsResponse,
+        Payment $payment,
+        OrderInterface $order = null
+    ):bool {
         if (empty($paymentsResponse)) {
             $this->adyenLogger->error("Payment details call failed, paymentsResponse is empty");
             return false;
@@ -203,41 +209,9 @@ class PaymentResponseHandler
                     // set transaction
                     $payment->setTransactionId($paymentsResponse['pspReference']);
                 }
-                $paymentMethod = $payment->getMethodInstance();
 
-                if ($this->vaultHelper->hasRecurringDetailReference($paymentsResponse) &&
-                    $paymentMethod->getCode() !== AdyenOneclickConfigProvider::CODE) {
-                    $storeId = $paymentMethod->getStore();
-                    $paymentInstanceCode = $paymentMethod->getCode();
-                    $storePaymentMethods = $this->configHelper->isStoreAlternativePaymentMethodEnabled($storeId);
-
-                    if ($storePaymentMethods && $paymentMethod instanceof PaymentMethodInterface) {
-                        $brand = $payment->getAdditionalInformation(AdyenPaymentMethodDataAssignObserver::BRAND_CODE);
-                        try {
-                            $this->vaultHelper->saveRecurringDetails($payment, $paymentsResponse['additionalData']);
-                        } catch (PaymentMethodException $e) {
-                            $this->adyenLogger->error(sprintf(
-                                'Unable to create payment method with tx variant %s in details handler',
-                                $brand
-                            ));
-                        }
-                    } elseif ($paymentInstanceCode === AdyenCcConfigProvider::CODE) {
-                        $order = $payment->getOrder();
-                        $recurringMode = $this->configHelper->getCardRecurringMode($storeId);
-
-                        // if Adyen Tokenization set up, create entry in paypal_billing_agreement table
-                        if ($recurringMode === self::ADYEN_TOKENIZATION) {
-                            $this->recurringHelper->createAdyenBillingAgreement(
-                                $order,
-                                $paymentsResponse['additionalData'],
-                                $payment->getAdditionalInformation()
-                            );
-                        // if Vault set up, create entry in vault_payment_token table
-                        } elseif ($recurringMode === self::VAULT) {
-                            $this->vaultHelper->saveRecurringCardDetails($payment, $paymentsResponse['additionalData']);
-                        }
-                    }
-                }
+                // Handle recurring details
+                $this->vaultHelper->handlePaymentResponseRecurringDetails($payment, $paymentsResponse);
 
                 if (!empty($paymentsResponse['donationToken'])) {
                     $payment->setAdditionalInformation('donationToken', $paymentsResponse['donationToken']);
