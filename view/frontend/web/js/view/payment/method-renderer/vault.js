@@ -81,12 +81,105 @@ define([
             }
         },
 
+        // TODO: implement handleOnAdditionalDetails
         handleOnAdditionalDetails: function (result) {
             var self = this;
             var request = result.data;
             request.orderId = self.orderId;
-            debugger;
             console.log('Hello in handleOnAdditionalDetails');
+        },
+
+        renderCardVaultToken: function () {
+            let self = this;
+            if (!this.getClientKey()) {
+                return false
+            }
+
+            let componentConfig = {
+                hideCVC: false,
+                brand: this.getCardType(),
+                storedPaymentMethodId: this.getGatewayToken(),
+                expiryMonth: this.getExpirationMonth(),
+                expiryYear: this.getExpirationYear(),
+                //holderName: 'First tester',
+                onChange: this.handleOnChange.bind(this)
+            }
+
+            self.component = adyenCheckout.mountPaymentMethodComponent(
+                this.checkoutComponent,
+                'card',
+                componentConfig,
+                '#cvcContainer-' + this.getId()
+            )
+            this.component = self.component
+
+            return true
+        },
+
+        handleOnChange: function (state, component) {
+            validTokens[this.getId()] = !!state.isValid;
+            isValidObserver(validTokens)
+        },
+
+        isButtonActive: function () {
+            return this.isActive() && this.isPlaceOrderActionAllowed() && isValidObserver()[this.getId()];
+        },
+
+        // TODO check: installments, add modal and handleAction for 3ds2
+        placeOrder: function (data, event) {
+            let self = this;
+
+            if (event) {
+                event.preventDefault();
+            }
+
+            if (this.validate() && this.isPlaceOrderActionAllowed() === true) {
+                fullScreenLoader.startLoader();
+                this.isPlaceOrderActionAllowed(false);
+                this.getPlaceOrderDeferredObject().done(
+                    function (orderId) {
+                        adyenPaymentService.getOrderPaymentStatus(orderId).done(function (responseJSON) {
+                            self.handleAdyenResult(responseJSON, orderId);
+                        });
+                    },
+                ).fail(
+                    function () {
+                        fullScreenLoader.stopLoader();
+                        self.isPlaceOrderActionAllowed(true);
+                    }
+                );
+
+                return true;
+            }
+
+            return false;
+        },
+
+        getData: function () {
+            const self = this;
+            let stateData = self.component.data;
+            stateData = JSON.stringify(stateData);
+            window.sessionStorage.setItem('adyen.stateData', stateData);
+            return {
+                method: this.code,
+                additional_data: {
+                    stateData: stateData,
+                    public_hash: this.publicHash
+                },
+            };
+        },
+
+        handleAdyenResult: function (responseJSON, orderId) {
+            let self = this;
+            const response = JSON.parse(responseJSON);
+
+            if (!!response.isFinal) {
+                // Status is final redirect to the success page
+                window.location.replace(url.build(this.successPage));
+            } else {
+                // TODO: add handleAction function
+                self.handleAction(response.action, orderId);
+            }
         },
 
         getMaskedCard: function () {
@@ -125,103 +218,8 @@ define([
             return adyenConfiguration.getClientKey();
         },
 
-        getMessageContainer: function () {
-            return messageContainer;
-        },
-
-        afterPlaceOrder: function () {
-            return self.afterPlaceOrder(); // needed for placeOrder method
-        },
-
-        renderCardVaultToken: function () {
-            let self = this;
-            if (!this.getClientKey()) {
-                return false
-            }
-
-            let componentConfig = {
-                hideCVC: false,
-                brand: this.getCardType(),
-                storedPaymentMethodId: this.getGatewayToken(),
-                expiryMonth: this.getExpirationMonth(),
-                expiryYear: this.getExpirationYear(),
-                //holderName: 'First tester',
-                onChange: this.handleOnChange.bind(this)
-            }
-
-            self.component = adyenCheckout.mountPaymentMethodComponent(
-                this.checkoutComponent,
-                'card',
-                componentConfig,
-                '#cvcContainer-' + this.getId()
-            )
-            this.component = self.component
-
-            return true
-        },
-
-        handleOnChange: function (state, component) {
-            validTokens[this.getId()] = !!state.isValid;
-            isValidObserver(validTokens)
-        },
-
-        isButtonActive: function () {
-            return (this.getId() === this.isChecked()) && isValidObserver()[this.getId()];
-        },
-
-        // TODO check: isPlaceOrderActionAllowed, installments
-        placeOrder: function (data, event) {
-            debugger;
-            let self = this;
-
-            if (event) {
-                event.preventDefault();
-            }
-
-            fullScreenLoader.startLoader();
-            $.when(placeOrderAction(this.getData())).fail(
-                function () {
-                    fullScreenLoader.stopLoader();
-                    //innerSelf.isPlaceOrderActionAllowed(true);
-                },
-            ).done(
-                function (orderId) {
-                    debugger;
-
-                    //self.orderId = orderId;
-                    adyenPaymentService.getOrderPaymentStatus(orderId).done(function (responseJSON) {
-                        self.handleAdyenResult(responseJSON, orderId);
-                    });
-                },
-            );
-        },
-
-        getData: function () {
-            const self = this;
-            let stateData = self.component.data;
-            stateData = JSON.stringify(stateData);
-            window.sessionStorage.setItem('adyen.stateData', stateData);
-            return {
-                method: this.code,
-                additional_data: {
-                    stateData: stateData,
-                    'public_hash': this.publicHash
-                },
-            };
-        },
-
-        handleAdyenResult: function (responseJSON, orderId) {
-            debugger;
-            let self = this;
-            const response = JSON.parse(responseJSON);
-
-            if (!!response.isFinal) {
-                // Status is final redirect to the success page
-                window.location.replace(url.build(this.successPage));
-            } else {
-                // Handle action
-                self.handleAction(response.action, orderId);
-            }
+        getPlaceOrderDeferredObject: function () {
+            return $.when(placeOrderAction(this.getData()));
         },
     });
 });
