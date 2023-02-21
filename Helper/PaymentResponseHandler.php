@@ -100,12 +100,16 @@ class PaymentResponseHandler
     {
         switch ($resultCode) {
             case self::AUTHORISED:
-            case self::REFUSED:
-            case self::ERROR:
                 return [
                     "isFinal" => true,
                     "resultCode" => $resultCode,
                     "donationToken" => $donationToken
+                ];
+            case self::REFUSED:
+            case self::ERROR:
+                return [
+                    "isFinal" => true,
+                    "resultCode" => $resultCode
                 ];
             case self::REDIRECT_SHOPPER:
             case self::IDENTIFY_SHOPPER:
@@ -126,7 +130,8 @@ class PaymentResponseHandler
                 return [
                     "isFinal" => true,
                     "resultCode" => $resultCode,
-                    "additionalData" => $additionalData
+                    "additionalData" => $additionalData,
+                    "donationToken" => $donationToken
                 ];
             default:
                 return [
