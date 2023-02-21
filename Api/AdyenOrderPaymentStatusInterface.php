@@ -22,5 +22,4 @@ interface AdyenOrderPaymentStatusInterface
      * @return string
      */
     public function getOrderPaymentStatus(string $orderId): string;
-   
 }
