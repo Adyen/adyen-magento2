@@ -13,6 +13,7 @@ define([
     'jquery',
     'ko',
     'uiLayout',
+    'mage/url',
     'Magento_Checkout/js/action/place-order',
     'Magento_Checkout/js/model/full-screen-loader',
     'Magento_Ui/js/model/messages',
@@ -24,6 +25,7 @@ define([
     $,
     ko,
     layout,
+    url,
     placeOrderAction,
     fullScreenLoader,
     Messages,
@@ -170,7 +172,7 @@ define([
         // TODO check: isPlaceOrderActionAllowed, installments
         placeOrder: function (data, event) {
             debugger;
-            let innerSelf = this;
+            let self = this;
 
             if (event) {
                 event.preventDefault();
@@ -184,21 +186,17 @@ define([
                 },
             ).done(
                 function (orderId) {
-                    innerSelf.afterPlaceOrder();
+                    debugger;
 
-                    self.orderId = orderId;
-                    adyenPaymentService.getOrderPaymentStatus(
-                        orderId).done(function (responseJSON) {
-                        self.handleAdyenResult(
-                            responseJSON,
-                            orderId);
+                    //self.orderId = orderId;
+                    adyenPaymentService.getOrderPaymentStatus(orderId).done(function (responseJSON) {
+                        self.handleAdyenResult(responseJSON, orderId);
                     });
                 },
             );
         },
 
         getData: function () {
-            debugger;
             const self = this;
             let stateData = self.component.data;
             stateData = JSON.stringify(stateData);
@@ -210,6 +208,20 @@ define([
                     'public_hash': this.publicHash
                 },
             };
+        },
+
+        handleAdyenResult: function (responseJSON, orderId) {
+            debugger;
+            let self = this;
+            const response = JSON.parse(responseJSON);
+
+            if (!!response.isFinal) {
+                // Status is final redirect to the success page
+                window.location.replace(url.build(this.successPage));
+            } else {
+                // Handle action
+                self.handleAction(response.action, orderId);
+            }
         },
     });
 });
