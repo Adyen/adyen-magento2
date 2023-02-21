@@ -20,7 +20,8 @@ define([
     'Magento_Vault/js/view/payment/method-renderer/vault',
     'Adyen_Payment/js/model/adyen-payment-service',
     'Adyen_Payment/js/model/adyen-configuration',
-    'Adyen_Payment/js/model/adyen-checkout'
+    'Adyen_Payment/js/model/adyen-checkout',
+    'Adyen_Payment/js/model/adyen-payment-modal'
 ], function (
     $,
     ko,
@@ -32,7 +33,8 @@ define([
     VaultComponent,
     adyenPaymentService,
     adyenConfiguration,
-    adyenCheckout
+    adyenCheckout,
+    adyenPaymentModal
 ) {
     'use strict';
 
@@ -42,12 +44,10 @@ define([
     return VaultComponent.extend({
         defaults: {
             template: 'Adyen_Payment/payment/card-vault-form.html',
-            checkoutComponentBuilt: false
+            checkoutComponentBuilt: false,
+            modalLabel: 'card_action_modal'
         },
 
-        /**
-         * @returns {exports.initObservable}
-         */
         initObservable: function () {
             this._super()
                 .observe([
@@ -125,7 +125,7 @@ define([
             return this.isActive() && this.isPlaceOrderActionAllowed() && isValidObserver()[this.getId()];
         },
 
-        // TODO check: installments, add modal and handleAction for 3ds2
+        // TODO check: installments, add modal and handleOnAdditionalDetails for 3ds2
         placeOrder: function (data, event) {
             let self = this;
 
@@ -177,9 +177,38 @@ define([
                 // Status is final redirect to the success page
                 window.location.replace(url.build(this.successPage));
             } else {
-                // TODO: add handleAction function
                 self.handleAction(response.action, orderId);
             }
+        },
+
+        handleAction: function (action, orderId) {
+            let self = this;
+            let popupModal;
+
+            if (action.type === 'threeDS2' || action.type === 'await') {
+                this.modalLabel = 'card_action_modal'
+                popupModal = self.showModal();
+            }
+            try {
+                // Determine threeDS2 modal size, based on screen width
+                const threeDSConfiguration = {
+                    challengeWindowSize: screen.width < 460 ? '01' : '02'
+                }
+
+                this.checkoutComponent.createFromAction(action, threeDSConfiguration).mount(
+                    '#' + this.modalLabel + '_content'
+                );
+            } catch (e) {
+                console.log(e);
+                self.closeModal(popupModal);
+            }
+        },
+
+        showModal: function() {
+            let actionModal = adyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.modalLabel, this.isPlaceOrderActionAllowed)
+            $("." + this.modalLabel + " .action-close").hide();
+
+            return actionModal;
         },
 
         getMaskedCard: function () {
