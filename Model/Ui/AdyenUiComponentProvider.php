@@ -19,6 +19,8 @@ use Magento\Vault\Model\Ui\TokenUiComponentInterfaceFactory;
 
 class AdyenUiComponentProvider
 {
+    const GATEWAY_TOKEN = 'gatewayToken';
+    const TOKEN_ID = 'tokenId';
 
     protected TokenUiComponentInterfaceFactory $componentFactory;
     protected Data $dataHelper;
@@ -51,7 +53,9 @@ class AdyenUiComponentProvider
                 'config' => [
                     'code' => AdyenCcConfigProvider::CC_VAULT_CODE,
                     TokenUiComponentProviderInterface::COMPONENT_DETAILS => $details,
-                    TokenUiComponentProviderInterface::COMPONENT_PUBLIC_HASH => $paymentToken->getPublicHash()
+                    TokenUiComponentProviderInterface::COMPONENT_PUBLIC_HASH => $paymentToken->getPublicHash(),
+                    self::GATEWAY_TOKEN => $paymentToken->getGatewayToken(),
+                    self::TOKEN_ID => $paymentToken->getEntityId()
                 ],
                 'name' => 'Adyen_Payment/js/view/payment/method-renderer/vault'
             ]

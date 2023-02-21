@@ -76,35 +76,38 @@ define([
             console.log('Hello in handleOnAdditionalDetails');
         },
 
-        /**
-         * Get last 4 digits of card
-         * @returns {String}
-         */
         getMaskedCard: function () {
             return this.details.maskedCC;
         },
 
-        /**
-         * Get expiration date
-         * @returns {String}
-         */
         getExpirationDate: function () {
             return this.details.expirationDate;
         },
 
-        /**
-         * Get card type
-         * @returns {String}
-         */
+        getExpirationMonth: function () {
+            return this.getExpirationDate().split('/')[0].padStart(2, '0');
+        },
+
+        getExpirationYear: function () {
+            return this.getExpirationDate().split('/')[1]
+        },
+
         getCardType: function () {
             return this.details.type;
         },
-        /**
-         * @returns {String}
-         */
+
         getToken: function () {
             return this.publicHash;
         },
+
+        getGatewayToken: function () {
+            return this.gatewayToken;
+        },
+
+        getTokenId: function () {
+            return this.tokenId;
+        },
+
         /**
          * @param {String} type
          * @returns {Boolean}
@@ -125,11 +128,11 @@ define([
 
             let componentConfig = {
                 hideCVC: false,
-                brand: 'visa',
-                storedPaymentMethodId: '8416565937545766',
-                expiryMonth: '03',
-                expiryYear: '30',
-                holderName: 'First tester',
+                brand: this.getCardType(),
+                storedPaymentMethodId: this.getGatewayToken(),
+                expiryMonth: this.getExpirationMonth(),
+                expiryYear: this.getExpirationYear(),
+                //holderName: 'First tester',
                 //onChange: this.handleOnChange.bind(this)
             }
 
