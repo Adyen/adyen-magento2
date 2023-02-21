@@ -114,7 +114,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         // Decode payload from frontend
         $payload = json_decode($payload, true);
 
-        //Validate JSON that has just been parsed if it was in a valid format
+        // Validate JSON that has just been parsed if it was in a valid format
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new LocalizedException(
                 __('Terminal API initiate request was not a valid JSON')
