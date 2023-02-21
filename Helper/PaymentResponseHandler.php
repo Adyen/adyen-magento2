@@ -96,14 +96,13 @@ class PaymentResponseHandler
         $this->configHelper = $configHelper;
     }
 
-    public function formatPaymentResponse($resultCode, $action = null, $additionalData = null, $donationToken = null)
+    public function formatPaymentResponse($resultCode, $action = null, $additionalData = null)
     {
         switch ($resultCode) {
             case self::AUTHORISED:
                 return [
                     "isFinal" => true,
                     "resultCode" => $resultCode,
-                    "donationToken" => $donationToken
                 ];
             case self::REFUSED:
             case self::ERROR:
@@ -131,7 +130,6 @@ class PaymentResponseHandler
                     "isFinal" => true,
                     "resultCode" => $resultCode,
                     "additionalData" => $additionalData,
-                    "donationToken" => $donationToken
                 ];
             default:
                 return [
