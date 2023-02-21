@@ -138,7 +138,7 @@ class PaymentResponseHandler
     }
 
     /**
-     * @param array ß$paymentsResponse
+     * @param array $paymentsResponse
      * @param Payment $payment
      * @param OrderInterface|null $order
      * @return bool
