@@ -45,11 +45,9 @@
             </each>
         </div>
 
-        <form class="form" action="#" method="post" data-bind="
-            attr: {'id': 'card_vault_1', 'data-role': 'card_vault_1' }">
-
+        <form class="form" action="#" method="post" data-bind="attr: {'id': getTokenId(), 'data-role': getTokenId() }">
             <fieldset
-                    data-bind="attr: {class: 'fieldset payment items ccard adyen_cc_vault', id: 'payment_form_' + 'adyen_cc_form' + '_' + 'card_vault_1'}">
+                    data-bind="attr: {class: 'fieldset payment items ccard adyen_cc_vault', id: 'payment_form_' + 'adyen_cc_form' + '_' + getTokenId()}">
 
 
                 <div class="field number">
@@ -61,20 +59,9 @@
                     </div>
                 </div>
 
-                <div class="checkout-component-dock" afterRender="renderCardVaultToken()" data-bind="attr: { id: 'cvcContainer-' + 'card_vault_1'}"></div>
-
+                <div class="checkout-component-dock" afterRender="renderCardVaultToken()" data-bind="attr: { id: 'cvcContainer-' + getTokenId()}"></div>
             </fieldset>
-
-
         </form>
-
-
-
-
-
-
-
-
         <div class="checkout-agreements-block">
             <!-- ko foreach: $parent.getRegion('before-place-order') -->
             <!-- ko template: getTemplate() --><!-- /ko -->

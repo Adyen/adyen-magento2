@@ -121,7 +121,6 @@ define([
         renderCardVaultToken: function () {
             let self = this;
             debugger;
-            console.log('Rendering card vault token')
             if (!this.getClientKey()) {
                 return false
             }
@@ -140,7 +139,7 @@ define([
                 this.checkoutComponent,
                 'card',
                 componentConfig,
-                '#cvcContainer-card_vault_1'
+                '#cvcContainer-' + this.getTokenId()
             )
             this.component = self.component
 
