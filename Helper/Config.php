@@ -532,6 +532,19 @@ class Config
     }
 
     /**
+     * @param int $storeId
+     * @return string
+     */
+    public function getConfigurationMode(int $storeId): string
+    {
+        return $this->getConfigData(
+            self::XML_CONFIGURATION_MODE,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId
+        );
+    }
+
+    /**
      * Retrieve information from payment configuration
      *
      * @param string $field
