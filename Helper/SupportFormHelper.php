@@ -472,7 +472,7 @@ class SupportFormHelper
         }
 
         $fileInfo = $this->fileUtil->getPathInfo($file['name']);
-        $allowedTypes = ['zip', 'txt', 'log', 'rar', 'jpeg', 'jpg', 'pdf' ];
+        $allowedTypes = ['zip', 'txt', 'log', 'rar', 'jpeg', 'jpg', 'pdf', 'png'];
         if (!in_array($fileInfo['extension'], $allowedTypes)) {
             throw new FileUploadException(__('Invalid file type. Allowed types: ' . join(', ', $allowedTypes)));
         }
