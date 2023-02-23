@@ -19,6 +19,7 @@ use Adyen\Payment\Model\Method\TxVariant;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\AdyenPaymentMethod;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 use DateInterval;
 use DateTime;
 use DateTimeZone;
@@ -27,6 +28,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Model\InfoInterface;
 use Magento\Sales\Api\Data\OrderPaymentExtensionInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
+use Magento\Sales\Model\Order\Payment;
 use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
@@ -459,5 +461,40 @@ class Vault
         }
 
         return false;
+    }
+
+    /**
+     * @param Payment $payment
+     * @param array $response
+     * @return void
+     * @throws LocalizedException
+     */
+    public function handlePaymentResponseRecurringDetails(Payment $payment, array $response): void
+    {
+        $paymentMethodInstance = $payment->getMethodInstance();
+
+        if (
+            $this->hasRecurringDetailReference($response) &&
+            $paymentMethodInstance->getCode() !== AdyenOneclickConfigProvider::CODE
+        ) {
+            $storeId = $paymentMethodInstance->getStore();
+            $canStorePaymentMethods = $this->config->isStoreAlternativePaymentMethodEnabled($storeId);
+            $cardVaultEnabled = $this->isCardVaultEnabled($storeId);
+
+            // If payment method is NOT card
+            // Else if card
+            if ($canStorePaymentMethods && $paymentMethodInstance instanceof PaymentMethodInterface) {
+                try {
+                    $this->saveRecurringDetails($payment, $response['additionalData']);
+                } catch (PaymentMethodException $e) {
+                    $this->adyenLogger->error(sprintf(
+                        'Unable to create payment method with tx variant %s in details handler',
+                        $response['additionalData']['paymentMethod']
+                    ));
+                }
+            } elseif ($cardVaultEnabled && $paymentMethodInstance->getCode() === AdyenCcConfigProvider::CODE) {
+                $this->saveRecurringCardDetails($payment, $response['additionalData']);
+            }
+        }
     }
 }
