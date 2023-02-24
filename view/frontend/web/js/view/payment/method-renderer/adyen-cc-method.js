@@ -212,6 +212,7 @@ define(
             },
             showModal: function() {
                 let actionModal = AdyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.modalLabel, this.isPlaceOrderActionAllowed);
+                debugger;
                 $("." + this.modalLabel + " .action-close").hide();
 
                 return actionModal;
@@ -229,6 +230,7 @@ define(
              */
             getData: function() {
                 let stateData = JSON.stringify(this.cardComponent.data);
+                console.log(stateData);
 
                 window.sessionStorage.setItem('adyen.stateData', stateData);
                 return {
@@ -317,9 +319,9 @@ define(
                 var request = result.data;
                 request.orderId = self.orderId;
 
-                fullScreenLoader.stopLoader();
 
                 let popupModal = self.showModal();
+                $('.' + this.modalLabel).css('display','none');
 
                 adyenPaymentService.paymentDetails(request).
                     done(function(responseJSON) {
