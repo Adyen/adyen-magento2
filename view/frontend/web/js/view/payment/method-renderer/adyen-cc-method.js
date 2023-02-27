@@ -212,7 +212,6 @@ define(
             },
             showModal: function() {
                 let actionModal = AdyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.modalLabel, this.isPlaceOrderActionAllowed);
-                debugger;
                 $("." + this.modalLabel + " .action-close").hide();
 
                 return actionModal;
