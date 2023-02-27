@@ -129,7 +129,7 @@ class PaymentResponseHandler
                 return [
                     "isFinal" => true,
                     "resultCode" => $resultCode,
-                    "additionalData" => $additionalData,
+                    "additionalData" => $additionalData
                 ];
             default:
                 return [
