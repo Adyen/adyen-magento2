@@ -1109,6 +1109,7 @@
     <type name="Adyen\Payment\Model\Api\AdyenDonations">
         <arguments>
             <argument name="commandPool" xsi:type="object">AdyenPaymentDonationsCommandPool</argument>
+            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
         </arguments>
     </type>
     <type name="Adyen\Payment\Console\Command\WebhookProcessorCommand">
@@ -1259,11 +1260,6 @@
         </arguments>
     </type>
     <type name="Adyen\Payment\Model\AdyenInitiateTerminalApi">
-        <arguments>
-            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
-        </arguments>
-    </type>
-    <type name="Adyen\Payment\Model\Api\AdyenDonations">
         <arguments>
             <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
         </arguments>
