@@ -15,6 +15,7 @@ use Adyen\Payment\Exception\FileUploadException;
 use Adyen\Payment\Model\TransportBuilder;
 use Magento\Backend\Model\Auth\Session;
 use Magento\Framework\App\Area;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\Exception\FileSystemException;
@@ -24,6 +25,7 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\ValidatorException;
 use Magento\Framework\Filesystem;
 use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
+use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
 class SupportFormHelper
@@ -82,6 +84,11 @@ class SupportFormHelper
     private $authSession;
 
     /**
+     * @var ScopeConfigInterface
+     */
+    private $scopeConfig;
+
+    /**
      * @param TransportBuilder $transportBuilder
      * @param MessageManagerInterface $messageManager
      * @param Config $config
@@ -92,6 +99,7 @@ class SupportFormHelper
      * @param Filesystem\Directory\WriteFactory $writeFactory
      * @param ProductMetadataInterface $productMetadata
      * @param Session $authSession
+     * @param ScopeConfigInterface $scopeConfig
      */
     public function __construct(
         TransportBuilder $transportBuilder,
@@ -103,7 +111,8 @@ class SupportFormHelper
         Filesystem $filesystem,
         Filesystem\Directory\WriteFactory $writeFactory,
         ProductMetadataInterface $productMetadata,
-        Session $authSession
+        Session $authSession,
+        ScopeConfigInterface $scopeConfig
     ) {
         $this->transportBuilder = $transportBuilder;
         $this->messageManager = $messageManager;
@@ -115,6 +124,7 @@ class SupportFormHelper
         $this->writeFactory = $writeFactory;
         $this->fileUtil = $fileUtil;
         $this->authSession = $authSession;
+        $this->scopeConfig = $scopeConfig;
     }
 
     /**
@@ -143,21 +153,24 @@ class SupportFormHelper
         ];
 
         $to = $this->config->getSupportMailAddress($storeId);
-        $from = ['email' => $templateVars['email'], 'name' => $this->getAdminName()];
 
-        if (!isset($from['email'])) {
-            $from['email'] = $this->getAdminEmail();
-        }
+        /*
+         * fromEmail address is different from the adminEmail,
+         * since that value should be configured in mail sender.
+         */
+        $fromEmail = $this->getStoreGeneralEmail();
+        $from = ['email' => $fromEmail, 'name' => $this->getAdminName()];
 
         $templateVars['emailSubject'] = sprintf(
-            "Magento 2 support form - %s",
-            $this->config->getMerchantAccount($storeId)
+            "Support Form Adobe Commerce - %s",
+            $templateVars['subject']
         );
 
         $transportBuilder = $this->transportBuilder->setTemplateIdentifier($template)
             ->setTemplateOptions($templateOptions)
             ->setTemplateVars($templateVars)
             ->setFromByScope($from)
+            ->setReplyTo($templateVars['email'])
             ->addTo($to);
 
         if (isset($formData['attachments']) && is_array($formData['attachments'])) {
@@ -219,7 +232,6 @@ class SupportFormHelper
             $storeId,
             true
         );
-        $motoMerchantAccounts = json_encode($this->config->getMotoMerchantAccounts($storeId));
         $useManualCaptureForPaypal = $this->config->getConfigData(
             'paypal_capture_mode',
             'adyen_abstract',
@@ -373,7 +385,6 @@ class SupportFormHelper
             'isBoletoEnabled' => $isBoletoEnabled ? 'Yes' : 'No',
             'boletoDeliveryDays' => $boletoDeliveryDays,
             'isPayByLinkEnabled' => $isPayByLinkEnabled ? 'Yes' : 'No',
-            'motoMerchantAccounts' => $motoMerchantAccounts,
             'useManualCaptureForPaypal' => $useManualCaptureForPaypal ? 'Yes' : 'No',
             'captureOnShipmentForOpenInvoice' => $captureOnShipmentForOpenInvoice ? 'Yes' : 'No',
             'autoCaptureOpenInvoice' => $autoCaptureOpenInvoice ? 'Yes' : 'No',
@@ -417,6 +428,16 @@ class SupportFormHelper
     }
 
     /**
+     * Get the stores general contact email address
+     *
+     * @return string
+     */
+    public function getStoreGeneralEmail(): string
+    {
+        return $this->scopeConfig->getValue('trans_email/ident_general/email', ScopeInterface::SCOPE_STORE);
+    }
+
+    /**
      * Get the email from the current admin user
      *
      * @return string
@@ -426,6 +447,9 @@ class SupportFormHelper
         return $this->authSession->getUser()->getEmail();
     }
 
+    /**
+     * @return string
+     */
     public function getAdminName(): string
     {
         return $this->authSession->getUser()->getName();
@@ -448,7 +472,7 @@ class SupportFormHelper
         }
 
         $fileInfo = $this->fileUtil->getPathInfo($file['name']);
-        $allowedTypes = ['zip', 'txt', 'log', 'rar', 'jpeg', 'jpg', 'pdf' ];
+        $allowedTypes = ['zip', 'txt', 'log', 'rar', 'jpeg', 'jpg', 'pdf', 'png'];
         if (!in_array($fileInfo['extension'], $allowedTypes)) {
             throw new FileUploadException(__('Invalid file type. Allowed types: ' . join(', ', $allowedTypes)));
         }
