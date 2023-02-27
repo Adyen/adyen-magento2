@@ -229,7 +229,6 @@ define(
              */
             getData: function() {
                 let stateData = JSON.stringify(this.cardComponent.data);
-                console.log(stateData);
 
                 window.sessionStorage.setItem('adyen.stateData', stateData);
                 return {
