@@ -102,7 +102,7 @@ class PaymentResponseHandler
             case self::AUTHORISED:
                 return [
                     "isFinal" => true,
-                    "resultCode" => $resultCode,
+                    "resultCode" => $resultCode
                 ];
             case self::REFUSED:
             case self::ERROR:
