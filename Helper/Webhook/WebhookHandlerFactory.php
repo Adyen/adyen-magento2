@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2022 Adyen N.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -19,92 +19,81 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Invoice;
 use Adyen\Payment\Helper\Order;
 use Adyen\Payment\Helper\PaymentMethods;
-use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\Api\PaymentRequest;
-use Adyen\Payment\Model\Billing\AgreementFactory;
 use Adyen\Payment\Model\Notification;
-use Adyen\Payment\Model\ResourceModel\Billing\Agreement;
-use Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory as AgreementCollectionFactory;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as OrderPaymentCollectionFactory;
 use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel;
 use Adyen\Webhook\Exception\InvalidDataException;
-use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Sales\Model\Order\InvoiceFactory as MagentoInvoiceFactory;
-use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
 use Magento\Vault\Api\PaymentTokenManagementInterface;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 
 class WebhookHandlerFactory
 {
     /** @var AdyenOrderPayment */
-    private static $adyenOrderPayment;
+    private static AdyenOrderPayment $adyenOrderPayment;
 
     /** @var Order */
-    private static $orderHelper;
+    private static Order $orderHelper;
 
     /** @var CaseManagement */
-    private static $caseManagementHelper;
+    private static CaseManagement $caseManagementHelper;
 
     /** @var SerializerInterface */
-    private static $serializer;
+    private static SerializerInterface $serializer;
 
     /** @var AdyenLogger $adyenLogger */
-    private static $adyenLogger;
+    private static AdyenLogger $adyenLogger;
 
     /** @var ChargedCurrency */
-    private static $chargedCurrency;
+    private static ChargedCurrency $chargedCurrency;
 
     /** @var Config */
-    private static $configHelper;
+    private static Config $configHelper;
 
     /** @var Invoice */
-    private static $invoiceHelper;
+    private static Invoice $invoiceHelper;
 
     /** @var PaymentFactory */
-    private static $adyenOrderPaymentFactory;
+    private static PaymentFactory $adyenOrderPaymentFactory;
 
     /** @var MagentoInvoiceFactory */
-    private static $magentoInvoiceFactory;
+    private static MagentoInvoiceFactory $magentoInvoiceFactory;
 
     /** @var PaymentMethods */
-    private static $paymentMethodsHelper;
+    private static PaymentMethods $paymentMethodsHelper;
 
     /** @var OrderPaymentCollectionFactory */
-    private static $adyenOrderPaymentCollectionFactory;
-
-    /** @var Vault */
-    private static $vaultHelper;
-
-    /** @var PaymentRequest */
-    private static $paymentRequest;
-
-    /** @var AgreementCollectionFactory */
-    private static $agreementCollectionFactory;
-
-    /** @var AgreementFactory */
-    private static $agreementFactory;
-
-    /** @var Agreement */
-    private static $billingAgreementResourceModel;
+    private static OrderPaymentCollectionFactory $adyenOrderPaymentCollectionFactory;
 
     /** @var PaymentTokenManagementInterface */
-    private static $tokenManagement;
-
-    /** @var PaymentTokenFactoryInterface */
-    private static $paymentTokenFactory;
-
-    /** @var EncryptorInterface */
-    private static $encryptor;
+    private static PaymentTokenManagementInterface $tokenManagement;
 
     /** @var PaymentTokenRepositoryInterface */
-    private static $paymentTokenRepository;
+    private static PaymentTokenRepositoryInterface $paymentTokenRepository;
 
     /** @var OrderPaymentResourceModel */
-    private static $orderPaymentResourceModel;
+    private static OrderPaymentResourceModel $orderPaymentResourceModel;
 
+    /**
+     * @param AdyenOrderPayment $adyenOrderPayment
+     * @param Order $orderHelper
+     * @param CaseManagement $caseManagementHelper
+     * @param SerializerInterface $serializer
+     * @param AdyenLogger $adyenLogger
+     * @param ChargedCurrency $chargedCurrency
+     * @param Config $configHelper
+     * @param Invoice $invoiceHelper
+     * @param PaymentFactory $adyenOrderPaymentFactory
+     * @param MagentoInvoiceFactory $magentoInvoiceFactory
+     * @param PaymentMethods $paymentMethodsHelper
+     * @param OrderPaymentCollectionFactory $adyenOrderPaymentCollectionFactory
+     * @param PaymentTokenManagementInterface $paymentTokenManagement
+     * @param PaymentTokenRepositoryInterface $paymentTokenRepository
+     * @param OrderPaymentResourceModel $orderPaymentResourceModel
+     */
     public function __construct(
         AdyenOrderPayment $adyenOrderPayment,
         Order $orderHelper,
@@ -118,14 +107,7 @@ class WebhookHandlerFactory
         MagentoInvoiceFactory $magentoInvoiceFactory,
         PaymentMethods $paymentMethodsHelper,
         OrderPaymentCollectionFactory $adyenOrderPaymentCollectionFactory,
-        Vault $vaultHelper,
-        PaymentRequest $paymentRequest,
-        AgreementCollectionFactory $agreementCollectionFactory,
-        AgreementFactory $agreementFactory,
-        Agreement $billingAgreementResourceModel,
         PaymentTokenManagementInterface $paymentTokenManagement,
-        PaymentTokenFactoryInterface $paymentTokenFactory,
-        EncryptorInterface $encryptor,
         PaymentTokenRepositoryInterface $paymentTokenRepository,
         OrderPaymentResourceModel $orderPaymentResourceModel
     ) {
@@ -141,14 +123,7 @@ class WebhookHandlerFactory
         self::$magentoInvoiceFactory = $magentoInvoiceFactory;
         self::$paymentMethodsHelper = $paymentMethodsHelper;
         self::$adyenOrderPaymentCollectionFactory = $adyenOrderPaymentCollectionFactory;
-        self::$vaultHelper = $vaultHelper;
-        self::$paymentRequest = $paymentRequest;
-        self::$agreementCollectionFactory = $agreementCollectionFactory;
-        self::$agreementFactory = $agreementFactory;
-        self::$billingAgreementResourceModel = $billingAgreementResourceModel;
         self::$tokenManagement = $paymentTokenManagement;
-        self::$paymentTokenFactory = $paymentTokenFactory;
-        self::$encryptor = $encryptor;
         self::$paymentTokenRepository = $paymentTokenRepository;
         self::$orderPaymentResourceModel = $orderPaymentResourceModel;
     }
@@ -215,16 +190,8 @@ class WebhookHandlerFactory
                 );
             case Notification::RECURRING_CONTRACT:
                 return new RecurringContractWebhookHandler(
-                    self::$vaultHelper,
                     self::$adyenLogger,
-                    self::$paymentRequest,
-                    self::$agreementCollectionFactory,
-                    self::$agreementFactory,
-                    self::$billingAgreementResourceModel,
-                    self::$configHelper,
                     self::$tokenManagement,
-                    self::$paymentTokenFactory,
-                    self::$encryptor,
                     self::$paymentTokenRepository
                 );
             case Notification::PENDING:

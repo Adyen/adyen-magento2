@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2023 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -11,31 +11,29 @@
 
 namespace Adyen\Payment\Controller\Return;
 
-use Adyen\Payment\Exception\PaymentMethodException;
-use Adyen\Payment\Helper\Config;
+use Adyen\AdyenException;
 use Adyen\Payment\Helper\Data;
-use Adyen\Payment\Model\Method\PaymentMethodInterface;
 use Adyen\Payment\Helper\Quote;
-use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
-use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
-use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 use Adyen\Service\Validator\DataArrayValidator;
 use Magento\Checkout\Model\Session;
+use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
+use Magento\Framework\Exception\AlreadyExistsException as AlreadyExistsExceptionAlias;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Status\HistoryFactory;
 use Magento\Sales\Model\OrderFactory;
+use Magento\Sales\Model\ResourceModel\Order as OrderResource;
 use Magento\Store\Model\StoreManagerInterface;
-use Magento\Vault\Model\Ui\VaultConfigProvider;
 
-class Index extends \Magento\Framework\App\Action\Action
+class Index extends Action
 {
-
     const BRAND_CODE_DOTPAY = 'dotpay';
     const RESULT_CODE_RECEIVED = 'Received';
     const DETAILS_ALLOWED_PARAM_KEYS = [
@@ -58,85 +56,72 @@ class Index extends \Magento\Framework\App\Action\Action
     ];
 
     /**
-     * @var Data
-     */
-    protected $_adyenHelper;
-
-    /**
      * @var OrderFactory
      */
-    protected $_orderFactory;
+    protected OrderFactory $orderFactory;
 
     /**
      * @var Order
      */
-    protected $_order;
+    protected Order $order;
 
     /**
      * @var HistoryFactory
      */
-    protected $_orderHistoryFactory;
+    protected HistoryFactory $orderHistoryFactory;
 
     /**
      * @var Session
      */
-    protected $_session;
+    protected Session $session;
 
     /**
      * @var AdyenLogger
      */
-    protected $_adyenLogger;
+    protected AdyenLogger $adyenLogger;
 
     /**
      * @var StoreManagerInterface
      */
-    protected $storeManager;
+    protected StoreManagerInterface $storeManager;
 
     /**
      * @var Quote
      */
-    private $quoteHelper;
+    private Quote $quoteHelper;
 
-    private $payment;
+    /**
+     * @var Order\Payment
+     */
+    private Order\Payment $payment;
 
     /**
      * @var Vault
      */
-    private $vaultHelper;
+    private Vault $vaultHelper;
 
     /**
-     * @var \Magento\Sales\Model\ResourceModel\Order
+     * @var OrderResource
      */
-    private $orderResourceModel;
+    private OrderResource $orderResourceModel;
 
     /**
      * @var StateData
      */
-    private $stateDataHelper;
+    private StateData $stateDataHelper;
 
     /**
      * @var Data
      */
-    private $dataHelper;
-
-    /**
-     * @var Config
-     */
-    private $configHelper;
+    private Data $adyenDataHelper;
 
     /**
      * @var OrderRepositoryInterface
      */
-    private $orderRepository;
-
-    /**
-     * @var Recurring
-     */
-    private $recurringHelper;
+    private OrderRepositoryInterface $orderRepository;
 
     /**
      * @param Context $context
-     * @param Data $adyenHelper
      * @param OrderFactory $orderFactory
      * @param HistoryFactory $orderHistoryFactory
      * @param Session $session
@@ -144,52 +129,49 @@ class Index extends \Magento\Framework\App\Action\Action
      * @param StoreManagerInterface $storeManager
      * @param Quote $quoteHelper
      * @param Vault $vaultHelper
-     * @param \Magento\Sales\Model\ResourceModel\Order $orderResourceModel
+     * @param OrderResource $orderResourceModel
      * @param StateData $stateDataHelper
-     * @param Data $dataHelper
+     * @param Data $adyenDataHelper
      * @param OrderRepositoryInterface $orderRepository
-     * @param Recurring $recurringHelper
-     * @param Config $configHelper
      */
     public function __construct(
-        Context $context,
-        Data $adyenHelper,
-        OrderFactory $orderFactory,
-        HistoryFactory $orderHistoryFactory,
-        Session $session,
-        AdyenLogger $adyenLogger,
-        StoreManagerInterface $storeManager,
-        Quote $quoteHelper,
-        Vault $vaultHelper,
-        \Magento\Sales\Model\ResourceModel\Order $orderResourceModel,
-        StateData $stateDataHelper,
-        Data $dataHelper,
-        OrderRepositoryInterface $orderRepository,
-        Recurring $recurringHelper,
-        Config $configHelper
+        Context                  $context,
+        OrderFactory             $orderFactory,
+        HistoryFactory           $orderHistoryFactory,
+        Session                  $session,
+        AdyenLogger              $adyenLogger,
+        StoreManagerInterface    $storeManager,
+        Quote                    $quoteHelper,
+        Vault                    $vaultHelper,
+        OrderResource            $orderResourceModel,
+        StateData                $stateDataHelper,
+        Data                     $adyenDataHelper,
+        OrderRepositoryInterface $orderRepository
     ) {
-        $this->_adyenHelper = $adyenHelper;
-        $this->_orderFactory = $orderFactory;
-        $this->_orderHistoryFactory = $orderHistoryFactory;
-        $this->_session = $session;
-        $this->_adyenLogger = $adyenLogger;
+        parent::__construct($context);
+
+        $this->adyenDataHelper = $adyenDataHelper;
+        $this->orderFactory = $orderFactory;
+        $this->orderHistoryFactory = $orderHistoryFactory;
+        $this->session = $session;
+        $this->adyenLogger = $adyenLogger;
         $this->storeManager = $storeManager;
         $this->quoteHelper = $quoteHelper;
         $this->vaultHelper = $vaultHelper;
         $this->orderResourceModel = $orderResourceModel;
         $this->stateDataHelper = $stateDataHelper;
-        $this->dataHelper = $dataHelper;
         $this->orderRepository = $orderRepository;
-        $this->recurringHelper = $recurringHelper;
-        $this->configHelper = $configHelper;
-        parent::__construct($context);
     }
 
     /**
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws AdyenException
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
-    public function execute()
+    public function execute(): void
     {
+        $result = false;
+
         // Receive all params as this could be a GET or POST request
         $response = $this->getRequest()->getParams();
 
@@ -204,38 +186,38 @@ class Index extends \Magento\Framework\App\Action\Action
                 $successPath = $failPath = 'multishipping/checkout/success';
                 $setQuoteAsActive = true;
             } else {
-                $successPath = $this->_adyenHelper->getAdyenAbstractConfigData('custom_success_redirect_path') ?? 'checkout/onepage/success';
-                $failPath = $this->_adyenHelper->getAdyenAbstractConfigData('return_path');
+                $successPath = $this->adyenDataHelper->getAdyenAbstractConfigData('custom_success_redirect_path') ?? 'checkout/onepage/success';
+                $failPath = $this->adyenDataHelper->getAdyenAbstractConfigData('return_path');
                 $setQuoteAsActive = false;
             }
         } else {
-            $this->_redirect($this->_adyenHelper->getAdyenAbstractConfigData('return_path'));
+            $this->_redirect($this->adyenDataHelper->getAdyenAbstractConfigData('return_path'));
         }
 
         if ($result) {
-            $session = $this->_session;
+            $session = $this->session;
             $session->getQuote()->setIsActive($setQuoteAsActive)->save();
 
             // Prevent action component to redirect page with the payment method Dotpay Bank transfer / postal
             if (
-                $this->_order->getPayment()->getAdditionalInformation('brand_code') == self::BRAND_CODE_DOTPAY &&
-                $this->_order->getPayment()->getAdditionalInformation('resultCode') == self::RESULT_CODE_RECEIVED
+                $this->order->getPayment()->getAdditionalInformation('brand_code') == self::BRAND_CODE_DOTPAY &&
+                $this->order->getPayment()->getAdditionalInformation('resultCode') == self::RESULT_CODE_RECEIVED
             ) {
                 $this->payment->unsAdditionalInformation('action');
-                $this->_order->save();
+                $this->order->save();
             }
 
             // Add OrderIncrementId to redirect parameters for headless support.
-            $redirectParams = $this->_adyenHelper->getAdyenAbstractConfigData('custom_success_redirect_path')
-                ? ['_query' => ['utm_nooverride' => '1', 'order_increment_id' => $this->_order->getIncrementId()]]
+            $redirectParams = $this->adyenDataHelper->getAdyenAbstractConfigData('custom_success_redirect_path')
+                ? ['_query' => ['utm_nooverride' => '1', 'order_increment_id' => $this->order->getIncrementId()]]
                 : ['_query' => ['utm_nooverride' => '1']];
             $this->_redirect($successPath, $redirectParams);
         } else {
-            $this->_adyenLogger->addAdyenResult(
+            $this->adyenLogger->addAdyenResult(
                 sprintf(
                     'Payment for order %s was unsuccessful, ' .
                     'it will be cancelled when the OFFER_CLOSED notification has been processed.',
-                    $this->_order->getIncrementId()
+                    $this->order->getIncrementId()
                 )
             );
             $this->replaceCart($response);
@@ -244,11 +226,12 @@ class Index extends \Magento\Framework\App\Action\Action
     }
 
     /**
-     * @param $response
+     * @param array $response
+     * @return void
      */
-    protected function replaceCart($response)
+    protected function replaceCart(array $response): void
     {
-        $this->_session->restoreQuote();
+        $this->session->restoreQuote();
 
         if (isset($response['authResult']) && $response['authResult'] == \Adyen\Payment\Model\Notification::CANCELLED) {
             $this->messageManager->addError(__('You have cancelled the order. Please try again'));
@@ -258,20 +241,19 @@ class Index extends \Magento\Framework\App\Action\Action
     }
 
     /**
-     * @param $response
+     * @param array $response
      * @return bool
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws AdyenException
+     * @throws LocalizedException
      */
-    protected function validateResponse($response)
+    protected function validateResponse(array $response): bool
     {
-        $result = true;
-
-        $this->_adyenLogger->addAdyenResult('Processing ResultUrl');
+        $this->adyenLogger->addAdyenResult('Processing ResultUrl');
 
         // send the payload verification payment\details request to validate the response
         $response = $this->validatePayloadAndReturnResponse($response);
 
-        $order = $this->_order;
+        $order = $this->order;
 
         $this->_eventManager->dispatch(
             'adyen_payment_process_resulturl_before',
@@ -286,29 +268,8 @@ class Index extends \Magento\Framework\App\Action\Action
             $this->payment->setAdditionalInformation('pspReference', $response['pspReference']);
         }
 
-        $paymentMethodInstance = $this->payment->getMethodInstance();
-        $paymentInstanceCode = $paymentMethodInstance->getCode();
-
-        if ($this->vaultHelper->hasRecurringDetailReference($response) && $paymentInstanceCode !== AdyenOneclickConfigProvider::CODE) {
-            $storeId = $paymentMethodInstance->getStore();
-            $storePaymentMethods = $this->configHelper->isStoreAlternativePaymentMethodEnabled($storeId);
-            $cardVaultEnabled = $this->vaultHelper->isCardVaultEnabled($storeId);
-
-            // If payment method is NOT card
-            // Else if card
-            if ($storePaymentMethods && $paymentMethodInstance instanceof PaymentMethodInterface) {
-                try {
-                    $this->vaultHelper->saveRecurringDetails($this->payment, $response['additionalData']);
-                } catch (PaymentMethodException $e) {
-                    $this->_adyenLogger->error(sprintf(
-                        'Unable to create payment method with tx variant %s in details handler',
-                        $response['additionalData']['paymentMethod']
-                    ));
-                }
-            } elseif ($cardVaultEnabled && $paymentInstanceCode === AdyenCcConfigProvider::CODE) {
-                $this->vaultHelper->saveRecurringCardDetails($this->payment, $response['additionalData']);
-            }
-        }
+        // Handle recurring details
+        $this->vaultHelper->handlePaymentResponseRecurringDetails($this->payment, $response);
 
         // Save donation token if available in the response
         if (!empty($response['donationToken'])) {
@@ -316,7 +277,7 @@ class Index extends \Magento\Framework\App\Action\Action
         }
 
         // update the order
-        $result = $this->_validateUpdateOrder($order, $response);
+        $result = $this->validateUpdateOrder($order, $response);
 
         $this->_eventManager->dispatch(
             'adyen_payment_process_resulturl_after',
@@ -331,10 +292,11 @@ class Index extends \Magento\Framework\App\Action\Action
 
     /**
      * @param Order $order
-     * @param $response
+     * @param array $response
      * @return bool
+     * @throws AlreadyExistsExceptionAlias
      */
-    protected function _validateUpdateOrder($order, $response)
+    protected function validateUpdateOrder(Order $order, array $response): bool
     {
         $result = false;
 
@@ -344,12 +306,12 @@ class Index extends \Magento\Framework\App\Action\Action
             $authResult = $response['resultCode'];
         } else {
             // In case the result is unknown we log the request and don't update the history
-            $this->_adyenLogger->error("Unexpected result query parameter. Response: " . json_encode($response));
+            $this->adyenLogger->error("Unexpected result query parameter. Response: " . json_encode($response));
 
             return $result;
         }
 
-        $this->_adyenLogger->addAdyenResult('Updating the order');
+        $this->adyenLogger->addAdyenResult('Updating the order');
 
         if (isset($response['paymentMethod']['brand'])) {
             $paymentMethod = $response['paymentMethod']['brand'];
@@ -383,14 +345,14 @@ class Index extends \Magento\Framework\App\Action\Action
         switch (strtoupper((string) $authResult)) {
             case Notification::AUTHORISED:
                 $result = true;
-                $this->_adyenLogger->addAdyenResult('Do nothing wait for the notification');
+                $this->adyenLogger->addAdyenResult('Do nothing wait for the notification');
                 break;
             case Notification::RECEIVED:
                 $result = true;
                 if (strpos((string) $paymentMethod, "alipay_hk") !== false) {
                     $result = false;
                 }
-                $this->_adyenLogger->addAdyenResult('Do nothing wait for the notification');
+                $this->adyenLogger->addAdyenResult('Do nothing wait for the notification');
                 break;
             case Notification::PENDING:
                 // do nothing wait for the notification
@@ -406,16 +368,16 @@ class Index extends \Magento\Framework\App\Action\Action
                                  <br />The order can be automatically cancelled based on the OFFER_CLOSED notification.
                                  Please contact Adyen Support to enable this.";
                 }
-                $this->_adyenLogger->addAdyenResult('Do nothing wait for the notification');
+                $this->adyenLogger->addAdyenResult('Do nothing wait for the notification');
                 break;
             case Notification::CANCELLED:
             case Notification::ERROR:
-                $this->_adyenLogger->addAdyenResult('Cancel or Hold the order on OFFER_CLOSED notification');
+                $this->adyenLogger->addAdyenResult('Cancel or Hold the order on OFFER_CLOSED notification');
                 $result = false;
                 break;
             case Notification::REFUSED:
                 // if refused there will be a AUTHORIZATION : FALSE notification send only exception is idea
-                $this->_adyenLogger->addAdyenResult(
+                $this->adyenLogger->addAdyenResult(
                     'Cancel or Hold the order on AUTHORISATION
                 success = false notification'
                 );
@@ -425,16 +387,16 @@ class Index extends \Magento\Framework\App\Action\Action
                     $order->setState(Order::STATE_NEW);
                     $this->orderRepository->save($order);
                 }
-                $this->dataHelper->cancelOrder($order);
+                $this->adyenDataHelper->cancelOrder($order);
 
                 break;
             default:
-                $this->_adyenLogger->addAdyenResult('This event is not supported: ' . $authResult);
+                $this->adyenLogger->addAdyenResult('This event is not supported: ' . $authResult);
                 $result = false;
                 break;
         }
 
-        $history = $this->_orderHistoryFactory->create()
+        $history = $this->orderHistoryFactory->create()
             ->setStatus($order->getStatus())
             ->setComment($comment)
             ->setEntityName('order')
@@ -446,7 +408,7 @@ class Index extends \Magento\Framework\App\Action\Action
         try {
             $this->stateDataHelper->CleanQuoteStateData($order->getQuoteId(), $authResult);
         } catch (\Exception $exception) {
-            $this->_adyenLogger->error(__('Error cleaning the payment state data: %s', $exception->getMessage()));
+            $this->adyenLogger->error(__('Error cleaning the payment state data: %s', $exception->getMessage()));
         }
 
 
@@ -456,10 +418,11 @@ class Index extends \Magento\Framework\App\Action\Action
     /**
      * Authenticate using sha256 Merchant signature
      *
-     * @param $response
+     * @param array $response
      * @return bool
+     * @throws AdyenException
      */
-    protected function _authenticate($response)
+    protected function authenticate(array $response): bool
     {
         $merchantSigNotification = $response['merchantSig'];
 
@@ -479,7 +442,7 @@ class Index extends \Magento\Framework\App\Action\Action
         unset($result['merchantSig']);
 
         // Sign request using secret key
-        $hmacKey = $this->_adyenHelper->getHmac();
+        $hmacKey = $this->adyenDataHelper->getHmac();
         $merchantSig = \Adyen\Util\Util::calculateSha256Signature($hmacKey, $result);
 
         if (strcmp($merchantSig, (string) $merchantSigNotification) === 0) {
@@ -490,54 +453,45 @@ class Index extends \Magento\Framework\App\Action\Action
     }
 
     /**
-     * The character escape function is called from the array_map function in _signRequestParams
-     *
-     * @param $val
-     * @return mixed
-     */
-    protected function escapeString($val)
-    {
-        return str_replace(':', '\\:', str_replace('\\', '\\\\', (string) $val));
-    }
-
-    /**
      * Get order based on increment_id
      *
-     * @param $incrementId
+     * @param string|null $incrementId
      * @return Order
      */
-    protected function _getOrder($incrementId = null)
+    protected function getOrder(string $incrementId = null): Order
     {
-        if (!$this->_order) {
+        if (!isset($this->order)) {
             if ($incrementId !== null) {
                 //TODO Replace with order repository search for best practice
-                $this->_order = $this->_orderFactory->create()->loadByIncrementId($incrementId);
+                $this->order = $this->orderFactory->create()->loadByIncrementId($incrementId);
             } else {
-                $this->_order = $this->_session->getLastRealOrder();
+                $this->order = $this->session->getLastRealOrder();
             }
         }
 
-        return $this->_order;
+        return $this->order;
     }
 
     /**
      * Validates the payload from checkout /payments hpp and returns the api response
      *
-     * @param $response
+     * @param array $result
      * @return mixed
-     * @throws \Adyen\AdyenException
+     * @throws AdyenException
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
-    protected function validatePayloadAndReturnResponse($result)
+    protected function validatePayloadAndReturnResponse(array $result): array
     {
-        $client = $this->_adyenHelper->initializeAdyenClient($this->storeManager->getStore()->getId());
-        $service = $this->_adyenHelper->createAdyenCheckoutService($client);
+        $client = $this->adyenDataHelper->initializeAdyenClient($this->storeManager->getStore()->getId());
+        $service = $this->adyenDataHelper->createAdyenCheckoutService($client);
 
-        $order = $this->_getOrder(
+        $order = $this->getOrder(
             !empty($result['merchantReference']) ? $result['merchantReference'] : null
         );
 
         if (!$order->getId()) {
-            throw new \Magento\Framework\Exception\LocalizedException(
+            throw new LocalizedException(
                 __('Order cannot be loaded')
             );
         }
@@ -568,16 +522,16 @@ class Index extends \Magento\Framework\App\Action\Action
             $merchantReference = $responseMerchantReference ?: $resultMerchantReference;
             if ($merchantReference) {
                 if ($order->getIncrementId() === $merchantReference) {
-                    $this->_order = $order;
+                    $this->order = $order;
                 } else {
-                    $this->_adyenLogger->error("Wrong merchantReference was set in the query or in the session");
+                    $this->adyenLogger->error("Wrong merchantReference was set in the query or in the session");
                     $response['error'] = 'merchantReference mismatch';
                 }
             } else {
-                $this->_adyenLogger->error("No merchantReference in the response");
+                $this->adyenLogger->error("No merchantReference in the response");
                 $response['error'] = 'merchantReference is missing from the response';
             }
-        } catch (\Adyen\AdyenException $e) {
+        } catch (AdyenException $e) {
             $response['error'] = $e->getMessage();
         }
 
