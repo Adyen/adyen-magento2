@@ -81,7 +81,6 @@ define([
             }
         },
 
-        // TODO: implement handleOnAdditionalDetails
         handleOnAdditionalDetails: function (result) {
             var self = this;
             var request = result.data;
@@ -125,7 +124,6 @@ define([
             return this.isActive() && this.isPlaceOrderActionAllowed() && isValidObserver()[this.getId()];
         },
 
-        // TODO check: installments, add modal and handleOnAdditionalDetails for 3ds2
         placeOrder: function (data, event) {
             let self = this;
 
