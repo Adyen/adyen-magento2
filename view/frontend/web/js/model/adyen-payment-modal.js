@@ -62,6 +62,9 @@ define(
                 append('<div id=' + modalLabel + '>' +
                     '<div id=' + (modalLabel + "Content") + '></div>' +
                     '</div>');
+            },
+            hideModalLabel: function (modalLabel) {
+                $('.' + modalLabel).css('display','none');
             }
         };
     }
