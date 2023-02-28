@@ -239,7 +239,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
             $order = $this->caseManagementHelper->markCaseAsPendingReview($order, $notification->getPspreference(), false);
         } else {
             $order->setState(Order::STATE_PENDING_PAYMENT);
-            $order->setStatus(Order::STATE_PENDING_PAYMENT);
+            $order->setStatus($order->getConfig()->getStateDefaultStatus(Order::STATE_PENDING_PAYMENT));
 
             $order = $this->orderHelper->addWebhookStatusHistoryComment($order, $notification);
             $order->addStatusHistoryComment(__('Capture Mode set to Manual'), $order->getStatus());
