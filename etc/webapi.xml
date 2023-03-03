@@ -22,27 +22,11 @@
         </resources>
     </route>
 
-    <route url="/V1/internal/guest-carts/:cartId/retrieve-adyen-payment-methods" method="POST">
-        <service class="Adyen\Payment\Api\Internal\InternalGuestAdyenPaymentMethodManagementInterface" method="handleInternalRequest"/>
-        <resources>
-            <resource ref="anonymous"/>
-        </resources>
-    </route>
 
     <route url="/V1/carts/mine/retrieve-adyen-payment-methods" method="POST">
         <service class="Adyen\Payment\Api\AdyenPaymentMethodManagementInterface" method="getPaymentMethods"/>
         <resources>
             <resource ref="self"/>
-        </resources>
-        <data>
-            <parameter name="cartId" force="true">%cart_id%</parameter>
-        </data>
-    </route>
-
-    <route url="/V1/internal/carts/mine/retrieve-adyen-payment-methods" method="POST">
-        <service class="Adyen\Payment\Api\Internal\InternalAdyenPaymentMethodManagementInterface" method="handleInternalRequest"/>
-        <resources>
-            <resource ref="anonymous"/>
         </resources>
         <data>
             <parameter name="cartId" force="true">%cart_id%</parameter>
@@ -68,13 +52,6 @@
         <service class="Adyen\Payment\Api\AdyenPaymentDetailsInterface" method="initiate"/>
         <resources>
             <resource ref="self"/>
-        </resources>
-    </route>
-
-    <route url="/V1/internal/adyen/payment-details" method="POST">
-        <service class="Adyen\Payment\Api\Internal\InternalAdyenPaymentDetailsInterface" method="handleInternalRequest"/>
-        <resources>
-            <resource ref="anonymous"/>
         </resources>
     </route>
 
