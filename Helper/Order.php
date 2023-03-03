@@ -13,7 +13,6 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\Config\Source\Status\AdyenState;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as OrderPaymentCollectionFactory;
 use Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo as AdyenCreditMemoResourceModel;
@@ -252,13 +251,6 @@ class Order extends AbstractHelper
         );
         $possibleStates = Webhook::STATE_TRANSITION_MATRIX[$eventLabel];
 
-        // Set state back to previous state to prevent update if 'maintain status' was configured
-        $maintainingState = false;
-        if ($status === AdyenState::STATE_MAINTAIN) {
-            $maintainingState = true;
-            $status = $order->getStatus();
-        }
-
         // virtual order can have different statuses
         if ($order->getIsVirtual()) {
             $status = $this->getVirtualStatus($order, $status);
@@ -284,16 +276,7 @@ class Order extends AbstractHelper
             $comment = "Adyen Payment Successfully completed";
             // If a status is set, add comment, set status and update the state based on the status
             // Else add comment
-            if (!empty($status) && $maintainingState) {
-                $order->addStatusHistoryComment(__($comment), $status);
-                $this->adyenLogger->addAdyenNotification(
-                    'Maintaining current status: ' . $status,
-                    array_merge(
-                        $this->adyenLogger->getOrderContext($order),
-                        ['pspReference' => $notification->getPspreference()]
-                    )
-                );
-            } else if (!empty($status)) {
+            if (!empty($status)) {
                 $order->addStatusHistoryComment(__($comment), $status);
                 $this->setState($order, $status, $possibleStates);
                 $this->adyenLogger->addAdyenNotification(
