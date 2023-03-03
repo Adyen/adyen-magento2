@@ -3,7 +3,7 @@
 /**
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -18,9 +18,7 @@ use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Order;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Model\AdyenAmountCurrency;
-use Adyen\Payment\Model\Config\Source\Status\AdyenState;
 use Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo as AdyenCreditMemoResourceModel;
-use Adyen\Payment\Model\ResourceModel\Order\Payment\Collection;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as OrderPaymentCollectionFactory;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
@@ -71,34 +69,6 @@ class OrderTest extends AbstractAdyenTestCase
         ]);
         $configHelper = $this->createConfiguredMock(Config::class, [
             'getConfigData' => 'payment_authorized'
-        ]);
-
-        $orderHelper = $this->createOrderHelper(
-            $this->createOrderStatusCollection(MagentoOrder::STATE_PROCESSING),
-            $configHelper,
-            $adyenPaymentOrderHelper,
-            $chargedCurrency,
-            $dataHelper
-        );
-
-        $order = $this->createOrder('testStatus');
-        $notification = $this->createWebhook();
-
-        $order->expects($this->never())->method('setState')->with(MagentoOrder::STATE_PROCESSING);
-        $orderHelper->finalizeOrder($order, $notification);
-    }
-
-    public function testFinalizeOrderMaintainState()
-    {
-        $dataHelper = $this->createConfiguredMock(Data::class, ['formatAmount' => 'EUR123']);
-        $chargedCurrency = $this->createConfiguredMock(ChargedCurrency::class, [
-            'getOrderAmountCurrency' => new AdyenAmountCurrency(1000, 'EUR')
-        ]);
-        $adyenPaymentOrderHelper = $this->createConfiguredMock(AdyenOrderPayment::class, [
-            'isFullAmountFinalized' => false
-        ]);
-        $configHelper = $this->createConfiguredMock(Config::class, [
-            'getConfigData' => AdyenState::STATE_MAINTAIN
         ]);
 
         $orderHelper = $this->createOrderHelper(

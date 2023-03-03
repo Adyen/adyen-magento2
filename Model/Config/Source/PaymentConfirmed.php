@@ -3,34 +3,34 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model\Config\Source\Status;
+namespace Adyen\Payment\Model\Config\Source;
 
-use Adyen\Payment\Helper\Webhook;
+use Magento\Sales\Model\Config\Source\Order\Status;
+use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Config;
 
 /**
  * Order Statuses source model
  */
-class ProcessingMaintain extends \Magento\Sales\Model\Config\Source\Order\Status
+class PaymentConfirmed extends Status
 {
     /**
      * @var string[]
      */
-    private $stateStatuses = [
-        \Magento\Sales\Model\Order::STATE_PROCESSING,
+    private array $stateStatuses = [
+        Order::STATE_PROCESSING,
     ];
 
-    private $adyenStateStatuses = AdyenState::STATE_MAINTAIN_STATUS;
-
     /**
-     * @param \Magento\Sales\Model\Order\Config $orderConfig
+     * @param Config $orderConfig
      */
-    public function __construct(\Magento\Sales\Model\Order\Config $orderConfig)
+    public function __construct(Config $orderConfig)
     {
         $this->_orderConfig = $orderConfig;
     }
@@ -38,13 +38,11 @@ class ProcessingMaintain extends \Magento\Sales\Model\Config\Source\Order\Status
     /**
      * @return array
      */
-    public function toOptionArray()
+    public function toOptionArray(): array
     {
         $statuses = $this->stateStatuses
             ? $this->_orderConfig->getStateStatuses($this->stateStatuses)
             : $this->_orderConfig->getStatuses();
-
-        $statuses = array_merge($statuses, $this->adyenStateStatuses);
 
         $options = [];
         foreach ($statuses as $code => $label) {
