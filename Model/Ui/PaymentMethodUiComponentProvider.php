@@ -16,6 +16,8 @@ use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\Vault;
 use Exception;
+use Magento\Framework\App\RequestInterface;
+use Magento\Framework\UrlInterface;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Vault\Model\Ui\TokenUiComponentInterface;
 use Magento\Vault\Model\Ui\TokenUiComponentProviderInterface;
@@ -29,9 +31,11 @@ class PaymentMethodUiComponentProvider extends AdyenUiComponentProvider implemen
     public function __construct(
         TokenUiComponentInterfaceFactory $componentFactory,
         Data $dataHelper,
+        UrlInterface $url,
+        RequestInterface $request,
         Vault $vaultHelper
     ) {
-        parent::__construct($componentFactory, $dataHelper);
+        parent::__construct($componentFactory, $dataHelper, $url, $request);
         $this->vaultHelper = $vaultHelper;
     }
 
