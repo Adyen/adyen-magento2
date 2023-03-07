@@ -32,11 +32,10 @@ class PosCloudBuilder implements BuilderInterface
     }
 
     /**
-     * In case of older implementation (using AdyenInitiateTerminalApi::initiate) initiate call was already done so we pass its result.
-     * Otherwise, we will do the initiate call here, using initiatePosPayment() so we pass parameters required for the initiate call
      *
      * @param array $buildSubject
      * @return array
+     * @throws LocalizedException
      */
     public function build(array $buildSubject)
     {
@@ -46,15 +45,14 @@ class PosCloudBuilder implements BuilderInterface
         $order = $payment->getOrder();
 
         $request['body'] = $this->buildPosRequest(
+            $order,
             $payment->getAdditionalInformation('terminal_id'),
             $payment->getAdditionalInformation('funding_source'),
-            $order,
             $payment->getAdditionalInformation('number_of_installments'),
         );
 
         return $request;
     }
-
 
     /**
      * Build request required for the /sync call
@@ -67,9 +65,9 @@ class PosCloudBuilder implements BuilderInterface
      * @throws LocalizedException
      */
     private function buildPosRequest(
-        string $terminalId,
-        string $fundingSource,
         Order $order,
+        string $terminalId,
+        ?string $fundingSource,
         ?string $numberOfInstallments
     ): array {
         // Validate JSON that has just been parsed if it was in a valid format
