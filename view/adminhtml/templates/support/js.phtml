@@ -1,0 +1,280 @@
+<?php
+/** @var \Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer */
+?>
+<script>
+require([
+    'jquery',
+    'mage/mage'
+], function($) {
+    $('#support_topic_value').change(function() {
+        // enable/disable the submit button
+        let topic = $("#support_topic_value").val();
+
+        if (0 !== topic.length) {
+            $('#adyen_support-need-help').prop('disabled', false);
+        } else {
+            $('#adyen_support-need-help').prop('disabled', true);
+        }
+    });
+
+    const linksMapping = {
+        required_settings: [
+            {
+                title: 'Magento plugin setup',
+                href: 'https://docs.adyen.com/plugins/magento-2/set-up-the-plugin-in-magento#step-3-configure-the-plugin-in-magento'
+            },
+            {
+                title: 'How to request a new merchant account',
+                href: 'https://www.adyen.com/education/europe/english/modules/customer-area'
+            },
+            {
+                title: 'Why Apple pay is not working',
+                href: 'https://www.adyen.help/hc/en-us/articles/5034568463900-Why-is-ApplePay-not-working-using-Magento-2-'
+            },
+            {
+                title: 'Go-live checklist',
+                href: 'https://docs.adyen.com/plugins/magento-2/go-live-checklist'
+            },
+            {
+                title: 'Troubleshooting guide',
+                href: 'https://docs.adyen.com/plugins/magento-2/troubleshooting'
+            },
+            {
+                title: 'Why do I get the error 401 Unauthorized?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5231709306652-why-do-i-get-the-error-401-unauthorized'
+            }
+        ],
+        card_payments: [
+            {
+                title: 'How to configure card payments ',
+                href: 'https://docs.adyen.com/plugins/magento-2/set-up-the-payment-methods-in-magento#api-credit-card-payments'
+            },
+            {
+                title: 'What are supported schemes?',
+                href: 'https://docs.adyen.com/plugins/magento-2/supported-payment-methods#credit-and-debit-cards'
+            },
+            {
+                title: '3D Secure 2 Component integration',
+                href: 'https://docs.adyen.com/online-payments/3d-secure/native-3ds2/web-component?utm_source=ca_test'
+            }
+        ],
+        card_tokenization: [
+            {
+                title: 'How to set up tokenization',
+                href: 'https://docs.adyen.com/plugins/magento-2/set-up-tokenization'
+            },
+            {
+                title: 'Video: How to set up tokenization',
+                href: 'https://help.adyen.com/academy/how-to-videos/plugins/how-to-set-up-tokenization-in-your-magento-plugin'
+            },
+            {
+                title: 'Difference between One-off, Subscription and Top-ups',
+                href: 'https://docs.adyen.com/online-payments/tokenization/create-and-use-tokens?tab=one_off_payments_1#create-a-token'
+            },
+            {
+                title: 'Why do I receive a 800 Contract not found error?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5231491632668-why-do-i-receive-a-800-contract-not-found-error'
+            },
+            {
+                title: 'Why do I receive a 803 PaymentDetail not found error?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5231662267420-why-do-i-receive-a-803-paymentdetail-not-found-error'
+            },
+            {
+                title: 'Why does my recurring transaction give the error "invalid card number"?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5234058320412-why-does-my-recurring-transaction-give-the-error-invalid-card-number'
+            }
+        ],
+        alt_payment_methods: [
+            {
+                title: 'Why are Adyen alternative payment methods not showing up in Magento?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5034154365340-Why-are-Adyen-alternative-payment-methods-not-showing-up-in-Magento-'
+            },
+            {
+                title: 'Supported Payment Methods',
+                href: 'https://docs.adyen.com/plugins/magento-2/supported-payment-methods#credit-and-debit-cards'
+            },
+            {
+                title: 'How to add payment methods in Customer Area',
+                href: 'https://docs.adyen.com/point-of-sale/payment-methods#add-payment-methods-to-your-account'
+            },
+            {
+                title: 'How do I deactivate or delete a payment method?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5439872869404-how-do-i-deactivate-or-delete-a-payment-method'
+            },
+            {
+                title: 'Video: How to add payment methods in Customer Area',
+                href: 'https://www.adyen.com/education/europe/english/modules/customer-area'
+            },
+            {
+                title: 'How do I change the order of payment methods on my checkout page?',
+                href: 'https://www.adyen.help/hc/en-us/articles/4871657923612-how-can-i-change-the-order-of-my-payment-methods'
+            },
+            {
+                title: 'How can we change the order of the payment methods inside Magento 2?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5034413982876-how-can-we-change-the-order-of-the-payment-methods-inside-magento-2'
+            }
+        ],
+        pos_integration: [
+            {
+                title: 'Video: How to board, assign and troubleshoot a terminal',
+                href: 'https://www.adyen.com/education/europe/english/modules/in-person-payments'
+            },
+            {
+                title: 'How to troubleshoot a terminal',
+                href: 'https://docs.adyen.com/point-of-sale/pos-troubleshooting?utm_source=ca_test'
+            }
+        ],
+        pay_by_link: [
+            {
+                title: 'How to set up Pay By Link in the plugin',
+                href: 'https://docs.adyen.com/plugins/magento-2/set-up-the-payment-methods-in-magento#pay-by-link'
+            },
+            {
+                title: 'Video: How to set up PayByLink',
+                href: 'https://help.adyen.com/academy/how-to-videos/plugins/how-to-set-up-pay-by-link-in-your-magento-plugin'
+            }
+        ],
+        adyen_giving: [
+            {
+                title: 'How to set up Donations in the plugin',
+                href: 'https://docs.adyen.com/plugins/magento-2/set-up-the-payment-methods-in-magento#donations'
+            },
+            {
+                title: 'Video: How to set up Adyen Giving',
+                href: 'https://help.adyen.com/academy/how-to-videos/plugins/how-to-set-up-giving-in-your-magento-plugin/'
+            }
+        ],
+        advanced_settings: [
+            {
+                title: 'Why does the order status in Magento remain on "Payment Review"?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5033911246876-Why-does-the-order-status-in-Magento-remain-on-Payment-Review-'
+            },
+            {
+                title: 'Why is the text in Magento not being translated?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5034181926300-Why-is-the-text-in-Magento-not-being-translated-'
+            },
+            {
+                title: 'How can we customise the Magento 2 plugin?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5034486805532-How-can-we-customise-the-Magento-2-plugin-'
+            },
+            {
+                title: 'Why is my order status Settled or SentForSettle after I refunded it on Magento?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5034488629660-Why-is-my-order-status-Settled-or-SentForSettle-after-I-refunded-it-on-Magento-'
+            },
+            {
+                title: 'Why are Klarna payments stuck in Pending?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5032453938460-why-are-klarna-payments-stuck-in-pending'
+            },
+            {
+                title: 'Why are the orders not created in Magento after a payment is processed in Adyen?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5033911246876-why-does-the-order-status-in-magento-remain-on-payment-review'
+            },
+            {
+                title: 'How can I change the capture settings of my payment method?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5003914234140-how-can-i-change-the-capture-settings-of-my-payment-method'
+            }
+        ],
+        payment_status: [
+            {
+                title: 'Why is the cart emptied if a shopper cancels the payment?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5034583228316-Why-is-the-cart-emptied-if-a-shopper-cancels-the-payment-'
+            },
+            {
+                title: 'Why is my order status Settled or SentForSettle after I refunded it on Magento?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5034488629660-Why-is-my-order-status-Settled-or-SentForSettle-after-I-refunded-it-on-Magento-'
+            },
+            {
+                title: 'Why are Klarna payments stuck in Pending?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5032453938460-why-are-klarna-payments-stuck-in-pending'
+            },
+            {
+                title: 'Why does the order status in Magento remain on "Payment Review"?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5033911246876-Why-does-the-order-status-in-Magento-remain-on-Payment-Review-'
+            }
+        ],
+        failed_transaction: [
+            {
+                title: 'What does it mean if a payment is refused because 3d-secure: Authentication failed?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5295691501596-what-does-it-mean-if-a-payment-is-refused-because-3dsecure-authentication-failed'
+            },
+            {
+                title: 'Why is my payment canceled?',
+                href: 'https://www.adyen.help/hc/en-us/articles/4545692297884-why-is-my-payment-canceled'
+            },
+            {
+                title: 'Why do I receive a 905 Payment details are not supported error?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5231655519004-why-do-i-receive-a-905-payment-details-are-not-supported-error'
+            },
+            {
+                title: 'Why do I receive a 403 or 010 Not Allowed error?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5231707550364-why-do-i-receive-a-403-or-010-not-allowed-error'
+            },
+            {
+                title: 'Why do I receive the error 422 : Unable to Decrypt Data using the Card Component or Drop-In?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5233146584988-why-do-i-receive-the-error-422-unable-to-decrypt-data-using-the-card-component-or-dropin'
+            },
+            {
+                title: 'Why do I receive a 807 Invalid combination of shopper interaction and recurring contract error?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5231605902492-why-do-i-receive-a-807-invalid-combination-of-shopper-interaction-and-recurring-contract-error'
+            },
+            {
+                title: 'Why do I get errorCode 908: invalid request with HTTP status 500?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5231513160220-why-do-i-get-errorcode-908-invalid-request-with-http-status-500'
+            }
+        ],
+        offer: [
+            {
+                title: 'Why is the cart emptied if a shopper cancels the payment?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5034583228316-Why-is-the-cart-emptied-if-a-shopper-cancels-the-payment-'
+            },
+            {
+                title: 'Why does the order status in Magento remain on "Payment Review"?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5033911246876-Why-does-the-order-status-in-Magento-remain-on-Payment-Review-'
+            }
+        ],
+        webhooks: [
+            {
+                title: 'What does "You have unprocessed notifications" in Magento mean?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5483041994396-What-does-You-have-unprocessed-notifications-in-Magento-mean-'
+            },
+            {
+                title: 'How to set up notifications in Customer Area',
+                href: 'https://docs.adyen.com/plugins/magento-2/set-up-adyen-customer-area'
+            },
+            {
+                title: 'Why does the order status in Magento remain on "Payment Review"?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5033911246876-Why-does-the-order-status-in-Magento-remain-on-Payment-Review-'
+            },
+            {
+                title: 'Why does Magento 2 does not receive notifications?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5034412585116-Why-does-Magento-2-does-not-receive-notifications-'
+            },
+            {
+                title: 'I get a 301, 302 or 401 error in Magento when testing the notification endpoint',
+                href: 'https://www.adyen.help/hc/en-us/articles/5034799389980-I-get-a-301-302-or-401-error-in-Magento-when-testing-the-notification-endpoint'
+            },
+            {
+                title: 'How can I get additional data in standard Notifications?',
+                href: 'https://www.adyen.help/hc/en-us/articles/5234558016540-how-can-i-get-additional-data-in-standard-notifications'
+            }
+        ]
+    };
+
+    $('#support_topic_value').on('change', function (event) {
+        let linksHtml = '';
+        if (!!this.value.length) {
+            let topics = linksMapping[this.value];
+            if (!!topics.length) {
+                linksHtml += '<ul>';
+                for (i = 0; i < topics.length; i++) {
+                    linksHtml += '<li><a target="_blank" href="' + topics[i].href + '">' + topics[i].title + '</a></li>';
+                }
+                linksHtml += '</ul>';
+            }
+        }
+        $('.adyen_support-links').html(linksHtml);
+    })
+
+    $('#support_form').mage('form').mage('validation', {});
+});
+</script>

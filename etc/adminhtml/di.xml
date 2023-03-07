@@ -56,4 +56,7 @@
             </argument>
         </arguments>
     </type>
+
+    <preference for="\Magento\Framework\Mail\Template\TransportBuilder"
+                type="\Adyen\Payment\Model\TransportBuilder"/>
 </config>
