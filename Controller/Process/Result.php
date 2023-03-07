@@ -203,25 +203,25 @@ class Result extends Action
         // Receive all params as this could be a GET or POST request
         $response = $this->getRequest()->getParams();
 
-        if ($response) {
-            $result = $this->validateResponse($response);
-
-            // Adjust the success path, fail path, and restore quote based on if it is a multishipping quote
-            if (
-                !empty($response['merchantReference']) &&
-                $this->quoteHelper->getIsQuoteMultiShippingWithMerchantReference($response['merchantReference'])
-            ) {
-                $successPath = $failPath = 'multishipping/checkout/success';
-                $setQuoteAsActive = true;
-            } else {
-                $successPath = $this->_adyenHelper->getAdyenAbstractConfigData('custom_success_redirect_path') ?? 'checkout/onepage/success';
-                $failPath = $this->_adyenHelper->getAdyenAbstractConfigData('return_path');
-                $setQuoteAsActive = false;
-            }
-        } else {
-            $this->_redirect($this->_adyenHelper->getAdyenAbstractConfigData('return_path'));
+        if (! $response) {
+            return $this->_redirect($this->_adyenHelper->getAdyenAbstractConfigData('return_path'));
         }
+        
+        $result = $this->validateResponse($response);
 
+        // Adjust the success path, fail path, and restore quote based on if it is a multishipping quote
+        if (
+            !empty($response['merchantReference']) &&
+            $this->quoteHelper->getIsQuoteMultiShippingWithMerchantReference($response['merchantReference'])
+        ) {
+            $successPath = $failPath = 'multishipping/checkout/success';
+            $setQuoteAsActive = true;
+        } else {
+            $successPath = $this->_adyenHelper->getAdyenAbstractConfigData('custom_success_redirect_path') ?? 'checkout/onepage/success';
+            $failPath = $this->_adyenHelper->getAdyenAbstractConfigData('return_path');
+            $setQuoteAsActive = false;
+        }
+        
         if ($result) {
             $session = $this->_session;
             $session->getQuote()->setIsActive($setQuoteAsActive)->save();
