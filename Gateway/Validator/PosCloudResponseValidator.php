@@ -73,7 +73,7 @@ class PosCloudResponseValidator extends AbstractValidator
             }
         } else {
             // We have a paymentResponse from the terminal
-            $paymentResponse = $response;
+            $paymentResponse = $response['SaleToPOIResponse']['PaymentResponse'];
         }
 
         if (!empty($paymentResponse) && $paymentResponse['Response']['Result'] != 'Success') {

@@ -103,200 +103,7 @@ class TransactionPosCloudSync implements ClientInterface
         $request = $transferObject->getBody();
         //always do status call and return the response of the status call
         $service = $this->adyenHelper->createAdyenPosPaymentService($this->client);
-        $newServiceID = date("dHis");
-        $statusDate = date("U");
-        $terminalId = $request['terminalID'];
 
-        if (array_key_exists('chainCalls', $request)) {
-            $quote = $this->initiatePosPayment(
-                $terminalId,
-                $request['fundingSource'],
-                $request['numberOfInstallments']
-            );
-            $quoteInfoInstance = $quote->getPayment()->getMethodInstance()->getInfoInstance();
-            $timeDiff = (int)$statusDate - (int)$quoteInfoInstance->getAdditionalInformation('initiateDate');
-            $serviceId = $quoteInfoInstance->getAdditionalInformation('serviceID');
-        } else {
-            $timeDiff = (int)$statusDate - (int)$request['initiateDate'];
-            $serviceId = $request['serviceID'];
-        }
-
-        $totalTimeout = $this->configHelper->getAdyenPosCloudConfigData('total_timeout', $this->storeId);
-        if ($timeDiff > $totalTimeout) {
-            throw new LocalizedException(__("POS connection timed out."));
-        }
-
-        //Provide receipt to the shopper
-        $request = [
-            'SaleToPOIRequest' => [
-                'MessageHeader' => [
-                    'ProtocolVersion' => '3.0',
-                    'MessageClass' => 'Service',
-                    'MessageCategory' => 'TransactionStatus',
-                    'MessageType' => 'Request',
-                    'ServiceID' => $newServiceID,
-                    'SaleID' => 'Magento2CloudStatus',
-                    'POIID' => $terminalId
-                ],
-                'TransactionStatusRequest' => [
-                    'MessageReference' => [
-                        'MessageCategory' => 'Payment',
-                        'SaleID' => 'Magento2Cloud',
-                        'ServiceID' => $serviceId
-                    ],
-                    'DocumentQualifier' => [
-                        "CashierReceipt",
-                        "CustomerReceipt"
-                    ],
-
-                    'ReceiptReprintFlag' => true
-                ]
-            ]
-        ];
-
-        try {
-            $response = $service->runTenderSync($request);
-        } catch (AdyenException $e) {
-            $response['error'] = $e->getMessage();
-            return $response;
-        }
-
-        if (!empty($response['SaleToPOIResponse']['TransactionStatusResponse'])) {
-            $statusResponse = $response['SaleToPOIResponse']['TransactionStatusResponse'];
-            if ($statusResponse['Response']['Result'] == 'Failure') {
-                $errorMsg = __('In Progress');
-                throw new LocalizedException(__($errorMsg));
-            } else {
-                $paymentResponse = $statusResponse['RepeatedMessageResponse']['RepeatedResponseMessageBody']
-                ['PaymentResponse'];
-            }
-        } else {
-            // probably SaleToPOIRequest, that means terminal unreachable, log the response as error
-            $this->adyenLogger->addAdyenDebug(json_encode($response));
-            throw new LocalizedException(__("The terminal could not be reached."));
-        }
-
-        return $paymentResponse;
-    }
-
-    /**
-     * Initiate a POS payment by sending a /sync call to Adyen
-     *
-     * @param string $terminalId
-     * @param string $fundingSource
-     * @param string|null $numberOfInstallments
-     * @return CartInterface
-     * @throws AdyenException
-     * @throws LocalizedException
-     * @throws NoSuchEntityException
-     */
-    public function initiatePosPayment(
-        string $terminalId,
-        string $fundingSource,
-        ?string $numberOfInstallments
-    ): CartInterface {
-        // Validate JSON that has just been parsed if it was in a valid format
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new LocalizedException(
-                __('Terminal API initiate request was not a valid JSON')
-            );
-        }
-
-        $poiId = $terminalId;
-
-        /** @var CartInterface $quote */
-        $quote = $this->session->getQuote();
-        $payment = $quote->getPayment();
-        $adyenAmountCurrency = $this->chargedCurrency->getQuoteAmountCurrency($quote);
-        $payment->setMethod(AdyenPosCloudConfigProvider::CODE);
-        $reference = $quote->reserveOrderId()->getReservedOrderId();
-
-        $service = $this->adyenHelper->createAdyenPosPaymentService($this->client);
-        $transactionType = \Adyen\TransactionType::NORMAL;
-
-        $serviceID = date("dHis");
-        $initiateDate = date("U");
-        $timeStamper = date("Y-m-d") . "T" . date("H:i:s+00:00");
-
-        $request = [
-            'SaleToPOIRequest' =>
-                [
-                    'MessageHeader' =>
-                        [
-                            'MessageType' => 'Request',
-                            'MessageClass' => 'Service',
-                            'MessageCategory' => 'Payment',
-                            'SaleID' => 'Magento2Cloud',
-                            'POIID' => $poiId,
-                            'ProtocolVersion' => '3.0',
-                            'ServiceID' => $serviceID
-                        ],
-                    'PaymentRequest' =>
-                        [
-                            'SaleData' =>
-                                [
-                                    'TokenRequestedType' => 'Customer',
-                                    'SaleTransactionID' =>
-                                        [
-                                            'TransactionID' => $reference,
-                                            'TimeStamp' => $timeStamper
-                                        ]
-                                ],
-                            'PaymentTransaction' =>
-                                [
-                                    'AmountsReq' =>
-                                        [
-                                            'Currency' => $adyenAmountCurrency->getCurrencyCode(),
-                                            'RequestedAmount' => doubleval($adyenAmountCurrency->getAmount())
-                                        ]
-                                ]
-                        ]
-                ]
-        ];
-
-        if ($fundingSource === PaymentMethods::FUNDING_SOURCE_CREDIT) {
-            if (isset($numberOfInstallments)) {
-                $request['SaleToPOIRequest']['PaymentRequest']['PaymentData'] = [
-                    "PaymentType" => "Instalment",
-                    "Instalment" => [
-                        "InstalmentType" => "EqualInstalments",
-                        "SequenceNumber" => 1,
-                        "Period" => 1,
-                        "PeriodUnit" => "Monthly",
-                        "TotalNbOfPayments" => intval($numberOfInstallments)
-                    ]
-                ];
-            } else {
-                $request['SaleToPOIRequest']['PaymentData'] = [
-                    'PaymentType' => $transactionType,
-                ];
-            }
-
-            $request['SaleToPOIRequest']['PaymentRequest']['PaymentTransaction']['TransactionConditions'] = [
-                "DebitPreferredFlag" => false
-            ];
-        } elseif ($fundingSource === PaymentMethods::FUNDING_SOURCE_DEBIT) {
-            $request['SaleToPOIRequest']['PaymentRequest']['PaymentTransaction']['TransactionConditions'] = [
-                "DebitPreferredFlag" => true
-            ];
-
-            $request['SaleToPOIRequest']['PaymentData'] = [
-                'PaymentType' => $transactionType,
-            ];
-        }
-
-        $request = $this->pointOfSale->addSaleToAcquirerData($request, $quote);
-        $paymentInfoInstance = $quote->getPayment()->getMethodInstance()->getInfoInstance();
-
-        $paymentInfoInstance->setAdditionalInformation(
-            'serviceID',
-            $serviceID
-        );
-
-        $paymentInfoInstance->setAdditionalInformation(
-            'initiateDate',
-            $initiateDate
-        );
 
         $this->adyenHelper->logRequest($request, '', '/sync');
         try {
@@ -306,21 +113,16 @@ class TransactionPosCloudSync implements ClientInterface
             $this->adyenLogger->addAdyenDebug($response['error'] = $e->getMessage());
         } catch (\Exception $e) {
             //Probably timeout
-            $paymentInfoInstance->setAdditionalInformation(
+            /*$paymentInfoInstance->setAdditionalInformation(
                 'terminalResponse',
                 null
             );
             $quote->save();
             $response['error'] = $e->getMessage();
-            throw $e;
+            throw $e;*/
         }
         $this->adyenHelper->logResponse($response);
-        $paymentInfoInstance->setAdditionalInformation(
-            'terminalResponse',
-            $response
-        );
 
-        $quote->save();
-        return $quote;
+        return $response;
     }
 }

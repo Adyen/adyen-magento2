@@ -48,7 +48,7 @@ class AdyenPosCloudDataAssignObserver extends AbstractDataAssignObserver
         $paymentInfo = $this->readPaymentModelArgument($observer);
 
         foreach ($this->additionalInformationList as $additionalInformationKey) {
-            if (!empty($additionalData[$additionalInformationKey])) {
+            if (array_key_exists($additionalInformationKey, $additionalData)) {
                 $paymentInfo->setAdditionalInformation(
                     $additionalInformationKey,
                     $additionalData[$additionalInformationKey]
