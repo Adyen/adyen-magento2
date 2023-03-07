@@ -43,23 +43,14 @@ class PointOfSale
      * When upgrading to new version of library we can use the client methods
      *
      * @param $request
-     * @param Quote|null $quote
-     * @param Order|null $order
+     * @param Order $order
      * @return array
      */
-    public function addSaleToAcquirerData($request, Quote $quote = null, Order $order = null) : array
+    public function addSaleToAcquirerData($request, Order $order) : array
     {
-        // If order is created from admin backend, use Order instead of Quote
-        if (isset($order) && is_null($quote)) {
-            $customerId = $order->getCustomerId();
-            $storeId = $order->getStoreId();
-            $shopperEmail = $order->getCustomerEmail();
-        }
-        else {
-            $customerId = $this->getCustomerId($quote);
-            $storeId = $quote->getStoreId();
-            $shopperEmail = $quote->getCustomerEmail();
-        }
+        $customerId = $order->getCustomerId();
+        $storeId = $order->getStoreId();
+        $shopperEmail = $order->getCustomerEmail();
 
         $saleToAcquirerData = [];
 

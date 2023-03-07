@@ -57,8 +57,9 @@ class PaymentPosCloudHandler implements HandlerInterface
     /**
      * {@inheritdoc}
      */
-    public function handle(array $handlingSubject, array $paymentResponse)
+    public function handle(array $handlingSubject, array $response)
     {
+        $paymentResponse = $response['SaleToPOIResponse']['PaymentResponse'];
         $paymentDataObject = SubjectReader::readPayment($handlingSubject);
 
         $payment = $paymentDataObject->getPayment();
