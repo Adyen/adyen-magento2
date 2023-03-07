@@ -130,7 +130,8 @@ class PaymentResponseHandler
                 return [
                     "isFinal" => false,
                     "resultCode" => $resultCode,
-                    "action" => $action
+                    "action" => $action,
+                    "additionalData" => $additionalData
                 ];
             case self::PRESENT_TO_SHOPPER:
                 return [
