@@ -20,6 +20,9 @@ use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 use Magento\Catalog\Helper\Image;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Payment\Gateway\Data\PaymentDataObject;
+use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Model\Order;
@@ -65,6 +68,7 @@ class CheckoutDataBuilder implements BuilderInterface
      * @param CartRepositoryInterface $cartRepository
      * @param ChargedCurrency $chargedCurrency
      * @param Image $imageHelper
+     * @param Config $configHelper
      */
     public function __construct(
         Data $adyenHelper,
@@ -84,12 +88,13 @@ class CheckoutDataBuilder implements BuilderInterface
 
     /**
      * @param array $buildSubject
-     * @return mixed
+     * @return array
+     * @throws NoSuchEntityException
      */
-    public function build(array $buildSubject)
+    public function build(array $buildSubject): array
     {
-        /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
-        $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
+        /** @var PaymentDataObject $paymentDataObject */
+        $paymentDataObject = SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
         /** @var Order $order */
         $order = $payment->getOrder();
@@ -267,7 +272,7 @@ class CheckoutDataBuilder implements BuilderInterface
      * @param Order $order
      *
      * @return array
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws NoSuchEntityException
      *
      */
     protected function getOpenInvoiceData($order): array

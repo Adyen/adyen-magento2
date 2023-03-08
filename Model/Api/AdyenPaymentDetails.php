@@ -14,11 +14,13 @@ namespace Adyen\Payment\Model\Api;
 use Adyen\AdyenException;
 use Adyen\Payment\Api\AdyenPaymentDetailsInterface;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Idempotency;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Service\Validator\DataArrayValidator;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Api\OrderRepositoryInterface;
 
 class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
@@ -55,6 +57,11 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
     private $paymentResponseHandler;
 
     /**
+     * @var Idempotency
+     */
+    private $idempotencyHelper;
+
+    /**
      * AdyenPaymentDetails constructor.
      *
      * @param Session $checkoutSession
@@ -62,24 +69,29 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
      * @param AdyenLogger $adyenLogger
      * @param OrderRepositoryInterface $orderRepository
      * @param PaymentResponseHandler $paymentResponseHandler
+     * @param Idempotency $idempotencyHelper
      */
     public function __construct(
         Session $checkoutSession,
         Data $adyenHelper,
         AdyenLogger $adyenLogger,
         OrderRepositoryInterface $orderRepository,
-        PaymentResponseHandler $paymentResponseHandler
+        PaymentResponseHandler $paymentResponseHandler,
+        Idempotency $idempotencyHelper
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->adyenHelper = $adyenHelper;
         $this->adyenLogger = $adyenLogger;
         $this->orderRepository = $orderRepository;
         $this->paymentResponseHandler = $paymentResponseHandler;
+        $this->idempotencyHelper = $idempotencyHelper;
     }
 
     /**
      * @param string $payload
      * @return string
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      * @api
      */
     public function initiate($payload)
@@ -122,7 +134,10 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
         try {
             $client = $this->adyenHelper->initializeAdyenClient($order->getStoreId());
             $service = $this->adyenHelper->createAdyenCheckoutService($client);
-            $paymentDetails = $service->paymentsDetails($apiPayload);
+
+            $requestOptions['idempotencyKey'] = $this->idempotencyHelper->generateIdempotencyKey($apiPayload);
+
+            $paymentDetails = $service->paymentsDetails($apiPayload, $requestOptions);
         } catch (AdyenException $e) {
             $this->adyenLogger->error("Payment details call failed: " . $e->getMessage());
             $this->checkoutSession->restoreQuote();
@@ -157,7 +172,7 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
     /**
      * @return LocalizedException
      */
-    protected function createCancelledException()
+    protected function createCancelledException(): LocalizedException
     {
         return new LocalizedException(__('Payment has been cancelled'));
     }
