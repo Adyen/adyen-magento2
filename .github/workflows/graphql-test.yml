@@ -10,8 +10,6 @@ jobs:
         include:
           - php-version: "7.4"
             magento-version: "2.4.3"
-          - php-version: "7.3"
-            magento-version: "2.3.7"
     runs-on: ubuntu-latest
     env:
       PHP_VERSION: ${{ matrix.php-version }}
