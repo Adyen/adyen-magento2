@@ -10,6 +10,8 @@ jobs:
         include:
           - php-version: "7.4"
             magento-version: "2.4.3"
+          - php-version: "7.4"
+            magento-version: "2.3.7"
     runs-on: ubuntu-latest
     env:
       PHP_VERSION: ${{ matrix.php-version }}
@@ -17,7 +19,7 @@ jobs:
       ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
       ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
 
       - name: Install Magento
         run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm web make magento
