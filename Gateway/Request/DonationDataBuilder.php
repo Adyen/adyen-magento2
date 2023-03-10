@@ -29,8 +29,14 @@ class DonationDataBuilder implements BuilderInterface
      */
     private $storeManager;
 
-    public function __construct(Requests $adyenRequestsHelper, StoreManagerInterface $storeManager)
-    {
+    /**
+     * @param Requests $adyenRequestsHelper
+     * @param StoreManagerInterface $storeManager
+     */
+    public function __construct(
+        Requests $adyenRequestsHelper,
+        StoreManagerInterface $storeManager
+    ) {
         $this->adyenRequestsHelper = $adyenRequestsHelper;
         $this->storeManager = $storeManager;
     }
@@ -40,7 +46,7 @@ class DonationDataBuilder implements BuilderInterface
      * @return array
      * @throws NoSuchEntityException
      */
-    public function build(array $buildSubject)
+    public function build(array $buildSubject): array
     {
         return [
             'body' => $this->adyenRequestsHelper->buildDonationData(

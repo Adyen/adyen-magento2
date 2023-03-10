@@ -14,6 +14,7 @@ namespace Adyen\Payment\Controller\Process;
 use Adyen\Payment\Exception\PaymentMethodException;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Idempotency;
 use Adyen\Payment\Helper\PaymentMethods\AbstractWalletPaymentMethod;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
 use Adyen\Payment\Helper\Quote;
@@ -143,6 +144,11 @@ class Result extends Action
     private $paymentMethodFactory;
 
     /**
+     * @var Idempotency
+     */
+    private $idempotencyHelper;
+
+    /**
      * @param Context $context
      * @param Data $adyenHelper
      * @param OrderFactory $orderFactory
@@ -158,6 +164,8 @@ class Result extends Action
      * @param OrderRepositoryInterface $orderRepository
      * @param Recurring $recurringHelper
      * @param Config $configHelper
+     * @param PaymentMethodFactory $paymentMethodFactory
+     * @param Idempotency $idempotencyHelper
      */
     public function __construct(
         Context $context,
@@ -175,8 +183,11 @@ class Result extends Action
         OrderRepositoryInterface $orderRepository,
         Recurring $recurringHelper,
         Config $configHelper,
-        PaymentMethodFactory $paymentMethodFactory
+        PaymentMethodFactory $paymentMethodFactory,
+        Idempotency $idempotencyHelper
     ) {
+        parent::__construct($context);
+
         $this->_adyenHelper = $adyenHelper;
         $this->_orderFactory = $orderFactory;
         $this->_orderHistoryFactory = $orderHistoryFactory;
@@ -192,7 +203,7 @@ class Result extends Action
         $this->recurringHelper = $recurringHelper;
         $this->configHelper = $configHelper;
         $this->paymentMethodFactory = $paymentMethodFactory;
-        parent::__construct($context);
+        $this->idempotencyHelper = $idempotencyHelper;
     }
 
     /**
@@ -597,9 +608,10 @@ class Result extends Action
         }
 
         $request["details"] = $details;
+        $requestOptions['idempotencyKey'] = $this->idempotencyHelper->generateIdempotencyKey($request);
 
         try {
-            $response = $service->paymentsDetails($request);
+            $response = $service->paymentsDetails($request, $requestOptions);
             $responseMerchantReference = !empty($response['merchantReference']) ? $response['merchantReference'] : null;
             $resultMerchantReference = !empty($result['merchantReference']) ? $result['merchantReference'] : null;
             $merchantReference = $responseMerchantReference ?: $resultMerchantReference;
