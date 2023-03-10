@@ -49,6 +49,7 @@
             <argument name="config" xsi:type="object">AdyenPaymentCcVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentCcVaultPaymentValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentCcFacade</argument>
+            <argument name="commandPool" xsi:type="object">AdyenPaymentCcCommandPool</argument>
         </arguments>
     </virtualType>
 
@@ -366,7 +367,7 @@
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPayment
             </argument>
             <argument name="validator" xsi:type="object">CheckoutResponseValidator</argument>
-            <argument name="handler" xsi:type="object">AdyenPaymentVaultResponseHandlerComposite</argument>
+            <argument name="handler" xsi:type="object">AdyenPaymentCcResponseHandlerComposite</argument>
         </arguments>
     </virtualType>
 
@@ -676,8 +677,7 @@
         </arguments>
     </virtualType>
 
-    <virtualType name="AdyenPaymentVaultResponseHandlerComposite"
-                 type="Magento\Payment\Gateway\Response\HandlerChain">
+    <virtualType name="AdyenPaymentVaultResponseHandlerComposite" type="Magento\Payment\Gateway\Response\HandlerChain">
         <arguments>
             <argument name="handlers" xsi:type="array">
                 <item name="payment_details" xsi:type="string">
