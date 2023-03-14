@@ -73,6 +73,10 @@ define(
                 type: 'adyen_googlepay',
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-googlepay-method'
             },
+            {
+                type:'adyen_multibanco',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-multibanco-method'
+            }
         );
 
         /** Add view logic here if needed */

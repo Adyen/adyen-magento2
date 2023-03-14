@@ -231,6 +231,7 @@ define(
                     },
 
                     placeOrder: function() {
+                        debugger;
                         if (result.component) {
 
                             result.component.showValidation();
@@ -251,21 +252,23 @@ define(
                             if (result.component) {
                                 stateData = result.component.data;
                             } else {
-                                if (paymentMethod.methodGroup === paymentMethod.methodIdentifier){
-                                    stateData = {
-                                        paymentMethod: {
-                                            type: selectedAlternativePaymentMethodType(),
-                                        },
-                                    };
-                                } else {
+                                // if (paymentMethod.methodGroup === paymentMethod.methodIdentifier){
+                                //     stateData = {
+                                //         paymentMethod: {
+                                //             type: selectedAlternativePaymentMethodType(),
+                                //         },
+                                //     };
+                                // }
+                                // else {
                                     stateData = {
                                         paymentMethod: {
                                             type: paymentMethod.methodGroup,
                                             brand: paymentMethod.methodIdentifier
-                                        }
-                                    };
+                                        // }
+                                    }
                                 }
-                            }
+                            };
+                            console.log('attempt 2 for', stateData);
                             if (this.getTxVariant() == 'ratepay') {
                                 additionalData.df_value = this.getRatePayDeviceIdentToken();
                             }
@@ -347,6 +350,7 @@ define(
 
                 // set payment method
                 paymentMethod(self.method);
+                console.log(paymentMethod);
 
                 selectPaymentMethodAction(data);
                 checkoutData.setSelectedPaymentMethod(self.method);
