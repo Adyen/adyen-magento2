@@ -289,12 +289,7 @@ class PaymentMethods extends AbstractHelper
         );
     }
 
-    /**
-     * @param $store
-     * @param $country
-     * @return int|mixed|string
-     */
-    protected function getCurrentCountryCode($store, $country = null)
+    protected function getCurrentCountryCode($store, $country = null): string
     {
         // if fixed countryCode is setup in config use this
         $countryCode = $this->adyenHelper->getAdyenHppConfigData('country_code', $store->getId());
@@ -303,13 +298,10 @@ class PaymentMethods extends AbstractHelper
             return $countryCode;
         }
 
-        if ($country != null) {
-            return $country;
-        }
-
         $quote = $this->getQuote();
-        if (!is_null($quote->getCustomer()) && !is_null($quote->getCustomer()->getDefaultBillingAddress())) {
-            return $quote->getCustomer()->getDefaultBillingAddress()->getCountryId();
+        $billingAddress = $quote->getBillingAddress();
+        if (isset($billingAddress)) {
+            return $billingAddress->getCountryId();
         }
 
         $defaultCountry = $this->config->getValue(
