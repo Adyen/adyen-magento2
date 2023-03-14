@@ -298,7 +298,7 @@ class PaymentMethods extends AbstractHelper
      */
     protected function getCurrentCountryCode($store): string
     {
-        // if fixed countryCode is setup in config use this
+        // If fixed countryCode is set up in config use it
         $countryCode = $this->adyenHelper->getAdyenHppConfigData('country_code', $store->getId());
 
         if ($countryCode != "") {
@@ -386,7 +386,6 @@ class PaymentMethods extends AbstractHelper
      * @param $merchantAccount
      * @param \Magento\Store\Model\Store $store
      * @param \Magento\Quote\Model\Quote $quote
-     * @param string|null $country
      * @param string|null $shopperLocale
      * @return array
      * @throws \Exception
@@ -395,9 +394,8 @@ class PaymentMethods extends AbstractHelper
         $merchantAccount,
         \Magento\Store\Model\Store $store,
         \Magento\Quote\Model\Quote $quote,
-        ?string $country = null,
         ?string $shopperLocale = null
-    ) {
+    ): array {
         $currencyCode = $this->chargedCurrency->getQuoteAmountCurrency($quote)->getCurrencyCode();
 
         $paymentMethodRequest = [
