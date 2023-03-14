@@ -34,6 +34,7 @@ use Magento\Payment\Helper\Data as MagentoDataHelper;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Adyen\Payment\Helper\Data as AdyenDataHelper;
+use Magento\Store\Model\ScopeInterface;
 
 /**
  * @SuppressWarnings(PHPMD.LongVariable)
@@ -289,7 +290,13 @@ class PaymentMethods extends AbstractHelper
         );
     }
 
-    protected function getCurrentCountryCode($store, $country = null): string
+    /**
+     * This function is being unnecessarily called multiple times
+     *
+     * @param $store
+     * @return string
+     */
+    protected function getCurrentCountryCode($store): string
     {
         // if fixed countryCode is setup in config use this
         $countryCode = $this->adyenHelper->getAdyenHppConfigData('country_code', $store->getId());
@@ -299,14 +306,15 @@ class PaymentMethods extends AbstractHelper
         }
 
         $quote = $this->getQuote();
-        $billingAddress = $quote->getBillingAddress();
-        if (isset($billingAddress)) {
-            return $billingAddress->getCountryId();
+        $billingAddressCountry = $quote->getBillingAddress()->getCountryId();
+        // If customer is guest, billing address country might not be set yet
+        if (isset($billingAddressCountry)) {
+            return $billingAddressCountry;
         }
 
         $defaultCountry = $this->config->getValue(
             \Magento\Tax\Model\Config::CONFIG_XML_PATH_DEFAULT_COUNTRY,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORES,
+            ScopeInterface::SCOPE_STORES,
             $store->getCode()
         );
 
@@ -395,7 +403,7 @@ class PaymentMethods extends AbstractHelper
         $paymentMethodRequest = [
             "channel" => "Web",
             "merchantAccount" => $merchantAccount,
-            "countryCode" => $this->getCurrentCountryCode($store, $country),
+            "countryCode" => $this->getCurrentCountryCode($store),
             "shopperLocale" => $shopperLocale ?: $this->adyenHelper->getCurrentLocaleCode($store->getId()),
             "amount" => [
                 "currency" => $currencyCode
