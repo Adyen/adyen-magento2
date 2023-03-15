@@ -22,13 +22,8 @@ interface GuestAdyenPaymentMethodManagementInterface
      * Fetches Adyen payment methods for guest customers
      *
      * @param string $cartId
-     * @param AddressInterface|null $billingAddress
      * @param string|null $shopperLocale
      * @return string
      */
-    public function getPaymentMethods(
-        string $cartId,
-        AddressInterface $billingAddress = null,
-        ?string $shopperLocale = null
-    ): string;
+    public function getPaymentMethods(string $cartId, ?string $shopperLocale = null): string;
 }

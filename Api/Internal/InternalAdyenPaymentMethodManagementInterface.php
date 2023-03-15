@@ -11,8 +11,6 @@
 
 namespace Adyen\Payment\Api\Internal;
 
-use Magento\Quote\Api\Data\AddressInterface;
-
 /**
  * Interface for fetching payment methods from Adyen for logged in customers
  */
@@ -23,12 +21,7 @@ interface InternalAdyenPaymentMethodManagementInterface
      *
      * @param string $cartId
      * @param string $formKey
-     * @param AddressInterface|null $shippingAddress
      * @return string
      */
-    public function handleInternalRequest(
-        string $cartId,
-        string $formKey,
-        AddressInterface $billingAddress = null
-    ): string;
+    public function handleInternalRequest(string $cartId, string $formKey): string;
 }
