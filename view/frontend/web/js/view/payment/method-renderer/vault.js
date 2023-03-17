@@ -87,8 +87,8 @@ define([
         },
 
         handleOnAdditionalDetails: function (result) {
-            var self = this;
-            var request = result.data;
+            let self = this;
+            let request = result.data;
             request.orderId = self.orderId;
 
             fullScreenLoader.stopLoader();
