@@ -76,6 +76,10 @@ define(
             {
                 type:'adyen_multibanco',
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-multibanco-method'
+            },
+            {
+                type:'adyen_facilypay_3x',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-facilypay-3x-method'
             }
         );
 
