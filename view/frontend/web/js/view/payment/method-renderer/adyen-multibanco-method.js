@@ -22,7 +22,6 @@ define(
                 this._super();
             },
             buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo, result) {
-                debugger;
                 var self = this;
                 var email = '';
                 var showPayButton = false;
