@@ -36,6 +36,7 @@
                 <item name="adyen_googlepay" xsi:type="const">Adyen\Payment\Model\Methods\GooglePay::TX_VARIANT</item>
                 <item name="adyen_multibanco" xsi:type="const">Adyen\Payment\Model\Methods\Multibanco::TX_VARIANT</item>
                 <item name="adyen_facilypay_3x" xsi:type="const">Adyen\Payment\Model\Methods\Facilypay3x::TX_VARIANT</item>
+                <item name="adyen_sepadirectdebit" xsi:type="const">Adyen\Payment\Model\Methods\SepaDirectDebit::TX_VARIANT</item>
             </argument>
         </arguments>
     </type>
