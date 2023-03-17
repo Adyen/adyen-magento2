@@ -1,9 +1,15 @@
 <!--
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
  */
 -->
+
 <!-- ko if: checkoutComponentBuilt -->
 <div class="payment-method" css="'_active': (getId() === isChecked())">
     <div class="payment-method-title field choice">
@@ -34,6 +40,12 @@
 
     <div class="payment-method-content">
 
+        <div data-bind="attr: {id: 'card_action_modal_' + getId() + 'Wrapper'}">
+            <div data-bind="attr: {id: 'card_action_modal_' + getId()}">
+                <div data-bind="attr: {id: 'card_action_modal_' + getId() + 'Content'}"></div>
+            </div>
+        </div>
+
         <!-- ko ifnot: (getClientKey()) -->
         <span class="message message-error error"><!-- ko text: $t('Please configure an API Key, a Client Key and a live endpoint prefix(if in Production Mode) in your Adyen Required Settings')--><!-- /ko --></span>
         <!--/ko-->
@@ -48,12 +60,6 @@
         <form class="form" action="#" method="post" data-bind="attr: {'id': getId(), 'data-role': getId() }">
             <fieldset
                     data-bind="attr: {class: 'fieldset payment items ccard adyen_cc_vault', id: 'payment_form_' + 'adyen_cc_form' + '_' + getId()}">
-
-                <div id="card_modal_wrapper">
-                    <div id="card_action_modal">
-                        <div id="card_action_modal_content"></div>
-                    </div>
-                </div>
 
                 <div class="field number">
                     <label class="label">
