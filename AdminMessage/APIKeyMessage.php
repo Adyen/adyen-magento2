@@ -12,10 +12,17 @@
 
 namespace Adyen\Payment\AdminMessage;
 
-class APIKeyMessage implements \Magento\Framework\Notification\MessageInterface
+use Adyen\Payment\Helper\Data;
+use Magento\AdminNotification\Model\InboxFactory;
+use Magento\Backend\Model\Auth\Session;
+use Magento\Framework\App\RequestInterface;
+use Magento\Framework\Notification\MessageInterface;
+use Magento\Store\Model\StoreManagerInterface;
+
+class APIKeyMessage implements MessageInterface
 {
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     protected $adyenHelper;
 
@@ -25,29 +32,34 @@ class APIKeyMessage implements \Magento\Framework\Notification\MessageInterface
     protected $configHelper;
 
     /**
-     * @var \Magento\AdminNotification\Model\InboxFactory
+     * @var InboxFactory
      */
     protected $inboxFactory;
 
     /**
-     * @var \Magento\Store\Model\StoreManagerInterface
+     * @var StoreManagerInterface
      */
     protected $storeManagerInterface;
 
     /**
-     * @var \Magento\Backend\Model\Auth\Session
+     * @var Session
      */
     protected $authSession;
+
+    /**
+     * @var RequestInterface
+     */
+    protected $request;
 
     const MESSAGE_IDENTITY = 'Adyen API Key Control message';
 
     /**
      * APIKeyMessage constructor.
      *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Magento\AdminNotification\Model\InboxFactory $inboxFactory
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManagerInterface
-     * @param \Magento\Backend\Model\Auth\Session $authSession
+     * @param Data $adyenHelper
+     * @param InboxFactory $inboxFactory
+     * @param StoreManagerInterface $storeManagerInterface
+     * @param Session $authSession
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
@@ -61,6 +73,7 @@ class APIKeyMessage implements \Magento\Framework\Notification\MessageInterface
         $this->inboxFactory = $inboxFactory;
         $this->storeManagerInterface = $storeManagerInterface;
         $this->authSession = $authSession;
+        $this->request = $request;
     }
 
     /**
@@ -80,12 +93,9 @@ class APIKeyMessage implements \Magento\Framework\Notification\MessageInterface
      */
     public function isDisplayed()
     {
-        $environment = $this->configHelper->isDemoMode() ? 'test' : 'live';
+        $isApiKeyMissing = empty($this->configHelper->getAPIKey());
         // Only execute the query the first time you access the Admin page
-        if ($this->authSession->isFirstPageAfterLogin()
-            && !empty($this->configHelper->getNotificationsUsername())
-            && empty($this->configHelper->getAPIKey($environment))
-        ) {
+        if ($this->authSession->isFirstPageAfterLogin() && $isApiKeyMissing) {
             try {
                 $title = 'Adyen extension requires the API KEY!';
 
@@ -107,6 +117,13 @@ class APIKeyMessage implements \Magento\Framework\Notification\MessageInterface
             } catch (\Exception $e) {
                 return false;
             }
+        } elseif ($this->request->getModuleName() === 'mui' && $isApiKeyMissing) {
+            /*
+             * If the message has already been added to `$persistedMessage` array
+             * in AdminNotification/Model/ResourceModel/System/Message/Collection/Synchronized
+             * allow the UI validation and return true.
+             */
+            return true;
         }
 
         return false;

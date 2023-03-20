@@ -9,7 +9,7 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Tests\Unit\Helper;
+namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\AdyenOrderPayment;
@@ -22,7 +22,7 @@ use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Order\Payment as AdyenPaymentModel;
 use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Model\ResourceModel\Order\Payment;
-use Adyen\Payment\Tests\Unit\AbstractAdyenTestCase;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\App\Helper\Context;
 use Magento\Sales\Model\Order;
 
@@ -34,22 +34,18 @@ class AdyenOrderPaymentTest extends AbstractAdyenTestCase
         $merchantReference = 'TestMerchant';
         $pspReference = 'ABCD1234GHJK5678';
         $amount = 10;
+        $paymentMethod = 'ideal';
         $payment = $this->createConfiguredMock(Order\Payment::class, [
             'getId' => $paymentId
         ]);
         $order = $this->createConfiguredMock(Order::class, [
             'getPayment' => $payment
         ]);
-        $adyenOrderPayment = $this->createConfiguredMock(AdyenPaymentModel::class, [
-            'setPspreference' => $pspReference,
-            'setMerchantReference' => $merchantReference,
-            'setPaymentId' => $paymentId,
-            'setCaptureStatus' => AdyenPaymentModel::CAPTURE_STATUS_AUTO_CAPTURE,
-            'setAmount' => $amount
-        ]);
+        $adyenOrderPayment = $this->createMock(AdyenPaymentModel::class);
         $notification = $this->createConfiguredMock(Notification::class, [
             'getPspreference' => $pspReference,
-            'getMerchantReference' => $merchantReference
+            'getMerchantReference' => $merchantReference,
+            'getPaymentMethod' => $paymentMethod
         ]);
 
         $mockAdyenDataHelper = $this->createGeneratedMock(Data::class, ['originalAmount']);

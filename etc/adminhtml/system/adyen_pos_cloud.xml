@@ -11,10 +11,10 @@
   -->
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
     <group id="adyen_pos_cloud" translate="label" type="text" sortOrder="350" showInDefault="1" showInWebsite="1" showInStore="1">
-        <label><![CDATA[Point of Sale (POS) integration with Cloud API]]></label>
+        <label><![CDATA[Point of Sale (POS) Terminal Payment]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <fieldset_css>adyen-method-adyen-cc</fieldset_css>
-        <comment>Process Point of Sales transactions</comment>
+        <comment>Process POS terminal transactions</comment>
         <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Enabled</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -30,26 +30,26 @@
             <config_path>payment/adyen_pos_cloud/sort_order</config_path>
         </field>
         <field id="pos_merchant_account" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
-            <label>Merchant Account for Cloud API</label>
+            <label>Merchant Account for POS terminal</label>
             <can_be_empty>1</can_be_empty>
-            <tooltip>Please insert your Merchant Account name used by the Cloud API. Please leave it blank if the Merchant Account is the same as the one configured in the Required Settings</tooltip>
+            <tooltip>Please insert your Merchant Account name used by your POS terminal. Please leave it blank if the Merchant Account is the same as the one configured in the Required Settings</tooltip>
             <config_path>payment/adyen_pos_cloud/pos_merchant_account</config_path>
         </field>
         <field id="pos_store_id" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Store ID for Cloud API</label>
+            <label>Terminal Store ID</label>
             <can_be_empty>1</can_be_empty>
-            <tooltip>Please insert your store ID used by the Cloud API. Please leave it blank if you want to retrieve all the terminals connected to your merchant account</tooltip>
+            <tooltip>Please insert your store ID for your terminal. Please leave it blank if you want to retrieve all the terminals connected to your merchant account</tooltip>
             <config_path>payment/adyen_pos_cloud/pos_store_id</config_path>
         </field>
         <field id="api_key_test" translate="label" type="obscure" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
-            <label>API key for Cloud API TEST</label>
+            <label>API key for TEST</label>
             <tooltip>Copy this from the Test Adyen Customer Area => Settings => Users => System => [web service user]=> Checkout API Key.</tooltip>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_pos_cloud/api_key_test</config_path>
             <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding" />
         </field>
         <field id="api_key_live" translate="label" type="obscure" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
-            <label>API key for Cloud API LIVE</label>
+            <label>API key for LIVE</label>
             <tooltip>Copy this from the Live Adyen Customer Area => Settings => Users => System => [web service user]=> Checkout API Key.</tooltip>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_pos_cloud/api_key_live</config_path>

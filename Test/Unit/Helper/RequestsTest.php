@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Adyen\Payment\Tests\Unit\Helper;
+namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Payment\Helper\Address;
 use Adyen\Payment\Helper\Config;
@@ -10,7 +10,7 @@ use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\Requests;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Vault;
-use Adyen\Payment\Tests\Unit\AbstractAdyenTestCase;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
 
@@ -75,7 +75,8 @@ class RequestsTest extends AbstractAdyenTestCase
 
 
         $configHelperMock = $this->createConfiguredMock(Config::class, [
-            'getCardRecurringType' => $tokenType
+            'getCardRecurringType' => $tokenType,
+            'getCardRecurringActive' => true
         ]);
 
         $this->sut = new Requests(

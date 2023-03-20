@@ -14,7 +14,10 @@ namespace Adyen\Payment\Model\Api;
 
 use Adyen\Payment\Api\AdyenDonationsInterface;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Adyen\Util\Uuid;
+use InvalidArgumentException;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NotFoundException;
@@ -50,11 +53,6 @@ class AdyenDonations implements AdyenDonationsInterface
     /**
      * @var
      */
-    private $donationResult;
-
-    /**
-     * @var
-     */
     private $donationTryCount;
 
     /**
@@ -62,6 +60,13 @@ class AdyenDonations implements AdyenDonationsInterface
      */
     protected $dataHelper;
 
+    /**
+     * @param CommandPoolInterface $commandPool
+     * @param OrderFactory $orderFactory
+     * @param Session $checkoutSession
+     * @param Json $jsonSerializer
+     * @param Data $dataHelper
+     */
     public function __construct(
         CommandPoolInterface $commandPool,
         OrderFactory $orderFactory,
@@ -77,11 +82,11 @@ class AdyenDonations implements AdyenDonationsInterface
     }
 
     /**
-     * @inheritDoc
-     *
-     * @throws CommandException|NotFoundException|LocalizedException|\InvalidArgumentException
+     * @param $payload
+     * @return void
+     * @throws LocalizedException
      */
-    public function donate($payload)
+    public function donate($payload): void
     {
         $payload = $this->jsonSerializer->unserialize($payload);
         /** @var Order */
@@ -95,6 +100,14 @@ class AdyenDonations implements AdyenDonationsInterface
         $payload['donationToken'] = $donationToken;
         $payload['donationOriginalPspReference'] = $order->getPayment()->getAdditionalInformation('pspReference');
 
+        if ($order->getPayment()->getMethod() === AdyenCcConfigProvider::CODE) {
+            $payload['paymentMethod'] = 'scheme';
+        } elseif ($order->getPayment()->getMethod() === AdyenHppConfigProvider::CODE) {
+            $payload['paymentMethod'] = $order->getPayment()->getAdditionalInformation('brand_code');
+        } else {
+            throw new LocalizedException(__('Donation failed!'));
+        }
+
         $customerId = $order->getCustomerId();
         if ($customerId) {
             $payload['shopperReference'] = $this->dataHelper->padShopperReference($customerId);
@@ -105,7 +118,7 @@ class AdyenDonations implements AdyenDonationsInterface
 
         try {
             $donationsCaptureCommand = $this->commandPool->get('capture');
-            $this->donationResult = $donationsCaptureCommand->execute(['payment' => $payload]);
+            $donationsCaptureCommand->execute(['payment' => $payload]);
 
             // Remove donation token after a successfull donation.
             $this->removeDonationToken($order);
@@ -121,8 +134,6 @@ class AdyenDonations implements AdyenDonationsInterface
             $this->incrementTryCount($order);
             throw new LocalizedException(__('Donation failed!'));
         }
-
-        return $this->donationResult;
     }
 
     /**

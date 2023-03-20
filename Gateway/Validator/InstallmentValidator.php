@@ -112,10 +112,12 @@ class InstallmentValidator extends AbstractValidator
                 if ($installments) {
                     foreach ($installments as $ccTypeInstallment => $installment) {
                         if ($ccTypeInstallment == $ccType) {
-                            foreach ($installment as $amount => $installmentsData) {
-                                if ($installmentSelected == $installmentsData) {
-                                    if ($grandTotal >= $amount) {
-                                        $isValid = true;
+                            foreach ($installment as $amount => $amountInstallments) {
+                                foreach ($amountInstallments as $installmentsData) {
+                                    if ($installmentSelected == $installmentsData) {
+                                        if ($grandTotal >= $amount) {
+                                            $isValid = true;
+                                        }
                                     }
                                 }
                             }

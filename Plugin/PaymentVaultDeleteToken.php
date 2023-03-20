@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -11,8 +11,11 @@
 
 namespace Adyen\Payment\Plugin;
 
-use Adyen\Payment\Model\Api\PaymentRequest;
-use Magento\Framework\Exception\LocalizedException;
+use Adyen\AdyenException;
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Requests;
+use Adyen\Payment\Helper\Vault;
+use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
@@ -20,53 +23,70 @@ use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 
 class PaymentVaultDeleteToken
 {
-    /**
-     * @var PaymentRequest
-     */
-    protected $paymentRequest;
+    protected StoreManagerInterface $storeManager;
+    protected Data $dataHelper;
+    protected AdyenLogger $adyenLogger;
+    protected Requests $requestsHelper;
+    protected Vault $vaultHelper;
 
-    /**
-     * @var StoreManagerInterface
-     */
-    protected $storeManager;
-
-    /**
-     * PaymentVaultDeleteToken constructor.
-     *
-     * @param PaymentRequest $paymentRequest
-     * @param StoreManagerInterface $storeManager
-     */
     public function __construct(
-        PaymentRequest $paymentRequest,
-        StoreManagerInterface $storeManager
+        StoreManagerInterface $storeManager,
+        Data $dataHelper,
+        AdyenLogger $adyenLogger,
+        Requests $requestsHelper,
+        Vault $vaultHelper
     ) {
-        $this->paymentRequest = $paymentRequest;
         $this->storeManager = $storeManager;
+        $this->dataHelper = $dataHelper;
+        $this->adyenLogger = $adyenLogger;
+        $this->requestsHelper = $requestsHelper;
+        $this->vaultHelper = $vaultHelper;
     }
 
     /**
+     * @param PaymentTokenRepositoryInterface $subject
+     * @param PaymentTokenInterface $paymentToken
+     * @return PaymentTokenInterface[]|void
      * @throws NoSuchEntityException
-     * @throws LocalizedException
      */
-    public function beforeDelete(
-        PaymentTokenRepositoryInterface $subject,
-        PaymentTokenInterface $paymentToken
-    ) {
+    public function beforeDelete(PaymentTokenRepositoryInterface $subject, PaymentTokenInterface $paymentToken) {
         $paymentMethodCode = $paymentToken->getPaymentMethodCode();
         $storeId = $this->storeManager->getStore()->getStoreId();
 
-        if (is_null($paymentMethodCode) || strpos($paymentMethodCode, 'adyen_') !== 0) {
+        if (is_null($paymentMethodCode) || !$this->vaultHelper->isAdyenPaymentCode($paymentMethodCode)) {
             return [$paymentToken];
         }
 
+        $request = $this->createDisableTokenRequest($paymentToken);
+
         try {
-            $this->paymentRequest->disableRecurringContract(
-                $paymentToken->getGatewayToken(),
-                $paymentToken->getCustomerId(),
-                $storeId
-            );
-        } catch (\Exception $e) {
-            throw new LocalizedException(__('Failed to disable this contract'));
+            $client = $this->dataHelper->initializeAdyenClient($storeId);
+            $recurringService = $this->dataHelper->createAdyenRecurringService($client);
+            $recurringService->disable($request);
+        } catch (AdyenException $e) {
+            $this->adyenLogger->error(sprintf(
+                'Error while attempting to disable token with id %s: %s',
+                $paymentToken->getEntityId(),
+                $e->getMessage()
+            ));
+        } catch (NoSuchEntityException $e) {
+            $this->adyenLogger->error(sprintf(
+                'No such entity while attempting to disable token with id %s: %s',
+                $paymentToken->getEntityId(),
+                $e->getMessage()
+            ));
         }
+    }
+
+    private function createDisableTokenRequest(PaymentTokenInterface $paymentToken): array
+    {
+        return [
+            Requests::MERCHANT_ACCOUNT => $this->dataHelper->getAdyenMerchantAccount(
+                $paymentToken->getPaymentMethodCode()
+            ),
+            Requests::SHOPPER_REFERENCE =>
+                $this->requestsHelper->getShopperReference($paymentToken->getCustomerId(), null),
+            Requests::RECURRING_DETAIL_REFERENCE => $paymentToken->getGatewayToken()
+        ];
     }
 }

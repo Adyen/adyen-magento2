@@ -2,7 +2,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -31,6 +31,7 @@ define(
         cancelCouponAction
     ) {
         'use strict';
+        const paymentMethodComponent = 'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-method';
         rendererList.push(
             {
                 type: 'adyen_oneclick',
@@ -41,23 +42,45 @@ define(
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method'
             },
             {
-                type: 'adyen_hpp',
-                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-hpp-method'
-            },
-            {
                 type: 'adyen_boleto',
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-boleto-method'
             },
             {
                 type: 'adyen_pos_cloud',
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-pos-cloud-method'
-            }
+            },
+            {
+                type: 'adyen_ideal',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-ideal-method'
+            },
+            {
+                type: 'adyen_klarna',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-klarna-method'
+            },
+            {
+                type: 'adyen_paypal',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-paypal-method'
+            },
+            {
+                type: 'adyen_dotpay',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-dotpay-method'
+            },
+            {
+                type: 'adyen_bcmc_mobile',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-bcmc-method'
+            },
+            {
+                type: 'adyen_googlepay',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-googlepay-method'
+            },
         );
+
         /** Add view logic here if needed */
         return Component.extend({
             initialize: function () {
                 this._super();
 
+                var billingAddressCountry = "";
                 var retrievePaymentMethods = function (){
                     fullScreenLoader.startLoader();
                     // Retrieve adyen payment methods
@@ -74,7 +97,14 @@ define(
                         console.log('Fetching the payment methods failed!');
                     });
                 };
-                retrievePaymentMethods();
+                quote.billingAddress.subscribe(function(address) {
+                    // In case the country hasn't changed don't retrieve new payment methods
+                    if (billingAddressCountry === quote.billingAddress().countryId) {
+                        return;
+                    }
+                    billingAddressCountry = quote.billingAddress().countryId;
+                    retrievePaymentMethods();
+                });
                 //Retrieve payment methods to ensure the amount is updated, when applying the discount code
                 setCouponCodeAction.registerSuccessCallback(function () {
                     retrievePaymentMethods();

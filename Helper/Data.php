@@ -69,6 +69,9 @@ class Data extends AbstractHelper
     const SEPA = 'sepadirectdebit';
     const MOLPAY = 'molpay_';
     const ATOME = 'atome';
+    const WALLEYB2B = 'walley_b2b';
+    const WALLEY = 'walley';
+
 
     /**
      * @var EncryptorInterface
@@ -431,201 +434,140 @@ class Data extends AbstractHelper
         return ($amount / $format);
     }
 
-//    /**
-//     * gives back global configuration values as boolean
-//     *
-//     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
-//     * @param $field
-//     * @param null|int|string $storeId
-//     * @return mixed
-//     */
-//    public function getAdyenAbstractConfigDataFlag($field, $storeId = null)
-//    {
-//        return $this->getConfigData($field, 'adyen_abstract', $storeId, true);
-//    }
-//
-//    /**
-//     * Gives back adyen_cc configuration values
-//     *
-//     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
-//     * @param $field
-//     * @param null|int|string $storeId
-//     * @return mixed
-//     */
-//    public function getAdyenCcConfigData($field, $storeId = null)
-//    {
-//        return $this->getConfigData($field, 'adyen_cc', $storeId);
-//    }
 
-//    /**
-//     * Gives back adyen_cc configuration values as flag
-//     *
-//     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
-//     * @param $field
-//     * @param null|int|string $storeId
-//     * @return mixed
-//     */
-//    public function getAdyenCcConfigDataFlag($field, $storeId = null)
-//    {
-//        return $this->getConfigData($field, 'adyen_cc', $storeId, true);
-//    }
-//
-//    /**
-//     * Gives back adyen_cc_vault configuration values as flag
-//     *
-//     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
-//     * @param $field
-//     * @param null|int|string $storeId
-//     * @return mixed
-//     */
-//    public function getAdyenCcVaultConfigDataFlag($field, $storeId = null)
-//    {
-//        return $this->getConfigData($field, 'adyen_cc_vault', $storeId, true);
-//    }
 
-//    /**
-//     * Gives back adyen_hpp configuration values
-//     *
-//     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
-//     * @param $field
-//     * @param null|int|string $storeId
-//     * @return mixed
-//     */
-//    public function getAdyenHppConfigData($field, $storeId = null)
-//    {
-//        return $this->getConfigData($field, 'adyen_hpp', $storeId);
-//    }
-//
-//    /**
-//     * Gives back adyen_hpp configuration values as flag
-//     *
-//     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
-//     * @param $field
-//     * @param null|int|string $storeId
-//     * @return mixed
-//     */
-//    public function getAdyenHppConfigDataFlag($field, $storeId = null)
-//    {
-//        return $this->getConfigData($field, 'adyen_hpp', $storeId, true);
-//    }
 
-//    /**
-//     * Gives back adyen_hpp_vault configuration values as flag
-//     *
-//     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
-//     * @param $field
-//     * @param null|int|string $storeId
-//     * @return mixed
-//     */
-//    public function getAdyenHppVaultConfigDataFlag($field, $storeId = null)
-//    {
-//        return $this->getConfigData($field, 'adyen_hpp_vault', $storeId, true);
-//    }
 
-//    /**
-//     * Gives back adyen_oneclick configuration values
-//     *
-//     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
-//     * @param $field
-//     * @param null|int|string $storeId
-//     * @return mixed
-//     */
-//    public function getAdyenOneclickConfigData($field, $storeId = null)
-//    {
-//        return $this->getConfigData($field, 'adyen_oneclick', $storeId);
-//    }
 
-//    /**
-//     * Gives back adyen_oneclick configuration values as flag
-//     *
-//     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
-//     * @param $field
-//     * @param null|int|string $storeId
-//     * @return mixed
-//     */
-//    public function getAdyenOneclickConfigDataFlag($field, $storeId = null)
-//    {
-//        return $this->getConfigData($field, 'adyen_oneclick', $storeId, true);
-//    }
 
-//    /**
-//     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
-//     * @param $field
-//     * @param null|int|string $storeId
-//     * @return bool|mixed
-//     */
-//    public function getAdyenPosCloudConfigData($field, $storeId = null)
-//    {
-//        return $this->getConfigData($field, 'adyen_pos_cloud', $storeId);
-//    }
+    /**
+     * Retrieve decrypted hmac key
+     *
+     * @return string
+     */
+    public function getHmac($storeId = null)
+    {
+        switch ($this->isDemoMode($storeId)) {
+            case true:
+                $hmacTest = $this->getAdyenHppConfigData('hmac_test', $storeId);
+                if (is_null($hmacTest)) {
+                    return null;
+                }
+                $secretWord = $this->_encryptor->decrypt(trim((string) $hmacTest));
+                break;
+            default:
+                $hmacLive = $this->getAdyenHppConfigData('hmac_live', $storeId);
+                if (is_null($hmacLive)) {
+                    return null;
+                }
+                $secretWord = $this->_encryptor->decrypt(trim((string) $hmacLive));
+                break;
+        }
+        return $secretWord;
+    }
 
-//    /**
-//     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
-//     * @param $field
-//     * @param null|int|string $storeId
-//     * @return bool|mixed
-//     */
-//    public function getAdyenPosCloudConfigDataFlag($field, $storeId = null)
-//    {
-//        return $this->getConfigData($field, 'adyen_pos_cloud', $storeId, true);
-//    }
+    /**
+     * Check if configuration is set to demo mode
+     *
+     * @deprecated Use \Adyen\Payment\Helper\Config::isDemoMode instead
+     * @param null|int|string $storeId
+     * @return mixed
+     */
+    public function isDemoMode($storeId = null)
+    {
+        return $this->getAdyenAbstractConfigDataFlag('demo_mode', $storeId);
+    }
 
-//    /**
-//     * Gives back adyen_boleto configuration values
-//     *
-//     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
-//     * @param $field
-//     * @param null|int|string $storeId
-//     * @return mixed
-//     */
-//    public function getAdyenBoletoConfigData($field, $storeId = null)
-//    {
-//        return $this->getConfigData($field, 'adyen_boleto', $storeId);
-//    }
+    public function isMotoDemoMode(array $motoMerchantAccountProperties): bool
+    {
+        return $motoMerchantAccountProperties['demo_mode'] === '1';
+    }
 
-//    /**
-//     * Gives back adyen_boleto configuration values as flag
-//     *
-//     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
-//     * @param $field
-//     * @param null|int|string $storeId
-//     * @return mixed
-//     */
-//    public function getAdyenBoletoConfigDataFlag($field, $storeId = null)
-//    {
-//        return $this->getConfigData($field, 'adyen_boleto', $storeId, true);
-//    }
+    /**
+     * Retrieve the API key
+     * @deprecated Use Adyen\Payment\Helper\Config::getApiKey instead
+     *
+     * @param null|int|string $storeId
+     * @return string
+     */
+    public function getAPIKey($storeId = null)
+    {
+        if ($this->isDemoMode($storeId)) {
+            $encryptedApiKeyTest = $this->getAdyenAbstractConfigData('api_key_test', $storeId);
+            if (is_null($encryptedApiKeyTest)) {
+                return null;
+            }
+            $apiKey = $this->_encryptor->decrypt(trim((string) $encryptedApiKeyTest));
+        } else {
+            $encryptedApiKeyLive = $this->getAdyenAbstractConfigData('api_key_live', $storeId);
+            if (is_null($encryptedApiKeyLive)) {
+                return null;
+            }
+            $apiKey = $this->_encryptor->decrypt(trim((string) $encryptedApiKeyLive));
+        }
+        return $apiKey;
+    }
 
-//    /**
-//     * Retrieve decrypted hmac key
-//     *
-//     * @return string
-//     */
-//    public function getHmac($storeId = null)
-//    {
-//        switch ($this->configHelper->isDemoMode($storeId)) {
-//            case true:
-//                $hmacTest = $this->configHelper->getAdyenHppConfigData('hmac_test', $storeId);
-//                if (is_null($hmacTest)) {
-//                    return null;
-//                }
-//                $secretWord = $this->_encryptor->decrypt(trim($hmacTest));
-//                break;
-//            default:
-//                $hmacLive = $this->configHelper->getAdyenHppConfigData('hmac_live', $storeId);
-//                if (is_null($hmacLive)) {
-//                    return null;
-//                }
-//                $secretWord = $this->_encryptor->decrypt(trim($hmacLive));
-//                break;
-//        }
-//        return $secretWord;
-//    }
+    /**
+     * Retrieve the Client key
+     *
+     * @param null|int|string $storeId
+     * @return string
+     */
+    public function getClientKey($storeId = null)
+    {
+        $clientKey = $this->getAdyenAbstractConfigData(
+            $this->isDemoMode($storeId) ? 'client_key_test' : 'client_key_live',
+            $storeId
+        );
 
-//    public function isMotoDemoMode(array $motoMerchantAccountProperties): bool
-//    {
-//        return $motoMerchantAccountProperties['demo_mode'] === '1';
-//    }
+        if (is_null($clientKey)) {
+            return null;
+        }
+
+        return trim((string) $clientKey);
+    }
+
+    /**
+     * Retrieve the webserver username
+     *
+     * @param null|int|string $storeId
+     * @return string
+     */
+    public function getWsUsername($storeId = null)
+    {
+        if ($this->isDemoMode($storeId)) {
+            $wsUsernameTest = $this->getAdyenAbstractConfigData('ws_username_test', $storeId);
+            if (is_null($wsUsernameTest)) {
+                return null;
+            }
+            $wsUsername = trim((string) $wsUsernameTest);
+        } else {
+            $wsUsernameLive = $this->getAdyenAbstractConfigData('ws_username_live', $storeId);
+            if (is_null($wsUsernameLive)) {
+                return null;
+            }
+            $wsUsername = trim((string) $wsUsernameLive);
+        }
+        return $wsUsername;
+    }
+
+    /**
+     * Retrieve the Live endpoint prefix key
+     *
+     * @param null|int|string $storeId
+     * @return string
+     */
+    public function getLiveEndpointPrefix($storeId = null)
+    {
+        $prefix = $this->getAdyenAbstractConfigData('live_endpoint_url_prefix', $storeId);
+
+        if (is_null($prefix)) {
+            return null;
+        }
+
+        return trim((string) $prefix);
+    }
 
     /**
      * Retrieve the Checkout frontend region
@@ -641,7 +583,7 @@ class Data extends AbstractHelper
             return null;
         }
 
-        return trim($checkoutFrontendRegion);
+        return trim((string) $checkoutFrontendRegion);
     }
 
     /**
@@ -733,26 +675,6 @@ class Data extends AbstractHelper
     {
         return $this->_dataStorage->get('adyen_credit_cards');
     }
-//
-//    /**
-//     * Retrieve information from payment configuration
-//     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
-//     * @param $field
-//     * @param $paymentMethodCode
-//     * @param null|int|string $storeId
-//     * @param bool|false $flag
-//     * @return bool|mixed
-//     */
-//    public function getConfigData($field, $paymentMethodCode, $storeId = null, $flag = false)
-//    {
-//        $path = 'payment/' . $paymentMethodCode . '/' . $field;
-//
-//        if (!$flag) {
-//            return $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
-//        } else {
-//            return $this->scopeConfig->isSetFlag($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
-//        }
-//    }
 
     /**
      * Get adyen magento module's name sent to Adyen
@@ -905,10 +827,6 @@ class Data extends AbstractHelper
         return $billingAgreements;
     }
 
-//    public function isPerStoreBillingAgreement($storeId)
-//    {
-//        return !$this->getAdyenOneclickConfigDataFlag('share_billing_agreement', $storeId);
-//    }
 
     /**
      * @param $paymentMethod
@@ -929,7 +847,9 @@ class Data extends AbstractHelper
             strpos($paymentMethod, self::CLEARPAY) !== false ||
             strpos($paymentMethod, self::ZIP) !== false ||
             strpos($paymentMethod, self::PAYBRIGHT) !== false ||
-            strpos($paymentMethod, self::ATOME) !== false
+            strpos($paymentMethod, self::ATOME) !== false ||
+            strpos($paymentMethod, self::WALLEY) !== false ||
+            strpos($paymentMethod, self::WALLEYB2B) !== false
         ) {
             return true;
         }
@@ -959,7 +879,7 @@ class Data extends AbstractHelper
     public function isVatCategoryHigh($paymentMethod)
     {
         if ($paymentMethod == self::KLARNA ||
-            strlen($paymentMethod) >= 9 && substr($paymentMethod, 0, 9) == 'afterpay_'
+            strlen((string) $paymentMethod) >= 9 && substr((string) $paymentMethod, 0, 9) == 'afterpay_'
         ) {
             return true;
         }
@@ -1011,7 +931,7 @@ class Data extends AbstractHelper
      */
     public function formatLocaleCode($localeCode)
     {
-        return str_replace("_", "-", $localeCode);
+        return str_replace("_", "-", (string) $localeCode);
     }
 
     public function getUnprocessedNotifications()
@@ -1048,7 +968,7 @@ class Data extends AbstractHelper
         $payment,
         $itemId = null
     ) {
-        $description = str_replace("\n", '', trim($name));
+        $description = str_replace("\n", '', trim((string) $name));
         $itemAmount = $this->formatAmount($price, $currency);
 
         $itemVatAmount = $this->getItemVatAmount(
@@ -1228,7 +1148,7 @@ class Data extends AbstractHelper
 
         if ($this->isVatCategoryHigh(
             $payment->getAdditionalInformation(
-                \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE
+                \Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver::BRAND_CODE
             )
         )
         ) {
@@ -1251,14 +1171,14 @@ class Data extends AbstractHelper
                 return null;
             }
 
-            $apiKey = $this->_encryptor->decrypt(trim($encryptedApiKeyTest));
+            $apiKey = $this->_encryptor->decrypt(trim((string) $encryptedApiKeyTest));
         } else {
             $encryptedApiKeyLive = $this->configHelper->getAdyenPosCloudConfigData('api_key_live', $storeId);
             if (is_null($encryptedApiKeyLive)) {
                 return null;
             }
 
-            $apiKey = $this->_encryptor->decrypt(trim($encryptedApiKeyLive));
+            $apiKey = $this->_encryptor->decrypt(trim((string) $encryptedApiKeyLive));
         }
         return $apiKey;
     }
@@ -1311,7 +1231,7 @@ class Data extends AbstractHelper
         foreach ($paymentReceipt as $receipt) {
             if ($receipt['DocumentQualifier'] == "CustomerReceipt") {
                 foreach ($receipt['OutputContent']['OutputText'] as $item) {
-                    parse_str($item['Text'], $textParts);
+                    parse_str((string) $item['Text'], $textParts);
                     $formattedHtml .= "<tr class='terminal-api-receipt'>";
                     if (!empty($textParts['name'])) {
                         $formattedHtml .= "<td class='terminal-api-receipt-name'>" . $textParts['name'] . "</td>";
@@ -1383,7 +1303,6 @@ class Data extends AbstractHelper
         $client->setExternalPlatform($this->productMetadata->getName(), $this->productMetadata->getVersion(), 'Adyen');
         if ($isDemo) {
             $client->setEnvironment(\Adyen\Environment::TEST);
-            $client->setLogger($this->adyenLogger);
         } else {
             $client->setEnvironment(\Adyen\Environment::LIVE, $this->configHelper->getLiveEndpointPrefix($storeId));
         }
@@ -1426,7 +1345,7 @@ class Data extends AbstractHelper
         if ('adminhtml' === $state->getAreaCode()) {
             $baseUrl = $this->backendHelper->getHomePageUrl();
         }
-        $parsed = parse_url($baseUrl);
+        $parsed = parse_url((string) $baseUrl);
         $origin = $parsed['scheme'] . "://" . $parsed['host'];
         if (!empty($parsed['port'])) {
             $origin .= ":" . $parsed['port'];
@@ -1553,6 +1472,7 @@ class Data extends AbstractHelper
 
     /**
      * Check if HPP vault is enabled
+     *
      * @param null|int|string $storeId
      * @return mixed
      */
@@ -1663,32 +1583,48 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Parse transactionId to separate PSP reference from suffix.
-     * e.g 882629192021269E-capture --> [pspReference => 882629192021269E, suffix => -capture]
-     *
-     * @param $transactionId
-     * @return mixed
-     */
-    public function parseTransactionId($transactionId)
-    {
-        preg_match(
-            self::PSP_REFERENCE_REGEX,
-            trim((string)$transactionId),
-            $matches
-        );
-
-        // Return only the named matches, i.e pspReference & suffix
-        return array_filter($matches, function($index) {
-            return is_string($index);
-        }, ARRAY_FILTER_USE_KEY);
-    }
-
-    /**
      * @param $shopperReference
      * @return string
      */
     public function padShopperReference(string $shopperReference): string
     {
         return str_pad($shopperReference, 3, '0', STR_PAD_LEFT);
+    }
+
+    public function logRequest(array $request, $apiVersion, $endpoint)
+    {
+        $storeId = $this->storeManager->getStore()->getId();
+        $isDemo = $this->configHelper->isDemoMode($storeId);
+        $context = ['apiVersion' => $apiVersion];
+        if ($isDemo) {
+            $context['body'] = $request;
+        } else {
+            $context['livePrefix'] = $this->getLiveEndpointPrefix($storeId);
+            $context['body'] = $this->filterReferences($request);
+        }
+
+        $this->adyenLogger->info('Request to Adyen API ' . $endpoint, $context);
+    }
+
+    public function logResponse(array $response)
+    {
+        $storeId = $this->storeManager->getStore()->getId();
+        $isDemo = $this->configHelper->isDemoMode($storeId);
+        $context = [];
+        if ($isDemo) {
+            $context['body'] = $response;
+        } else {
+            $context['body'] = $this->filterReferences($response);
+        }
+
+        $this->adyenLogger->info('Response from Adyen API', $context);
+    }
+
+    private function filterReferences(array $data): array
+    {
+        return array_filter($data, function($value, $key) {
+            // Keep only reference keys, e.g. reference, pspReference, merchantReference etc.
+            return false !== strpos(strtolower($key), 'reference');
+        }, ARRAY_FILTER_USE_BOTH);
     }
 }

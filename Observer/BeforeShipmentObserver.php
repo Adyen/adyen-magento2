@@ -15,7 +15,7 @@ namespace Adyen\Payment\Observer;
 use Adyen\Payment\Helper\Data as AdyenHelper;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
+use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Exception;
 use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
@@ -95,7 +95,7 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
         }
 
         $payment = $order->getPayment();
-        $brandCode = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
+        $brandCode = $payment->getAdditionalInformation(AdyenPaymentMethodDataAssignObserver::BRAND_CODE);
 
         if (!$this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) {
             $this->logger->info(
@@ -134,6 +134,6 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
      */
     public function isPaymentMethodAdyen($order)
     {
-        return strpos($order->getPayment()->getMethod(), 'adyen') !== false;
+        return strpos((string) $order->getPayment()->getMethod(), 'adyen') !== false;
     }
 }

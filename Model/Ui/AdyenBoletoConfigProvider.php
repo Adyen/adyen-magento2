@@ -97,7 +97,7 @@ class AdyenBoletoConfigProvider implements ConfigProviderInterface
         $boletoTypes = $this->_adyenHelper->getBoletoTypes();
         $availableTypes = $this->_configHelper->getAdyenBoletoConfigData('boletotypes');
         if ($availableTypes) {
-            $availableTypes = explode(',', $availableTypes);
+            $availableTypes = explode(',', (string) $availableTypes);
             foreach ($boletoTypes as $boletoType) {
                 if (in_array($boletoType['value'], $availableTypes)) {
                     $types[] = $boletoType;

@@ -1,0 +1,43 @@
+name: GraphQL Tests
+on: [pull_request]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        php-version: ["8.1"]
+        magento-version: ["2.4.5"]
+    runs-on: ubuntu-latest
+    env:
+      PHP_VERSION: ${{ matrix.php-version }}
+      MAGENTO_VERSION: ${{ matrix.magento-version }}
+      ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
+      ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Magento
+        run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm web make magento
+
+      - name: Start web server in background
+        run: docker-compose -f .github/workflows/templates/docker-compose.yml up -d web
+        env:
+          DONATION_ACCOUNT: ${{secrets.DONATION_ACCOUNT}}
+          ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
+          ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
+          ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
+
+      - name: Setup permissions
+        run: docker exec magento2-container make fs
+
+      - name: Check install
+        run: docker exec magento2-container make sys-check
+
+      - name: Install plugin
+        run: docker exec -u www-data magento2-container make plugin
+
+      - run: docker exec magento2-container /etc/init.d/cron stop
+
+      - name: Run GraphQL tests
+        run: docker exec magento2-container make graphql

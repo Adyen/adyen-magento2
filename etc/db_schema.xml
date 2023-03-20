@@ -72,7 +72,6 @@
   <table name="adyen_invoice" resource="default" engine="innodb" comment="Adyen Invoice">
     <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Adyen Invoice Entity ID"/>
     <column xsi:type="varchar" name="pspreference" nullable="false" length="255" comment="Adyen pspreference of the capture"/>
-    <column xsi:type="varchar" name="original_reference" nullable="true" length="255" comment="Adyen OriginalReference of the payment"/>
     <column xsi:type="varchar" name="acquirer_reference" nullable="true" length="255" comment="Adyen AcquirerReference of the capture"/>
     <column xsi:type="int" name="invoice_id" padding="10" unsigned="true" nullable="true" identity="false" comment="Link to Magento Invoice table"/>
     <column xsi:type="timestamp" name="created_at" on_update="false" nullable="true" default="CURRENT_TIMESTAMP" comment="Created at"/>

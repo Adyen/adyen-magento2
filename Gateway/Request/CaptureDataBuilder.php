@@ -20,7 +20,7 @@ use Adyen\Payment\Helper\Data as DataHelper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Order\Payment as PaymentModel;
 use Adyen\Payment\Model\ResourceModel\Order\Payment;
-use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
+use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Magento\Framework\App\Action\Context;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Sales\Model\Order;
@@ -109,7 +109,7 @@ class CaptureDataBuilder implements BuilderInterface
         $orderAmountCents = $this->adyenHelper->formatAmount($orderAmountCurrency->getAmount(), $currency);
 
         $pspReference = $payment->getCcTransId();
-        $brandCode = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
+        $brandCode = $payment->getAdditionalInformation(AdyenPaymentMethodDataAssignObserver::BRAND_CODE);
 
         // If total amount has not been authorized
         if (!$this->adyenOrderPaymentHelper->isFullAmountAuthorized($order)) {
