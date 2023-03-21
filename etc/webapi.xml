@@ -41,14 +41,14 @@
     </route>
 
 
-    <route url="/V1/adyen/guest-carts/:cartId/payment-details" method="POST">
+    <route url="/V1/guest-carts/:cartId/payment-details" method="POST">
         <service class="Adyen\Payment\Api\AdyenPaymentDetailsInterface" method="initiate"/>
         <resources>
             <resource ref="anonymous"/>
         </resources>
     </route>
 
-    <route url="/V1/adyen/carts/mine/payment-details" method="POST">
+    <route url="/V1/carts/mine/payment-details" method="POST">
         <service class="Adyen\Payment\Api\AdyenPaymentDetailsInterface" method="initiate"/>
         <resources>
             <resource ref="self"/>
