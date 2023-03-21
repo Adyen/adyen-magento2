@@ -79,7 +79,6 @@ define(
              * component or place the order (validateThreeDS2OrPlaceOrder)
              */
             paymentDetails: function(data) {
-                debugger;
                 var payload = {
                     'payload': JSON.stringify(data),
                     form_key: $.mage.cookies.get('form_key')
