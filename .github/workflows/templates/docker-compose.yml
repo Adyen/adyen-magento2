@@ -12,7 +12,7 @@ services:
     networks:
       - backend
   elastic:
-    image: elasticsearch:7.17.8
+    image: elasticsearch:7.17.9
     container_name: elasticsearch
     ports:
       - 9200:9200
