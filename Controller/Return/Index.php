@@ -13,6 +13,7 @@ namespace Adyen\Payment\Controller\Return;
 
 use Adyen\AdyenException;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Idempotency;
 use Adyen\Payment\Helper\Quote;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Vault;
@@ -121,6 +122,11 @@ class Index extends Action
     private OrderRepositoryInterface $orderRepository;
 
     /**
+     * @var Idempotency
+     */
+    private $idempotencyHelper;
+
+    /**
      * @param Context $context
      * @param OrderFactory $orderFactory
      * @param HistoryFactory $orderHistoryFactory
@@ -146,7 +152,8 @@ class Index extends Action
         OrderResource            $orderResourceModel,
         StateData                $stateDataHelper,
         Data                     $adyenDataHelper,
-        OrderRepositoryInterface $orderRepository
+        OrderRepositoryInterface $orderRepository,
+        Idempotency              $idempotencyHelper
     ) {
         parent::__construct($context);
 
@@ -161,6 +168,7 @@ class Index extends Action
         $this->orderResourceModel = $orderResourceModel;
         $this->stateDataHelper = $stateDataHelper;
         $this->orderRepository = $orderRepository;
+        $this->idempotencyHelper = $idempotencyHelper;
     }
 
     /**
@@ -197,11 +205,14 @@ class Index extends Action
         if ($result) {
             $session = $this->session;
             $session->getQuote()->setIsActive($setQuoteAsActive)->save();
+            $paymentAction = $this->order->getPayment()->getAdditionalInformation('action');
+            $brandCode = $this->order->getPayment()->getAdditionalInformation('brand_code');
+            $resultCode = $this->order->getPayment()->getAdditionalInformation('resultCode');
 
-            // Prevent action component to redirect page with the payment method Dotpay Bank transfer / postal
-            if (
-                $this->order->getPayment()->getAdditionalInformation('brand_code') == self::BRAND_CODE_DOTPAY &&
-                $this->order->getPayment()->getAdditionalInformation('resultCode') == self::RESULT_CODE_RECEIVED
+
+            // Prevent action component to redirect page again after returning to the shop
+            if (($brandCode == self::BRAND_CODE_DOTPAY && $resultCode == self::RESULT_CODE_RECEIVED) ||
+                (isset($paymentAction) && $paymentAction['type'] === 'redirect')
             ) {
                 $this->payment->unsAdditionalInformation('action');
                 $this->order->save();
@@ -514,9 +525,10 @@ class Index extends Action
         }
 
         $request["details"] = $details;
+        $requestOptions['idempotencyKey'] = $this->idempotencyHelper->generateIdempotencyKey($request);
 
         try {
-            $response = $service->paymentsDetails($request);
+            $response = $service->paymentsDetails($request, $requestOptions);
             $responseMerchantReference = !empty($response['merchantReference']) ? $response['merchantReference'] : null;
             $resultMerchantReference = !empty($result['merchantReference']) ? $result['merchantReference'] : null;
             $merchantReference = $responseMerchantReference ?: $resultMerchantReference;

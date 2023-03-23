@@ -80,16 +80,11 @@ class PaymentResponseHandler
         $this->quoteHelper = $quoteHelper;
     }
 
-    /**
-     * @param string $resultCode
-     * @param array|null $action
-     * @param array|null $additionalData
-     * @return array
-     */
     public function formatPaymentResponse(
         string $resultCode,
         array $action = null,
-        array $additionalData = null
+        array $additionalData = null,
+        string $donationToken = null
     ): array {
         switch ($resultCode) {
             case self::AUTHORISED:
@@ -101,7 +96,8 @@ class PaymentResponseHandler
             case self::ERROR:
                 return [
                     "isFinal" => true,
-                    "resultCode" => $resultCode
+                    "resultCode" => $resultCode,
+                    "donationToken" => $donationToken
                 ];
             case self::REDIRECT_SHOPPER:
             case self::IDENTIFY_SHOPPER:

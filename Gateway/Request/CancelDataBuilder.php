@@ -11,6 +11,8 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Magento\Payment\Gateway\Data\PaymentDataObject;
+use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
 /**
@@ -19,30 +21,15 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
 class CancelDataBuilder implements BuilderInterface
 {
     /**
-     * @var \Adyen\Payment\Helper\Data
-     */
-    private $adyenHelper;
-
-    /**
-     * CaptureDataBuilder constructor.
-     *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     */
-    public function __construct(\Adyen\Payment\Helper\Data $adyenHelper)
-    {
-        $this->adyenHelper = $adyenHelper;
-    }
-
-    /**
      * Create cancel_or_refund request
      *
      * @param array $buildSubject
      * @return array
      */
-    public function build(array $buildSubject)
+    public function build(array $buildSubject): array
     {
-        /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
-        $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
+        /** @var PaymentDataObject $paymentDataObject */
+        $paymentDataObject = SubjectReader::readPayment($buildSubject);
         $order = $paymentDataObject->getOrder();
         $payment = $paymentDataObject->getPayment();
         $pspReference = $payment->getCcTransId();
