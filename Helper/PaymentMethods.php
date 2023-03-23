@@ -34,6 +34,7 @@ use Magento\Payment\Helper\Data as MagentoDataHelper;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Adyen\Payment\Helper\Data as AdyenDataHelper;
+use Magento\Store\Model\ScopeInterface;
 
 /**
  * @SuppressWarnings(PHPMD.LongVariable)
@@ -290,31 +291,30 @@ class PaymentMethods extends AbstractHelper
     }
 
     /**
+     * This function is being unnecessarily called multiple times
+     *
      * @param $store
-     * @param $country
-     * @return int|mixed|string
+     * @return string
      */
-    protected function getCurrentCountryCode($store, $country = null)
+    protected function getCurrentCountryCode($store): string
     {
-        // if fixed countryCode is setup in config use this
+        // If fixed countryCode is set up in config use it
         $countryCode = $this->adyenHelper->getAdyenHppConfigData('country_code', $store->getId());
 
         if ($countryCode != "") {
             return $countryCode;
         }
 
-        if ($country != null) {
-            return $country;
-        }
-
         $quote = $this->getQuote();
-        if (!is_null($quote->getCustomer()) && !is_null($quote->getCustomer()->getDefaultBillingAddress())) {
-            return $quote->getCustomer()->getDefaultBillingAddress()->getCountryId();
+        $billingAddressCountry = $quote->getBillingAddress()->getCountryId();
+        // If customer is guest, billing address country might not be set yet
+        if (isset($billingAddressCountry)) {
+            return $billingAddressCountry;
         }
 
         $defaultCountry = $this->config->getValue(
             \Magento\Tax\Model\Config::CONFIG_XML_PATH_DEFAULT_COUNTRY,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORES,
+            ScopeInterface::SCOPE_STORES,
             $store->getCode()
         );
 
@@ -386,7 +386,6 @@ class PaymentMethods extends AbstractHelper
      * @param $merchantAccount
      * @param \Magento\Store\Model\Store $store
      * @param \Magento\Quote\Model\Quote $quote
-     * @param string|null $country
      * @param string|null $shopperLocale
      * @return array
      * @throws \Exception
@@ -395,15 +394,14 @@ class PaymentMethods extends AbstractHelper
         $merchantAccount,
         \Magento\Store\Model\Store $store,
         \Magento\Quote\Model\Quote $quote,
-        ?string $country = null,
         ?string $shopperLocale = null
-    ) {
+    ): array {
         $currencyCode = $this->chargedCurrency->getQuoteAmountCurrency($quote)->getCurrencyCode();
 
         $paymentMethodRequest = [
             "channel" => "Web",
             "merchantAccount" => $merchantAccount,
-            "countryCode" => $this->getCurrentCountryCode($store, $country),
+            "countryCode" => $this->getCurrentCountryCode($store),
             "shopperLocale" => $shopperLocale ?: $this->adyenHelper->getCurrentLocaleCode($store->getId()),
             "amount" => [
                 "currency" => $currencyCode

@@ -105,14 +105,8 @@ class GetAdyenPaymentMethods implements ResolverInterface
         try {
             $cart = $this->getCartForUser->execute($maskedCartId, $currentUserId, $storeId);
 
-            $country = null;
-            $shippingAddress = $cart->getShippingAddress();
-            if ($shippingAddress) {
-                $country = $shippingAddress->getCountryId();
-            }
             $adyenPaymentMethodsResponse = $this->paymentMethodsHelper->getPaymentMethods(
                 intval($cart->getId()),
-                $country,
                 $shopperLocale
             );
 
