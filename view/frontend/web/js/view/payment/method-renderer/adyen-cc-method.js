@@ -312,17 +312,16 @@ define(
                 }
             },
             handleOnAdditionalDetails: function(result) {
-                var self = this;
-
-                var request = result.data;
+                const self = this;
+                let request = result.data;
+                AdyenPaymentModal.hideModalLabel(this.modalLabel);
+                fullScreenLoader.startLoader();
                 request.orderId = self.orderId;
-
-                fullScreenLoader.stopLoader();
-
                 let popupModal = self.showModal();
 
                 adyenPaymentService.paymentDetails(request).
                     done(function(responseJSON) {
+                        fullScreenLoader.stopLoader();
                         self.handleAdyenResult(responseJSON, self.orderId);
                     }).
                     fail(function(response) {

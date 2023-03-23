@@ -75,7 +75,8 @@ class AdyenOrderPaymentStatus implements AdyenOrderPaymentStatusInterface
         return json_encode($this->paymentResponseHandler->formatPaymentResponse(
             $additionalInformation['resultCode'],
             !empty($additionalInformation['action']) ? $additionalInformation['action'] : null,
-            !empty($additionalInformation['additionalData']) ? $additionalInformation['additionalData'] : null
+            !empty($additionalInformation['additionalData']) ? $additionalInformation['additionalData'] : null,
+            !empty($additionalInformation['donationToken']) ? $additionalInformation['donationToken'] : null
         ));
     }
 }
