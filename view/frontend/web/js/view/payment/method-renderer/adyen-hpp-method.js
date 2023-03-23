@@ -699,6 +699,12 @@ define(
                     configuration = Object.assign(configuration, paymentMethodsExtraInfo[paymentMethod.methodIdentifier].configuration);
                 }
 
+                // Show HolderName for ACH component, as it's always required
+                if (paymentMethod.methodIdentifier.includes('ach')) {
+                    configuration.hasHolderName = true;
+                    configuration.holderNameRequired = true;
+                }
+
                 // Extra apple pay configuration
                 if (paymentMethod.methodIdentifier.includes('applepay')) {
                     if ('configuration' in configuration &&
