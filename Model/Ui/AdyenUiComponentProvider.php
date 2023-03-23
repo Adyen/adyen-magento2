@@ -12,6 +12,8 @@
 namespace Adyen\Payment\Model\Ui;
 
 use Adyen\Payment\Helper\Data;
+use Magento\Framework\App\RequestInterface;
+use Magento\Framework\UrlInterface;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Vault\Model\Ui\TokenUiComponentInterface;
 use Magento\Vault\Model\Ui\TokenUiComponentProviderInterface;
@@ -19,9 +21,28 @@ use Magento\Vault\Model\Ui\TokenUiComponentInterfaceFactory;
 
 class AdyenUiComponentProvider
 {
+    const GATEWAY_TOKEN = 'gatewayToken';
+    const TOKEN_ID = 'tokenId';
 
+    /**
+     * @var TokenUiComponentInterfaceFactory
+     */
     protected $componentFactory;
+
+    /**
+     * @var Data
+     */
     protected $dataHelper;
+
+    /**
+     * @var UrlInterface
+     */
+    protected $url;
+
+    /**
+     * @var RequestInterface
+     */
+    protected $request;
 
     /**
      * @param TokenUiComponentInterfaceFactory $componentFactory
@@ -29,10 +50,14 @@ class AdyenUiComponentProvider
      */
     public function __construct(
         TokenUiComponentInterfaceFactory $componentFactory,
-        Data $dataHelper
+        Data $dataHelper,
+        UrlInterface $url,
+        RequestInterface $request
     ) {
         $this->componentFactory = $componentFactory;
         $this->dataHelper = $dataHelper;
+        $this->url = $url;
+        $this->request = $request;
     }
 
     /**
@@ -51,7 +76,13 @@ class AdyenUiComponentProvider
                 'config' => [
                     'code' => AdyenCcConfigProvider::CC_VAULT_CODE,
                     TokenUiComponentProviderInterface::COMPONENT_DETAILS => $details,
-                    TokenUiComponentProviderInterface::COMPONENT_PUBLIC_HASH => $paymentToken->getPublicHash()
+                    TokenUiComponentProviderInterface::COMPONENT_PUBLIC_HASH => $paymentToken->getPublicHash(),
+                    self::GATEWAY_TOKEN => $paymentToken->getGatewayToken(),
+                    self::TOKEN_ID => $paymentToken->getEntityId(),
+                    'successPage' => $this->url->getUrl(
+                        'checkout/onepage/success',
+                        ['_secure' => $this->request->isSecure()]
+                    )
                 ],
                 'name' => 'Adyen_Payment/js/view/payment/method-renderer/vault'
             ]

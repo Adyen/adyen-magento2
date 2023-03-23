@@ -30,6 +30,20 @@
                 <field id="active">1</field>
             </depends>
         </field>
+        <field id="min_order_total" translate="label" type="text" sortOrder="21" showInDefault="1" showInWebsite="1">
+            <label>Minimum order total</label>
+            <config_path>payment/adyen_hpp/min_order_total</config_path>
+            <depends>
+                <field id="active">1</field>
+            </depends>
+        </field>
+        <field id="max_order_total" translate="label" type="text" sortOrder="22" showInDefault="1" showInWebsite="1">
+            <label>Maximum order total</label>
+            <config_path>payment/adyen_hpp/max_order_total</config_path>
+            <depends>
+                <field id="active">1</field>
+            </depends>
+        </field>
         <field id="adyen_hpp_vault_active" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Store alternative payment methods</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
