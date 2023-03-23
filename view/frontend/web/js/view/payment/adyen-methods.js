@@ -82,7 +82,7 @@ define(
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-facilypay-3x-method'
             },
             {
-            type:'adyen_sepadirectdebit',
+                type:'adyen_sepadirectdebit',
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-sepadirectdebit-method'
             }
         );
