@@ -76,12 +76,11 @@ define(
                         street: formattedShippingAddress.street
                     };
                 }
+                if (paymentMethod.methodIdentifier in paymentMethodsExtraInfo && 'configuration' in paymentMethodsExtraInfo[paymentMethod.methodIdentifier]) {
+                            configuration = Object.assign(configuration, paymentMethodsExtraInfo[paymentMethod.methodIdentifier].configuration);
+                        }
 
-                // if (paymentMethod.methodIdentifier in paymentMethodsExtraInfo && 'configuration' in paymentMethodsExtraInfo[paymentMethod.methodIdentifier]) {
-                //             configuration = Object.assign(configuration, paymentMethodsExtraInfo[paymentMethod.methodIdentifier].configuration);
-                //         }
-
-                // if (paymentMethod.methodIdentifier.includes('amazonpay')) {
+                if (paymentMethod.methodIdentifier.includes('amazonpay')) {
                     configuration.productType = 'PayAndShip';
                     configuration.checkoutMode = 'ProcessOrder';
                     var url = new URL(location.href);
@@ -108,8 +107,7 @@ define(
                             countryCode: formattedShippingAddress.country,
                             phoneNumber: formattedShippingAddress.telephone
                         };
-                    }
-                    else if (formattedBillingAddress &&
+                    } else if (formattedBillingAddress &&
                         formattedBillingAddress.telephone) {
                         configuration.addressDetails = {
                             name: formattedBillingAddress.firstName +
@@ -123,7 +121,7 @@ define(
                             phoneNumber: formattedBillingAddress.telephone
                         };
                     }
-
+                }
                 return configuration;
             }
         })

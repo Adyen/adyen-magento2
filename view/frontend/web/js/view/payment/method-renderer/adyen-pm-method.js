@@ -114,27 +114,6 @@ define(
                 if (!!paymentMethodsResponse.paymentMethodsResponse) {
                     var paymentMethods = paymentMethodsResponse.paymentMethodsResponse.paymentMethods;
                     // Needed until the new ratepay component is released
-                    if (JSON.stringify(paymentMethods).indexOf('ratepay') >
-                        -1) {
-                        var ratePayId = window.checkoutConfig.payment.adyenHpp.ratePayId;
-                        var dfValueRatePay = self.getRatePayDeviceIdentToken();
-
-                        // TODO check if still needed with checkout component
-
-                        window.di = {
-                            t: dfValueRatePay.replace(':', ''),
-                            v: ratePayId,
-                            l: 'Checkout',
-                        };
-
-                        // Load Ratepay script
-                        var ratepayScriptTag = document.createElement('script');
-                        ratepayScriptTag.src = '//d.ratepay.com/' + ratePayId +
-                            '/di.js';
-                        ratepayScriptTag.type = 'text/javascript';
-                        document.body.appendChild(ratepayScriptTag);
-                    }
-
                     self.adyenPaymentMethod(self.createAdyenPaymentMethod(paymentMethodsResponse))
                 }
                 fullScreenLoader.stopLoader();
@@ -254,7 +233,7 @@ define(
                                 if (paymentMethod.methodGroup === paymentMethod.methodIdentifier){
                                     stateData = {
                                         paymentMethod: {
-                                            type: selectedAlternativePaymentMethodType(),
+                                            type: paymentMethod.methodGroup,
                                         },
                                     };
                                 } else {
@@ -556,6 +535,47 @@ define(
                     lastName: address.lastname,
                     telephone: address.telephone
                 };
+            },
+            buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo, result) {
+                var self = this;
+                var email = '';
+                var showPayButton = false;
+
+                if (!!quote.guestEmail) {
+                    email = quote.guestEmail;
+                }
+                var formattedShippingAddress = {};
+                var formattedBillingAddress = {};
+
+                if (!quote.isVirtual() && !!quote.shippingAddress()) {
+                    formattedShippingAddress = self.getFormattedAddress(quote.shippingAddress());
+                }
+
+                if (!!quote.billingAddress()) {
+                    formattedBillingAddress = self.getFormattedAddress(quote.billingAddress());
+                }
+                /*Use the storedPaymentMethod object and the custom onChange function as the configuration object together*/
+                var configuration = Object.assign(paymentMethod,
+                    {
+                        showPayButton: showPayButton,
+                        countryCode: formattedShippingAddress.country ? formattedShippingAddress.country : formattedBillingAddress.country, // Use shipping address details as default and fall back to billing address if missing
+                        data: {},
+                        onChange: function (state) {
+                            result.isPlaceOrderAllowed(state.isValid);
+                        },
+                    });
+
+                if (formattedShippingAddress) {
+                    configuration.data.shippingAddress = {
+                        city: formattedShippingAddress.city,
+                        country: formattedShippingAddress.country,
+                        houseNumberOrName: formattedShippingAddress.houseNumber,
+                        postalCode: formattedShippingAddress.postalCode,
+                        street: formattedShippingAddress.street
+                    };
+                }
+                return configuration
+
             },
 
             mountPaymentMethodComponent(paymentMethod, configuration, result)

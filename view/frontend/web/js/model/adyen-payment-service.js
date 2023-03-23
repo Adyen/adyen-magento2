@@ -83,8 +83,14 @@ define(
                     'payload': JSON.stringify(data),
                     form_key: $.mage.cookies.get('form_key')
                 };
-                var serviceUrl = urlBuilder.createUrl('/adyen/payment-details',
-                    {});
+                var serviceUrl = urlBuilder.createUrl(
+                    '/guest-carts/:cartId/payment-details', {
+                        cartId: quote.getQuoteId(),
+                    });
+                if (customer.isLoggedIn()) {
+                    serviceUrl = urlBuilder.createUrl(
+                        '/carts/mine/payment-details', {});
+                }
 
                 return storage.post(
                     serviceUrl,
