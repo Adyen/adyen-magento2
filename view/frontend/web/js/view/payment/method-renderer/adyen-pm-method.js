@@ -254,7 +254,7 @@ define(
                                 if (paymentMethod.methodGroup === paymentMethod.methodIdentifier){
                                     stateData = {
                                         paymentMethod: {
-                                            type: selectedAlternativePaymentMethodType(),
+                                            type: paymentMethod.methodGroup,
                                         },
                                     };
                                 } else {
