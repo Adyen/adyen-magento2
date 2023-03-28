@@ -109,7 +109,13 @@ class PaymentsDetails
             $additionalData = $paymentDetails['additionalData'];
         }
 
-        return json_encode($this->paymentResponseHandler->formatPaymentResponse($paymentDetails['resultCode'], $action, $additionalData));
+        return json_encode(
+            $this->paymentResponseHandler->formatPaymentResponse(
+                $paymentDetails['resultCode'],
+                $action,
+                $additionalData
+            )
+        );
     }
 
     /**
