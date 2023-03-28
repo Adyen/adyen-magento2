@@ -316,10 +316,9 @@ define(
                 let request = result.data;
                 AdyenPaymentModal.hideModalLabel(this.modalLabel);
                 fullScreenLoader.startLoader();
-                request.orderId = self.orderId;
                 let popupModal = self.showModal();
 
-                adyenPaymentService.paymentDetails(request).
+                adyenPaymentService.paymentDetails(request, self.orderId).
                     done(function(responseJSON) {
                         fullScreenLoader.stopLoader();
                         self.handleAdyenResult(responseJSON, self.orderId);

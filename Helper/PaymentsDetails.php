@@ -3,27 +3,24 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2023 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model\Api;
+namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
-use Adyen\Payment\Api\AdyenPaymentDetailsInterface;
-use Adyen\Payment\Helper\Data;
-use Adyen\Payment\Helper\Idempotency;
-use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Service\Validator\DataArrayValidator;
 use Magento\Checkout\Model\Session;
+use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Sales\Api\Data\OrderInterface;
 
-class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
+class PaymentsDetails
 {
     const PAYMENTS_DETAILS_KEYS = [
         'details',
@@ -37,44 +34,33 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
 
     private AdyenLogger $adyenLogger;
 
-    private OrderRepositoryInterface $orderRepository;
-
     private PaymentResponseHandler $paymentResponseHandler;
 
     private Idempotency $idempotencyHelper;
 
-    /**
-     * @param Session $checkoutSession
-     * @param Data $adyenHelper
-     * @param AdyenLogger $adyenLogger
-     * @param OrderRepositoryInterface $orderRepository
-     * @param PaymentResponseHandler $paymentResponseHandler
-     * @param Idempotency $idempotencyHelper
-     */
     public function __construct(
         Session $checkoutSession,
         Data $adyenHelper,
         AdyenLogger $adyenLogger,
-        OrderRepositoryInterface $orderRepository,
         PaymentResponseHandler $paymentResponseHandler,
         Idempotency $idempotencyHelper
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->adyenHelper = $adyenHelper;
         $this->adyenLogger = $adyenLogger;
-        $this->orderRepository = $orderRepository;
         $this->paymentResponseHandler = $paymentResponseHandler;
         $this->idempotencyHelper = $idempotencyHelper;
     }
 
     /**
-     * @param string $payload
+     * @param OrderInterface $order
+     * @param mixed $payload
      * @return string
+     * @throws AlreadyExistsException
      * @throws LocalizedException
      * @throws NoSuchEntityException
-     * @api
      */
-    public function initiate(string $payload): string
+    public function initiatePaymentDetails(OrderInterface $order, string $payload): string
     {
         // Decode payload from frontend
         $payload = json_decode($payload, true);
@@ -84,31 +70,8 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
             throw new LocalizedException(__('Payment details call failed because the request was not a valid JSON'));
         }
 
-        //Get order from payload and remove orderId from the array
-        if (empty($payload['orderId'])) {
-            throw new LocalizedException
-            (__('Payment details call failed because of a missing order ID'));
-        } else {
-            $order = $this->orderRepository->get($payload['orderId']);
-            //TODO send state.data from frontend so no unsetting is necessary
-            unset($payload['orderId']);
-        }
-
         $payment = $order->getPayment();
         $apiPayload = DataArrayValidator::getArrayOnlyWithApprovedKeys($payload, self::PAYMENTS_DETAILS_KEYS);
-        // cancellation request without `state.data`
-        if (!empty($payload['cancelled']) && empty($apiPayload)) {
-            $this->checkoutSession->restoreQuote();
-
-            // Set order status to new if it is not yet valid for cancel
-            if (!$order->canCancel()) {
-                $order->setState(\Magento\Sales\Model\Order::STATE_NEW);
-                $this->orderRepository->save($order);
-            }
-
-            $this->adyenHelper->cancelOrder($order);
-            throw $this->createCancelledException();
-        }
 
         // Send the request
         try {
@@ -152,7 +115,7 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
     /**
      * @return LocalizedException
      */
-    protected function createCancelledException(): LocalizedException
+    private function createCancelledException(): LocalizedException
     {
         return new LocalizedException(__('Payment has been cancelled'));
     }
