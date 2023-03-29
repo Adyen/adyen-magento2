@@ -55,12 +55,15 @@ define(
                     JSON.stringify(payload)
                 );
             },
+
             getPaymentMethods: function() {
                 return this.paymentMethods;
             },
+
             setPaymentMethods: function(paymentMethods) {
                 this.paymentMethods(paymentMethods);
             },
+
             getOrderPaymentStatus: function(orderId) {
                 var serviceUrl = urlBuilder.createUrl('/internal/adyen/orders/payment-status', {});
                 var payload = {
@@ -73,18 +76,26 @@ define(
                     true
                 );
             },
-            /**
-             * The results that the components returns in the onComplete callback needs to be sent to the
-             * backend to the /adyen/paymentDetails endpoint and based on the response render a new
-             * component or place the order (validateThreeDS2OrPlaceOrder)
-             */
-            paymentDetails: function(data) {
-                var payload = {
+
+            paymentDetails: function(data, orderId) {
+                let serviceUrl;
+                let payload = {
                     'payload': JSON.stringify(data),
-                    form_key: $.mage.cookies.get('form_key')
+                    'orderId': orderId
                 };
-                var serviceUrl = urlBuilder.createUrl('/adyen/payment-details',
-                    {});
+
+                if (customer.isLoggedIn()) {
+                    serviceUrl = urlBuilder.createUrl(
+                        '/adyen/carts/mine/payments-details',
+                        {}
+                    );
+                } else {
+                    serviceUrl = urlBuilder.createUrl(
+                        '/adyen/guest-carts/:cartId/payments-details', {
+                            cartId: quote.getQuoteId(),
+                        }
+                    );
+                }
 
                 return storage.post(
                     serviceUrl,
