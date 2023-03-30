@@ -29,19 +29,7 @@ define(
                     innerScroll: false,
                     // empty buttons, we don't need that
                     buttons: [],
-                    modalClass: modalLabel,
-                    closed: function() {
-                        // call endpoint with state.data if available
-                        let request = {};
-                        request.orderId = orderId;
-                        request.cancelled = true;
-
-                        adyenPaymentService.paymentDetails(request).fail(function(response) {
-                            errorProcessor.process(response, messageContainer);
-                            callback(true);
-                            fullScreenLoader.stopLoader();
-                        });
-                    },
+                    modalClass: modalLabel
                 });
 
                 popupModal.modal('openModal');

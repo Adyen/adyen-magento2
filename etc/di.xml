@@ -1169,8 +1169,10 @@
                 type="Adyen\Payment\Model\Api\AdyenPaymentMethodManagement"/>
     <preference for="Adyen\Payment\Api\AdyenInitiateTerminalApiInterface"
                 type="Adyen\Payment\Model\AdyenInitiateTerminalApi"/>
-    <preference for="Adyen\Payment\Api\AdyenPaymentDetailsInterface"
-                type="Adyen\Payment\Model\Api\AdyenPaymentDetails"/>
+    <preference for="Adyen\Payment\Api\AdyenPaymentsDetailsInterface"
+                type="Adyen\Payment\Model\Api\AdyenPaymentsDetails"/>
+    <preference for="Adyen\Payment\Api\GuestAdyenPaymentsDetailsInterface"
+                type="Adyen\Payment\Model\Api\GuestAdyenPaymentsDetails"/>
     <preference for="Adyen\Payment\Api\AdyenOrderPaymentStatusInterface"
                 type="Adyen\Payment\Model\Api\AdyenOrderPaymentStatus"/>
     <preference for="Adyen\Payment\Api\Internal\InternalAdyenOrderPaymentStatusInterface"
@@ -1294,7 +1296,7 @@
             <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
         </arguments>
     </type>
-    <type name="Adyen\Payment\Model\Api\AdyenPaymentDetails">
+    <type name="Adyen\Payment\Model\Api\AdyenPaymentsDetails">
         <arguments>
             <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
         </arguments>
