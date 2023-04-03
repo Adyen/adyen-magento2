@@ -84,4 +84,7 @@
   <event name="payment_method_assign_data_adyen_genericgiftcard">
     <observer name="adyen_genericgiftcard_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver"/>
   </event>
+  <event name="payment_method_assign_data_adyen_albelligiftcard">
+    <observer name="adyen_albelligiftcard_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver"/>
+  </event>
 </config>
