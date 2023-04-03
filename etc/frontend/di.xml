@@ -47,6 +47,7 @@
         <item name="adyen_hmlingerie" xsi:type="const">Adyen\Payment\Model\Methods\Hmlingerie::TX_VARIANT</item>
         <item name="adyen_kadowereld" xsi:type="const">Adyen\Payment\Model\Methods\Kadowereld::TX_VARIANT</item>
         <item name="adyen_svs" xsi:type="const">Adyen\Payment\Model\Methods\Svs::TX_VARIANT</item>
+        <item name="adyen_vvvgiftcard" xsi:type="const">Adyen\Payment\Model\Methods\Vvvgiftcard::TX_VARIANT</item>
       </argument>
     </arguments>
   </type>

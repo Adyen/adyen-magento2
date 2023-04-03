@@ -114,4 +114,7 @@
   <event name="payment_method_assign_data_adyen_svs">
     <observer name="adyen_svs_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver"/>
   </event>
+  <event name="payment_method_assign_data_adyen_vvvgiftcard">
+    <observer name="adyen_vvvgiftcard_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver"/>
+  </event>
 </config>
