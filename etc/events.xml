@@ -108,4 +108,7 @@
   <event name="payment_method_assign_data_adyen_hmlingerie">
     <observer name="adyen_hmlingerie_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver"/>
   </event>
+  <event name="payment_method_assign_data_adyen_kadowereld">
+    <observer name="adyen_kadowereld_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver"/>
+  </event>
 </config>
