@@ -43,6 +43,7 @@
         <item name="adyen_decadeaukaart" xsi:type="const">Adyen\Payment\Model\Methods\Decadeaukaart::TX_VARIANT</item>
         <item name="adyen_fashioncheque" xsi:type="const">Adyen\Payment\Model\Methods\Fashioncheque::TX_VARIANT</item>
         <item name="adyen_gallgall" xsi:type="const">Adyen\Payment\Model\Methods\Gallgall::TX_VARIANT</item>
+        <item name="adyen_givex" xsi:type="const">Adyen\Payment\Model\Methods\Givex::TX_VARIANT</item>
       </argument>
     </arguments>
   </type>

@@ -102,4 +102,7 @@
   <event name="payment_method_assign_data_adyen_gallgall">
     <observer name="adyen_gallgall_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver"/>
   </event>
+  <event name="payment_method_assign_data_adyen_givex">
+    <observer name="adyen_givex_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver"/>
+  </event>
 </config>
