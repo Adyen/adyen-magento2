@@ -40,6 +40,7 @@
         <item name="adyen_albelligiftcard" xsi:type="const">Adyen\Payment\Model\Methods\Albelligiftcard::TX_VARIANT</item>
         <item name="adyen_beautycadeaukaart" xsi:type="const">Adyen\Payment\Model\Methods\Beautycadeaukaart::TX_VARIANT</item>
         <item name="adyen_bijcadeaucard" xsi:type="const">Adyen\Payment\Model\Methods\Bijcadeaucard::TX_VARIANT</item>
+        <item name="adyen_decadeaukaart" xsi:type="const">Adyen\Payment\Model\Methods\Decadeaukaart::TX_VARIANT</item>
       </argument>
     </arguments>
   </type>
