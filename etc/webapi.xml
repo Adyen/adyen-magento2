@@ -115,4 +115,11 @@
             <resource ref="anonymous"/>
         </resources>
     </route>
+
+    <route url="/V1/adyen/payment-methods/balance" method="POST">
+        <service class="Adyen\Payment\Api\AdyenPaymentMethodsBalanceInterface" method="getBalance"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
 </routes>
