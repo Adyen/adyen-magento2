@@ -38,6 +38,7 @@
         <item name="adyen_sepadirectdebit" xsi:type="const">Adyen\Payment\Model\Methods\SepaDirectDebit::TX_VARIANT</item>
         <item name="adyen_genericgiftcard" xsi:type="const">Adyen\Payment\Model\Methods\Genericgiftcard::TX_VARIANT</item>
         <item name="adyen_albelligiftcard" xsi:type="const">Adyen\Payment\Model\Methods\Albelligiftcard::TX_VARIANT</item>
+        <item name="adyen_beautycadeaukaart" xsi:type="const">Adyen\Payment\Model\Methods\Beautycadeaukaart::TX_VARIANT</item>
       </argument>
     </arguments>
   </type>

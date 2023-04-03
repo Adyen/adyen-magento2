@@ -87,4 +87,7 @@
   <event name="payment_method_assign_data_adyen_albelligiftcard">
     <observer name="adyen_albelligiftcard_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver"/>
   </event>
+  <event name="payment_method_assign_data_adyen_beautycadeaukaart">
+    <observer name="adyen_beautycadeaukaart_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver"/>
+  </event>
 </config>
