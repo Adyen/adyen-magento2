@@ -131,7 +131,20 @@ class Webhook
                 ],
             );
 
-        // log the executed notification
+        if (is_null($notification->getMerchantReference())) {
+            $errorMessage = sprintf(
+                'Invalid merchant reference for notification with the event code %s',
+                $notification->getEventCode()
+            );
+
+            $this->logger->addAdyenNotification($errorMessage);
+
+            $this->updateNotification($notification, false, true);
+            $this->setNotificationError($notification, $errorMessage);
+
+            return false;
+        }
+
         $order = $this->orderHelper->getOrderByIncrementId($notification->getMerchantReference());
         if (!$order) {
             $errorMessage = sprintf(

@@ -417,10 +417,9 @@ define(
                     request = state.data;
                 }
 
-                request.orderId = self.orderId;
                 request.cancelled = true;
 
-                adyenPaymentService.paymentDetails(request).done(function() {
+                adyenPaymentService.paymentDetails(request, self.orderId).done(function() {
                     $.mage.redirect(
                         window.checkoutConfig.payment[quote.paymentMethod().method].successPage,
                     );
@@ -443,9 +442,7 @@ define(
                     request = state.data;
                 }
 
-                request.orderId = self.orderId;
-
-                adyenPaymentService.paymentDetails(request).done(function() {
+                adyenPaymentService.paymentDetails(request, self.orderId).done(function() {
                     $.mage.redirect(
                         window.checkoutConfig.payment.adyen.successPage,
                     );

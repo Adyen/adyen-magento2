@@ -20,7 +20,7 @@ jobs:
       ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
       ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install Magento
         run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm web make magento
