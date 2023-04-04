@@ -100,6 +100,8 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
      */
     public function getConfig()
     {
+        $storeId = $this->storeManager->getStore()->getId();
+
         // set to active
         $config = [
             'payment' => [
@@ -132,7 +134,7 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         }
 
         $adyenHppConfig['locale'] = $this->adyenHelper->getCurrentLocaleCode(
-            $this->storeManager->getStore()->getId()
+            $storeId
         );
 
         // add to config
@@ -142,7 +144,7 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         // gender types
         $adyenHppConfig['genderTypes'] =  $this->gender->getGenderTypes();
 
-        $adyenHppConfig['ratePayId'] = $this->adyenHelper->getRatePayId();
+        $adyenHppConfig['ratePayId'] = $this->adyenHelper->getRatePayId($storeId);
         $adyenHppConfig['deviceIdentToken'] = hash("sha256", $this->session->getQuoteId() . date('c'));
         $adyenHppConfig['nordicCountries'] = ['SE', 'NO', 'DK', 'FI'];
 
