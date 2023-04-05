@@ -19,11 +19,6 @@ define(
         return adyenPaymentMethod.extend({
             initialize: function () {
                 this._super();
-            },
-            buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo, result) {
-                let baseComponentConfiguration = this._super();
-                let googlePayConfiguration = Object.assign(baseComponentConfiguration.showPayButton=true, paymentMethodsExtraInfo[paymentMethod.methodIdentifier].configuration,);
-                return googlePayConfiguration
             }
         })
     }
