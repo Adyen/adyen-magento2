@@ -28,6 +28,9 @@ class Requests extends AbstractHelper
         'paywithgoogle' => 'scheme',
     ];
     const SHOPPER_INTERACTION_CONTAUTH = 'ContAuth';
+    const COUNTRY_CODE_MAPPING = [
+        'XK' => 'QZ'
+    ];
 
     /**
      * @var Data
@@ -161,7 +164,9 @@ class Requests extends AbstractHelper
             }
 
             if ($countryId = $billingAddress->getCountryId()) {
-                $request['countryCode'] = $countryId;
+                $request['countryCode'] = array_key_exists($countryId, self::COUNTRY_CODE_MAPPING) ?
+                    self::COUNTRY_CODE_MAPPING[$countryId] :
+                    $countryId;
             }
 
             $request['shopperLocale'] = $this->adyenHelper->getStoreLocale($storeId);
@@ -233,7 +238,9 @@ class Requests extends AbstractHelper
             }
 
             if (!empty($billingAddress->getCountryId())) {
-                $requestBilling["country"] = $billingAddress->getCountryId();
+                $requestBilling["country"] = array_key_exists($billingAddress->getCountryId(), self::COUNTRY_CODE_MAPPING) ?
+                    self::COUNTRY_CODE_MAPPING[$billingAddress->getCountryId()] :
+                    $billingAddress->getCountryId();
             }
 
             if (!empty($billingAddress->getPostcode())) {
@@ -290,7 +297,9 @@ class Requests extends AbstractHelper
             }
 
             if (!empty($shippingAddress->getCountryId())) {
-                $requestDelivery["country"] = $shippingAddress->getCountryId();
+                $requestDelivery["country"] = array_key_exists($shippingAddress->getCountryId(), self::COUNTRY_CODE_MAPPING) ?
+                    self::COUNTRY_CODE_MAPPING[$shippingAddress->getCountryId()] :
+                    $shippingAddress->getCountryId();
             }
 
             if (!empty($shippingAddress->getPostcode())) {

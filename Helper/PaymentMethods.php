@@ -407,11 +407,13 @@ class PaymentMethods extends AbstractHelper
         ?string $shopperLocale = null
     ) {
         $currencyCode = $this->chargedCurrency->getQuoteAmountCurrency($quote)->getCurrencyCode();
+        $countryCode = array_key_exists($this->getCurrentCountryCode($store, $country), Requests::COUNTRY_CODE_MAPPING) ?
+            Requests::COUNTRY_CODE_MAPPING[$this->getCurrentCountryCode($store, $country)] : $this->getCurrentCountryCode($store, $country);
 
         $paymentMethodRequest = [
             "channel" => "Web",
             "merchantAccount" => $merchantAccount,
-            "countryCode" => $this->getCurrentCountryCode($store, $country),
+            "countryCode" => $countryCode,
             "shopperLocale" => $shopperLocale ?: $this->adyenHelper->getCurrentLocaleCode($store->getId()),
             "amount" => [
                 "currency" => $currencyCode
