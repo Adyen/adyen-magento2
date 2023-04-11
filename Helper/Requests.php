@@ -28,9 +28,6 @@ class Requests extends AbstractHelper
         'paywithgoogle' => 'scheme',
     ];
     const SHOPPER_INTERACTION_CONTAUTH = 'ContAuth';
-    const COUNTRY_CODE_MAPPING = [
-        'XK' => 'QZ'
-    ];
 
     /**
      * @var Data
@@ -53,39 +50,23 @@ class Requests extends AbstractHelper
     private $stateData;
 
     /**
-     * @var PaymentMethods
-     */
-    private $paymentMethodsHelper;
-
-    /**
-     * @var Vault
-     */
-    private $vaultHelper;
-
-    /**
      * Requests constructor.
      *
      * @param Data $adyenHelper
      * @param Config $adyenConfig
      * @param Address $addressHelper
      * @param StateData $stateData
-     * @param PaymentMethods $paymentMethodsHelper
-     * @param Vault $vaultHelper
      */
     public function __construct(
         Data $adyenHelper,
         Config $adyenConfig,
         Address $addressHelper,
-        StateData $stateData,
-        PaymentMethods $paymentMethodsHelper,
-        Vault $vaultHelper
+        StateData $stateData
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenConfig = $adyenConfig;
         $this->addressHelper = $addressHelper;
         $this->stateData = $stateData;
-        $this->paymentMethodsHelper = $paymentMethodsHelper;
-        $this->vaultHelper = $vaultHelper;
     }
 
     /**
@@ -164,9 +145,7 @@ class Requests extends AbstractHelper
             }
 
             if ($countryId = $billingAddress->getCountryId()) {
-                $request['countryCode'] = array_key_exists($countryId, self::COUNTRY_CODE_MAPPING) ?
-                    self::COUNTRY_CODE_MAPPING[$countryId] :
-                    $countryId;
+                $request['countryCode'] = $this->addressHelper->getAdyenCountryCode($countryId);
             }
 
             $request['shopperLocale'] = $this->adyenHelper->getStoreLocale($storeId);
@@ -238,9 +217,9 @@ class Requests extends AbstractHelper
             }
 
             if (!empty($billingAddress->getCountryId())) {
-                $requestBilling["country"] = array_key_exists($billingAddress->getCountryId(), self::COUNTRY_CODE_MAPPING) ?
-                    self::COUNTRY_CODE_MAPPING[$billingAddress->getCountryId()] :
-                    $billingAddress->getCountryId();
+                $requestBilling["country"] = $this->addressHelper->getAdyenCountryCode(
+                    $billingAddress->getCountryId()
+                );
             }
 
             if (!empty($billingAddress->getPostcode())) {
@@ -297,9 +276,9 @@ class Requests extends AbstractHelper
             }
 
             if (!empty($shippingAddress->getCountryId())) {
-                $requestDelivery["country"] = array_key_exists($shippingAddress->getCountryId(), self::COUNTRY_CODE_MAPPING) ?
-                    self::COUNTRY_CODE_MAPPING[$shippingAddress->getCountryId()] :
-                    $shippingAddress->getCountryId();
+                $requestDelivery["country"] = $this->addressHelper->getAdyenCountryCode(
+                    $shippingAddress->getCountryId()
+                );
             }
 
             if (!empty($shippingAddress->getPostcode())) {
