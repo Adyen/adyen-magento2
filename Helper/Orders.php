@@ -36,14 +36,15 @@ class Orders
      * @param int $amount
      * @param string $currency
      * @param string $storeId
+     * @param string $merchantReference
      * @return array
      * @throws AdyenException
      * @throws ConnectionException
      * @throws NoSuchEntityException
      */
-    public function createOrder(int $amount, string $currency, string $storeId): array
+    public function createOrder(int $amount, string $currency, string $storeId, string $merchantReference): array
     {
-        $request = $this->buildOrdersRequest($amount, $currency, $storeId);
+        $request = $this->buildOrdersRequest($amount, $currency, $merchantReference, $storeId);
 
         $client = $this->adyenHelper->initializeAdyenClient($storeId);
         $checkoutService = $this->adyenHelper->createAdyenCheckoutService($client);
@@ -64,16 +65,20 @@ class Orders
     /**
      * @param int $amount
      * @param string $currency
+     * @param string $merchantReference
      * @param string $storeId
      * @return array
      */
-    private function buildOrdersRequest(int $amount, string $currency, string $storeId): array
-    {
+    private function buildOrdersRequest(
+        int $amount,
+        string $currency,
+        string $merchantReference,
+        string $storeId
+    ): array {
         $merchantAccount = $this->configHelper->getMerchantAccount($storeId);
-        $reference = Utils::generateV4Uuid();
 
         return [
-            'reference' => $reference,
+            'reference' => $merchantReference,
             'amount' => [
                 'value' => $amount,
                 'currency' => $currency
