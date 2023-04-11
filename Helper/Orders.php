@@ -42,7 +42,7 @@ class Orders
      * @throws ConnectionException
      * @throws NoSuchEntityException
      */
-    public function createOrder(int $amount, string $currency, string $storeId, string $merchantReference): array
+    public function createOrder(string $merchantReference, int $amount, string $currency, string $storeId): array
     {
         $request = $this->buildOrdersRequest($amount, $currency, $merchantReference, $storeId);
 
