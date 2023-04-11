@@ -712,6 +712,14 @@ define(
                         configuration.totalPriceLabel = configuration.configuration.merchantName;
                     }
                 }
+
+                // Show Merchant name for googlepay component
+                if (paymentMethod.methodIdentifier.includes('googlepay')) {
+                    if ('configuration' in configuration && !('merchantName' in configuration.configuration)) {
+                        configuration.configuration.merchantName = adyenConfiguration.getMerchantAccount();
+                    }
+                }
+
                 // Extra amazon pay configuration first call to amazon page
                 if (paymentMethod.methodIdentifier.includes('amazonpay')) {
                     configuration.productType = 'PayAndShip';

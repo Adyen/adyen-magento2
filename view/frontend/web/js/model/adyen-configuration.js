@@ -12,6 +12,9 @@ define(
     function() {
         'use strict';
         return {
+            getMerchantAccount: function() {
+                return window.checkoutConfig.payment.adyen.merchantAccount;
+            },
             getClientKey: function() {
                 return window.checkoutConfig.payment.adyen.clientKey;
             },
