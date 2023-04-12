@@ -261,13 +261,19 @@ class Vault
             $methodSupportsRecurring = $adyenPaymentMethod->supportsSubscription();
         }
 
-        $tokenizedPaymentMethods = array_map(
-            'trim',
-            explode(',', $this->config->getTokenizedPaymentMethods($storeId))
-        );
-        $shouldTokenize = in_array($adyenPaymentMethod->getTxVariant(), $tokenizedPaymentMethods);
+        $tokenizedPaymentMethods = $this->config->getTokenizedPaymentMethods($storeId);
 
-        return $methodSupportsRecurring && $shouldTokenize;
+        if (isset($tokenizedPaymentMethods)) {
+            $tokenizedPaymentMethods = array_map(
+                'trim',
+                explode(',', $tokenizedPaymentMethods)
+            );
+            $shouldTokenize = in_array($adyenPaymentMethod->getTxVariant(), $tokenizedPaymentMethods);
+
+            return $methodSupportsRecurring && $shouldTokenize;
+        } else {
+            return false;
+        }
     }
 
     /**
