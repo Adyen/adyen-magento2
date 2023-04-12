@@ -16,7 +16,7 @@ use Adyen\ConnectionException;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\Exception\NoSuchEntityException;
 
-class Orders
+class OrdersApi
 {
     private Config $configHelper;
     private Data $adyenHelper;
