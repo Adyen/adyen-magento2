@@ -137,6 +137,9 @@ class PaymentMethods extends AbstractHelper
     /** @var SerializerInterface */
     private $serializer;
 
+    /** @var Address */
+    private $addressHelper;
+
     public function __construct(
         Context $context,
         CartRepositoryInterface $quoteRepository,
@@ -154,7 +157,8 @@ class PaymentMethods extends AbstractHelper
         MagentoDataHelper $dataHelper,
         ManualCapture $manualCapture,
         SerializerInterface $serializer,
-        AdyenDataHelper $adyenDataHelper
+        AdyenDataHelper $adyenDataHelper,
+        Address $addressHelper
     ) {
         parent::__construct($context);
         $this->quoteRepository = $quoteRepository;
@@ -173,6 +177,7 @@ class PaymentMethods extends AbstractHelper
         $this->manualCapture = $manualCapture;
         $this->serializer = $serializer;
         $this->adyenDataHelper = $adyenDataHelper;
+        $this->addressHelper = $addressHelper;
     }
 
     /**
@@ -407,11 +412,12 @@ class PaymentMethods extends AbstractHelper
         ?string $shopperLocale = null
     ) {
         $currencyCode = $this->chargedCurrency->getQuoteAmountCurrency($quote)->getCurrencyCode();
+        $countryCode = $this->addressHelper->getAdyenCountryCode($this->getCurrentCountryCode($store, $country));
 
         $paymentMethodRequest = [
             "channel" => "Web",
             "merchantAccount" => $merchantAccount,
-            "countryCode" => $this->getCurrentCountryCode($store, $country),
+            "countryCode" => $countryCode,
             "shopperLocale" => $shopperLocale ?: $this->adyenHelper->getCurrentLocaleCode($store->getId()),
             "amount" => [
                 "currency" => $currencyCode
