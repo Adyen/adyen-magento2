@@ -19,6 +19,14 @@ use Magento\Sales\Api\Data\OrderAddressInterface;
 
 class Address
 {
+    // Regex to extract the house number from the street line if needed (e.g. 'Street address 1 A' => '1 A')
+    const STREET_FIRST_REGEX = "/(?<streetName>[\d\p{L}.'\-\s]+[\p{L}.'])\s+(?<houseNumber>[\d\s\-\/,.]+[\d\p{L}\s\-\/,.]{0,10})$/u";
+    const NUMBER_FIRST_REGEX = "/^(?<houseNumber>[\d\s\-\/,.]+[\d\p{L}\s\-\/,.]{0,2})\s+(?<streetName>[\d\p{L}.'\-\s]+[\p{L}.'])/u";
+
+    const COUNTRY_CODE_MAPPING = [
+        'XK' => 'QZ'
+    ];
+
     /**
      * @var AdyenLogger $logger
      */
@@ -31,10 +39,6 @@ class Address
     {
         $this->logger = $logger;
     }
-
-    // Regex to extract the house number from the street line if needed (e.g. 'Street address 1 A' => '1 A')
-    const STREET_FIRST_REGEX = "/(?<streetName>[\d\p{L}.'\-\s]+[\p{L}.'])\s+(?<houseNumber>[\d\s\-\/,.]+[\d\p{L}\s\-\/,.]{0,10})$/u";
-    const NUMBER_FIRST_REGEX = "/^(?<houseNumber>[\d\s\-\/,.]+[\d\p{L}\s\-\/,.]{0,2})\s+(?<streetName>[\d\p{L}.'\-\s]+[\p{L}.'])/u";
 
     /**
      * @param AddressAdapterInterface $address
@@ -86,6 +90,19 @@ class Address
             $houseNumber = $street[$houseNumberStreetLine - 1];
             unset($street[$houseNumberStreetLine - 1]);
             return $this->formatAddressArray(implode(' ', $street), $houseNumber);
+        }
+    }
+
+    /**
+     * @param string $countryCode
+     * @return string
+     */
+    public function getAdyenCountryCode(string $countryCode): string
+    {
+        if (array_key_exists($countryCode, self::COUNTRY_CODE_MAPPING)) {
+            return self::COUNTRY_CODE_MAPPING[$countryCode];
+        } else {
+            return $countryCode;
         }
     }
 
