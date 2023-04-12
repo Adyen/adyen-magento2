@@ -42,6 +42,11 @@
             <label>Maximum order total</label>
             <config_path>payment/adyen_cc/max_order_total</config_path>
         </field>
+        <field id="enable_click_to_pay" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="1">
+            <label>Click to Pay Enabled</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_cc/enable_click_to_pay</config_path>
+        </field>
         <group id="adyen_cc_advanced_settings" translate="label" showInDefault="1" showInWebsite="1" showInStore="1"
                sortOrder="60">
             <label>Installments Setup</label>

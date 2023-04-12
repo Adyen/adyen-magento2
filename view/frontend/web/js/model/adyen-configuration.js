@@ -15,6 +15,9 @@ define(
             getClientKey: function() {
                 return window.checkoutConfig.payment.adyen.clientKey;
             },
+            getMerchantAccount: function() {
+                return window.checkoutConfig.payment.adyen.merchantAccount;
+            },
             showLogo: function() {
                 return window.checkoutConfig.payment.adyen.showLogo;
             },
