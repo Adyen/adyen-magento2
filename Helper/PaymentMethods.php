@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
+use Adyen\Payment\Helper\Util\PaymentMethodUtil;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
@@ -640,7 +641,7 @@ class PaymentMethods extends AbstractHelper
     public function isAutoCapture(Order $order, string $notificationPaymentMethod): bool
     {
         // validate if payment methods allows manual capture
-        if ($this->manualCapture->isManualCaptureSupported($notificationPaymentMethod)) {
+        if (PaymentMethodUtil::isManualCaptureSupported($notificationPaymentMethod)) {
             $captureMode = trim(
                 $this->configHelper->getConfigData(
                     'capture_mode',
