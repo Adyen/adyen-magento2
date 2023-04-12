@@ -50,39 +50,23 @@ class Requests extends AbstractHelper
     private $stateData;
 
     /**
-     * @var PaymentMethods
-     */
-    private $paymentMethodsHelper;
-
-    /**
-     * @var Vault
-     */
-    private $vaultHelper;
-
-    /**
      * Requests constructor.
      *
      * @param Data $adyenHelper
      * @param Config $adyenConfig
      * @param Address $addressHelper
      * @param StateData $stateData
-     * @param PaymentMethods $paymentMethodsHelper
-     * @param Vault $vaultHelper
      */
     public function __construct(
         Data $adyenHelper,
         Config $adyenConfig,
         Address $addressHelper,
-        StateData $stateData,
-        PaymentMethods $paymentMethodsHelper,
-        Vault $vaultHelper
+        StateData $stateData
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenConfig = $adyenConfig;
         $this->addressHelper = $addressHelper;
         $this->stateData = $stateData;
-        $this->paymentMethodsHelper = $paymentMethodsHelper;
-        $this->vaultHelper = $vaultHelper;
     }
 
     /**
@@ -161,7 +145,7 @@ class Requests extends AbstractHelper
             }
 
             if ($countryId = $billingAddress->getCountryId()) {
-                $request['countryCode'] = $countryId;
+                $request['countryCode'] = $this->addressHelper->getAdyenCountryCode($countryId);
             }
 
             $request['shopperLocale'] = $this->adyenHelper->getStoreLocale($storeId);
@@ -233,7 +217,9 @@ class Requests extends AbstractHelper
             }
 
             if (!empty($billingAddress->getCountryId())) {
-                $requestBilling["country"] = $billingAddress->getCountryId();
+                $requestBilling["country"] = $this->addressHelper->getAdyenCountryCode(
+                    $billingAddress->getCountryId()
+                );
             }
 
             if (!empty($billingAddress->getPostcode())) {
@@ -290,7 +276,9 @@ class Requests extends AbstractHelper
             }
 
             if (!empty($shippingAddress->getCountryId())) {
-                $requestDelivery["country"] = $shippingAddress->getCountryId();
+                $requestDelivery["country"] = $this->addressHelper->getAdyenCountryCode(
+                    $shippingAddress->getCountryId()
+                );
             }
 
             if (!empty($shippingAddress->getPostcode())) {
