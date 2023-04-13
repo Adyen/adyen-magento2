@@ -68,7 +68,6 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
             $config['payment']['adyen']['showLogo'] = false;
         }
 
-        $config['payment']['adyen']['merchantAccount'] = $this->adyenConfigHelper->getMerchantAccount($storeId);
         $config['payment']['adyen']['clientKey'] = $this->adyenHelper->getClientKey();
         $config['payment']['adyen']['merchantAccount'] = $this->adyenConfigHelper->getMerchantAccount($storeId);
         $config['payment']['adyen']['checkoutEnvironment'] = $this->adyenHelper->getCheckoutEnvironment($storeId);
