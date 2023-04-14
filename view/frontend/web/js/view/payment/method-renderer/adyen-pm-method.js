@@ -572,7 +572,6 @@ define(
                     };
                 }
                 return configuration
-
             },
 
             mountPaymentMethodComponent(paymentMethod, configuration, result)
