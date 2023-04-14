@@ -14,6 +14,9 @@
     <group id="adyen_payment">
         <job name="adyen_payment_process_notification" instance="Adyen\Payment\Cron\WebhookProcessor" method="execute">
             <schedule>*/1 * * * *</schedule>
+            <depends>
+                <job name="aggregate_sales_report_order_data"/>
+            </depends>
         </job>
         <job name="adyen_payment_server_address_caching" instance="Adyen\Payment\Cron\ServerIpAddress" method="execute">
             <schedule>*/1 * * * *</schedule>
