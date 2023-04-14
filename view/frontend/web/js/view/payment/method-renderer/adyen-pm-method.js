@@ -551,7 +551,7 @@ define(
                 if (!!quote.billingAddress()) {
                     formattedBillingAddress = self.getFormattedAddress(quote.billingAddress());
                 }
-                /*Use the storedPaymentMethod object and the custom onChange function as the configuration object together*/
+                /* Use the storedPaymentMethod object and the custom onChange function as the configuration object together */
                 var configuration = Object.assign(paymentMethod,
                     {
                         showPayButton: showPayButton,
