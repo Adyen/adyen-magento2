@@ -561,16 +561,6 @@ define(
                             result.isPlaceOrderAllowed(state.isValid);
                         },
                     });
-
-                if (formattedShippingAddress) {
-                    configuration.data.shippingAddress = {
-                        city: formattedShippingAddress.city,
-                        country: formattedShippingAddress.country,
-                        houseNumberOrName: formattedShippingAddress.houseNumber,
-                        postalCode: formattedShippingAddress.postalCode,
-                        street: formattedShippingAddress.street
-                    };
-                }
                 return configuration
             },
 
