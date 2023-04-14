@@ -22,7 +22,7 @@ define(
             },
             buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo, result) {
                 let baseComponentConfiguration = this._super();
-                let googlePayConfiguration = Object.assign(baseComponentConfiguration.showPayButton=true, paymentMethodsExtraInfo[paymentMethod.methodIdentifier].configuration,);
+                let googlePayConfiguration = Object.assign(baseComponentConfiguration.showPayButton=true, paymentMethodsExtraInfo[paymentMethod.methodIdentifier].configuration);
                 return googlePayConfiguration
             }
         })
