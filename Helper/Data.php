@@ -1061,9 +1061,9 @@ class Data extends AbstractHelper
         return strpos($paymentMethod, $type) !== false;
     }
 
-    public function getRatePayId()
+    public function getRatePayId($storeId = null)
     {
-        return $this->getAdyenHppConfigData("ratepay_id");
+        return $this->getAdyenHppConfigData("ratepay_id", $storeId);
     }
 
     /**

@@ -15,9 +15,11 @@ use Adyen\AdyenException;
 use Adyen\Client;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Idempotency;
 use Adyen\Payment\Helper\Requests;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Service\Modification;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 
@@ -43,39 +45,56 @@ class TransactionCapture implements ClientInterface
     private $adyenLogger;
 
     /**
+     * @var Idempotency
+     */
+    private $idempotencyHelper;
+
+    /**
      * PaymentRequest constructor.
      * @param Data $adyenHelper
      * @param AdyenLogger $adyenLogger
+     * @param Idempotency $idempotencyHelper
      */
     public function __construct(
         Data $adyenHelper,
-        AdyenLogger $adyenLogger
+        AdyenLogger $adyenLogger,
+        Idempotency $idempotencyHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenLogger = $adyenLogger;
+        $this->idempotencyHelper = $idempotencyHelper;
     }
 
     /**
      * @param TransferInterface $transferObject
-     * @return null
+     * @return array
      * @throws AdyenException
+     * @throws NoSuchEntityException
      */
-    public function placeRequest(TransferInterface $transferObject)
+    public function placeRequest(TransferInterface $transferObject): array
     {
         $request = $transferObject->getBody();
-        // call lib
+        $headers = $transferObject->getHeaders();
+
         $service = new Modification(
             $this->adyenHelper->initializeAdyenClient($transferObject->getClientConfig()['storeId'])
         );
 
+        $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
+            $request,
+                $headers['idempotencyExtraData'] ?? null
+        );
+
+        $requestOptions['idempotencyKey'] = $idempotencyKey;
+
         if (array_key_exists(self::MULTIPLE_AUTHORIZATIONS, $request)) {
-            return $this->placeMultipleCaptureRequests($service, $request);
+            return $this->placeMultipleCaptureRequests($service, $request, $requestOptions);
         }
 
         $this->adyenHelper
             ->logRequest($request, Client::API_PAYMENT_VERSION, '/pal/servlet/Payment/{version}/capture');
         try {
-            $response = $service->capture($request);
+            $response = $service->capture($request, $requestOptions);
             $response = $this->copyParamsToResponse($response, $request);
         } catch (AdyenException $e) {
             $response['error'] = $e->getMessage();
@@ -90,14 +109,14 @@ class TransactionCapture implements ClientInterface
      * @param $requestContainer
      * @return array
      */
-    private function placeMultipleCaptureRequests(Modification $service, $requestContainer)
+    private function placeMultipleCaptureRequests(Modification $service, $requestContainer, $requestOptions)
     {
         $response = [];
         foreach ($requestContainer[self::MULTIPLE_AUTHORIZATIONS] as $request) {
             try {
                 // Copy merchant account from parent array to every request array
                 $request[Requests::MERCHANT_ACCOUNT] = $requestContainer[Requests::MERCHANT_ACCOUNT];
-                $singleResponse = $service->capture($request);
+                $singleResponse = $service->capture($request, $requestOptions);
                 $singleResponse[self::FORMATTED_CAPTURE_AMOUNT] = $request['modificationAmount']['currency'] . ' ' .
                 $this->adyenHelper->originalAmount(
                     $request['modificationAmount']['value'],
