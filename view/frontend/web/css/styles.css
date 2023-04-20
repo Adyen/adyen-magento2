@@ -21,3 +21,8 @@
 #adyen_pos_cloud_installments_div {
     margin-bottom: 15px;
 }
+
+.adyen-checkout-ctp__card-image {
+    height: 24px;
+    width: auto;
+}
