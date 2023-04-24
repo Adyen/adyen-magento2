@@ -11,7 +11,7 @@
 
 namespace Adyen\Payment\Observer;
 
-use Adyen\Service\Validator\DataArrayValidator;
+use Adyen\Payment\Helper\Util\DataArrayValidator;
 use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
