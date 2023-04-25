@@ -11,8 +11,14 @@
 
 namespace Adyen\Payment\Gateway\Http\Client;
 
+use Adyen\AdyenException;
 use Adyen\Client;
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Idempotency;
+use Adyen\Service\Modification;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Http\ClientInterface;
+use Magento\Payment\Gateway\Http\TransferInterface;
 
 /**
  * Class TransactionSale
@@ -20,37 +26,55 @@ use Magento\Payment\Gateway\Http\ClientInterface;
 class TransactionCancel implements ClientInterface
 {
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     private $adyenHelper;
 
     /**
+     * @var Idempotency
+     */
+    private $idempotencyHelper;
+
+    /**
      * PaymentRequest constructor.
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param Data $adyenHelper
+     * @param Idempotency $idempotencyHelper
      */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
+        Data $adyenHelper,
+        Idempotency $idempotencyHelper
     ) {
         $this->adyenHelper = $adyenHelper;
+        $this->idempotencyHelper = $idempotencyHelper;
     }
 
     /**
-     * @param \Magento\Payment\Gateway\Http\TransferInterface $transferObject
-     * @return null
+     * @param TransferInterface $transferObject
+     * @return array
+     * @throws AdyenException
+     * @throws NoSuchEntityException
      */
-    public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
+    public function placeRequest(TransferInterface $transferObject): array
     {
         $request = $transferObject->getBody();
-        // call lib
-        $service = new \Adyen\Service\Modification(
+        $headers = $transferObject->getHeaders();
+
+        $service = new Modification(
             $this->adyenHelper->initializeAdyenClient($transferObject->getClientConfig()['storeId'])
         );
+
+        $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
+            $request,
+            $headers['idempotencyExtraData'] ?? null
+        );
+
+        $requestOptions['idempotencyKey'] = $idempotencyKey;
 
         $this->adyenHelper
             ->logRequest($request, Client::API_PAYMENT_VERSION, '/pal/servlet/Payment/{version}/cancel');
         try {
-            $response = $service->cancel($request);
-        } catch (\Adyen\AdyenException $e) {
+            $response = $service->cancel($request, $requestOptions);
+        } catch (AdyenException $e) {
             $response['error'] = $e->getMessage();
         }
         $this->adyenHelper->logResponse($response);

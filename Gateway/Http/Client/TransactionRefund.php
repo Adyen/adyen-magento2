@@ -11,8 +11,13 @@
 
 namespace Adyen\Payment\Gateway\Http\Client;
 
+use Adyen\AdyenException;
 use Adyen\Client;
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Idempotency;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Http\ClientInterface;
+use Magento\Payment\Gateway\Http\TransferInterface;
 
 /**
  * Class TransactionSale
@@ -24,27 +29,39 @@ class TransactionRefund implements ClientInterface
     const ORIGINAL_REFERENCE = 'original_reference';
 
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     private $adyenHelper;
 
     /**
+     * @var Idempotency
+     */
+    private $idempotencyHelper;
+
+    /**
      * PaymentRequest constructor.
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     *
+     * @param Data $adyenHelper
+     * @param Idempotency $idempotencyHelper
      */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
+        Data $adyenHelper,
+        Idempotency $idempotencyHelper
     ) {
         $this->adyenHelper = $adyenHelper;
+        $this->idempotencyHelper = $idempotencyHelper;
     }
 
     /**
-     * @param \Magento\Payment\Gateway\Http\TransferInterface $transferObject
-     * @return null
+     * @param TransferInterface $transferObject
+     * @return array
+     * @throws AdyenException
+     * @throws NoSuchEntityException
      */
-    public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
+    public function placeRequest(TransferInterface $transferObject): array
     {
         $requests = $transferObject->getBody();
+        $headers = $transferObject->getHeaders();
 
         foreach ($requests as $request) {
             // call lib
@@ -52,17 +69,24 @@ class TransactionRefund implements ClientInterface
                 $this->adyenHelper->initializeAdyenClient($transferObject->getClientConfig()['storeId'])
             );
 
+            $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
+                $request,
+                $headers['idempotencyExtraData'] ?? null
+            );
+
+            $requestOptions['idempotencyKey'] = $idempotencyKey;
+
             $this->adyenHelper
                 ->logRequest($request, Client::API_PAYMENT_VERSION, '/pal/servlet/Payment/{version}/refund');
             try {
-                $response = $service->refund($request);
+                $response = $service->refund($request, $requestOptions);
 
                 // Add amount original reference and amount information to response
                 $response[self::REFUND_AMOUNT] = $request['modificationAmount']['value'];
                 $response[self::REFUND_CURRENCY] = $request['modificationAmount']['currency'];
 
                 $response[self::ORIGINAL_REFERENCE] = $request['originalReference'];
-            } catch (\Adyen\AdyenException $e) {
+            } catch (AdyenException $e) {
                 $response = ['error' => $e->getMessage()];
             }
             $this->adyenHelper->logResponse($response);

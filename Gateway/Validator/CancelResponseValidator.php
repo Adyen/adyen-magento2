@@ -45,7 +45,7 @@ class CancelResponseValidator extends AbstractValidator
         $isValid = true;
         $errorMessages = [];
 
-        // The available response codes that the API can return in case of successfull cancellation
+        // The available response codes that the API can return in case of a successful cancellation
         $expectedResponses = ['[cancelOrRefund-received]', '[cancel-received]'];
 
         if (empty($response['response']) || !in_array($response['response'], $expectedResponses)) {

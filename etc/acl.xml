@@ -12,6 +12,7 @@
                         <resource id="Adyen_Payment::stateData" title="Send state data in a separate request" sortOrder="50" />
                         <resource id="Adyen_Payment::paymentStatus" title="Get order payment status" sortOrder="50" />
                         <resource id="Adyen_Payment::donations" title="Submit Adyen Giving request" translate="title" sortOrder="60"/>
+                        <resource id="Adyen_Payment::support" title="Support" translate="title" sortOrder="70"/>
                     </resource>
                 </resource>
             </resource>

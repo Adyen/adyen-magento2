@@ -1,0 +1,194 @@
+<!--@subject {{var emailSubject}} @-->
+
+<h4>Support Form Adobe Commerce</h4>
+<table class="message-details" border="1" cellpadding="5" cellspacing="0" aria-label="Support Form Fields">
+    <tr>
+        <th>Form Fields</th>
+        <th>Answers</th>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Topic"}}</strong></td>
+        <td>{{var topic}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Issue"}}</strong></td>
+        <td>{{var issue}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Subject"}}</strong></td>
+        <td>{{var subject}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Merchant email"}}</strong></td>
+        <td>{{var email}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Are you using headless integration?"}}</strong></td>
+        <td>{{var headless}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "What is the description of the problem?"}}</strong></td>
+        <td>{{var descriptionComments}}</td>
+    </tr>
+    <tr>
+        <td colspan="2" style="text-align: center">
+            <b>Configuration snapshot</b>
+        </td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Magento edition"}}</strong></td>
+        <td>{{var magentoEdition}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Magento version"}}</strong></td>
+        <td>{{var magentoVersion}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Plugin version"}}</strong></td>
+        <td>{{var pluginVersion}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Merchant account"}}</strong></td>
+        <td>{{var merchantAccount}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Environment"}}</strong></td>
+        <td>{{var environmentMode}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Is API key set on test environment?"}}</strong></td>
+        <td>{{var isTestApiKeyConfigured}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Is API key set on live environment?"}}</strong></td>
+        <td>{{var isLiveApiKeyConfigured}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Is client key set on test environment?"}}</strong></td>
+        <td>{{var isTestClientKeyConfigured}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Is client key set on live environment?"}}</strong></td>
+        <td>{{var isLiveClientKeyConfigured}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Is HMAC key set?"}}</strong></td>
+        <td>{{var isHmacKeyConfigured}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Are alternative payment methods enabled?"}}</strong></td>
+        <td>{{var paymentMethodsEnabled}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Is notification username set?"}}</strong></td>
+        <td>{{var notificationUsername}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Is notification password set?"}}</strong></td>
+        <td>{{var notificationPassword}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Is MOTO enabled?"}}</strong></td>
+        <td>{{var motoEnabled}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Is PBL enabled?"}}</strong></td>
+        <td>{{var isPayByLinkEnabled}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Use manual capture for PayPal"}}</strong></td>
+        <td>{{var useManualCaptureForPaypal}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Capture on shipment for open invoice"}}</strong></td>
+        <td>{{var captureOnShipmentForOpenInvoice}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Use auto capture for open invoice"}}</strong></td>
+        <td>{{var autoCaptureOpenInvoice}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Send order confirmation email for Bank Transfer & SEPA"}}</strong></td>
+        <td>{{var sendOrderConfirmationForSepaAndBankTransfer}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "SEPA payment flow"}}</strong></td>
+        <td>{{var sepaPaymentFlow}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Capture delay"}}</strong></td>
+        <td>{{var captureDelay}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Order Status: Creation"}}</strong></td>
+        <td>{{var orderStatusCreation}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Order Status: Payment Authorization"}}</strong></td>
+        <td>{{var orderStatusPaymentAuthorisation}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Order Status: Payment Confirmed"}}</strong></td>
+        <td>{{var orderStatusPaymentConfirmed}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Order Status: order cancellation"}}</strong></td>
+        <td>{{var orderStatusCancellation}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Order Status: payment capture (virtual products)"}}</strong></td>
+        <td>{{var orderStatusPaymentCaptureVirtualProducts}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Order Status: pending Bank Transfer SEPA"}}</strong></td>
+        <td>{{var orderStatusPendingBankTransferSepa}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Manual review status"}}</strong></td>
+        <td>{{var manualReviewStatus}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Manual review accepted status"}}</strong></td>
+        <td>{{var manualReviewAcceptedStatus}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Ignore refund webhook"}}</strong></td>
+        <td>{{var ignoreRefundNotification}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Refund strategy"}}</strong></td>
+        <td>{{var refundStrategy}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Send additional risk data"}}</strong></td>
+        <td>{{var sendAdditionalRiskData}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Send 2/3 level additional data"}}</strong></td>
+        <td>{{var sendLevel23Data}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Headless payment origin URL"}}</strong></td>
+        <td>{{var headlessPaymentOriginUrl}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Headless payment return URL"}}</strong></td>
+        <td>{{var headlessPaymentReturnUrl}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Custom success redirect path"}}</strong></td>
+        <td>{{var customSuccessRedirectPath}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Is API key for POS set on test environment?"}}</strong></td>
+        <td>{{var isPosTestApiKeyConfigured}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Is API key for POS set on live environment?"}}</strong></td>
+        <td>{{var isPosLiveApiKeyConfigured}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "POS merchant account"}}</strong></td>
+        <td>{{var posMerchantAccount}}</td>
+    </tr>
+</table>

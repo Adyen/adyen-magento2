@@ -1,6 +1,22 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:base"
+    "config:base",
+    ":disableDependencyDashboard"
+  ],
+  "stabilityDays": 30,
+  "labels": ["dependencies"],
+  "prConcurrentLimit": 5,
+  "baseBranches": ["develop"],
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchBaseBranches": ["develop"]
+    },
+    {
+      "matchUpdateTypes": ["major", "pin", "pinDigest", "lockFileMaintenance", "rollback", "bump"],
+      "matchBaseBranches": ["develop"],
+      "enabled": false
+    }
   ]
 }

@@ -15,11 +15,13 @@ namespace Adyen\Payment\Api;
 /**
  * Interface for performing an Adyen payment details call
  */
-interface AdyenPaymentDetailsInterface
+interface GuestAdyenPaymentsDetailsInterface
 {
     /**
      * @param string $payload
+     * @param string $orderId
+     * @param string $cartId
      * @return string
      */
-    public function initiate(string $payload): string;
+    public function initiate(string $payload, string $orderId, string $cartId): string;
 }

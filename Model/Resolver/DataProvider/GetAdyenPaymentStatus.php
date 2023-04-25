@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Adyen\Payment\Model\Resolver\DataProvider;
 
 use Adyen\Payment\Model\Api\AdyenOrderPaymentStatus;
-use Adyen\Payment\Model\Api\AdyenPaymentDetails;
+use Adyen\Payment\Model\Api\AdyenPaymentsDetails;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\Serializer\Json;
 
@@ -25,7 +25,7 @@ class GetAdyenPaymentStatus
      */
     protected $adyenOrderPaymentStatusModel;
     /**
-     * @var AdyenPaymentDetails
+     * @var AdyenPaymentsDetails
      */
     protected $adyenPaymentDetails;
     /**
@@ -36,13 +36,13 @@ class GetAdyenPaymentStatus
     /**
      * GetAdyenPaymentStatus constructor.
      * @param AdyenOrderPaymentStatus $adyenOrderPaymentStatusModel
-     * @param AdyenPaymentDetails $adyenPaymentDetails
+     * @param AdyenPaymentsDetails $adyenPaymentDetails
      * @param Json $jsonSerializer
      */
     public function __construct(
         AdyenOrderPaymentStatus $adyenOrderPaymentStatusModel,
-        AdyenPaymentDetails $adyenPaymentDetails,
-        Json $jsonSerializer
+        AdyenPaymentsDetails    $adyenPaymentDetails,
+        Json                    $jsonSerializer
     ) {
         $this->adyenOrderPaymentStatusModel = $adyenOrderPaymentStatusModel;
         $this->adyenPaymentDetails = $adyenPaymentDetails;
