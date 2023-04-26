@@ -21,7 +21,6 @@ define(
                 this._super();
             },
             buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo, result) {
-                const amazonSessionKey = 'amazonCheckoutSessionId'
                 let self = this;
                 let formattedShippingAddress = {};
                 let formattedBillingAddress = {};
