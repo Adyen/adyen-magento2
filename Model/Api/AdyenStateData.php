@@ -13,10 +13,10 @@
 namespace Adyen\Payment\Model\Api;
 
 use Adyen\Payment\Api\AdyenStateDataInterface;
+use Adyen\Payment\Helper\Util\CheckoutStateDataValidator;
 use Adyen\Payment\Model\ResourceModel\StateData as StateDataResourceModel;
 use Adyen\Payment\Model\StateData;
 use Adyen\Payment\Model\StateDataFactory;
-use Adyen\Service\Validator\CheckoutStateDataValidator;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 
