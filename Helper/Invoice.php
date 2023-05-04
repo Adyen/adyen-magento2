@@ -258,7 +258,10 @@ class Invoice extends AbstractHelper
         $adyenInvoice = $this->adyenInvoiceFactory->create();
         $adyenInvoice->setPspreference($pspReference);
         $adyenInvoice->setAdyenPaymentOrderId($adyenOrderPayment[OrderPaymentInterface::ENTITY_ID]);
-        $adyenInvoice->setAmount($this->adyenDataHelper->originalAmount($captureAmountCents, $order->getBaseCurrencyCode()));
+        $adyenInvoice->setAmount($this->adyenDataHelper->originalAmount(
+            $captureAmountCents,
+            $order->getOrderCurrencyCode()
+        ));
         $adyenInvoice->setStatus(InvoiceInterface::STATUS_PENDING_WEBHOOK);
 
         if (isset($invoiceId)) {
