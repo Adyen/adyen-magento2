@@ -34,6 +34,10 @@ define(
         const paymentMethodComponent = 'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-method';
         rendererList.push(
             {
+                type:'adyen_giftcard',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-giftcard-method'
+            },
+            {
                 type: 'adyen_oneclick',
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-oneclick-method'
             },

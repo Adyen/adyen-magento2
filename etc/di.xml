@@ -42,7 +42,15 @@
             <argument name="commandPool" xsi:type="object">AdyenPaymentMotoCommandPool</argument>
         </arguments>
     </virtualType>
-
+    <virtualType name="AdyenPaymentGiftcardFacade" type="Adyen\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGiftcardConfigProvider::CODE</argument>
+            <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\Giftcard</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentGiftcardValueHandlerPool</argument>
+            <argument name="validatorPool" xsi:type="object">AdyenPaymentCcValidatorPool</argument>
+            <argument name="commandPool" xsi:type="object">AdyenPaymentCcCommandPool</argument>
+        </arguments>
+    </virtualType>
     <virtualType name="AdyenPaymentHppVaultFacade" type="Adyen\Payment\Model\Method\PaymentMethodVault">
         <arguments>
             <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenHppConfigProvider::HPP_VAULT_CODE</argument>
@@ -187,8 +195,6 @@
             <argument name="configInterface" xsi:type="object">AdyenPaymentGenericConfig</argument>
         </arguments>
     </virtualType>
-
-
     <virtualType name="AdyenPaymentCcValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
         <arguments>
             <argument name="handlers" xsi:type="array">
@@ -199,6 +205,18 @@
     <virtualType name="AdyenPaymentCcConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
         <arguments>
             <argument name="configInterface" xsi:type="object">AdyenPaymentCcConfig</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentGiftcardValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AdyenPaymentGiftcardConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentGiftcardConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AdyenPaymentGiftcardConfig</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentMotoValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
@@ -288,6 +306,11 @@
     <virtualType name="AdyenPaymentCcConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
             <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenCcConfigProvider::CODE</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentGiftcardConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGiftcardConfigProvider::CODE</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentMotoConfig" type="Magento\Payment\Gateway\Config\Config">

@@ -123,6 +123,46 @@ define(
                 return paymentMethodResponse.find((paymentMethod) => {
                     return txVariant === paymentMethod.type
                 });
+            },
+
+            paymentMethodsBalance: function (payload) {
+                let serviceUrl = urlBuilder.createUrl('/adyen/payment-methods/balance', {});
+
+                let request = {
+                    payload: JSON.stringify(payload)
+                };
+
+                return storage.post(
+                    serviceUrl,
+                    JSON.stringify(request),
+                );
+            },
+
+            saveStateData: function (stateData) {
+                let serviceUrl = urlBuilder.createUrl('/adyen/carts/mine/state-data', {});
+
+                let request = {
+                    stateData: JSON.stringify(stateData),
+                    quoteId: quote.getQuoteId()
+                };
+
+                return storage.post(
+                    serviceUrl,
+                    JSON.stringify(request),
+                );
+            },
+
+            removeStateData: function (stateDataId) {
+                let serviceUrl = urlBuilder.createUrl('/adyen/carts/mine/state-data/:stateDataId', {
+                    stateDataId: stateDataId
+                });
+
+                let request = {};
+
+                return storage.delete(
+                    serviceUrl,
+                    JSON.stringify(request),
+                );
             }
         };
     }

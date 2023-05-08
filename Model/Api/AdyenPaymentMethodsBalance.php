@@ -64,7 +64,7 @@ class AdyenPaymentMethodsBalance implements AdyenPaymentMethodsBalanceInterface
 
             $response = $service->paymentMethodsBalance($payload);
 
-            return json_encode($response['balance']);
+            return json_encode($response);
         } catch (AdyenException $e) {
             $this->adyenLogger->error(
                 sprintf("An error occurred during balance check! %s", $e->getMessage())
