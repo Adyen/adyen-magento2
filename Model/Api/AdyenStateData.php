@@ -59,11 +59,27 @@ class AdyenStateData implements AdyenStateDataInterface
             throw new LocalizedException(__('State data call failed because the request was not a valid JSON'));
         }
 
-        $stateData = json_encode($this->checkoutStateDataValidator->getValidatedAdditionalData($stateData));
+        //$stateData = json_encode($this->checkoutStateDataValidator->getValidatedAdditionalData($stateData));
+        $stateData = json_encode($stateData);
 
         /** @var StateData $stateDataObj */
         $stateDataObj = $this->stateDataFactory->create();
         $stateDataObj->setQuoteId((int)$quoteId)->setStateData((string)$stateData);
         $this->stateDataResourceModel->save($stateDataObj);
+    }
+
+    public function remove(int $stateDataId): bool
+    {
+        $stateDataObj = $this->stateDataFactory->create();
+        $stateDataObj->setEntityId($stateDataId);
+
+        try {
+            $adyenStateData = $this->stateDataResourceModel->delete($stateDataObj);
+        } catch (\Exception $e) {
+            // Log the exception
+            return false;
+        }
+
+        return true;
     }
 }

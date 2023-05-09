@@ -13,7 +13,7 @@
 namespace Adyen\Payment\Api;
 
 /**
- * Interface for persisting the Adyen state data
+ * Interface for managing the Adyen state data
  */
 interface AdyenStateDataInterface
 {
@@ -25,4 +25,12 @@ interface AdyenStateDataInterface
      * @return void
      */
     public function save(string $stateData, int $quoteId): void;
+
+    /**
+     * Removes the Adyen state data with the given entity id
+     *
+     * @param int $stateDataId
+     * @return void
+     */
+    public function remove(int $stateDataId): bool;
 }
