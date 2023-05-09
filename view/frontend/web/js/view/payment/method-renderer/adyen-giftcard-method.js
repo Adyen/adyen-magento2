@@ -174,7 +174,6 @@ define(
             },
 
             fetchRedeemedGiftcards: function () {
-                debugger;
                 let totalBalance = 0;
 
                 $.each(this.redeemedCards(), function (index, item) {
