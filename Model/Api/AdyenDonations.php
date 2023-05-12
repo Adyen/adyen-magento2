@@ -14,6 +14,7 @@ namespace Adyen\Payment\Model\Api;
 
 use Adyen\Payment\Api\AdyenDonationsInterface;
 use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
@@ -70,13 +71,19 @@ class AdyenDonations implements AdyenDonationsInterface
      */
     private $chargedCurrency;
 
+    /**
+     * @var Config
+     */
+    private $config;
+
     public function __construct(
         CommandPoolInterface $commandPool,
         OrderFactory $orderFactory,
         Session $checkoutSession,
         Json $jsonSerializer,
         Data $dataHelper,
-        ChargedCurrency $chargedCurrency
+        ChargedCurrency $chargedCurrency,
+        Config $config
     ) {
         $this->commandPool = $commandPool;
         $this->orderFactory = $orderFactory;
@@ -84,6 +91,7 @@ class AdyenDonations implements AdyenDonationsInterface
         $this->jsonSerializer = $jsonSerializer;
         $this->dataHelper = $dataHelper;
         $this->chargedCurrency = $chargedCurrency;
+        $this->config = $config;
     }
 
     /**
@@ -102,7 +110,20 @@ class AdyenDonations implements AdyenDonationsInterface
             throw new LocalizedException(__('Donation failed!'));
         }
         $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order, false);
-        if ($payload['amount']['currency'] !== $orderAmountCurrency->getCurrencyCode()) {
+        $currencyCode = $orderAmountCurrency->getCurrencyCode();
+        if ($payload['amount']['currency'] !== $currencyCode) {
+            throw new LocalizedException(__('Donation failed!'));
+        }
+
+        $donationAmounts = explode(',', $this->config->getAdyenGivingDonationAmounts($order->getStoreId()));
+        $formatter = $this->dataHelper;
+        $donationAmountsMinorUnits = array_map(
+            function ($amount) use ($formatter, $currencyCode) {
+                return $formatter->formatAmount($amount, $currencyCode);
+            },
+            $donationAmounts
+        );
+        if (!in_array($payload['amount']['value'], $donationAmountsMinorUnits)) {
             throw new LocalizedException(__('Donation failed!'));
         }
 
