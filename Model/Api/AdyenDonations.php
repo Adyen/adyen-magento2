@@ -13,6 +13,7 @@
 namespace Adyen\Payment\Model\Api;
 
 use Adyen\Payment\Api\AdyenDonationsInterface;
+use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
@@ -64,18 +65,25 @@ class AdyenDonations implements AdyenDonationsInterface
      */
     protected $dataHelper;
 
+    /**
+     * @var ChargedCurrency
+     */
+    private $chargedCurrency;
+
     public function __construct(
         CommandPoolInterface $commandPool,
         OrderFactory $orderFactory,
         Session $checkoutSession,
         Json $jsonSerializer,
-        Data $dataHelper
+        Data $dataHelper,
+        ChargedCurrency $chargedCurrency
     ) {
         $this->commandPool = $commandPool;
         $this->orderFactory = $orderFactory;
         $this->checkoutSession = $checkoutSession;
         $this->jsonSerializer = $jsonSerializer;
         $this->dataHelper = $dataHelper;
+        $this->chargedCurrency = $chargedCurrency;
     }
 
     /**
@@ -93,10 +101,15 @@ class AdyenDonations implements AdyenDonationsInterface
         if (!$donationToken) {
             throw new LocalizedException(__('Donation failed!'));
         }
+        $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order, false);
+        if ($payload['amount']['currency'] !== $orderAmountCurrency->getCurrencyCode()) {
+            throw new LocalizedException(__('Donation failed!'));
+        }
 
         $payload['donationToken'] = $donationToken;
         $payload['donationOriginalPspReference'] = $order->getPayment()->getAdditionalInformation('pspReference');
 
+        // Override payment method object with payment method code
         if ($order->getPayment()->getMethod() === AdyenCcConfigProvider::CODE) {
             $payload['paymentMethod'] = 'scheme';
         } elseif ($order->getPayment()->getMethod() === AdyenHppConfigProvider::CODE) {
