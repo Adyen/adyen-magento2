@@ -300,6 +300,7 @@ class Config
     /**
      * @param $storeId
      * @return bool|mixed
+     * @deprecated
      */
     public function isAlternativePaymentMethodsEnabled($storeId = null): bool
     {
