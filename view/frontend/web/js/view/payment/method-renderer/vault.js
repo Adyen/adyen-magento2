@@ -55,14 +55,16 @@ define([
         defaults: {
             template: 'Adyen_Payment/payment/card-vault-form.html',
             checkoutComponentBuilt: false,
-            modalLabel: null
+            modalLabel: null,
+            installment: ''
         },
 
         initObservable: function () {
             this._super()
                 .observe([
                     'checkoutComponentBuilt',
-                    'installment'
+                    'installment',
+                    'installments',
                 ]);
 
             return this;
@@ -118,74 +120,9 @@ define([
                 return false
             }
 
-            // let installmentAmounts = window.checkoutConfig.payment.adyenVault.installmentAmounts;
-            // TODO2 when you obtain the installments, format the amount with installments helper - check the usage
+            self.installments(0);
 
-            // let installmentAmounts = {
-            //     "visa": {
-            //         "values": [
-            //             1,
-            //             2
-            //         ]
-            //     },
-            //     "mc": {
-            //         "values": [
-            //             1,
-            //             2
-            //         ]
-            //     },
-            //     "jcb": {
-            //         "values": [
-            //             1,
-            //             2
-            //         ]
-            //     },
-            //     "maestro": {
-            //         "values": [
-            //             1,
-            //             2
-            //         ]
-            //     },
-            //     "cup": {
-            //         "values": [
-            //             1,
-            //             2
-            //         ]
-            //     },
-            //     "bcmc": {
-            //         "values": [
-            //             1,
-            //             2
-            //         ]
-            //     },
-            //     "cartebancaire": {
-            //         "values": [
-            //             1,
-            //             2
-            //         ]
-            //     }
-            // };
-            debugger;
-
-            let cardAltCode = this.getCcCodeByAltCode(self.getCardType());
-
-            let allInstallments = window.checkoutConfig.payment.adyenCc.installments;
-            let vaultInstallments = allInstallments[cardAltCode];
-            debugger;
-            console.log('rok was here ', vaultInstallments);
-            let grandTotal = self.grandTotal();
-            let precision = quote.getPriceFormat().precision;
-            let currencyCode = quote.totals().quote_currency_code;
-
-
-            let sanitizedInstallmentAmounts = installmentsHelper.getInstallmentsWithPrices(
-                vaultInstallments,
-                grandTotal,
-                precision,
-                currencyCode
-            )
-
-            console.log('hoi ', sanitizedInstallmentAmounts);
+            let allInstallments = self.getAllInstallments();
 
             let componentConfig = {
                 hideCVC: false,
@@ -193,10 +130,33 @@ define([
                 storedPaymentMethodId: this.getGatewayToken(),
                 expiryMonth: this.getExpirationMonth(),
                 expiryYear: this.getExpirationYear(),
-                //holderName: 'First tester',
                 onChange: this.handleOnChange.bind(this),
-                installmentOptions: sanitizedInstallmentAmounts,
-                showInstallmentAmounts: true
+                onBrand: function(state) {
+                    let creditCardType = self.getCcCodeByAltCode(
+                        state.brand);
+                    if (creditCardType) {
+                        let numberOfInstallments = [];
+
+                        if (creditCardType in allInstallments) {
+                            let cardInstallments = allInstallments[creditCardType];
+                            let grandTotal = self.grandTotal();
+                            let precision = quote.getPriceFormat().precision;
+                            let currencyCode = quote.totals().quote_currency_code;
+
+                            numberOfInstallments = installmentsHelper.getInstallmentsWithPrices(
+                                cardInstallments, grandTotal,
+                                precision, currencyCode);
+                        }
+
+                        if (numberOfInstallments) {
+                            self.installments(numberOfInstallments);
+                        } else {
+                            self.installments(0);
+                        }
+                    } else {
+                        self.installments(0);
+                    }
+                }
             }
 
             self.component = adyenCheckout.mountPaymentMethodComponent(
@@ -342,6 +302,14 @@ define([
             }
 
             return '';
+        },
+
+        hasInstallments: function() {
+            return !!window.checkoutConfig.payment.adyenCc.hasInstallments;
+        },
+
+        getAllInstallments: function() {
+            return window.checkoutConfig.payment.adyenCc.installments;
         },
 
         getToken: function () {
