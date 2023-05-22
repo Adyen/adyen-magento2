@@ -174,7 +174,8 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
             'require_cvc',
             Config::XML_ADYEN_CC_VAULT,
             $storeId,
-            true);
+            true
+        );
 
         return $config;
     }
