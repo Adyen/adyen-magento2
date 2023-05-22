@@ -58,6 +58,7 @@
             <adyen_cc_vault>
                 <model>AdyenPaymentCcVaultFacade</model>
                 <title>Stored Cards (Adyen)</title>
+                <require_cvc>1</require_cvc>
                 <instant_purchase>
                     <available>Adyen\Payment\Model\InstantPurchase\CreditCard\AvailabilityChecker</available>
                     <tokenFormat>Adyen\Payment\Model\InstantPurchase\CreditCard\TokenFormatter</tokenFormat>
