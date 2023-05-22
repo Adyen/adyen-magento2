@@ -114,11 +114,8 @@ define([
 
             let cvcRequired = window.checkoutConfig.payment.adyenCc.cvcRequired;
 
-            debugger;
-
-            console.log('cvc Required: ', cvcRequired);
             let componentConfig = {
-                hideCVC: cvcRequired,
+                hideCVC: !cvcRequired,
                 brand: this.getCardType(),
                 storedPaymentMethodId: this.getGatewayToken(),
                 expiryMonth: this.getExpirationMonth(),
