@@ -170,7 +170,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         }
 
         // check if cvc is required
-        $config['payment']['adyenCc']['cvcRequired'] = $this->configHelper->getConfigData(
+        $config['payment']['adyenCc']['requireCvc'] = $this->configHelper->getConfigData(
             'require_cvc',
             Config::XML_ADYEN_CC_VAULT,
             $storeId,
