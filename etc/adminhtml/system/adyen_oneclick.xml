@@ -35,7 +35,16 @@
                 <field id="active">1</field>
             </depends>
         </field>
-        <field id="recurring_card_token_type" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+        <field id="cvc_required" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1"
+               showInStore="1">
+            <label>CVC required for stored methods</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_cc_vault/require_cvc</config_path>
+            <depends>
+                <field id="recurring_card_mode">Magento Vault</field>
+            </depends>
+        </field>
+        <field id="recurring_card_token_type" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Token Type</label>
             <tooltip>
                 Choose between CardOnFile (one-click), UnscheduledCardOnFile (non-fixed schedule MIT payments) or Subscription (fixed schedule MIT payments)
