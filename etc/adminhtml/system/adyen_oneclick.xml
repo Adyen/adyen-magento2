@@ -35,7 +35,7 @@
                 <field id="active">1</field>
             </depends>
         </field>
-        <field id="cvc_required" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1"
+        <field id="require_cvc" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1"
                showInStore="1">
             <label>Require CVC</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
