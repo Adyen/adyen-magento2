@@ -515,7 +515,7 @@ class Config
 
     public function getSupportMailAddress(int $storeId): ?string
     {
-        return $this->getConfigData('adyen_support_email_address', self::XML_ADYEN_SUPPORT_PREFIX, $storeId);
+        return $this->getConfigData('adyen_support_email_address', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
     }
 
     public function getAdyenPosCloudConfigData(string $field, int $storeId = null, bool $flag = false)
