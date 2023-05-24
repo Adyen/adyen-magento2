@@ -1,4 +1,3 @@
-
 /**
  *
  * Adyen Payment module (https://www.adyen.com/)

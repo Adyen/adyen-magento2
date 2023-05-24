@@ -121,5 +121,17 @@
             <label>Apple Pay Girocard</label>
             <code_alt>girocard_applepay</code_alt>
         </type>
+        <type id="CLICKTOPAYMC" order="270">
+            <label>Click to Pay - MasterCard</label>
+            <code_alt>mc_clicktopay</code_alt>
+        </type>
+        <type id="CLICKTOPAYVISA" order="280">
+            <label>Click to Pay - Visa</label>
+            <code_alt>visa_clicktopay</code_alt>
+        </type>
+        <type id="MCSTANDARDDEBIT" order="290">
+            <label>MasterCard Standard Debit</label>
+            <code_alt>mcstandarddebit</code_alt>
+        </type>
     </adyen_credit_cards>
 </payment>
