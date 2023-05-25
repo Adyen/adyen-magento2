@@ -32,7 +32,6 @@ use Magento\Framework\App\Request\Http as Http;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
-use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 
 /**
  * Class Json extends Action
@@ -65,11 +64,6 @@ class Index extends Action
     private $configHelper;
 
     /**
-     * @var IpAddress
-     */
-    private $ipAddressHelper;
-
-    /**
      * @var RateLimiter
      */
     private $rateLimiterHelper;
@@ -85,11 +79,6 @@ class Index extends Action
     private $notificationReceiver;
 
     /**
-     * @var RemoteAddress
-     */
-    private $remoteAddress;
-
-    /**
      * Json constructor.
      *
      * @param Context $context
@@ -97,11 +86,9 @@ class Index extends Action
      * @param AdyenLogger $adyenLogger
      * @param SerializerInterface $serializer
      * @param Config $configHelper
-     * @param IpAddress $ipAddressHelper
      * @param RateLimiter $rateLimiterHelper
      * @param HmacSignature $hmacSignature
      * @param NotificationReceiver $notificationReceiver
-     * @param RemoteAddress $remoteAddress
      */
     public function __construct(
         Context $context,
@@ -110,11 +97,9 @@ class Index extends Action
         AdyenLogger $adyenLogger,
         SerializerInterface $serializer,
         Config $configHelper,
-        IpAddress $ipAddressHelper,
         RateLimiter $rateLimiterHelper,
         HmacSignature $hmacSignature,
         NotificationReceiver $notificationReceiver,
-        RemoteAddress $remoteAddress
     ) {
         parent::__construct($context);
         $this->notificationFactory = $notificationFactory;
@@ -122,11 +107,9 @@ class Index extends Action
         $this->adyenLogger = $adyenLogger;
         $this->serializer = $serializer;
         $this->configHelper = $configHelper;
-        $this->ipAddressHelper = $ipAddressHelper;
         $this->rateLimiterHelper = $rateLimiterHelper;
         $this->hmacSignature = $hmacSignature;
         $this->notificationReceiver = $notificationReceiver;
-        $this->remoteAddress = $remoteAddress;
 
         // Fix for Magento2.3 adding isAjax to the request params
         if (interface_exists(CsrfAwareActionInterface::class)) {
@@ -260,19 +243,6 @@ class Index extends Action
             return false;
         }
 
-        // Validate if Ip check is enabled and if the notification comes from a verified IP
-        if (!$this->isIpValid()) {
-            $this->adyenLogger->addAdyenNotification(sprintf(
-                    "Notification has been rejected because the IP address could not be verified",
-                ),
-                [
-                    'pspReference' => $response['pspReference'],
-                    'merchantReference' => $response['merchantReference']
-                ]
-            );
-            return false;
-        }
-
         // Validate the Hmac calculation
         $hasHmacCheck = $this->configHelper->getNotificationsHmacKey() && 
             $this->hmacSignature->isHmacSupportedEventCode($response);
@@ -343,22 +313,6 @@ class Index extends Action
         $date = new DateTime();
         $notification->setCreatedAt($date);
         $notification->setUpdatedAt($date);
-    }
-
-    /**
-     * Check if remote IP address is from Adyen
-     *
-     * @return bool
-     */
-    private function isIpValid()
-    {
-        $ipAddress = [];
-        $fetchedIpAddress = $this->remoteAddress->getRemoteAddress();
-        //Getting remote and possibly forwarded IP addresses
-        if (!empty($fetchedIpAddress)) {
-            $ipAddress = explode(',', $fetchedIpAddress);
-        }
-        return $this->ipAddressHelper->isIpAddressValid($ipAddress);
     }
 
     /**
