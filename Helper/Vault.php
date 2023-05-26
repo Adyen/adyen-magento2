@@ -342,15 +342,8 @@ class Vault
 
         // If wallet payment method
         if ($paymentMethodCode !== PaymentMethods::ADYEN_CC && $paymentMethodInstance instanceof PaymentMethodInterface) {
-            $txVariant = new TxVariant($payment->getCcType());
-            $details = [
-                'type' => $txVariant->getCard(),
-                'walletType' => $txVariant->getPaymentMethod()
-            ];
-        } else {
             $details = ['type' => $additionalData[self::PAYMENT_METHOD]];
         }
-
         if (!empty($additionalData[self::CARD_SUMMARY])) {
             $details['maskedCC'] =  $additionalData[self::CARD_SUMMARY];
         }
