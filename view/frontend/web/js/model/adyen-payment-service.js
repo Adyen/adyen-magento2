@@ -163,6 +163,19 @@ define(
                     serviceUrl,
                     JSON.stringify(request),
                 );
+            },
+
+            fetchRedeemedGiftcards: function () {
+                let serviceUrl = urlBuilder.createUrl('/adyen/giftcards/mine/:quoteId', {
+                    quoteId: quote.getQuoteId()
+                });
+
+                let request = {};
+
+                return storage.get(
+                    serviceUrl,
+                    JSON.stringify(request),
+                );
             }
         };
     }

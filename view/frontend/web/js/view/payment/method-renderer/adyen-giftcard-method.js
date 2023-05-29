@@ -29,19 +29,22 @@ define(
         adyenCheckout
     ) {
         'use strict';
+
         return Component.extend({
-            self: this,
             defaults: {
                 template: 'Adyen_Payment/payment/giftcard-form'
             },
             giftcardPaymentMethods: ko.observable(null),
             selectedGiftcard: ko.observable(null),
             redeemedCards: ko.observableArray(),
-            totalGiftcardBalance: ko.observable(0),
+            totalGiftcardBalance: ko.observable(),
             canAddNewGiftCard: ko.observable(true),
+            showRemoveSingleGiftcardButton: ko.observable(false),
             showAvailableGiftcardPaymentMethods: ko.observable(false),
+            showPlaceOrderButton: ko.observable(false),
+            selectedGiftcardPaymentMethod: ko.observable(null),
 
-            initialize: function () {
+            initialize: async function () {
                 this._super();
                 let self = this;
 
@@ -52,12 +55,19 @@ define(
                     }
                 );
 
-                this.fetchRedeemedGiftcards();
+                await this.fetchRedeemedGiftcards();
             },
 
             addNewGiftcard: function () {
                 this.canAddNewGiftCard(false);
                 this.showAvailableGiftcardPaymentMethods(true);
+            },
+
+            removeSingleGiftcard: function () {
+                this.removeCheckoutComponent();
+                this.canAddNewGiftCard(true);
+                this.showPlaceOrderButton(false);
+                this.showRemoveSingleGiftcardButton(false);
             },
 
             fetchGiftcardPaymentMethods: function (paymentMethodsResponse) {
@@ -68,7 +78,7 @@ define(
 
                 if (!!paymentMethods && paymentMethods.length > 0) {
                     giftcards.push({
-                        key: 'Select something placeholder...',
+                        key: 'Please select a giftcard...',
                         value: ''
                     });
 
@@ -80,24 +90,25 @@ define(
                             });
                         }
                     });
+
+                    this.giftcardPaymentMethods(giftcards);
                 }
 
-                if (giftcards.length < 1) {
-                    // deactivate the payment method and return
-                }
-
-                this.giftcardPaymentMethods(giftcards);
                 fullScreenLoader.stopLoader();
             },
 
-            giftcardOnselect: async function (obj, event) {
-                let selectedGiftcard = event.target.value;
+            giftcardOnSelect: async function (obj, event, test) {
+                let selectedValue = event.target.value;
 
-                if (selectedGiftcard !== "") {
+                if (selectedValue !== "") {
                     fullScreenLoader.startLoader();
 
                     this.showAvailableGiftcardPaymentMethods(false);
                     // add giftcard title to component wrapper
+                    let selectedGiftcard = this.giftcardPaymentMethods().find(function (paymentMethod) {
+                        return paymentMethod.value === selectedValue;
+                    });
+
                     this.selectedGiftcard(selectedGiftcard);
 
                     if (typeof this.adyenCheckoutComponent === 'undefined') {
@@ -105,6 +116,10 @@ define(
                     }
 
                     this.mountGiftcardComponent();
+                    this.showRemoveSingleGiftcardButton(true);
+
+                    $('#adyen_giftcard_giftcard_payment_methods').val('');
+
                     fullScreenLoader.stopLoader();
                 }
             },
@@ -128,14 +143,14 @@ define(
             getGiftcardComponentConfiguration: function () {
                 let self = this;
                 return {
-                    brand: this.selectedGiftcard(),
+                    brand: this.selectedGiftcard().value,
                     showPayButton: true,
                     onBalanceCheck: function (resolve, reject, data) {
                         adyenPaymentService.paymentMethodsBalance(data)
                             .done(function (balanceResponse) {
                                 let response = JSON.parse(balanceResponse);
-                                resolve(response);
-                                self.handleBalanceResult(response, data);
+                                self.handleBalanceResult(response, data, resolve);
+                                self.showRemoveSingleGiftcardButton(false);
                             })
                             .fail(function () {
                                 reject();
@@ -148,39 +163,63 @@ define(
                 };
             },
 
-            handleBalanceResult: function (balanceResponse, stateData) {
+            removeGiftcard: function (data, event) {
+                let self = this;
+                fullScreenLoader.startLoader();
+                adyenPaymentService.removeStateData(data.stateDataId).done(function () {
+                    self.fetchRedeemedGiftcards();
+                    fullScreenLoader.stopLoader();
+                });
+            },
+
+            handleBalanceResult: function (balanceResponse, stateData, resolve) {
+                let self = this;
                 let orderAmount = window.checkoutConfig.payment.adyenGiftcard.amount;
 
                 if(this.totalGiftcardBalance() === 0 && balanceResponse.balance.value >= orderAmount) {
-
+                    resolve(balanceResponse);
                 } else if (orderAmount > this.totalGiftcardBalance()) {
                     stateData.balance = balanceResponse.balance;
-                    adyenPaymentService.saveStateData(stateData);
-
-                    let redeemedGiftcards = this.redeemedCards();
-                    stateData.stateDataId = 1;
-                    redeemedGiftcards.push(stateData);
-                    this.redeemedCards(redeemedGiftcards);
-
-                    // Update the list of the redeemed giftcards and giftcard balance total
-                    this.fetchRedeemedGiftcards();
-
-                    // Compare the new total giftcard balance with the order amount
-                    if (orderAmount > this.totalGiftcardBalance()) {
-                        this.adyenCheckout.remove(this.giftcardComponent);
-                        this.canAddNewGiftCard(true);
-                    }
+                    stateData.title = this.selectedGiftcard().key;
+                    adyenPaymentService.saveStateData(stateData).done(function () {
+                        // Update the list of the redeemed giftcards and giftcard balance total
+                        self.fetchRedeemedGiftcards();
+                    });
                 }
             },
 
             fetchRedeemedGiftcards: function () {
-                let totalBalance = 0;
+                let self = this;
+                let orderAmount = window.checkoutConfig.payment.adyenGiftcard.amount;
 
-                $.each(this.redeemedCards(), function (index, item) {
-                    totalBalance += item.balance.value;
+                adyenPaymentService.fetchRedeemedGiftcards().done(function (giftcards) {
+                    giftcards = JSON.parse(giftcards);
+                    let totalBalance = 0;
+
+                    $.each(giftcards, function (index, item) {
+                        totalBalance += item.balance.value;
+                    });
+
+                    self.totalGiftcardBalance(totalBalance);
+                    self.redeemedCards(giftcards);
+                    self.removeCheckoutComponent()
+
+                    // Compare the new total giftcard balance with the order amount
+                    if (orderAmount > self.totalGiftcardBalance()) {
+                        self.canAddNewGiftCard(true);
+                        self.showPlaceOrderButton(false);
+                    } else {
+                        // initiate place order button of magento checkout / not the pay button of the component
+                        self.canAddNewGiftCard(false);
+                        self.showPlaceOrderButton(true);
+                    }
                 });
+            },
 
-                this.totalGiftcardBalance(totalBalance);
+            removeCheckoutComponent: function () {
+                if (typeof this.adyenCheckout !== 'undefined') {
+                    this.adyenCheckout.remove(this.giftcardComponent);
+                }
             },
 
             mountGiftcardComponent: function () {
@@ -232,6 +271,10 @@ define(
                     self.orderId = orderId;
                     console.log("action required!");
                 }
+            },
+
+            isActive: function() {
+                return false;
             },
         });
     }

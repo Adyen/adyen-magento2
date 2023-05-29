@@ -44,10 +44,10 @@ class Collection extends AbstractCollection
      * @param $quoteId
      * @return Collection
      */
-    public function getStateDataRowsWithQuoteId($quoteId)
+    public function getStateDataRowsWithQuoteId($quoteId, $sorting = 'DESC')
     {
         $this->addFieldToFilter('quote_id', $quoteId);
-        $this->getSelect()->order('entity_id DESC');
+        $this->getSelect()->order("entity_id $sorting");
         return $this;
     }
 
