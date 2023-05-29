@@ -17,6 +17,7 @@ use Adyen\Payment\Model\ResourceModel\StateData as StateDataResourceModel;
 use Adyen\Payment\Model\StateData;
 use Adyen\Payment\Model\StateDataFactory;
 use Adyen\Service\Validator\CheckoutStateDataValidator;
+use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 
 class AdyenStateData implements AdyenStateDataInterface
@@ -47,7 +48,7 @@ class AdyenStateData implements AdyenStateDataInterface
      * @param int $quoteId
      * @return void
      * @throws LocalizedException
-     * @throws \Magento\Framework\Exception\AlreadyExistsException
+     * @throws AlreadyExistsException
      */
     public function save(string $stateData, int $quoteId): void
     {

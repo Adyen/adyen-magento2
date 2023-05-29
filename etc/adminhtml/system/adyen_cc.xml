@@ -17,12 +17,6 @@
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <comment> <![CDATA[<p>Process credit card payments inside your checkout.</p>]]>
         </comment>
-        <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1"
-               showInStore="1">
-            <label>Enabled</label>
-            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-            <config_path>payment/adyen_cc/active</config_path>
-        </field>
         <field id="title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1"
                showInStore="1">
             <label>Title</label>
@@ -41,6 +35,11 @@
         <field id="max_order_total" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1">
             <label>Maximum order total</label>
             <config_path>payment/adyen_cc/max_order_total</config_path>
+        </field>
+        <field id="enable_click_to_pay" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="1">
+            <label>Click to Pay Enabled</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_cc/enable_click_to_pay</config_path>
         </field>
         <group id="adyen_cc_advanced_settings" translate="label" showInDefault="1" showInWebsite="1" showInStore="1"
                sortOrder="60">

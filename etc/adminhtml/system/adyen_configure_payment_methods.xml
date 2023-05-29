@@ -17,6 +17,7 @@
            showInStore="1">
         <label><![CDATA[Configure payment methods]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+        <include path="Adyen_Payment::system/adyen_payment_methods.xml" />
         <include path="Adyen_Payment::system/adyen_cc.xml"/>
         <include path="Adyen_Payment::system/adyen_oneclick.xml"/>
         <include path="Adyen_Payment::system/adyen_hpp.xml"/>

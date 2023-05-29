@@ -579,6 +579,10 @@ class Webhook
             $notification->setErrorMessage($oldMessage . "\n" . $newMessage);
         }
 
+        if ($notification->getErrorCount() === Notification::MAX_ERROR_COUNT) {
+            $notification->setDone(true);
+        }
+
         $notification->save();
     }
 

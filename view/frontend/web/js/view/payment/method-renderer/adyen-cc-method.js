@@ -182,6 +182,13 @@ define(
                     }
                 }
 
+                if (self.isClickToPayEnabled()) {
+                    componentConfig.clickToPayConfiguration = {
+                        merchantDisplayName: adyenConfiguration.getMerchantAccount(),
+                        shopperEmail: self.getShopperEmail()
+                    };
+                }
+
                 self.cardComponent = adyenCheckout.mountPaymentMethodComponent(
                     this.checkoutComponent,
                     'card',
@@ -397,6 +404,16 @@ define(
                 }
 
                 return false;
+            },
+            getShopperEmail: function () {
+                if (customer.isLoggedIn()) {
+                    return customer.customerData.email;
+                } else {
+                    return quote.guestEmail;
+                }
+            },
+            isClickToPayEnabled: function () {
+                return window.checkoutConfig.payment.adyenCc.isClickToPayEnabled;
             },
             getIcons: function(type) {
                 return window.checkoutConfig.payment.adyenCc.icons.hasOwnProperty(
