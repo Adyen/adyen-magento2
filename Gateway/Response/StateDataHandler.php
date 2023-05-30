@@ -23,7 +23,7 @@ class StateDataHandler implements HandlerInterface
     private StateData $stateDataResourceModel;
     private AdyenLogger $adyenLogger;
 
-    public function __construct (
+    public function __construct(
         Collection $adyenStateData,
         StateData $stateDataResourceModel,
         AdyenLogger $adyenLogger
