@@ -31,16 +31,12 @@ use Magento\Store\Model\StoreManagerInterface;
 class TransactionPayment implements ClientInterface
 {
     private Data $adyenHelper;
-
     private PaymentResponseFactory $paymentResponseFactory;
-
     private PaymentResponseResourceModel $paymentResponseResourceModel;
-
     private Idempotency $idempotencyHelper;
-
     private OrdersApi $orderApiHelper;
-
     private StoreManagerInterface $storeManager;
+    private GiftcardPayment $giftcardPaymentHelper;
 
     private ?int $remainingOrderAmount;
 
@@ -59,7 +55,8 @@ class TransactionPayment implements ClientInterface
         PaymentResponseResourceModel $paymentResponseResourceModel,
         Idempotency $idempotencyHelper,
         OrdersApi $orderApiHelper,
-        StoreManagerInterface $storeManager
+        StoreManagerInterface $storeManager,
+        GiftcardPayment $giftcardPaymentHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->paymentResponseFactory = $paymentResponseFactory;
@@ -67,6 +64,7 @@ class TransactionPayment implements ClientInterface
         $this->idempotencyHelper = $idempotencyHelper;
         $this->orderApiHelper = $orderApiHelper;
         $this->storeManager = $storeManager;
+        $this->giftcardPaymentHelper = $giftcardPaymentHelper;
 
         $this->remainingOrderAmount = null;
     }
@@ -187,7 +185,7 @@ class TransactionPayment implements ClientInterface
                 $deductedAmount = $this->remainingOrderAmount;
             }
 
-            $giftcardPaymentRequest = $this->buildGiftcardPaymentRequest(
+            $giftcardPaymentRequest = $this->giftcardPaymentHelper->buildGiftcardPaymentRequest(
                 $request,
                 $ordersResponse,
                 $stateData,
@@ -195,7 +193,8 @@ class TransactionPayment implements ClientInterface
             );
 
             $this->adyenHelper->logRequest(
-                $giftcardPaymentRequest, Client::API_CHECKOUT_VERSION,
+                $giftcardPaymentRequest,
+                Client::API_CHECKOUT_VERSION,
                 '/payments'
             );
 
@@ -215,35 +214,5 @@ class TransactionPayment implements ClientInterface
         }
 
         return $response;
-    }
-
-    /**
-     * @param array $request
-     * @param array $orderData
-     * @param array $stateData
-     * @param int $amount
-     * @return array
-     */
-    private function buildGiftcardPaymentRequest(
-        array $request,
-        array $orderData,
-        array $stateData,
-        int $amount
-    ): array {
-        $giftcardPaymentRequest = [];
-
-        foreach (GiftcardPayment::validGiftcardPaymentRequestFields as $key) {
-            if (isset($request[$key])) {
-                $giftcardPaymentRequest[$key] = $request[$key];
-            }
-        }
-
-        $giftcardPaymentRequest['paymentMethod'] = $stateData['paymentMethod'];
-        $giftcardPaymentRequest['amount']['value'] = $amount;
-
-        $giftcardPaymentRequest['order']['pspReference'] = $orderData['pspReference'];
-        $giftcardPaymentRequest['order']['orderData'] = $orderData['orderData'];
-
-        return $giftcardPaymentRequest;
     }
 }

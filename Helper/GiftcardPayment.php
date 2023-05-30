@@ -13,7 +13,7 @@ namespace Adyen\Payment\Helper;
 
 class GiftcardPayment
 {
-    const validGiftcardPaymentRequestFields = [
+    const VALID_GIFTCARD_REQUEST_FIELDS = [
         'merchantAccount',
         'shopperReference',
         'shopperEmail',
@@ -34,4 +34,34 @@ class GiftcardPayment
         'channel',
         'origin'
     ];
+
+    /**
+     * @param array $request
+     * @param array $orderData
+     * @param array $stateData
+     * @param int $amount
+     * @return array
+     */
+    public function buildGiftcardPaymentRequest(
+        array $request,
+        array $orderData,
+        array $stateData,
+        int $amount
+    ): array {
+        $giftcardPaymentRequest = [];
+
+        foreach (self::VALID_GIFTCARD_REQUEST_FIELDS as $key) {
+            if (isset($request[$key])) {
+                $giftcardPaymentRequest[$key] = $request[$key];
+            }
+        }
+
+        $giftcardPaymentRequest['paymentMethod'] = $stateData['paymentMethod'];
+        $giftcardPaymentRequest['amount']['value'] = $amount;
+
+        $giftcardPaymentRequest['order']['pspReference'] = $orderData['pspReference'];
+        $giftcardPaymentRequest['order']['orderData'] = $orderData['orderData'];
+
+        return $giftcardPaymentRequest;
+    }
 }
