@@ -13,5 +13,25 @@ namespace Adyen\Payment\Helper;
 
 class GiftcardPayment
 {
-
+    const validGiftcardPaymentRequestFields = [
+        'merchantAccount',
+        'shopperReference',
+        'shopperEmail',
+        'telephoneNumber',
+        'shopperName',
+        'countryCode',
+        'shopperLocale',
+        'shopperIP',
+        'billingAddress',
+        'deliveryAddress',
+        'amount',
+        'reference',
+        'additionalData',
+        'fraudOffset',
+        'browserInfo',
+        'shopperInteraction',
+        'returnUrl',
+        'channel',
+        'origin'
+    ];
 }

@@ -15,6 +15,7 @@ use Adyen\AdyenException;
 use Adyen\Client;
 use Adyen\ConnectionException;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\GiftcardPayment;
 use Adyen\Payment\Helper\Idempotency;
 use Adyen\Payment\Helper\OrdersApi;
 use Adyen\Payment\Model\PaymentResponse;
@@ -216,28 +217,13 @@ class TransactionPayment implements ClientInterface
         return $response;
     }
 
-    const validGiftcardPaymentRequestFields = [
-        'merchantAccount',
-        'shopperReference',
-        'shopperEmail',
-        'telephoneNumber',
-        'shopperName',
-        'countryCode',
-        'shopperLocale',
-        'shopperIP',
-        'billingAddress',
-        'deliveryAddress',
-        'amount',
-        'reference',
-        'additionalData',
-        'fraudOffset',
-        'browserInfo',
-        'shopperInteraction',
-        'returnUrl',
-        'channel',
-        'origin'
-    ];
-
+    /**
+     * @param array $request
+     * @param array $orderData
+     * @param array $stateData
+     * @param int $amount
+     * @return array
+     */
     private function buildGiftcardPaymentRequest(
         array $request,
         array $orderData,
@@ -246,7 +232,7 @@ class TransactionPayment implements ClientInterface
     ): array {
         $giftcardPaymentRequest = [];
 
-        foreach (self::validGiftcardPaymentRequestFields as $key) {
+        foreach (GiftcardPayment::validGiftcardPaymentRequestFields as $key) {
             if (isset($request[$key])) {
                 $giftcardPaymentRequest[$key] = $request[$key];
             }

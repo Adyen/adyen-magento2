@@ -15,6 +15,7 @@ namespace Adyen\Payment\Model\Api;
 use Adyen\Payment\Api\AdyenGiftcardInterface;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Model\ResourceModel\StateData\Collection as StateDataCollection;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
 
@@ -26,6 +27,8 @@ class AdyenGiftcard implements AdyenGiftcardInterface
 
     /**
      * @param StateDataCollection $adyenStateData
+     * @param CartRepositoryInterface $quoteRepository
+     * @param Data $adyenHelper
      */
     public function __construct(
         StateDataCollection $adyenStateData,
@@ -40,6 +43,7 @@ class AdyenGiftcard implements AdyenGiftcardInterface
     /**
      * @param string $quoteId
      * @return string
+     * @throws NoSuchEntityException
      */
     public function getRedeemedGiftcards(string $quoteId): string
     {
@@ -51,6 +55,7 @@ class AdyenGiftcard implements AdyenGiftcardInterface
 
     /**
      * @param array $stateDataArray
+     * @param CartInterface $quote
      * @return array
      */
     private function filterGiftcardStateData(array $stateDataArray, CartInterface $quote): array

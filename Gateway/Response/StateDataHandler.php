@@ -17,7 +17,7 @@ use Adyen\Payment\Model\ResourceModel\StateData\Collection;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 
-class StateDataHandler  implements HandlerInterface
+class StateDataHandler implements HandlerInterface
 {
     private Collection $adyenStateData;
     private StateData $stateDataResourceModel;
