@@ -37,7 +37,7 @@ class GiftcardDataBuilder implements BuilderInterface
         $paymentDataObject = SubjectReader::readPayment($buildSubject);
         $order = $paymentDataObject->getOrder();
 
-        $stateDataCollection = $this->adyenStateData->getStateDataRowsWithQuoteId($order->getQuoteId());
+        $stateDataCollection = $this->adyenStateData->getStateDataRowsWithQuoteId($order->getQuoteId(), 'ASC');
         $stateDataArray = $this->validateGiftcardStateData($stateDataCollection->getData());
 
         if (isset($stateDataArray)) {

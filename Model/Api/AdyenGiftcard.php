@@ -13,19 +13,28 @@
 namespace Adyen\Payment\Model\Api;
 
 use Adyen\Payment\Api\AdyenGiftcardInterface;
+use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Model\ResourceModel\StateData\Collection as StateDataCollection;
+use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Api\Data\CartInterface;
 
 class AdyenGiftcard implements AdyenGiftcardInterface
 {
     private StateDataCollection $adyenStateData;
+    private CartRepositoryInterface $quoteRepository;
+    private Data $adyenHelper;
 
     /**
      * @param StateDataCollection $adyenStateData
      */
     public function __construct(
-        StateDataCollection $adyenStateData
+        StateDataCollection $adyenStateData,
+        CartRepositoryInterface $quoteRepository,
+        Data $adyenHelper
     ) {
         $this->adyenStateData = $adyenStateData;
+        $this->quoteRepository = $quoteRepository;
+        $this->adyenHelper = $adyenHelper;
     }
 
     /**
@@ -34,18 +43,24 @@ class AdyenGiftcard implements AdyenGiftcardInterface
      */
     public function getRedeemedGiftcards(string $quoteId): string
     {
-        $stateDataArray = $this->adyenStateData->getStateDataRowsWithQuoteId($quoteId);
+        $stateDataArray = $this->adyenStateData->getStateDataRowsWithQuoteId($quoteId, 'ASC');
+        $quote = $this->quoteRepository->get($quoteId);
 
-        return json_encode($this->filterGiftcardStateData($stateDataArray->getData()));
+        return json_encode($this->filterGiftcardStateData($stateDataArray->getData(), $quote));
     }
 
     /**
      * @param array $stateDataArray
      * @return array
      */
-    private function filterGiftcardStateData(array $stateDataArray): array
+    private function filterGiftcardStateData(array $stateDataArray, CartInterface $quote): array
     {
         $responseArray = [];
+
+        $remainingAmount = $this->adyenHelper->formatAmount(
+            $quote->getGrandTotal(),
+            $quote->getCurrency()->getQuoteCurrencyCode()
+        );
 
         foreach ($stateDataArray as $key => $item) {
             $stateData = json_decode($item['state_data'], true);
@@ -56,13 +71,24 @@ class AdyenGiftcard implements AdyenGiftcardInterface
                 continue;
             }
 
+            if ($remainingAmount > $stateData['giftcard']['balance']['value']) {
+                $deductedAmount = $stateData['giftcard']['balance']['value'];
+            } else {
+                $deductedAmount = $remainingAmount;
+            }
+
             $responseArray[] = [
                 'stateDataId' => $item['entity_id'],
                 'brand' => $stateData['paymentMethod']['brand'],
                 'title' => $stateData['giftcard']['title'],
                 'balance' => $stateData['giftcard']['balance'],
-                'deductedBalance' => 0
+                'deductedAmount' => $this->adyenHelper->originalAmount(
+                    $deductedAmount,
+                    $quote->getCurrency()->getQuoteCurrencyCode()
+                )
             ];
+
+            $remainingAmount -= $deductedAmount;
         }
 
         return $responseArray;

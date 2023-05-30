@@ -67,7 +67,7 @@
                         <a href="#" data-bind="click: $parent.removeGiftcard.bind($parent), text: $t('Remove')" class="adyen-giftcard-remove-button"></a>
                     </div>
                     <div class="adyen-giftcard-summary">
-                        <p><span data-bind="text: $t('Deducted amount')"></span>: <span data-bind="text: redeemedCard.balance.value"></span> <span data-bind="text: redeemedCard.balance.currency"></span></p>
+                        <p><span data-bind="text: $t('Deducted amount')"></span>: <span data-bind="text: redeemedCard.deductedAmount"></span> <span data-bind="text: redeemedCard.balance.currency"></span></p>
                     </div>
                 </div>
             <!-- /ko -->
