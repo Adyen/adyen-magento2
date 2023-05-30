@@ -13,7 +13,6 @@
 namespace Adyen\Payment\Gateway\Request;
 
 use Adyen\Payment\Model\ResourceModel\StateData\Collection as StateDataCollection;
-use Magento\Backend\Model\Session\Quote;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
@@ -21,14 +20,11 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
 class GiftcardDataBuilder implements BuilderInterface
 {
     private StateDataCollection $adyenStateData;
-    private Quote $quote;
 
     public function __construct(
-        StateDataCollection $adyenStateData,
-        Quote $quote
+        StateDataCollection $adyenStateData
     ) {
         $this->adyenStateData = $adyenStateData;
-        $this->quote = $quote;
     }
 
     public function build(array $buildSubject): array
@@ -49,6 +45,10 @@ class GiftcardDataBuilder implements BuilderInterface
         return $request;
     }
 
+    /**
+     * @param array $stateDataArray
+     * @return array
+     */
     private function validateGiftcardStateData(array $stateDataArray): array
     {
         foreach ($stateDataArray as $key => $item) {
