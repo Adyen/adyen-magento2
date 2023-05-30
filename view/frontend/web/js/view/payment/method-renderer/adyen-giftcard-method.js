@@ -16,7 +16,8 @@ define(
         'Magento_Checkout/js/action/place-order',
         'Adyen_Payment/js/model/adyen-payment-service',
         'Adyen_Payment/js/model/adyen-configuration',
-        'Adyen_Payment/js/adyen'
+        'Adyen_Payment/js/adyen',
+        'mage/translate'
     ],
     function(
         $,
@@ -26,7 +27,8 @@ define(
         placeOrderAction,
         adyenPaymentService,
         adyenConfiguration,
-        adyenCheckout
+        adyenCheckout,
+        $t
     ) {
         'use strict';
 
@@ -43,6 +45,7 @@ define(
             showAvailableGiftcardPaymentMethods: ko.observable(false),
             showPlaceOrderButton: ko.observable(false),
             selectedGiftcardPaymentMethod: ko.observable(null),
+            giftcardTitle: ko.observable(null),
 
             initialize: async function () {
                 this._super();
@@ -68,6 +71,7 @@ define(
                 this.canAddNewGiftCard(true);
                 this.showPlaceOrderButton(false);
                 this.showRemoveSingleGiftcardButton(false);
+                this.giftcardTitle(null);
             },
 
             fetchGiftcardPaymentMethods: function (paymentMethodsResponse) {
@@ -78,7 +82,7 @@ define(
 
                 if (!!paymentMethods && paymentMethods.length > 0) {
                     giftcards.push({
-                        key: 'Please select a giftcard...',
+                        key: $t('Please select a giftcard...'),
                         value: ''
                     });
 
@@ -150,7 +154,6 @@ define(
                             .done(function (balanceResponse) {
                                 let response = JSON.parse(balanceResponse);
                                 self.handleBalanceResult(response, data, resolve);
-                                self.showRemoveSingleGiftcardButton(false);
                             })
                             .fail(function () {
                                 reject();
@@ -179,9 +182,14 @@ define(
                 if(this.totalGiftcardBalance() === 0 && balanceResponse.balance.value >= orderAmount) {
                     resolve(balanceResponse);
                 } else if (orderAmount > this.totalGiftcardBalance()) {
-                    stateData.balance = balanceResponse.balance;
-                    stateData.title = this.selectedGiftcard().key;
+                    stateData.giftcard = {
+                        balance: balanceResponse.balance,
+                        title: this.selectedGiftcard().key
+                    }
                     adyenPaymentService.saveStateData(stateData).done(function () {
+                        self.removeCheckoutComponent();
+                        self.giftcardTitle(null);
+                        self.showRemoveSingleGiftcardButton(false);
                         // Update the list of the redeemed giftcards and giftcard balance total
                         self.fetchRedeemedGiftcards();
                     });
@@ -202,7 +210,6 @@ define(
 
                     self.totalGiftcardBalance(totalBalance);
                     self.redeemedCards(giftcards);
-                    self.removeCheckoutComponent()
 
                     // Compare the new total giftcard balance with the order amount
                     if (orderAmount > self.totalGiftcardBalance()) {
@@ -228,7 +235,11 @@ define(
                 }
 
                 let giftcardConfiguration = this.getGiftcardComponentConfiguration();
-                this.giftcardComponent = this.adyenCheckout.create('giftcard', giftcardConfiguration).mount('#giftcard-component-wrapper');
+                this.giftcardComponent = this.adyenCheckout
+                    .create('giftcard', giftcardConfiguration)
+                    .mount('#giftcard-component-wrapper');
+
+                this.giftcardTitle(this.selectedGiftcard().key);
             },
 
             placeOrder: async function(stateData) {

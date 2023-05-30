@@ -70,4 +70,9 @@
 
 .adyen-checkout__input {
     width: unset;
- }
+}
+
+.adyen-giftcard-header {
+    font-size: 95%;
+    font-weight: bold;
+}

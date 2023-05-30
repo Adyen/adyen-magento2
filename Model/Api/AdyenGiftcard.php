@@ -59,8 +59,8 @@ class AdyenGiftcard implements AdyenGiftcardInterface
             $responseArray[] = [
                 'stateDataId' => $item['entity_id'],
                 'brand' => $stateData['paymentMethod']['brand'],
-                'title' => $stateData['title'],
-                'balance' => $stateData['balance'],
+                'title' => $stateData['giftcard']['title'],
+                'balance' => $stateData['giftcard']['balance'],
                 'deductedBalance' => 0
             ];
         }

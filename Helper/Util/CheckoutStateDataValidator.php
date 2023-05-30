@@ -31,7 +31,8 @@ class CheckoutStateDataValidator
         'conversionId',
         'paymentData',
         'details',
-        'channel'
+        'channel',
+        'giftcard'
     ];
 
     /**

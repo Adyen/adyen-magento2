@@ -35,7 +35,9 @@
 
         <div data-bind="attr: {'id': getCode() + '_new_giftcard_wrapper'}">
             <div class="field" data-bind="attr: {'id': getCode() + '_giftcard_button_wrapper'}, visible: canAddNewGiftCard">
-                <button data-bind="click: addNewGiftcard, attr: {'class': 'adyen-checkout__button'}">Add Giftcard</button>
+                <button data-bind="click: addNewGiftcard, attr: {'class': 'adyen-checkout__button'}">
+                    <span data-bind="text: $t('Add Giftcard')"></span>
+                </button>
             </div>
             <div class="field" data-bind="attr: {'id': getCode() + '_giftcard_selector_wrapper'}, visible: showAvailableGiftcardPaymentMethods">
                 <select data-bind="attr: {id: getCode() + '_giftcard_payment_methods', 'data-container': getCode() + '_giftcard_payment_methods', 'data-validate': JSON.stringify({required:false})},
@@ -48,9 +50,13 @@
             </div>
         </div>
 
+        <h2 data-bind="attr: {'class': 'adyen-giftcard-header'}, visible: giftcardTitle, text: giftcardTitle"></h2>
         <div class="field" data-bind="attr: {'id': 'giftcard-component-wrapper'}"></div>
 
-        <button data-bind="click: removeSingleGiftcard, visible: showRemoveSingleGiftcardButton, attr: {'class': 'adyen-checkout__button adyen-giftcard-remove-single'}">Remove Giftcard</button>
+        <button data-bind="click: removeSingleGiftcard, visible: showRemoveSingleGiftcardButton,
+            attr: {'class': 'adyen-checkout__button adyen-giftcard-remove-single'}">
+            <span data-bind="text: $t('Remove Giftcard')"></span>
+        </button>
 
         <div class="field" data-bind="attr: {'id': 'adyen-redeemed-giftcards'}">
             <!-- ko foreach: { data: redeemedCards, as: 'redeemedCard' } -->
@@ -58,10 +64,10 @@
                     <div class="adyen-giftcard-title">
                         <img src="https://checkoutshopper-live.adyen.com/checkoutshopper/images/logos/genericgiftcard.svg" class="adyen-giftcard-logo">
                         <span data-bind="attr: {'class': 'adyen-giftcard-brand'}, text: redeemedCard.title"></span>
-                        <a href="#" data-bind="click: $parent.removeGiftcard.bind($parent)" class="adyen-giftcard-remove-button">Remove</a>
+                        <a href="#" data-bind="click: $parent.removeGiftcard.bind($parent), text: $t('Remove')" class="adyen-giftcard-remove-button"></a>
                     </div>
                     <div class="adyen-giftcard-summary">
-                        <p>Deducted amount: <span data-bind="text: redeemedCard.balance.value"></span> <span data-bind="text: redeemedCard.balance.currency"></span></p>
+                        <p><span data-bind="text: $t('Deducted amount')"></span>: <span data-bind="text: redeemedCard.balance.value"></span> <span data-bind="text: redeemedCard.balance.currency"></span></p>
                     </div>
                 </div>
             <!-- /ko -->

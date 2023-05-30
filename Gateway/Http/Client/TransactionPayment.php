@@ -180,8 +180,8 @@ class TransactionPayment implements ClientInterface
                 continue;
             }
 
-            if ($this->remainingOrderAmount > $stateData['balance']['value']) {
-                $deductedAmount = $stateData['balance']['value'];
+            if ($this->remainingOrderAmount > $stateData['giftcard']['balance']['value']) {
+                $deductedAmount = $stateData['giftcard']['balance']['value'];
             } else {
                 $deductedAmount = $this->remainingOrderAmount;
             }
