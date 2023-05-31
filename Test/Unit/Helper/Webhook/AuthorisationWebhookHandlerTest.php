@@ -129,6 +129,47 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
 
     }
 
+    public function testHandleFailedAuthorisation()
+    {
+        // Create the necessary mocks and objects
+
+        // Condition 1: Previous Authorization and Captured Payments
+        // Test when previous Adyen event code is "AUTHORISATION : TRUE"
+        // Assert that the order is not canceled and the appropriate log entry is added
+
+        // Test when there was a previous payment capture
+        // Assert that the order is not canceled and the appropriate log entry is added
+
+        // Condition 2: Check Order Status
+        // Test when the order is already canceled
+        // Assert that the order is not canceled and the appropriate log entry is added
+
+        // Test when the order is on hold
+        // Assert that the order is not canceled and the appropriate log entry is added
+
+        // Condition 3: Check Payment Method
+        // Test when the payment method is "PBL" and can be canceled
+        // Assert that the order is canceled or held based on the failure counter
+
+        // Test when the payment method is "PBL" and cannot be canceled
+        // Assert that the order is not canceled and the appropriate log entry is added
+
+        // Condition 4: Change Order State
+        // Test when the order cannot be canceled and configuration allows canceling orders
+        // Assert that the order state is changed from "PAYMENT_REVIEW" to "NEW"
+
+        // Test when the order cannot be canceled and configuration does not allow canceling orders
+        // Assert that the order state is not changed
+
+        // Condition 5: Cancel or Hold the Order
+        // Test when the order can be canceled or held
+        // Assert that the order is canceled or held based on the configuration
+
+        // Test when the order cannot be canceled or held
+        // Assert that the order is returned without further processing
+    }
+
+
     protected function createAuthorisationWebhookHandler(
         $mockAdyenOrderPayment = null,
         $mockOrderHelper = null,
