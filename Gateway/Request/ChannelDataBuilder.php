@@ -28,17 +28,13 @@ class ChannelDataBuilder implements BuilderInterface
 
     public function build(array $buildSubject): array
     {
-        /** @var PaymentDataObject $paymentDataObject */
-        $paymentDataObject = SubjectReader::readPayment($buildSubject);
-        $payment = $paymentDataObject->getPayment();
-        /** @var Order $order */
-        $order = $payment->getOrder();
+        $order = SubjectReader::readPayment($buildSubject)->getPayment()->getOrder();
+        $stateData = $order->getQuoteId() ? $this->stateDataHelper->getStateData((int)$order->getQuoteId()) : [];
 
-        if ($order->getQuoteId()) {
-            $stateData = $this->stateDataHelper->getStateData((int)$order->getQuoteId());
-            $request['body']['channel'] = $stateData['channel'] ?? 'web';
-        }
-
-        return $request;
+        return [
+            'body' => [
+                'channel' => $stateData['channel'] ?? 'web'
+            ]
+        ];
     }
 }
