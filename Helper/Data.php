@@ -372,7 +372,7 @@ class Data extends AbstractHelper
      */
     public function formatAmount($amount, $currency)
     {
-        return (int)number_format($amount, $this->decimalNumbers($currency), '', '');
+        return (int)number_format((float)$amount, $this->decimalNumbers($currency), '', '');
     }
 
     /**
