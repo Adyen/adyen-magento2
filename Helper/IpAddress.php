@@ -58,14 +58,14 @@ class IpAddress
      * @param CacheInterface $cache
      * @param SerializerInterface $serializer
      * @param AdyenLogger $adyenLogger
-     * @param config $configHelper
+     * @param Config $configHelper
      */
     public function __construct(
         IpAddressUtil $ipAddressUtil,
         CacheInterface $cache,
         SerializerInterface $serializer,
         AdyenLogger $adyenLogger,
-        config $configHelper
+        Config $configHelper
     ) {
         $this->ipAddressUtil = $ipAddressUtil;
         $this->cache = $cache;
