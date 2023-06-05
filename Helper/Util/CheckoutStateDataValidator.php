@@ -35,11 +35,7 @@ class CheckoutStateDataValidator
         'giftcard'
     ];
 
-    /**
-     * @param array $stateData
-     * @return array
-     */
-    public function getValidatedAdditionalData($stateData)
+    public function getValidatedAdditionalData(array $stateData): array
     {
         // Get validated state data array
         if (!empty($stateData)) {

@@ -13,7 +13,6 @@ namespace Adyen\Payment\Gateway\Http\Client;
 
 use Adyen\AdyenException;
 use Adyen\Client;
-use Adyen\ConnectionException;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\GiftcardPayment;
 use Adyen\Payment\Helper\Idempotency;
@@ -22,8 +21,6 @@ use Adyen\Payment\Model\PaymentResponse;
 use Adyen\Payment\Model\PaymentResponseFactory;
 use Adyen\Payment\Model\ResourceModel\PaymentResponse as PaymentResponseResourceModel;
 use Adyen\Service\Checkout;
-use Magento\Framework\Exception\AlreadyExistsException;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 use Magento\Store\Model\StoreManagerInterface;
@@ -40,15 +37,6 @@ class TransactionPayment implements ClientInterface
 
     private ?int $remainingOrderAmount;
 
-    /**
-     * TransactionPayment constructor.
-     * @param Data $adyenHelper
-     * @param PaymentResponseFactory $paymentResponseFactory
-     * @param PaymentResponseResourceModel $paymentResponseResourceModel
-     * @param Idempotency $idempotencyHelper
-     * @param OrdersApi $orderApiHelper
-     * @param StoreManagerInterface $storeManager
-     */
     public function __construct(
         Data $adyenHelper,
         PaymentResponseFactory $paymentResponseFactory,
@@ -69,14 +57,7 @@ class TransactionPayment implements ClientInterface
         $this->remainingOrderAmount = null;
     }
 
-    /**
-     * @param TransferInterface $transferObject
-     * @return array|mixed|string
-     * @throws AdyenException
-     * @throws AlreadyExistsException
-     * @throws NoSuchEntityException|ConnectionException
-     */
-    public function placeRequest(TransferInterface $transferObject)
+    public function placeRequest(TransferInterface $transferObject): array
     {
         $request = $transferObject->getBody();
         $headers = $transferObject->getHeaders();
@@ -153,17 +134,6 @@ class TransactionPayment implements ClientInterface
         return $response;
     }
 
-    /**
-     * Returns the last /payments response to be used in the order.
-     *
-     * @param array $request
-     * @param Checkout $service
-     * @param array $redeemedGiftcards
-     * @param array $ordersResponse
-     * @return array
-     * @throws AdyenException
-     * @throws AlreadyExistsException
-     */
     private function handleGiftcardPayments(
         array $request,
         Checkout $service,

@@ -25,11 +25,6 @@ class AdyenGiftcard implements AdyenGiftcardInterface
     private CartRepositoryInterface $quoteRepository;
     private Data $adyenHelper;
 
-    /**
-     * @param StateDataCollection $adyenStateData
-     * @param CartRepositoryInterface $quoteRepository
-     * @param Data $adyenHelper
-     */
     public function __construct(
         StateDataCollection $adyenStateData,
         CartRepositoryInterface $quoteRepository,
@@ -40,11 +35,6 @@ class AdyenGiftcard implements AdyenGiftcardInterface
         $this->adyenHelper = $adyenHelper;
     }
 
-    /**
-     * @param string $quoteId
-     * @return string
-     * @throws NoSuchEntityException
-     */
     public function getRedeemedGiftcards(string $quoteId): string
     {
         $stateDataArray = $this->adyenStateData->getStateDataRowsWithQuoteId($quoteId, 'ASC');
@@ -53,11 +43,6 @@ class AdyenGiftcard implements AdyenGiftcardInterface
         return json_encode($this->filterGiftcardStateData($stateDataArray->getData(), $quote));
     }
 
-    /**
-     * @param array $stateDataArray
-     * @param CartInterface $quote
-     * @return array
-     */
     private function filterGiftcardStateData(array $stateDataArray, CartInterface $quote): array
     {
         $responseArray = [];

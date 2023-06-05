@@ -45,10 +45,6 @@ class GiftcardDataBuilder implements BuilderInterface
         return $request;
     }
 
-    /**
-     * @param array $stateDataArray
-     * @return array
-     */
     private function validateGiftcardStateData(array $stateDataArray): array
     {
         foreach ($stateDataArray as $key => $item) {

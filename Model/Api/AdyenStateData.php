@@ -17,22 +17,14 @@ use Adyen\Payment\Helper\Util\CheckoutStateDataValidator;
 use Adyen\Payment\Model\ResourceModel\StateData as StateDataResourceModel;
 use Adyen\Payment\Model\StateData;
 use Adyen\Payment\Model\StateDataFactory;
-use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 
 class AdyenStateData implements AdyenStateDataInterface
 {
     private CheckoutStateDataValidator $checkoutStateDataValidator;
-
     private StateDataFactory $stateDataFactory;
-
     private StateDataResourceModel $stateDataResourceModel;
 
-    /**
-     * @param CheckoutStateDataValidator $checkoutStateDataValidator
-     * @param StateDataFactory $stateDataFactory
-     * @param StateDataResourceModel $stateDataResourceModel
-     */
     public function __construct(
         CheckoutStateDataValidator $checkoutStateDataValidator,
         StateDataFactory $stateDataFactory,
@@ -43,13 +35,6 @@ class AdyenStateData implements AdyenStateDataInterface
         $this->stateDataResourceModel = $stateDataResourceModel;
     }
 
-    /**
-     * @param string $stateData
-     * @param int $quoteId
-     * @return void
-     * @throws LocalizedException
-     * @throws AlreadyExistsException
-     */
     public function save(string $stateData, int $quoteId): void
     {
         // Decode payload from frontend
