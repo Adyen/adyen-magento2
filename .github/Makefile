@@ -21,8 +21,7 @@ install:
 	bin/magento setup:di:compile
 
 # Install developer module
-devmodule:
-	
+dev-module:
 	bin/magento module:enable Adyen_Developer
 
 # Configuration
