@@ -11,6 +11,9 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Model\ResourceModel\StateData\Collection as StateDataCollection;
+use Magento\Quote\Api\Data\CartInterface;
+
 class GiftcardPayment
 {
     const VALID_GIFTCARD_REQUEST_FIELDS = [
@@ -34,6 +37,17 @@ class GiftcardPayment
         'channel',
         'origin'
     ];
+
+    private StateDataCollection $adyenStateData;
+    private Data $adyenHelper;
+
+    public function __construct(
+        StateDataCollection $adyenStateData,
+        Data $adyenHelper
+    ) {
+        $this->adyenStateData = $adyenStateData;
+        $this->adyenHelper = $adyenHelper;
+    }
 
     /**
      * @param array $request
@@ -63,5 +77,43 @@ class GiftcardPayment
         $giftcardPaymentRequest['order']['orderData'] = $orderData['orderData'];
 
         return $giftcardPaymentRequest;
+    }
+
+    public function getQuoteGiftcardDiscount(CartInterface $quote): ?int
+    {
+        $formattedOrderAmount = $this->adyenHelper->formatAmount(
+            $quote->getGrandTotal(),
+            $quote->getCurrency()
+        );
+
+        $totalGiftcardBalance = $this->getQuoteGiftcardTotalBalance($quote->getId());
+
+        if (isset($totalGiftcardBalance)) {
+            if ($totalGiftcardBalance > $formattedOrderAmount) {
+                return $formattedOrderAmount;
+            } else {
+                return $totalGiftcardBalance;
+            }
+        }
+
+        return null;
+    }
+
+    public function getQuoteGiftcardTotalBalance(int $quoteId): ?int
+    {
+        $stateDataArray = $this->adyenStateData->getStateDataRowsWithQuoteId($quoteId);
+        $totalBalance = 0;
+
+        foreach ($stateDataArray as $stateData) {
+            $stateData = json_decode($stateData['state_data'], true);
+
+            if (isset($stateData['paymentMethod']['type']) ||
+                isset($stateData['paymentMethod']['brand']) ||
+                $stateData['paymentMethod']['type'] === 'giftcard') {
+                $totalBalance += $stateData['giftcard']['balance']['value'];
+            }
+        }
+
+        return $totalBalance > 0 ? $totalBalance : null;
     }
 }
