@@ -23,6 +23,7 @@ install:
 # Install developer module
 dev-module:
 	bin/magento module:enable Adyen_Developer
+	bin/magento setup:upgrade
 
 # Configuration
 configure: n98-magerun2.phar
