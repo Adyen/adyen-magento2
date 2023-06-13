@@ -54,7 +54,7 @@ jobs:
           path: dev-module
       
       - name: Copy dev module into Docker container
-        run: docker cp /dev-module magento2-container:app/code/Adyen/Developer
+        run: docker cp ./dev-module magento2-container:app/code/Adyen/Developer
 
       - name: Enable developer module
         run: docker exec -u www-data magento2-container make dev-module
