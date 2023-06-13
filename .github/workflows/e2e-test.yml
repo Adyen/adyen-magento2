@@ -53,6 +53,9 @@ jobs:
           token: ${{ secrets.ADYEN_AUTOMATION_BOT_TEST_ACCESS_TOKEN }}
           path: dev-module
       
+      - name: Make the folder for dev module
+        run: docker exec -u www-data magento2-container mkdir -p /var/www/html/app/code/Adyen/Developer
+
       - name: Copy dev module into Docker container
         run: docker cp ./dev-module magento2-container:/var/www/html/app/code/Adyen/Developer
 
