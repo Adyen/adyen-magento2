@@ -57,7 +57,7 @@ jobs:
         run: docker exec -u www-data magento2-container mkdir -p /var/www/html/app/code/Adyen/Developer
 
       - name: Copy dev module into Docker container
-        run: docker cp ./dev-module/ magento2-container:/var/www/html/app/code/Adyen/Developer
+        run: docker cp ./dev-module/* magento2-container:/var/www/html/app/code/Adyen/Developer
 
       - name: Change ownership of developer module folder
         run: docker exec magento2-container chown -R www-data:www-data /var/www/html/app/code/Adyen/Developer
