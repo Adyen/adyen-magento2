@@ -51,13 +51,13 @@ jobs:
           repository: Adyen/adyen-magento2-dev
           ref: 'main'
           token: ${{ secrets.ADYEN_AUTOMATION_BOT_TEST_ACCESS_TOKEN }}
-          path: dev-module
+          path: Developer
       
       - name: Make the folder for dev module
-        run: docker exec -u www-data magento2-container mkdir -p /var/www/html/app/code/Adyen/Developer
+        run: docker exec -u www-data magento2-container mkdir -p /var/www/html/app/code/Adyen
 
       - name: Copy dev module into Docker container
-        run: docker cp ./dev-module/* magento2-container:/var/www/html/app/code/Adyen/Developer
+        run: docker cp ./Developer magento2-container:/var/www/html/app/code/Adyen
 
       - name: Change ownership of developer module folder
         run: docker exec magento2-container chown -R www-data:www-data /var/www/html/app/code/Adyen/Developer
