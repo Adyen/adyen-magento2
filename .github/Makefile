@@ -23,7 +23,6 @@ install:
 # Configuration
 configure: n98-magerun2.phar
 	bin/magento config:set payment/adyen_abstract/demo_mode 1
-	bin/magento config:set payment/adyen_abstract/payment_methods_active 1
 	bin/magento config:set payment/adyen_oneclick/active 1
 	bin/magento config:set payment/adyen_oneclick/card_mode 'Magento Vault'
 	bin/magento config:set payment/adyen_oneclick/card_type 'CardOnFile'
