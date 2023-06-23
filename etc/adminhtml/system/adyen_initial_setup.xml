@@ -17,8 +17,7 @@
         <fieldset_css>adyen_required_config_settings</fieldset_css>
         <label><![CDATA[Required Settings]]></label>
         <comment>
-            <![CDATA[<p>Use our <a target="_blank" href="https://docs.adyen.com/plugins/magento-2/set-up-the-plugin-in-magento#step-3-configure-the-plugin-in-magento">documentation</a> in case you have any doubt to fill in a specific information
-                    </p>]]>
+            <![CDATA[<p>Start by connecting your Customer Area to Adobe Commerce plugin.</p>]]>
         </comment>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <field id="configuration_mode" translate="label" type="select" sortOrder="5" showInDefault="1" showInWebsite="1"

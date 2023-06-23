@@ -22,7 +22,7 @@
                 <fieldset_css>adyen-payments complex</fieldset_css>
                 <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\Fieldset</frontend_model>
                 <include path="Adyen_Payment::system/adyen_getting_started.xml"/>
-                <include path="Adyen_Payment::system/adyen_required_settings.xml"/>
+                <include path="Adyen_Payment::system/adyen_initial_setup.xml"/>
                 <include path="Adyen_Payment::system/adyen_configure_payment_methods.xml"/>
                 <include path="Adyen_Payment::system/adyen_advanced_settings.xml"/>
             </group>
