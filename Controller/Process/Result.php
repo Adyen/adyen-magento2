@@ -14,6 +14,7 @@ namespace Adyen\Payment\Controller\Process;
 use Adyen\Payment\Exception\PaymentMethodException;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Order as OrderHelper;
 use Adyen\Payment\Helper\Idempotency;
 use Adyen\Payment\Helper\PaymentMethods\AbstractWalletPaymentMethod;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
@@ -65,6 +66,11 @@ class Result extends Action
      * @var Data
      */
     protected $_adyenHelper;
+
+    /**
+     * @var OrderHelper
+     */
+    protected $orderHelper;
 
     /**
      * @var OrderFactory
@@ -151,6 +157,7 @@ class Result extends Action
     /**
      * @param Context $context
      * @param Data $adyenHelper
+     * @param OrderHelper $orderHelper
      * @param OrderFactory $orderFactory
      * @param HistoryFactory $orderHistoryFactory
      * @param Session $session
@@ -170,6 +177,7 @@ class Result extends Action
     public function __construct(
         Context $context,
         Data $adyenHelper,
+        OrderHelper $orderHelper,
         OrderFactory $orderFactory,
         HistoryFactory $orderHistoryFactory,
         Session $session,
@@ -189,6 +197,7 @@ class Result extends Action
         parent::__construct($context);
 
         $this->_adyenHelper = $adyenHelper;
+        $this->orderHelper = $orderHelper;
         $this->_orderFactory = $orderFactory;
         $this->_orderHistoryFactory = $orderHistoryFactory;
         $this->_session = $session;
@@ -216,6 +225,13 @@ class Result extends Action
 
         if ($response) {
             $result = $this->validateResponse($response);
+            $paymentMethodType = $this->_order->getPayment()->getAdditionalInformation('action')['paymentMethodType'];
+
+            if (isset($paymentMethodType) && $paymentMethodType === 'giftcard' && $response['resultCode'] === 'cancelled') {
+                $status = Order::STATE_CANCELED;
+                $this->orderHelper->holdCancelOrder($this->_order, true);
+                $this->_order->setStatus($status);
+            }
 
             // Adjust the success path, fail path, and restore quote based on if it is a multishipping quote
             if (
