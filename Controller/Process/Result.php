@@ -217,8 +217,10 @@ class Result extends Action
         if ($response) {
             $result = $this->validateResponse($response);
             $order = $this->_order;
-            $paymentBrandCode = $order->getPayment()->getAdditionalInformation()['brand_code'];
-            if ($response['resultCode'] === 'cancelled' && isset($paymentBrandCode) && $paymentBrandCode === 'svs') {
+            $additionalInformation = $order->getPayment()->getAdditionalInformation();
+            $resultCode = isset($response['resultCode']) ? $response['resultCode'] : null;
+            $paymentBrandCode = isset($additionalInformation['brand_code']) ? $additionalInformation['brand_code'] : null;
+            if ($resultCode === 'cancelled' && $paymentBrandCode === 'svs') {
                 $this->dataHelper->cancelOrder($order);
             }
 
