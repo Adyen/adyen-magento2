@@ -225,12 +225,10 @@ class Result extends Action
 
         if ($response) {
             $result = $this->validateResponse($response);
-            $paymentMethodType = $this->_order->getPayment()->getAdditionalInformation('action')['paymentMethodType'];
-
-            if (isset($paymentMethodType) && $paymentMethodType === 'giftcard' && $response['resultCode'] === 'cancelled') {
-                $status = Order::STATE_CANCELED;
-                $this->orderHelper->holdCancelOrder($this->_order, true);
-                $this->_order->setStatus($status);
+            $order = $this->_order;
+            $paymentBrandCode = $order->getPayment()->getAdditionalInformation()['brand_code'];
+            if ($response['resultCode'] === 'cancelled' && isset($paymentBrandCode) && $paymentBrandCode === 'svs') {
+                $this->dataHelper->cancelOrder($order);
             }
 
             // Adjust the success path, fail path, and restore quote based on if it is a multishipping quote
