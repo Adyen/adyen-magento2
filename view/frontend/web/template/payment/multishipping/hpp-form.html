@@ -13,7 +13,9 @@
             <!-- ko if: icon -->
             <img data-bind="attr: {
                             'src': icon.url,
-                            'alt': paymentMethod.methodIdentifier + ' logo'
+                            'alt': paymentMethod.methodIdentifier + ' logo',
+                            'width': icon.width,
+                            'hight': icon.height
                             }">
             <!--/ko-->
 
