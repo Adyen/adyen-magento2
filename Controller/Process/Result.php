@@ -216,6 +216,13 @@ class Result extends Action
 
         if ($response) {
             $result = $this->validateResponse($response);
+            $order = $this->_order;
+            $additionalInformation = $order->getPayment()->getAdditionalInformation();
+            $resultCode = isset($response['resultCode']) ? $response['resultCode'] : null;
+            $paymentBrandCode = isset($additionalInformation['brand_code']) ? $additionalInformation['brand_code'] : null;
+            if ($resultCode === 'cancelled' && $paymentBrandCode === 'svs') {
+                $this->dataHelper->cancelOrder($order);
+            }
 
             // Adjust the success path, fail path, and restore quote based on if it is a multishipping quote
             if (
