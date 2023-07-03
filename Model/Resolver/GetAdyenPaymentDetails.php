@@ -77,7 +77,7 @@ class GetAdyenPaymentDetails implements ResolverInterface
         $this->jsonSerializer = $jsonSerializer;
         $this->adyenLogger = $adyenLogger;
         $this->errorMessageFormatter = $errorMessageFormatter ?? \Magento\Framework\App\ObjectManager::getInstance()
-            ->get(\Magento\QuoteGraphQl\Helper\Error\PlaceOrderMessageFormatter::class);;
+            ->get(\Magento\QuoteGraphQl\Helper\Error\PlaceOrderMessageFormatter::class);
     }
 
     /**
