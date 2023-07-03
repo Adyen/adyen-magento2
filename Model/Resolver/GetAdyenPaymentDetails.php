@@ -16,6 +16,7 @@ namespace Adyen\Payment\Model\Resolver;
 use Adyen\Payment\Exception\GraphQlAdyenException;
 use Adyen\Payment\Logger\AdyenLogger;
 use Exception;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\GraphQl\Exception\GraphQlNoSuchEntityException;
@@ -26,6 +27,7 @@ use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\QuoteGraphQl\Model\Cart\GetCartForUser;
 use Magento\Sales\Model\Order;
+use Magento\GraphQl\Helper\Error\AggregateExceptionMessageFormatter;
 
 class GetAdyenPaymentDetails implements ResolverInterface
 {
@@ -49,6 +51,10 @@ class GetAdyenPaymentDetails implements ResolverInterface
      * @var AdyenLogger
      */
     protected $adyenLogger;
+    /**
+     * @var AggregateExceptionMessageFormatter
+     */
+    protected $errorMessageFormatter;
 
     /**
      * @param GetCartForUser $getCartForUser
@@ -62,13 +68,16 @@ class GetAdyenPaymentDetails implements ResolverInterface
         DataProvider\GetAdyenPaymentStatus $getAdyenPaymentStatusDataProvider,
         Order $order,
         Json $jsonSerializer,
-        AdyenLogger $adyenLogger
+        AdyenLogger $adyenLogger,
+        AggregateExceptionMessageFormatter $errorMessageFormatter = null
     ) {
         $this->getCartForUser = $getCartForUser;
         $this->getAdyenPaymentStatusDataProvider = $getAdyenPaymentStatusDataProvider;
         $this->order = $order;
         $this->jsonSerializer = $jsonSerializer;
         $this->adyenLogger = $adyenLogger;
+        $this->errorMessageFormatter = $errorMessageFormatter ?? \Magento\Framework\App\ObjectManager::getInstance()
+            ->get(\Magento\QuoteGraphQl\Helper\Error\PlaceOrderMessageFormatter::class);
     }
 
     /**
@@ -116,6 +125,16 @@ class GetAdyenPaymentDetails implements ResolverInterface
 
         try {
             return $this->getAdyenPaymentStatusDataProvider->getGetAdyenPaymentDetails($this->jsonSerializer->serialize($payload));
+        } catch (LocalizedException $e) {
+            throw $this->errorMessageFormatter->getFormatted(
+                $e,
+                __('Unable to place order: A server error stopped your order from being placed. ' .
+                    'Please try to place your order again'),
+                'Unable to place order',
+                $field,
+                $context,
+                $info
+            );
         } catch (Exception $exception) {
             $this->adyenLogger->error(sprintf(
                 'GraphQl payment details call failed with error message: %s',
