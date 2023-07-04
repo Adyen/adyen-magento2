@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="adyen_order_status" translate="label" type="text" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label><![CDATA[Order status]]></label>
+        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+        <comment>
+            <![CDATA[<p>Define all different statuses for your shoppers’ orders. This provides better understanding of the order’s progress and ensure a smooth experience. </p>]]>
+        </comment>
+        <field id="order_status" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label>Order creation</label>
+            <tooltip>Status given to newly created orders before payment result confirmation via server webhooks from Adyen.</tooltip>
+            <source_model>Magento\Sales\Model\Config\Source\Order\Status\NewStatus</source_model>
+            <backend_model>Adyen\Payment\Model\Config\Backend\OrderStatus</backend_model>
+            <config_path>payment/adyen_abstract/order_status</config_path>
+        </field>
+        <field id="payment_pre_authorized" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label>Payment authorisation</label>
+            <tooltip>Status given to orders after authorisation confirmed by an AUTHORISATION webhook from Adyen. Note: an authorisation status via the result URL does not yet trigger this status.</tooltip>
+            <source_model>Adyen\Payment\Model\Config\Source\PreAuthorized</source_model>
+            <config_path>payment/adyen_abstract/payment_pre_authorized</config_path>
+        </field>
+        <field id="payment_authorized_virtual" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Payment capture for virtual products</label>
+            <tooltip>(optional) Select only status assigned to state complete. Leave empty to use the same as normal products</tooltip>
+            <source_model>Adyen\Payment\Model\Config\Source\Complete</source_model>
+            <config_path>payment/adyen_abstract/payment_authorized_virtual</config_path>
+        </field>
+        <field id="pending_status" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Pending bank transfer/SEPA orders</label>
+            <tooltip>By default, Adyen does not inform your Magento store about pending payments. If you want these webhooks to be received, Go to Adyen Customer Area => Server Communication and add BankTransfer Pending Webhook and Direct-Debit Pending Webhook.</tooltip>
+            <source_model>Magento\Sales\Model\Config\Source\Order\Status\NewStatus</source_model>
+            <config_path>payment/adyen_abstract/pending_status</config_path>
+        </field>
+        <field id="payment_authorized" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label>Payment confirmed</label>
+            <tooltip>Status given to orders after capture result is confirmed by an AUTHORISATION webhook (if capture mode = immediate) or a CAPTURE webhook (if capture mode = manual capture) from Adyen.</tooltip>
+            <source_model>Adyen\Payment\Model\Config\Source\PaymentConfirmed</source_model>
+            <config_path>payment/adyen_abstract/payment_authorized</config_path>
+        </field>
+        <field id="payment_cancelled" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label>Order cancellation</label>
+            <tooltip>Status given to orders after order cancellation is confirmed by a CANCEL_OR_REFUND webhook from Adyen. If orders are already invoiced, they cannot be cancelled, but will be refunded instead.</tooltip>
+            <source_model>Adyen\Payment\Model\Config\Source\Cancelled</source_model>
+            <config_path>payment/adyen_abstract/payment_cancelled</config_path>
+        </field>
+        <field id="send_email_bank_sepa_on_pending" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Send order confirmation email for Bank Transfer/SEPA</label>
+            <tooltip>Send a confirmation mail after Bank Tranfer/SEPA is placed (not yet paid). If you want these webhooks to be received, Go to Adyen Customer Area => Server Communication and add BankTransfer Pending Webhook and Direct-Debit Pending Webhook.</tooltip>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_abstract/send_email_bank_sepa_on_pending</config_path>
+        </field>
+    </group>
+</include>
