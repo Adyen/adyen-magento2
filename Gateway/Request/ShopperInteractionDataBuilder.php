@@ -56,7 +56,7 @@ class ShopperInteractionDataBuilder implements BuilderInterface
             $this->appState->getAreaCode() == \Magento\Framework\App\Area::AREA_ADMINHTML) {
             // Backend CC orders are MOTO
             $shopperInteraction = self::SHOPPER_INTERACTION_MOTO;
-        } elseif (strpos($paymentMethod, '_vault')) {
+        } elseif (str_contains($paymentMethod, '_vault')) {
             // Vault is ContAuth
             $shopperInteraction = self::SHOPPER_INTERACTION_CONTAUTH;
         }
