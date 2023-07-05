@@ -31,7 +31,7 @@ class Hpp extends AbstractInfo
         array $data = []
     ) {
         $this->chargedCurrency = $chargedCurrency;
-        parent::__construct($configHelper, $adyenHelper, $adyenOrderPaymentCollectionFactory, $context, $data);
+        parent::__construct($configHelper, $adyenOrderPaymentCollectionFactory, $context, $data);
     }
 
     /**

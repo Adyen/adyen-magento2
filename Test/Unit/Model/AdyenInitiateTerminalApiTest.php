@@ -50,8 +50,8 @@ class AdyenInitiateTerminalApiTest extends \PHPUnit\Framework\TestCase
 
         // Create a map of arguments to return values.
         $map = [
-            ['total_timeout', null, ''],
-            ['recurring_type', null, self::RECURRING_TYPE]
+            ['total_timeout', null, false, ''],
+            ['recurring_type', null, false, self::RECURRING_TYPE]
         ];
 
         // Configure the stub.

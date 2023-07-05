@@ -70,12 +70,14 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
      * AdyenInitiateTerminalApi constructor.
      *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param Config $configHelper
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Magento\Checkout\Model\Session $checkoutSession
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Framework\App\ProductMetadataInterface $productMetadata
-     * @param array $data
      * @param ChargedCurrency $chargedCurrency
+     * @param array $data
+     * @throws NoSuchEntityException
      * @throws \Adyen\AdyenException
      */
     public function __construct(
