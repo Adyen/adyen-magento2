@@ -198,6 +198,7 @@ define(
 
             fetchRedeemedGiftcards: function () {
                 let self = this;
+
                 let orderAmount = window.checkoutConfig.payment.adyen.giftcard.quoteAmount;
 
                 adyenPaymentService.fetchRedeemedGiftcards().done(function (giftcards) {
