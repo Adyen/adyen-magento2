@@ -698,6 +698,12 @@ class Config
 
         return trim($checkoutFrontendRegion);
     }
+
+    public function getRatePayId($storeId = null)
+    {
+        return $this->getAdyenHppConfigData("ratepay_id", $storeId);
+    }
+
     /**
      * Retrieve information from payment configuration
      *

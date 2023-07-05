@@ -865,11 +865,6 @@ class Data extends AbstractHelper
         return strpos($paymentMethod, $type) !== false;
     }
 
-    public function getRatePayId($storeId = null)
-    {
-        return $this->configHelper->getAdyenHppConfigData("ratepay_id", $storeId);
-    }
-
     /**
      * For Klarna And AfterPay use VatCategory High others use none
      *
