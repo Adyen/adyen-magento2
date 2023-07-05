@@ -4,7 +4,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2021 Adyen NV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -12,13 +12,12 @@
 -->
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
-    <group id="adyen_required_settings" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1"
+    <group id="adyen_initial_setup" translate="label" type="text" sortOrder="200" showInDefault="1" showInWebsite="1"
            showInStore="1">
         <fieldset_css>adyen_required_config_settings</fieldset_css>
-        <label><![CDATA[Required Settings]]></label>
+        <label><![CDATA[Initial Setup]]></label>
         <comment>
-            <![CDATA[<p>Use our <a target="_blank" href="https://docs.adyen.com/plugins/magento-2/set-up-the-plugin-in-magento#step-3-configure-the-plugin-in-magento">documentation</a> in case you have any doubt to fill in a specific information
-                    </p>]]>
+            <![CDATA[<p>Start by connecting your Customer Area to Adobe Commerce plugin.</p>]]>
         </comment>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <field id="configuration_mode" translate="label" type="select" sortOrder="5" showInDefault="1" showInWebsite="1"
@@ -202,15 +201,6 @@
                 <![CDATA[Currency used for Adyen payment processing. This setting is hidden to ensure processing of payments in the expected currency (Display by default), see <a target="_blank" href="https://docs.adyen.com/developers/plugins/magento-2/set-up-the-plugin-in-magento#selecting-charged-currency">Adyen docs</a> for more information.]]></comment>
             <source_model>Adyen\Payment\Model\Config\Source\ChargedCurrency</source_model>
             <config_path>payment/adyen_abstract/charged_currency</config_path>
-        </field>
-        <field id="debug" translate="label" type="select" sortOrder="120" showInDefault="1" showInWebsite="1"
-               showInStore="0">
-            <label>Debug logging</label>
-            <depends>
-                <field id="configuration_mode">manual</field>
-            </depends>
-            <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
-            <config_path>payment/adyen_abstract/debug</config_path>
         </field>
         <field id="configuration_wizard" translate="label" type="button" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="1">
             <depends>

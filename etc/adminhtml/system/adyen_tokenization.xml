@@ -4,15 +4,15 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 -->
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
-    <group id="adyen_oneclick" translate="label" type="text" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="1">
-        <label><![CDATA[Card Tokenization]]></label>
+    <group id="adyen_tokenization" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label><![CDATA[Tokenization]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <fieldset_css>adyen-method-adyen-cc</fieldset_css>
         <comment><![CDATA[During checkout, shoppers can choose to have their payment details stored in Adyen’s highly secure platform. Adyen handles this process for its customers. Shoppers can then select the stored payment method during checkout.]]></comment>
@@ -69,5 +69,37 @@
                 <field id="recurring_card_mode">Adyen Tokenization</field>
             </depends>
         </field>
+
+        <!--hpp token-->
+        <field id="adyen_hpp_vault_active" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Store alternative payment methods</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <tooltip>Alternative payment methods will only be shown during checkout if Magento Vault is enabled. If this is option enabled, all Apple pay, Google pay, SEPA and PayPal payment methods will be tokenized.</tooltip>
+            <config_path>payment/adyen_hpp_vault/active</config_path>
+            <depends>
+                <field id="active">1</field>
+            </depends>
+        </field>
+        <field id="adyen_hpp_tokenized_payment_methods" translate="label" type="multiselect" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Tokenized Payment Methods</label>
+            <config_path>payment/adyen_hpp/tokenized_payment_methods</config_path>
+            <source_model>Adyen\Payment\Model\Config\Source\TokenizedPaymentMethods</source_model>
+            <tooltip>Selected payment methods will be tokenized. Please make sure to enable these payment methods in your Adyen Customer Area.</tooltip>
+            <comment model="Adyen\Payment\Model\Comment\TokenizedPaymentMethods"/>
+            <depends>
+                <field id="active">1</field>
+                <field id="adyen_hpp_vault_active">1</field>
+            </depends>
+        </field>
+        <field id="adyen_hpp_token_type" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Token type</label>
+            <source_model>Adyen\Payment\Model\Config\Source\Recurring\RecurringType</source_model>
+            <config_path>payment/adyen_hpp/token_type</config_path>
+            <depends>
+                <field id="active">1</field>
+                <field id="adyen_hpp_vault_active">1</field>
+            </depends>
+        </field>
+        <!--end of hpp token-->
     </group>
 </include>

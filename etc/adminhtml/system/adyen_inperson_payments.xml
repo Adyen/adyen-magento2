@@ -3,15 +3,15 @@
   ~
   ~ Adyen Payment Module
   ~
-  ~ Copyright (c) 2018 Adyen B.V.
+  ~ Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
   ~ This file is open source and available under the MIT license.
   ~ See the LICENSE file for more info.
   ~
   ~ Author: Adyen <magento@adyen.com>
   -->
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
-    <group id="adyen_pos_cloud" translate="label" type="text" sortOrder="350" showInDefault="1" showInWebsite="1" showInStore="1">
-        <label><![CDATA[Point of Sale (POS) Terminal Payment]]></label>
+    <group id="adyen_inperson_payments" translate="label" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label><![CDATA[In-person payments]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <fieldset_css>adyen-method-adyen-cc</fieldset_css>
         <comment>Process POS terminal transactions</comment>
