@@ -101,7 +101,7 @@ class Hpp extends AbstractInfo
     public function getPartialPayments()
     {
         // retrieve partial payments of the order
-        $orderPaymentCollection = $this->_adyenOrderPaymentCollectionFactory
+        $orderPaymentCollection = $this->adyenOrderPaymentCollectionFactory
             ->create()
             ->addPaymentFilterAscending($this->getInfo()->getId());
 
