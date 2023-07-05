@@ -53,13 +53,6 @@
         </resources>
     </route>
 
-
-
-
-
-
-
-
     <route url="/V1/adyen/carts/mine/state-data" method="POST">
         <service class="Adyen\Payment\Api\AdyenStateDataInterface" method="save"/>
         <resources>
@@ -74,14 +67,12 @@
         </resources>
     </route>
 
-
-
-
-
-
-
-
-
+    <route url="/V1/adyen/giftcards/mine/:quoteId" method="GET">
+        <service class="Adyen\Payment\Api\AdyenGiftcardInterface" method="getRedeemedGiftcards"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
 
     <route url="/V1/adyen/orders/guest-carts/:cartId/payment-status" method="POST">
         <service class="Adyen\Payment\Api\AdyenOrderPaymentStatusInterface" method="getOrderPaymentStatus"/>

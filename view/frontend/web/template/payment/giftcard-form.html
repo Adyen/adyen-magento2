@@ -9,6 +9,7 @@
  * Author: Adyen <magento@adyen.com>
  */
 -->
+<!-- ko if: giftcardPaymentMethods -->
 <div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}">
     <div class="payment-method-title field choice">
         <input type="radio"
@@ -34,36 +35,57 @@
 
         <div data-bind="attr: {'id': getCode() + '_new_giftcard_wrapper'}">
             <div class="field" data-bind="attr: {'id': getCode() + '_giftcard_button_wrapper'}, visible: canAddNewGiftCard">
-                <button data-bind="click: addNewGiftcard">Add Giftcard</button>
+                <button data-bind="click: addNewGiftcard, attr: {'class': 'adyen-checkout__button'}">
+                    <span data-bind="text: $t('Add Giftcard')"></span>
+                </button>
             </div>
             <div class="field" data-bind="attr: {'id': getCode() + '_giftcard_selector_wrapper'}, visible: showAvailableGiftcardPaymentMethods">
                 <select data-bind="attr: {id: getCode() + '_giftcard_payment_methods', 'data-container': getCode() + '_giftcard_payment_methods', 'data-validate': JSON.stringify({required:false})},
                                     options: giftcardPaymentMethods,
                                     optionsValue: 'value',
                                     optionsText: 'key',
-                                    event:{ change: giftcardOnselect}"
+                                    event:{ change: giftcardOnSelect}"
                         data-validate="{required:true}">
                 </select>
             </div>
         </div>
 
+        <h2 data-bind="attr: {'class': 'adyen-giftcard-header'}, visible: giftcardTitle, text: giftcardTitle"></h2>
         <div class="field" data-bind="attr: {'id': 'giftcard-component-wrapper'}"></div>
+
+        <button data-bind="click: removeSingleGiftcard, visible: showRemoveSingleGiftcardButton,
+            attr: {'class': 'adyen-checkout__button adyen-giftcard-remove-single'}">
+            <span data-bind="text: $t('Remove Giftcard')"></span>
+        </button>
 
         <div class="field" data-bind="attr: {'id': 'adyen-redeemed-giftcards'}">
             <!-- ko foreach: { data: redeemedCards, as: 'redeemedCard' } -->
                 <div class="adyen-giftcard-item">
-                    <div class="adyen-giftcard-details">
-                        <img src="https://checkoutshopper-live.adyen.com/checkoutshopper/images/logos/genericgiftcard.svg">
-                        <span data-bind="attr: {'class': 'adyen-giftcard-title'}, test: redeemedCard.paymentMethod.brand"></span>
-                    </div>
-                    <div class="adyen-giftcard-remove">
-                        <a href="#" class="adyen-giftcard-remove-button">Remove</a>
+                    <div class="adyen-giftcard-title">
+                        <img src="https://checkoutshopper-live.adyen.com/checkoutshopper/images/logos/genericgiftcard.svg" alt="adyen-giftcard-logo" class="adyen-giftcard-logo">
+                        <span data-bind="attr: {'class': 'adyen-giftcard-brand'}, text: redeemedCard.title"></span>
+                        <a href="#" data-bind="click: $parent.removeGiftcard.bind($parent), text: $t('Remove')" class="adyen-giftcard-remove-button"></a>
                     </div>
                     <div class="adyen-giftcard-summary">
-                        <p>Deducted amount: xx.xx EUR</p>
+                        <p><span data-bind="text: $t('Deducted amount')"></span>: <span data-bind="text: redeemedCard.deductedAmount"></span> <span data-bind="text: redeemedCard.balance.currency"></span></p>
                     </div>
                 </div>
             <!-- /ko -->
         </div>
+
+        <div class="actions-toolbar">
+            <div class="primary">
+                <button class="action primary checkout"
+                        type="submit"
+                        data-bind="click: placeOrder,
+                            attr: {title: $t('Place Order')},
+                            enable: true,
+                            visible: showPlaceOrderButton"
+                        disabled>
+                    <span data-bind="text: $t('Place Order')"></span>
+                </button>
+            </div>
+        </div>
     </div>
 </div>
+<!--/ko-->

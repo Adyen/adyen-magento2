@@ -421,7 +421,7 @@
         <active>1</active>
         <model>AdyenPaymentGiftcardFacade</model>
         <order_status>pending</order_status>
-        <title>Giftcards Adyen</title>
+        <title>Giftcards</title>
         <allowspecific>0</allowspecific>
         <sort_order>0</sort_order>
         <payment_action>authorize</payment_action>
