@@ -12,8 +12,10 @@
 namespace Adyen\Payment\Model\Ui;
 
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\GiftcardPayment;
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Checkout\Model\Session as CheckoutSession;
+use Magento\Framework\Pricing\Helper\Data as PricingData;
 
 class AdyenGiftcardConfigProvider implements ConfigProviderInterface
 {
@@ -21,22 +23,60 @@ class AdyenGiftcardConfigProvider implements ConfigProviderInterface
 
     private CheckoutSession $checkoutSession;
     private Data $adyenHelper;
+    private GiftcardPayment $giftcardPaymentHelper;
+    private PricingData $pricingDataHelper;
 
     public function __construct(
         CheckoutSession $checkoutSession,
-        Data $adyenHelper
+        Data $adyenHelper,
+        GiftcardPayment $giftcardPaymentHelper,
+        PricingData $pricingDataHelper
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->adyenHelper = $adyenHelper;
+        $this->giftcardPaymentHelper = $giftcardPaymentHelper;
+        $this->pricingDataHelper = $pricingDataHelper;
     }
 
     public function getConfig()
     {
-        $config['payment']['adyenGiftcard']['amount'] = $this->adyenHelper->formatAmount(
-            $this->checkoutSession->getQuote()->getGrandTotal(),
-            $this->checkoutSession->getQuote()->getQuoteCurrencyCode()
+        $quote = $this->checkoutSession->getQuote();
+        $currency = $quote->getQuoteCurrencyCode();
+        $formattedOrderAmount = $this->adyenHelper->formatAmount(
+            $quote->getGrandTotal(),
+            $currency
         );
-        $config['payment']['adyenGiftcard']['currency'] = $this->checkoutSession->getQuote()->getQuoteCurrencyCode();
+
+        $config['payment']['adyen']['giftcard']['quoteAmount'] = $formattedOrderAmount;
+        $config['payment']['adyen']['giftcard']['currency'] = $currency;
+
+        $giftcardDiscount = $this->giftcardPaymentHelper->getQuoteGiftcardDiscount($quote);
+        $hasRedeemedGiftcard = isset($giftcardDiscount);
+
+        $config['payment']['adyen']['giftcard']['isRedeemed'] = $hasRedeemedGiftcard;
+
+        if ($hasRedeemedGiftcard) {
+            $totalDiscount = $this->adyenHelper->originalAmount(
+                $giftcardDiscount,
+                $currency
+            );
+            $remainingOrderAmount = $this->adyenHelper->originalAmount(
+                $formattedOrderAmount - $giftcardDiscount,
+                $currency
+            );
+
+            $config['payment']['adyen']['giftcard']['totalDiscount'] = $this->pricingDataHelper->currency(
+                $totalDiscount,
+                $currency,
+                false
+            );
+
+            $config['payment']['adyen']['giftcard']['remainingOrderAmount'] = $this->pricingDataHelper->currency(
+                $remainingOrderAmount,
+                $currency,
+                false
+            );
+        }
 
         return $config;
     }

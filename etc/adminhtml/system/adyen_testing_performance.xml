@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="adyen_testing_performance" translate="label" type="text" sortOrder="600" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label><![CDATA[Testing and performance]]></label>
+        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+        <comment>
+            <![CDATA[<p>Optimize your testing and performance measures to ensure Adyen’s plugin functionality.</p>]]>
+        </comment>
+        <field id="ignore_refund_notification" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Ignore refund webhook</label>
+            <tooltip>If the refund is done on the Adyen Platform it will send a refund webhook to Magento which automatically creates a credit memo. If you set this setting to 'Yes', this will not happen because it will not process any of the REFUND webhook that is received.</tooltip>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_abstract/ignore_refund_notification</config_path>
+        </field>
+        <field id="debug" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1"
+               showInStore="0">
+            <label>Debug logging</label>
+            <depends>
+                <field id="configuration_mode">manual</field>
+            </depends>
+            <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
+            <config_path>payment/adyen_abstract/debug</config_path>
+        </field>
+        <field id="webhook_notification_processor" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
+            <label>Webhook processor</label>
+            <source_model>Adyen\Payment\Model\Config\Source\NotificationProcessor</source_model>
+            <config_path>payment/adyen_abstract/webhook_notification_processor</config_path>
+            <comment>Use cron or queue (async) to process webhook notifications</comment>
+        </field>
+        <field id="notifications_ip_check" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Check webhook's IP address</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_abstract/notifications_ip_check</config_path>
+            <comment>
+                <![CDATA[
+                If enabled webhooks will be accepted only when the IP address matches Adyen's servers. To learn more about these settings refer to
+                <a target="_blank" href="https://docs.adyen.com/plugins/magento-2/set-up-the-plugin-in-magento">Adyen documentation</a>.
+                ]]>
+            </comment>
+        </field>
+    </group>
+</include>

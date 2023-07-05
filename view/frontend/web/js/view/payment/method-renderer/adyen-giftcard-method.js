@@ -129,14 +129,14 @@ define(
             },
 
             initiateAdyenCheckout: function () {
-                let remainingBalance = window.checkoutConfig.payment.adyenGiftcard.amount - this.totalGiftcardBalance();
+                let remainingBalance = window.checkoutConfig.payment.adyen.giftcard.quoteAmount - this.totalGiftcardBalance();
 
                 let adyenCheckoutConfiguration = {
                     locale: adyenConfiguration.getLocale(),
                     clientKey: adyenConfiguration.getClientKey(),
                     environment: adyenConfiguration.getCheckoutEnvironment(),
                     amount: {
-                        currency: window.checkoutConfig.payment.adyenGiftcard.currency,
+                        currency: window.checkoutConfig.payment.adyen.giftcard.currency,
                         value: (remainingBalance < 0) ? 0 : remainingBalance
                     }
                 };
@@ -177,7 +177,7 @@ define(
 
             handleBalanceResult: function (balanceResponse, stateData, resolve) {
                 let self = this;
-                let orderAmount = window.checkoutConfig.payment.adyenGiftcard.amount;
+                let orderAmount = window.checkoutConfig.payment.adyen.giftcard.quoteAmount;
 
                 if(this.totalGiftcardBalance() === 0 && balanceResponse.balance.value >= orderAmount) {
                     resolve(balanceResponse);
@@ -198,7 +198,8 @@ define(
 
             fetchRedeemedGiftcards: function () {
                 let self = this;
-                let orderAmount = window.checkoutConfig.payment.adyenGiftcard.amount;
+
+                let orderAmount = window.checkoutConfig.payment.adyen.giftcard.quoteAmount;
 
                 adyenPaymentService.fetchRedeemedGiftcards().done(function (giftcards) {
                     giftcards = JSON.parse(giftcards);

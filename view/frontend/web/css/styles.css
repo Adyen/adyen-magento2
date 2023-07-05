@@ -27,6 +27,11 @@
     width: auto;
 }
 
+.adyen-checkout-ctp__card-image {
+    height: 24px;
+    width: auto;
+}
+
 #adyen_giftcard_new_giftcard_wrapper {
     margin-bottom: 10px;
 }
