@@ -14,7 +14,8 @@ $_colspan = $block->isAddAfter() ? 2 : 1;
 
 <div class="design_theme_ua_regexp" id="grid<?= $block->escapeHtmlAttr($_htmlId) ?>">
     <div class="admin__control-table-wrapper">
-        <table class="admin__control-table" id="<?= $block->escapeHtmlAttr($block->getElement()->getId()) ?>">
+        <table class="admin__control-table" id="<?= $block->escapeHtmlAttr($block->getElement()->getId()) ?>"
+        aria-describedby="Recurring processing model configuration table">
             <thead>
             <tr>
                 <?php foreach ($block->getColumns() as $columnName => $column): ?>
