@@ -570,23 +570,6 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Retrieve the Checkout frontend region
-     *
-     * @param null|int|string $storeId
-     * @return string
-     */
-    public function getCheckoutFrontendRegion($storeId = null)
-    {
-        $checkoutFrontendRegion = $this->configHelper->getAdyenAbstractConfigData('checkout_frontend_region', $storeId);
-
-        if (is_null($checkoutFrontendRegion)) {
-            return null;
-        }
-
-        return trim((string) $checkoutFrontendRegion);
-    }
-
-    /**
      * Cancels the order
      *
      * @param $order
@@ -1288,7 +1271,7 @@ class Data extends AbstractHelper
         $client->setApplicationName(self::APPLICATION_NAME);
         $client->setXApiKey($apiKey);
 
-        $checkoutFrontendRegion = $this->getCheckoutFrontendRegion($storeId);
+        $checkoutFrontendRegion = $this->configHelper->getCheckoutFrontendRegion($storeId);
         if (isset($checkoutFrontendRegion)) {
             $client->setRegion($checkoutFrontendRegion);
         }
@@ -1414,7 +1397,7 @@ class Data extends AbstractHelper
             return self::TEST;
         }
 
-        switch ($this->getCheckoutFrontendRegion($storeId)) {
+        switch ($this->configHelper->getCheckoutFrontendRegion($storeId)) {
             case "au":
                 return self::LIVE_AU;
             case "us":
