@@ -20,7 +20,7 @@ class SelectYesNo extends Select
      *
      * @var array
      */
-    protected $_options = [
+    protected $options = [
         '0' => 'No',
         '1' => 'Yes'
     ];

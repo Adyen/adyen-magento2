@@ -58,7 +58,8 @@ class PaymentMethodRenderer extends AbstractTokenRenderer
     public function canRender(PaymentTokenInterface $token): bool
     {
         $details = json_decode($token->getTokenDetails() ?: '{}', true);
-        $showToken = array_key_exists(Vault::TOKEN_TYPE, $details) && $details[Vault::TOKEN_TYPE] === Vault::CARD_ON_FILE;
+        $showToken = array_key_exists(Vault::TOKEN_TYPE, $details) &&
+            $details[Vault::TOKEN_TYPE] === Vault::CARD_ON_FILE;
 
         return $this->vaultHelper->isAdyenPaymentCode($token->getPaymentMethodCode()) && $showToken;
     }

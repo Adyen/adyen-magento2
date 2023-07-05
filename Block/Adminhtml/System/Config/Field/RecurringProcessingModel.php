@@ -21,7 +21,7 @@ class RecurringProcessingModel extends Select
      *
      * @var array
      */
-    protected $_options = [
+    protected $options = [
         Vault::CARD_ON_FILE => 'Card on File',
         Vault::UNSCHEDULED_CARD_ON_FILE => 'Unscheduled Card on File',
         Vault::SUBSCRIPTION => 'Subscription'

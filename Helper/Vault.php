@@ -227,7 +227,8 @@ class Vault
 
         $recurringProcessingModel = $requestRpm ?? $configuredRpm;
 
-        if (isset($recurringProcessingModel) && $this->paymentMethodSupportsRpm($paymentMethod, $recurringProcessingModel)) {
+        if (isset($recurringProcessingModel) &&
+            $this->paymentMethodSupportsRpm($paymentMethod, $recurringProcessingModel)) {
             $request['storePaymentMethod'] = true;
             $request['recurringProcessingModel'] = $recurringProcessingModel;
         }
@@ -460,9 +461,15 @@ class Vault
 
         if ($this->hasRecurringDetailReference($response)) {
             $storeId = $paymentMethodInstance->getStore();
-            $canStorePaymentMethods = $this->getPaymentMethodRecurringActive($paymentMethodInstance->getCode(), $storeId);
+            $canStorePaymentMethods = $this->getPaymentMethodRecurringActive(
+                $paymentMethodInstance->getCode(),
+                $storeId
+            );
 
-            $cardTokenizationEnabled = $this->getPaymentMethodRecurringActive(AdyenCcConfigProvider::CODE, $storeId);
+            $cardTokenizationEnabled = $this->getPaymentMethodRecurringActive(
+                AdyenCcConfigProvider::CODE,
+                $storeId
+            );
 
             // If payment method is NOT card
             // Else if card

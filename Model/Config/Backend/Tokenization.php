@@ -142,7 +142,7 @@ class Tokenization extends Value
 
                 $arrayKey = $this->mathRandom->getUniqueHash('_');
                 $result[$arrayKey] = $paymentMethodValue;
-            } else if ($methodInstance instanceof PaymentMethodInterface && $methodInstance->supportsRecurring()) {
+            } elseif ($methodInstance instanceof PaymentMethodInterface && $methodInstance->supportsRecurring()) {
                 $paymentMethodValue = [
                     'name' => $methodInstance::NAME,
                     'payment_method_code' => $adyenPaymentMethod,

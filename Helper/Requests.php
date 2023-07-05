@@ -383,7 +383,10 @@ class Requests extends AbstractHelper
             $request['recurringProcessingModel'] = $recurringProcessingModel;
         } else {
             if (in_array($payment->getAdditionalInformation('cc_type'), CcType::ALLOWED_TYPES)) {
-                $recurringProcessingModel = $this->vaultHelper->getPaymentMethodRecurringProcessingModel(AdyenCcConfigProvider::CODE, $storeId);
+                $recurringProcessingModel = $this->vaultHelper->getPaymentMethodRecurringProcessingModel(
+                    AdyenCcConfigProvider::CODE,
+                    $storeId
+                );
                 $request['recurringProcessingModel'] = $recurringProcessingModel;
             } else {
                 $request['recurringProcessingModel'] =
