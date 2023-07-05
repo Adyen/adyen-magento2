@@ -36,6 +36,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
         $this->addFieldToFilter('done', 0);
         $this->addFieldToFilter('processing', 0);
         $this->addFieldToFilter('created_at', $dateRange);
+        $this->addFieldToFilter('error_count', ['lt' => \Adyen\Payment\Model\Notification::MAX_ERROR_COUNT]);
         return $this;
     }
 

@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="adyen_payment_methods" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1"
+           showInStore="1">
+        <label><![CDATA[Payment methods]]></label>
+        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+        <comment> <![CDATA[<p>By enabling your payment methods here, we can automatically retrieve the payment preferences already defined in your Customer Area.</p>]]>
+        </comment>
+        <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1"
+               showInStore="1">
+            <label>Payment methods enabled</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <backend_model>Adyen\Payment\Model\Config\Backend\PaymentMethodsStatus</backend_model>
+            <config_path>payment/adyen_abstract/payment_methods_active</config_path>
+        </field>
+        <include path="Adyen_Payment::system/adyen_card_payments.xml"/>
+        <include path="Adyen_Payment::system/adyen_alternative_payment_methods.xml"/>
+    </group>
+</include>

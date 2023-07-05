@@ -865,9 +865,9 @@ class Data extends AbstractHelper
         return strpos($paymentMethod, $type) !== false;
     }
 
-    public function getRatePayId()
+    public function getRatePayId($storeId = null)
     {
-        return $this->configHelper->getAdyenHppConfigData("ratepay_id");
+        return $this->configHelper->getAdyenHppConfigData("ratepay_id", $storeId);
     }
 
     /**
@@ -1336,7 +1336,7 @@ class Data extends AbstractHelper
      */
     public function getOrigin($storeId)
     {
-        if ( $paymentOriginUrl = $this->configHelper->getAdyenAbstractConfigData("payment_origin_url", $storeId) ) {
+        if ($paymentOriginUrl = $this->configHelper->getAdyenAbstractConfigData("payment_origin_url", $storeId) ) {
             return $paymentOriginUrl;
         }
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();

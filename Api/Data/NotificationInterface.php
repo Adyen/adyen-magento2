@@ -37,8 +37,15 @@ interface NotificationInterface
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
 
+    /**
+     * @return mixed
+     */
     public function getEntityId();
 
+    /**
+     * @param $entityId
+     * @return mixed
+     */
     public function setEntityId($entityId);
 
     /**

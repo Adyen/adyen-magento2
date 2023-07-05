@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
+use Adyen\Payment\Model\Config\Source\NotificationProcessor;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
@@ -37,6 +38,7 @@ class Config
     const XML_HOUSE_NUMBER_STREET_LINE = "house_number_street_line";
     const XML_ADYEN_ONECLICK = 'adyen_oneclick';
     const XML_ADYEN_HPP = 'adyen_hpp';
+    const XML_ADYEN_CC = 'adyen_cc';
     const XML_ADYEN_HPP_VAULT = 'adyen_hpp_vault';
     const XML_ADYEN_CC_VAULT = 'adyen_cc_vault';
     const XML_ADYEN_MOTO = 'adyen_moto';
@@ -45,7 +47,10 @@ class Config
     const XML_STATUS_FRAUD_MANUAL_REVIEW = 'fraud_manual_review_status';
     const XML_STATUS_FRAUD_MANUAL_REVIEW_ACCEPT = 'fraud_manual_review_accept_status';
     const XML_MOTO_MERCHANT_ACCOUNTS = 'moto_merchant_accounts';
+    const XML_ADYEN_SUPPORT_PREFIX = 'adyen_support';
+    const XML_CONFIGURATION_MODE = 'configuration_mode';
     const XML_ADYEN_POS_CLOUD = 'adyen_pos_cloud';
+    const XML_WEBHOOK_NOTIFICATION_PROCESSOR = 'webhook_notification_processor';
 
     /**
      * @var ScopeConfigInterface
@@ -127,9 +132,9 @@ class Config
 
     /**
      * @param $storeId
-     * @return bool|mixed
+     * @return array|null
      */
-    public function getMotoMerchantAccounts($storeId = null)
+    public function getMotoMerchantAccounts($storeId = null): ?array
     {
         $serializedData = $this->getConfigData(
             self::XML_MOTO_MERCHANT_ACCOUNTS,
@@ -138,6 +143,15 @@ class Config
         );
 
         return $this->serializer->unserialize($serializedData);
+    }
+
+    /**
+     * @param $storeId
+     * @return bool|mixed
+     */
+    public function isMotoPaymentMethodEnabled($storeId = null): bool
+    {
+        return $this->getConfigData('active', Config::XML_ADYEN_MOTO, $storeId, true);
     }
 
     /**
@@ -291,6 +305,16 @@ class Config
     public function isMotoDemoMode(array $motoMerchantAccountProperties): bool
     {
         return $motoMerchantAccountProperties['demo_mode'] === '1';
+    }
+
+    /**
+     * @param $storeId
+     * @return bool|mixed
+     * @deprecated
+     */
+    public function isAlternativePaymentMethodsEnabled($storeId = null): bool
+    {
+        return $this->getConfigData('active', Config::XML_ADYEN_HPP, $storeId, true);
     }
 
     /**
@@ -479,6 +503,11 @@ class Config
         return $this->getConfigData('card_type', self::XML_ADYEN_ONECLICK, $storeId);
     }
 
+    public function isClickToPayEnabled($storeId): ?bool
+    {
+        return $this->getConfigData('enable_click_to_pay', self::XML_ADYEN_CC, $storeId);
+    }
+
     public function getTokenizedPaymentMethods($storeId)
     {
         return $this->getConfigData('tokenized_payment_methods', self::XML_ADYEN_HPP, $storeId);
@@ -494,6 +523,11 @@ class Config
         return $this->getConfigData('auto_capture_openinvoice', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId, true);
     }
 
+    public function getSupportMailAddress(int $storeId): ?string
+    {
+        return $this->getConfigData('adyen_support_email_address', self::XML_ADYEN_SUPPORT_PREFIX, $storeId);
+    }
+
     public function getAdyenPosCloudConfigData(string $field, int $storeId = null, bool $flag = false)
     {
         return $this->getConfigData($field, self::XML_ADYEN_POS_CLOUD, $storeId, $flag);
@@ -504,6 +538,27 @@ class Config
         return $this->getConfigData('apple_pay_certificate_url', self::XML_ADYEN_HPP, $storeId);
     }
 
+    public function useQueueProcessor($storeId = null): bool
+    {
+        return $this->getConfigData(
+            self::XML_WEBHOOK_NOTIFICATION_PROCESSOR,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId
+        ) === NotificationProcessor::QUEUE;
+    }
+
+    /**
+     * @param int $storeId
+     * @return string
+     */
+    public function getConfigurationMode(int $storeId): string
+    {
+        return $this->getConfigData(
+            self::XML_CONFIGURATION_MODE,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId
+        );
+    }
 
     /**
      * Returns global configuration values

@@ -12,7 +12,14 @@
 namespace Adyen\Payment\Gateway\Request;
 
 use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Model\ResourceModel\Invoice\CollectionFactory;
+use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as PaymentCollectionFactory;
+use Magento\Payment\Gateway\Data\PaymentDataObject;
+use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
+use Magento\Payment\Model\InfoInterface;
+use Magento\Sales\Model\Order\Creditmemo;
 
 /**
  * Class CustomerDataBuilder
@@ -24,7 +31,7 @@ class RefundDataBuilder implements BuilderInterface
     const REFUND_STRATEGY_BASED_ON_RATIO = '3';
 
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     private $adyenHelper;
 
@@ -34,12 +41,12 @@ class RefundDataBuilder implements BuilderInterface
     private $configHelper;
 
     /**
-     * @var \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory
+     * @var PaymentCollectionFactory
      */
     private $orderPaymentCollectionFactory;
 
     /**
-     * @var \Adyen\Payment\Model\ResourceModel\Invoice\CollectionFactory
+     * @var CollectionFactory
      */
     protected $adyenInvoiceCollectionFactory;
 
@@ -51,15 +58,16 @@ class RefundDataBuilder implements BuilderInterface
     /**
      * RefundDataBuilder constructor.
      *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $orderPaymentCollectionFactory
+     * @param Data $adyenHelper
+     * @param PaymentCollectionFactory $orderPaymentCollectionFactory
+     * @param CollectionFactory $adyenInvoiceCollectionFactory
      * @param ChargedCurrency $chargedCurrency
      */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $orderPaymentCollectionFactory,
-        \Adyen\Payment\Model\ResourceModel\Invoice\CollectionFactory $adyenInvoiceCollectionFactory,
-        ChargedCurrency $chargedCurrency
+        Data $adyenHelper,
+        PaymentCollectionFactory   $orderPaymentCollectionFactory,
+        CollectionFactory          $adyenInvoiceCollectionFactory,
+        ChargedCurrency            $chargedCurrency
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->orderPaymentCollectionFactory = $orderPaymentCollectionFactory;
@@ -71,10 +79,10 @@ class RefundDataBuilder implements BuilderInterface
      * @param array $buildSubject
      * @return array
      */
-    public function build(array $buildSubject)
+    public function build(array $buildSubject): array
     {
-        /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
-        $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
+        /** @var PaymentDataObject $paymentDataObject */
+        $paymentDataObject = SubjectReader::readPayment($buildSubject);
 
         $order = $paymentDataObject->getOrder();
         $payment = $paymentDataObject->getPayment();
@@ -180,11 +188,18 @@ class RefundDataBuilder implements BuilderInterface
         }
         $request['clientConfig'] = ["storeId" => $payment->getOrder()->getStoreId()];
         $request['body'] = $requestBody;
+
+        $request['headers'] = [
+            'idempotencyExtraData' => [
+                'totalRefunded' => $payment->getOrder()->getTotalRefunded() ?? 0
+            ]
+        ];
+
         return $request;
     }
 
     /**
-     * @param \Magento\Payment\Model\InfoInterface $payment
+     * @param InfoInterface $payment
      * @return array|mixed
      */
     protected function getOpenInvoiceData($payment)
@@ -194,7 +209,7 @@ class RefundDataBuilder implements BuilderInterface
 
         // Construct AdyenAmountCurrency from creditmemo
         /**
-         * @var \Magento\Sales\Model\Order\Creditmemo $creditMemo
+         * @var Creditmemo $creditMemo
          */
         $creditMemo = $payment->getCreditMemo();
 

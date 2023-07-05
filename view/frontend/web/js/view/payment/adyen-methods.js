@@ -62,6 +62,10 @@ define(
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-paypal-method'
             },
             {
+                type: 'adyen_amazonpay',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-amazonpay-method'
+            },
+            {
                 type: 'adyen_dotpay',
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-dotpay-method'
             },
@@ -73,6 +77,18 @@ define(
                 type: 'adyen_googlepay',
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-googlepay-method'
             },
+            {
+                type:'adyen_multibanco',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-multibanco-method'
+            },
+            {
+                type:'adyen_facilypay_3x',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-facilypay-3x-method'
+            },
+            {
+                type:'adyen_sepadirectdebit',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-sepadirectdebit-method'
+            }
         );
 
         /** Add view logic here if needed */

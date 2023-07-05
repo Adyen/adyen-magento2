@@ -237,14 +237,20 @@ class Vault
     public function allowRecurringOnPaymentMethod(PaymentMethodInterface $adyenPaymentMethod, string $rpm, ?int $storeId): bool
     {
         $pmSupportsRpm = $this->paymentMethodSupportsRpm($adyenPaymentMethod, $rpm);
-        $tokenizablePaymentMethods = array_map(
-            'trim',
-            explode(',', (string) $this->config->getTokenizedPaymentMethods($storeId))
-        );
+        $tokenizablePaymentMethods = $this->config->getTokenizedPaymentMethods($storeId);
 
-        $configuredToTokenize = in_array($adyenPaymentMethod->getTxVariant(), $tokenizablePaymentMethods);
+        if (isset($tokenizablePaymentMethods)) {
+            $tokenizablePaymentMethods = array_map(
+                'trim',
+                explode(',', $tokenizablePaymentMethods)
+            );
 
-        return $pmSupportsRpm && $configuredToTokenize;
+            $configuredToTokenize = in_array($adyenPaymentMethod->getTxVariant(), $tokenizablePaymentMethods);
+
+            return $pmSupportsRpm && $configuredToTokenize;
+        }
+
+        return false;
     }
 
     /**
@@ -268,7 +274,7 @@ class Vault
      * Create an entry in the vault table w/type=Account (for pms such as PayPal)
      * If the token has already been created, do nothing
      *
-     * @throws InvalidAdditionalDataException|\Magento\Framework\Exception\LocalizedException
+     * @throws InvalidAdditionalDataException
      */
     private function createVaultAccountToken(OrderPaymentInterface $payment, array $additionalData): PaymentTokenInterface
     {
