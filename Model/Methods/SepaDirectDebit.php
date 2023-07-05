@@ -37,7 +37,7 @@ class SepaDirectDebit extends AdyenPaymentMethod implements PaymentMethodInterfa
 
 	public function supportsCardOnFile(): bool
 	{
-		return false;
+		return true;
 	}
 
 

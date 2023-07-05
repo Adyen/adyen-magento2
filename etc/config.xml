@@ -71,12 +71,12 @@
                 <payment_action>authorize</payment_action>
                 <useccv>1</useccv>
                 <is_gateway>1</is_gateway>
-                <can_use_checkout>1</can_use_checkout>
-                <can_authorize>1</can_authorize>
-                <can_authorize_3d>1</can_authorize_3d>
+                <can_use_checkout>0</can_use_checkout>
+                <can_authorize>0</can_authorize>
+                <can_authorize_3d>0</can_authorize_3d>
                 <can_capture>1</can_capture>
                 <can_capture_partial>1</can_capture_partial>
-                <can_use_internal>1</can_use_internal>
+                <can_use_internal>0</can_use_internal>
                 <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
                 <can_refund>1</can_refund>
                 <can_void>1</can_void>
@@ -138,7 +138,7 @@
                 <allowspecific>0</allowspecific>
                 <sort_order>0</sort_order>
                 <payment_action>authorize</payment_action>
-                <can_initialize>0</can_initialize>
+                <can_initialize>1</can_initialize>
                 <is_gateway>1</is_gateway>
                 <can_use_checkout>1</can_use_checkout>
                 <can_capture>1</can_capture>
@@ -163,7 +163,7 @@
                 <allowspecific>0</allowspecific>
                 <sort_order>0</sort_order>
                 <payment_action>authorize</payment_action>
-                <can_initialize>0</can_initialize>
+                <can_initialize>1</can_initialize>
                 <is_gateway>1</is_gateway>
                 <can_use_checkout>1</can_use_checkout>
                 <can_capture>1</can_capture>
@@ -323,8 +323,14 @@
                 <can_refund>1</can_refund>
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
+                <can_authorize_vault>1</can_authorize_vault>
+                <can_capture_vault>1</can_capture_vault>
                 <group>adyen</group>
             </adyen_sepadirectdebit>
+            <adyen_sepadirectdebit_vault>
+                <title>Stored SEPA</title>
+                <model>Adyen\Payment\Model\Methods\Vault\SepaDirectDebitVault</model>
+            </adyen_sepadirectdebit_vault>
             <adyen_pos_cloud>
                 <active>0</active>
                 <model>AdyenPaymentPosCloudFacade</model>

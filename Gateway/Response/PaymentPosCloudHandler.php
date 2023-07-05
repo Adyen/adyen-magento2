@@ -13,45 +13,18 @@
 namespace Adyen\Payment\Gateway\Response;
 
 use Adyen\AdyenException;
-use Adyen\Payment\Helper\Data;
-use Adyen\Payment\Helper\Recurring;
-use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 
 class PaymentPosCloudHandler implements HandlerInterface
 {
-    /**
-     * @var Data
-     */
-    private $adyenHelper;
-
-    /**
-     * @var AdyenLogger
-     */
-    private $adyenLogger;
-
-    /**
-     * @var Recurring
-     */
-    private $recurringHelper;
-
-    /**
-     * @var Vault
-     */
-    private $vaultHelper;
+    private AdyenLogger $adyenLogger;
 
     public function __construct(
-        AdyenLogger $adyenLogger,
-        Data $adyenHelper,
-        Recurring $recurringHelper,
-        Vault $vaultHelper
+        AdyenLogger $adyenLogger
     ) {
         $this->adyenLogger = $adyenLogger;
-        $this->adyenHelper = $adyenHelper;
-        $this->recurringHelper = $recurringHelper;
-        $this->vaultHelper = $vaultHelper;
     }
 
     /**
@@ -101,10 +74,6 @@ class PaymentPosCloudHandler implements HandlerInterface
                 $additionalData['paymentMethod'] = $brand;
                 $additionalData['recurring.recurringDetailReference'] = $recurringDetailReference;
                 $additionalData['pos_payment'] = true;
-
-                if (!$this->vaultHelper->isCardVaultEnabled()) {
-                    $this->recurringHelper->createAdyenBillingAgreement($payment->getOrder(), $additionalData);
-                }
             }
         }
 

@@ -56,90 +56,21 @@ class Index extends Action
         'threeds2.fingerprint'
     ];
 
-    /**
-     * @var OrderFactory
-     */
     protected OrderFactory $orderFactory;
-
-    /**
-     * @var Order
-     */
     protected Order $order;
-
-    /**
-     * @var HistoryFactory
-     */
     protected HistoryFactory $orderHistoryFactory;
-
-    /**
-     * @var Session
-     */
     protected Session $session;
-
-    /**
-     * @var AdyenLogger
-     */
     protected AdyenLogger $adyenLogger;
-
-    /**
-     * @var StoreManagerInterface
-     */
     protected StoreManagerInterface $storeManager;
-
-    /**
-     * @var Quote
-     */
     private Quote $quoteHelper;
-
-    /**
-     * @var Order\Payment
-     */
     private Order\Payment $payment;
-
-    /**
-     * @var Vault
-     */
     private Vault $vaultHelper;
-
-    /**
-     * @var OrderResource
-     */
     private OrderResource $orderResourceModel;
-
-    /**
-     * @var StateData
-     */
     private StateData $stateDataHelper;
-
-    /**
-     * @var Data
-     */
     private Data $adyenDataHelper;
-
-    /**
-     * @var OrderRepositoryInterface
-     */
     private OrderRepositoryInterface $orderRepository;
+    private Idempotency $idempotencyHelper;
 
-    /**
-     * @var Idempotency
-     */
-    private $idempotencyHelper;
-
-    /**
-     * @param Context $context
-     * @param OrderFactory $orderFactory
-     * @param HistoryFactory $orderHistoryFactory
-     * @param Session $session
-     * @param AdyenLogger $adyenLogger
-     * @param StoreManagerInterface $storeManager
-     * @param Quote $quoteHelper
-     * @param Vault $vaultHelper
-     * @param OrderResource $orderResourceModel
-     * @param StateData $stateDataHelper
-     * @param Data $adyenDataHelper
-     * @param OrderRepositoryInterface $orderRepository
-     */
     public function __construct(
         Context                  $context,
         OrderFactory             $orderFactory,

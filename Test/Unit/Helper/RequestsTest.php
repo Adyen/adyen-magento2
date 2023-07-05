@@ -6,7 +6,6 @@ use Adyen\Payment\Helper\Address;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentMethods;
-use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\Requests;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Vault;
@@ -38,29 +37,29 @@ class RequestsTest extends AbstractAdyenTestCase
 
     public function testBuildCardRecurringStorePaymentMethodTrueVault()
     {
-        $this->setMockObjects(['storePaymentMethod' => true], true, Recurring::SUBSCRIPTION);
+        $this->setMockObjects(['storePaymentMethod' => true], true, Vault::SUBSCRIPTION);
         $request = $this->sut->buildCardRecurringData(1, $this->paymentMock);
 
         $this->assertTrue($request['storePaymentMethod']);
-        $this->assertEquals(Recurring::SUBSCRIPTION, $request['recurringProcessingModel']);
+        $this->assertEquals(Vault::SUBSCRIPTION, $request['recurringProcessingModel']);
     }
 
     public function testBuildCardRecurringStorePaymentMethodTrueAdyenCardOnFile()
     {
-        $this->setMockObjects(['storePaymentMethod' => true], false, Recurring::CARD_ON_FILE);
+        $this->setMockObjects(['storePaymentMethod' => true], false, Vault::CARD_ON_FILE);
         $request = $this->sut->buildCardRecurringData(1, $this->paymentMock);
 
         $this->assertTrue($request['storePaymentMethod']);
-        $this->assertEquals(Recurring::CARD_ON_FILE, $request['recurringProcessingModel']);
+        $this->assertEquals(Vault::CARD_ON_FILE, $request['recurringProcessingModel']);
     }
 
     public function testBuildCardRecurringStorePaymentMethodTrueAdyenSubscription()
     {
-        $this->setMockObjects(['storePaymentMethod' => true], false, Recurring::SUBSCRIPTION);
+        $this->setMockObjects(['storePaymentMethod' => true], false, Vault::SUBSCRIPTION);
         $request = $this->sut->buildCardRecurringData(1, $this->paymentMock);
 
         $this->assertTrue($request['storePaymentMethod']);
-        $this->assertEquals(Recurring::SUBSCRIPTION, $request['recurringProcessingModel']);
+        $this->assertEquals(Vault::SUBSCRIPTION, $request['recurringProcessingModel']);
     }
 
     private function setMockObjects(array $stateDataArray, bool $vaultEnabled, string $tokenType): void

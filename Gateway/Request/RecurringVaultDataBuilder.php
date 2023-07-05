@@ -14,7 +14,6 @@ namespace Adyen\Payment\Gateway\Request;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
-use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
@@ -29,11 +28,6 @@ class RecurringVaultDataBuilder implements BuilderInterface
         $this->stateData = $stateData;
     }
 
-    /**
-     * @param array $buildSubject
-     * @return array
-     * @throws LocalizedException
-     */
     public function build(array $buildSubject): array
     {
         /** @var PaymentDataObject $paymentDataObject */
@@ -57,9 +51,18 @@ class RecurringVaultDataBuilder implements BuilderInterface
          * allow3DS flag is required to trigger the native 3DS challenge.
          * Otherwise, shopper will be redirected to the issuer for challenge.
          */
-        if ($paymentMethod->getCode() === AdyenCcConfigProvider::CC_VAULT_CODE ||
-            $paymentMethod->getCode() === AdyenOneclickConfigProvider::CODE) {
+        if ($paymentMethod->getCode() === AdyenCcConfigProvider::CC_VAULT_CODE) {
             $requestBody['additionalData']['allow3DS2'] = true;
+        }
+
+        /**
+         * Build paymentMethod object for alternative payment methods
+         */
+        if ($paymentMethod->getCode() !== AdyenCcConfigProvider::CC_VAULT_CODE) {
+            $requestBody['paymentMethod'] = [
+                'type' => $details['type'],
+                'storedPaymentMethodId' => $paymentToken->getGatewayToken()
+            ];
         }
 
         $request['body'] = $requestBody;
