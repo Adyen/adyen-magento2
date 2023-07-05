@@ -11,14 +11,38 @@
  */
 namespace Adyen\Payment\Model\Methods;
 
+use Adyen\Payment\Block\Form\Hpp;
+use Adyen\Payment\Block\Info\Hpp as HppInfo;
+use Adyen\Payment\Model\Api\PaymentRequest;
 use Adyen\Payment\Model\Method\PaymentMethodInterface;
 use Adyen\Payment\Model\AdyenPaymentMethod;
+use Magento\Framework\Event\ManagerInterface;
+use Magento\Payment\Gateway\Command\CommandPoolInterface;
+use Magento\Payment\Gateway\Config\ValueHandlerPoolInterface;
+use Magento\Payment\Gateway\Data\PaymentDataObjectFactory;
+use Magento\Payment\Gateway\Validator\ValidatorPoolInterface;
 
 class Paypal extends AdyenPaymentMethod implements PaymentMethodInterface
 {
     const CODE = 'adyen_paypal';
     const TX_VARIANT = 'paypal';
     const NAME = 'PayPal';
+
+    public function __construct(
+        PaymentRequest $paymentRequest,
+        ManagerInterface $eventManager,
+        ValueHandlerPoolInterface $valueHandlerPool,
+        PaymentDataObjectFactory $paymentDataObjectFactory,
+        CommandPoolInterface $commandPool = null,
+        ValidatorPoolInterface $validatorPool = null
+    ) {
+        $code = self::CODE;
+        $formBlockType = Hpp::class;
+        $infoBlockType = HppInfo::class;
+
+        parent::__construct($paymentRequest, $eventManager, $valueHandlerPool,
+            $paymentDataObjectFactory, $code, $formBlockType, $infoBlockType, $commandPool, $validatorPool);
+    }
 
     public function supportsRecurring(): bool
     {
