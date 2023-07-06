@@ -22,7 +22,6 @@
                 <argument name="checkout_data" xsi:type="object">Magento\Multishipping\Block\DataProviders\Billing</argument>
                 <argument name="form_templates" xsi:type="array">
                     <item name="adyen_cc" xsi:type="string">Adyen_Payment::form/multishipping/cc-form.phtml</item>
-                    <item name="adyen_hpp" xsi:type="string">Adyen_Payment::form/multishipping/hpp-form.phtml</item>
                 </argument>
                 <argument name="cacheable" xsi:type="boolean">false</argument>
             </arguments>
