@@ -15,10 +15,7 @@ class EnablePaymentMethodsCommand extends Command
      */
     private $paymentMethods;
 
-    /**
-     * @var Config
-     */
-    private $configHelper;
+    private Config $configHelper;
 
     public function __construct(
         PaymentMethods $paymentMethods,
