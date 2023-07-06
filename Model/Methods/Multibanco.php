@@ -30,15 +30,13 @@ class Multibanco extends AdyenPaymentMethod implements PaymentMethodInterface
         ManagerInterface $eventManager,
         ValueHandlerPoolInterface $valueHandlerPool,
         PaymentDataObjectFactory $paymentDataObjectFactory,
-        CommandPoolInterface $commandPool = null,
-        ValidatorPoolInterface $validatorPool = null
+        $infoBlockType
     ) {
         $code = self::CODE;
         $formBlockType = Hpp::class;
-        $infoBlockType = HppInfo::class;
 
-        parent::__construct($paymentRequest, $eventManager, $valueHandlerPool,
-            $paymentDataObjectFactory, $code, $formBlockType, $infoBlockType, $commandPool, $validatorPool);
+        parent::__construct($paymentRequest, $eventManager, $valueHandlerPool, $paymentDataObjectFactory,
+            $code, $formBlockType, $infoBlockType);
     }
 
 	public function supportsRecurring(): bool
