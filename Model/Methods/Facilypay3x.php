@@ -30,13 +30,15 @@ class Facilypay3x extends AdyenPaymentMethod implements PaymentMethodInterface
         ManagerInterface $eventManager,
         ValueHandlerPoolInterface $valueHandlerPool,
         PaymentDataObjectFactory $paymentDataObjectFactory,
-        $infoBlockType
+        CommandPoolInterface $commandPool = null,
+        ValidatorPoolInterface $validatorPool = null
     ) {
         $code = self::CODE;
         $formBlockType = Hpp::class;
+        $infoBlockType = HppInfo::class;
 
-        parent::__construct($paymentRequest, $eventManager, $valueHandlerPool, $paymentDataObjectFactory,
-            $code, $formBlockType, $infoBlockType);
+        parent::__construct($paymentRequest, $eventManager, $valueHandlerPool,
+            $paymentDataObjectFactory, $code, $formBlockType, $infoBlockType, $commandPool, $validatorPool);
     }
 
 	public function supportsRecurring(): bool
