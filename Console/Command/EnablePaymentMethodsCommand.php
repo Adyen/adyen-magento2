@@ -17,8 +17,7 @@ class EnablePaymentMethodsCommand extends Command
     public function __construct(
         PaymentMethods $paymentMethods,
         Config $configHelper
-    )
-    {
+    ) {
         $this->paymentMethods = $paymentMethods;
         $this->configHelper = $configHelper;
         parent::__construct();
