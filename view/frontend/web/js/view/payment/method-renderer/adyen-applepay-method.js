@@ -27,7 +27,8 @@ define(
                 let applePayConfiguration = Object.assign(baseComponentConfiguration,
                     {
                         showPayButton: true,
-                        totalPriceLabel: baseComponentConfiguration.configuration.merchantName
+                        totalPriceLabel: baseComponentConfiguration.configuration.merchantName,
+                        amount: paymentMethodsExtraInfo.paymentMethod.methodIdentifier.configuration.amount
                     }
                 );
 
