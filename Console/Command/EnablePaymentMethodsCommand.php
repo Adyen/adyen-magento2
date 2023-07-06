@@ -10,10 +10,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class EnablePaymentMethodsCommand extends Command
 {
-    /**
-     * @var PaymentMethods
-     */
-    private $paymentMethods;
+    private PaymentMethods $paymentMethods;
 
     private Config $configHelper;
 
