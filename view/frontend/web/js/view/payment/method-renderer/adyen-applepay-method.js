@@ -28,7 +28,7 @@ define(
                     {
                         showPayButton: true,
                         totalPriceLabel: baseComponentConfiguration.configuration.merchantName,
-                        amount: paymentMethodsExtraInfo.paymentMethod.methodIdentifier.configuration.amount
+                        amount: paymentMethodsExtraInfo[paymentMethod.methodIdentifier].configuration.amount
                     }
                 );
 
