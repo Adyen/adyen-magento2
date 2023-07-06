@@ -1414,6 +1414,7 @@
         <arguments>
             <argument name="commands" xsi:type="array">
                 <item name="adyen_webhookprocessorcommand" xsi:type="object">Adyen\Payment\Console\Command\WebhookProcessorCommand</item>
+                <item name="adyen_enablepaymentmethodscommand" xsi:type="object">Adyen\Payment\Console\Command\EnablePaymentMethodsCommand</item>
             </argument>
         </arguments>
     </type>
