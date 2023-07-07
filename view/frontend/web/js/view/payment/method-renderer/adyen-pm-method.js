@@ -80,7 +80,7 @@ define(
                 this._super().observe([
                     'selectedAlternativePaymentMethodType',
                     'paymentMethod',
-                    'adyenPaymentMethod',
+                    'adyenPaymentMethod'
                 ]);
                 return this;
             },
