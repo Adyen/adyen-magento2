@@ -14,6 +14,7 @@ namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Api\AdyenInitiateTerminalApiInterface;
 use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -61,19 +62,27 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
     private $chargedCurrency;
 
     /**
+     * @var \Adyen\Payment\Helper\Config
+     */
+    private $configHelper;
+
+    /**
      * AdyenInitiateTerminalApi constructor.
      *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param Config $configHelper
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Magento\Checkout\Model\Session $checkoutSession
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Framework\App\ProductMetadataInterface $productMetadata
-     * @param array $data
      * @param ChargedCurrency $chargedCurrency
+     * @param array $data
+     * @throws NoSuchEntityException
      * @throws \Adyen\AdyenException
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
+        \Adyen\Payment\Helper\Config $configHelper,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
@@ -82,6 +91,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         array $data = []
     ) {
         $this->adyenHelper = $adyenHelper;
+        $this->configHelper = $configHelper;
         $this->adyenLogger = $adyenLogger;
         $this->checkoutSession = $checkoutSession;
         $this->productMetadata = $productMetadata;
@@ -93,7 +103,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         $client = $this->adyenHelper->initializeAdyenClient($this->storeId, $apiKey);
 
         //Set configurable option in M2
-        $this->timeout = $this->adyenHelper->getAdyenPosCloudConfigData('total_timeout', $this->storeId);
+        $this->timeout = $this->configHelper->getAdyenPosCloudConfigData('total_timeout', $this->storeId);
         if (!empty($this->timeout)) {
             $client->setTimeout($this->timeout);
         }
@@ -262,7 +272,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         // If customer exists add it into the request to store request
         if (!empty($customerId)) {
             $shopperEmail = $quote->getCustomerEmail();
-            $recurringContract = $this->adyenHelper->getAdyenPosCloudConfigData('recurring_type', $this->storeId);
+            $recurringContract = $this->configHelper->getAdyenPosCloudConfigData('recurring_type', $this->storeId);
 
             if (!empty($recurringContract) && !empty($shopperEmail)) {
                 $saleToAcquirerData['shopperEmail'] = $shopperEmail;

@@ -151,7 +151,7 @@ class Vault
      */
     public function saveRecurringCardDetails(OrderPaymentInterface $payment, array $additionalData): ?PaymentTokenInterface {
         if (!$this->isCardVaultEnabled($payment->getOrder()->getStoreId()) &&
-            !$this->adyenHelper->isHppVaultEnabled($payment->getOrder()->getStoreId())) {
+            !$this->config->isHppVaultEnabled($payment->getOrder()->getStoreId())) {
             return null;
         }
 
