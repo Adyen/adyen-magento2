@@ -13,8 +13,15 @@
 
 namespace Adyen\Payment\Gateway\Validator;
 
+use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\CaseManagement;
 use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Logger\AdyenLogger;
+use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Payment\Gateway\Validator\AbstractValidator;
+use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
+use Magento\Quote\Model\QuoteRepository;
 
 class InstallmentValidator extends AbstractValidator
 {
@@ -22,6 +29,11 @@ class InstallmentValidator extends AbstractValidator
      * @var \Adyen\Payment\Logger\AdyenLogger
      */
     private $adyenLogger;
+
+    /**
+     * @var \Adyen\Payment\Helper\Config
+     */
+    private $configHelper;
 
     /**
      * @var \Adyen\Payment\Helper\Data
@@ -43,17 +55,21 @@ class InstallmentValidator extends AbstractValidator
      */
     private $chargedCurrency;
 
+
     /**
      * InstallmentValidator constructor.
      *
-     * @param \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory
-     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Magento\Framework\Serialize\SerializerInterface $serializer
-     * @param \Magento\Quote\Model\QuoteRepository $quoteRepository
+     * @param ResultInterfaceFactory $resultFactory
+     * @param Config $configHelper
+     * @param AdyenLogger $adyenLogger
+     * @param Data $adyenHelper
+     * @param SerializerInterface $serializer
+     * @param QuoteRepository $quoteRepository
+     * @param ChargedCurrency $chargedCurrency
      */
     public function __construct(
         \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory,
+        \Adyen\Payment\Helper\Config $configHelper,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Framework\Serialize\SerializerInterface $serializer,
@@ -62,6 +78,7 @@ class InstallmentValidator extends AbstractValidator
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
+        $this->configHelper = $configHelper;
         $this->serializer = $serializer;
         $this->quoteRepository = $quoteRepository;
         $this->chargedCurrency = $chargedCurrency;
@@ -80,10 +97,10 @@ class InstallmentValidator extends AbstractValidator
         } else {
             $quote = false;
         }
-        $installmentsEnabled = $this->adyenHelper->getAdyenCcConfigData('enable_installments');
+        $installmentsEnabled = $this->configHelper->getAdyenCcConfigData('enable_installments');
         if ($quote && $installmentsEnabled) {
             $grandTotal = $this->chargedCurrency->getQuoteAmountCurrency($quote)->getAmount();
-            $installmentsAvailable = $this->adyenHelper->getAdyenCcConfigData('installments');
+            $installmentsAvailable = $this->configHelper->getAdyenCcConfigData('installments');
             $installmentSelected = $payment->getAdditionalInformation('number_of_installments');
             $ccType = $payment->getAdditionalInformation('cc_type');
             if ($installmentsAvailable) {

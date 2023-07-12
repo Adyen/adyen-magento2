@@ -135,7 +135,7 @@ class Cc extends \Magento\Payment\Block\Form\Cc
      */
     public function getClientKey()
     {
-        return $this->adyenHelper->getClientKey();
+        return $this->configHelper->getClientKey();
     }
 
     /**
@@ -195,7 +195,7 @@ class Cc extends \Magento\Payment\Block\Form\Cc
         try {
             $quoteAmountCurrency = $this->getQuoteAmountCurrency();
             return $this->installmentsHelper->formatInstallmentsConfig(
-                $this->adyenHelper->getAdyenCcConfigData('installments',
+                $this->configHelper->getAdyenCcConfigData('installments',
                     $this->_storeManager->getStore()->getId()
                 ),
                 $this->adyenHelper->getAdyenCcTypes(),
@@ -230,7 +230,8 @@ class Cc extends \Magento\Payment\Block\Form\Cc
      */
     public function getEnableStoreDetails(): bool
     {
-        $enableOneclick = (bool)$this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick');
+
+        $enableOneclick = (bool)$this->configHelper->getAdyenAbstractConfigData('enable_oneclick');
         $enableVault = $this->isVaultEnabled();
         $loggedIn = $this->customerSession->isLoggedIn();
         return ($enableOneclick || $enableVault) && $loggedIn;
