@@ -92,26 +92,26 @@ interface OrderPaymentInterface
     public function setPaymentMethod(string $paymentMethod): OrderPaymentInterface;
 
     /**
-     * @return int
+     * @return float
      */
-    public function getAmount(): int;
+    public function getAmount(): float;
 
     /**
-     * @param int $amount
+     * @param float $amount
      * @return OrderPaymentInterface
      */
-    public function setAmount(int $amount): OrderPaymentInterface;
+    public function setAmount(float $amount): OrderPaymentInterface;
 
     /**
-     * @return int
+     * @return float
      */
-    public function getTotalRefunded(): int;
+    public function getTotalRefunded(): float;
 
     /**
-     * @param int $totalRefunded
+     * @param float $totalRefunded
      * @return OrderPaymentInterface
      */
-    public function setTotalRefunded(int $totalRefunded): OrderPaymentInterface;
+    public function setTotalRefunded(float $totalRefunded): OrderPaymentInterface;
 
     /**
      * @return DateTime
@@ -149,11 +149,11 @@ interface OrderPaymentInterface
     /**
      * @return int|null
      */
-    public function getTotalCaptured(): ?int;
+    public function getTotalCaptured(): ?float;
 
     /**
      * @param int $totalCaptured
      * @return OrderPaymentInterface
      */
-    public function setTotalCaptured(int $totalCaptured): OrderPaymentInterface;
+    public function setTotalCaptured(float $totalCaptured): OrderPaymentInterface;
 }

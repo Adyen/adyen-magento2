@@ -72,12 +72,12 @@ class Creditmemo extends AbstractModel implements CreditMemoInterface
         return $this->setData(self::CREDITMEMO_ID, $creditMemoId);
     }
 
-    public function getAmount(): ?int
+    public function getAmount(): ?float
     {
         return $this->getData(self::AMOUNT);
     }
 
-    public function setAmount(int $amount): Creditmemo
+    public function setAmount(float $amount): Creditmemo
     {
         return $this->setData(self::AMOUNT, $amount);
     }
