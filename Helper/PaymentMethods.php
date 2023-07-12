@@ -231,7 +231,7 @@ class PaymentMethods extends AbstractHelper
         $quote = $this->getQuote();
         $store = $quote->getStore();
 
-        $merchantAccount = $this->adyenHelper->getAdyenAbstractConfigData('merchant_account', $store->getId());
+        $merchantAccount = $this->configHelper->getAdyenAbstractConfigData('merchant_account', $store->getId());
         if (!$merchantAccount) {
             return json_encode([]);
         }
@@ -291,15 +291,13 @@ class PaymentMethods extends AbstractHelper
     }
 
     /**
-     * This function is being unnecessarily called multiple times
-     *
      * @param $store
      * @return string
      */
     protected function getCurrentCountryCode($store): string
     {
-        // If fixed countryCode is set up in config use it
-        $countryCode = $this->adyenHelper->getAdyenHppConfigData('country_code', $store->getId());
+        // if fixed countryCode is setup in config use this
+        $countryCode = $this->configHelper->getAdyenHppConfigData('country_code', $store->getId());
 
         if ($countryCode != "") {
             return $countryCode;
@@ -579,7 +577,7 @@ class PaymentMethods extends AbstractHelper
     {
         $types = [];
         $ccTypes = $this->adyenHelper->getAdyenCcTypes();
-        $availableTypes = $this->adyenHelper->getAdyenCcConfigData('cctypes');
+        $availableTypes = $this->configHelper->getAdyenCcConfigData('cctypes');
         if ($availableTypes) {
             $availableTypes = explode(',', (string) $availableTypes);
             foreach (array_keys($ccTypes) as $code) {
@@ -601,7 +599,7 @@ class PaymentMethods extends AbstractHelper
     {
         $types = [];
         $ccTypes = $this->adyenHelper->getAdyenCcTypes();
-        $availableTypes = $this->adyenHelper->getAdyenCcConfigData('cctypes');
+        $availableTypes = $this->configHelper->getAdyenCcConfigData('cctypes');
         if ($availableTypes) {
             $availableTypes = explode(',', (string) $availableTypes);
             foreach (array_keys($ccTypes) as $code) {
