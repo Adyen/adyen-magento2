@@ -75,11 +75,22 @@ class TransactionCapture implements ClientInterface
     {
         $request = $transferObject->getBody();
         $headers = $transferObject->getHeaders();
+        $clientConfig = $transferObject->getClientConfig();
 
-        $service = new Modification(
-            $this->adyenHelper->initializeAdyenClient($transferObject->getClientConfig()['storeId'])
-        );
-
+        //Check if it is a MOTO Transaction
+        if(isset($clientConfig['isMotoTransaction']) && $clientConfig['isMotoTransaction'] === true) {
+            $client = $this->adyenHelper->initializeAdyenClient(
+                $clientConfig['storeId'],
+                null,
+                $request['merchantAccount']
+            );
+            $service = new Modification($client);
+        }
+        else {
+            $service = new Modification(
+                $this->adyenHelper->initializeAdyenClient($transferObject->getClientConfig()['storeId'])
+            );
+        }
         $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
             $request,
                 $headers['idempotencyExtraData'] ?? null

@@ -84,6 +84,7 @@ class TransactionPayment implements ClientInterface
     {
         $request = $transferObject->getBody();
         $headers = $transferObject->getHeaders();
+        $clientConfig = $transferObject->getClientConfig();
 
         // If the payments call is already done return the request
         if (!empty($request['resultCode'])) {
@@ -91,15 +92,23 @@ class TransactionPayment implements ClientInterface
             return $request;
         }
 
-        $client = $this->adyenHelper->initializeAdyenClient();
-        $service = $this->adyenHelper->createAdyenCheckoutService($client);
+        //Check if it is a MOTO Transaction
+        if(isset($clientConfig['isMotoTransaction']) && $clientConfig['isMotoTransaction'] === true) {
+            $client = $this->adyenHelper->initializeAdyenClient(
+                $clientConfig['storeId'],
+                null,
+                $request['merchantAccount']
+            );
+        } else {
+            $client = $this->adyenHelper->initializeAdyenClient();
+        }
 
         $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
             $request,
             $headers['idempotencyExtraData'] ?? null
         );
-
         $requestOptions['idempotencyKey'] = $idempotencyKey;
+        $service = $this->adyenHelper->createAdyenCheckoutService($client);
 
         $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/payments');
         try {
