@@ -42,7 +42,7 @@ class RecurringVaultDataBuilder implements BuilderInterface
         $paymentDataObject = SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
         $paymentMethod = $payment->getMethodInstance();
-        $order = $paymentDataObject->getOrder();
+        $order = $payment->getOrder();
         $extensionAttributes = $payment->getExtensionAttributes();
         $paymentToken = $extensionAttributes->getVaultPaymentToken();
         $details = json_decode($paymentToken->getTokenDetails() ?: '{}', true);
