@@ -75,6 +75,9 @@ define(
              */
             initialize: function () {
                 this._super();
+
+                debugger;
+
                 this.vaultEnabler = new VaultEnabler();
                 this.vaultEnabler.setPaymentCode(this.getVaultCode());
                 this.vaultEnabler.isActivePaymentTokenEnabler(false);
@@ -92,6 +95,8 @@ define(
             },
             loadCheckoutComponent: async function (paymentMethodsResponse) {
                 let self = this;
+
+                debugger;
 
                 this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
                     paymentMethodsResponse,
