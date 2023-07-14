@@ -75,9 +75,6 @@ define(
              */
             initialize: function () {
                 this._super();
-
-                debugger;
-
                 this.vaultEnabler = new VaultEnabler();
                 this.vaultEnabler.setPaymentCode(this.getVaultCode());
                 this.vaultEnabler.isActivePaymentTokenEnabler(false);
@@ -93,10 +90,17 @@ define(
                 self.loadCheckoutComponent(paymentMethodsObserver());
                 return this;
             },
+            isSchemePaymentsEnabled: function (paymentMethod) {
+                return paymentMethod.type === "scheme";
+            },
             loadCheckoutComponent: async function (paymentMethodsResponse) {
                 let self = this;
 
-                debugger;
+                // Check the paymentMethods response to enable Credit Card payments
+                if (!!paymentMethodsResponse &&
+                    !paymentMethodsResponse.paymentMethodsResponse.paymentMethods.find(self.isSchemePaymentsEnabled)) {
+                    return;
+                }
 
                 this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
                     paymentMethodsResponse,
