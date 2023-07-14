@@ -82,7 +82,6 @@ class IpAddress
      */
     public function isIpAddressValid($ipAddresses): bool
     {
-        return true;
         $isNotificationsIpCheckEnabled = $this->configHelper->getNotificationsIpCheck();
 
         if (!$isNotificationsIpCheckEnabled) {
