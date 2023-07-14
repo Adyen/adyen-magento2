@@ -34,20 +34,9 @@ class TransactionCapture implements ClientInterface
     const ORIGINAL_REFERENCE = 'original_reference';
     const CAPTURE_RECEIVED = '[capture-received]';
 
-    /**
-     * @var Data
-     */
-    private $adyenHelper;
-
-    /**
-     * @var AdyenLogger
-     */
-    private $adyenLogger;
-
-    /**
-     * @var Idempotency
-     */
-    private $idempotencyHelper;
+    private Data $adyenHelper;
+    private AdyenLogger $adyenLogger;
+    private Idempotency $idempotencyHelper;
 
     /**
      * PaymentRequest constructor.

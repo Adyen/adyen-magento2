@@ -12,14 +12,13 @@
 namespace Adyen\Payment\Gateway\Request;
 
 use Adyen\AdyenException;
+use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
 class MotoMerchantAccountDataBuilder implements BuilderInterface
 {
-    /**
-     * @var \Adyen\Payment\Helper\Requests
-     */
-    private $adyenRequestsHelper;
+
+    private \Adyen\Payment\Helper\Requests $adyenRequestsHelper;
 
     /**
      * MerchantAccountDataBuilder constructor.
@@ -37,9 +36,9 @@ class MotoMerchantAccountDataBuilder implements BuilderInterface
      * @return array
      * @throws AdyenException
      */
-    public function build(array $buildSubject)
+    public function build(array $buildSubject): array
     {
-        /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
+        /** @var PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
 

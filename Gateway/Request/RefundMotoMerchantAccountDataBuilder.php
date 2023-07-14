@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
 /**
@@ -24,7 +25,7 @@ class RefundMotoMerchantAccountDataBuilder implements BuilderInterface
      */
     public function build(array $buildSubject)
     {
-        /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
+        /** @var PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $merchantAccount = $paymentDataObject->getPayment()->getAdditionalInformation('motoMerchantAccount');
 

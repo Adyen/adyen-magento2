@@ -25,15 +25,9 @@ use Magento\Payment\Gateway\Http\TransferInterface;
  */
 class TransactionCancel implements ClientInterface
 {
-    /**
-     * @var Data
-     */
-    private $adyenHelper;
 
-    /**
-     * @var Idempotency
-     */
-    private $idempotencyHelper;
+    private Data $adyenHelper;
+    private Idempotency $idempotencyHelper;
 
     /**
      * PaymentRequest constructor.

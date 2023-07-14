@@ -26,30 +26,12 @@ use Magento\Payment\Gateway\Http\TransferInterface;
 
 class TransactionPayment implements ClientInterface
 {
-    /**
-     * @var Data
-     */
-    private $adyenHelper;
 
-    /**
-     * @var ApplicationInfo
-     */
-    private $applicationInfo;
-
-    /**
-     * @var PaymentResponseFactory
-     */
-    private $paymentResponseFactory;
-
-    /**
-     * @var PaymentResponseResourceModel
-     */
-    private $paymentResponseResourceModel;
-
-    /**
-     * @var Idempotency
-     */
-    private $idempotencyHelper;
+    private Data $adyenHelper;
+    private ApplicationInfo $applicationInfo;
+    private PaymentResponseFactory $paymentResponseFactory;
+    private PaymentResponseResourceModel $paymentResponseResourceModel;
+    private Idempotency $idempotencyHelper;
 
     /**
      * TransactionPayment constructor.
@@ -80,7 +62,7 @@ class TransactionPayment implements ClientInterface
      * @throws AlreadyExistsException
      * @throws NoSuchEntityException
      */
-    public function placeRequest(TransferInterface $transferObject)
+    public function placeRequest(TransferInterface $transferObject): mixed
     {
         $request = $transferObject->getBody();
         $headers = $transferObject->getHeaders();
