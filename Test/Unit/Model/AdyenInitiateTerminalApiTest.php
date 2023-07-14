@@ -34,6 +34,7 @@ class AdyenInitiateTerminalApiTest extends \PHPUnit\Framework\TestCase
     public function setUp(): void
     {
         $adyenHelper = $this->getSimpleMock(\Adyen\Payment\Helper\Data::class);
+        $configHelper = $this->getSimpleMock(\Adyen\Payment\Helper\Config::class);
         $adyenLogger = $this->getSimpleMock(\Adyen\Payment\Logger\AdyenLogger::class);
         $checkoutSession = $this->getSimpleMock(\Magento\Checkout\Model\Session::class);
         $storeManager = $this->getSimpleMock(\Magento\Store\Model\StoreManagerInterface::class);
@@ -49,12 +50,12 @@ class AdyenInitiateTerminalApiTest extends \PHPUnit\Framework\TestCase
 
         // Create a map of arguments to return values.
         $map = [
-            ['total_timeout', null, ''],
-            ['recurring_type', null, self::RECURRING_TYPE]
+            ['total_timeout', null, false, ''],
+            ['recurring_type', null, false, self::RECURRING_TYPE]
         ];
 
         // Configure the stub.
-        $adyenHelper->method('getAdyenPosCloudConfigData')
+        $configHelper->method('getAdyenPosCloudConfigData')
             ->will($this->returnValueMap($map));
 
         $adyenHelper->method('padShopperReference')
@@ -71,6 +72,7 @@ class AdyenInitiateTerminalApiTest extends \PHPUnit\Framework\TestCase
 
         $this->adyenInitiateTerminalApi = new \Adyen\Payment\Model\AdyenInitiateTerminalApi(
             $adyenHelper,
+            $configHelper,
             $adyenLogger,
             $checkoutSession,
             $storeManager,

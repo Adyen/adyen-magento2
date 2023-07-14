@@ -11,52 +11,35 @@
 
 namespace Adyen\Payment\Model\Ui;
 
+use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\Data;
 use Magento\Checkout\Model\ConfigProviderInterface;
+use Magento\Framework\App\RequestInterface;
+use Magento\Framework\UrlInterface;
+use Magento\Payment\Helper\Data as PaymentHelper;
 
 class AdyenBoletoConfigProvider implements ConfigProviderInterface
 {
     const CODE = 'adyen_boleto';
 
-    /**
-     * @var PaymentHelper
-     */
-    protected $_paymentHelper;
+    protected PaymentHelper $paymentHelper;
+    protected Data $_adyenHelper;
+    protected Config $_configHelper;
+    protected UrlInterface $urlBuilder;
+    protected RequestInterface $request;
 
-    /**
-     * @var \Adyen\Payment\Helper\Data
-     */
-    protected $_adyenHelper;
-
-    /**
-     * @var \Magento\Framework\UrlInterface
-     */
-    protected $_urlBuilder;
-
-    /**
-     * Request object
-     *
-     * @var \Magento\Framework\App\RequestInterface
-     */
-    protected $_request;
-
-    /**
-     * AdyenBoletoConfigProvider constructor.
-     *
-     * @param \Magento\Payment\Helper\Data $paymentHelper
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Magento\Framework\UrlInterface $urlBuilder
-     * @param \Magento\Framework\App\RequestInterface $request
-     */
     public function __construct(
-        \Magento\Payment\Helper\Data $paymentHelper,
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\Framework\UrlInterface $urlBuilder,
-        \Magento\Framework\App\RequestInterface $request
+        PaymentHelper    $paymentHelper,
+        Data             $adyenHelper,
+        Config           $configHelper,
+        UrlInterface     $urlBuilder,
+        RequestInterface $request
     ) {
-        $this->_paymentHelper = $paymentHelper;
+        $this->paymentHelper = $paymentHelper;
+        $this->_configHelper = $configHelper;
         $this->_adyenHelper = $adyenHelper;
-        $this->_urlBuilder = $urlBuilder;
-        $this->_request = $request;
+        $this->urlBuilder = $urlBuilder;
+        $this->request = $request;
     }
 
     /**
@@ -69,7 +52,7 @@ class AdyenBoletoConfigProvider implements ConfigProviderInterface
             'payment' => [
                 self::CODE => [
                     'isActive' => true,
-                    'successPage' => $this->_urlBuilder->getUrl(
+                    'successPage' => $this->urlBuilder->getUrl(
                         'checkout/onepage/success/',
                         ['_secure' => $this->_getRequest()->isSecure()]
                     )
@@ -88,7 +71,7 @@ class AdyenBoletoConfigProvider implements ConfigProviderInterface
     {
         $types = [];
         $boletoTypes = $this->_adyenHelper->getBoletoTypes();
-        $availableTypes = $this->_adyenHelper->getAdyenBoletoConfigData('boletotypes');
+        $availableTypes = $this->_configHelper->getAdyenBoletoConfigData('boletotypes');
         if ($availableTypes) {
             $availableTypes = explode(',', (string) $availableTypes);
             foreach ($boletoTypes as $boletoType) {
@@ -103,10 +86,10 @@ class AdyenBoletoConfigProvider implements ConfigProviderInterface
     /**
      * Retrieve request object
      *
-     * @return \Magento\Framework\App\RequestInterface
+     * @return RequestInterface
      */
     protected function _getRequest()
     {
-        return $this->_request;
+        return $this->request;
     }
 }
