@@ -580,7 +580,7 @@ class Config
      */
     public function getLiveEndpointPrefix($storeId = null)
     {
-        $prefix = $this->configHelper->getAdyenAbstractConfigData('live_endpoint_url_prefix', $storeId);
+        $prefix = $this->getAdyenAbstractConfigData('live_endpoint_url_prefix', $storeId);
 
         if (is_null($prefix)) {
             return null;
@@ -690,7 +690,7 @@ class Config
      */
     public function getCheckoutFrontendRegion($storeId = null)
     {
-        $checkoutFrontendRegion = $this->configHelper->getAdyenAbstractConfigData('checkout_frontend_region', $storeId);
+        $checkoutFrontendRegion = $this->getAdyenAbstractConfigData('checkout_frontend_region', $storeId);
 
         if (is_null($checkoutFrontendRegion)) {
             return null;
