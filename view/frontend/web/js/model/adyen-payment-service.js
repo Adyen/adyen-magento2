@@ -65,12 +65,12 @@ define(
             },
 
             getOrderPaymentStatus: function(orderId) {
-                debugger;
-
                 if (customer.isLoggedIn()) {
                     var serviceUrl = urlBuilder.createUrl('/adyen/orders/carts/mine/payment-status', {});
                 } else {
-                    var serviceUrl = urlBuilder.createUrl('/internal/adyen/orders/payment-status', {});
+                    var serviceUrl = urlBuilder.createUrl('/adyen/orders/guest-carts/:cartId/payment-status', {
+                        cartId: quote.getQuoteId()
+                    });
                 }
 
                 var payload = {

@@ -4,7 +4,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -67,13 +67,6 @@
         </resources>
     </route>
 
-<!--    <route url="/V1/adyen/orders/guest-carts/:cartId/payment-status" method="POST">-->
-<!--        <service class="Adyen\Payment\Api\AdyenOrderPaymentStatusInterface" method="getOrderPaymentStatus"/>-->
-<!--        <resources>-->
-<!--            <resource ref="anonymous"/>-->
-<!--        </resources>-->
-<!--    </route>-->
-
     <route url="/V1/adyen/orders/carts/mine/payment-status" method="POST">
         <service class="Adyen\Payment\Api\AdyenOrderPaymentStatusInterface" method="getOrderPaymentStatus"/>
         <resources>
@@ -81,12 +74,12 @@
         </resources>
     </route>
 
-<!--    <route url="/V1/internal/adyen/orders/payment-status" method="POST">-->
-<!--        <service class="Adyen\Payment\Api\Internal\InternalAdyenOrderPaymentStatusInterface" method="handleInternalRequest"/>-->
-<!--        <resources>-->
-<!--            <resource ref="anonymous"/>-->
-<!--        </resources>-->
-<!--    </route>-->
+    <route url="/V1/adyen/orders/guest-carts/:cartId/payment-status" method="POST">
+        <service class="Adyen\Payment\Api\GuestAdyenOrderPaymentStatusInterface" method="getOrderPaymentStatus"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
 
     <route url="/V1/adyen/donations" method="POST">
         <service class="Adyen\Payment\Api\AdyenDonationsInterface" method="donate"/>
