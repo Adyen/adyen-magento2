@@ -18,11 +18,14 @@ define(
     ) {
         return adyenPaymentMethodComponent.extend({
             initialize: function () {
+                this._super();
+            },
+            buildPaymentMethodComponentResult: function () {
                 if (!this.checkBrowserCompatibility()) {
                     return;
                 }
 
-                this._super();
+                return this._super();
             },
             buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo, result) {
                 let baseComponentConfiguration = this._super();

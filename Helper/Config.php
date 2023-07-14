@@ -580,7 +580,7 @@ class Config
      */
     public function getLiveEndpointPrefix($storeId = null)
     {
-        $prefix = $this->configHelper->getAdyenAbstractConfigData('live_endpoint_url_prefix', $storeId);
+        $prefix = $this->getAdyenAbstractConfigData('live_endpoint_url_prefix', $storeId);
 
         if (is_null($prefix)) {
             return null;
