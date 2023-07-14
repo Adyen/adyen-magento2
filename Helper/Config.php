@@ -690,7 +690,7 @@ class Config
      */
     public function getCheckoutFrontendRegion($storeId = null)
     {
-        $checkoutFrontendRegion = $this->configHelper->getAdyenAbstractConfigData('checkout_frontend_region', $storeId);
+        $checkoutFrontendRegion = $this->getAdyenAbstractConfigData('checkout_frontend_region', $storeId);
 
         if (is_null($checkoutFrontendRegion)) {
             return null;
