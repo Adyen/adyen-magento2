@@ -45,7 +45,6 @@ class TransactionCancel implements ClientInterface
                 null,
                 $request['merchantAccount']
             );
-
         } else {
             $client = $this->adyenHelper->initializeAdyenClient($transferObject->getClientConfig()['storeId']);
         }
