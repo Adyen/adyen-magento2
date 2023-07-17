@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -15,35 +15,21 @@ use Adyen\AdyenException;
 use Adyen\Client;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
+use Adyen\Service\Modification;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 
-/**
- * Class TransactionSale
- */
 class TransactionRefund implements ClientInterface
 {
     const REFUND_AMOUNT = 'refund_amount';
     const REFUND_CURRENCY = 'refund_currency';
     const ORIGINAL_REFERENCE = 'original_reference';
 
-    /**
-     * @var Data
-     */
-    private $adyenHelper;
+    private Data $adyenHelper;
 
-    /**
-     * @var Idempotency
-     */
-    private $idempotencyHelper;
+    private Idempotency $idempotencyHelper;
 
-    /**
-     * PaymentRequest constructor.
-     *
-     * @param Data $adyenHelper
-     * @param Idempotency $idempotencyHelper
-     */
     public function __construct(
         Data $adyenHelper,
         Idempotency $idempotencyHelper
@@ -52,12 +38,6 @@ class TransactionRefund implements ClientInterface
         $this->idempotencyHelper = $idempotencyHelper;
     }
 
-    /**
-     * @param TransferInterface $transferObject
-     * @return array
-     * @throws AdyenException
-     * @throws NoSuchEntityException
-     */
     public function placeRequest(TransferInterface $transferObject): array
     {
         $requests = $transferObject->getBody();
@@ -76,7 +56,7 @@ class TransactionRefund implements ClientInterface
                 $client = $this->adyenHelper->initializeAdyenClient($clientConfig['storeId']);
             }
 
-            $service = new \Adyen\Service\Modification($client);
+            $service = new Modification($client);
 
             $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
                 $request,
@@ -100,7 +80,6 @@ class TransactionRefund implements ClientInterface
                     // Add amount original reference and amount information to response
                     $response[self::REFUND_AMOUNT] = $request['modificationAmount']['value'];
                     $response[self::REFUND_CURRENCY] = $request['modificationAmount']['currency'];
-
                     $response[self::ORIGINAL_REFERENCE] = $request['originalReference'];
                 } catch (AdyenException $e) {
                     $response = ['error' => $e->getMessage()];

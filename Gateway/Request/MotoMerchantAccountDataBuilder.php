@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2022 Adyen N.V. (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -12,34 +12,25 @@
 namespace Adyen\Payment\Gateway\Request;
 
 use Adyen\AdyenException;
+use Adyen\Payment\Helper\Requests;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
+use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
 class MotoMerchantAccountDataBuilder implements BuilderInterface
 {
+    private Requests $adyenRequestsHelper;
 
-    private \Adyen\Payment\Helper\Requests $adyenRequestsHelper;
-
-    /**
-     * MerchantAccountDataBuilder constructor.
-     *
-     * @param \Adyen\Payment\Helper\Requests $adyenRequestsHelper
-     */
     public function __construct(
-        \Adyen\Payment\Helper\Requests $adyenRequestsHelper
+        Requests $adyenRequestsHelper
     ) {
         $this->adyenRequestsHelper = $adyenRequestsHelper;
     }
 
-    /**
-     * @param array $buildSubject
-     * @return array
-     * @throws AdyenException
-     */
     public function build(array $buildSubject): array
     {
         /** @var PaymentDataObject $paymentDataObject */
-        $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
+        $paymentDataObject = SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
 
         $motoMerchantAccount = $payment->getAdditionalInformation('motoMerchantAccount');

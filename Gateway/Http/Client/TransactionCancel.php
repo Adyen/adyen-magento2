@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -16,24 +16,14 @@ use Adyen\Client;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
 use Adyen\Service\Modification;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 
-/**
- * Class TransactionSale
- */
 class TransactionCancel implements ClientInterface
 {
-
     private Data $adyenHelper;
     private Idempotency $idempotencyHelper;
 
-    /**
-     * PaymentRequest constructor.
-     * @param Data $adyenHelper
-     * @param Idempotency $idempotencyHelper
-     */
     public function __construct(
         Data $adyenHelper,
         Idempotency $idempotencyHelper
@@ -42,12 +32,6 @@ class TransactionCancel implements ClientInterface
         $this->idempotencyHelper = $idempotencyHelper;
     }
 
-    /**
-     * @param TransferInterface $transferObject
-     * @return array
-     * @throws AdyenException
-     * @throws NoSuchEntityException
-     */
     public function placeRequest(TransferInterface $transferObject): array
     {
         $request = $transferObject->getBody();
@@ -61,13 +45,12 @@ class TransactionCancel implements ClientInterface
                 null,
                 $request['merchantAccount']
             );
-            $service = new Modification($client);
+
         } else {
-            $service = new Modification(
-                $this->adyenHelper->initializeAdyenClient($transferObject->getClientConfig()['storeId'])
-            );
+            $client = $this->adyenHelper->initializeAdyenClient($transferObject->getClientConfig()['storeId']);
         }
 
+        $service = new Modification($client);
         $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
             $request,
             $headers['idempotencyExtraData'] ?? null
