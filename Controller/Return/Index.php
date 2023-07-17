@@ -15,6 +15,8 @@ use Adyen\AdyenException;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
 use Adyen\Payment\Helper\Quote;
+use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
@@ -84,7 +86,8 @@ class Index extends Action
         StateData                $stateDataHelper,
         Data                     $adyenDataHelper,
         OrderRepositoryInterface $orderRepository,
-        Idempotency              $idempotencyHelper
+        Idempotency              $idempotencyHelper,
+        Config                   $configHelper
     ) {
         parent::__construct($context);
 
@@ -99,6 +102,7 @@ class Index extends Action
         $this->orderResourceModel = $orderResourceModel;
         $this->stateDataHelper = $stateDataHelper;
         $this->orderRepository = $orderRepository;
+        $this->configHelper = $configHelper;
         $this->idempotencyHelper = $idempotencyHelper;
     }
 
@@ -125,12 +129,12 @@ class Index extends Action
                 $successPath = $failPath = 'multishipping/checkout/success';
                 $setQuoteAsActive = true;
             } else {
-                $successPath = $this->adyenDataHelper->getAdyenAbstractConfigData('custom_success_redirect_path') ?? 'checkout/onepage/success';
-                $failPath = $this->adyenDataHelper->getAdyenAbstractConfigData('return_path');
+                $successPath = $this->configHelper->getAdyenAbstractConfigData('custom_success_redirect_path') ?? 'checkout/onepage/success';
+                $failPath = $this->configHelper->getAdyenAbstractConfigData('return_path');
                 $setQuoteAsActive = false;
             }
         } else {
-            $this->_redirect($this->adyenDataHelper->getAdyenAbstractConfigData('return_path'));
+            $this->_redirect($this->configHelper->getAdyenAbstractConfigData('return_path'));
         }
 
         if ($result) {
@@ -150,7 +154,7 @@ class Index extends Action
             }
 
             // Add OrderIncrementId to redirect parameters for headless support.
-            $redirectParams = $this->adyenDataHelper->getAdyenAbstractConfigData('custom_success_redirect_path')
+            $redirectParams = $this->configHelper->getAdyenAbstractConfigData('custom_success_redirect_path')
                 ? ['_query' => ['utm_nooverride' => '1', 'order_increment_id' => $this->order->getIncrementId()]]
                 : ['_query' => ['utm_nooverride' => '1']];
             $this->_redirect($successPath, $redirectParams);
@@ -355,43 +359,6 @@ class Index extends Action
 
 
         return $result;
-    }
-
-    /**
-     * Authenticate using sha256 Merchant signature
-     *
-     * @param array $response
-     * @return bool
-     * @throws AdyenException
-     */
-    protected function authenticate(array $response): bool
-    {
-        $merchantSigNotification = $response['merchantSig'];
-
-        // do it like this because $_GET is converting dot to underscore
-        $queryString = $_SERVER['QUERY_STRING'];
-        $result = [];
-        $pairs = explode("&", (string) $queryString);
-
-        foreach ($pairs as $pair) {
-            $nv = explode("=", $pair);
-            $name = urldecode($nv[0]);
-            $value = urldecode($nv[1]);
-            $result[$name] = $value;
-        }
-
-        // do not include the merchantSig in the merchantSig calculation
-        unset($result['merchantSig']);
-
-        // Sign request using secret key
-        $hmacKey = $this->adyenDataHelper->getHmac();
-        $merchantSig = \Adyen\Util\Util::calculateSha256Signature($hmacKey, $result);
-
-        if (strcmp($merchantSig, (string) $merchantSigNotification) === 0) {
-            return true;
-        }
-
-        return false;
     }
 
     /**

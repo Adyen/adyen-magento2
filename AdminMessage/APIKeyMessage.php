@@ -27,6 +27,11 @@ class APIKeyMessage implements MessageInterface
     protected $adyenHelper;
 
     /**
+     * @var \Adyen\Payment\Helper\Config
+     */
+    protected $configHelper;
+
+    /**
      * @var InboxFactory
      */
     protected $inboxFactory;
@@ -57,13 +62,14 @@ class APIKeyMessage implements MessageInterface
      * @param Session $authSession
      */
     public function __construct(
-        Data $adyenHelper,
-        InboxFactory $inboxFactory,
-        StoreManagerInterface $storeManagerInterface,
-        Session $authSession,
-        RequestInterface $request
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Adyen\Payment\Helper\Config $configHelper,
+        \Magento\AdminNotification\Model\InboxFactory $inboxFactory,
+        \Magento\Store\Model\StoreManagerInterface $storeManagerInterface,
+        \Magento\Backend\Model\Auth\Session $authSession
     ) {
         $this->adyenHelper = $adyenHelper;
+        $this->configHelper = $configHelper;
         $this->inboxFactory = $inboxFactory;
         $this->storeManagerInterface = $storeManagerInterface;
         $this->authSession = $authSession;
@@ -87,8 +93,7 @@ class APIKeyMessage implements MessageInterface
      */
     public function isDisplayed()
     {
-        $isApiKeyMissing = empty($this->adyenHelper->getAPIKey());
-
+        $isApiKeyMissing = empty($this->configHelper->getAPIKey());
         // Only execute the query the first time you access the Admin page
         if ($this->authSession->isFirstPageAfterLogin() && $isApiKeyMissing) {
             try {
@@ -100,7 +105,7 @@ class APIKeyMessage implements MessageInterface
                     'title' => $title,
                     'description' => $this->getText(),
                     'url' => 'https://docs.adyen.com/developers/plugins/magento-2/' .
-                        'set-up-adyen-customer-area#step1generateanapikey'
+                        'set-up-adyen-customer-area#step1generateanapikey',
                 ];
 
                 /*
@@ -133,7 +138,7 @@ class APIKeyMessage implements MessageInterface
     public function getText()
     {
         return 'Please provide API-KEY for the webservice user ' .
-            $this->adyenHelper->getWsUsername() . ' for default/store ' .
+            $this->configHelper->getNotificationsUsername() . ' for default/store ' .
             $this->storeManagerInterface->getStore()->getName();
     }
 

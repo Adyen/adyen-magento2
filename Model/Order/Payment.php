@@ -82,22 +82,22 @@ class Payment extends AbstractModel implements OrderPaymentInterface
         return $this->setData(self::PAYMENT_METHOD, $paymentMethod);
     }
 
-    public function getAmount(): int
+    public function getAmount(): float
     {
         return $this->getData(self::AMOUNT);
     }
 
-    public function setAmount(int $amount): OrderPaymentInterface
+    public function setAmount(float $amount): OrderPaymentInterface
     {
         return $this->setData(self::AMOUNT, $amount);
     }
 
-    public function getTotalRefunded(): int
+    public function getTotalRefunded(): float
     {
         return $this->getData(self::TOTAL_REFUNDED);
     }
 
-    public function setTotalRefunded(int $totalRefunded): OrderPaymentInterface
+    public function setTotalRefunded(float $totalRefunded): OrderPaymentInterface
     {
         return $this->setData(self::TOTAL_REFUNDED, $totalRefunded);
     }
@@ -132,12 +132,12 @@ class Payment extends AbstractModel implements OrderPaymentInterface
         return $this->getData(self::CAPTURE_STATUS);
     }
 
-    public function getTotalCaptured(): ?int
+    public function getTotalCaptured(): ?float
     {
         return $this->getData(self::TOTAL_CAPTURED);
     }
 
-    public function setTotalCaptured(int $totalCaptured): OrderPaymentInterface
+    public function setTotalCaptured(float $totalCaptured): OrderPaymentInterface
     {
         return $this->setData(self::TOTAL_CAPTURED, $totalCaptured);
     }

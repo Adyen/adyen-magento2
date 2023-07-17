@@ -84,6 +84,10 @@ define(
             {
                 type:'adyen_sepadirectdebit',
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-sepadirectdebit-method'
+            },
+            {
+                type:'adyen_applepay',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-applepay-method'
             }
         );
 

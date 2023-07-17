@@ -67,15 +67,15 @@ interface CreditmemoInterface
     public function setCreditmemoId(int $creditMemoId): CreditmemoInterface;
 
     /**
-     * @return int|null
+     * @return float|null
      */
-    public function getAmount(): ?int;
+    public function getAmount(): ?float;
 
     /**
-     * @param int $amount
+     * @param float $amount
      * @return CreditmemoInterface
      */
-    public function setAmount(int $amount): CreditmemoInterface;
+    public function setAmount(float $amount): CreditmemoInterface;
 
     /**
      * @return int|null

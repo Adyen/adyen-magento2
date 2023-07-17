@@ -358,6 +358,29 @@
             <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Methods\SepaDirectDebit::CODE</argument>
         </arguments>
     </virtualType>
+
+    <type name="Adyen\Payment\Model\Methods\Applepay">
+        <arguments>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentApplepayValueHandlerPool</argument>
+        </arguments>
+    </type>
+    <virtualType name="AdyenPaymentApplepayValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AdyenPaymentApplepayConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentApplepayConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AdyenPaymentApplepayConfig</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentApplepayConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Methods\Applepay::CODE</argument>
+        </arguments>
+    </virtualType>
     <!-- End of payment methods value handler pools -->
 
     <virtualType name="AdyenPaymentBoletoFacade" type="Magento\Payment\Model\Method\Adapter">
@@ -1400,6 +1423,7 @@
         <arguments>
             <argument name="commands" xsi:type="array">
                 <item name="adyen_webhookprocessorcommand" xsi:type="object">Adyen\Payment\Console\Command\WebhookProcessorCommand</item>
+                <item name="adyen_enablepaymentmethodscommand" xsi:type="object">Adyen\Payment\Console\Command\EnablePaymentMethodsCommand</item>
             </argument>
         </arguments>
     </type>

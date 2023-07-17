@@ -218,7 +218,7 @@ class InvoiceTest extends AbstractAdyenTestCase
         ]);
 
         $adyenInvoiceLoadedMock = $this->createConfiguredMock(AdyenInvoice::class, [
-            'getAmount' => 1000,
+            'getAmount' => 1000.0,
             'getEntityId' => 99,
         ]);
         $adyenInvoiceMockForFactory = $this->createConfiguredMock(AdyenInvoice::class, [
@@ -239,7 +239,7 @@ class InvoiceTest extends AbstractAdyenTestCase
         $adyenOrderPaymentMock = $this->createMock(Payment::class);
         $invoiceMock = $this->createConfiguredMock(InvoiceModel::class, [
             'getOrder' => $this->createMock(Order::class),
-            'getGrandTotal' => 1000,
+            'getGrandTotal' => 1000.0,
             'getOrderCurrencyCode' => 'EUR',
             'register' => $this->createMock(InvoiceModel::class),
             'getEntityId' => 99
@@ -250,7 +250,7 @@ class InvoiceTest extends AbstractAdyenTestCase
             $invoiceMock
         );
 
-        $this->assertEquals(1000, $linkedAmount);
+        $this->assertEquals(1000.0, $linkedAmount);
     }
 
     /**
