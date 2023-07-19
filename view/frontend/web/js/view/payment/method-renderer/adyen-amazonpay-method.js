@@ -17,10 +17,12 @@ define(
         adyenPaymentMethod,
     ) {
         return adyenPaymentMethod.extend({
+            placeOrderButtonVisible: false,
+            txVariant: 'amazonpay',
             initialize: function () {
                 this._super();
             },
-            buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo, result) {
+            buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo) {
                 let self = this;
                 let formattedShippingAddress = {};
                 let formattedBillingAddress = {};
@@ -40,7 +42,7 @@ define(
                         reject();
                     }
                 }
-                baseComponentConfiguration = Object.assign(baseComponentConfiguration, paymentMethodsExtraInfo[paymentMethod.methodIdentifier].configuration);
+                baseComponentConfiguration = Object.assign(baseComponentConfiguration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
                 baseComponentConfiguration.productType = 'PayAndShip';
                 baseComponentConfiguration.checkoutMode = 'ProcessOrder';
                 var url = new URL(location.href);

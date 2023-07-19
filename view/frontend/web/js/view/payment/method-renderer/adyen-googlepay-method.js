@@ -17,12 +17,14 @@ define(
         adyenPaymentMethod,
     ) {
         return adyenPaymentMethod.extend({
+            placeOrderButtonVisible: false,
+            txVariant: 'googlepay',
             initialize: function () {
                 this._super();
             },
-            buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo, result) {
+            buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo) {
                 let baseComponentConfiguration = this._super();
-                let googlePayConfiguration = Object.assign(baseComponentConfiguration.showPayButton=true, paymentMethodsExtraInfo[paymentMethod.methodIdentifier].configuration);
+                let googlePayConfiguration = Object.assign(baseComponentConfiguration.showPayButton=true, paymentMethodsExtraInfo[paymentMethod.type].configuration);
                 return googlePayConfiguration
             }
         })

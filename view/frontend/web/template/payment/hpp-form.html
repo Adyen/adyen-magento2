@@ -10,13 +10,13 @@
  */
 -->
 
+<!-- ko if: adyenPaymentMethod -->
 <div id="hpp_actionModalWrapper">
     <div id="hpp_actionModal">
         <div id="hpp_actionModalContent"></div>
     </div>
 </div>
 
-<!-- ko if: adyenPaymentMethod -->
 <div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}">
     <div class="payment-method-title field choice">
         <div class="payment-method-title field choice">
@@ -29,12 +29,11 @@
 
                 <!-- ko if: adyenPaymentMethod().icon -->
                 <img data-bind="attr: {
-                'src': adyenPaymentMethod().icon.url,
-                'alt': adyenPaymentMethod().item.title + ' logo'
+                'src': adyenPaymentMethod().icon.url
                 }">
                 <!--/ko-->
 
-                <span data-bind="text: adyenPaymentMethod().item.title"></span>
+                <span data-bind="text: getTitle()"></span>
             </label>
         </div>
 
@@ -46,15 +45,14 @@
                 <!--/ko-->
             </div>
 
-
-            <form class="form" data-role="'adyen-' + adyenPaymentMethod().item.method + '-form'" action="#" method="post"
-                  data-bind="mageInit: { 'validation':[]}, attr: {id: 'adyen-' + adyenPaymentMethod().item.method + '-form'}">
+            <form class="form" data-role="'adyen-' + adyenPaymentMethod().method + '-form'" action="#" method="post"
+                  data-bind="mageInit: { 'validation':[]}, attr: {id: 'adyen-' + adyenPaymentMethod().method + '-form'}">
 
                 <!-- ko foreach: getRegion('messages') -->
                 <!-- ko template: getTemplate() --><!-- /ko -->
                 <!--/ko-->
 
-                <!-- ko ifnot: adyenPaymentMethod().showPlaceOrderButton() -->
+                <!-- ko ifnot: showPlaceOrderButton() -->
                 <div class="checkout-agreements-block">
                     <!-- ko foreach: $parent.getRegion('before-place-order') -->
                     <!-- ko template: getTemplate() --><!-- /ko -->
@@ -63,10 +61,10 @@
                 <!--/ko-->
 
                 <fieldset class="fieldset" data-bind='attr: {id: "payment_fieldset_" + getCode()}'>
-                    <div class="checkout-component-dock" afterRender="adyenPaymentMethod().renderCheckoutComponent" data-bind="attr: { id: adyenPaymentMethod().item.method + 'Container'}"></div>
+                    <div class="checkout-component-dock" data-bind="attr: { id: adyenPaymentMethod().method + 'Container'}"></div>
                 </fieldset>
 
-                <!-- ko if: adyenPaymentMethod().showPlaceOrderButton() -->
+                <!-- ko if: showPlaceOrderButton() -->
                 <div class="checkout-agreements-block">
                     <!-- ko foreach: $parent.getRegion('before-place-order') -->
                     <!-- ko template: getTemplate() --><!-- /ko -->
@@ -78,10 +76,10 @@
                     <div class="primary">
                         <button class="action primary checkout"
                                 type="submit"
-                                data-bind="click: adyenPaymentMethod().placeOrder,
+                                data-bind="click: placeOrder,
                                 attr: {title: $t('Place Order')},
                                 enable: isButtonActive(),
-                                visible: adyenPaymentMethod().showPlaceOrderButton()"
+                                visible: showPlaceOrderButton()"
                                 disabled>
                             <span data-bind="text: $t('Place Order')"></span>
                         </button>

@@ -17,10 +17,11 @@ define(
         adyenPaymentMethod,
     ) {
         return adyenPaymentMethod.extend({
+            txVariant: 'facilypay_3x',
             initialize: function () {
                 this._super();
             },
-            buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo, result) {
+            buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo) {
                 let baseComponentConfiguration = this._super();
                 let self = this;
                 let formattedShippingAddress = {};

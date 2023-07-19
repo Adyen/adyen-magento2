@@ -85,10 +85,8 @@ define(
                 paymentMethodsObserver.subscribe(
                     function (paymentMethodsResponse) {
                         self.loadCheckoutComponent(paymentMethodsResponse)
-                    });
-
-                self.loadCheckoutComponent(paymentMethodsObserver());
-                return this;
+                    }
+                );
             },
             isSchemePaymentsEnabled: function (paymentMethod) {
                 return paymentMethod.type === "scheme";
