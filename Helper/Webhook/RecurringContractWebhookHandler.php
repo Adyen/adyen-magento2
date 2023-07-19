@@ -14,50 +14,30 @@ namespace Adyen\Payment\Helper\Webhook;
 
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
-use Magento\Framework\Exception\LocalizedException;
+use Adyen\Payment\Helper\Vault;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Vault\Model\PaymentTokenManagement;
 
 class RecurringContractWebhookHandler implements WebhookHandlerInterface
 {
-    /**
-     * @var AdyenLogger
-     */
     private AdyenLogger $adyenLogger;
-
-    /**
-     * @var PaymentTokenManagement
-     */
     private PaymentTokenManagement $paymentTokenManagement;
-
-    /**
-     * @var PaymentTokenRepositoryInterface
-     */
     private PaymentTokenRepositoryInterface $paymentTokenRepository;
+    private Vault $vaultHelper;
 
-    /**
-     * @param AdyenLogger $adyenLogger
-     * @param PaymentTokenManagement $paymentTokenManagement
-     * @param PaymentTokenRepositoryInterface $paymentTokenRepository
-     */
     public function __construct(
         AdyenLogger $adyenLogger,
         PaymentTokenManagement $paymentTokenManagement,
-        PaymentTokenRepositoryInterface $paymentTokenRepository
+        PaymentTokenRepositoryInterface $paymentTokenRepository,
+        Vault $vaultHelper
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->paymentTokenManagement = $paymentTokenManagement;
         $this->paymentTokenRepository = $paymentTokenRepository;
+        $this->vaultHelper = $vaultHelper;
     }
 
-    /**
-     * @param MagentoOrder $order
-     * @param Notification $notification
-     * @param string $transitionState
-     * @return MagentoOrder
-     * @throws LocalizedException
-     */
     public function handleWebhook(
         MagentoOrder $order,
         Notification $notification,
@@ -65,17 +45,13 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
     ): MagentoOrder {
         if (!$notification->isSuccessful()) {
             $this->handleFailedNotification($order, $notification);
+        } else{
+            $this->handleSuccessNotification($order, $notification);
         }
 
         return $order;
     }
 
-    /**
-     * @param MagentoOrder $order
-     * @param Notification $notification
-     * @return void
-     * @throws LocalizedException
-     */
     private function handleFailedNotification(MagentoOrder $order, Notification $notification): void
     {
         $vaultToken = $this->paymentTokenManagement->getByGatewayToken(
@@ -99,6 +75,30 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
                     'merchantReference' => $notification->getMerchantReference()
                 ]
             );
+        }
+    }
+
+    private function handleSuccessNotification(MagentoOrder $order, Notification $notification): void
+    {
+        $paymentMethodInstance = $order->getPayment()->getMethodInstance();
+        $paymentMethodCode = $paymentMethodInstance->getCode();
+        $storeId = $paymentMethodInstance->getStore();
+        $isRecurringEnabled = $this->vaultHelper->getPaymentMethodRecurringActive($paymentMethodCode, $storeId);
+
+        if ($isRecurringEnabled) {
+            try {
+                $paymentToken = $this->vaultHelper->createVaultToken($order->getPayment(), $notification->getPspreference());
+                $extensionAttributes = $this->vaultHelper->getExtensionAttributes($order->getPayment());
+                $extensionAttributes->setVaultPaymentToken($paymentToken);
+            } catch (Exception $exception) {
+                $this->adyenLogger->error(
+                    sprintf(
+                        'Failure trying to save payment token in vault for order %s, with exception message %s',
+                        $order->getPayment()->getOrder()->getIncrementId(),
+                        $exception->getMessage()
+                    )
+                );
+            }
         }
     }
 }
