@@ -186,12 +186,8 @@ define(
 
             buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo) {
                 let self = this;
-                let email = '';
                 let showPayButton = false;
 
-                if (!!quote.guestEmail) {
-                    email = quote.guestEmail;
-                }
                 let formattedShippingAddress = {};
                 let formattedBillingAddress = {};
 
@@ -229,7 +225,6 @@ define(
 
                 try {
                     const containerId = '#' + paymentMethod.type + 'Container';
-                    let url = new URL(location.href);
 
                     this.paymentComponent = adyenCheckout.mountPaymentMethodComponent(
                         self.checkoutComponent,

@@ -24,7 +24,10 @@ define(
             },
             buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo) {
                 let baseComponentConfiguration = this._super();
-                let googlePayConfiguration = Object.assign(baseComponentConfiguration.showPayButton=true, paymentMethodsExtraInfo[paymentMethod.type].configuration);
+
+                let googlePayConfiguration = Object.assign(baseComponentConfiguration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
+                googlePayConfiguration.showPayButton = true;
+
                 return googlePayConfiguration
             }
         })

@@ -26,15 +26,15 @@ define(
             },
             buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo) {
                 let baseComponentConfiguration = this._super();
-                let paypalConfiguration = Object.assign(baseComponentConfiguration.showPayButton=true, paymentMethodsExtraInfo[paymentMethod.type].configuration);
+                let paypalConfiguration = Object.assign(baseComponentConfiguration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
+                paypalConfiguration.showPayButton = true;
+
                 return paypalConfiguration
             },
             renderActionComponent: function(resultCode, action, component) {
-                let self = this;
-                let actionNode = document.getElementById(this.modalLabel + 'Content');
                 fullScreenLoader.stopLoader();
 
-                self.actionComponent = component.handleAction(action);
+                this.actionComponent = component.handleAction(action);
             },
         })
     }
