@@ -37,7 +37,7 @@ define(
         adyenCheckout
     ) {
         'use strict';
-        var popupModal;
+        let popupModal;
 
         return Component.extend({
             self: this,
@@ -61,12 +61,12 @@ define(
 
             initialize: function() {
                 this._super();
-                var self = this;
+                let self = this;
 
                 fullScreenLoader.startLoader();
                 this.isPlaceOrderAllowed(true);
 
-                var paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
+                let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
                 paymentMethodsObserver.subscribe(
                     function(paymentMethodsResponse) {
                         self.createCheckoutComponent(paymentMethodsResponse);
@@ -113,10 +113,10 @@ define(
 
             handleOnSubmit: async function(state, component) {
                 if (this.validate()) {
-                    var data = {};
+                    let data = {};
                     data.method = this.getCode();
 
-                    var additionalData = {};
+                    let additionalData = {};
                     let stateData = component.data;
                     additionalData.stateData = JSON.stringify(stateData);
                     data.additional_data = additionalData;
@@ -179,21 +179,21 @@ define(
 
             renderCheckoutComponent: function() {
                 this.isPlaceOrderAllowed(false);
-                var configuration = this.buildComponentConfiguration(this.paymentMethod(), this.paymentMethodsExtraInfo());
+                let configuration = this.buildComponentConfiguration(this.paymentMethod(), this.paymentMethodsExtraInfo());
 
                 this.mountPaymentMethodComponent(this.paymentMethod(), configuration);
             },
 
             buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo) {
-                var self = this;
-                var email = '';
-                var showPayButton = false;
+                let self = this;
+                let email = '';
+                let showPayButton = false;
 
                 if (!!quote.guestEmail) {
                     email = quote.guestEmail;
                 }
-                var formattedShippingAddress = {};
-                var formattedBillingAddress = {};
+                let formattedShippingAddress = {};
+                let formattedBillingAddress = {};
 
                 if (!quote.isVirtual() && !!quote.shippingAddress()) {
                     formattedShippingAddress = self.getFormattedAddress(quote.shippingAddress());
@@ -203,7 +203,7 @@ define(
                     formattedBillingAddress = self.getFormattedAddress(quote.billingAddress());
                 }
                 /* Use the storedPaymentMethod object and the custom onChange function as the configuration object together */
-                var configuration = Object.assign(paymentMethod,
+                let configuration = Object.assign(paymentMethod,
                     {
                         showPayButton: showPayButton,
                         countryCode: formattedShippingAddress.country ? formattedShippingAddress.country : formattedBillingAddress.country, // Use shipping address details as default and fall back to billing address if missing
@@ -225,11 +225,11 @@ define(
 
             mountPaymentMethodComponent(paymentMethod, configuration)
             {
-                var self = this;
+                let self = this;
 
                 try {
                     const containerId = '#' + paymentMethod.type + 'Container';
-                    var url = new URL(location.href);
+                    let url = new URL(location.href);
 
                     this.paymentComponent = adyenCheckout.mountPaymentMethodComponent(
                         self.checkoutComponent,
@@ -334,8 +334,8 @@ define(
              * @param responseJSON
              */
             validateActionOrPlaceOrder: function(responseJSON, orderId, component) {
-                var self = this;
-                var response = JSON.parse(responseJSON);
+                let self = this;
+                let response = JSON.parse(responseJSON);
 
                 if (!!response.isFinal) {
                     // Status is final redirect to the success page
@@ -350,8 +350,8 @@ define(
             },
 
             renderActionComponent: function(resultCode, action, component) {
-                var self = this;
-                var actionNode = document.getElementById(this.modalLabel + 'Content');
+                let self = this;
+                let actionNode = document.getElementById(this.modalLabel + 'Content');
                 fullScreenLoader.stopLoader();
 
                 if (resultCode !== 'RedirectShopper') {

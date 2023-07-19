@@ -30,8 +30,8 @@ define(
                 return paypalConfiguration
             },
             renderActionComponent: function(resultCode, action, component) {
-                var self = this;
-                var actionNode = document.getElementById(this.modalLabel + 'Content');
+                let self = this;
+                let actionNode = document.getElementById(this.modalLabel + 'Content');
                 fullScreenLoader.stopLoader();
 
                 self.actionComponent = component.handleAction(action);

@@ -45,7 +45,7 @@ define(
                 baseComponentConfiguration = Object.assign(baseComponentConfiguration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
                 baseComponentConfiguration.productType = 'PayAndShip';
                 baseComponentConfiguration.checkoutMode = 'ProcessOrder';
-                var url = new URL(location.href);
+                let url = new URL(location.href);
                 url.searchParams.delete('amazonCheckoutSessionId');
                 baseComponentConfiguration.returnUrl = url.href;
                 baseComponentConfiguration.onSubmit = async (state, amazonPayComponent) => {

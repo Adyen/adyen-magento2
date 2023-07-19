@@ -23,9 +23,9 @@ define(
         adyenPaymentService
     ) {
         'use strict';
-        var billingAddress = quote.billingAddress();
-        var firstname = '';
-        var lastname = '';
+        let billingAddress = quote.billingAddress();
+        let firstname = '';
+        let lastname = '';
         if (!!billingAddress) {
             firstname = billingAddress.firstname;
             lastname = billingAddress.lastname;
@@ -100,9 +100,9 @@ define(
                 return this;
             },
             validate: function () {
-                var form = 'form[data-role=adyen-boleto-form]';
+                let form = 'form[data-role=adyen-boleto-form]';
 
-                var validate = $(form).validation() && $(form).validation('isValid');
+                let validate = $(form).validation() && $(form).validation('isValid');
 
                 if (!validate) {
                     return false;
