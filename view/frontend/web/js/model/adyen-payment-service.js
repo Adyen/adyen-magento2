@@ -33,7 +33,7 @@ define(
              */
             retrievePaymentMethods: function() {
                 // url for guest users
-                var serviceUrl = urlBuilder.createUrl(
+                let serviceUrl = urlBuilder.createUrl(
                     '/guest-carts/:cartId/retrieve-adyen-payment-methods', {
                         cartId: quote.getQuoteId()
                     });
@@ -44,7 +44,7 @@ define(
                 }
 
                 // Construct payload for the retrieve payment methods request
-                var payload = {
+                let payload = {
                     cartId: quote.getQuoteId(),
                     country: quote.billingAddress().countryId
                 };
@@ -64,10 +64,18 @@ define(
             },
 
             getOrderPaymentStatus: function(orderId) {
-                var serviceUrl = urlBuilder.createUrl('/internal/adyen/orders/payment-status', {});
-                var payload = {
-                    orderId: orderId,
-                    form_key: $.mage.cookies.get('form_key')
+                let serviceUrl;
+
+                if (customer.isLoggedIn()) {
+                    serviceUrl = urlBuilder.createUrl('/adyen/orders/carts/mine/payment-status', {});
+                } else {
+                    serviceUrl = urlBuilder.createUrl('/adyen/orders/guest-carts/:cartId/payment-status', {
+                        cartId: quote.getQuoteId()
+                    });
+                }
+
+                let payload = {
+                    orderId: orderId
                 }
                 return storage.post(
                     serviceUrl,
