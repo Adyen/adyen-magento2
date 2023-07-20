@@ -182,7 +182,8 @@ class Success extends Template
 
     public function getClientKey()
     {
-        return $this->configHelper->getClientKey();
+        $environment = $this->configHelper->isDemoMode() ? 'test' : 'live';
+        return $this->configHelper->getClientKey($environment);
     }
 
     public function getEnvironment()
