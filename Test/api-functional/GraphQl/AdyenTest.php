@@ -87,7 +87,7 @@ QUERY;
      */
     public function testAdyenPaymentStatus()
     {
-        $methodCode = "adyen_hpp";
+        $methodCode = "adyen_ideal";
         $maskedQuoteId = $this->getMaskedQuoteIdByReservedOrderId->execute('test_quote');
         $stateData = '{\"paymentMethod\":{\"type\":\"ideal\",\"issuer\":\"1154\"}}';
         $adyenAdditionalData = '
@@ -134,7 +134,7 @@ QUERY;
      */
     public function testSetAdyenPaymentMethodOnCart()
     {
-        $methodCode = "adyen_hpp";
+        $methodCode = "adyen_ideal";
         $maskedQuoteId = $this->getMaskedQuoteIdByReservedOrderId->execute('test_quote');
         $stateData = '{\"paymentMethod\":{\"type\":\"ideal\",\"issuer\":\"1154\"}}';
         $adyenAdditionalData = '

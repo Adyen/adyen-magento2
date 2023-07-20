@@ -16,12 +16,15 @@
         'jquery'
     ], function (layout, $) {
         $(function () {
+            var paymentMethodData = {
+                method: 'adyen_klarna'
+            };
             layout([
                 {
-                    component: 'Adyen_Payment/js/view/payment/method-renderer/multishipping/adyen-hpp-method',
-                    name: 'payment_method_adyen_hpp',
-                    method: 'adyen_hpp',
-                    item: { method: 'adyen_hpp' }
+                    component: 'Adyen_Payment/js/view/payment/method-renderer/multishipping/adyen-klarna-method',
+                    name: 'payment_method_adyen_klarna',
+                    method: paymentMethodData.method,
+                    item: paymentMethodData
                 }
             ]);
             $('body').trigger('contentUpdated');
