@@ -49,7 +49,7 @@ class GuestAdyenOrderPaymentStatus implements GuestAdyenOrderPaymentStatusInterf
 
         $order = $this->orderRepository->get($orderId);
 
-        if ($order->getQuoteId() != $quoteId) {
+        if ($order->getQuoteId() !== $quoteId) {
             $errorMessage = sprintf("Order for ID %s not found!", $orderId);
             $this->adyenLogger->error($errorMessage);
 
