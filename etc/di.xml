@@ -113,7 +113,8 @@
     </virtualType>
     <type name="Adyen\Payment\Model\AdyenPaymentMethod">
         <arguments>
-            <argument name="infoBlockType" xsi:type="string">Magento\Payment\Block\ConfigurableInfo</argument>
+            <argument name="formBlockType" xsi:type="string">Adyen\Payment\Block\Form\Hpp</argument>
+            <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\Hpp</argument>
             <argument name="validatorPool" xsi:type="object">AdyenPaymentHppValidatorPool</argument>
             <argument name="commandPool" xsi:type="object">AdyenPaymentHppCommandPool</argument>
         </arguments>
