@@ -135,7 +135,8 @@ class Cc extends \Magento\Payment\Block\Form\Cc
      */
     public function getClientKey()
     {
-        return $this->configHelper->getClientKey();
+        $environment = $this->configHelper->isDemoMode() ? 'test' : 'live';
+        return $this->configHelper->getClientKey($environment);
     }
 
     /**
