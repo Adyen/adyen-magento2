@@ -88,6 +88,10 @@ define(
             {
                 type:'adyen_sepadirectdebit',
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-sepadirectdebit-method'
+            },
+            {
+                type:'adyen_applepay',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-applepay-method'
             }
         );
 
@@ -114,12 +118,14 @@ define(
                     });
                 };
                 quote.billingAddress.subscribe(function(address) {
-                    // In case the country hasn't changed don't retrieve new payment methods
-                    if (billingAddressCountry === quote.billingAddress().countryId) {
-                        return;
+                    if (!!quote.billingAddress()) {
+                        // In case the country hasn't changed don't retrieve new payment methods
+                        if (billingAddressCountry === quote.billingAddress().countryId) {
+                            return;
+                        }
+                        billingAddressCountry = quote.billingAddress().countryId;
+                        retrievePaymentMethods();
                     }
-                    billingAddressCountry = quote.billingAddress().countryId;
-                    retrievePaymentMethods();
                 });
                 //Retrieve payment methods to ensure the amount is updated, when applying the discount code
                 setCouponCodeAction.registerSuccessCallback(function () {
