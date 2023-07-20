@@ -262,7 +262,7 @@ class PaymentMethods extends AbstractHelper
         $this->quote = $quote;
     }
 
-    protected function getCurrentShopperReference(): int
+    protected function getCurrentShopperReference(): ?int
     {
         return $this->getQuote()->getCustomerId();
     }
