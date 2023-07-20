@@ -35,19 +35,18 @@ define(
                 // url for guest users
                 var serviceUrl = urlBuilder.createUrl(
                     '/guest-carts/:cartId/retrieve-adyen-payment-methods', {
-                        cartId: quote.getQuoteId(),
+                        cartId: quote.getQuoteId()
                     });
 
                 // url for logged in users
                 if (customer.isLoggedIn()) {
-                    serviceUrl = urlBuilder.createUrl(
-                        '/carts/mine/retrieve-adyen-payment-methods', {});
+                    serviceUrl = urlBuilder.createUrl('/carts/mine/retrieve-adyen-payment-methods', {});
                 }
 
                 // Construct payload for the retrieve payment methods request
                 var payload = {
                     cartId: quote.getQuoteId(),
-                    form_key: $.mage.cookies.get('form_key')
+                    country: quote.billingAddress().countryId
                 };
 
                 return storage.post(

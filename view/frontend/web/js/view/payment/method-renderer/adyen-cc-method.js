@@ -81,12 +81,19 @@ define(
 
                 let self = this;
 
-                let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
-                paymentMethodsObserver.subscribe(
-                    function (paymentMethodsResponse) {
-                        self.loadCheckoutComponent(paymentMethodsResponse)
-                    }
-                );
+                adyenPaymentService.retrievePaymentMethods().done(function(paymentMethods) {
+                    paymentMethods = JSON.parse(paymentMethods);
+                    adyenPaymentService.setPaymentMethods(paymentMethods);
+                    fullScreenLoader.stopLoader();
+
+                    let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
+                    paymentMethodsObserver.subscribe(
+                        function (paymentMethodsResponse) {
+                            self.loadCheckoutComponent(paymentMethodsResponse)
+                        });
+                }).fail(function() {
+                    console.log('Fetching the payment methods failed!');
+                })
             },
             isSchemePaymentsEnabled: function (paymentMethod) {
                 return paymentMethod.type === "scheme";
