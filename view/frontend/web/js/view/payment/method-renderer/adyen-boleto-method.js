@@ -12,9 +12,16 @@ define(
         'underscore',
         'jquery',
         'Magento_Checkout/js/model/quote',
-        'Magento_Payment/js/view/payment/cc-form'
+        'Magento_Payment/js/view/payment/cc-form',
+        'Adyen_Payment/js/model/adyen-payment-service',
     ],
-    function (_, $, quote, Component) {
+    function (
+        _,
+        $,
+        quote,
+        Component,
+        adyenPaymentService
+    ) {
         'use strict';
         var billingAddress = quote.billingAddress();
         var firstname = '';
@@ -36,9 +43,28 @@ define(
                         'socialSecurityNumber',
                         'boletoType',
                         'firstname',
-                        'lastname'
+                        'lastname',
+                        'adyenBoletoMethod'
                     ]);
                 return this;
+            },
+            initialize: function () {
+                this._super();
+                let self = this;
+
+                let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
+                paymentMethodsObserver.subscribe(
+                    function (paymentMethodsResponse) {
+                        // Check the paymentMethods response to enable Boleto payments
+                        if (!paymentMethodsResponse.paymentMethodsResponse.paymentMethods.find(self.isBoletoPaymentsEnabled)) {
+                            return;
+                        } else {
+                            self.adyenBoletoMethod(true);
+                        }
+                    });
+            },
+            isBoletoPaymentsEnabled: function (paymentMethod) {
+                return paymentMethod.type.includes("boleto");
             },
             setPlaceOrderHandler: function (handler) {
                 this.placeOrderHandler = handler;

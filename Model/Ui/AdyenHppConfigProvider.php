@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Model\Ui;
 
+use Adyen\Payment\Helper\Config;
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Payment\Helper\Data as PaymentHelper;
 use Magento\Directory\Helper\Data;
@@ -29,6 +30,11 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
      * @var \Adyen\Payment\Helper\Data
      */
     protected $adyenHelper;
+
+    /**
+     * @var Config
+     */
+    protected $configHelper;
 
     /**
      * Request object
@@ -81,7 +87,8 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Checkout\Model\Session $session,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Adyen\Payment\Model\Gender $gender
+        \Adyen\Payment\Model\Gender $gender,
+        Config $configHelper
     ) {
         $this->paymentHelper = $paymentHelper;
         $this->adyenHelper = $adyenHelper;
@@ -91,6 +98,7 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         $this->session = $session;
         $this->storeManager = $storeManager;
         $this->gender = $gender;
+        $this->configHelper = $configHelper;
     }
 
     /**
@@ -144,7 +152,7 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         // gender types
         $adyenHppConfig['genderTypes'] =  $this->gender->getGenderTypes();
 
-        $adyenHppConfig['ratePayId'] = $this->adyenHelper->getRatePayId($storeId);
+        $adyenHppConfig['ratePayId'] = $this->configHelper->getRatePayId($storeId);
         $adyenHppConfig['deviceIdentToken'] = hash("sha256", $this->session->getQuoteId() . date('c'));
         $adyenHppConfig['nordicCountries'] = ['SE', 'NO', 'DK', 'FI'];
 

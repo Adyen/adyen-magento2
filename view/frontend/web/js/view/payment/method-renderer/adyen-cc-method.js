@@ -98,8 +98,17 @@ define(
                     console.log('Fetching the payment methods failed!');
                 })
             },
+            isSchemePaymentsEnabled: function (paymentMethod) {
+                return paymentMethod.type === "scheme";
+            },
             loadCheckoutComponent: async function (paymentMethodsResponse) {
                 let self = this;
+
+                // Check the paymentMethods response to enable Credit Card payments
+                if (!!paymentMethodsResponse &&
+                    !paymentMethodsResponse.paymentMethodsResponse.paymentMethods.find(self.isSchemePaymentsEnabled)) {
+                    return;
+                }
 
                 this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
                     paymentMethodsResponse,

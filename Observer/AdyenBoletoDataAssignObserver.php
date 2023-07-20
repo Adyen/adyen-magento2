@@ -33,19 +33,19 @@ class AdyenBoletoDataAssignObserver extends AbstractDataAssignObserver
     ];
 
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var \Adyen\Payment\Helper\Config
      */
-    private $adyenHelper;
+    private $configHelper;
 
     /**
      * AdyenBoletoDataAssignObserver constructor.
      *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Adyen\Payment\Helper\Config $configHelper
      */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
+        \Adyen\Payment\Helper\Config $configHelper
     ) {
-        $this->adyenHelper = $adyenHelper;
+        $this->configHelper = $configHelper;
     }
 
     /**
@@ -69,7 +69,7 @@ class AdyenBoletoDataAssignObserver extends AbstractDataAssignObserver
         if (!empty($additionalData[self::BOLETO_TYPE])) {
             $paymentInfo->setCcType($additionalData[self::BOLETO_TYPE]);
         } else {
-            $paymentInfo->setCcType($this->adyenHelper->getAdyenBoletoConfigData('boletotypes'));
+            $paymentInfo->setCcType($this->configHelper->getAdyenBoletoConfigData('boletotypes'));
         }
 
         foreach ($this->additionalInformationList as $additionalInformationKey) {

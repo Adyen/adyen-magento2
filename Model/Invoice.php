@@ -72,12 +72,12 @@ class Invoice extends AbstractModel implements InvoiceInterface
         return $this->setData(self::INVOICE_ID, $invoiceId);
     }
 
-    public function getAmount(): ?int
+    public function getAmount(): ?float
     {
         return $this->getData(self::AMOUNT);
     }
 
-    public function setAmount(int $amount): InvoiceInterface
+    public function setAmount(float $amount): InvoiceInterface
     {
         return $this->setData(self::AMOUNT, $amount);
     }
