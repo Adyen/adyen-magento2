@@ -12,41 +12,50 @@
 
 namespace Adyen\Payment\Model\Api;
 
-use Adyen\Payment\Api\AdyenOrderPaymentStatusInterface;
+use Adyen\Payment\Api\GuestAdyenOrderPaymentStatusInterface;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Logger\AdyenLogger;
+use Magento\Framework\Exception\NotFoundException;
+use Magento\Quote\Model\QuoteIdMaskFactory;
 use Magento\Sales\Api\OrderRepositoryInterface;
-use \Magento\Framework\Exception\NoSuchEntityException;
 
-class AdyenOrderPaymentStatus implements AdyenOrderPaymentStatusInterface
+class GuestAdyenOrderPaymentStatus implements GuestAdyenOrderPaymentStatusInterface
 {
     protected OrderRepositoryInterface $orderRepository;
     protected AdyenLogger $adyenLogger;
     protected Data $adyenHelper;
+    private QuoteIdMaskFactory $quoteIdMaskFactory;
     private PaymentResponseHandler $paymentResponseHandler;
 
     public function __construct(
         OrderRepositoryInterface $orderRepository,
         AdyenLogger $adyenLogger,
         Data $adyenHelper,
-        PaymentResponseHandler $paymentResponseHandler
+        PaymentResponseHandler $paymentResponseHandler,
+        QuoteIdMaskFactory $quoteIdMaskFactory
     ) {
         $this->orderRepository = $orderRepository;
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
         $this->paymentResponseHandler = $paymentResponseHandler;
+        $this->quoteIdMaskFactory = $quoteIdMaskFactory;
     }
 
-    public function getOrderPaymentStatus(string $orderId): string
+    public function getOrderPaymentStatus(string $orderId, string $cartId): string
     {
-        try {
-            $order = $this->orderRepository->get($orderId);
-        } catch (NoSuchEntityException $exception) {
+        $quoteIdMask = $this->quoteIdMaskFactory->create()->load($cartId, 'masked_id');
+        $quoteId = $quoteIdMask->getQuoteId();
+
+        $order = $this->orderRepository->get($orderId);
+
+        if ($order->getQuoteId() !== $quoteId) {
             $errorMessage = sprintf("Order for ID %s not found!", $orderId);
             $this->adyenLogger->error($errorMessage);
 
-            throw $exception;
+            throw new NotFoundException(
+                __("The entity that was requested doesn't exist. Verify the entity and try again.")
+            );
         }
 
         $payment = $order->getPayment();
