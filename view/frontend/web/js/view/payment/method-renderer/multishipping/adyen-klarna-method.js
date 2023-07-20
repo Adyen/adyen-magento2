@@ -11,7 +11,7 @@
 /*global define*/
 define([
     'jquery',
-    'Adyen_Payment/js/view/payment/method-renderer/adyen-hpp-method',
+    'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-method',
     'Adyen_Payment/js/model/adyen-payment-service',
     'Adyen_Payment/js/model/adyen-configuration',
     'Magento_Checkout/js/model/quote',
@@ -25,10 +25,10 @@ define([
     fullScreenLoader
 ) {
     'use strict';
-    
+
     return Component.extend({
         defaults: {
-            template: 'Adyen_Payment/payment/multishipping/hpp-form'
+            template: 'Adyen_Payment/payment/multishipping/klarna-form'
         },
         initialize: function () {
             var self = this;
