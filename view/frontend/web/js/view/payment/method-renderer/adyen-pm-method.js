@@ -54,7 +54,8 @@ define(
                     'paymentMethod',
                     'paymentMethodsExtraInfo',
                     'adyenPaymentMethod',
-                    'isPlaceOrderActionAllowed'
+                    'isPlaceOrderActionAllowed',
+                    'placeOrderAllowed'
                 ]);
                 return this;
             },
@@ -63,7 +64,7 @@ define(
                 this._super();
                 let self = this;
 
-                fullScreenLoader.startLoader();
+                // fullScreenLoader.startLoader();
                 this.isPlaceOrderAllowed(true);
 
                 let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
@@ -72,6 +73,10 @@ define(
                         self.createCheckoutComponent(paymentMethodsResponse);
                     }
                 );
+
+                if(!!paymentMethodsObserver()) {
+                    self.loadCheckoutComponent(paymentMethodsObserver());
+                }
             },
 
             createCheckoutComponent: async function(paymentMethodsResponse) {
