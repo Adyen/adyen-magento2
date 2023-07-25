@@ -26,6 +26,7 @@ use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Model\Order;
+use Magento\Catalog\Model\ProductFactory;
 
 class CheckoutDataBuilder implements BuilderInterface
 {
@@ -61,6 +62,9 @@ class CheckoutDataBuilder implements BuilderInterface
     /** @var Config */
     private $configHelper;
 
+    /** @var ProductFactory */
+    private $productFactory;
+
     /**
      * CheckoutDataBuilder constructor.
      * @param Data $adyenHelper
@@ -69,6 +73,7 @@ class CheckoutDataBuilder implements BuilderInterface
      * @param ChargedCurrency $chargedCurrency
      * @param Image $imageHelper
      * @param Config $configHelper
+     * @param ProductFactory $productFactory
      */
     public function __construct(
         Data $adyenHelper,
@@ -76,7 +81,8 @@ class CheckoutDataBuilder implements BuilderInterface
         CartRepositoryInterface $cartRepository,
         ChargedCurrency $chargedCurrency,
         Image $imageHelper,
-        Config $configHelper
+        Config $configHelper,
+        ProductFactory $productFactory
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->stateData = $stateData;
@@ -84,6 +90,7 @@ class CheckoutDataBuilder implements BuilderInterface
         $this->chargedCurrency = $chargedCurrency;
         $this->imageHelper = $imageHelper;
         $this->configHelper = $configHelper;
+        $this->productFactory = $productFactory;
     }
 
     /**
@@ -286,14 +293,25 @@ class CheckoutDataBuilder implements BuilderInterface
         $amountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order);
         $currency = $amountCurrency->getCurrencyCode();
         $discountAmount = 0;
+        $totalDiscountAmount = 0;
 
         foreach ($cart->getAllVisibleItems() as $item) {
             $numberOfItems = (int)$item->getQty();
 
             $itemAmountCurrency = $this->chargedCurrency->getQuoteItemAmountCurrency($item);
 
+            $productId = $item->getProduct()->getId();
+            $product = $this->productFactory->create()->load($productId);
+
+
             // Summarize the discount amount item by item
-            $discountAmount += $itemAmountCurrency->getDiscountAmount();
+            $discountAmount = $product->getFinalPrice() - $product->getPrice();
+            $totalDiscountAmount += $discountAmount;
+
+            // TODO
+            // currently we are only handling "Apply Discount On Prices": "Including tax"
+            // if Apply customer tax "Apply Discount On Prices": "Excluding tax" => /admin/admin/system_config/edit/section/tax/key/
+
 
             $formattedPriceExcludingTax = $this->adyenHelper->formatAmount(
                 $itemAmountCurrency->getAmount(),
@@ -372,7 +390,7 @@ class CheckoutDataBuilder implements BuilderInterface
                 'id' => 'shippingCost',
                 'amountExcludingTax' => $formattedPriceExcludingTax,
                 'amountIncludingTax' => $formattedPriceIncludingTax,
-                'taxAmount' => $formattedTaxAmount,
+                'taxAmount' => $formattedTaxAmount, // TODO we should add the tax amount after the discount has been applied
                 'description' => $order->getShippingDescription(),
                 'quantity' => 1,
                 'taxPercentage' => (int) round(($formattedTaxAmount / $formattedPriceExcludingTax) * 100 * 100)
