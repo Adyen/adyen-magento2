@@ -27,6 +27,8 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Catalog\Model\ProductFactory;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Store\Model\ScopeInterface;
 
 class CheckoutDataBuilder implements BuilderInterface
 {
@@ -65,6 +67,9 @@ class CheckoutDataBuilder implements BuilderInterface
     /** @var ProductFactory */
     private $productFactory;
 
+    /** @var ScopeConfigInterface */
+    private $scopeConfig;
+
     /**
      * CheckoutDataBuilder constructor.
      * @param Data $adyenHelper
@@ -74,6 +79,7 @@ class CheckoutDataBuilder implements BuilderInterface
      * @param Image $imageHelper
      * @param Config $configHelper
      * @param ProductFactory $productFactory
+     * @param ScopeConfigInterface $scopeConfig
      */
     public function __construct(
         Data $adyenHelper,
@@ -82,7 +88,8 @@ class CheckoutDataBuilder implements BuilderInterface
         ChargedCurrency $chargedCurrency,
         Image $imageHelper,
         Config $configHelper,
-        ProductFactory $productFactory
+        ProductFactory $productFactory,
+        ScopeConfigInterface $scopeConfig
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->stateData = $stateData;
@@ -91,6 +98,7 @@ class CheckoutDataBuilder implements BuilderInterface
         $this->imageHelper = $imageHelper;
         $this->configHelper = $configHelper;
         $this->productFactory = $productFactory;
+        $this->scopeConfig = $scopeConfig;
     }
 
     /**
@@ -106,6 +114,8 @@ class CheckoutDataBuilder implements BuilderInterface
         /** @var Order $order */
         $order = $payment->getOrder();
         $storeId = $order->getStoreId();
+        $applyDiscountOnPrice = $this->getApplyDiscountOnPricesConfig();
+
 
         // Initialize the request body with the current state data
         // Multishipping checkout uses the cc_number field for state data
@@ -135,7 +145,7 @@ class CheckoutDataBuilder implements BuilderInterface
             (isset($brandCode) && $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) ||
             $payment->getMethod() === AdyenPayByLinkConfigProvider::CODE
         ) {
-            $openInvoiceFields = $this->getOpenInvoiceData($order);
+            $openInvoiceFields = $this->getOpenInvoiceData($order, $applyDiscountOnPrice);
             $requestBody = array_merge($requestBody, $openInvoiceFields);
 
             if (isset($brandCode) &&
@@ -282,7 +292,7 @@ class CheckoutDataBuilder implements BuilderInterface
      * @throws NoSuchEntityException
      *
      */
-    protected function getOpenInvoiceData($order): array
+    protected function getOpenInvoiceData($order, $applyDiscountOnPrice): array
     {
         $formFields = [
             'lineItems' => []
@@ -303,15 +313,18 @@ class CheckoutDataBuilder implements BuilderInterface
             $productId = $item->getProduct()->getId();
             $product = $this->productFactory->create()->load($productId);
 
+            // Summarize the discount amount item by item based on whether the discount should be applied
+            // before or after tax
+            if ($applyDiscountOnPrice) {
+                $discountAmount = $product->getFinalPrice() - $product->getPrice();
+            } else {
+                $productPriceExcludingTax = $product->getPrice();
+                $taxAmount = $product->getPrice() * $item->getTaxPercent() / 100;
+                $productPriceIncludingTax = $productPriceExcludingTax + $taxAmount;
+                $discountAmount = $product->getFinalPrice() - $productPriceIncludingTax;
+            }
 
-            // Summarize the discount amount item by item
-            $discountAmount = $product->getFinalPrice() - $product->getPrice();
             $totalDiscountAmount += $discountAmount;
-
-            // TODO
-            // currently we are only handling "Apply Discount On Prices": "Including tax"
-            // if Apply customer tax "Apply Discount On Prices": "Excluding tax" => /admin/admin/system_config/edit/section/tax/key/
-
 
             $formattedPriceExcludingTax = $this->adyenHelper->formatAmount(
                 $itemAmountCurrency->getAmount(),
@@ -390,7 +403,7 @@ class CheckoutDataBuilder implements BuilderInterface
                 'id' => 'shippingCost',
                 'amountExcludingTax' => $formattedPriceExcludingTax,
                 'amountIncludingTax' => $formattedPriceIncludingTax,
-                'taxAmount' => $formattedTaxAmount, // TODO we should add the tax amount after the discount has been applied
+                'taxAmount' => $formattedTaxAmount,
                 'description' => $order->getShippingDescription(),
                 'quantity' => 1,
                 'taxPercentage' => (int) round(($formattedTaxAmount / $formattedPriceExcludingTax) * 100 * 100)
@@ -398,5 +411,13 @@ class CheckoutDataBuilder implements BuilderInterface
         }
 
         return $formFields;
+    }
+
+    public function getApplyDiscountOnPricesConfig()
+    {
+        return $this->scopeConfig->isSetFlag(
+            'tax/calculation/discount_tax',
+            ScopeInterface::SCOPE_STORE
+        );
     }
 }
