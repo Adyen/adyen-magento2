@@ -3,6 +3,7 @@
 namespace Adyen\Payment\Test\Unit\Helper\Webhook;
 
 use Adyen\Payment\Helper\Webhook\CancelOrRefundWebhookHandler;
+use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Payment\Helper\Order as OrderHelper;
 use Adyen\Payment\Logger\AdyenLogger;
@@ -25,12 +26,10 @@ class CancelOrRefundWebhookHandlerTest extends AbstractAdyenTestCase
             ->getMock();
 
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
-
-        // Initialize other dependencies as needed
     }
 
     public function testHandleWebhookWithCancel(){
-        $notificationMock = $this->createWebhook();
+        $notificationMock =  $this->createMock(Notification::class);
         $orderId = 123;
 
         $this->orderMock->method('getIncrementId')->willReturn($orderId);
@@ -50,7 +49,7 @@ class CancelOrRefundWebhookHandlerTest extends AbstractAdyenTestCase
 
         $webhookHandler = $this->createCancelOrRefundWebhookHandler($this->adyenLoggerMock,null,null);
 
-        $transitionState = PaymentStates::STATE_CANCELLED;
+        $transitionState = PaymentStates::STATE_NEW;
 
         $resultOrder = $webhookHandler->handleWebhook($this->orderMock, $notificationMock, $transitionState);
 
@@ -59,7 +58,7 @@ class CancelOrRefundWebhookHandlerTest extends AbstractAdyenTestCase
 
     public function testHandleWebhookWithRefund()
     {
-        $notificationMock = $this->createWebhook();
+        $notificationMock =  $this->createMock(Notification::class);
         $orderId = 123;
 
         $this->orderMock->method('getIncrementId')->willReturn($orderId);
@@ -86,30 +85,60 @@ class CancelOrRefundWebhookHandlerTest extends AbstractAdyenTestCase
         $this->assertInstanceOf(Order::class, $resultOrder);
     }
 
-//    public function testHandleWebhookWithMissingModificationAction()
-//    {
-//        // Prepare the necessary data for the test
-//        $notificationMock = $this->createWebhook();
-//        $orderId = 123; // Replace with the actual order ID for the test
-//
-//        $this->orderMock = $this->createOrder();
-//        $this->orderMock->method('getIncrementId')->willReturn($orderId);
-//        $this->orderMock->method('isCanceled')->willReturn(false);
-//        $this->orderMock->method('getState')->willReturn(Order::STATE_NEW);
-//        $this->orderMock->method('canCancel')->willReturn(true);
-//        $this->orderMock->method('holdCancelOrder')->willReturn($this->orderMock);
-//
-//        $webhookHandler = $this->createCancelOrRefundWebhookHandler();
-//
-//        $transitionState = PaymentStates::STATE_HOLDED;
-//
-//        // Call the handleWebhook method with the mock data (no modification.action in the additional data)
-//        $resultOrder = $webhookHandler->handleWebhook($this->orderMock, $notificationMock, $transitionState);
-//
-//        // Add assertions to verify the expected behavior of the handler
-//        $this->assertInstanceOf(Order::class, $resultOrder);
-//
-//    }
+    public function testHandleWebhookWithMissingModificationAction()
+    {
+        // Prepare the necessary data for the test
+        $notificationMock =  $this->createConfiguredMock(Notification::class, [
+            'getAdditionalData' => ''
+        ]);
+        $orderId = 123; // Replace with the actual order ID for the test
+
+        $this->orderMock = $this->createOrder();
+        $this->orderMock->method('getIncrementId')->willReturn($orderId);
+        $this->orderMock->method('isCanceled')->willReturn(false);
+        $this->orderMock->method('getState')->willReturn(Order::STATE_NEW);
+        $this->orderMock->method('canCancel')->willReturn(true);
+
+        $webhookHandler = $this->createCancelOrRefundWebhookHandler();
+
+        $transitionState = PaymentStates::STATE_NEW;
+
+        // Call the handleWebhook method with the mock data (no modification.action in the additional data)
+        $resultOrder = $webhookHandler->handleWebhook($this->orderMock, $notificationMock, $transitionState);
+
+        // Add assertions to verify the expected behavior of the handler
+        $this->assertInstanceOf(Order::class, $resultOrder);
+
+    }
+
+    public function testHandleWebhookWithOrderAlreadyCanceled()
+    {
+        $notificationMock =  $this->createMock(Notification::class);
+        $orderId = 123;
+
+        $this->orderMock->method('getIncrementId')->willReturn($orderId);
+        $this->orderMock->method('isCanceled')->willReturn(true);
+        $this->orderMock->method('getState')->willReturn(Order::STATE_NEW);
+        $this->orderMock->method('canCancel')->willReturn(false);
+
+        $this->adyenLoggerMock->expects($this->once())
+            ->method('addAdyenNotification')
+            ->with(
+                sprintf('Order %s is already cancelled or held, so do nothing', $orderId),
+                [
+                    'pspReference' => $notificationMock->getPspreference(),
+                    'merchantReference' => $notificationMock->getMerchantReference()
+                ]
+            );
+
+        $webhookHandler = $this->createCancelOrRefundWebhookHandler($this->adyenLoggerMock,null,null);
+
+        $transitionState = PaymentStates::STATE_CANCELLED;
+
+        $resultOrder = $webhookHandler->handleWebhook($this->orderMock, $notificationMock, $transitionState);
+
+        $this->assertInstanceOf(Order::class, $resultOrder);
+    }
 
     protected function createCancelOrRefundWebhookHandler(
         $mockAdyenLogger = null,
