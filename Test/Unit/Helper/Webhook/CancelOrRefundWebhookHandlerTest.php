@@ -4,20 +4,11 @@ namespace Adyen\Payment\Test\Unit\Helper\Webhook;
 
 use Adyen\Payment\Helper\Webhook\CancelOrRefundWebhookHandler;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
-use Adyen\Payment\Helper\AdyenOrderPayment;
-use Adyen\Payment\Helper\CaseManagement;
-use Adyen\Payment\Helper\ChargedCurrency;
-use Adyen\Payment\Helper\Config;
-use Adyen\Payment\Helper\Invoice;
 use Adyen\Payment\Helper\Order as OrderHelper;
-use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\AdyenAmountCurrency;
-use Adyen\Payment\Model\Notification;
 use Adyen\Webhook\PaymentStates;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Sales\Model\Order;
-use phpseclib3\Crypt\DH\PublicKey;
 
 class CancelOrRefundWebhookHandlerTest extends AbstractAdyenTestCase
 {
@@ -26,19 +17,27 @@ class CancelOrRefundWebhookHandlerTest extends AbstractAdyenTestCase
     protected $serializerMock;
     protected $orderMock;
 
-    public function testHandleWebhookWithCancel(){
-        $notificationMock = $this->createWebhook();
-        $orderId = 123;
+    // Set up before each test
+    protected function setUp(): void
+    {
         $this->orderMock = $this->getMockBuilder(Order::class)
             ->disableOriginalConstructor()
             ->getMock();
+
+        $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
+
+        // Initialize other dependencies as needed
+    }
+
+    public function testHandleWebhookWithCancel(){
+        $notificationMock = $this->createWebhook();
+        $orderId = 123;
 
         $this->orderMock->method('getIncrementId')->willReturn($orderId);
         $this->orderMock->method('isCanceled')->willReturn(false);
         $this->orderMock->method('getState')->willReturn(Order::STATE_NEW);
         $this->orderMock->method('canCancel')->willReturn(true);
 
-        $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
         $this->adyenLoggerMock->expects($this->once())
             ->method('addAdyenNotification')
             ->with(
@@ -62,15 +61,13 @@ class CancelOrRefundWebhookHandlerTest extends AbstractAdyenTestCase
     {
         $notificationMock = $this->createWebhook();
         $orderId = 123;
-        $this->orderMock = $this->getMockBuilder(Order::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+
         $this->orderMock->method('getIncrementId')->willReturn($orderId);
         $this->orderMock->method('isCanceled')->willReturn(false);
         $this->orderMock->method('getState')->willReturn(Order::STATE_NEW);
         $this->orderMock->method('canCancel')->willReturn(false);
         $this->orderMock->method('canHold')->willReturn(false);
-        $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
+
         $this->adyenLoggerMock->expects($this->once())
             ->method('addAdyenNotification')
             ->with(
