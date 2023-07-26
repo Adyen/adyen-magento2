@@ -78,7 +78,7 @@ class CancelOrRefundWebhookHandlerTest extends AbstractAdyenTestCase
             );
         $webhookHandler = $this->createCancelOrRefundWebhookHandler($this->adyenLoggerMock,null,null);
 
-        $transitionState = PaymentStates::STATE_REFUNDED;
+        $transitionState = PaymentStates::STATE_PAID;
 
         $resultOrder = $webhookHandler->handleWebhook($this->orderMock, $notificationMock, $transitionState);
 
