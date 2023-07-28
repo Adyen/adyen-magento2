@@ -113,6 +113,13 @@ class TransactionPosCloudSync implements ClientInterface
             $this->adyenLogger->addAdyenDebug($response['error'] = $e->getMessage());
         } catch (\Exception $e) {
             //Probably timeout
+            /*$paymentInfoInstance->setAdditionalInformation(
+                'terminalResponse',
+                null
+            );
+            $quote->save();
+            $response['error'] = $e->getMessage();
+            throw $e;*/
         }
         $this->adyenHelper->logResponse($response);
 

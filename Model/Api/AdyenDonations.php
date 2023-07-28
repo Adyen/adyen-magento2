@@ -13,12 +13,11 @@
 namespace Adyen\Payment\Model\Api;
 
 use Adyen\Payment\Api\AdyenDonationsInterface;
-use Adyen\Payment\Helper\ChargedCurrency;
-use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Adyen\Util\Uuid;
+use InvalidArgumentException;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NotFoundException;
@@ -54,11 +53,6 @@ class AdyenDonations implements AdyenDonationsInterface
     /**
      * @var
      */
-    private $donationResult;
-
-    /**
-     * @var
-     */
     private $donationTryCount;
 
     /**
@@ -67,39 +61,32 @@ class AdyenDonations implements AdyenDonationsInterface
     protected $dataHelper;
 
     /**
-     * @var ChargedCurrency
+     * @param CommandPoolInterface $commandPool
+     * @param OrderFactory $orderFactory
+     * @param Session $checkoutSession
+     * @param Json $jsonSerializer
+     * @param Data $dataHelper
      */
-    private $chargedCurrency;
-
-    /**
-     * @var Config
-     */
-    private $config;
-
     public function __construct(
         CommandPoolInterface $commandPool,
         OrderFactory $orderFactory,
         Session $checkoutSession,
         Json $jsonSerializer,
-        Data $dataHelper,
-        ChargedCurrency $chargedCurrency,
-        Config $config
+        Data $dataHelper
     ) {
         $this->commandPool = $commandPool;
         $this->orderFactory = $orderFactory;
         $this->checkoutSession = $checkoutSession;
         $this->jsonSerializer = $jsonSerializer;
         $this->dataHelper = $dataHelper;
-        $this->chargedCurrency = $chargedCurrency;
-        $this->config = $config;
     }
 
     /**
-     * @inheritDoc
-     *
-     * @throws CommandException|NotFoundException|LocalizedException|\InvalidArgumentException
+     * @param $payload
+     * @return void
+     * @throws LocalizedException
      */
-    public function donate($payload)
+    public function donate($payload): void
     {
         $payload = $this->jsonSerializer->unserialize($payload);
         /** @var Order */
@@ -109,28 +96,10 @@ class AdyenDonations implements AdyenDonationsInterface
         if (!$donationToken) {
             throw new LocalizedException(__('Donation failed!'));
         }
-        $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order, false);
-        $currencyCode = $orderAmountCurrency->getCurrencyCode();
-        if ($payload['amount']['currency'] !== $currencyCode) {
-            throw new LocalizedException(__('Donation failed!'));
-        }
-
-        $donationAmounts = explode(',', $this->config->getAdyenGivingDonationAmounts($order->getStoreId()));
-        $formatter = $this->dataHelper;
-        $donationAmountsMinorUnits = array_map(
-            function ($amount) use ($formatter, $currencyCode) {
-                return $formatter->formatAmount($amount, $currencyCode);
-            },
-            $donationAmounts
-        );
-        if (!in_array($payload['amount']['value'], $donationAmountsMinorUnits)) {
-            throw new LocalizedException(__('Donation failed!'));
-        }
 
         $payload['donationToken'] = $donationToken;
         $payload['donationOriginalPspReference'] = $order->getPayment()->getAdditionalInformation('pspReference');
 
-        // Override payment method object with payment method code
         if ($order->getPayment()->getMethod() === AdyenCcConfigProvider::CODE) {
             $payload['paymentMethod'] = 'scheme';
         } elseif ($order->getPayment()->getMethod() === AdyenHppConfigProvider::CODE) {
@@ -149,7 +118,7 @@ class AdyenDonations implements AdyenDonationsInterface
 
         try {
             $donationsCaptureCommand = $this->commandPool->get('capture');
-            $this->donationResult = $donationsCaptureCommand->execute(['payment' => $payload]);
+            $donationsCaptureCommand->execute(['payment' => $payload]);
 
             // Remove donation token after a successfull donation.
             $this->removeDonationToken($order);
@@ -165,8 +134,6 @@ class AdyenDonations implements AdyenDonationsInterface
             $this->incrementTryCount($order);
             throw new LocalizedException(__('Donation failed!'));
         }
-
-        return $this->donationResult;
     }
 
     /**

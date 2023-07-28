@@ -80,7 +80,7 @@ define(
                 this._super().observe([
                     'selectedAlternativePaymentMethodType',
                     'paymentMethod',
-                    'adyenPaymentMethod',
+                    'adyenPaymentMethod'
                 ]);
                 return this;
             },
@@ -112,28 +112,7 @@ define(
 
                 if (!!paymentMethodsResponse.paymentMethodsResponse) {
                     var paymentMethods = paymentMethodsResponse.paymentMethodsResponse.paymentMethods;
-
                     // Needed until the new ratepay component is released
-                    if (JSON.stringify(paymentMethods).indexOf('ratepay') >
-                        -1) {
-                        var ratePayId = window.checkoutConfig.payment.adyenHpp.ratePayId;
-                        var dfValueRatePay = self.getRatePayDeviceIdentToken();
-
-                        // TODO check if still needed with checkout component
-                        window.di = {
-                            t: dfValueRatePay.replace(':', ''),
-                            v: ratePayId,
-                            l: 'Checkout',
-                        };
-
-                        // Load Ratepay script
-                        var ratepayScriptTag = document.createElement('script');
-                        ratepayScriptTag.src = '//d.ratepay.com/' + ratePayId +
-                            '/di.js';
-                        ratepayScriptTag.type = 'text/javascript';
-                        document.body.appendChild(ratepayScriptTag);
-                    }
-
                     self.adyenPaymentMethod(self.createAdyenPaymentMethod(paymentMethodsResponse))
                 }
                 fullScreenLoader.stopLoader();
@@ -228,14 +207,12 @@ define(
 
                         self.mountPaymentMethodComponent(paymentMethod, configuration, result);
                     },
-                    placeOrder: function() {
-                        // TODO: Is there a better way to do this? (Has to be)
-                        const component = this.checkoutComponent.components[0];
 
-                        // Skip in case of pms without a component (giftcards)
-                        if (component) {
-                            component.showValidation();
-                            if (component.state.isValid === false) {
+                    placeOrder: function() {
+                        if (result.component) {
+
+                            result.component.showValidation();
+                            if (result.component.state.isValid === false) {
                                 return false;
                             }
                         }
@@ -249,13 +226,13 @@ define(
                             additionalData.brand_code = paymentMethod.methodIdentifier;
 
                             let stateData;
-                            if (component) {
-                                stateData = component.data;
+                            if (result.component) {
+                                stateData = result.component.data;
                             } else {
                                 if (paymentMethod.methodGroup === paymentMethod.methodIdentifier){
                                     stateData = {
                                         paymentMethod: {
-                                            type: selectedAlternativePaymentMethodType(),
+                                            type: paymentMethod.methodGroup,
                                         },
                                     };
                                 } else {
@@ -267,13 +244,13 @@ define(
                                     };
                                 }
                             }
-                            if (selectedAlternativePaymentMethodType() == 'ratepay') {
+                            if (this.getTxVariant() == 'ratepay') {
                                 additionalData.df_value = this.getRatePayDeviceIdentToken();
                             }
 
                             additionalData.stateData = JSON.stringify(stateData);
                             data.additional_data = additionalData;
-                            self.placeRedirectOrder(data, component);
+                            self.placeRedirectOrder(data, result.component);
                         }
 
                         return false;
@@ -419,7 +396,7 @@ define(
 
                     additionalData.stateData = JSON.stringify(stateData);
 
-                    if (this.getTxVariant() == 'ratepay') {
+                    if (selectedAlternativePaymentMethodType() == 'ratepay') {
                         additionalData.df_value = this.getRatePayDeviceIdentToken();
                     }
 
@@ -439,12 +416,11 @@ define(
                     request = state.data;
                 }
 
-                request.orderId = self.orderId;
                 request.cancelled = true;
 
-                adyenPaymentService.paymentDetails(request).done(function() {
+                adyenPaymentService.paymentDetails(request, self.orderId).done(function() {
                     $.mage.redirect(
-                        window.checkoutConfig.payment.adyen.successPage,
+                        window.checkoutConfig.payment[quote.paymentMethod().method].successPage,
                     );
                 }).fail(function(response) {
                     fullScreenLoader.stopLoader();
@@ -465,9 +441,7 @@ define(
                     request = state.data;
                 }
 
-                request.orderId = self.orderId;
-
-                adyenPaymentService.paymentDetails(request).done(function() {
+                adyenPaymentService.paymentDetails(request, self.orderId).done(function() {
                     $.mage.redirect(
                         window.checkoutConfig.payment.adyen.successPage,
                     );
@@ -501,86 +475,71 @@ define(
              * @returns {{country: (string|*), firstName: (string|*), lastName: (string|*), city: (*|string), street: *, postalCode: (*|string), houseNumber: string, telephone: (string|*)}}
              */
             getFormattedAddress: function(address) {
-            function getStreetAndHouseNumberFromAddress(address, houseNumberStreetLine, customerStreetLinesEnabled) {
-                let street = address.street.slice(0, customerStreetLinesEnabled);
-                let drawHouseNumberWithRegex = parseInt(houseNumberStreetLine) === 0 || // Config is disabled
-                    houseNumberStreetLine > customerStreetLinesEnabled || // Not enough street lines enabled
-                    houseNumberStreetLine > street.length; // House number field is empty
+                function getStreetAndHouseNumberFromAddress(address, houseNumberStreetLine, customerStreetLinesEnabled) {
+                    let street = address.street.slice(0, customerStreetLinesEnabled);
+                    let drawHouseNumberWithRegex = parseInt(houseNumberStreetLine) === 0 || // Config is disabled
+                        houseNumberStreetLine > customerStreetLinesEnabled || // Not enough street lines enabled
+                        houseNumberStreetLine > street.length; // House number field is empty
 
-                let addressArray;
-                if (drawHouseNumberWithRegex) {
-                    addressArray = getStreetAndHouseNumberWithRegex(street.join(' ').trim());
-                } else {
-                    let houseNumber = street.splice(houseNumberStreetLine - 1, 1);
-                    addressArray = {
-                        streetName: street.join(' ').trim(),
-                        houseNumber: houseNumber.join(' ').trim()
+                    let addressArray;
+                    if (drawHouseNumberWithRegex) {
+                        addressArray = getStreetAndHouseNumberWithRegex(street.join(' ').trim());
+                    } else {
+                        let houseNumber = street.splice(houseNumberStreetLine - 1, 1);
+                        addressArray = {
+                            streetName: street.join(' ').trim(),
+                            houseNumber: houseNumber.join(' ').trim()
+                        }
                     }
+                    return addressArray;
                 }
-                return addressArray;
-            }
 
-            function getStreetAndHouseNumberWithRegex(addressString) {
-                // Match addresses where the street name comes first, e.g. John-Paul's Ave. 1 B
-                let streetFirstRegex = /(?<streetName>[a-zA-Z0-9.'\- ]+)\s+(?<houseNumber>\d{1,10}((\s)?\w{1,3})?)$/;
-                // Match addresses where the house number comes first, e.g. 10 D John-Paul's Ave.
-                let numberFirstRegex = /^(?<houseNumber>\d{1,10}((\s)?\w{1,3})?)\s+(?<streetName>[a-zA-Z0-9.'\- ]+)/;
+                function getStreetAndHouseNumberWithRegex(addressString) {
+                    // Match addresses where the street name comes first, e.g. John-Paul's Ave. 1 B
+                    let streetFirstRegex = /(?<streetName>[a-zA-Z0-9.'\- ]+)\s+(?<houseNumber>\d{1,10}((\s)?\w{1,3})?)$/;
+                    // Match addresses where the house number comes first, e.g. 10 D John-Paul's Ave.
+                    let numberFirstRegex = /^(?<houseNumber>\d{1,10}((\s)?\w{1,3})?)\s+(?<streetName>[a-zA-Z0-9.'\- ]+)/;
 
-                let streetFirstAddress = addressString.match(streetFirstRegex);
-                let numberFirstAddress = addressString.match(numberFirstRegex);
+                    let streetFirstAddress = addressString.match(streetFirstRegex);
+                    let numberFirstAddress = addressString.match(numberFirstRegex);
 
-                if (streetFirstAddress) {
-                    return streetFirstAddress.groups;
-                } else if (numberFirstAddress) {
-                    return numberFirstAddress.groups;
+                    if (streetFirstAddress) {
+                        return streetFirstAddress.groups;
+                    } else if (numberFirstAddress) {
+                        return numberFirstAddress.groups;
+                    }
+
+                    return {
+                        streetName: addressString,
+                        houseNumber: 'N/A'
+                    };
                 }
+
+                let street = getStreetAndHouseNumberFromAddress(
+                    address,
+                    adyenConfiguration.getHouseNumberStreetLine(),
+                    adyenConfiguration.getCustomerStreetLinesEnabled()
+                );
 
                 return {
-                    streetName: addressString,
-                    houseNumber: 'N/A'
+                    city: address.city,
+                    country: address.countryId,
+                    postalCode: address.postcode,
+                    street: street.streetName,
+                    houseNumber: street.houseNumber,
+                    firstName: address.firstname,
+                    lastName: address.lastname,
+                    telephone: address.telephone
                 };
-            }
-
-            let street = getStreetAndHouseNumberFromAddress(
-                address,
-                adyenConfiguration.getHouseNumberStreetLine(),
-                adyenConfiguration.getCustomerStreetLinesEnabled()
-            );
-
-            return {
-                city: address.city,
-                country: address.countryId,
-                postalCode: address.postcode,
-                street: street.streetName,
-                houseNumber: street.houseNumber,
-                firstName: address.firstname,
-                lastName: address.lastname,
-                telephone: address.telephone
-            };
-        },
-
-            buildComponentConfiguration: function(paymentMethod, paymentMethodsExtraInfo, result) {
+            },
+            buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo, result) {
                 var self = this;
+                var email = '';
                 var showPayButton = false;
 
-                if (self.showPayButtonPaymentMethods.includes(
-                    paymentMethod.methodGroup)) {
-                    showPayButton = true;
-                }
-
-                var email = '';
-                var shopperGender = '';
-                var shopperDateOfBirth = '';
-
-                if (!!customerData.email) {
-                    email = customerData.email;
-                } else if (!!quote.guestEmail) {
+                if (!!quote.guestEmail) {
                     email = quote.guestEmail;
                 }
-
-                shopperGender = customerData.gender;
-                shopperDateOfBirth = customerData.dob;
-
                 var formattedShippingAddress = {};
                 var formattedBillingAddress = {};
 
@@ -591,157 +550,19 @@ define(
                 if (!!quote.billingAddress()) {
                     formattedBillingAddress = self.getFormattedAddress(quote.billingAddress());
                 }
-
-                function getAdyenGender(gender) {
-                    if (gender == 1) {
-                        return 'MALE';
-                    } else if (gender == 2) {
-                        return 'FEMALE';
-                    }
-                    return null;
-
-                }
-
-                /*Use the storedPaymentMethod object and the custom onChange function as the configuration object together*/
+                /* Use the storedPaymentMethod object and the custom onChange function as the configuration object together */
                 var configuration = Object.assign(paymentMethod,
                     {
                         showPayButton: showPayButton,
                         countryCode: formattedShippingAddress.country ? formattedShippingAddress.country : formattedBillingAddress.country, // Use shipping address details as default and fall back to billing address if missing
-                        hasHolderName: adyenConfiguration.getHasHolderName(),
-                        holderNameRequired: adyenConfiguration.getHasHolderName() &&
-                            adyenConfiguration.getHolderNameRequired(),
-                        data: {
-                            personalDetails: {
-                                firstName: formattedBillingAddress.firstName,
-                                lastName: formattedBillingAddress.lastName,
-                                telephoneNumber: formattedBillingAddress.telephone,
-                                shopperEmail: email,
-                                gender: getAdyenGender(shopperGender),
-                                dateOfBirth: shopperDateOfBirth,
-                            },
-                            billingAddress: {
-                                city: formattedBillingAddress.city,
-                                country: formattedBillingAddress.country,
-                                houseNumberOrName: formattedBillingAddress.houseNumber,
-                                postalCode: formattedBillingAddress.postalCode,
-                                street: formattedBillingAddress.street,
-                            },
-                        },
-                        onChange: function(state) {
+                        data: {},
+                        onChange: function (state) {
                             result.isPlaceOrderAllowed(state.isValid);
                         },
-                        onClick: function(resolve, reject) {
-                            // for paypal add a workaround, remove when component fixes it
-                            if (self.getTxVariant() === 'paypal') {
-                                return self.validate();
-                            } else {
-                                if (self.validate()) {
-                                    resolve();
-                                } else {
-                                    reject();
-                                }
-                            }
-                        },
                     });
-
-                if (formattedShippingAddress) {
-                    configuration.data.shippingAddress = {
-                        city: formattedShippingAddress.city,
-                        country: formattedShippingAddress.country,
-                        houseNumberOrName: formattedShippingAddress.houseNumber,
-                        postalCode: formattedShippingAddress.postalCode,
-                        street: formattedShippingAddress.street
-                    };
-                }
-
-                // Use extra configuration from the paymentMethodsExtraInfo object if available
-                if (paymentMethod.methodIdentifier in paymentMethodsExtraInfo && 'configuration' in paymentMethodsExtraInfo[paymentMethod.methodIdentifier]) {
-                    configuration = Object.assign(configuration, paymentMethodsExtraInfo[paymentMethod.methodIdentifier].configuration);
-                }
-
-                // Show HolderName for ACH component, as it's always required
-                if (paymentMethod.methodIdentifier.includes('ach')) {
-                    configuration.hasHolderName = true;
-                    configuration.holderNameRequired = true;
-                }
-
-                // Extra apple pay configuration
-                if (paymentMethod.methodIdentifier.includes('applepay')) {
-                    if ('configuration' in configuration &&
-                        'merchantName' in configuration.configuration) {
-                        configuration.totalPriceLabel = configuration.configuration.merchantName;
-                    }
-                }
-
-                // Show Merchant name for googlepay component
-                if (paymentMethod.methodIdentifier.includes('googlepay')) {
-                    if ('configuration' in configuration && !('merchantName' in configuration.configuration)) {
-                        configuration.configuration.merchantName = configuration.configuration.gatewayMerchantId;
-                    }
-                }
-
-                // Extra amazon pay configuration first call to amazon page
-                if (paymentMethod.methodIdentifier.includes('amazonpay')) {
-                    configuration.productType = 'PayAndShip';
-                    configuration.checkoutMode = 'ProcessOrder';
-                    var url = new URL(location.href);
-                    url.searchParams.delete('amazonCheckoutSessionId');
-                    configuration.returnUrl = url.href;
-                    configuration.onSubmit = async (state, amazonPayComponent) => {
-                        try {
-                            await self.handleOnSubmit(state.data, amazonPayComponent);
-                        } catch (error) {
-                            amazonPayComponent.handleDeclineFlow();
-                        }
-                    };
-
-                    if (formattedShippingAddress &&
-                        formattedShippingAddress.telephone) {
-                        configuration.addressDetails = {
-                            name: formattedShippingAddress.firstName +
-                                ' ' +
-                                formattedShippingAddress.lastName,
-                            addressLine1: formattedShippingAddress.street,
-                            addressLine2: formattedShippingAddress.houseNumber,
-                            city: formattedShippingAddress.city,
-                            postalCode: formattedShippingAddress.postalCode,
-                            countryCode: formattedShippingAddress.country,
-                            phoneNumber: formattedShippingAddress.telephone
-                        };
-                        if (configuration.addressDetails.countryCode === 'US') {
-                            configuration.addressDetails.stateOrRegion = quote.shippingAddress().regionCode
-                        }
-                    }
-                    else if (formattedBillingAddress &&
-                        formattedBillingAddress.telephone) {
-                        configuration.addressDetails = {
-                            name: formattedBillingAddress.firstName +
-                                ' ' +
-                                formattedBillingAddress.lastName,
-                            addressLine1: formattedBillingAddress.street,
-                            addressLine2: formattedBillingAddress.houseNumber,
-
-                            city: formattedBillingAddress.city,
-                            postalCode: formattedBillingAddress.postalCode,
-                            countryCode: formattedBillingAddress.country,
-                            phoneNumber: formattedBillingAddress.telephone
-                        };
-                        if (configuration.addressDetails.countryCode === 'US') {
-                            configuration.addressDetails.stateOrRegion = quote.billingAddress().regionCode
-                        }
-                    }
-                }
-
-                if (paymentMethod.methodIdentifier.includes('affirm')) {
-                    configuration.visibility = {
-                        personalDetails: "hidden",
-                        billingAddress: "hidden",
-                        deliveryAddress: "hidden"
-                    }
-                }
-
-                return configuration;
+                return configuration
             },
+
             mountPaymentMethodComponent(paymentMethod, configuration, result)
             {
                 var self = this;

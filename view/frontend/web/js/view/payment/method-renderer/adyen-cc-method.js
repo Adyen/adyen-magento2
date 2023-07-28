@@ -81,17 +81,34 @@ define(
 
                 let self = this;
 
-                let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
-                paymentMethodsObserver.subscribe(
-                    function (paymentMethodsResponse) {
-                        self.loadCheckoutComponent(paymentMethodsResponse)
-                    });
+                adyenPaymentService.retrievePaymentMethods().done(function(paymentMethods) {
+                    paymentMethods = JSON.parse(paymentMethods);
+                    adyenPaymentService.setPaymentMethods(paymentMethods);
+                    fullScreenLoader.stopLoader();
 
-                self.loadCheckoutComponent(paymentMethodsObserver());
-                return this;
+                    let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
+                    paymentMethodsObserver.subscribe(
+                        function (paymentMethodsResponse) {
+                            self.loadCheckoutComponent(paymentMethodsResponse)
+                        });
+
+                    self.loadCheckoutComponent(paymentMethodsObserver());
+                    return this;
+                }).fail(function() {
+                    console.log('Fetching the payment methods failed!');
+                })
+            },
+            isSchemePaymentsEnabled: function (paymentMethod) {
+                return paymentMethod.type === "scheme";
             },
             loadCheckoutComponent: async function (paymentMethodsResponse) {
                 let self = this;
+
+                // Check the paymentMethods response to enable Credit Card payments
+                if (!!paymentMethodsResponse &&
+                    !paymentMethodsResponse.paymentMethodsResponse.paymentMethods.find(self.isSchemePaymentsEnabled)) {
+                    return;
+                }
 
                 this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
                     paymentMethodsResponse,
@@ -323,10 +340,9 @@ define(
                 let request = result.data;
                 AdyenPaymentModal.hideModalLabel(this.modalLabel);
                 fullScreenLoader.startLoader();
-                request.orderId = self.orderId;
                 let popupModal = self.showModal();
 
-                adyenPaymentService.paymentDetails(request).
+                adyenPaymentService.paymentDetails(request, self.orderId).
                     done(function(responseJSON) {
                         fullScreenLoader.stopLoader();
                         self.handleAdyenResult(responseJSON, self.orderId);

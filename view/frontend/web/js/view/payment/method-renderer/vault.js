@@ -2,7 +2,11 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
+<<<<<<< HEAD
+ * Copyright (c) 2023 Adyen BV (https://www.adyen.com/)
+=======
  * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
+>>>>>>> origin/develop
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -16,13 +20,15 @@ define([
     'mage/url',
     'Magento_Checkout/js/action/place-order',
     'Magento_Checkout/js/model/full-screen-loader',
+    'Magento_Checkout/js/model/quote',
     'Magento_Ui/js/model/messages',
     'Magento_Vault/js/view/payment/method-renderer/vault',
     'Magento_Checkout/js/model/error-processor',
     'Adyen_Payment/js/model/adyen-payment-service',
     'Adyen_Payment/js/model/adyen-configuration',
     'Adyen_Payment/js/model/adyen-checkout',
-    'Adyen_Payment/js/model/adyen-payment-modal'
+    'Adyen_Payment/js/model/adyen-payment-modal',
+    'Adyen_Payment/js/model/installments',
 ], function (
     $,
     ko,
@@ -30,13 +36,15 @@ define([
     url,
     placeOrderAction,
     fullScreenLoader,
+    quote,
     Messages,
     VaultComponent,
     errorProcessor,
     adyenPaymentService,
     adyenConfiguration,
     adyenCheckout,
-    adyenPaymentModal
+    adyenPaymentModal,
+    installmentsHelper
 ) {
     'use strict';
 
@@ -47,13 +55,16 @@ define([
         defaults: {
             template: 'Adyen_Payment/payment/card-vault-form.html',
             checkoutComponentBuilt: false,
-            modalLabel: null
+            modalLabel: null,
+            installment: ''
         },
 
         initObservable: function () {
             this._super()
                 .observe([
-                    'checkoutComponentBuilt'
+                    'checkoutComponentBuilt',
+                    'installment',
+                    'installments',
                 ]);
 
             return this;
@@ -62,9 +73,7 @@ define([
         initialize: function () {
             let self = this;
             this._super();
-
             this.modalLabel = 'card_action_modal_' + this.getId();
-
             let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
             paymentMethodsObserver.subscribe(
                 function (paymentMethodsResponse) {
@@ -89,13 +98,12 @@ define([
         handleOnAdditionalDetails: function (result) {
             let self = this;
             let request = result.data;
-            request.orderId = self.orderId;
 
             fullScreenLoader.stopLoader();
 
             let popupModal = self.showModal();
 
-            adyenPaymentService.paymentDetails(request).done(function (responseJSON) {
+            adyenPaymentService.paymentDetails(request, self.orderId).done(function (responseJSON) {
                 self.handleAdyenResult(responseJSON,
                     self.orderId);
             }).fail(function (response) {
@@ -112,16 +120,43 @@ define([
                 return false
             }
 
-            let requireCvc = window.checkoutConfig.payment.adyenCc.requireCvc;
+            self.installments(0);
+
+            let allInstallments = self.getAllInstallments();
 
             let componentConfig = {
-                hideCVC: !requireCvc,
+                hideCVC: false,
                 brand: this.getCardType(),
                 storedPaymentMethodId: this.getGatewayToken(),
                 expiryMonth: this.getExpirationMonth(),
                 expiryYear: this.getExpirationYear(),
-                //holderName: 'First tester',
-                onChange: this.handleOnChange.bind(this)
+                onChange: this.handleOnChange.bind(this),
+                onBrand: function(state) {
+                    let creditCardType = self.getCcCodeByAltCode(
+                        state.brand);
+                    if (creditCardType) {
+                        let numberOfInstallments = [];
+
+                        if (creditCardType in allInstallments) {
+                            let cardInstallments = allInstallments[creditCardType];
+                            let grandTotal = self.grandTotal();
+                            let precision = quote.getPriceFormat().precision;
+                            let currencyCode = quote.totals().quote_currency_code;
+
+                            numberOfInstallments = installmentsHelper.getInstallmentsWithPrices(
+                                cardInstallments, grandTotal,
+                                precision, currencyCode);
+                        }
+
+                        if (numberOfInstallments) {
+                            self.installments(numberOfInstallments);
+                        } else {
+                            self.installments(0);
+                        }
+                    } else {
+                        self.installments(0);
+                    }
+                }
             }
 
             self.component = adyenCheckout.mountPaymentMethodComponent(
@@ -157,7 +192,6 @@ define([
                 this.getPlaceOrderDeferredObject().done(
                     function (orderId) {
                         self.orderId = orderId;
-
                         adyenPaymentService.getOrderPaymentStatus(orderId).done(function (responseJSON) {
                             self.handleAdyenResult(responseJSON, orderId);
                         });
@@ -184,7 +218,8 @@ define([
                 method: this.code,
                 additional_data: {
                     stateData: stateData,
-                    public_hash: this.publicHash
+                    public_hash: this.publicHash,
+                    numberOfInstallments: this.installment()
                 },
             };
         },
@@ -256,6 +291,27 @@ define([
             return this.details.type;
         },
 
+        getCode: function() {
+            return window.checkoutConfig.payment.adyenCc.methodCode;
+        },
+
+        getCcCodeByAltCode: function(altCode) {
+            let ccTypes = window.checkoutConfig.payment.ccform.availableTypesByAlt[this.getCode()];
+            if (ccTypes.hasOwnProperty(altCode)) {
+                return ccTypes[altCode];
+            }
+
+            return '';
+        },
+
+        hasInstallments: function() {
+            return !!window.checkoutConfig.payment.adyenCc.hasInstallments;
+        },
+
+        getAllInstallments: function() {
+            return window.checkoutConfig.payment.adyenCc.installments;
+        },
+
         getToken: function () {
             return this.publicHash;
         },
@@ -270,6 +326,15 @@ define([
 
         getClientKey: function () {
             return adyenConfiguration.getClientKey();
+        },
+
+        grandTotal: function () {
+            for (const totalsegment of quote.getTotals()()['total_segments']) {
+                if (totalsegment.code === 'grand_total') {
+                    return totalsegment.value;
+                }
+            }
+            return quote.totals().grand_total;
         },
 
         getPlaceOrderDeferredObject: function () {

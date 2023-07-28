@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2023 Adyen B.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -22,19 +22,10 @@ use \Magento\Framework\Exception\NoSuchEntityException;
 class AdyenOrderPaymentStatus implements AdyenOrderPaymentStatusInterface
 {
     protected OrderRepositoryInterface $orderRepository;
-
     protected AdyenLogger $adyenLogger;
-
     protected Data $adyenHelper;
-
     private PaymentResponseHandler $paymentResponseHandler;
 
-    /**
-     * @param OrderRepositoryInterface $orderRepository
-     * @param AdyenLogger $adyenLogger
-     * @param Data $adyenHelper
-     * @param PaymentResponseHandler $paymentResponseHandler
-     */
     public function __construct(
         OrderRepositoryInterface $orderRepository,
         AdyenLogger $adyenLogger,
@@ -47,19 +38,15 @@ class AdyenOrderPaymentStatus implements AdyenOrderPaymentStatusInterface
         $this->paymentResponseHandler = $paymentResponseHandler;
     }
 
-    /**
-     * @param string $orderId
-     * @return string
-     */
     public function getOrderPaymentStatus(string $orderId): string
     {
         try {
             $order = $this->orderRepository->get($orderId);
         } catch (NoSuchEntityException $exception) {
-            $this->adyenLogger->error('Order not found.');
-            return json_encode(
-                $this->paymentResponseHandler->formatPaymentResponse(PaymentResponseHandler::ERROR)
-            );
+            $errorMessage = sprintf("Order for ID %s not found!", $orderId);
+            $this->adyenLogger->error($errorMessage);
+
+            throw $exception;
         }
 
         $payment = $order->getPayment();

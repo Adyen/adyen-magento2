@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2018 Adyen B.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -12,6 +12,7 @@
 
 namespace Adyen\Payment\AdminMessage;
 
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Magento\AdminNotification\Model\InboxFactory;
 use Magento\Backend\Model\Auth\Session;
@@ -21,74 +22,41 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class APIKeyMessage implements MessageInterface
 {
-    /**
-     * @var Data
-     */
-    protected $adyenHelper;
-
-    /**
-     * @var InboxFactory
-     */
-    protected $inboxFactory;
-
-    /**
-     * @var StoreManagerInterface
-     */
-    protected $storeManagerInterface;
-
-    /**
-     * @var Session
-     */
-    protected $authSession;
-
-    /**
-     * @var RequestInterface
-     */
-    protected $request;
+    protected Data $adyenHelper;
+    protected Config $configHelper;
+    protected InboxFactory $inboxFactory;
+    protected StoreManagerInterface $storeManagerInterface;
+    protected Session $authSession;
+    protected RequestInterface $request;
 
     const MESSAGE_IDENTITY = 'Adyen API Key Control message';
 
-    /**
-     * APIKeyMessage constructor.
-     *
-     * @param Data $adyenHelper
-     * @param InboxFactory $inboxFactory
-     * @param StoreManagerInterface $storeManagerInterface
-     * @param Session $authSession
-     */
     public function __construct(
-        Data $adyenHelper,
-        InboxFactory $inboxFactory,
+        Data                  $adyenHelper,
+        Config                $configHelper,
+        InboxFactory          $inboxFactory,
         StoreManagerInterface $storeManagerInterface,
-        Session $authSession,
-        RequestInterface $request
+        Session               $authSession,
+        RequestInterface      $request
     ) {
         $this->adyenHelper = $adyenHelper;
+        $this->configHelper = $configHelper;
         $this->inboxFactory = $inboxFactory;
         $this->storeManagerInterface = $storeManagerInterface;
         $this->authSession = $authSession;
         $this->request = $request;
+
     }
 
-    /**
-     * Retrieve unique system message identity
-     *
-     * @return string
-     */
-    public function getIdentity()
+    public function getIdentity(): string
     {
         return self::MESSAGE_IDENTITY;
     }
 
-    /**
-     * Check whether the system message should be shown
-     *
-     * @return bool
-     */
-    public function isDisplayed()
+    public function isDisplayed(): bool
     {
-        $isApiKeyMissing = empty($this->adyenHelper->getAPIKey());
-
+        $mode = $this->configHelper->isDemoMode() ? 'test' : 'live';
+        $isApiKeyMissing = empty($this->configHelper->getAPIKey($mode));
         // Only execute the query the first time you access the Admin page
         if ($this->authSession->isFirstPageAfterLogin() && $isApiKeyMissing) {
             try {
@@ -100,7 +68,7 @@ class APIKeyMessage implements MessageInterface
                     'title' => $title,
                     'description' => $this->getText(),
                     'url' => 'https://docs.adyen.com/developers/plugins/magento-2/' .
-                        'set-up-adyen-customer-area#step1generateanapikey'
+                        'set-up-adyen-customer-area#step1generateanapikey',
                 ];
 
                 /*
@@ -124,25 +92,14 @@ class APIKeyMessage implements MessageInterface
         return false;
     }
 
-    /**
-     * Retrieve system message text
-     *
-     * @return string
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
-     */
-    public function getText()
+    public function getText(): string
     {
         return 'Please provide API-KEY for the webservice user ' .
-            $this->adyenHelper->getWsUsername() . ' for default/store ' .
+            $this->configHelper->getNotificationsUsername() . ' for default/store ' .
             $this->storeManagerInterface->getStore()->getName();
     }
 
-    /**
-     * Retrieve system message severity
-     *
-     * @return int
-     */
-    public function getSeverity()
+    public function getSeverity(): int
     {
         return self::SEVERITY_CRITICAL;
     }

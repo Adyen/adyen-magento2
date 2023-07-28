@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -24,30 +24,11 @@ class AdyenUiComponentProvider
     const GATEWAY_TOKEN = 'gatewayToken';
     const TOKEN_ID = 'tokenId';
 
-    /**
-     * @var TokenUiComponentInterfaceFactory
-     */
-    protected $componentFactory;
+    protected TokenUiComponentInterfaceFactory $componentFactory;
+    protected Data $dataHelper;
+    protected UrlInterface $url;
+    protected RequestInterface $request;
 
-    /**
-     * @var Data
-     */
-    protected $dataHelper;
-
-    /**
-     * @var UrlInterface
-     */
-    protected $url;
-
-    /**
-     * @var RequestInterface
-     */
-    protected $request;
-
-    /**
-     * @param TokenUiComponentInterfaceFactory $componentFactory
-     * @param Data $dataHelper
-     */
     public function __construct(
         TokenUiComponentInterfaceFactory $componentFactory,
         Data $dataHelper,

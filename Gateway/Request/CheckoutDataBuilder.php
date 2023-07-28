@@ -18,7 +18,7 @@ use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
-use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
+use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Magento\Catalog\Helper\Image;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
@@ -150,7 +150,7 @@ class CheckoutDataBuilder implements BuilderInterface
         }
 
         // Ratepay specific Fingerprint
-        $deviceFingerprint = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::DF_VALUE);
+        $deviceFingerprint = $payment->getAdditionalInformation(AdyenPaymentMethodDataAssignObserver::DF_VALUE);
         if ($deviceFingerprint && $this->adyenHelper->isPaymentMethodOfType($brandCode, Data::RATEPAY)) {
             $requestBody['deviceFingerprint'] = $deviceFingerprint;
         }
@@ -169,7 +169,7 @@ class CheckoutDataBuilder implements BuilderInterface
         }
 
         if ($payment->getMethod() == AdyenBoletoConfigProvider::CODE) {
-            $boletoTypes = $this->adyenHelper->getAdyenBoletoConfigData('boletotypes');
+            $boletoTypes = $this->configHelper->getAdyenBoletoConfigData('boletotypes');
             $boletoTypes = explode(',', (string) $boletoTypes);
 
             if (count($boletoTypes) == 1) {
@@ -180,7 +180,7 @@ class CheckoutDataBuilder implements BuilderInterface
                 $requestBodyPaymentMethod['type'] = $payment->getAdditionalInformation("boleto_type");
             }
 
-            $deliveryDays = (int)$this->adyenHelper->getAdyenBoletoConfigData("delivery_days", $storeId);
+            $deliveryDays = (int)$this->configHelper->getAdyenBoletoConfigData("delivery_days", $storeId);
             $deliveryDays = (!empty($deliveryDays)) ? $deliveryDays : 5;
             $deliveryDate = date(
                 "Y-m-d\TH:i:s ",

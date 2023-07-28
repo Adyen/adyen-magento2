@@ -70,15 +70,15 @@ interface InvoiceInterface
     public function setInvoiceId(int $invoiceId): InvoiceInterface;
 
     /**
-     * @return int|null
+     * @return float|null
      */
-    public function getAmount(): ?int;
+    public function getAmount(): ?float;
 
     /**
-     * @param int $amount
+     * @param float float
      * @return InvoiceInterface
      */
-    public function setAmount(int $amount): InvoiceInterface;
+    public function setAmount(float $amount): InvoiceInterface;
 
     /**
      * @return int|null
