@@ -21,70 +21,9 @@ define(
                 this._super();
             },
             buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo, result) {
-                var self = this;
-                var email = '';
-                var showPayButton = true;
-
-                if (!!quote.guestEmail) {
-                    email = quote.guestEmail;
-                }
-                var formattedShippingAddress = {};
-                var formattedBillingAddress = {};
-
-                if (!quote.isVirtual() && !!quote.shippingAddress()) {
-                    formattedShippingAddress = self.getFormattedAddress(quote.shippingAddress());
-                }
-
-                if (!!quote.billingAddress()) {
-                    formattedBillingAddress = self.getFormattedAddress(quote.billingAddress());
-                }
-
-                /*Use the storedPaymentMethod object and the custom onChange function as the configuration object together*/
-                var configuration = Object.assign(paymentMethod,
-                    {
-                        showPayButton: showPayButton,
-                        countryCode: formattedShippingAddress.country ? formattedShippingAddress.country : formattedBillingAddress.country, // Use shipping address details as default and fall back to billing address if missing
-                        data: {
-                            personalDetails: {
-                                firstName: formattedBillingAddress.firstName,
-                                lastName: formattedBillingAddress.lastName,
-                                telephoneNumber: formattedBillingAddress.telephone,
-                                shopperEmail: email,
-                            },
-                            billingAddress: {
-                                city: formattedBillingAddress.city,
-                                country: formattedBillingAddress.country,
-                                houseNumberOrName: formattedBillingAddress.houseNumber,
-                                postalCode: formattedBillingAddress.postalCode,
-                                street: formattedBillingAddress.street,
-                            },
-                        },
-                        onChange: function (state) {
-                            result.isPlaceOrderAllowed(state.isValid);
-                        },
-                        onClick: function(resolve, reject) {
-                            if (self.validate()) {
-                                resolve();
-                            } else {
-                                reject();
-                            }
-                        }
-                    });
-
-                if (formattedShippingAddress) {
-                    configuration.data.shippingAddress = {
-                        city: formattedShippingAddress.city,
-                        country: formattedShippingAddress.country,
-                        houseNumberOrName: formattedShippingAddress.houseNumber,
-                        postalCode: formattedShippingAddress.postalCode,
-                        street: formattedShippingAddress.street
-                    };
-                }
-
-                // GooglePay requires extra configuration
-                //configuration = Object.assign(configuration, paymentMethodsExtraInfo[paymentMethod.methodIdentifier].configuration);
-
-                return configuration;
+                let baseComponentConfiguration = this._super();
+                let googlePayConfiguration = Object.assign(baseComponentConfiguration.showPayButton=true, paymentMethodsExtraInfo[paymentMethod.methodIdentifier].configuration);
+                return googlePayConfiguration
             }
         })
     }

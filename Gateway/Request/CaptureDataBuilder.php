@@ -18,12 +18,14 @@ use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Data as DataHelper;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\Order\Payment as PaymentModel;
 use Adyen\Payment\Model\ResourceModel\Order\Payment;
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Magento\Framework\App\Action\Context;
+use Magento\Payment\Gateway\Data\PaymentDataObject;
+use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Invoice;
 
 /**
  * Class CustomerDataBuilder
@@ -93,14 +95,14 @@ class CaptureDataBuilder implements BuilderInterface
      * @return array
      * @throws AdyenException
      */
-    public function build(array $buildSubject)
+    public function build(array $buildSubject): array
     {
-        /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
-        $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
+        /** @var PaymentDataObject $paymentDataObject */
+        $paymentDataObject = SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
         /** @var Order $order */
         $order = $payment->getOrder();
-        /** @var \Magento\Sales\Model\Order\Invoice $latestInvoice */
+        /** @var Invoice $latestInvoice */
         $latestInvoice = $order->getInvoiceCollection()->getLastItem();
         $invoiceAmountCurrency = $this->chargedCurrency->getInvoiceAmountCurrency($latestInvoice);
         $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order);
@@ -278,6 +280,11 @@ class CaptureDataBuilder implements BuilderInterface
 
         $request['body'] = $requestBody;
         $request['clientConfig'] = ["storeId" => $payment->getOrder()->getStoreId()];
+        $request['headers'] = [
+            'idempotencyExtraData' => [
+                'totalInvoiced' => $payment->getOrder()->getTotalInvoiced() ?? 0
+            ]
+        ];
 
         return $request;
     }

@@ -65,7 +65,9 @@ class MerchantAccounts extends Action
             if (!empty($apiKey) && preg_match('/^\*+$/', (string) $apiKey)) {
                 $apiKey = '';
             }
-            $response = $this->managementHelper->getMerchantAccountsAndClientKey($apiKey, (bool) $demoMode);
+
+            $managementApiService = $this->managementHelper->getManagementApiService($apiKey, $demoMode);
+            $response = $this->managementHelper->getMerchantAccountsAndClientKey($managementApiService);
 
             $resultJson->setData($response);
             return $resultJson;

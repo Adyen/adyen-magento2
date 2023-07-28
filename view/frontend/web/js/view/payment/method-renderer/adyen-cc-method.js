@@ -81,17 +81,34 @@ define(
 
                 let self = this;
 
-                let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
-                paymentMethodsObserver.subscribe(
-                    function (paymentMethodsResponse) {
-                        self.loadCheckoutComponent(paymentMethodsResponse)
-                    });
+                adyenPaymentService.retrievePaymentMethods().done(function(paymentMethods) {
+                    paymentMethods = JSON.parse(paymentMethods);
+                    adyenPaymentService.setPaymentMethods(paymentMethods);
+                    fullScreenLoader.stopLoader();
 
-                self.loadCheckoutComponent(paymentMethodsObserver());
-                return this;
+                    let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
+                    paymentMethodsObserver.subscribe(
+                        function (paymentMethodsResponse) {
+                            self.loadCheckoutComponent(paymentMethodsResponse)
+                        });
+
+                    self.loadCheckoutComponent(paymentMethodsObserver());
+                    return this;
+                }).fail(function() {
+                    console.log('Fetching the payment methods failed!');
+                })
+            },
+            isSchemePaymentsEnabled: function (paymentMethod) {
+                return paymentMethod.type === "scheme";
             },
             loadCheckoutComponent: async function (paymentMethodsResponse) {
                 let self = this;
+
+                // Check the paymentMethods response to enable Credit Card payments
+                if (!!paymentMethodsResponse &&
+                    !paymentMethodsResponse.paymentMethodsResponse.paymentMethods.find(self.isSchemePaymentsEnabled)) {
+                    return;
+                }
 
                 this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
                     paymentMethodsResponse,
@@ -180,6 +197,13 @@ define(
                             self.installments(0);
                         }
                     }
+                }
+
+                if (self.isClickToPayEnabled()) {
+                    componentConfig.clickToPayConfiguration = {
+                        merchantDisplayName: adyenConfiguration.getMerchantAccount(),
+                        shopperEmail: self.getShopperEmail()
+                    };
                 }
 
                 self.cardComponent = adyenCheckout.mountPaymentMethodComponent(
@@ -312,17 +336,15 @@ define(
                 }
             },
             handleOnAdditionalDetails: function(result) {
-                var self = this;
-
-                var request = result.data;
-                request.orderId = self.orderId;
-
-                fullScreenLoader.stopLoader();
-
+                const self = this;
+                let request = result.data;
+                AdyenPaymentModal.hideModalLabel(this.modalLabel);
+                fullScreenLoader.startLoader();
                 let popupModal = self.showModal();
 
-                adyenPaymentService.paymentDetails(request).
+                adyenPaymentService.paymentDetails(request, self.orderId).
                     done(function(responseJSON) {
+                        fullScreenLoader.stopLoader();
                         self.handleAdyenResult(responseJSON, self.orderId);
                     }).
                     fail(function(response) {
@@ -399,6 +421,16 @@ define(
                 }
 
                 return false;
+            },
+            getShopperEmail: function () {
+                if (customer.isLoggedIn()) {
+                    return customer.customerData.email;
+                } else {
+                    return quote.guestEmail;
+                }
+            },
+            isClickToPayEnabled: function () {
+                return window.checkoutConfig.payment.adyenCc.isClickToPayEnabled;
             },
             getIcons: function(type) {
                 return window.checkoutConfig.payment.adyenCc.icons.hasOwnProperty(

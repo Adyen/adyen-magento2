@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -11,60 +11,44 @@
 
 namespace Adyen\Payment\Gateway\Http\Client;
 
+use Adyen\AdyenException;
 use Adyen\Client;
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Idempotency;
 use Adyen\Payment\Model\PaymentResponse;
 use Adyen\Payment\Model\PaymentResponseFactory;
+use Adyen\Payment\Model\ResourceModel\PaymentResponse as PaymentResponseResourceModel;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Adyen\Payment\Model\ApplicationInfo;
+use Magento\Payment\Gateway\Http\TransferInterface;
 
 class TransactionPayment implements ClientInterface
 {
+    private Data $adyenHelper;
+    private ApplicationInfo $applicationInfo;
+    private PaymentResponseFactory $paymentResponseFactory;
+    private PaymentResponseResourceModel $paymentResponseResourceModel;
+    private Idempotency $idempotencyHelper;
 
-    /**
-     * @var \Adyen\Payment\Helper\Data
-     */
-    private $adyenHelper;
-
-    /**
-     * @var ApplicationInfo
-     */
-    private $applicationInfo;
-
-    /**
-     * @var PaymentResponseFactory
-     */
-    private $paymentResponseFactory;
-
-    /**
-     * @var \Adyen\Payment\Model\ResourceModel\PaymentResponse
-     */
-    private $paymentResponseResourceModel;
-
-    /**
-     * TransactionPayment constructor.
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param ApplicationInfo $applicationInfo
-     */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Model\ApplicationInfo $applicationInfo,
-        PaymentResponseFactory $paymentResponseFactory,
-        \Adyen\Payment\Model\ResourceModel\PaymentResponse $paymentResponseResourceModel
+        Data                         $adyenHelper,
+        ApplicationInfo              $applicationInfo,
+        PaymentResponseFactory       $paymentResponseFactory,
+        PaymentResponseResourceModel $paymentResponseResourceModel,
+        Idempotency                  $idempotencyHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->applicationInfo = $applicationInfo;
         $this->paymentResponseFactory = $paymentResponseFactory;
         $this->paymentResponseResourceModel = $paymentResponseResourceModel;
+        $this->idempotencyHelper = $idempotencyHelper;
     }
 
-    /**
-     * @param \Magento\Payment\Gateway\Http\TransferInterface $transferObject
-     * @return array|mixed|string
-     * @throws \Adyen\AdyenException
-     */
-    public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
+    public function placeRequest(TransferInterface $transferObject): mixed
     {
         $request = $transferObject->getBody();
+        $headers = $transferObject->getHeaders();
+        $clientConfig = $transferObject->getClientConfig();
 
         // If the payments call is already done return the request
         if (!empty($request['resultCode'])) {
@@ -72,10 +56,23 @@ class TransactionPayment implements ClientInterface
             return $request;
         }
 
-        $client = $this->adyenHelper->initializeAdyenClient();
-        $service = $this->adyenHelper->createAdyenCheckoutService($client);
+        //Check if it is a MOTO Transaction
+        if(isset($clientConfig['isMotoTransaction']) && $clientConfig['isMotoTransaction'] === true) {
+            $client = $this->adyenHelper->initializeAdyenClient(
+                $clientConfig['storeId'],
+                null,
+                $request['merchantAccount']
+            );
+        } else {
+            $client = $this->adyenHelper->initializeAdyenClient();
+        }
 
-        $requestOptions = [];
+        $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
+            $request,
+            $headers['idempotencyExtraData'] ?? null
+        );
+        $requestOptions['idempotencyKey'] = $idempotencyKey;
+        $service = $this->adyenHelper->createAdyenCheckoutService($client);
 
         $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/payments');
         try {
@@ -89,7 +86,7 @@ class TransactionPayment implements ClientInterface
             $paymentResponse->setMerchantReference($request["reference"]);
 
             $this->paymentResponseResourceModel->save($paymentResponse);
-        } catch (\Adyen\AdyenException $e) {
+        } catch (AdyenException $e) {
             $response['error'] = $e->getMessage();
             $response['errorCode'] = $e->getAdyenErrorCode();
         }

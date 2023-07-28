@@ -33,22 +33,20 @@ define(
              */
             retrievePaymentMethods: function() {
                 // url for guest users
-                var serviceUrl = urlBuilder.createUrl(
-                    '/internal/guest-carts/:cartId/retrieve-adyen-payment-methods', {
-                        cartId: quote.getQuoteId(),
+                let serviceUrl = urlBuilder.createUrl(
+                    '/guest-carts/:cartId/retrieve-adyen-payment-methods', {
+                        cartId: quote.getQuoteId()
                     });
 
                 // url for logged in users
                 if (customer.isLoggedIn()) {
-                    serviceUrl = urlBuilder.createUrl(
-                        '/internal/carts/mine/retrieve-adyen-payment-methods', {});
+                    serviceUrl = urlBuilder.createUrl('/carts/mine/retrieve-adyen-payment-methods', {});
                 }
 
                 // Construct payload for the retrieve payment methods request
-                var payload = {
+                let payload = {
                     cartId: quote.getQuoteId(),
-                    billingAddress: quote.billingAddress(),
-                    form_key: $.mage.cookies.get('form_key')
+                    country: quote.billingAddress().countryId
                 };
 
                 return storage.post(
@@ -56,17 +54,28 @@ define(
                     JSON.stringify(payload)
                 );
             },
+
             getPaymentMethods: function() {
                 return this.paymentMethods;
             },
+
             setPaymentMethods: function(paymentMethods) {
                 this.paymentMethods(paymentMethods);
             },
+
             getOrderPaymentStatus: function(orderId) {
-                var serviceUrl = urlBuilder.createUrl('/internal/adyen/orders/payment-status', {});
-                var payload = {
-                    orderId: orderId,
-                    form_key: $.mage.cookies.get('form_key')
+                let serviceUrl;
+
+                if (customer.isLoggedIn()) {
+                    serviceUrl = urlBuilder.createUrl('/adyen/orders/carts/mine/payment-status', {});
+                } else {
+                    serviceUrl = urlBuilder.createUrl('/adyen/orders/guest-carts/:cartId/payment-status', {
+                        cartId: quote.getQuoteId()
+                    });
+                }
+
+                let payload = {
+                    orderId: orderId
                 }
                 return storage.post(
                     serviceUrl,
@@ -74,19 +83,26 @@ define(
                     true
                 );
             },
-            /**
-             * The results that the components returns in the onComplete callback needs to be sent to the
-             * backend to the /adyen/paymentDetails endpoint and based on the response render a new
-             * component or place the order (validateThreeDS2OrPlaceOrder)
-             */
-            paymentDetails: function(data) {
-                var payload = {
+
+            paymentDetails: function(data, orderId) {
+                let serviceUrl;
+                let payload = {
                     'payload': JSON.stringify(data),
-                    form_key: $.mage.cookies.get('form_key')
+                    'orderId': orderId
                 };
 
-                var serviceUrl = urlBuilder.createUrl('/internal/adyen/paymentDetails',
-                    {});
+                if (customer.isLoggedIn()) {
+                    serviceUrl = urlBuilder.createUrl(
+                        '/adyen/carts/mine/payments-details',
+                        {}
+                    );
+                } else {
+                    serviceUrl = urlBuilder.createUrl(
+                        '/adyen/guest-carts/:cartId/payments-details', {
+                            cartId: quote.getQuoteId(),
+                        }
+                    );
+                }
 
                 return storage.post(
                     serviceUrl,

@@ -153,14 +153,14 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         $config['payment']['adyenCc']['locale'] = $this->_adyenHelper->getStoreLocale($storeId);
         $config['payment']['adyenCc']['isOneClickEnabled'] = $recurringEnabled;
         $config['payment']['adyenCc']['icons'] = $this->getIcons();
-
+        $config['payment']['adyenCc']['isClickToPayEnabled'] = $this->configHelper->isClickToPayEnabled($storeId);
 
         // has installments by default false
         $config['payment']['adyenCc']['hasInstallments'] = false;
 
         // get Installments
-        $installmentsEnabled = $this->_adyenHelper->getAdyenCcConfigData('enable_installments');
-        $installments = $this->_adyenHelper->getAdyenCcConfigData('installments');
+        $installmentsEnabled = $this->configHelper->getAdyenCcConfigData('enable_installments');
+        $installments = $this->configHelper->getAdyenCcConfigData('installments');
 
         if ($installmentsEnabled && $installments) {
             $config['payment']['adyenCc']['installments'] = $this->serializer->unserialize($installments);
@@ -225,7 +225,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
      */
     protected function hasVerification()
     {
-        return $this->_adyenHelper->getAdyenCcConfigData('useccv');
+        return $this->configHelper->getAdyenCcConfigData('useccv');
     }
 
     /**

@@ -16,6 +16,7 @@ use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\Vault;
+use Adyen\Payment\Helper\Config;
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\RequestInterface;
@@ -33,6 +34,10 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
      */
     protected $config;
 
+    /**
+     * @var Config
+     */
+    protected $_configHelper;
     /**
      * @var Data
      */
@@ -104,7 +109,8 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
         CcConfig $ccConfig,
         ChargedCurrency $chargedCurrency,
         Vault $vaultHelper,
-        PaymentMethods $paymentMethodsHelper
+        PaymentMethods $paymentMethodsHelper,
+        Config $configHelper
     ) {
         $this->_adyenHelper = $adyenHelper;
         $this->_request = $request;
@@ -116,6 +122,7 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
         $this->chargedCurrency = $chargedCurrency;
         $this->vaultHelper = $vaultHelper;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
+        $this->_configHelper = $configHelper;
     }
 
     /**
@@ -167,7 +174,7 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
             $this->_storeManager->getStore()->getId()
         );
 
-        $enableOneclick = $this->_adyenHelper->getAdyenAbstractConfigData('enable_oneclick');
+        $enableOneclick = $this->_configHelper->getAdyenAbstractConfigData('enable_oneclick');
         $canCreateBillingAgreement = false;
         if ($enableOneclick) {
             $canCreateBillingAgreement = true;
@@ -236,7 +243,7 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
      */
     protected function hasVerification()
     {
-        return $this->_adyenHelper->getAdyenCcConfigData('useccv');
+        return $this->_configHelper->getAdyenCcConfigData('useccv');
     }
 
     /**

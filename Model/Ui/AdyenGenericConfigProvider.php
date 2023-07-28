@@ -60,6 +60,7 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
      */
     public function getConfig()
     {
+        $environment = $this->adyenConfigHelper->isDemoMode() ? 'test' : 'live';
         $storeId = $this->storeManager->getStore()->getId();
         $config = [
             'payment' => []
@@ -71,7 +72,8 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
             $config['payment']['adyen']['showLogo'] = false;
         }
 
-        $config['payment']['adyen']['clientKey'] = $this->adyenHelper->getClientKey();
+        $config['payment']['adyen']['clientKey'] = $this->adyenConfigHelper->getClientKey($environment);
+        $config['payment']['adyen']['merchantAccount'] = $this->adyenConfigHelper->getMerchantAccount($storeId);
         $config['payment']['adyen']['checkoutEnvironment'] = $this->adyenHelper->getCheckoutEnvironment($storeId);
         $config['payment']['adyen']['locale'] = $this->adyenHelper->getStoreLocale($storeId);
         $config['payment']['adyen']['chargedCurrency'] = $this->adyenConfigHelper->getChargedCurrency($storeId);
@@ -95,7 +97,7 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
      */
     protected function showLogos()
     {
-        $showLogos = $this->adyenHelper->getAdyenAbstractConfigData('title_renderer');
+        $showLogos = $this->adyenConfigHelper->getAdyenAbstractConfigData('title_renderer');
         if ($showLogos == RenderMode::MODE_TITLE_IMAGE) {
             return true;
         }

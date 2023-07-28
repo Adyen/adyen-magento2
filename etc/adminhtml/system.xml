@@ -4,7 +4,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -16,14 +16,17 @@
             <group id="adyen_group_all_in_one" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Adyen Payments</label>
                 <!-- Logo as css background -->
-                <comment><![CDATA[<b>Adyen Payments</b> <br />Utilize the features offered by the Adyen payments platform in one integration. <br /> <br />]]></comment>
+                <comment><![CDATA[Utilize the features offered by the Adyen payments platform in one integration. <br /><br />]]></comment>
                 <attribute type="expanded">1</attribute>
+                <attribute type="displayIn">recommended_solutions</attribute>
                 <fieldset_css>adyen-payments complex</fieldset_css>
-                <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Group</frontend_model>
+                <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\Fieldset</frontend_model>
                 <include path="Adyen_Payment::system/adyen_getting_started.xml"/>
-                <include path="Adyen_Payment::system/adyen_required_settings.xml"/>
-                <include path="Adyen_Payment::system/adyen_configure_payment_methods.xml"/>
-                <include path="Adyen_Payment::system/adyen_advanced_settings.xml"/>
+                <include path="Adyen_Payment::system/adyen_initial_setup.xml"/>
+                <include path="Adyen_Payment::system/adyen_accepting_payments.xml"/>
+                <include path="Adyen_Payment::system/adyen_order_management.xml"/>
+                <include path="Adyen_Payment::system/adyen_payment_optimization.xml"/>
+                <include path="Adyen_Payment::system/adyen_testing_performance.xml"/>
             </group>
         </section>
     </system>

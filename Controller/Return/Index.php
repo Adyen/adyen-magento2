@@ -13,7 +13,10 @@ namespace Adyen\Payment\Controller\Return;
 
 use Adyen\AdyenException;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Idempotency;
 use Adyen\Payment\Helper\Quote;
+use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
@@ -59,6 +62,11 @@ class Index extends Action
      * @var OrderFactory
      */
     protected OrderFactory $orderFactory;
+
+    /**
+     * @var Config
+     */
+    protected $configHelper;
 
     /**
      * @var Order
@@ -121,6 +129,11 @@ class Index extends Action
     private OrderRepositoryInterface $orderRepository;
 
     /**
+     * @var Idempotency
+     */
+    private $idempotencyHelper;
+
+    /**
      * @param Context $context
      * @param OrderFactory $orderFactory
      * @param HistoryFactory $orderHistoryFactory
@@ -146,7 +159,9 @@ class Index extends Action
         OrderResource            $orderResourceModel,
         StateData                $stateDataHelper,
         Data                     $adyenDataHelper,
-        OrderRepositoryInterface $orderRepository
+        OrderRepositoryInterface $orderRepository,
+        Idempotency              $idempotencyHelper,
+        Config                   $configHelper
     ) {
         parent::__construct($context);
 
@@ -161,6 +176,8 @@ class Index extends Action
         $this->orderResourceModel = $orderResourceModel;
         $this->stateDataHelper = $stateDataHelper;
         $this->orderRepository = $orderRepository;
+        $this->configHelper = $configHelper;
+        $this->idempotencyHelper = $idempotencyHelper;
     }
 
     /**
@@ -186,29 +203,32 @@ class Index extends Action
                 $successPath = $failPath = 'multishipping/checkout/success';
                 $setQuoteAsActive = true;
             } else {
-                $successPath = $this->adyenDataHelper->getAdyenAbstractConfigData('custom_success_redirect_path') ?? 'checkout/onepage/success';
-                $failPath = $this->adyenDataHelper->getAdyenAbstractConfigData('return_path');
+                $successPath = $this->configHelper->getAdyenAbstractConfigData('custom_success_redirect_path') ?? 'checkout/onepage/success';
+                $failPath = $this->configHelper->getAdyenAbstractConfigData('return_path');
                 $setQuoteAsActive = false;
             }
         } else {
-            $this->_redirect($this->adyenDataHelper->getAdyenAbstractConfigData('return_path'));
+            $this->_redirect($this->configHelper->getAdyenAbstractConfigData('return_path'));
         }
 
         if ($result) {
             $session = $this->session;
             $session->getQuote()->setIsActive($setQuoteAsActive)->save();
+            $paymentAction = $this->order->getPayment()->getAdditionalInformation('action');
+            $brandCode = $this->order->getPayment()->getAdditionalInformation('brand_code');
+            $resultCode = $this->order->getPayment()->getAdditionalInformation('resultCode');
 
-            // Prevent action component to redirect page with the payment method Dotpay Bank transfer / postal
-            if (
-                $this->order->getPayment()->getAdditionalInformation('brand_code') == self::BRAND_CODE_DOTPAY &&
-                $this->order->getPayment()->getAdditionalInformation('resultCode') == self::RESULT_CODE_RECEIVED
+
+            // Prevent action component to redirect page again after returning to the shop
+            if (($brandCode == self::BRAND_CODE_DOTPAY && $resultCode == self::RESULT_CODE_RECEIVED) ||
+                (isset($paymentAction) && $paymentAction['type'] === 'redirect')
             ) {
                 $this->payment->unsAdditionalInformation('action');
                 $this->order->save();
             }
 
             // Add OrderIncrementId to redirect parameters for headless support.
-            $redirectParams = $this->adyenDataHelper->getAdyenAbstractConfigData('custom_success_redirect_path')
+            $redirectParams = $this->configHelper->getAdyenAbstractConfigData('custom_success_redirect_path')
                 ? ['_query' => ['utm_nooverride' => '1', 'order_increment_id' => $this->order->getIncrementId()]]
                 : ['_query' => ['utm_nooverride' => '1']];
             $this->_redirect($successPath, $redirectParams);
@@ -416,43 +436,6 @@ class Index extends Action
     }
 
     /**
-     * Authenticate using sha256 Merchant signature
-     *
-     * @param array $response
-     * @return bool
-     * @throws AdyenException
-     */
-    protected function authenticate(array $response): bool
-    {
-        $merchantSigNotification = $response['merchantSig'];
-
-        // do it like this because $_GET is converting dot to underscore
-        $queryString = $_SERVER['QUERY_STRING'];
-        $result = [];
-        $pairs = explode("&", (string) $queryString);
-
-        foreach ($pairs as $pair) {
-            $nv = explode("=", $pair);
-            $name = urldecode($nv[0]);
-            $value = urldecode($nv[1]);
-            $result[$name] = $value;
-        }
-
-        // do not include the merchantSig in the merchantSig calculation
-        unset($result['merchantSig']);
-
-        // Sign request using secret key
-        $hmacKey = $this->adyenDataHelper->getHmac();
-        $merchantSig = \Adyen\Util\Util::calculateSha256Signature($hmacKey, $result);
-
-        if (strcmp($merchantSig, (string) $merchantSigNotification) === 0) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
      * Get order based on increment_id
      *
      * @param string|null $incrementId
@@ -514,9 +497,10 @@ class Index extends Action
         }
 
         $request["details"] = $details;
+        $requestOptions['idempotencyKey'] = $this->idempotencyHelper->generateIdempotencyKey($request);
 
         try {
-            $response = $service->paymentsDetails($request);
+            $response = $service->paymentsDetails($request, $requestOptions);
             $responseMerchantReference = !empty($response['merchantReference']) ? $response['merchantReference'] : null;
             $resultMerchantReference = !empty($result['merchantReference']) ? $result['merchantReference'] : null;
             $merchantReference = $responseMerchantReference ?: $resultMerchantReference;
