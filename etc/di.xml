@@ -973,13 +973,6 @@
         </arguments>
     </virtualType>
 
-
-    <type name="Adyen\Payment\Model\Resolver\GetAdyenPaymentDetails">
-        <arguments>
-            <argument name="errorMessageFormatter" xsi:type="object">Magento\QuoteGraphQl\Helper\Error\PlaceOrderMessageFormatter</argument>
-        </arguments>
-    </type>
-
     <!--Payment Links Response Validator-->
     <virtualType name="PaymentLinksResponseValidator" type="Adyen\Payment\Gateway\Validator\PaymentLinksResponseValidator">
         <arguments>
