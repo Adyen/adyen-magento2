@@ -74,7 +74,7 @@ define(
                 );
 
                 if(!!paymentMethodsObserver()) {
-                    self.loadCheckoutComponent(paymentMethodsObserver());
+                    self.createCheckoutComponent(paymentMethodsObserver());
                 }
             },
 
