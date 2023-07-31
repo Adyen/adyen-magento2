@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2022 Adyen B.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -31,13 +31,7 @@ class PosCloudBuilder implements BuilderInterface
         $this->pointOfSale = $pointOfSale;
     }
 
-    /**
-     *
-     * @param array $buildSubject
-     * @return array
-     * @throws LocalizedException
-     */
-    public function build(array $buildSubject)
+    public function build(array $buildSubject): array
     {
         $paymentDataObject = SubjectReader::readPayment($buildSubject);
 
@@ -54,16 +48,6 @@ class PosCloudBuilder implements BuilderInterface
         return $request;
     }
 
-    /**
-     * Build request required for the /sync call
-     *
-     * @param string $terminalId
-     * @param string $fundingSource
-     * @param Order $order
-     * @param string|null $numberOfInstallments
-     * @return array
-     * @throws LocalizedException
-     */
     private function buildPosRequest(
         Order $order,
         string $terminalId,

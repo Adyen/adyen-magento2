@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2023 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -27,11 +27,7 @@ class AdyenPosCloudDataAssignObserver extends AbstractDataAssignObserver
         self::FUNDING_SOURCE
     ];
 
-    /**
-     * @param Observer $observer
-     * @return void
-     */
-    public function execute(Observer $observer)
+    public function execute(Observer $observer): void
     {
         $data = $this->readDataArgument($observer);
 
