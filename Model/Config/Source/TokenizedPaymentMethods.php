@@ -16,11 +16,11 @@ class TokenizedPaymentMethods implements OptionSourceInterface
     {
         return [
             /** TODO: These PMs can be enabled for recurring purposes once tested */
-            /*[
+            [
                 'value' => PaymentMethods\ApplePayPaymentMethod::TX_VARIANT,
                 'label' => PaymentMethods\ApplePayPaymentMethod::NAME
             ],
-            [
+            /*[
                 'value' => PaymentMethods\AmazonPayPaymentMethod::TX_VARIANT,
                 'label' => PaymentMethods\AmazonPayPaymentMethod::NAME
             ],*/

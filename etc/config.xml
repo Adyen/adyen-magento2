@@ -28,6 +28,7 @@
         <charged_currency>display</charged_currency>
         <house_number_street_line>0</house_number_street_line>
         <webhook_notification_processor>cron</webhook_notification_processor>
+        <adyen_support_email_address>support@adyen.com</adyen_support_email_address>
       </adyen_abstract>
       <adyen_cc>
         <active>0</active>
@@ -59,6 +60,7 @@
       <adyen_cc_vault>
         <title>Stored Cards (Adyen)</title>
         <model>Adyen\Payment\Model\Methods\Vault\CardVault</model>
+        <require_cvc>1</require_cvc>
       </adyen_cc_vault>
       <adyen_oneclick>
         <active>0</active>
@@ -414,9 +416,6 @@
         <can_capture_vault>1</can_capture_vault>
         <group>adyen</group>
       </adyen_moto>
-      <adyen_support>
-        <adyen_support_email_address>support@adyen.com</adyen_support_email_address>
-      </adyen_support>
       <adyen_applepay>
         <active>1</active>
         <model>Adyen\Payment\Model\Methods\Applepay</model>

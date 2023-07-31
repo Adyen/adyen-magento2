@@ -341,28 +341,7 @@ class PaymentMethods extends AbstractHelper
                 ? self::METHODS_WITH_LOGO_FILE_MAPPING[$paymentMethod['type']]
                 : $paymentMethodCode;
 
-            $asset = $this->assetRepo->createAsset(
-                'Adyen_Payment::images/logos/' .
-                $paymentMethodCode . '.png',
-                $params
-            );
-
-            $placeholder = $this->assetSource->findSource($asset);
-
-            if ($placeholder) {
-                list($width, $height) = getimagesize($asset->getSourceFile());
-                $icon = [
-                    'url' => $asset->getUrl(),
-                    'width' => $width,
-                    'height' => $height
-                ];
-            } else {
-                $icon = [
-                    'url' => 'https://checkoutshopper-live.adyen.com/checkoutshopper/images/logos/medium/' . $paymentMethodCode . '.png',
-                    'width' => 77,
-                    'height' => 50
-                ];
-            }
+            $icon = $this->buildPaymentMethodIcon($paymentMethodCode, $params);
 
             $paymentMethodsExtraDetails[$paymentMethodCode]['icon'] = $icon;
 
@@ -700,5 +679,33 @@ class PaymentMethods extends AbstractHelper
         }
 
         return $status;
+    }
+
+    /**
+     * @param string $paymentMethodCode
+     * @param array $params
+     * @return array
+     * @throws LocalizedException
+     */
+    public function buildPaymentMethodIcon(string $paymentMethodCode, array $params): array
+    {
+        $svgAsset = $this->assetRepo->createAsset("Adyen_Payment::images/logos/$paymentMethodCode.svg", $params);
+        $pngAsset = $this->assetRepo->createAsset("Adyen_Payment::images/logos/$paymentMethodCode.png", $params);
+
+        if ($this->assetSource->findSource($svgAsset)) {
+            $asset = $svgAsset;
+        } elseif ($this->assetSource->findSource($pngAsset)) {
+            $asset = $pngAsset;
+        }
+
+        if (isset($asset)) {
+            list($width, $height) = getimagesize($asset->getSourceFile());
+            $icon = ['url' => $asset->getUrl(), 'width' => $width, 'height' => $height];
+        } else {
+            $url = "https://checkoutshopper-live.adyen.com/checkoutshopper/images/logos/$paymentMethodCode.svg";
+            $icon = ['url' => $url, 'width' => 77, 'height' => 50];
+        }
+
+        return $icon;
     }
 }

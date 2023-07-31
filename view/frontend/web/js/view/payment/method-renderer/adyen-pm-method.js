@@ -64,7 +64,6 @@ define(
                 this._super();
                 let self = this;
 
-                // fullScreenLoader.startLoader();
                 this.isPlaceOrderAllowed(true);
 
                 let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
