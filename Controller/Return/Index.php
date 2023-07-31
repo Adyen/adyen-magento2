@@ -22,7 +22,6 @@ use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Service\Validator\DataArrayValidator;
-use Exception;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
@@ -261,7 +260,7 @@ class Index extends Action
     {
         $this->session->restoreQuote();
 
-        if (isset($response['authResult']) && $response['authResult'] == Notification::CANCELLED) {
+        if (isset($response['authResult']) && $response['authResult'] == \Adyen\Payment\Model\Notification::CANCELLED) {
             $this->messageManager->addError(__('You have cancelled the order. Please try again'));
         } else {
             $this->messageManager->addError(__('Your payment failed, Please try again later'));
@@ -435,7 +434,7 @@ class Index extends Action
         // Cleanup state data
         try {
             $this->stateDataHelper->CleanQuoteStateData($order->getQuoteId(), $authResult);
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             $this->adyenLogger->error(__('Error cleaning the payment state data: %s', $exception->getMessage()));
         }
 
