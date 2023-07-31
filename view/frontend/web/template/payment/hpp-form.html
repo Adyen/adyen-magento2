@@ -30,7 +30,9 @@
                 <!-- ko if: adyenPaymentMethod().icon -->
                 <img data-bind="attr: {
                 'src': adyenPaymentMethod().icon.url,
-                'alt': adyenPaymentMethod().item.title + ' logo'
+                'alt': adyenPaymentMethod().item.title + ' logo',
+                'height': adyenPaymentMethod().icon.height,
+                'width': adyenPaymentMethod().icon.width
                 }">
                 <!--/ko-->
 
