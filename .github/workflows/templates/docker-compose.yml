@@ -12,7 +12,7 @@ services:
     networks:
       - backend
   elastic:
-    image: elasticsearch:7.16.2
+    image: elasticsearch:7.17.9
     container_name: elasticsearch
     ports:
       - 9200:9200
@@ -59,7 +59,7 @@ services:
         aliases:
           - magento2.test.com
   playwright:
-    image: mcr.microsoft.com/playwright:v1.27.1-focal
+    image: mcr.microsoft.com/playwright:focal
     shm_size: 1gb
     ipc: host
     cap_add:
