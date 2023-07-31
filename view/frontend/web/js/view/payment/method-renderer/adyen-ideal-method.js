@@ -17,6 +17,7 @@ define(
         adyenPaymentMethod,
     ) {
         return adyenPaymentMethod.extend({
+            txVariant: 'ideal',
             initialize: function () {
                 this._super();
             }

@@ -26,7 +26,7 @@ define([
             return this._super();
         },
         renderSecureFields: function () {
-            var self = this;
+            let self = this;
 
             if (!self.getClientKey) {
                 return;
