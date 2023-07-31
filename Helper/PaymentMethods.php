@@ -74,23 +74,23 @@ class PaymentMethods extends AbstractHelper
     private SerializerInterface $serializer;
 
     public function __construct(
-        Context                 $context,
+        Context $context,
         CartRepositoryInterface $quoteRepository,
-        ScopeConfigInterface    $config,
-        Data                    $adyenHelper,
-        ResolverInterface       $localeResolver,
-        AdyenLogger             $adyenLogger,
-        Repository              $assetRepo,
-        RequestInterface        $request,
-        Source                  $assetSource,
-        DesignInterface         $design,
-        ThemeProviderInterface  $themeProvider,
-        ChargedCurrency         $chargedCurrency,
-        Config                  $configHelper,
-        MagentoDataHelper       $dataHelper,
-        ManualCapture           $manualCapture,
-        SerializerInterface     $serializer,
-        AdyenDataHelper         $adyenDataHelper
+        ScopeConfigInterface $config,
+        Data $adyenHelper,
+        ResolverInterface $localeResolver,
+        AdyenLogger $adyenLogger,
+        Repository $assetRepo,
+        RequestInterface $request,
+        Source $assetSource,
+        DesignInterface $design,
+        ThemeProviderInterface $themeProvider,
+        ChargedCurrency $chargedCurrency,
+        Config $configHelper,
+        MagentoDataHelper $dataHelper,
+        ManualCapture $manualCapture,
+        SerializerInterface $serializer,
+        AdyenDataHelper $adyenDataHelper
     )
     {
         parent::__construct($context);
@@ -131,7 +131,7 @@ class PaymentMethods extends AbstractHelper
         return in_array($methodCode, $this->getAdyenPaymentMethods(), true);
     }
 
-    public function getAdyenPaymentMethods(): array
+    public function getAdyenPaymentMethods() : array
     {
         $paymentMethods = $this->dataHelper->getPaymentMethodList();
 
@@ -183,7 +183,7 @@ class PaymentMethods extends AbstractHelper
         $total = $this->chargedCurrency->getQuoteAmountCurrency($this->getQuote())->getAmount();
 
         if (!is_numeric($total)) {
-            throw new Exception(
+            throw new \Exception(
                 sprintf(
                     'Cannot retrieve a valid grand total from quote ID: `%s`. Expected a numeric value.',
                     $this->getQuote()->getEntityId()
@@ -197,7 +197,7 @@ class PaymentMethods extends AbstractHelper
             return $total;
         }
 
-        throw new Exception(
+        throw new \Exception(
             sprintf(
                 'Cannot retrieve a valid grand total from quote ID: `%s`. Expected a float >= `0`, got `%f`.',
                 $this->getQuote()->getEntityId(),
@@ -245,7 +245,8 @@ class PaymentMethods extends AbstractHelper
             );
             // return empty result
             return [];
-        } catch (ConnectionException $e) {
+        }
+        catch (\Adyen\ConnectionException $e) {
             $this->adyenLogger->error(
                 "Connection to the endpoint failed. Check the Adyen Live endpoint prefix configuration."
             );
@@ -274,10 +275,8 @@ class PaymentMethods extends AbstractHelper
         $merchantAccount,
         Store $store,
         \Magento\Quote\Model\Quote $quote,
-        ?string $shopperLocale = null,
-        ?string $country = null
-    ): array
-    {
+        ?string $shopperLocale = null
+    ): array {
         $currencyCode = $this->chargedCurrency->getQuoteAmountCurrency($quote)->getCurrencyCode();
 
         $paymentMethodRequest = [
@@ -318,7 +317,7 @@ class PaymentMethods extends AbstractHelper
         // Explicitly setting theme
         $themeCode = "Magento/blank";
 
-        $themeId = $this->design->getConfigurationDesignTheme(Area::AREA_FRONTEND);
+        $themeId = $this->design->getConfigurationDesignTheme(\Magento\Framework\App\Area::AREA_FRONTEND);
         if (!empty($themeId)) {
             $theme = $this->themeProvider->getThemeById($themeId);
             if ($theme && !empty($theme->getCode())) {
@@ -329,7 +328,7 @@ class PaymentMethods extends AbstractHelper
         $params = [];
         $params = array_merge(
             [
-                'area' => Area::AREA_FRONTEND,
+                'area' => \Magento\Framework\App\Area::AREA_FRONTEND,
                 '_secure' => $this->request->isSecure(),
                 'theme' => $themeCode
             ],
@@ -360,8 +359,7 @@ class PaymentMethods extends AbstractHelper
     protected function addExtraConfigurationToPaymentMethods(
         array $paymentMethods,
         array $paymentMethodsExtraDetails
-    ): array
-    {
+    ): array {
         $quote = $this->getQuote();
         $currencyCode = $this->chargedCurrency->getQuoteAmountCurrency($quote)->getCurrencyCode();
         $amountValue = $this->adyenHelper->formatAmount($this->getCurrentPaymentAmount(), $currencyCode);
@@ -416,7 +414,7 @@ class PaymentMethods extends AbstractHelper
         $ccTypes = $this->adyenHelper->getAdyenCcTypes();
         $availableTypes = $this->configHelper->getAdyenCcConfigData('cctypes');
         if ($availableTypes) {
-            $availableTypes = explode(',', (string)$availableTypes);
+            $availableTypes = explode(',', (string) $availableTypes);
             foreach (array_keys($ccTypes) as $code) {
                 if (in_array($code, $availableTypes)) {
                     $types[$code] = $ccTypes[$code]['name'];
@@ -433,7 +431,7 @@ class PaymentMethods extends AbstractHelper
         $ccTypes = $this->adyenHelper->getAdyenCcTypes();
         $availableTypes = $this->configHelper->getAdyenCcConfigData('cctypes');
         if ($availableTypes) {
-            $availableTypes = explode(',', (string)$availableTypes);
+            $availableTypes = explode(',', (string) $availableTypes);
             foreach (array_keys($ccTypes) as $code) {
                 if (in_array($code, $availableTypes)) {
                     $types[$ccTypes[$code]['code_alt']] = $code;
@@ -449,14 +447,14 @@ class PaymentMethods extends AbstractHelper
         // validate if payment methods allows manual capture
         if ($this->manualCapture->isManualCaptureSupported($notificationPaymentMethod)) {
             $captureMode = trim(
-                (string)$this->configHelper->getConfigData(
+                (string) $this->configHelper->getConfigData(
                     'capture_mode',
                     'adyen_abstract',
                     $order->getStoreId()
                 )
             );
             $sepaFlow = trim(
-                (string)$this->configHelper->getConfigData(
+                (string) $this->configHelper->getConfigData(
                     'sepa_flow',
                     'adyen_abstract',
                     $order->getStoreId()
@@ -465,7 +463,7 @@ class PaymentMethods extends AbstractHelper
             $paymentCode = $order->getPayment()->getMethod();
             $autoCaptureOpenInvoice = $this->configHelper->getAutoCaptureOpenInvoice($order->getStoreId());
             $manualCapturePayPal = trim(
-                (string)$this->configHelper->getConfigData(
+                (string) $this->configHelper->getConfigData(
                     'paypal_capture_mode',
                     'adyen_abstract',
                     $order->getStoreId()
@@ -505,7 +503,7 @@ class PaymentMethods extends AbstractHelper
                     'capture_mode_pos',
                     $order->getStoreId()
                 );
-                if (strcmp((string)$captureModePos, 'auto') === 0) {
+                if (strcmp((string) $captureModePos, 'auto') === 0) {
                     $this->adyenLogger->addAdyenNotification(
                         'This payment method is POS Cloud and configured to be working as auto capture ',
                         array_merge(
@@ -514,7 +512,7 @@ class PaymentMethods extends AbstractHelper
                         )
                     );
                     return true;
-                } elseif (strcmp((string)$captureModePos, 'manual') === 0) {
+                } elseif (strcmp((string) $captureModePos, 'manual') === 0) {
                     $this->adyenLogger->addAdyenNotification(
                         'This payment method is POS Cloud and configured to be working as manual capture ',
                         array_merge(
@@ -650,9 +648,9 @@ class PaymentMethods extends AbstractHelper
             // check if paid amount is the same as orginal amount
             $originalAmount =
                 isset($boletobancario['originalAmount']) ?
-                    trim((string)$boletobancario['originalAmount']) :
+                    trim((string) $boletobancario['originalAmount']) :
                     "";
-            $paidAmount = isset($boletobancario['paidAmount']) ? trim((string)$boletobancario['paidAmount']) : "";
+            $paidAmount = isset($boletobancario['paidAmount']) ? trim((string) $boletobancario['paidAmount']) : "";
 
             if ($originalAmount != $paidAmount) {
                 // not the full amount is paid. Check if it is underpaid or overpaid
