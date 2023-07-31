@@ -12,15 +12,12 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
-use Adyen\ConnectionException;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Util\ManualCapture;
-use Exception;
-use Magento\Framework\App\Area;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
@@ -91,8 +88,7 @@ class PaymentMethods extends AbstractHelper
         ManualCapture $manualCapture,
         SerializerInterface $serializer,
         AdyenDataHelper $adyenDataHelper
-    )
-    {
+    ) {
         parent::__construct($context);
         $this->quoteRepository = $quoteRepository;
         $this->config = $config;
@@ -275,7 +271,8 @@ class PaymentMethods extends AbstractHelper
         $merchantAccount,
         Store $store,
         \Magento\Quote\Model\Quote $quote,
-        ?string $shopperLocale = null
+        ?string $shopperLocale = null,
+        ?string $country = null
     ): array {
         $currencyCode = $this->chargedCurrency->getQuoteAmountCurrency($quote)->getCurrencyCode();
 
@@ -648,8 +645,8 @@ class PaymentMethods extends AbstractHelper
             // check if paid amount is the same as orginal amount
             $originalAmount =
                 isset($boletobancario['originalAmount']) ?
-                    trim((string) $boletobancario['originalAmount']) :
-                    "";
+                trim((string) $boletobancario['originalAmount']) :
+                "";
             $paidAmount = isset($boletobancario['paidAmount']) ? trim((string) $boletobancario['paidAmount']) : "";
 
             if ($originalAmount != $paidAmount) {
