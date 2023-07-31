@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2022 Adyen B.V.
+ * Copyright (c) 2023GG Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -23,39 +23,20 @@ use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Checkout\Model\Session;
 use Magento\Payment\Gateway\Http\TransferInterface;
 use Magento\Store\Model\StoreManagerInterface;
-use Magento\Quote\Api\Data\CartInterface;
-use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
-use Adyen\Payment\Helper\PaymentMethods;
-use Magento\Framework\Exception\NoSuchEntityException;
 
 class TransactionPosCloudSync implements ClientInterface
 {
-    /** @var int  */
-    protected $storeId;
-
-    /** @var int */
-    protected $timeout;
+    protected int $storeId;
+    protected mixed $timeout;
 
     /** @var \Adyen\Client  */
-    protected $client;
-
-    /** @var Data  */
-    protected $adyenHelper;
-
-    /** @var AdyenLogger  */
-    protected $adyenLogger;
-
-    /** @var Config */
-    protected $configHelper;
-
-    /** @var Session */
-    private $session;
-
-    /** @var ChargedCurrency */
-    private $chargedCurrency;
-
-    /** @var PointOfSale */
-    private $pointOfSale;
+    protected \Adyen\Client $client;
+    protected Data $adyenHelper;
+    protected AdyenLogger $adyenLogger;
+    protected Config $configHelper;
+    private Session $session;
+    private ChargedCurrency $chargedCurrency;
+    private PointOfSale $pointOfSale;
 
     public function __construct(
         Data $adyenHelper,
@@ -90,20 +71,11 @@ class TransactionPosCloudSync implements ClientInterface
         $this->client = $client;
     }
 
-    /**
-     * Places request to gateway. In case of older implementation (using AdyenInitiateTerminalApi::initiate) parameters
-     * will be obtained from the request. Otherwise we will do the initiate call here, using initiatePosPayment()
-     *
-     * @param TransferInterface $transferObject
-     * @return array
-     * @throws LocalizedException|AdyenException
-     */
     public function placeRequest(TransferInterface $transferObject): array
     {
         $request = $transferObject->getBody();
         //always do status call and return the response of the status call
         $service = $this->adyenHelper->createAdyenPosPaymentService($this->client);
-
 
         $this->adyenHelper->logRequest($request, '', '/sync');
         try {
@@ -111,9 +83,8 @@ class TransactionPosCloudSync implements ClientInterface
         } catch (AdyenException $e) {
             //Not able to perform a payment
             $this->adyenLogger->addAdyenDebug($response['error'] = $e->getMessage());
-        } catch (\Exception $e) {
-
         }
+
         $this->adyenHelper->logResponse($response);
 
         return $response;
