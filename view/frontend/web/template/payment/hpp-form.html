@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -30,7 +30,7 @@
                 <!-- ko if: adyenPaymentMethod().icon -->
                 <img data-bind="attr: {
                 'src': adyenPaymentMethod().icon.url,
-                'alt': adyenPaymentMethod().item.title + ' logo',
+                'alt': getTitle() + ' logo',
                 'height': adyenPaymentMethod().icon.height,
                 'width': adyenPaymentMethod().icon.width
                 }">
