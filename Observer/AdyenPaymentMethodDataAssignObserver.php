@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -29,44 +29,24 @@ class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
     const STATE_DATA = 'stateData';
     const RETURN_URL = 'returnUrl';
     const RECURRING_PROCESSING_MODEL = 'recurringProcessingModel';
+    const CC_NUMBER = 'cc_number';
 
-    /**
-     * Approved root level keys from additional data array
-     *
-     * @var array
-     */
     private static $approvedAdditionalDataKeys = [
         self::BRAND_CODE,
         self::DF_VALUE,
         self::GUEST_EMAIL,
         self::STATE_DATA,
         self::RETURN_URL,
-        self::RECURRING_PROCESSING_MODEL
+        self::RECURRING_PROCESSING_MODEL,
+        self::CC_NUMBER
     ];
 
-    /** @var CheckoutStateDataValidator */
-    protected $checkoutStateDataValidator;
+    protected CheckoutStateDataValidator $checkoutStateDataValidator;
+    protected Collection $stateDataCollection;
+    private StateData $stateData;
+    private StoreManagerInterface $storeManager;
+    private Vault $vaultHelper;
 
-    /** @var Collection */
-    protected $stateDataCollection;
-
-    /** @var StateData */
-    private $stateData;
-
-    /** @var StoreManagerInterface */
-    private $storeManager;
-
-    /** @var Vault */
-    private $vaultHelper;
-
-    /**
-     * AdyenPaymentMethodDataAssignObserver constructor.
-     *
-     * @param CheckoutStateDataValidator $checkoutStateDataValidator
-     * @param Collection $stateDataCollection
-     * @param StateData $stateData
-     * @param StoreManagerInterface $storeManager
-     */
     public function __construct(
         CheckoutStateDataValidator $checkoutStateDataValidator,
         Collection $stateDataCollection,
@@ -81,10 +61,6 @@ class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
         $this->vaultHelper = $vaultHelper;
     }
 
-    /**
-     * @param Observer $observer
-     * @return void
-     */
     public function execute(Observer $observer)
     {
         $additionalDataToSave = [];
@@ -107,6 +83,9 @@ class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
         // JSON decode state data from the frontend or fetch it from the DB entity with the quote ID
         if (!empty($additionalData[self::STATE_DATA])) {
             $stateData = json_decode((string) $additionalData[self::STATE_DATA], true);
+        } elseif (!empty($additionalData[self::CC_NUMBER])) {
+            $stateData = json_decode((string) $additionalData[self::CC_NUMBER], true);
+            $paymentInfo->setAdditionalInformation(self::BRAND_CODE, $stateData['paymentMethod']['type']);
         } else {
             $stateData = $this->stateDataCollection->getStateDataArrayWithQuoteId($paymentInfo->getData('quote_id'));
         }

@@ -26,7 +26,7 @@ define(
     ) {
         'use strict';
         return {
-            paymentMethods: ko.observable({}),
+            paymentMethods: ko.observable(null),
 
             /**
              * Retrieve the list of available payment methods from Adyen
