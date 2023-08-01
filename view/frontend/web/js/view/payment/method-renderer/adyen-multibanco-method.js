@@ -18,6 +18,7 @@ define(
         adyenPaymentMethod,
     ) {
         return adyenPaymentMethod.extend({
+            txVariant: 'multibanco',
             initialize: function () {
                 this._super();
             }

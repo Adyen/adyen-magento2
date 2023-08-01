@@ -11,18 +11,16 @@
 /*global define*/
 define([
     'jquery',
-    'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-method',
+    'Adyen_Payment/js/view/payment/method-renderer/adyen-klarna-method',
     'Adyen_Payment/js/model/adyen-payment-service',
     'Adyen_Payment/js/model/adyen-configuration',
-    'Magento_Checkout/js/model/quote',
-    'Magento_Checkout/js/model/full-screen-loader'
+    'Magento_Checkout/js/model/quote'
 ], function (
     $,
     Component,
     adyenPaymentService,
     adyenConfiguration,
-    quote,
-    fullScreenLoader
+    quote
 ) {
     'use strict';
 
@@ -31,31 +29,15 @@ define([
             template: 'Adyen_Payment/payment/multishipping/klarna-form'
         },
         initialize: function () {
-            var self = this;
             // Retrieve adyen payment methods
-            adyenPaymentService.retrievePaymentMethods().done(function(paymentMethods) {
-                try {
-                    paymentMethods = JSON.parse(paymentMethods);
-                } catch(error) {
-                    if ('test' === adyenConfiguration.getCheckoutEnvironment()) {
-                        console.log(error);
-                    }
-                    paymentMethods = null;
-                }
-
-                /** Disable wallet payment methods for multi-shipping */
-                paymentMethods.paymentMethodsResponse.paymentMethods = paymentMethods.paymentMethodsResponse.paymentMethods.filter(function (paymentMethod) {
-                    return !self.showPayButtonPaymentMethods.includes(paymentMethod.type);
-                })
-
-                adyenPaymentService.setPaymentMethods(paymentMethods);
-                fullScreenLoader.stopLoader();
-            }.bind(self)).fail(function() {
-                console.log('Fetching the payment methods failed!');
-            });
+            adyenPaymentService.retrievePaymentMethods();
             this._super();
         },
-        buildComponentConfiguration: function(paymentMethod, paymentMethodsExtraInfo, result) {
+        selectPaymentMethod: function () {
+            $('#stateData').val(JSON.stringify(this.paymentComponent.data));
+            return this._super();
+        },
+        buildComponentConfiguration: function(paymentMethod, paymentMethodsExtraInfo) {
             var self = this;
 
             var firstName = '';
@@ -172,18 +154,12 @@ define([
                     },
                     onChange: function(state) {
                         $('#stateData').val(state.isValid ? JSON.stringify(state.data) : '');
-                        result.isPlaceOrderAllowed(state.isValid);
                     },
                     onClick: function(resolve, reject) {
-                        // for paypal add a workaround, remove when component fixes it
-                        if (selectedAlternativePaymentMethodType() === 'paypal') {
-                            return self.validate();
+                        if (self.validate()) {
+                            resolve();
                         } else {
-                            if (self.validate()) {
-                                resolve();
-                            } else {
-                                reject();
-                            }
+                            reject();
                         }
                     },
                 });
@@ -199,58 +175,11 @@ define([
             }
 
             // Use extra configuration from the paymentMethodsExtraInfo object if available
-            if (paymentMethod.methodIdentifier in paymentMethodsExtraInfo && 'configuration' in paymentMethodsExtraInfo[paymentMethod.methodIdentifier]) {
-                configuration = Object.assign(configuration, paymentMethodsExtraInfo[paymentMethod.methodIdentifier].configuration);
-            }
-
-            // Extra apple pay configuration
-            if (paymentMethod.methodIdentifier.includes('applepay')) {
-                if ('configuration' in configuration &&
-                    'merchantName' in configuration.configuration) {
-                    configuration.totalPriceLabel = configuration.configuration.merchantName;
-                }
-            }
-            // Extra amazon pay configuration first call to amazon page
-            if (paymentMethod.methodIdentifier.includes('amazonpay')) {
-                configuration.productType = 'PayAndShip';
-                configuration.checkoutMode = 'ProcessOrder';
-                configuration.returnUrl = location.href;
-
-                if (formattedShippingAddress &&
-                    formattedShippingAddress.telephone) {
-                    configuration.addressDetails = {
-                        name: formattedShippingAddress.firstName +
-                            ' ' +
-                            formattedShippingAddress.lastName,
-                        addressLine1: formattedShippingAddress.street,
-                        addressLine2: formattedShippingAddress.houseNumber,
-                        city: formattedShippingAddress.city,
-                        postalCode: formattedShippingAddress.postalCode,
-                        countryCode: formattedShippingAddress.country,
-                        phoneNumber: formattedShippingAddress.telephone
-                    };
-                }
+            if (paymentMethod.type in paymentMethodsExtraInfo && 'configuration' in paymentMethodsExtraInfo[paymentMethod.type]) {
+                configuration = Object.assign(configuration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
             }
 
             return configuration;
-        },
-        selectPaymentMethodType: function() {
-            var self = this;
-            $('#stateData').val('');
-            let paymentMethod = self.paymentMethod;
-            const isEmptyContainer = $('#adyen-alternative-payment-container-' + paymentMethod.methodIdentifier).children().size() === 0;
-            if (isEmptyContainer) {
-                let stateData = {
-                    paymentMethod: {
-                        type: paymentMethod.type
-                    }
-                };
-                if ('brand' in paymentMethod) {
-                    stateData.paymentMethod.brand = paymentMethod.brand;
-                }
-                $('#stateData').val(JSON.stringify(stateData));
-            }
-            return this._super();
-        },
+        }
     });
 });

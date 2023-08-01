@@ -16,7 +16,6 @@ use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
 use Adyen\Payment\Helper\Quote;
 use Adyen\Payment\Helper\Config;
-use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
@@ -25,9 +24,7 @@ use Adyen\Service\Validator\DataArrayValidator;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
-use Magento\Framework\Exception\AlreadyExistsException as AlreadyExistsExceptionAlias;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Status\HistoryFactory;
@@ -59,6 +56,7 @@ class Index extends Action
     ];
 
     protected OrderFactory $orderFactory;
+    protected Config $configHelper;
     protected Order $order;
     protected HistoryFactory $orderHistoryFactory;
     protected Session $session;
@@ -106,11 +104,6 @@ class Index extends Action
         $this->idempotencyHelper = $idempotencyHelper;
     }
 
-    /**
-     * @throws AdyenException
-     * @throws LocalizedException
-     * @throws NoSuchEntityException
-     */
     public function execute(): void
     {
         $result = false;
@@ -120,6 +113,13 @@ class Index extends Action
 
         if ($response) {
             $result = $this->validateResponse($response);
+            $order = $this->order;
+            $additionalInformation = $order->getPayment()->getAdditionalInformation();
+            $resultCode = isset($response['resultCode']) ? $response['resultCode'] : null;
+            $paymentBrandCode = isset($additionalInformation['brand_code']) ? $additionalInformation['brand_code'] : null;
+            if ($resultCode === 'cancelled' && $paymentBrandCode === 'svs') {
+                $this->adyenDataHelper->cancelOrder($order);
+            }
 
             // Adjust the success path, fail path, and restore quote based on if it is a multishipping quote
             if (
@@ -171,10 +171,6 @@ class Index extends Action
         }
     }
 
-    /**
-     * @param array $response
-     * @return void
-     */
     protected function replaceCart(array $response): void
     {
         $this->session->restoreQuote();
@@ -186,12 +182,6 @@ class Index extends Action
         }
     }
 
-    /**
-     * @param array $response
-     * @return bool
-     * @throws AdyenException
-     * @throws LocalizedException
-     */
     protected function validateResponse(array $response): bool
     {
         $this->adyenLogger->addAdyenResult('Processing ResultUrl');
@@ -236,12 +226,6 @@ class Index extends Action
         return $result;
     }
 
-    /**
-     * @param Order $order
-     * @param array $response
-     * @return bool
-     * @throws AlreadyExistsExceptionAlias
-     */
     protected function validateUpdateOrder(Order $order, array $response): bool
     {
         $result = false;
@@ -361,12 +345,6 @@ class Index extends Action
         return $result;
     }
 
-    /**
-     * Get order based on increment_id
-     *
-     * @param string|null $incrementId
-     * @return Order
-     */
     protected function getOrder(string $incrementId = null): Order
     {
         if (!isset($this->order)) {
@@ -381,15 +359,6 @@ class Index extends Action
         return $this->order;
     }
 
-    /**
-     * Validates the payload from checkout /payments hpp and returns the api response
-     *
-     * @param array $result
-     * @return mixed
-     * @throws AdyenException
-     * @throws LocalizedException
-     * @throws NoSuchEntityException
-     */
     protected function validatePayloadAndReturnResponse(array $result): array
     {
         $client = $this->adyenDataHelper->initializeAdyenClient($this->storeManager->getStore()->getId());

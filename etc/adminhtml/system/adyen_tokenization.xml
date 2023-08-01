@@ -22,5 +22,11 @@
             <backend_model>Adyen\Payment\Model\Config\Backend\Tokenization</backend_model>
             <config_path>payment/adyen_abstract/recurring_configuration</config_path>
         </field>
+        <field id="require_cvc" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1"
+               showInStore="1">
+            <label>Require CVC for card payments</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_cc_vault/require_cvc</config_path>
+        </field>
     </group>
 </include>
