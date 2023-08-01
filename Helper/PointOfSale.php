@@ -33,7 +33,7 @@ class PointOfSale
         $this->configHelper = $configHelper;
     }
 
-    public function addSaleToAcquirerData($request, Order $order) : array
+    public function addSaleToAcquirerData(array $request, Order $order) : array
     {
         $customerId = $order->getCustomerId();
         $storeId = $order->getStoreId();
