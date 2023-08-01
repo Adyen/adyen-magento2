@@ -91,9 +91,6 @@ define(
                         function (paymentMethodsResponse) {
                             self.loadCheckoutComponent(paymentMethodsResponse)
                         });
-
-                    self.loadCheckoutComponent(paymentMethodsObserver());
-                    return this;
                 }).fail(function() {
                     console.log('Fetching the payment methods failed!');
                 })
@@ -217,7 +214,7 @@ define(
             },
 
             handleAction: function(action, orderId) {
-                var self = this;
+                let self = this;
                 let popupModal;
 
                 fullScreenLoader.stopLoader();
@@ -288,7 +285,7 @@ define(
              * @returns {boolean}
              */
             placeOrder: function(data, event) {
-                var self = this;
+                let self = this;
 
                 if (event) {
                     event.preventDefault();
@@ -322,8 +319,8 @@ define(
              * @param responseJSON
              */
             handleAdyenResult: function(responseJSON, orderId) {
-                var self = this;
-                var response = JSON.parse(responseJSON);
+                let self = this;
+                let response = JSON.parse(responseJSON);
 
                 if (!!response.isFinal) {
                     // Status is final redirect to the success page
@@ -360,9 +357,9 @@ define(
              * @returns {boolean}
              */
             validate: function() {
-                var form = 'form[data-role=adyen-cc-form]';
+                let form = 'form[data-role=adyen-cc-form]';
 
-                var validate = $(form).validation() &&
+                let validate = $(form).validation() &&
                     $(form).validation('isValid') &&
                     this.cardComponent.isValid;
 
@@ -381,7 +378,7 @@ define(
              * @returns {*}
              */
             getCcCodeByAltCode: function(altCode) {
-                var ccTypes = window.checkoutConfig.payment.ccform.availableTypesByAlt[this.getCode()];
+                let ccTypes = window.checkoutConfig.payment.ccform.availableTypesByAlt[this.getCode()];
                 if (ccTypes.hasOwnProperty(altCode)) {
                     return ccTypes[altCode];
                 }
@@ -449,9 +446,9 @@ define(
                 if (quote.billingAddress() === null) {
                     return false;
                 }
-                var countryId = quote.billingAddress().countryId;
-                var currencyCode = quote.totals().quote_currency_code;
-                var allowedCurrenciesByCountry = {
+                let countryId = quote.billingAddress().countryId;
+                let currencyCode = quote.totals().quote_currency_code;
+                let allowedCurrenciesByCountry = {
                     'BR': 'BRL',
                     'MX': 'MXN',
                 };

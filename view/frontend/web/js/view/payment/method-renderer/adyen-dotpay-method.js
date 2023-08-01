@@ -17,6 +17,7 @@ define(
         adyenPaymentMethod,
     ) {
         return adyenPaymentMethod.extend({
+            txVariant: 'dotpay',
             initialize: function () {
                 this._super();
             }
