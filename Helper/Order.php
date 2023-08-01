@@ -32,6 +32,8 @@ use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderStatusCollectionFactory;
+use Magento\Sales\Helper\Data as SalesData;
+use Magento\Sales\Model\Order\Email\Sender\CreditmemoSender;
 
 class Order extends AbstractHelper
 {
@@ -83,6 +85,12 @@ class Order extends AbstractHelper
     /** @var AdyenCreditmemoHelper */
     private $adyenCreditmemoHelper;
 
+    /** @var SalesData */
+    private $salesData;
+
+    /** @var CreditmemoSender */
+    private $creditmemoSender;
+
     public function __construct(
         Context $context,
         Builder $transactionBuilder,
@@ -100,7 +108,9 @@ class Order extends AbstractHelper
         OrderPaymentCollectionFactory $adyenOrderPaymentCollectionFactory,
         PaymentMethods $paymentMethodsHelper,
         AdyenCreditMemoResourceModel $adyenCreditmemoResourceModel,
-        AdyenCreditmemoHelper $adyenCreditmemoHelper
+        AdyenCreditmemoHelper $adyenCreditmemoHelper,
+        SalesData $salesData,
+        CreditmemoSender $creditmemoSender
     ) {
         parent::__construct($context);
         $this->transactionBuilder = $transactionBuilder;
@@ -119,6 +129,8 @@ class Order extends AbstractHelper
         $this->paymentMethodsHelper = $paymentMethodsHelper;
         $this->adyenCreditmemoResourceModel = $adyenCreditmemoResourceModel;
         $this->adyenCreditmemoHelper = $adyenCreditmemoHelper;
+        $this->salesData = $salesData;
+        $this->creditmemoSender = $creditmemoSender;
     }
 
     /**
@@ -595,8 +607,9 @@ class Order extends AbstractHelper
                  * and the full amount should be refunded at once.
                  */
                 $payment = $order->getPayment()->registerRefundNotification($amount);
+                $creditmemo = $payment->getCreditmemo();
 
-                if (!is_null($payment->getCreditmemo())) {
+                if (!is_null($creditmemo)) {
                     /*
                      * Since the full amount is refunded and the credit memo is created,
                      * now the order can be closed by plugin. This call is required since
@@ -612,6 +625,13 @@ class Order extends AbstractHelper
                             ['pspReference' => $notification->getPspreference()]
                         )
                     );
+
+                    /*
+                     * Notify the customer about the refund if such an option is enabled
+                     */
+                    if ($this->salesData->canSendNewCreditmemoEmail()) {
+                        $this->creditmemoSender->send($creditmemo);
+                    }                
                 }
             } else {
                 $this->adyenLogger->addAdyenNotification(
