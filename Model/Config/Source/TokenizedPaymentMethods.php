@@ -2,6 +2,7 @@
 
 namespace Adyen\Payment\Model\Config\Source;
 
+use Adyen\Payment\Model\Methods\Applepay;
 use Adyen\Payment\Model\Methods\GooglePay;
 use Adyen\Payment\Model\Methods\Klarna;
 use Adyen\Payment\Model\Methods\Paypal;
@@ -17,8 +18,8 @@ class TokenizedPaymentMethods implements OptionSourceInterface
         return [
             /** TODO: These PMs can be enabled for recurring purposes once tested */
             [
-                'value' => PaymentMethods\ApplePayPaymentMethod::TX_VARIANT,
-                'label' => PaymentMethods\ApplePayPaymentMethod::NAME
+                'value' => Applepay::TX_VARIANT,
+                'label' => Applepay::NAME
             ],
             /*[
                 'value' => PaymentMethods\AmazonPayPaymentMethod::TX_VARIANT,
