@@ -62,6 +62,9 @@ class WebhookHandlerFactory
         $this->orderClosedWebhookHandler = $orderClosedWebhookHandler;
     }
 
+    /**
+     * @throws InvalidDataException
+     */
     public function create(string $eventCode): WebhookHandlerInterface
     {
         switch ($eventCode) {
