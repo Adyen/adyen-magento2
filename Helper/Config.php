@@ -50,6 +50,7 @@ class Config
     const XML_CONFIGURATION_MODE = 'configuration_mode';
     const XML_ADYEN_POS_CLOUD = 'adyen_pos_cloud';
     const XML_WEBHOOK_NOTIFICATION_PROCESSOR = 'webhook_notification_processor';
+    const AUTO_CAPTURE_OPENINVOICE = 'auto';
 
     /**
      * @var ScopeConfigInterface
@@ -520,7 +521,7 @@ class Config
     public function getAutoCaptureOpenInvoice(int $storeId): bool
     {
         $captureForOpenInvoice = $this->getConfigData('capture_for_openinvoice', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId, true);
-        if($captureForOpenInvoice == 'auto') return true;
+        if (strcmp((string) $captureForOpenInvoice, self::AUTO_CAPTURE_OPENINVOICE) === 0)  return true;
         else return false;
     }
 
@@ -557,12 +558,12 @@ class Config
         );
     }
 
-    public function getAdyenAbstractConfigData($field, int|string $storeId = null): mixed
+    public function getAdyenAbstractConfigData(string $field, int $storeId = null): mixed
     {
         return $this->getConfigData($field, 'adyen_abstract', $storeId);
     }
 
-    public function getLiveEndpointPrefix(int|string $storeId = null): ?string
+    public function getLiveEndpointPrefix(int $storeId = null): ?string
     {
         $prefix = $this->getAdyenAbstractConfigData('live_endpoint_url_prefix', $storeId);
 
@@ -598,27 +599,27 @@ class Config
         return $this->getAdyenHppVaultConfigDataFlag('active', $storeId);
     }
 
-    public function getAdyenOneclickConfigData($field, int|string $storeId = null): mixed
+    public function getAdyenOneclickConfigData($field, int $storeId = null): mixed
     {
         return $this->getConfigData($field, 'adyen_oneclick', $storeId);
     }
 
-    public function getAdyenOneclickConfigDataFlag($field, int|string $storeId = null): mixed
+    public function getAdyenOneclickConfigDataFlag($field, int $storeId = null): bool
     {
         return $this->getConfigData($field, 'adyen_oneclick', $storeId, true);
     }
 
-    public function isPerStoreBillingAgreement($storeId): bool //Only use of Flag above
+    public function isPerStoreBillingAgreement(int $storeId): bool //Only use of Flag above
     {
         return !$this->getAdyenOneclickConfigDataFlag('share_billing_agreement', $storeId);
     }
 
-    public function getAdyenBoletoConfigData($field, int|string $storeId = null): mixed
+    public function getAdyenBoletoConfigData(string $field, int $storeId = null): mixed
     {
         return $this->getConfigData($field, 'adyen_boleto', $storeId);
     }
 
-    public function getCheckoutFrontendRegion(int|string $storeId = null): ?string
+    public function getCheckoutFrontendRegion(int $storeId = null): ?string
     {
         $checkoutFrontendRegion = $this->getAdyenAbstractConfigData('checkout_frontend_region', $storeId);
 
@@ -629,12 +630,12 @@ class Config
         return trim($checkoutFrontendRegion);
     }
 
-    public function getRatePayId($storeId = null)
+    public function getRatePayId(int $storeId = null)
     {
         return $this->getAdyenHppConfigData("ratepay_id", $storeId);
     }
 
-    public function getConfigData($field, $xmlPrefix, $storeId, $flag = false): mixed
+    public function getConfigData(string $field, string $xmlPrefix, int $storeId, bool $flag = false): mixed
     {
         $path = implode("/", [self::XML_PAYMENT_PREFIX, $xmlPrefix, $field]);
 
@@ -645,7 +646,7 @@ class Config
         }
     }
 
-    public function setConfigData($value, $field, $xmlPrefix, $scope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT): void
+    public function setConfigData($value, string $field, string $xmlPrefix, $scope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT): void
     {
         $path = implode("/", [self::XML_PAYMENT_PREFIX, $xmlPrefix, $field]);
         $this->configWriter->save($path, $value, $scope);

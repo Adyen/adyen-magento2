@@ -238,13 +238,7 @@ class SupportFormHelper
             $storeId,
             true
         );
-        $captureOnShipmentForOpenInvoice = $this->config->getConfigData(
-            'capture_for_openinvoice',
-            'adyen_abstract',
-            $storeId,
-            true
-        );
-        $autoCaptureOpenInvoice = $this->config->getConfigData(
+        $captureOpenInvoice = $this->config->getConfigData(
             'capture_for_openinvoice',
             'adyen_abstract',
             $storeId,
@@ -386,8 +380,7 @@ class SupportFormHelper
             'boletoDeliveryDays' => $boletoDeliveryDays,
             'isPayByLinkEnabled' => $isPayByLinkEnabled ? 'Yes' : 'No',
             'useManualCaptureForPaypal' => $useManualCaptureForPaypal ? 'Yes' : 'No',
-            'captureOnShipmentForOpenInvoice' => $captureOnShipmentForOpenInvoice,
-            'autoCaptureOpenInvoice' => $autoCaptureOpenInvoice,
+            'captureOpenInvoice' => $captureOpenInvoice,
             'sendOrderConfirmationForSepaAndBankTransfer' =>
                 $sendOrderConfirmationForSepaAndBankTransfer ? 'Yes' : 'No',
             'sepaPaymentFlow' => $sepaPaymentFlow,
