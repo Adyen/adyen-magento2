@@ -12,7 +12,7 @@
 
 namespace Adyen\Payment\Helper\Webhook;
 
-use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Logger\AdyenLogger as AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Webhook\Exception\InvalidDataException;
 
