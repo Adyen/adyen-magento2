@@ -51,10 +51,6 @@ class GetAdyenPaymentDetails implements ResolverInterface
      * @var AdyenLogger
      */
     protected $adyenLogger;
-    /**
-     * @var AggregateExceptionMessageFormatter
-     */
-    protected $errorMessageFormatter;
 
     /**
      * @param GetCartForUser $getCartForUser
@@ -68,16 +64,13 @@ class GetAdyenPaymentDetails implements ResolverInterface
         DataProvider\GetAdyenPaymentStatus $getAdyenPaymentStatusDataProvider,
         Order $order,
         Json $jsonSerializer,
-        AdyenLogger $adyenLogger,
-        AggregateExceptionMessageFormatter $errorMessageFormatter = null
+        AdyenLogger $adyenLogger
     ) {
         $this->getCartForUser = $getCartForUser;
         $this->getAdyenPaymentStatusDataProvider = $getAdyenPaymentStatusDataProvider;
         $this->order = $order;
         $this->jsonSerializer = $jsonSerializer;
         $this->adyenLogger = $adyenLogger;
-        $this->errorMessageFormatter = $errorMessageFormatter ?? \Magento\Framework\App\ObjectManager::getInstance()
-            ->get(\Magento\QuoteGraphQl\Helper\Error\PlaceOrderMessageFormatter::class);
     }
 
     /**
@@ -126,15 +119,7 @@ class GetAdyenPaymentDetails implements ResolverInterface
         try {
             return $this->getAdyenPaymentStatusDataProvider->getGetAdyenPaymentDetails($this->jsonSerializer->serialize($payload));
         } catch (LocalizedException $e) {
-            throw $this->errorMessageFormatter->getFormatted(
-                $e,
-                __('Unable to place order: A server error stopped your order from being placed. ' .
-                    'Please try to place your order again'),
-                'Unable to place order',
-                $field,
-                $context,
-                $info
-            );
+            throw $this->getFormattedException($e, $field, $context, $info);
         } catch (Exception $exception) {
             $this->adyenLogger->error(sprintf(
                 'GraphQl payment details call failed with error message: %s',
@@ -143,6 +128,33 @@ class GetAdyenPaymentDetails implements ResolverInterface
             // In the future, use the message and the code passed by the exception. Since currently the message and code are not
             // being passed, use this generic message.
             throw new GraphQlAdyenException(__('An unknown error has occurred'), null, 000);
+        }
+    }
+
+    /**
+     * @param $e
+     * @param Field $field
+     * @param ContextInterface $context
+     * @param ResolveInfo $info
+     * @return mixed
+     */
+    private function getFormattedException($e, Field $field, ContextInterface $context, ResolveInfo $info)
+    {
+        if (class_exists('\Magento\QuoteGraphQl\Helper\Error\PlaceOrderMessageFormatter')) {
+            $errorMessageFormatter = \Magento\Framework\App\ObjectManager::getInstance()
+                ->get('\Magento\QuoteGraphQl\Helper\Error\PlaceOrderMessageFormatter');
+            return $errorMessageFormatter->getFormatted(
+                $e,
+                __('Unable to place order: A server error stopped your order from being placed. ' .
+                    'Please try to place your order again'),
+                'Unable to place order',
+                $field,
+                $context,
+                $info
+            );
+        } else {
+            return new GraphQlAdyenException(__('Unable to place order: A server error stopped your order from being placed. ' .
+                'Please try to place your order again'));
         }
     }
 }
