@@ -28,6 +28,7 @@ use Throwable;
 class BeforeShipmentObserver extends AbstractDataAssignObserver
 {
     const XML_ADYEN_ABSTRACT_PREFIX = "adyen_abstract";
+    const ONSHIPMENT_CAPTURE_OPENINVOICE = 'onshipment';
 
     private $adyenHelper;
 
@@ -86,7 +87,8 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
             $order->getStoreId()
         );
 
-        if ($openInvoiceCapture != 'onshipment') {
+        if (strcmp((string) $openInvoiceCapture, self::ONSHIPMENT_CAPTURE_OPENINVOICE) === 0)
+        {
             $this->logger->info(
                 "Capture on shipment not configured for order id {$order->getId()}",
                 ['observer' => 'BeforeShipmentObserver']
