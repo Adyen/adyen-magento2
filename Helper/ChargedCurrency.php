@@ -17,6 +17,8 @@ use Magento\Sales\Api\Data\CreditmemoInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Api\Data\CreditmemoItemInterface;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Store\Model\ScopeInterface;
 
 class ChargedCurrency
 {
@@ -32,9 +34,11 @@ class ChargedCurrency
     private $config;
 
     public function __construct(
-        Config $config
+        Config $config,
+        ScopeConfigInterface $scopeConfig
     ) {
         $this->config = $config;
+        $this->scopeConfig = $scopeConfig;
     }
 
     /**
@@ -101,21 +105,21 @@ class ChargedCurrency
         $amountIncludingTax = $item->getRowTotalInclTax()/$item->getQty();
         $amountExcludingTax = $item->getRowTotal()/$item->getQty();
         $taxAmount = $item->getTaxAmount();
-        $discountamount = $item->getDiscountAmount();
-        $rowTotal = $item->getRowTotal();
+        $discountAmount = $item->getDiscountAmount()/$item->getQty();
 
         // fetch config value from admin panel
-        $priceExcludingTax = true;
-        $taxAMount = $priceExcludingTax ? $amountExcludingTax - $amount : $amountIncludingTax - $amount;
+        $applyDiscountOnPrice = $this->getApplyDiscountOnPriceConfig();
 
-        // create another one for amount excluding tax? how do we then apply tax, in which step?
+        $totalAmount = $applyDiscountOnPrice ? $amountIncludingTax : $amountExcludingTax;
+        $sanitizedAmount = $discountAmount != 0 ? $totalAmount - $discountAmount : $totalAmount;
+
         return new AdyenAmountCurrency(
             $amount,
             $item->getQuote()->getQuoteCurrencyCode(),
             $item->getDiscountAmount(),
             $taxAmount,
             null,
-            $applyPriceConfig ? $amountExcludingTax : $amountIncludingTax
+            $sanitizedAmount
         );
     }
 
@@ -300,5 +304,17 @@ class ChargedCurrency
             $invoice->getOrderCurrencyCode()
         );
 
+    }
+
+    /**
+     * @param ScopeInterface
+     * @return bool
+     */
+    public function getApplyDiscountOnPriceConfig()
+    {
+        return $this->scopeConfig->isSetFlag(
+            'tax/calculation/discount_tax',
+            ScopeInterface::SCOPE_STORE
+        );
     }
 }

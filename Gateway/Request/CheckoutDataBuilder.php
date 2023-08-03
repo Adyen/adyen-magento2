@@ -292,8 +292,8 @@ class CheckoutDataBuilder implements BuilderInterface
 
             $itemAmountCurrency = $this->chargedCurrency->getQuoteItemAmountCurrency($item);
 
-            // Summarize the discount amount item by item
-            $discountAmount += $itemAmountCurrency->getDiscountAmount();
+            // Summarize the discount amount
+            $discountAmount += $item->getDiscountAmount();
 
             $formattedPriceExcludingTax = $this->adyenHelper->formatAmount(
                 $itemAmountCurrency->getAmount(),
