@@ -99,13 +99,23 @@ class ChargedCurrency
         }
         $amount = $item->getRowTotal()/$item->getQty();
         $amountIncludingTax = $item->getRowTotalInclTax()/$item->getQty();
+        $amountExcludingTax = $item->getRowTotal()/$item->getQty();
+        $taxAmount = $item->getTaxAmount();
+        $discountamount = $item->getDiscountAmount();
+        $rowTotal = $item->getRowTotal();
+
+        // fetch config value from admin panel
+        $priceExcludingTax = true;
+        $taxAMount = $priceExcludingTax ? $amountExcludingTax - $amount : $amountIncludingTax - $amount;
+
+        // create another one for amount excluding tax? how do we then apply tax, in which step?
         return new AdyenAmountCurrency(
             $amount,
             $item->getQuote()->getQuoteCurrencyCode(),
             $item->getDiscountAmount(),
-            $amountIncludingTax - $amount,
+            $taxAmount,
             null,
-            $amountIncludingTax
+            $applyPriceConfig ? $amountExcludingTax : $amountIncludingTax
         );
     }
 

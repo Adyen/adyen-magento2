@@ -26,9 +26,6 @@ use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Model\Order;
-use Magento\Catalog\Model\ProductFactory;
-use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Store\Model\ScopeInterface;
 
 class CheckoutDataBuilder implements BuilderInterface
 {
@@ -64,12 +61,6 @@ class CheckoutDataBuilder implements BuilderInterface
     /** @var Config */
     private $configHelper;
 
-    /** @var ProductFactory */
-    private $productFactory;
-
-    /** @var ScopeConfigInterface */
-    private $scopeConfig;
-
     /**
      * CheckoutDataBuilder constructor.
      * @param Data $adyenHelper
@@ -78,8 +69,6 @@ class CheckoutDataBuilder implements BuilderInterface
      * @param ChargedCurrency $chargedCurrency
      * @param Image $imageHelper
      * @param Config $configHelper
-     * @param ProductFactory $productFactory
-     * @param ScopeConfigInterface $scopeConfig
      */
     public function __construct(
         Data $adyenHelper,
@@ -87,9 +76,7 @@ class CheckoutDataBuilder implements BuilderInterface
         CartRepositoryInterface $cartRepository,
         ChargedCurrency $chargedCurrency,
         Image $imageHelper,
-        Config $configHelper,
-        ProductFactory $productFactory,
-        ScopeConfigInterface $scopeConfig
+        Config $configHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->stateData = $stateData;
@@ -97,8 +84,6 @@ class CheckoutDataBuilder implements BuilderInterface
         $this->chargedCurrency = $chargedCurrency;
         $this->imageHelper = $imageHelper;
         $this->configHelper = $configHelper;
-        $this->productFactory = $productFactory;
-        $this->scopeConfig = $scopeConfig;
     }
 
     /**
@@ -114,8 +99,6 @@ class CheckoutDataBuilder implements BuilderInterface
         /** @var Order $order */
         $order = $payment->getOrder();
         $storeId = $order->getStoreId();
-        $applyDiscountOnPrice = $this->getApplyDiscountOnPricesConfig();
-
 
         // Initialize the request body with the current state data
         // Multishipping checkout uses the cc_number field for state data
@@ -145,7 +128,7 @@ class CheckoutDataBuilder implements BuilderInterface
             (isset($brandCode) && $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) ||
             $payment->getMethod() === AdyenPayByLinkConfigProvider::CODE
         ) {
-            $openInvoiceFields = $this->getOpenInvoiceData($order, $applyDiscountOnPrice);
+            $openInvoiceFields = $this->getOpenInvoiceData($order);
             $requestBody = array_merge($requestBody, $openInvoiceFields);
 
             if (isset($brandCode) &&
@@ -292,7 +275,7 @@ class CheckoutDataBuilder implements BuilderInterface
      * @throws NoSuchEntityException
      *
      */
-    protected function getOpenInvoiceData($order, $applyDiscountOnPrice): array
+    protected function getOpenInvoiceData($order): array
     {
         $formFields = [
             'lineItems' => []
@@ -303,28 +286,14 @@ class CheckoutDataBuilder implements BuilderInterface
         $amountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order);
         $currency = $amountCurrency->getCurrencyCode();
         $discountAmount = 0;
-        $totalDiscountAmount = 0;
 
         foreach ($cart->getAllVisibleItems() as $item) {
             $numberOfItems = (int)$item->getQty();
 
             $itemAmountCurrency = $this->chargedCurrency->getQuoteItemAmountCurrency($item);
 
-            $productId = $item->getProduct()->getId();
-            $product = $this->productFactory->create()->load($productId);
-
-            // Summarize the discount amount item by item based on whether the discount should be applied
-            // before or after tax
-            if ($applyDiscountOnPrice) {
-                $discountAmount = $product->getFinalPrice() - $product->getPrice();
-            } else {
-                $productPriceExcludingTax = $product->getPrice();
-                $taxAmount = $product->getPrice() * $item->getTaxPercent() / 100;
-                $productPriceIncludingTax = $productPriceExcludingTax + $taxAmount;
-                $discountAmount = $product->getFinalPrice() - $productPriceIncludingTax;
-            }
-
-            $totalDiscountAmount += $discountAmount;
+            // Summarize the discount amount item by item
+            $discountAmount += $itemAmountCurrency->getDiscountAmount();
 
             $formattedPriceExcludingTax = $this->adyenHelper->formatAmount(
                 $itemAmountCurrency->getAmount(),
@@ -411,13 +380,5 @@ class CheckoutDataBuilder implements BuilderInterface
         }
 
         return $formFields;
-    }
-
-    public function getApplyDiscountOnPricesConfig()
-    {
-        return $this->scopeConfig->isSetFlag(
-            'tax/calculation/discount_tax',
-            ScopeInterface::SCOPE_STORE
-        );
     }
 }
