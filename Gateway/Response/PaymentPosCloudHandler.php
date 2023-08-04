@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2018 Adyen B.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -19,7 +19,10 @@ use Magento\Payment\Gateway\Response\HandlerInterface;
 
 class PaymentPosCloudHandler implements HandlerInterface
 {
+    private Data $adyenHelper;
     private AdyenLogger $adyenLogger;
+    private Recurring $recurringHelper;
+    private Vault $vaultHelper;
 
     public function __construct(
         AdyenLogger $adyenLogger
@@ -27,11 +30,9 @@ class PaymentPosCloudHandler implements HandlerInterface
         $this->adyenLogger = $adyenLogger;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function handle(array $handlingSubject, array $paymentResponse)
+    public function handle(array $handlingSubject, array $response)
     {
+        $paymentResponse = $response['SaleToPOIResponse']['PaymentResponse'];
         $paymentDataObject = SubjectReader::readPayment($handlingSubject);
 
         $payment = $paymentDataObject->getPayment();
