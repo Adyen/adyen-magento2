@@ -639,7 +639,7 @@ class Config
         return $this->getAdyenHppConfigData("ratepay_id", $storeId);
     }
 
-    public function getConfigData(string $field, string $xmlPrefix, int|null $storeId, bool $flag = false): mixed
+    public function getConfigData(string $field, string $xmlPrefix, ?int $storeId, bool $flag = false): mixed
     {
         $path = implode("/", [self::XML_PAYMENT_PREFIX, $xmlPrefix, $field]);
 
