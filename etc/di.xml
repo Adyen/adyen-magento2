@@ -1511,11 +1511,6 @@
     </type>
 
     <!-- Session proxies -->
-    <type name="Adyen\Payment\AdminMessage\APIKeyMessage">
-        <arguments>
-            <argument name="authSession" xsi:type="object">Magento\Backend\Model\Auth\Session\Proxy</argument>
-        </arguments>
-    </type>
     <type name="Adyen\Payment\AdminMessage\CronMessage">
         <arguments>
             <argument name="authSession" xsi:type="object">Magento\Backend\Model\Auth\Session\Proxy</argument>
