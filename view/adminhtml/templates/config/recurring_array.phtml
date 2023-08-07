@@ -4,7 +4,10 @@
  * See COPYING.txt for license details.
  */
 
-/** @var \Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer */
+/** @var SecureHtmlRenderer $secureRenderer */
+
+use Magento\Framework\View\Helper\SecureHtmlRenderer;
+
 ?>
 
 <?php
@@ -26,108 +29,73 @@ $_colspan = $block->isAddAfter() ? 2 : 1;
             <tbody id="addRow<?= $block->escapeHtmlAttr($_htmlId) ?>"></tbody>
         </table>
     </div>
+
     <input type="hidden" name="<?= $block->escapeHtmlAttr($block->getElement()->getName()) ?>[__empty]" value="" />
 
-    <?php $scriptString = <<<script
+    <script>
         require([
             'mage/template',
             'prototype'
         ], function (mageTemplate) {
-        // create row creator
-        window.arrayRow{$block->escapeJs($_htmlId)} = {
+            // create row creator
+            window.arrayRow<?= $block->escapeJs($_htmlId) ?> = {
 
-            // define row prototypeJS template
-            template: mageTemplate(
-                    '<tr id="<%- _id %>">'
-script;
-    foreach ($block->getColumns() as $columnName => $column):
-        $scriptString .= <<<script
+                // define row prototypeJS template
+                template: mageTemplate(
+                    '<tr id="can">'
+                        <?php foreach ($block->getColumns() as $columnName => $column): ?>
+                            + '<td>'
+                            + '<?= $block->escapeJs($block->renderCellTemplate($columnName)) ?>'
+                            + '</td>'
+                        <?php endforeach; ?>
+                    + '</tr>'
+                ),
 
-                        + '<td>'
-                        + '{$block->escapeJs($block->renderCellTemplate($columnName))}'
-                        + '<\/td>'
-script;
-    endforeach;
+                add: function(rowData, insertAfterId) {
+                    // generate default template data
+                    var templateValues;
 
-    $scriptString .= <<<script
-            ),
+                    // Prepare template values
+                    if (rowData) {
+                        templateValues = rowData;
+                    } else {
+                        var d = new Date();
+                        templateValues = {
+                            <?php foreach ($block->getColumns() as $columnName => $column): ?>
+                            <?= $block->escapeJs($columnName) ?>: '',
+                            'option_extra_attrs': {},
+                            <?php endforeach; ?>
+                            _id: '_' + d.getTime() + '_' + d.getMilliseconds()
+                        }
+                    }
 
-            add: function(rowData, insertAfterId) {
-                // generate default template data
-                var templateValues;
+                    // Insert new row after specified row or at the bottom
+                    if (insertAfterId) {
+                        Element.insert($(insertAfterId), {after: this.template(templateValues)});
+                    } else {
+                        Element.insert($('addRow<?= $block->escapeJs($_htmlId) ?>'), {bottom: this.template(templateValues)});
+                    }
 
-                // Prepare template values
-                if (rowData) {
-                    templateValues = rowData;
-                } else {
-                    var d = new Date();
-                    templateValues = {
-script;
-    foreach ($block->getColumns() as $columnName => $column):
-        $scriptString .= <<<script
-
-                            {$block->escapeJs($columnName)}: '',
-                                'option_extra_attrs': {},
-script;
-    endforeach;
-    $scriptString .= <<<script
-
-                        _id: '_' + d.getTime() + '_' + d.getMilliseconds()
-                };
-            }
-
-            // Insert new row after specified row or at the bottom
-            if (insertAfterId) {
-                Element.insert($(insertAfterId), {after: this.template(templateValues)});
-            } else {
-                Element.insert($('addRow{$block->escapeJs($_htmlId)}'), {bottom: this.template(templateValues)});
-            }
-
-            // Fill controls with data
-            if (rowData) {
-                var rowInputElementNames = Object.keys(rowData.column_values);
-                for (var i = 0; i < rowInputElementNames.length; i++) {
-                    if ($(rowInputElementNames[i])) {
-                        $(rowInputElementNames[i]).setValue(rowData.column_values[rowInputElementNames[i]]);
+                    // Fill controls with data
+                    if (rowData) {
+                        var rowInputElementNames = Object.keys(rowData.column_values);
+                        for (var i = 0; i < rowInputElementNames.length; i++) {
+                            if ($(rowInputElementNames[i])) {
+                                $(rowInputElementNames[i]).setValue(rowData.column_values[rowInputElementNames[i]]);
+                            }
+                        }
                     }
                 }
             }
 
-            // Add event for {addAfterBtn} button
+            // add existing rows
+            <?php foreach ($block->getArrayRows() as $_rowId => $_row): ?>
+                arrayRow<?= $block->escapeJs($_htmlId) ?>.add(<?= $_row->toJson() ?>);
+            <?php endforeach; ?>
 
-script;
-
-    $scriptString .= <<<script
-
-            },
-
-            del: function(rowId) {
-                $(rowId).remove();
-            }
-        }
-
-        // add existing rows
-
-script;
-
-    foreach ($block->getArrayRows() as $_rowId => $_row) {
-        $scriptString .= /** @noEscape */ " arrayRow" .$block->escapeJs($_htmlId) .
-            ".add(" . /** @noEscape */ $_row->toJson() . ");\n";
-    }
-    $scriptString .= <<<script
-
-        // Toggle the grid availability, if element is disabled (depending on scope)
-script;
-    if ($block->getElement()->getDisabled()):
-        $scriptString .= <<<script
-
-        toggleValueElements({checked: true}, $('grid{$block->escapeJs($_htmlId)}').parentNode);
-script;
-    endif;
-    $scriptString .= <<<script
-
+            <?php if ($block->getElement()->getDisabled()): ?>
+                toggleValueElements({checked: true}, $('grid<?= $block->escapeJs($_htmlId) ?>').parentNode);
+            <?php endif; ?>
         });
-script;
-    ?>
-    <?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptString, false) ?>
+    </script>
 </div>

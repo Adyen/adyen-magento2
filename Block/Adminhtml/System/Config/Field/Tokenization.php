@@ -139,11 +139,11 @@ class Tokenization extends AbstractFieldArray
         $methodInstance = $this->dataHelper->getMethodInstance($paymentMethodCode);
 
         if ($enabled) {
-            $options['option_' . $this->getEnabledRenderer()->calcOptionHash($enabled)] = 'selected="selected"';
+            $options['option_' . $this->getEnabledRenderer()->calcOptionHash($enabled)] = 'selected=\"selected\"';
         }
 
         if ($recurringProcessingModel) {
-            $options['option_' . $this->getRecurringProcessingModelRenderer()->calcOptionHash($recurringProcessingModel)] = 'selected="selected"';
+            $options['option_' . $this->getRecurringProcessingModelRenderer()->calcOptionHash($recurringProcessingModel)] = 'selected=\"selected\"';
         }
 
         if ($methodInstance instanceof PaymentMethodInterface) {
