@@ -30,7 +30,7 @@ class Tokenization extends AbstractFieldArray
     protected ?InputReadonly $nameRenderer = null;
     protected ?InputHidden $paymentMethodCodeRenderer = null;
     protected ?RecurringProcessingModel $recurringProcessingModelRenderer = null;
-    protected $_template = 'Adyen_Payment::config/recurring_array.phtml';
+    protected $_template = 'Adyen_Payment::config/token_type_table_array.phtml';
 
     public function __construct(
         Context $context,
