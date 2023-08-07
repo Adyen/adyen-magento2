@@ -49,18 +49,18 @@ class Webhook
         'payment_authorized' => [Order::STATE_PROCESSING]
     ];
 
-    private \Adyen\Payment\Helper\Order $orderHelper;
-    private OrderRepository $orderRepository;
-    private AdyenLogger $logger;
-    private Data $adyenHelper;
-    private SerializerInterface $serializer;
-    private TimezoneInterface $timezone;
-    private Config $configHelper;
-    private ChargedCurrency $chargedCurrency;
+    private $orderHelper;
+    private $orderRepository;
+    private $logger;
+    private $adyenHelper;
+    private $serializer;
+    private $timezone;
+    private $configHelper;
+    private $chargedCurrency;
     private $boletoPaidAmount;
     private $klarnaReservationNumber;
     private $ratepayDescriptor;
-    private WebhookHandlerFactory $webhookHandlerFactory;
+    private $webhookHandlerFactory;
 
     public function __construct(
         Data $adyenHelper,

@@ -18,19 +18,19 @@ use Adyen\Webhook\Exception\InvalidDataException;
 
 class WebhookHandlerFactory
 {
-    private AuthorisationWebhookHandler $authorisationWebhookHandler;
-    private CaptureWebhookHandler $captureWebhookHandler;
-    private OfferClosedWebhookHandler $offerClosedWebhookHandler;
-    private AdyenLogger $adyenLogger;
-    private RefundWebhookHandler $refundWebhookHandler;
-    private RefundFailedWebhookHandler $refundFailedWebhookHandler;
-    private ManualReviewAcceptWebhookHandler $manualReviewAcceptWebhookHandler;
-    private ManualReviewRejectWebhookHandler $manualReviewRejectWebhookHandler;
-    private RecurringContractWebhookHandler $recurringContractWebhookHandler;
-    private PendingWebhookHandler $pendingWebhookHandler;
-    private CancellationWebhookHandler $cancellationWebhookHandler;
-    private CancelOrRefundWebhookHandler $cancelOrRefundWebhookHandler;
-    private OrderClosedWebhookHandler $orderClosedWebhookHandler;
+    private $authorisationWebhookHandler;
+    private $captureWebhookHandler;
+    private $offerClosedWebhookHandler;
+    private $adyenLogger;
+    private $refundWebhookHandler;
+    private $refundFailedWebhookHandler;
+    private $manualReviewAcceptWebhookHandler;
+    private $manualReviewRejectWebhookHandler;
+    private $recurringContractWebhookHandler;
+    private $pendingWebhookHandler;
+    private $cancellationWebhookHandler;
+    private $cancelOrRefundWebhookHandler;
+    private $orderClosedWebhookHandler;
 
     public function __construct(
         AdyenLogger $adyenLogger,
