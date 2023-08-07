@@ -49,9 +49,9 @@ class Webhook
         'payment_authorized' => [Order::STATE_PROCESSING]
     ];
 
-    private AdyenLogger $logger;
     private \Adyen\Payment\Helper\Order $orderHelper;
     private OrderRepository $orderRepository;
+    private AdyenLogger $logger;
     private Data $adyenHelper;
     private SerializerInterface $serializer;
     private TimezoneInterface $timezone;

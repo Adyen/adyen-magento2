@@ -18,10 +18,10 @@ use Adyen\Webhook\Exception\InvalidDataException;
 
 class WebhookHandlerFactory
 {
-    private AdyenLogger $adyenLogger;
     private AuthorisationWebhookHandler $authorisationWebhookHandler;
     private CaptureWebhookHandler $captureWebhookHandler;
     private OfferClosedWebhookHandler $offerClosedWebhookHandler;
+    private AdyenLogger $adyenLogger;
     private RefundWebhookHandler $refundWebhookHandler;
     private RefundFailedWebhookHandler $refundFailedWebhookHandler;
     private ManualReviewAcceptWebhookHandler $manualReviewAcceptWebhookHandler;
