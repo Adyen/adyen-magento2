@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2022 Adyen NV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -11,7 +11,9 @@
 
 namespace Adyen\Payment\Block\Adminhtml\System\Config\Field;
 
-class MotoEnviroment extends \Magento\Framework\View\Element\Html\Select
+use Magento\Framework\View\Element\Html\Select;
+
+class SelectYesNo extends Select
 {
     /**
      * Options
@@ -19,8 +21,8 @@ class MotoEnviroment extends \Magento\Framework\View\Element\Html\Select
      * @var array
      */
     protected $options = [
-        '0' => 'Live',
-        '1' => 'Test'
+        '0' => 'No',
+        '1' => 'Yes'
     ];
 
     /**

@@ -12,18 +12,25 @@
 namespace Adyen\Payment\Plugin;
 
 use Adyen\Payment\Helper\Vault;
+use Magento\Store\Model\StoreManagerInterface;
 use Magento\Vault\Model\CustomerTokenManagement;
-use Adyen\Payment\Helper\Recurring;
 
 class CustomerFilterVaultTokens
 {
+    private Vault $vaultHelper;
+    private StoreManagerInterface $storeManager;
+
+    public function __construct(
+        Vault $vaultHelper,
+        StoreManagerInterface $storeManager
+    ) {
+        $this->vaultHelper = $vaultHelper;
+        $this->storeManager = $storeManager;
+    }
+
     /**
      * Returns filtered list of payment tokens for current customer session
      * Hide token if it is specifically set to SUBSCRIPTION or UNSCHEDULED_CARD_ON_FILE
-     *
-     * @param CustomerTokenManagement $customerTokenManagement
-     * @param array $customerSessionTokens
-     * @return array
      */
     public function afterGetCustomerSessionTokens(
         CustomerTokenManagement $customerTokenManagement,
@@ -32,11 +39,12 @@ class CustomerFilterVaultTokens
         foreach ($customerSessionTokens as $key => $token) {
             if (strpos((string) $token->getPaymentMethodCode(), 'adyen_') === 0) {
                 $tokenDetails = json_decode((string) $token->getTokenDetails());
-                if (property_exists($tokenDetails, Vault::TOKEN_TYPE) &&
+                $storeId = $this->storeManager->getStore()->getId();
+                if ((property_exists($tokenDetails, Vault::TOKEN_TYPE) &&
                     in_array($tokenDetails->tokenType, [
-                        Recurring::SUBSCRIPTION,
-                        Recurring::UNSCHEDULED_CARD_ON_FILE]
-                    )
+                            Vault::SUBSCRIPTION,
+                            Vault::UNSCHEDULED_CARD_ON_FILE]
+                    )) || !$this->vaultHelper->getPaymentMethodRecurringActive($token->getPaymentMethodCode(), $storeId)
                 ) {
                     unset($customerSessionTokens[$key]);
                 }
