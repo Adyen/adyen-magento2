@@ -57,7 +57,8 @@ class WebhookCredentials extends Value
 
     public function beforeSave()
     {
-        if ($this->getFieldsetDataValue('configuration_mode') == 'auto') {
+        if ($this->getFieldsetDataValue('configuration_mode') === 'auto' &&
+            $this->getFieldsetDataValue('create_new_webhook') === '1') {
             $username = $this->getValue();
             $password = $this->getFieldsetDataValue('notification_password');
 
