@@ -75,7 +75,7 @@ class Tokenization extends AbstractFieldArray
             'payment_method_code', [
                 'label' => ' ',
                 'style' => 'visibility: hidden',
-                'class' => 'candemiralp',
+                'class' => 'required-entry',
                 'renderer' => $this->getPaymentMethodCodeRenderer()
             ]
         );

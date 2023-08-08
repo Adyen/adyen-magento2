@@ -15,24 +15,29 @@ use Magento\Framework\View\Element\Html\Select;
 
 class SelectYesNo extends Select
 {
-    /**
-     * Options
-     *
-     * @var array
-     */
-    protected $options = [
-        '0' => 'No',
-        '1' => 'Yes'
-    ];
+    private function getSourceOptions(): array
+    {
+        return [
+            ['label' => 'No', 'value' => '0'],
+            ['label' => 'Yes', 'value' => '1'],
+        ];
+    }
 
-    /**
-     * Sets name for input element
-     *
-     * @param string $value
-     * @return $this
-     */
-    public function setInputName($value)
+    public function _toHtml(): string
+    {
+        if (!$this->getOptions()) {
+            $this->setOptions($this->getSourceOptions());
+        }
+        return parent::_toHtml();
+    }
+
+    public function setInputName(string $value): SelectYesNo
     {
         return $this->setName($value);
+    }
+
+    public function setInputId(string $value): SelectYesNo
+    {
+        return $this->setId($value);
     }
 }
