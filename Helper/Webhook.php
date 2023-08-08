@@ -49,13 +49,33 @@ class Webhook
         'payment_authorized' => [Order::STATE_PROCESSING]
     ];
 
-    private $orderHelper;
-    private $orderRepository;
+    /**
+     * @var AdyenLogger
+     */
     private $logger;
+    /** @var OrderHelper */
+    private $orderHelper;
+    /** @var OrderRepository */
+    private $orderRepository;
+    /**
+     * @var Data
+     */
     private $adyenHelper;
+    /**
+     * @var SerializerInterface
+     */
     private $serializer;
+    /**
+     * @var TimezoneInterface
+     */
     private $timezone;
+    /**
+     * @var ConfigHelper
+     */
     private $configHelper;
+    /**
+     * @var ChargedCurrency
+     */
     private $chargedCurrency;
     private $boletoPaidAmount;
     private $klarnaReservationNumber;
