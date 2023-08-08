@@ -104,8 +104,7 @@ class CreditmemoObserver implements ObserverInterface
         $payment = $order->getPayment();
 
         $adyenOrderPayments = $this->adyenPaymentResourceModel->getLinkedAdyenOrderPayments(
-            $payment->getEntityId(),
-            [OrderPaymentInterface::CAPTURE_STATUS_NO_CAPTURE, OrderPaymentInterface::CAPTURE_STATUS_PARTIAL_CAPTURE]
+            $payment->getEntityId()
         );
         foreach ($adyenOrderPayments as $adyenOrderPayment) {
             /** @var \Adyen\Payment\Model\Order\Payment $adyenOrderPaymentObject */
