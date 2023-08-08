@@ -17,7 +17,6 @@ use Adyen\Environment;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Config\Source\RenderMode;
 use Adyen\Payment\Model\RecurringType;
-use Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory as BillingCollectionFactory;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
@@ -107,11 +106,6 @@ class Data extends AbstractHelper
     protected $_moduleList;
 
     /**
-     * @var BillingCollectionFactory
-     */
-    protected $_billingAgreementCollectionFactory;
-
-    /**
      * @var Repository
      */
     protected $_assetRepo;
@@ -167,11 +161,6 @@ class Data extends AbstractHelper
     private $config;
 
     /**
-     * @var SerializerInterface
-     */
-    private $serializer;
-
-    /**
      * @var ComponentRegistrarInterface
      */
     private $componentRegistrar;
@@ -201,40 +190,12 @@ class Data extends AbstractHelper
      */
     private $backendHelper;
 
-    /**
-     * Data constructor.
-     *
-     * @param Context $context
-     * @param EncryptorInterface $encryptor
-     * @param DataInterface $dataStorage
-     * @param Country $country
-     * @param ModuleListInterface $moduleList
-     * @param BillingCollectionFactory $billingAgreementCollectionFactory
-     * @param Repository $assetRepo
-     * @param Source $assetSource
-     * @param NotificationCollectionFactory $notificationFactory
-     * @param Config $taxConfig
-     * @param Calculation $taxCalculation
-     * @param ProductMetadataInterface $productMetadata
-     * @param AdyenLogger $adyenLogger
-     * @param StoreManagerInterface $storeManager
-     * @param CacheInterface $cache
-     * @param ResolverInterface $localeResolver
-     * @param ScopeConfigInterface $config
-     * @param SerializerInterface $serializer
-     * @param ComponentRegistrarInterface $componentRegistrar
-     * @param Locale $localeHelper
-     * @param OrderManagementInterface $orderManagement
-     * @param HistoryFactory $orderStatusHistoryFactory
-     * @param ConfigHelper $configHelper
-     */
     public function __construct(
         Context $context,
         EncryptorInterface $encryptor,
         DataInterface $dataStorage,
         Country $country,
         ModuleListInterface $moduleList,
-        BillingCollectionFactory $billingAgreementCollectionFactory,
         Repository $assetRepo,
         Source $assetSource,
         NotificationCollectionFactory $notificationFactory,
@@ -247,7 +208,6 @@ class Data extends AbstractHelper
         CacheInterface $cache,
         ResolverInterface $localeResolver,
         ScopeConfigInterface $config,
-        SerializerInterface $serializer,
         ComponentRegistrarInterface $componentRegistrar,
         Locale $localeHelper,
         OrderManagementInterface $orderManagement,
@@ -259,7 +219,6 @@ class Data extends AbstractHelper
         $this->_dataStorage = $dataStorage;
         $this->_country = $country;
         $this->_moduleList = $moduleList;
-        $this->_billingAgreementCollectionFactory = $billingAgreementCollectionFactory;
         $this->_assetRepo = $assetRepo;
         $this->_assetSource = $assetSource;
         $this->_notificationFactory = $notificationFactory;
@@ -272,7 +231,6 @@ class Data extends AbstractHelper
         $this->cache = $cache;
         $this->localeResolver = $localeResolver;
         $this->config = $config;
-        $this->serializer = $serializer;
         $this->componentRegistrar = $componentRegistrar;
         $this->localeHelper = $localeHelper;
         $this->orderManagement = $orderManagement;
@@ -730,108 +688,6 @@ class Data extends AbstractHelper
             ]
         ];
     }
-
-    /**
-     * @param $customerId
-     * @param $storeId
-     * @param $grandTotal
-     * @param $recurringType
-     * @return array
-     */
-    public function getOneClickPaymentMethods($customerId, $storeId, $grandTotal, $subType=null)
-    {
-        $billingAgreements = [];
-
-        $baCollection = $this->_billingAgreementCollectionFactory->create();
-        $baCollection->addFieldToFilter('customer_id', $customerId);
-        if ($this->configHelper->isPerStoreBillingAgreement($storeId)) {
-            $baCollection->addFieldToFilter('store_id', $storeId);
-        }
-        $baCollection->addFieldToFilter('method_code', 'adyen_oneclick');
-        $baCollection->addActiveFilter();
-
-        foreach ($baCollection as $billingAgreement) {
-            $agreementData = $billingAgreement->getAgreementData();
-
-            // no agreementData and contractType then ignore
-            if ((!is_array($agreementData)) || (!isset($agreementData['contractTypes']))) {
-                continue;
-            }
-
-            // check if contractType is supporting the selected contractType for OneClick payments
-            $allowedContractTypes = $agreementData['contractTypes'];
-
-            // RecurringType::ONECLICK is kept in the if block to still display tokens that were created before changes in contract types
-            // even when $subType is not passed in /Block/Form/Oneclick.php, show all tokens with all contract types for admin orders
-            if (is_null($subType) || in_array(RecurringType::ONECLICK, $allowedContractTypes) || in_array($subType, $allowedContractTypes)) {
-                // check if AgreementLabel is set and if contract has an recurringType
-                if ($billingAgreement->getAgreementLabel()) {
-                    // for Ideal use sepadirectdebit because it is
-                    if ($agreementData['variant'] == 'ideal') {
-                        $agreementData['variant'] = 'sepadirectdebit';
-                    }
-
-                    $data = [
-                        'reference_id' => $billingAgreement->getReferenceId(),
-                        'agreement_label' => $billingAgreement->getAgreementLabel(),
-                        'agreement_data' => $agreementData
-                    ];
-
-                    if ($this->showLogos()) {
-                        $logoName = $agreementData['variant'];
-
-                        $asset = $this->createAsset(
-                            'Adyen_Payment::images/logos/' . $logoName . '.png'
-                        );
-
-                        $icon = null;
-                        $placeholder = $this->_assetSource->findSource($asset);
-                        if ($placeholder) {
-                            list($width, $height) = getimagesize($asset->getSourceFile());
-                            $icon = [
-                                'url' => $asset->getUrl(),
-                                'width' => $width,
-                                'height' => $height
-                            ];
-                        }
-                        $data['logo'] = $icon;
-                    }
-
-                    /**
-                     * Check if there are installments for this creditcard type defined
-                     */
-                    $data['number_of_installments'] = 0;
-                    $ccType = $this->getMagentoCreditCartType($agreementData['variant']);
-                    $installments = null;
-                    $installmentsValue = $this->configHelper->getAdyenCcConfigData('installments');
-                    if ($installmentsValue) {
-                        $installments = $this->serializer->unserialize($installmentsValue);
-                    }
-
-                    if ($installments) {
-                        $numberOfInstallments = [];
-
-                        foreach ($installments as $ccTypeInstallment => $installment) {
-                            if ($ccTypeInstallment == $ccType) {
-                                foreach ($installment as $amount => $installments) {
-                                    if ($grandTotal >= $amount) {
-                                        array_push($numberOfInstallments, $installments);
-                                    }
-                                }
-                            }
-                        }
-                        if ($numberOfInstallments) {
-                            sort($numberOfInstallments);
-                            $data['number_of_installments'] = $numberOfInstallments;
-                        }
-                    }
-                    $billingAgreements[] = $data;
-                }
-            }
-        }
-        return $billingAgreements;
-    }
-
 
     /**
      * @param $paymentMethod

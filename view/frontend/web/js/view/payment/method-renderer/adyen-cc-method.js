@@ -123,8 +123,7 @@ define(
              * @returns {*|boolean}
              */
             getEnableStoreDetails: function () {
-                // TODO refactor the configuration for this
-                return this.isOneClickEnabled() || this.isVaultEnabled();
+                return this.isCardRecurringEnabled() && this.isVaultEnabled();
             },
             /**
              * Renders the secure fields,
@@ -409,9 +408,9 @@ define(
             getCode: function() {
                 return window.checkoutConfig.payment.adyenCc.methodCode;
             },
-            isOneClickEnabled: function () {
+            isCardRecurringEnabled: function () {
                 if (customer.isLoggedIn()) {
-                    return window.checkoutConfig.payment.adyenCc.isOneClickEnabled;
+                    return window.checkoutConfig.payment.adyenCc.isCardRecurringEnabled;
                 }
 
                 return false;
