@@ -16,99 +16,17 @@
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <fieldset_css>adyen-method-adyen-cc</fieldset_css>
         <comment><![CDATA[During checkout, shoppers can choose to have their payment details stored in Adyen’s highly secure platform. Adyen handles this process for its customers. Shoppers can then select the stored payment method during checkout.]]></comment>
-        <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Enabled</label>
-            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-            <config_path>payment/adyen_oneclick/active</config_path>
-            <tooltip>
-                This functionality requires Adyen card payments to be enabled
-            </tooltip>
-        </field>
-        <field id="recurring_card_mode" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Mode</label>
-            <comment>
-                Magento Vault (one-click CVC-less payments) or secure Adyen Tokenization (one-click CVC required payments)
-            </comment>
-            <source_model>Adyen\Payment\Model\Config\Source\Recurring\RecurringMode</source_model>
-            <config_path>payment/adyen_oneclick/card_mode</config_path>
-            <depends>
-                <field id="active">1</field>
-            </depends>
+        <field id="adyen_tokenization_rpm" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Recurring Payment Types</label>
+            <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\Field\Tokenization</frontend_model>
+            <backend_model>Adyen\Payment\Model\Config\Backend\Tokenization</backend_model>
+            <config_path>payment/adyen_abstract/recurring_configuration</config_path>
         </field>
         <field id="require_cvc" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1"
                showInStore="1">
-            <label>Require CVC</label>
+            <label>Require CVC for card payments</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_cc_vault/require_cvc</config_path>
-            <depends>
-                <field id="recurring_card_mode">Magento Vault</field>
-            </depends>
         </field>
-        <field id="recurring_card_token_type" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Token Type</label>
-            <tooltip>
-                Choose between CardOnFile (one-click), UnscheduledCardOnFile (non-fixed schedule MIT payments) or Subscription (fixed schedule MIT payments)
-            </tooltip>
-            <source_model>Adyen\Payment\Model\Config\Source\Recurring\RecurringType</source_model>
-            <config_path>payment/adyen_oneclick/card_type</config_path>
-            <comment>
-                <![CDATA[<a target="_blank" href="https://docs.adyen.com/online-payments/tokenization/create-and-use-tokens">More information</a>]]></comment>
-        </field>
-        <field id="title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Title</label>
-            <config_path>payment/adyen_oneclick/title</config_path>
-            <depends>
-                <field id="active">1</field>
-            </depends>
-        </field>
-        <field id="sort_order" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
-            <label>Sort Order</label>
-            <frontend_class>validate-number</frontend_class>
-            <config_path>payment/adyen_oneclick/sort_order</config_path>
-            <depends>
-                <field id="active">1</field>
-            </depends>
-        </field>
-        <field id="share_tokens" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1"
-               showInStore="1">
-            <label>Share Adyen Tokens between stores</label>
-            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-            <config_path>payment/adyen_oneclick/share_billing_agreement</config_path>
-            <depends>
-                <field id="recurring_card_mode">Adyen Tokenization</field>
-            </depends>
-        </field>
-
-        <!--hpp token-->
-        <field id="adyen_hpp_vault_active" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Store alternative payment methods</label>
-            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-            <tooltip>Alternative payment methods will only be shown during checkout if Magento Vault is enabled. If this is option enabled, all Apple pay, Google pay, SEPA and PayPal payment methods will be tokenized.</tooltip>
-            <config_path>payment/adyen_hpp_vault/active</config_path>
-            <depends>
-                <field id="active">1</field>
-            </depends>
-        </field>
-        <field id="adyen_hpp_tokenized_payment_methods" translate="label" type="multiselect" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Tokenized Payment Methods</label>
-            <config_path>payment/adyen_hpp/tokenized_payment_methods</config_path>
-            <source_model>Adyen\Payment\Model\Config\Source\TokenizedPaymentMethods</source_model>
-            <tooltip>Selected payment methods will be tokenized. Please make sure to enable these payment methods in your Adyen Customer Area.</tooltip>
-            <comment model="Adyen\Payment\Model\Comment\TokenizedPaymentMethods"/>
-            <depends>
-                <field id="active">1</field>
-                <field id="adyen_hpp_vault_active">1</field>
-            </depends>
-        </field>
-        <field id="adyen_hpp_token_type" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Token type</label>
-            <source_model>Adyen\Payment\Model\Config\Source\Recurring\RecurringType</source_model>
-            <config_path>payment/adyen_hpp/token_type</config_path>
-            <depends>
-                <field id="active">1</field>
-                <field id="adyen_hpp_vault_active">1</field>
-            </depends>
-        </field>
-        <!--end of hpp token-->
     </group>
 </include>

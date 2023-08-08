@@ -35,13 +35,7 @@
                                                                 <item name="adyen_payment" xsi:type="array">
                                                                     <item name="component" xsi:type="string">Adyen_Payment/js/view/payment/adyen-methods</item>
                                                                     <item name="methods" xsi:type="array">
-                                                                        <item name="adyen_oneclick" xsi:type="array">
-                                                                            <item name="isBillingAddressRequired" xsi:type="boolean">true</item>
-                                                                        </item>
                                                                         <item name="adyen_cc" xsi:type="array">
-                                                                            <item name="isBillingAddressRequired" xsi:type="boolean">true</item>
-                                                                        </item>
-                                                                        <item name="adyen_hpp" xsi:type="array">
                                                                             <item name="isBillingAddressRequired" xsi:type="boolean">true</item>
                                                                         </item>
                                                                         <item name="adyen_boleto" xsi:type="array">

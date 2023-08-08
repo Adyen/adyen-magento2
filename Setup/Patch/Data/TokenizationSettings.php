@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace Adyen\Payment\Setup\Patch\Data;
 
-use Adyen\Payment\Helper\Recurring;
+use Adyen\Payment\Helper\Vault;
 use Magento\Framework\App\Config\ReinitableConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
@@ -20,18 +20,9 @@ use Magento\Framework\Setup\Patch\PatchVersionInterface;
 
 class TokenizationSettings implements DataPatchInterface, PatchVersionInterface
 {
-    /**
-     * @var ModuleDataSetupInterface $moduleDataSetup
-     */
-    private $moduleDataSetup;
-    /**
-     * @var WriterInterface
-     */
-    private $configWriter;
-    /**
-     * @var ReinitableConfigInterface
-     */
-    private $reinitableConfig;
+    private ModuleDataSetupInterface $moduleDataSetup;
+    private WriterInterface $configWriter;
+    private ReinitableConfigInterface $reinitableConfig;
 
     public function __construct(
         ModuleDataSetupInterface $moduleDataSetup,
@@ -77,21 +68,21 @@ class TokenizationSettings implements DataPatchInterface, PatchVersionInterface
             if (isset($vaultEnabled)) {
                 $this->configWriter->save(
                     'payment/adyen_oneclick/card_mode',
-                    Recurring::MODE_MAGENTO_VAULT,
+                    Vault::MODE_MAGENTO_VAULT,
                     $vaultEnabled['scope'],
                     $vaultEnabled['scope_id']
                 );
             } elseif (isset($adyenOneClick)) {
                 $this->configWriter->save(
                     'payment/adyen_oneclick/card_mode',
-                    Recurring::MODE_ADYEN_TOKENIZATION,
+                    Vault::MODE_ADYEN_TOKENIZATION,
                     $adyenOneClick['scope'],
                     $adyenOneClick['scope_id']
                 );
 
                 $this->configWriter->save(
                     'payment/adyen_oneclick/card_type',
-                    Recurring::CARD_ON_FILE,
+                    Vault::CARD_ON_FILE,
                     $adyenOneClick['scope'],
                     $adyenOneClick['scope_id']
                 );

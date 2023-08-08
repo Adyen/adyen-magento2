@@ -13,7 +13,6 @@ namespace Adyen\Payment\Model\Ui;
 
 use Adyen\Payment\Exception\PaymentMethodException;
 use Adyen\Payment\Helper\Data;
-use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\Vault;
 use Exception;
 use Magento\Framework\App\RequestInterface;
@@ -25,7 +24,6 @@ use Magento\Vault\Model\Ui\TokenUiComponentInterfaceFactory;
 
 class PaymentMethodUiComponentProvider extends AdyenUiComponentProvider implements TokenUiComponentProviderInterface
 {
-
     private Vault $vaultHelper;
 
     public function __construct(
@@ -54,7 +52,7 @@ class PaymentMethodUiComponentProvider extends AdyenUiComponentProvider implemen
         $details['icon'] = $this->dataHelper->getVariantIcon($details['type']);
         $createdAt = new \DateTime($paymentToken->getCreatedAt());
         $details['created'] = $createdAt->format('Y-m-d');
-        $details['displayToken'] = $tokenType === Recurring::CARD_ON_FILE;
+        $details['displayToken'] = $tokenType === Vault::CARD_ON_FILE;
         $details['label'] = array_key_exists(Vault::TOKEN_LABEL, $details) ? $details[Vault::TOKEN_LABEL] : '';
 
         return $this->componentFactory->create(

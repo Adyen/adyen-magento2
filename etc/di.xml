@@ -89,6 +89,15 @@
             <argument name="code" xsi:type="const">Adyen\Payment\Model\Methods\Vault\GooglePayVault::CODE</argument>
         </arguments>
     </type>
+
+    <type name="Adyen\Payment\Model\Methods\Vault\SepaDirectDebitVault">
+        <arguments>
+            <argument name="config" xsi:type="object">AdyenPaymentCcVaultConfig</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentCcVaultPaymentValueHandlerPool</argument>
+            <argument name="vaultProvider" xsi:type="object">Adyen\Payment\Model\Methods\SepaDirectDebit</argument>
+            <argument name="code" xsi:type="const">Adyen\Payment\Model\Methods\Vault\SepaDirectDebitVault::CODE</argument>
+        </arguments>
+    </type>
     <!-- Vault methods end -->
 
     <virtualType name="AdyenPaymentOneclickFacade" type="Adyen\Payment\Model\Method\Adapter">
@@ -641,6 +650,7 @@
                 <item name="adyen_paypal" xsi:type="string">AdyenPaymentHppCommandManager</item>
                 <item name="adyen_klarna" xsi:type="string">AdyenPaymentHppCommandManager</item>
                 <item name="adyen_googlepay" xsi:type="string">AdyenPaymentHppCommandManager</item>
+                <item name="adyen_sepadirectdebit" xsi:type="string">AdyenPaymentHppCommandManager</item>
             </argument>
         </arguments>
     </type>
@@ -1280,7 +1290,6 @@
         </arguments>
     </virtualType>
 
-    <preference for="Magento\Paypal\Model\Billing\Agreement" type="Adyen\Payment\Model\Billing\Agreement" />
     <preference for="Magento\Payment\Gateway\Data\Order\AddressAdapter" type="Adyen\Payment\Gateway\Data\Order\AddressAdapter"/>
     <preference for="Magento\Payment\Gateway\Data\Order\OrderAdapter" type="Adyen\Payment\Gateway\Data\Order\OrderAdapter"/>
     <type name="Adyen\Payment\Logger\Handler\AdyenDebug">
