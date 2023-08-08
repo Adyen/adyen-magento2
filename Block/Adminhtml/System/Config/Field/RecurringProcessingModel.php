@@ -16,25 +16,30 @@ use Magento\Framework\View\Element\Html\Select;
 
 class RecurringProcessingModel extends Select
 {
-    /**
-     * Options
-     *
-     * @var array
-     */
-    protected $options = [
-        Vault::CARD_ON_FILE => 'Card on File',
-        Vault::UNSCHEDULED_CARD_ON_FILE => 'Unscheduled Card on File',
-        Vault::SUBSCRIPTION => 'Subscription'
-    ];
+    private function getSourceOptions(): array
+    {
+        return [
+            ['label' => 'Card on File', 'value' => Vault::CARD_ON_FILE],
+            ['label' => 'Unscheduled Card on File', 'value' => Vault::UNSCHEDULED_CARD_ON_FILE],
+            ['label' => 'Subscription', 'value' => Vault::SUBSCRIPTION]
+        ];
+    }
 
-    /**
-     * Sets name for input element
-     *
-     * @param string $value
-     * @return $this
-     */
-    public function setInputName($value)
+    public function _toHtml(): string
+    {
+        if (!$this->getOptions()) {
+            $this->setOptions($this->getSourceOptions());
+        }
+        return parent::_toHtml();
+    }
+
+    public function setInputName(string $value): RecurringProcessingModel
     {
         return $this->setName($value);
+    }
+
+    public function setInputId(string $value): RecurringProcessingModel
+    {
+        return $this->setId($value);
     }
 }
