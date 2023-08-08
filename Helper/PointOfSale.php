@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2022 Adyen N.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -19,14 +19,9 @@ use Magento\Sales\Model\Order;
 
 class PointOfSale
 {
-    /** @var Data  */
-    private $dataHelper;
-
-    /** @var ProductMetadataInterface  */
-    private $productMetadata;
-
-    /** @var Config */
-    protected $configHelper;
+    private Data $dataHelper;
+    private ProductMetadataInterface $productMetadata;
+    protected Config $configHelper;
 
     public function __construct(
         Data $dataHelper,
@@ -38,28 +33,11 @@ class PointOfSale
         $this->configHelper = $configHelper;
     }
 
-    /**
-     * Add SaleToAcquirerData to store recurring transactions and able to track platform and version
-     * When upgrading to new version of library we can use the client methods
-     *
-     * @param $request
-     * @param Quote|null $quote
-     * @param Order|null $order
-     * @return array
-     */
-    public function addSaleToAcquirerData($request, Quote $quote = null, Order $order = null) : array
+    public function addSaleToAcquirerData(array $request, Order $order) : array
     {
-        // If order is created from admin backend, use Order instead of Quote
-        if (isset($order) && is_null($quote)) {
-            $customerId = $order->getCustomerId();
-            $storeId = $order->getStoreId();
-            $shopperEmail = $order->getCustomerEmail();
-        }
-        else {
-            $customerId = $this->getCustomerId($quote);
-            $storeId = $quote->getStoreId();
-            $shopperEmail = $quote->getCustomerEmail();
-        }
+        $customerId = $order->getCustomerId();
+        $storeId = $order->getStoreId();
+        $shopperEmail = $order->getCustomerEmail();
 
         $saleToAcquirerData = [];
 
@@ -88,22 +66,11 @@ class PointOfSale
         return $request;
     }
 
-    /**
-     * This getter makes it possible to overwrite the customer id from other plugins
-     * Use this function to get the customer id so we can keep using this plugin in the UCD
-     */
     public function getCustomerId(Quote $quote): ?string
     {
         return $quote->getCustomerId();
     }
 
-    /**
-     * @param array $installments
-     * @param float $amount
-     * @param string $currencyCode
-     * @param int $precision
-     * @return array
-     */
     public function getFormattedInstallments(
         array $installments,
         float $amount,

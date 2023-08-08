@@ -18,7 +18,7 @@ class Installment extends \Magento\Framework\View\Element\Html\Select
      *
      * @var array
      */
-    protected $_options = [
+    protected $options = [
         '1' => '1x',
         '2' => '2x',
         '3' => '3x',

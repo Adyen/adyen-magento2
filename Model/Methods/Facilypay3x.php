@@ -11,7 +11,6 @@ namespace Adyen\Payment\Model\Methods;
 use Adyen\Payment\Block\Form\Hpp;
 use Adyen\Payment\Block\Info\Hpp as HppInfo;
 use Adyen\Payment\Model\AdyenPaymentMethod;
-use Adyen\Payment\Model\Api\PaymentRequest;
 use Adyen\Payment\Model\Method\PaymentMethodInterface;
 use Magento\Framework\Event\ManagerInterface;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
@@ -26,7 +25,6 @@ class Facilypay3x extends AdyenPaymentMethod implements PaymentMethodInterface
 	public const NAME = '3x Oney';
 
     public function __construct(
-        PaymentRequest $paymentRequest,
         ManagerInterface $eventManager,
         ValueHandlerPoolInterface $valueHandlerPool,
         PaymentDataObjectFactory $paymentDataObjectFactory,
@@ -37,7 +35,7 @@ class Facilypay3x extends AdyenPaymentMethod implements PaymentMethodInterface
         $formBlockType = Hpp::class;
         $infoBlockType = HppInfo::class;
 
-        parent::__construct($paymentRequest, $eventManager, $valueHandlerPool,
+        parent::__construct($eventManager, $valueHandlerPool,
             $paymentDataObjectFactory, $code, $formBlockType, $infoBlockType, $commandPool, $validatorPool);
     }
 
