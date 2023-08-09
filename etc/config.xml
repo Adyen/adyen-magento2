@@ -115,9 +115,9 @@
       </adyen_hpp_vault>
       <adyen_ideal>
         <active>1</active>
-        <model>Adyen\Payment\Model\Methods\Ideal</model>
+        <model>AdyenPaymentIdealFacade</model>
         <order_status>pending</order_status>
-        <title>iDeal</title>
+        <title>Adyen iDeal</title>
         <allowspecific>0</allowspecific>
         <sort_order>0</sort_order>
         <payment_action>authorize</payment_action>
@@ -131,13 +131,17 @@
         <can_refund>1</can_refund>
         <can_void>1</can_void>
         <can_cancel>1</can_cancel>
+        <supports_recurring>1</supports_recurring>
+        <supports_manual_capture>1</supports_manual_capture>
+        <supports_auto_capture>1</supports_auto_capture>
+        <is_wallet>0</is_wallet>
         <group>adyen</group>
       </adyen_ideal>
       <adyen_klarna>
         <active>1</active>
-        <model>Adyen\Payment\Model\Methods\Klarna</model>
+        <model>AdyenPaymentKlarnaFacade</model>
         <order_status>pending</order_status>
-        <title>Klarna</title>
+        <title>Adyen Klarna</title>
         <allowspecific>0</allowspecific>
         <sort_order>0</sort_order>
         <payment_action>authorize</payment_action>
@@ -152,6 +156,10 @@
         <can_refund>1</can_refund>
         <can_void>1</can_void>
         <can_cancel>1</can_cancel>
+        <supports_recurring>1</supports_recurring>
+        <supports_manual_capture>1</supports_manual_capture>
+        <supports_auto_capture>1</supports_auto_capture>
+        <is_wallet>0</is_wallet>
         <group>adyen</group>
       </adyen_klarna>
       <adyen_klarna_vault>
@@ -160,9 +168,9 @@
       </adyen_klarna_vault>
       <adyen_paypal>
         <active>1</active>
-        <model>Adyen\Payment\Model\Methods\Paypal</model>
+        <model>AdyenPaymentPaypalFacade</model>
         <order_status>pending</order_status>
-        <title>PayPal</title>
+        <title>Adyen PayPal</title>
         <allowspecific>0</allowspecific>
         <sort_order>0</sort_order>
         <payment_action>authorize</payment_action>
@@ -177,6 +185,10 @@
         <can_refund>1</can_refund>
         <can_void>1</can_void>
         <can_cancel>1</can_cancel>
+        <supports_recurring>1</supports_recurring>
+        <supports_manual_capture>1</supports_manual_capture>
+        <supports_auto_capture>1</supports_auto_capture>
+        <is_wallet>0</is_wallet>
         <group>adyen</group>
       </adyen_paypal>
       <adyen_paypal_vault>
@@ -185,9 +197,9 @@
       </adyen_paypal_vault>
       <adyen_bcmc_mobile>
         <active>1</active>
-        <model>Adyen\Payment\Model\Methods\BcmcMobile</model>
+        <model>AdyenPaymentBcmcMobileFacade</model>
         <order_status>pending</order_status>
-        <title>PayConiq</title>
+        <title>Adyen Bancontact Mobile</title>
         <allowspecific>0</allowspecific>
         <sort_order>0</sort_order>
         <payment_action>authorize</payment_action>
@@ -201,13 +213,17 @@
         <can_refund>1</can_refund>
         <can_void>1</can_void>
         <can_cancel>1</can_cancel>
+        <supports_recurring>1</supports_recurring>
+        <supports_manual_capture>1</supports_manual_capture>
+        <supports_auto_capture>1</supports_auto_capture>
+        <is_wallet>0</is_wallet>
         <group>adyen</group>
       </adyen_bcmc_mobile>
       <adyen_dotpay>
         <active>1</active>
-        <model>Adyen\Payment\Model\Methods\Dotpay</model>
+        <model>AdyenPaymentDotpayFacade</model>
         <order_status>pending</order_status>
-        <title>DotPay</title>
+        <title>Adyen DotPay</title>
         <allowspecific>0</allowspecific>
         <sort_order>0</sort_order>
         <payment_action>authorize</payment_action>
@@ -221,13 +237,17 @@
         <can_refund>1</can_refund>
         <can_void>1</can_void>
         <can_cancel>1</can_cancel>
+        <supports_recurring>0</supports_recurring>
+        <supports_manual_capture>1</supports_manual_capture>
+        <supports_auto_capture>1</supports_auto_capture>
+        <is_wallet>0</is_wallet>
         <group>adyen</group>
       </adyen_dotpay>
       <adyen_amazonpay>
         <active>1</active>
-        <model>Adyen\Payment\Model\Methods\AmazonPay</model>
+        <model>AdyenPaymentAmazonPayFacade</model>
         <order_status>pending</order_status>
-        <title>Amazon Pay</title>
+        <title>Adyen Amazon Pay</title>
         <allowspecific>0</allowspecific>
         <sort_order>0</sort_order>
         <payment_action>authorize</payment_action>
@@ -241,13 +261,17 @@
         <can_refund>1</can_refund>
         <can_void>1</can_void>
         <can_cancel>1</can_cancel>
+        <supports_recurring>1</supports_recurring>
+        <supports_manual_capture>1</supports_manual_capture>
+        <supports_auto_capture>1</supports_auto_capture>
+        <is_wallet>1</is_wallet>
         <group>adyen</group>
       </adyen_amazonpay>
       <adyen_googlepay>
         <active>1</active>
-        <model>Adyen\Payment\Model\Methods\GooglePay</model>
+        <model>AdyenPaymentGooglepayFacade</model>
         <order_status>pending</order_status>
-        <title>Amazon Pay</title>
+        <title>Adyen Google Pay</title>
         <allowspecific>0</allowspecific>
         <sort_order>0</sort_order>
         <payment_action>authorize</payment_action>
@@ -262,6 +286,10 @@
         <can_refund>1</can_refund>
         <can_void>1</can_void>
         <can_cancel>1</can_cancel>
+        <supports_recurring>1</supports_recurring>
+        <supports_manual_capture>1</supports_manual_capture>
+        <supports_auto_capture>1</supports_auto_capture>
+        <is_wallet>1</is_wallet>
         <group>adyen</group>
       </adyen_googlepay>
       <adyen_googlepay_vault>
@@ -270,9 +298,9 @@
       </adyen_googlepay_vault>
       <adyen_multibanco>
         <active>1</active>
-        <model>Adyen\Payment\Model\Methods\Multibanco</model>
+        <model>AdyenPaymentMultibancoFacade</model>
         <order_status>pending</order_status>
-        <title>Multibanco</title>
+        <title>Adyen Multibanco</title>
         <allowspecific>0</allowspecific>
         <sort_order>0</sort_order>
         <payment_action>authorize</payment_action>
@@ -286,13 +314,17 @@
         <can_refund>0</can_refund>
         <can_void>1</can_void>
         <can_cancel>1</can_cancel>
+        <supports_recurring>0</supports_recurring>
+        <supports_manual_capture>0</supports_manual_capture>
+        <supports_auto_capture>1</supports_auto_capture>
+        <is_wallet>0</is_wallet>
         <group>adyen</group>
       </adyen_multibanco>
       <adyen_facilypay_3x>
         <active>1</active>
-        <model>Adyen\Payment\Model\Methods\Facilypay3x</model>
+        <model>AdyenPaymentFacilypay3xFacade</model>
         <order_status>pending</order_status>
-        <title>FacilyPay3x</title>
+        <title>Adyen FacilyPay 3x</title>
         <allowspecific>0</allowspecific>
         <sort_order>0</sort_order>
         <payment_action>authorize</payment_action>
@@ -306,13 +338,17 @@
         <can_refund>0</can_refund>
         <can_void>1</can_void>
         <can_cancel>1</can_cancel>
+        <supports_recurring>0</supports_recurring>
+        <supports_manual_capture>1</supports_manual_capture>
+        <supports_auto_capture>1</supports_auto_capture>
+        <is_wallet>0</is_wallet>
         <group>adyen</group>
       </adyen_facilypay_3x>
       <adyen_sepadirectdebit>
         <active>1</active>
-        <model>Adyen\Payment\Model\Methods\SepaDirectDebit</model>
+        <model>AdyenPaymentSepadirectdebitFacade</model>
         <order_status>pending</order_status>
-        <title>Sepa Direct Debit</title>
+        <title>Adyen SEPA Direct Debit</title>
         <allowspecific>0</allowspecific>
         <sort_order>0</sort_order>
         <payment_action>authorize</payment_action>
@@ -328,6 +364,10 @@
         <can_cancel>1</can_cancel>
         <can_authorize_vault>1</can_authorize_vault>
         <can_capture_vault>1</can_capture_vault>
+        <supports_recurring>1</supports_recurring>
+        <supports_manual_capture>1</supports_manual_capture>
+        <supports_auto_capture>1</supports_auto_capture>
+        <is_wallet>0</is_wallet>
         <group>adyen</group>
       </adyen_sepadirectdebit>
       <adyen_sepadirectdebit_vault>
@@ -424,8 +464,8 @@
       </adyen_moto>
       <adyen_applepay>
         <active>1</active>
-        <model>Adyen\Payment\Model\Methods\Applepay</model>
-        <title>Apple Pay</title>
+        <model>AdyenPaymentApplePayFacade</model>
+        <title>Adyen Apple Pay</title>
         <allowspecific>0</allowspecific>
         <sort_order>0</sort_order>
         <payment_action>authorize</payment_action>
@@ -438,6 +478,10 @@
         <can_refund>1</can_refund>
         <can_void>1</can_void>
         <can_cancel>1</can_cancel>
+        <supports_recurring>1</supports_recurring>
+        <supports_manual_capture>1</supports_manual_capture>
+        <supports_auto_capture>1</supports_auto_capture>
+        <is_wallet>1</is_wallet>
         <group>adyen</group>
       </adyen_applepay>
     </payment>

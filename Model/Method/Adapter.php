@@ -16,6 +16,10 @@ use Magento\Payment\Model\Method;
 use Magento\Quote\Api\Data\PaymentInterface;
 
 // TODO: This class can probably be deleted since its use will be done in Model/AdyenPaymentMethod.php
+
+/**
+ * @deprecated
+ */
 class Adapter extends Method\Adapter
 {
     public function assignData(DataObject $data): Adapter

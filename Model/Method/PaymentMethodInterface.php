@@ -12,6 +12,9 @@
 
 namespace Adyen\Payment\Model\Method;
 
+/**
+ * @deprecated
+ */
 interface PaymentMethodInterface
 {
     public function isWallet(): bool;

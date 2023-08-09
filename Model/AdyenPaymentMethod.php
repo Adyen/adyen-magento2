@@ -13,6 +13,9 @@ namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Model\Method\Adapter;
 
+/**
+ * @deprecated
+ */
 class AdyenPaymentMethod extends Adapter
 {
     const CODE = 'adyen';
