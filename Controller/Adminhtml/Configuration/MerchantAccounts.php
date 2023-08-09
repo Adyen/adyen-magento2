@@ -25,6 +25,7 @@
 namespace Adyen\Payment\Controller\Adminhtml\Configuration;
 
 use Adyen\AdyenException;
+use Adyen\ConnectionException;
 use Adyen\Payment\Helper\ManagementHelper;
 use Magento\Backend\App\Action;
 use Magento\Framework\Controller\Result\JsonFactory;
@@ -71,7 +72,7 @@ class MerchantAccounts extends Action
 
             $resultJson->setData($response);
             return $resultJson;
-        } catch (AdyenException $e) {
+        } catch (AdyenException | ConnectionException $e) {
             $resultJson->setHttpResponseCode(400);
             $resultJson->setData(
                 [
