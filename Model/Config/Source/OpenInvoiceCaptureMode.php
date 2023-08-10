@@ -31,6 +31,7 @@ class OpenInvoiceCaptureMode implements ArrayInterface
         foreach ($recurringTypes as $code => $label) {
             $options[] = ['value' => $code, 'label' => $label];
         }
+
         return $options;
     }
 }
