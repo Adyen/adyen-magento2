@@ -287,8 +287,24 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
             ->method('requiresManualReview')
             ->willReturn(true);
 
+
+        $this->orderPaymentHelper->expects($this->once())
+            ->method('isAutoCapture')
+            ->with($this->equalTo($this->order), $this->equalTo('some_payment_method'))
+            ->willReturn(true); // Example: auto-capture enabled
+
+        $this->orderHelper->expects($this->once())
+            ->method('isFullAmountAuthorized')
+            ->with($this->equalTo($this->order))
+            ->willReturn(true); // Example: full amount authorized
+
+        $this->caseManagementHelper->expects($this->once())
+            ->method('requiresManualReview')
+            ->willReturn(true); // Example: manual review required
+
         $this->caseManagementHelper->expects($this->once())
             ->method('markCaseAsPendingReview')
+            ->with($this->equalTo($this->order), $this->equalTo($this->notification->getPspreference()), $this->equalTo(true))
             ->willReturn($this->order);
 
         // Test the handleWebhook method for AutoCapture and manual review
@@ -312,11 +328,49 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
             ->method('finalizeOrder')
             ->willReturn($this->order);
 
+        $orderPaymentHelper->expects($this->once())
+            ->method('isAutoCapture')
+            ->with($this->equalTo($order), $this->equalTo('some_payment_method'))
+            ->willReturn(false); // Example: auto-capture disabled
+
+        $orderHelper->expects($this->once())
+            ->method('isFullAmountAuthorized')
+            ->with($this->equalTo($order))
+            ->willReturn(true); // Example: full amount authorized
+
+        $order->expects($this->once())
+            ->method('setState')
+            ->with($this->equalTo(Order::STATE_PENDING_PAYMENT));
+
+        $order->expects($this->once())
+            ->method('setStatus')
+            ->with($this->equalTo($order->getConfig()->getStateDefaultStatus(Order::STATE_PENDING_PAYMENT)));
+
+        $orderHelper->expects($this->once())
+            ->method('addWebhookStatusHistoryComment')
+            ->with($this->equalTo($order), $this->equalTo($notification))
+            ->willReturn($order);
+
+        $order->expects($this->once())
+            ->method('addStatusHistoryComment')
+            ->with($this->equalTo(__('Capture Mode set to Manual')), $this->equalTo($order->getStatus()));
+
+        $adyenLogger->expects($this->once())
+            ->method('addAdyenNotification')
+            ->with($this->equalTo('Capture mode is set to Manual'), $this->anything());
+
         // Test the handleWebhook method for ManualCapture and no review
         $result = $this->handler->handleWebhook($this->order, $this->notification, PaymentStates::STATE_PAID);
 
         $this->assertSame($this->order, $result);
+        // ... assertions ...
     }
+
+
+
+
+
+
 
     public function testCanCancelPayByLinkOrderWithMaxFailureCount()
     {
