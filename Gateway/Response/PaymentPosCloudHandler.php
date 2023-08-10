@@ -13,21 +13,23 @@
 namespace Adyen\Payment\Gateway\Response;
 
 use Adyen\AdyenException;
+use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Order\Payment;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 
 class PaymentPosCloudHandler implements HandlerInterface
 {
-    private Data $adyenHelper;
     private AdyenLogger $adyenLogger;
-    private Recurring $recurringHelper;
     private Vault $vaultHelper;
 
     public function __construct(
-        AdyenLogger $adyenLogger
+        AdyenLogger $adyenLogger,
+        Vault $vaultHelper
     ) {
         $this->adyenLogger = $adyenLogger;
+        $this->vaultHelper = $vaultHelper;
     }
 
     public function handle(array $handlingSubject, array $response)
@@ -43,8 +45,11 @@ class PaymentPosCloudHandler implements HandlerInterface
         // do not send order confirmation mail
         $payment->getOrder()->setCanSendNewEmailFlag(false);
 
+
+
         if (!empty($paymentResponse['Response']['AdditionalResponse'])
         ) {
+//            $this->vaultHelper->handlePaymentResponseRecurringDetails($this->payment,  )
             $pairs = \explode('&', (string) $paymentResponse['Response']['AdditionalResponse']);
 
             foreach ($pairs as $pair) {

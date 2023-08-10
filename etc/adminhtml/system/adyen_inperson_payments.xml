@@ -62,8 +62,8 @@
             <config_path>payment/adyen_pos_cloud/capture_mode_pos</config_path>
         </field>
         <field id="recurring_type" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Agreement Type</label>
-            <tooltip>You can set different value for POS because you have to have the permission of the customer</tooltip>
+            <label>Token Type</label>
+            <tooltip>During checkout, shoppers can choose to have their payment details stored in Adyen’s highly secure platform. Adyen handles this process for its customers. Shoppers can then select the stored payment method during checkout.</tooltip>
             <source_model>Adyen\Payment\Model\Config\Source\RecurringType</source_model>
             <config_path>payment/adyen_pos_cloud/recurring_type</config_path>
             <comment>If you want to store the credentials for ONECLICK or RECURRING or combination of these two you need to contact support@adyen.com and ask if they can enable to store cards on company level. Changing this setting without doing this will lead to failed payments!</comment>

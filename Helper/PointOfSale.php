@@ -13,6 +13,8 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Model\ApplicationInfo;
+use Adyen\Payment\Helper\Vault;
+use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
 use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
@@ -21,12 +23,12 @@ class PointOfSale
 {
     private Data $dataHelper;
     private ProductMetadataInterface $productMetadata;
-    protected Config $configHelper;
+    private Vault $configHelper;
 
     public function __construct(
         Data $dataHelper,
         ProductMetadataInterface $productMetadata,
-        Config $configHelper
+        Vault $configHelper
     ) {
         $this->dataHelper = $dataHelper;
         $this->productMetadata = $productMetadata;
@@ -43,12 +45,13 @@ class PointOfSale
 
         // If customer exists add it into the request to store request
         if (!empty($customerId)) {
-            $recurringContract = $this->configHelper->getAdyenPosCloudConfigData('recurring_type', $storeId);
+            $posRecurringEnabled = $this->configHelper->getPaymentMethodRecurringActive(AdyenPosCloudConfigProvider::CODE ,$storeId);
+            $recurringProcessingModel = $this->configHelper->getPaymentMethodRecurringProcessingModel(AdyenPosCloudConfigProvider::CODE ,$storeId);
 
-            if (!empty($recurringContract) && !empty($shopperEmail)) {
+            if (!empty($posRecurringEnabled) && !empty($shopperEmail)) {
                 $saleToAcquirerData['shopperEmail'] = $shopperEmail;
                 $saleToAcquirerData['shopperReference'] = $this->dataHelper->padShopperReference($customerId);
-                $saleToAcquirerData['recurringContract'] = $recurringContract;
+                $saleToAcquirerData['recurringProcessingModel'] = $recurringProcessingModel;
             }
         }
 

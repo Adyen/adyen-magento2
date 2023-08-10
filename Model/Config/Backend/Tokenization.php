@@ -11,9 +11,11 @@
 
 namespace Adyen\Payment\Model\Config\Backend;
 
+use Adyen\Payment\Gateway\Request\PosCloudBuilder;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Model\Method\PaymentMethodInterface;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Value;
@@ -150,6 +152,16 @@ class Tokenization extends Value
                     'recurring_processing_model' => null
                 ];
 
+                $arrayKey = $this->mathRandom->getUniqueHash('_');
+                $result[$arrayKey] = $paymentMethodValue;
+            }
+            elseif ($adyenPaymentMethod === AdyenPosCloudConfigProvider::CODE ){
+                $paymentMethodValue = [
+                    'name' => 'In-person payments',
+                    'payment_method_code' => AdyenPosCloudConfigProvider::CODE,
+                    'enabled'=> false,
+                    'recurring_processing_model' => null
+                ];
                 $arrayKey = $this->mathRandom->getUniqueHash('_');
                 $result[$arrayKey] = $paymentMethodValue;
             }
