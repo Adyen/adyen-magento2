@@ -162,7 +162,7 @@ class ManagementHelperTest extends AbstractAdyenTestCase
 
         $dataHelperMock = $this->createConfiguredMock(Data::class, [
             'initializeAdyenClient' => $this->createConfiguredMock(Client::class, [
-                'getConfig' => $this->createConfiguredMock(ConfigInterface::class, [
+                'getConfig' => $this->createConfiguredMock(Config::class, [
                     'get' => Environment::TEST
                 ])
             ])
@@ -207,7 +207,7 @@ class ManagementHelperTest extends AbstractAdyenTestCase
 
         $dataHelperMock = $this->createConfiguredMock(Data::class, [
             'initializeAdyenClient' => $this->createConfiguredMock(Client::class, [
-                'getConfig' => $this->createConfiguredMock(ConfigInterface::class, [
+                'getConfig' => $this->createConfiguredMock(Config::class, [
                     'get' => Environment::TEST
                 ])
             ])
@@ -270,7 +270,7 @@ class ManagementHelperTest extends AbstractAdyenTestCase
 
         $dataHelperMock = $this->createConfiguredMock(Data::class, [
             'initializeAdyenClient' => $this->createConfiguredMock(Client::class, [
-                'getConfig' => $this->createConfiguredMock(ConfigInterface::class, [
+                'getConfig' => $this->createConfiguredMock(Config::class, [
                     'get' => Environment::TEST
                 ])
             ])
@@ -341,7 +341,7 @@ class ManagementHelperTest extends AbstractAdyenTestCase
 
         $dataHelperMock = $this->createConfiguredMock(Data::class, [
             'initializeAdyenClient' => $this->createConfiguredMock(Client::class, [
-                'getConfig' => $this->createConfiguredMock(ConfigInterface::class, [
+                'getConfig' => $this->createConfiguredMock(Config::class, [
                     'get' => Environment::TEST
                 ])
             ])
@@ -396,7 +396,7 @@ class ManagementHelperTest extends AbstractAdyenTestCase
 
         $dataHelperMock = $this->createConfiguredMock(Data::class, [
             'initializeAdyenClient' => $this->createConfiguredMock(Client::class, [
-                'getConfig' => $this->createConfiguredMock(ConfigInterface::class, [
+                'getConfig' => $this->createConfiguredMock(Config::class, [
                     'get' => Environment::TEST
                 ])
             ])
