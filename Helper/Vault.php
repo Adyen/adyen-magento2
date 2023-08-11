@@ -207,7 +207,7 @@ class Vault
         } elseif ($paymentMethodCode == PaymentMethods::ADYEN_CC) {
             $paymentToken->setType(PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD);
             $details = [
-                'type' => $payment->getCcType(),
+                'type' => $additionalData[self::PAYMENT_METHOD],
                 'maskedCC' => $additionalData['cardSummary'],
                 'expirationDate' => $additionalData['expiryDate']
             ];
@@ -220,7 +220,7 @@ class Vault
                 self::TOKEN_LABEL => $paymentMethodInstance->getPaymentMethodName() . ' token created on ' . $today->format('Y-m-d'),
                 'expirationDate' => $today->add(new DateInterval('P1Y'))
             ];
-            $paymentToken->setExpiresAt($this->getExpirationDate($today->add(new DateInterval('P1Y'))));
+            $paymentToken->setExpiresAt($today->add(new DateInterval('P1Y')));
         }
 
         $details[self::TOKEN_TYPE] = $recurringProcessingModel;
