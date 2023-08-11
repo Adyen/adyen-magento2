@@ -100,5 +100,16 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
                 );
             }
         }
+        else{
+            $this->adyenLogger->addAdyenNotification(
+                'Order is not cancelled because previous notification
+                                    was an authorisation that succeeded and payment was captured',
+                [
+                    'pspReference' => $notification->getPspreference(),
+                    'merchantReference' => $notification->getMerchantReference()
+                ]
+            );
+        }
+
     }
 }

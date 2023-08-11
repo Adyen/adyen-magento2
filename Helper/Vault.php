@@ -235,9 +235,9 @@ class Vault
         return $paymentToken;
     }
 
-    private function getExpirationDate($expirationDate): string
+    private function getExpirationDate(string $expirationDate): string
     {
-        $expirationDate = explode('/', (string) $expirationDate);
+        $expirationDate = explode('/', $expirationDate);
 
         $expDate = new DateTime(
         //add leading zero to month
