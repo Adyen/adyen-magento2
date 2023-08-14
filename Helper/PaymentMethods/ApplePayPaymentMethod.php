@@ -44,11 +44,11 @@ class ApplePayPaymentMethod extends AbstractWalletPaymentMethod
 
     public function supportsSubscription(): bool
     {
-        return false;
+        return true;
     }
 
     public function supportsUnscheduledCardOnFile(): bool
     {
-        return false;
+        return true;
     }
 }
