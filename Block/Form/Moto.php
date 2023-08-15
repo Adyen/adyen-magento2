@@ -139,7 +139,7 @@ class Moto extends \Magento\Payment\Block\Form\Cc
                 $this->configHelper->getAdyenCcConfigData('installments',
                     $this->_storeManager->getStore()->getId()
                 ),
-                $this->configHelper->getAdyenCcTypes(),
+                $this->adyenHelper->getAdyenCcTypes(),
                 $amount
             );
         } catch (\Throwable $e) {

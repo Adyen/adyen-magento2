@@ -198,6 +198,7 @@ class Vault
             $details = [
                 'type' => $txVariant->getCard(),
                 'walletType' => $txVariant->getPaymentMethod(),
+                'maskedCC' => $additionalData['cardSummary'],
                 'expirationDate' => $additionalData['expiryDate']
             ];
             $paymentToken->setExpiresAt($this->getExpirationDate($additionalData['expiryDate']));

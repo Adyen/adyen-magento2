@@ -60,7 +60,7 @@
       </adyen_cc>
       <adyen_cc_vault>
         <title>Stored Cards (Adyen)</title>
-        <model>Adyen\Payment\Model\Methods\Vault\CardVault</model>
+        <model>AdyenPaymentCardVaultFacade</model>
         <require_cvc>1</require_cvc>
       </adyen_cc_vault>
       <adyen_oneclick>
@@ -165,7 +165,7 @@
       </adyen_klarna>
       <adyen_klarna_vault>
         <title>Stored Klarna</title>
-        <model>Adyen\Payment\Model\Methods\Vault\KlarnaVault</model>
+        <model>AdyenPaymentKlarnaVaultFacade</model>
       </adyen_klarna_vault>
       <adyen_paypal>
         <active>1</active>
@@ -175,7 +175,7 @@
         <allowspecific>0</allowspecific>
         <sort_order>0</sort_order>
         <payment_action>authorize</payment_action>
-        <can_initialize>0</can_initialize>
+        <can_initialize>1</can_initialize>
         <is_gateway>1</is_gateway>
         <can_use_checkout>1</can_use_checkout>
         <can_capture>1</can_capture>
@@ -194,7 +194,7 @@
       </adyen_paypal>
       <adyen_paypal_vault>
         <title>Stored PayPal</title>
-        <model>Adyen\Payment\Model\Methods\Vault\PaypalVault</model>
+        <model>AdyenPaymentPaypalVaultFacade</model>
       </adyen_paypal_vault>
       <adyen_bcmc_mobile>
         <active>1</active>
@@ -295,7 +295,7 @@
       </adyen_googlepay>
       <adyen_googlepay_vault>
         <title>Stored GooglePay</title>
-        <model>Adyen\Payment\Model\Methods\Vault\GooglePayVault</model>
+        <model>AdyenPaymentGooglepayVaultFacade</model>
       </adyen_googlepay_vault>
       <adyen_multibanco>
         <active>1</active>
@@ -372,8 +372,8 @@
         <group>adyen-alternative-payment-method</group>
       </adyen_sepadirectdebit>
       <adyen_sepadirectdebit_vault>
-        <title>Stored SEPA</title>
-        <model>Adyen\Payment\Model\Methods\Vault\SepaDirectDebitVault</model>
+        <title>Stored SEPA Direct Debit</title>
+        <model>AdyenPaymentSepadirectdebitVaultFacade</model>
       </adyen_sepadirectdebit_vault>
       <adyen_pos_cloud>
         <active>0</active>
