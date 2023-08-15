@@ -46,43 +46,14 @@ class PaymentPosCloudHandler implements HandlerInterface
         $payment->getOrder()->setCanSendNewEmailFlag(false);
 
 
-
         if (!empty($paymentResponse['Response']['AdditionalResponse'])
         ) {
-//            $this->vaultHelper->handlePaymentResponseRecurringDetails($this->payment,  )
-            $pairs = \explode('&', (string) $paymentResponse['Response']['AdditionalResponse']);
+            $paymentResponseDecoded = json_decode(base64_decode($paymentResponse['Response']['AdditionalResponse']), true);
+            $payment->setAdditionalInformation('additionalData', $paymentResponseDecoded['additionalData']);
 
-            foreach ($pairs as $pair) {
-                $nv = \explode('=', $pair);
+            $this->vaultHelper->handlePaymentResponseRecurringDetails($payment->getOrder()->getPayment(), $paymentResponseDecoded);
 
-                if ($nv[0] == 'recurring.recurringDetailReference') {
-                    $recurringDetailReference = $nv[1];
-                    break;
-                }
-            }
-
-            if (!empty($recurringDetailReference) &&
-                !empty($paymentResponse['PaymentResult']['PaymentInstrumentData']['CardData'])
-            ) {
-                $maskedPan = $paymentResponse['PaymentResult']['PaymentInstrumentData']['CardData']['MaskedPan'];
-                $expiryDate = $paymentResponse['PaymentResult']['PaymentInstrumentData']['CardData']
-                ['SensitiveCardData']['ExpiryDate']; // 1225
-                $expiryDate = \substr((string) $expiryDate, 0, 2) . '/' . \substr((string) $expiryDate, 2, 2);
-                $brand = $paymentResponse['PaymentResult']['PaymentInstrumentData']['CardData']['PaymentBrand'];
-
-                // create additionalData so we can use the helper
-                $additionalData = [];
-                $additionalData['recurring.recurringDetailReference'] = $recurringDetailReference;
-                $additionalData['cardBin'] = $recurringDetailReference;
-                $additionalData['cardHolderName'] = '';
-                $additionalData['cardSummary'] = \substr((string) $maskedPan, -4);
-                $additionalData['expiryDate'] = $expiryDate;
-                $additionalData['paymentMethod'] = $brand;
-                $additionalData['recurring.recurringDetailReference'] = $recurringDetailReference;
-                $additionalData['pos_payment'] = true;
-            }
         }
-
         // set transaction(status)
         if (!empty($paymentResponse['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID']))
         {
