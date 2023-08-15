@@ -17,6 +17,7 @@ use Adyen\Payment\Gateway\Http\Client\TransactionCapture;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Data as DataHelper;
+use Adyen\Payment\Helper\OpenInvoice;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\ResourceModel\Order\Payment;
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
@@ -63,6 +64,11 @@ class CaptureDataBuilder implements BuilderInterface
     private $context;
 
     /**
+     * @var OpenInvoice
+     */
+    protected $openInvoiceHelper;
+
+    /**
      * CaptureDataBuilder constructor.
      *
      * @param DataHelper $adyenHelper
@@ -71,6 +77,7 @@ class CaptureDataBuilder implements BuilderInterface
      * @param AdyenLogger $adyenLogger
      * @param Context $context
      * @param Payment $orderPaymentResourceModel
+     * @param OpenInvoice $openInvoiceHelper
      */
     public function __construct(
         DataHelper $adyenHelper,
@@ -78,7 +85,9 @@ class CaptureDataBuilder implements BuilderInterface
         AdyenOrderPayment $adyenOrderPaymentHelper,
         AdyenLogger $adyenLogger,
         Context $context,
-        Payment $orderPaymentResourceModel
+        Payment $orderPaymentResourceModel,
+        OpenInvoice $openInvoiceHelper
+
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->chargedCurrency = $chargedCurrency;
@@ -86,6 +95,7 @@ class CaptureDataBuilder implements BuilderInterface
         $this->adyenLogger = $adyenLogger;
         $this->context = $context;
         $this->orderPaymentResourceModel = $orderPaymentResourceModel;
+        $this->openInvoiceHelper = $openInvoiceHelper;
     }
 
     /**
@@ -141,78 +151,13 @@ class CaptureDataBuilder implements BuilderInterface
         ];
 
         if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) {
-            $openInvoiceFields = $this->getOpenInvoiceData($payment);
+            $openInvoiceFields = $this->openInvoiceHelper->getOpenInvoiceData($order);
             $requestBody["additionalData"] = $openInvoiceFields;
         }
         $request['body'] = $requestBody;
         $request['clientConfig'] = ["storeId" => $payment->getOrder()->getStoreId()];
 
         return $request;
-    }
-
-    /**
-     * @param $payment
-     * @return mixed
-     * @internal param $formFields
-     */
-    protected function getOpenInvoiceData($payment)
-    {
-        $formFields = [];
-        $count = 0;
-        $order = $payment->getOrder();
-        $invoices = $order->getInvoiceCollection();
-
-        $currency = $this->chargedCurrency
-            ->getOrderAmountCurrency($payment->getOrder(), false)
-            ->getCurrencyCode();
-
-        // The latest invoice will contain only the selected items(and quantities) for the (partial) capture
-        $latestInvoice = $invoices->getLastItem();
-
-        /* @var \Magento\Sales\Model\Order\Invoice\Item $invoiceItem */
-        foreach ($latestInvoice->getItems() as $invoiceItem) {
-            $numberOfItems = (int)$invoiceItem->getQty();
-
-            if ($invoiceItem->getOrderItem()->getParentItem() || $numberOfItems <= 0) {
-                continue;
-            }
-
-            ++$count;
-            $itemAmountCurrency = $this->chargedCurrency->getInvoiceItemAmountCurrency($invoiceItem);
-
-            $formFields = $this->adyenHelper->createOpenInvoiceLineItem(
-                $formFields,
-                $count,
-                $invoiceItem->getName(),
-                $itemAmountCurrency->getAmount(),
-                $currency,
-                $itemAmountCurrency->getTaxAmount(),
-                $itemAmountCurrency->getAmount() + $itemAmountCurrency->getTaxAmount(),
-                $invoiceItem->getOrderItem()->getTaxPercent(),
-                $numberOfItems,
-                $payment,
-                $invoiceItem->getId()
-            );
-        }
-
-        // Shipping cost
-        if ($latestInvoice->getShippingAmount() > 0) {
-            ++$count;
-            $adyenInvoiceShippingAmount = $this->chargedCurrency->getInvoiceShippingAmountCurrency($latestInvoice);
-            $formFields = $this->adyenHelper->createOpenInvoiceLineShipping(
-                $formFields,
-                $count,
-                $order,
-                $adyenInvoiceShippingAmount->getAmount(),
-                $adyenInvoiceShippingAmount->getTaxAmount(),
-                $adyenInvoiceShippingAmount->getCurrencyCode(),
-                $payment
-            );
-        }
-
-        $formFields['openinvoicedata.numberOfLines'] = $count;
-
-        return $formFields;
     }
 
     /**
@@ -265,7 +210,7 @@ class CaptureDataBuilder implements BuilderInterface
                 ];
 
                 if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($adyenOrderPayment[OrderPaymentInterface::PAYMENT_METHOD])) {
-                    $openInvoiceFields = $this->getOpenInvoiceData($payment);
+                    $openInvoiceFields = $this->openInvoiceHelper->getOpenInvoiceData($payment);
                     $authToCapture["additionalData"] = $openInvoiceFields;
                 }
 
