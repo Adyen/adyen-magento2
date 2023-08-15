@@ -122,7 +122,18 @@
             </comment>
             <config_path>payment/adyen_abstract/live_endpoint_url_prefix</config_path>
         </field>
-        <field id="notification_username" translate="label" type="text" sortOrder="60" showInDefault="1"
+        <field id="create_new_webhook" translate="label" type="radios" sortOrder="60" showInDefault="1"
+               showInWebsite="1" showInStore="0">
+            <label>Do you want to use your existing Adyen webhook?</label>
+            <depends>
+                <!-- To keep this field hidden by default for both auto and manual configuration modes, -->
+                <!-- we set a non-existent configuration mode here. -->
+                <field id="configuration_mode">xxx</field>
+            </depends>
+            <source_model>Adyen\Payment\Model\Config\Source\AutoCreateNewWebhook</source_model>
+            <config_path>payment/adyen_abstract/create_new_webhook</config_path>
+        </field>
+        <field id="notification_username" translate="label" type="text" sortOrder="70" showInDefault="1"
                showInWebsite="1" showInStore="1">
             <label>Webhook username</label>
             <depends>
@@ -135,7 +146,7 @@
             <config_path>payment/adyen_abstract/notification_username</config_path>
             <backend_model>Adyen\Payment\Model\Config\Backend\WebhookCredentials</backend_model>
         </field>
-        <field id="notification_password" translate="label" type="obscure" sortOrder="70" showInDefault="1"
+        <field id="notification_password" translate="label" type="obscure" sortOrder="80" showInDefault="1"
                showInWebsite="1" showInStore="1">
             <label>Webhook password</label>
             <depends>
@@ -148,7 +159,7 @@
             </tooltip>
             <comment>Note that if you change your password here, you will also need to update it in the Customer Area</comment>
         </field>
-        <field id="notification_hmac_key_test" translate="label" type="obscure" sortOrder="80" showInDefault="1"
+        <field id="notification_hmac_key_test" translate="label" type="obscure" sortOrder="90" showInDefault="1"
                showInWebsite="1" showInStore="1">
             <label>HMAC key test</label>
             <depends>
@@ -164,7 +175,7 @@
                 ]]>
             </tooltip>
         </field>
-        <field id="notification_hmac_key_live" translate="label" type="obscure" sortOrder="90" showInDefault="1"
+        <field id="notification_hmac_key_live" translate="label" type="obscure" sortOrder="100" showInDefault="1"
                showInWebsite="1" showInStore="1">
             <label>HMAC key live</label>
             <depends>
@@ -180,7 +191,7 @@
                 ]]>
             </tooltip>
         </field>
-        <field id="checkout_frontend_region" translate="label" type="select" sortOrder="100" showInDefault="1"
+        <field id="checkout_frontend_region" translate="label" type="select" sortOrder="110" showInDefault="1"
                showInWebsite="1" showInStore="0">
             <label>Front end resources region</label>
             <depends>
@@ -191,7 +202,7 @@
             <tooltip>
                 <![CDATA[This is the region from where Adyen components will fetch front end resources. It needs to match your store’s region.]]></tooltip>
         </field>
-        <field id="charged_currency" translate="label" type="hidden" sortOrder="110" showInDefault="1" showInWebsite="1"
+        <field id="charged_currency" translate="label" type="hidden" sortOrder="120" showInDefault="1" showInWebsite="1"
                showInStore="1">
             <label>Charged currency</label>
             <depends>
