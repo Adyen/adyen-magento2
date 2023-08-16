@@ -13,7 +13,6 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Model\ApplicationInfo;
-use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
 use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Quote\Model\Quote;
@@ -23,16 +22,16 @@ class PointOfSale
 {
     private Data $dataHelper;
     private ProductMetadataInterface $productMetadata;
-    private Vault $configHelper;
+    private Vault $vaultHelper;
 
     public function __construct(
         Data $dataHelper,
         ProductMetadataInterface $productMetadata,
-        Vault $configHelper
+        Vault $vaultHelper
     ) {
         $this->dataHelper = $dataHelper;
         $this->productMetadata = $productMetadata;
-        $this->configHelper = $configHelper;
+        $this->vaultHelper = $vaultHelper;
     }
 
     public function addSaleToAcquirerData(array $request, Order $order) : array
@@ -45,8 +44,8 @@ class PointOfSale
 
         // If customer exists add it into the request to store request
         if (!empty($customerId)) {
-            $posRecurringEnabled = $this->configHelper->getPaymentMethodRecurringActive(AdyenPosCloudConfigProvider::CODE, $storeId);
-            $recurringProcessingModel = $this->configHelper->getPaymentMethodRecurringProcessingModel(AdyenPosCloudConfigProvider::CODE, $storeId);
+            $posRecurringEnabled = $this->vaultHelper->getPaymentMethodRecurringActive(AdyenPosCloudConfigProvider::CODE, $storeId);
+            $recurringProcessingModel = $this->vaultHelper->getPaymentMethodRecurringProcessingModel(AdyenPosCloudConfigProvider::CODE, $storeId);
 
             if (!empty($posRecurringEnabled) && !empty($shopperEmail)) {
                 $saleToAcquirerData['shopperEmail'] = $shopperEmail;
