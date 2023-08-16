@@ -75,7 +75,7 @@ class CheckoutDataBuilder implements BuilderInterface
         CartRepositoryInterface $cartRepository,
         ChargedCurrency $chargedCurrency,
         Config $configHelper,
-        OpenInvoice $openInvoiceHelper,
+        OpenInvoice $openInvoiceHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->stateData = $stateData;
