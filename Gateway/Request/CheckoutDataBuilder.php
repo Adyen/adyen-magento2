@@ -286,6 +286,8 @@ class CheckoutDataBuilder implements BuilderInterface
         $amountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order);
         $currency = $amountCurrency->getCurrencyCode();
         $discountAmount = 0;
+        $applyDiscountOnPrice = $this->chargedCurrency->getApplyDiscountOnPriceConfig();
+        $pathExists = $this->chargedCurrency->isPathExists(ChargedCurrency::DISCOUNT_TAX_PATH);
 
         foreach ($cart->getAllVisibleItems() as $item) {
             $numberOfItems = (int)$item->getQty();
@@ -306,23 +308,41 @@ class CheckoutDataBuilder implements BuilderInterface
             );
 
             $formattedTaxAmount = $this->adyenHelper->formatAmount(
-                $itemAmountCurrency->getTaxAmount(),
+                ($item->getTaxAmount() / $item->getQty()) + ($item->getDiscountAmount()/$item->getQty()/10),
                 $itemAmountCurrency->getCurrencyCode()
             );
 
             $formattedTaxPercentage = $this->adyenHelper->formatAmount($item->getTaxPercent(), $currency);
 
-            $formFields['lineItems'][] = [
+            if ($pathExists) {
+                $calculatedTax = $applyDiscountOnPrice ? $formattedTaxAmount : "0";
+                $calculatedTaxPercentage = $applyDiscountOnPrice ? $formattedTaxPercentage : "0";
+            } else {
+                $calculatedTax = $formattedTaxAmount;
+                $calculatedTaxPercentage = $formattedTaxPercentage;
+            }
+
+            $baseLineItem = [
                 'id' => $item->getId(),
-                'amountExcludingTax' => $formattedPriceExcludingTax,
-                'amountIncludingTax' => $formattedPriceIncludingTax,
-                'taxAmount' => $formattedTaxAmount,
+                'taxAmount' => $calculatedTax,
                 'description' => $item->getName(),
                 'quantity' => $numberOfItems,
-                'taxPercentage' => $formattedTaxPercentage,
+                'taxPercentage' => $calculatedTaxPercentage,
                 'productUrl' => $item->getProduct()->getUrlModel()->getUrl($item->getProduct()),
                 'imageUrl' => $this->getImageUrl($item)
             ];
+
+            if ($pathExists) {
+                if ($applyDiscountOnPrice) {
+                    $baseLineItem['amountIncludingTax'] = $formattedPriceIncludingTax;
+                } else {
+                    $baseLineItem['amountExcludingTax'] = $formattedPriceExcludingTax;
+                }
+            } else {
+                $baseLineItem['amountIncludingTax'] = $formattedPriceIncludingTax;
+            }
+
+            $formFields['lineItems'][] = $baseLineItem;
         }
 
         // Discount cost
@@ -377,6 +397,29 @@ class CheckoutDataBuilder implements BuilderInterface
                 'quantity' => 1,
                 'taxPercentage' => (int) round(($formattedTaxAmount / $formattedPriceExcludingTax) * 100 * 100)
             ];
+        }
+
+        $orderTax = $order->getTaxAmount();
+        $formattedOrderTax = $this->adyenHelper->formatAmount(
+            $orderTax,
+            $currency
+        );
+
+
+        // US sales tax
+        if ($pathExists) {
+            if (!$applyDiscountOnPrice) {
+                $formFields['lineItems'][] = [
+                    'id' => 'tax',
+                    "description" => "Sales Tax",
+                    'amountIncludingTax' => $formattedOrderTax,
+                    'taxAmount' => "0",
+                    'quantity' => 1,
+                    'taxPercentage' => "0"
+                ];
+            } else {
+                return $formFields;
+            }
         }
 
         return $formFields;

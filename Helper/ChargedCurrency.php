@@ -19,6 +19,7 @@ use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Api\Data\CreditmemoItemInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\ScopeInterface;
+use \Magento\Framework\App\Config\Value;
 
 class ChargedCurrency
 {
@@ -27,18 +28,26 @@ class ChargedCurrency
      * Charged currency value when Global/Website is selected
      */
     const BASE = "base";
+    const DISCOUNT_TAX_PATH = "tax/calculation/discount_tax";
 
     /**
      * @var Config
      */
     private $config;
 
+    /**
+     * @var Value
+     */
+    private $configValue;
+
     public function __construct(
         Config $config,
-        ScopeConfigInterface $scopeConfig
+        ScopeConfigInterface $scopeConfig,
+        Value $configValue
     ) {
         $this->config = $config;
         $this->scopeConfig = $scopeConfig;
+        $this->configValue = $configValue;
     }
 
     /**
@@ -101,25 +110,31 @@ class ChargedCurrency
                 $item->getBasePriceInclTax()
             );
         }
+
         $amount = $item->getRowTotal()/$item->getQty();
         $amountIncludingTax = $item->getRowTotalInclTax()/$item->getQty();
         $amountExcludingTax = $item->getRowTotal()/$item->getQty();
-        $taxAmount = $item->getTaxAmount();
-        $discountAmount = $item->getDiscountAmount()/$item->getQty();
+        $taxAmountUs = ($amountExcludingTax - ($item->getDiscountAmount()/$item->getQty())) * $item->getTaxPercent()/100;
+        $taxAmountRw = $amountIncludingTax - $amount;
+        $pathExists = $this->isPathExists(self::DISCOUNT_TAX_PATH);
 
-        // fetch config value from admin panel
-        $applyDiscountOnPrice = $this->getApplyDiscountOnPriceConfig();
 
-        $totalAmount = $applyDiscountOnPrice ? $amountIncludingTax : $amountExcludingTax;
-        $sanitizedAmount = $discountAmount != 0 ? $totalAmount - $discountAmount : $totalAmount;
+        if ($pathExists) {
+            $applyDiscountOnPrice = $this->getApplyDiscountOnPriceConfig();
+            $totalAmount = $applyDiscountOnPrice ? $amountIncludingTax : $amountExcludingTax;
+            $calculatedTax = $applyDiscountOnPrice ? $taxAmountRw : $taxAmountUs;
+        } else {
+            $totalAmount = $amountIncludingTax;
+            $calculatedTax = $taxAmountRw;
+        }
 
         return new AdyenAmountCurrency(
             $amount,
             $item->getQuote()->getQuoteCurrencyCode(),
             $item->getDiscountAmount(),
-            $taxAmount,
+            $calculatedTax,
             null,
-            $sanitizedAmount
+            $totalAmount
         );
     }
 
@@ -312,9 +327,23 @@ class ChargedCurrency
      */
     public function getApplyDiscountOnPriceConfig()
     {
-        return $this->scopeConfig->isSetFlag(
+        return $this->scopeConfig->getValue(
             'tax/calculation/discount_tax',
             ScopeInterface::SCOPE_STORE
         );
+    }
+
+    /**
+     * @param string $path
+     * @param string $scope
+     * @return bool
+     */
+    public function isPathExists(string $path, string $scope = 'default')
+    {
+        $collection = $this->configValue->getCollection()
+            ->addFieldToFilter('path', $path)
+            ->addFieldToFilter('scope', $scope);
+
+        return $collection->getSize() > 0;
     }
 }
