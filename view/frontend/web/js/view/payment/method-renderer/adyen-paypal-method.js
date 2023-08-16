@@ -32,8 +32,6 @@ define(
                 return paypalConfiguration
             },
             renderActionComponent: function(resultCode, action, component) {
-                debugger;
-
                 fullScreenLoader.stopLoader();
 
                 this.actionComponent = component.handleAction(action);
