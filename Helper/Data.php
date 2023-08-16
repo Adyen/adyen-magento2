@@ -1162,7 +1162,7 @@ class Data extends AbstractHelper
         $taxPercent,
         $numberOfItems,
         $payment,
-        $itemId
+        $itemId = null
     ) {
         $description = str_replace("\n", '', trim($name));
         $itemAmount = $this->formatAmount($price, $currency);
@@ -1326,11 +1326,15 @@ class Data extends AbstractHelper
         $itemVatPercentage,
         $numberOfItems,
         $payment,
-        $itemId
+        $itemId = null
     ) {
         $linename = "line" . $count;
 
-        $formFields['openinvoicedata.' . $linename . '.itemId'] = $itemId;
+        // item id is optional
+        if ($itemId) {
+            $formFields['openinvoicedata.' . $linename . '.itemId'] = $itemId;
+        }
+
         $formFields['openinvoicedata.' . $linename . '.currencyCode'] = $currencyCode;
         $formFields['openinvoicedata.' . $linename . '.description'] = $description;
         $formFields['openinvoicedata.' . $linename . '.itemAmount'] = $itemAmount;
