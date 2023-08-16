@@ -46,8 +46,8 @@ class PaymentPosCloudHandler implements HandlerInterface
         $payment->getOrder()->setCanSendNewEmailFlag(false);
 
 
-        if (!empty($paymentResponse['Response']['AdditionalResponse'])
-        ) {
+        if (!empty($paymentResponse['Response']['AdditionalResponse'])) 
+        {
             $paymentResponseDecoded = json_decode(base64_decode($paymentResponse['Response']['AdditionalResponse']), true);
             $payment->setAdditionalInformation('additionalData', $paymentResponseDecoded['additionalData']);
 
