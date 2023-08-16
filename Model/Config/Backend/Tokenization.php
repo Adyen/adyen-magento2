@@ -154,8 +154,7 @@ class Tokenization extends Value
 
                 $arrayKey = $this->mathRandom->getUniqueHash('_');
                 $result[$arrayKey] = $paymentMethodValue;
-            }
-            elseif ($adyenPaymentMethod === AdyenPosCloudConfigProvider::CODE ){
+            } elseif ($adyenPaymentMethod === AdyenPosCloudConfigProvider::CODE ){
                 $paymentMethodValue = [
                     'name' => 'In-person payments',
                     'payment_method_code' => AdyenPosCloudConfigProvider::CODE,
