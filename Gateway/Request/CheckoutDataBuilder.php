@@ -313,7 +313,7 @@ class CheckoutDataBuilder implements BuilderInterface
             $formattedTaxPercentage = $this->adyenHelper->formatAmount($item->getTaxPercent(), $currency);
 
             $formFields['lineItems'][] = [
-                'id' => $item->getId(),
+                'id' => $item->getProduct()->getId(),
                 'amountExcludingTax' => $formattedPriceExcludingTax,
                 'amountIncludingTax' => $formattedPriceIncludingTax,
                 'taxAmount' => $formattedTaxAmount,
