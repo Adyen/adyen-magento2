@@ -46,7 +46,7 @@ class PointOfSale
         // If customer exists add it into the request to store request
         if (!empty($customerId)) {
             $posRecurringEnabled = $this->configHelper->getPaymentMethodRecurringActive(AdyenPosCloudConfigProvider::CODE ,$storeId);
-            $recurringProcessingModel = $this->configHelper->getPaymentMethodRecurringProcessingModel(AdyenPosCloudConfigProvider::CODE ,$storeId);
+            $recurringProcessingModel = $this->configHelper->getPaymentMethodRecurringProcessingModel(AdyenPosCloudConfigProvider::CODE, $storeId);
 
             if (!empty($posRecurringEnabled) && !empty($shopperEmail)) {
                 $saleToAcquirerData['shopperEmail'] = $shopperEmail;
