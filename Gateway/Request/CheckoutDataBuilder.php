@@ -20,7 +20,6 @@ use Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
-use Magento\Catalog\Helper\Image;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
