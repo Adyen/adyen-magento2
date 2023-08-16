@@ -79,7 +79,6 @@ class CheckoutDataBuilder implements BuilderInterface
         StateData $stateData,
         CartRepositoryInterface $cartRepository,
         ChargedCurrency $chargedCurrency,
-//        Image $imageHelper,
         Config $configHelper,
         OpenInvoice $openInvoiceHelper,
     ) {
@@ -87,7 +86,6 @@ class CheckoutDataBuilder implements BuilderInterface
         $this->stateData = $stateData;
         $this->cartRepository = $cartRepository;
         $this->chargedCurrency = $chargedCurrency;
-//        $this->imageHelper = $imageHelper;
         $this->configHelper = $configHelper;
         $this->openInvoiceHelper = $openInvoiceHelper;
     }

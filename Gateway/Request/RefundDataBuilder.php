@@ -184,7 +184,7 @@ class RefundDataBuilder implements BuilderInterface
             );
 
             if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) {
-                $openInvoiceFields = $this->openInvoiceHelper->getOpenInvoiceData($payment);
+                $openInvoiceFields = $this->openInvoiceHelper->getOpenInvoiceData($payment->getOrder());
 
                 //There is only one payment, so we add the fields to the first(and only) result
                 $requestBody[0]["additionalData"] = $openInvoiceFields;
