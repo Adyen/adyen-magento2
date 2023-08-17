@@ -77,6 +77,8 @@ jobs:
           ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
           ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
           ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
+          WEBHOOK_USERNAME: ${{secrets.ADYEN_MERCHANT}}
+          WEBHOOK_PASSWORD: ${{secrets.ADYEN_MERCHANT}}
 
       - name: Archive test result artifacts
         if: always()
