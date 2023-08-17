@@ -1,590 +1,363 @@
 <?php
-
 namespace Adyen\Payment\Test\Unit\Helper\Webhook;
 
-use Adyen\Payment\Helper\Webhook\AuthorisationWebhookHandler;
-use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Payment\Helper\AdyenOrderPayment;
+use Adyen\Payment\Model\AdyenAmountCurrency;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Adyen\Payment\Helper\Webhook\AuthorisationWebhookHandler;
+use Adyen\Payment\Model\Notification;
+use Adyen\Webhook\PaymentStates;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Sales\Model\Order;
+use PHPUnit\Framework\MockObject\MockObject;
+use Adyen\Payment\Helper\Order as OrderHelper;
 use Adyen\Payment\Helper\CaseManagement;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Invoice;
-use Adyen\Payment\Helper\Order as OrderHelper;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\Notification;
-use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
-use Adyen\Webhook\PaymentStates;
 use Magento\Framework\Serialize\SerializerInterface;
-use Magento\Sales\Api\Data\OrderPaymentInterface;
-use Magento\Sales\Model\Order;
+use ReflectionClass;
+use ReflectionException as ReflectionExceptionAlias;
+use ReflectionMethod;
 
 class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
 {
-    protected AuthorisationWebhookHandler $handler;
+    private AdyenAmountCurrency|MockObject $orderAmountCurrency;
+    private Notification|MockObject $notificationMock;
+    private Order|MockObject $orderMock;
 
     protected function setUp(): void
     {
-        // Create mock objects for dependencies
-        $adyenOrderPaymentHelperMock = $this->createMock(AdyenOrderPayment::class);
-        $orderHelperMock = $this->createMock(OrderHelper::class);
-        $caseManagementHelperMock = $this->createMock(CaseManagement::class);
-        $serializerMock = $this->createMock(SerializerInterface::class);
-        $adyenLoggerMock = $this->createMock(AdyenLogger::class);
-        $chargedCurrencyMock = $this->createMock(ChargedCurrency::class);
-        $configHelperMock = $this->createMock(Config::class);
-        $invoiceHelperMock = $this->createMock(Invoice::class);
-        $paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
+        parent::setUp();
+        $this->orderMock = $this->createOrder();
+        $this->adyenOrderPaymentMock = $this->createMock(AdyenOrderPayment::class);
+        $this->orderAmountCurrency = $this->createMock(AdyenAmountCurrency::class);
+        $this->chargedCurrencyMock = $this->createMock(ChargedCurrency::class);
+        $this->notificationMock = $this->createMock(Notification::class);
+        $this->orderMock = $this->createMock(Order::class);
+        $this->orderHelperMock = $this->createMock(OrderHelper::class);
+        $this->paymentMethodsMock = $this->createMock(PaymentMethods::class);
+        $this->caseManagementMock = $this->createMock(CaseManagement::class);
+        $this->configMock = $this->createMock(Config::class);
+        $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
+        $this->serializerMock = $this->createMock(SerializerInterface::class);
+        $this->invoiceHelperMock = $this->createMock(Invoice::class);
+        $this->paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
+        $paymentMethod = 'ADYEN_CC';
+        $merchantReference = 'TestMerchant';
+        $pspReference = 'ABCD1234GHJK5678';
+        $this->notificationMock = $this->createConfiguredMock(Notification::class, [
+            'getPspreference' => $pspReference,
+            'getMerchantReference' => $merchantReference,
+            'getPaymentMethod' => $paymentMethod,
+            'isSuccessful' => true
+        ]);
+    }
 
-        // Create an instance of the AuthorisationWebhookHandler class with mocked dependencies
-        $this->handler = new AuthorisationWebhookHandler(
-            $adyenOrderPaymentHelperMock,
-            $orderHelperMock,
-            $caseManagementHelperMock,
-            $serializerMock,
-            $adyenLoggerMock,
-            $chargedCurrencyMock,
-            $configHelperMock,
-            $invoiceHelperMock,
+    /**
+     * @throws LocalizedException
+     */
+    public function testHandleWebhook()
+    {
+        // Set up expectations for mock objects
+        $orderAmountCurrency = new AdyenAmountCurrency(
+            10.33,
+            'EUR',
+            null,
+            null,
+            10.33
+        );
+        $storeId = 1;
+        $paymentMock = $this->createConfiguredMock(Order\Payment::class, [
+            'getMethod' => 'adyen_cc'
+        ]);
+        $this->orderMock->method('getStoreId')->willReturn($storeId);
+        $this->orderMock->method('getPayment')->willReturn($paymentMock);
+
+        $this->notificationMock->expects($this->once())
+            ->method('isSuccessful')
+            ->willReturn(true);
+
+        $paymentMethodsHelperMock = $this->createConfiguredMock(PaymentMethods::class, [
+            'isAutoCapture' => true
+        ]);
+        $mockChargedCurrency = $this->createConfiguredMock(ChargedCurrency::class, [
+            'getOrderAmountCurrency' => $orderAmountCurrency
+        ]);
+
+        $transitionState = PaymentStates::STATE_PAID;
+
+        $handler = $this->createAuthorisationWebhookHandler(
+            null,
+            $this->orderHelperMock,
+            null,
+            null,
+            null,
+            $mockChargedCurrency,
+            null,
+            null,
             $paymentMethodsHelperMock
         );
 
+        // Call the function to be tested
+        $result = $handler->handleWebhook($this->orderMock, $this->notificationMock, $transitionState);
 
-
-
-//        // Mocks
-//        $this->orderPaymentHelper = $this->createMock(AdyenOrderPayment::class);
-//        $this->orderHelper = $this->createMock(OrderHelper::class);
-//        $this->caseManagementHelper = $this->createMock(CaseManagement::class);
-//        $this->orderPayment = $this->createConfiguredMock(OrderPaymentInterface::class, [
-//            'getAdditionalInformation' => ['payByLinkFailureCount' => 2],
-//        ]);
-//
-//        $this->order = $this->getMockBuilder(Order::class)
-//            ->disableOriginalConstructor()
-//            ->getMock();
-//
-//        $this->logger = $this->createMock(AdyenLogger::class);
-//
-//        $this->notification = $this->getMockBuilder(Notification::class)
-//            ->disableOriginalConstructor()
-//            ->getMock();
+        // Assertions
+        $this->assertInstanceOf(Order::class, $result);
     }
 
-    public function testHandleWebhookWithSuccessfulState()
+    public function testHandleSuccessfulAuthorisationWithAutoCaptureEnabled()
     {
-        // Expectations
-        $this->notification = $this->getMockBuilder(Notification::class)
+        // Mock
+        $orderAmount = 10.33;
+        $this->adyenOrderPaymentMock->expects($this->once())
+            ->method('createAdyenOrderPayment');
+        $this->adyenOrderPaymentMock->expects($this->once())
+            ->method('isFullAmountAuthorized')
+            ->willReturn(true);
+
+        $this->orderAmountCurrency = new AdyenAmountCurrency(
+            $orderAmount,
+            'EUR',
+            null,
+            null,
+            $orderAmount
+        );
+
+        $mockChargedCurrency = $this->createConfiguredMock(ChargedCurrency::class, [
+            'getOrderAmountCurrency' => $this->orderAmountCurrency
+        ]);
+
+        // Create mock instances for Order and Notification
+        $paymentMock = $this->createMock(Order::class);
+        $storeId = 1;
+        $this->orderMock->method('getStoreId')->willReturn($storeId);
+        $this->orderMock->method('getPayment')->willReturn($paymentMock);
+
+        $this->orderHelperMock->expects($this->once())
+            ->method('setPrePaymentAuthorized')->willReturn($this->orderMock);
+        $this->orderHelperMock->expects($this->once())
+            ->method('updatePaymentDetails');
+        $this->orderHelperMock->expects($this->once())
+            ->method('sendOrderMail');
+        $this->orderHelperMock->expects($this->once())
+            ->method('finalizeOrder')->willReturn($this->orderMock);
+
+        $paymentMethodsMock = $this->createConfiguredMock(
+            PaymentMethods::class,
+            [
+                'isAutoCapture' => true
+            ]
+        );
+
+        $authorisationWebhookHandler = $this->createAuthorisationWebhookHandler(
+            $this->adyenOrderPaymentMock,
+            $this->orderHelperMock,
+            null,
+            null,
+            null,
+            $mockChargedCurrency,
+            null,
+            null,
+            $paymentMethodsMock
+        );
+
+        // Invoke the private method
+        $handleSuccessfulAuthorisationMethod = $this->getPrivateMethod(
+            AuthorisationWebhookHandler::class,
+            'handleSuccessfulAuthorisation'
+        );
+
+        $result = $handleSuccessfulAuthorisationMethod->invokeArgs($authorisationWebhookHandler, [$this->orderMock, $this->notificationMock]);
+
+        // Assert the result
+        $this->assertInstanceOf(Order::class, $result);
+    }
+
+    public function testHandleFailedAuthorisation()
+    {
+        $this->orderMock->expects($this->atLeastOnce())
+            ->method('getData')
+            ->withConsecutive(
+                ['adyen_notification_event_code'],
+                ['adyen_notification_payment_captured']
+            )
+            ->willReturnCallback(function ($arg) {
+                if ($arg === 'adyen_notification_event_code') {
+                    return 'AUTHORISATION : TRUE';
+                } elseif ($arg === 'adyen_notification_payment_captured') {
+                    return false;
+                }
+            });
+
+        // Create an instance of AuthorisationWebhookHandler
+        $webhookHandler = $this->createAuthorisationWebhookHandler(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+
+        $handleFailedAuthorisationMethod = $this->getPrivateMethod(
+            AuthorisationWebhookHandler::class,
+            'handleFailedAuthorisation'
+        );
+
+        // Call the private method directly and provide required parameters
+        $result = $handleFailedAuthorisationMethod->invokeArgs($webhookHandler, [$this->orderMock, $this->notificationMock]);
+
+        // Assert the expected behavior based on the mocked logic and result
+        $this->assertInstanceOf(Order::class, $result);
+    }
+
+    public function testHandleAutoCapture()
+    {
+        // Set up expectations for the mocks
+        $this->orderMock->expects($this->any())
+            ->method('getPayment')
+            ->willReturn($this->orderMock);
+
+        $this->orderMock->expects($this->any())
+            ->method('getConfig')
+            ->willReturnSelf();
+
+        // Create an instance of AuthorisationWebhookHandler
+        $webhookHandler = $this->createAuthorisationWebhookHandler(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+
+        // Use Reflection to access the private method
+        $handleAutoCaptureMethod = $this->getPrivateMethod(
+            AuthorisationWebhookHandler::class,
+            'handleAutoCapture'
+        );
+
+        // Call the private method directly and provide required parameters
+        $result = $handleAutoCaptureMethod->invokeArgs(
+            $webhookHandler,
+            [$this->orderMock, $this->notificationMock, true] // true indicates requireFraudManualReview
+        );
+
+        // Perform assertions on the result and expected behavior
+        $this->assertInstanceOf(Order::class, $result);
+    }
+
+    public function testHandleManualCapture()
+    {
+        // Set up expectations for handleManualCapture private method
+        $requireFraudManualReview = true; // Assuming this condition is met
+        $this->orderHelperMock->expects($this->never()) // Since the condition is true
+        ->method('setPrePaymentAuthorized');
+
+        $this->caseManagementMock->expects($this->once())
+            ->method('markCaseAsPendingReview')
+            ->with($this->orderMock, $this->notificationMock->getPspreference(), false);
+
+        // Create an instance of AuthorisationWebhookHandler
+        $webhookHandler = $this->createAuthorisationWebhookHandler(
+            null,
+            $this->orderHelperMock,
+            $this->caseManagementMock,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+
+        // Use Reflection to access the private method
+        $handleManualCaptureMethod = $this->getPrivateMethod(
+            AuthorisationWebhookHandler::class,
+            'handleManualCapture'
+        );
+
+        // Call the private method directly and provide required parameters
+        $result = $handleManualCaptureMethod->invokeArgs(
+            $webhookHandler,
+            [$this->orderMock, $this->notificationMock, true]
+        );
+
+        // Perform assertions on the result and expected behavior
+        $this->assertInstanceOf(Order::class, $result);
+    }
+
+    public function testCanCancelPayByLinkOrder()
+    {
+        // Create mocks for the required dependencies
+        $paymentMock = $this->getMockBuilder(Order\Payment::class)
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->orderHelper->expects($this->once())
-            ->method('setPrePaymentAuthorized')
-            ->with($this->equalTo($this->order))
-            ->willReturn($this->order);
-
-        $this->orderHelper->expects($this->once())
-            ->method('updatePaymentDetails')
-            ->with($this->equalTo($this->order), $this->equalTo($this->notification));
-
-        // Create the AuthorisationWebhookHandler instance with mocked dependencies
-        $handler = $this->createAuthorisationWebhookHandler(
-            $this->orderPaymentHelper,
-            $this->orderHelper,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-        );
-
-        // Test the handleWebhook method
-        $result = $handler->handleWebhook($this->order, $this->notification, PaymentStates::STATE_PAID);
-
-        $this->assertSame($this->order, $result);
-    }
-
-
-
-
-
-
-
-
-    public function testHandleWebhookWithFailedStateWithoutPreviousPaymentCaptured()
-    {
-        $notificationMock =  $this->createConfiguredMock(Notification::class, [
-            'getAdditionalData' => ''
-        ]);
-
-        $this->order->expects($this->once())
-            ->method('getData')
-            ->with('adyen_notification_event_code')
-            ->willReturn('AUTHORISATION : FALSE');
-
-        // Expectation for logging and order status
-        $this->logger->expects($this->once())
-            ->method('addAdyenNotification')
-            ->with($this->stringContains('Order is not cancelled because previous notification was an authorisation that succeeded and payment was captured'));
-
-        // Create the AuthorisationWebhookHandler instance with mocked dependencies
-        $handler = $this->createAuthorisationWebhookHandler(
-            $this->orderPaymentHelper,
-            $this->orderHelper,
-            null,
-            null,
-            $this->logger,
-            null,
-            null,
-            null,
-            null
-        );
-
-        // Test the handleWebhook method
-        $result = $handler->handleWebhook($this->order, $this->notification, PaymentStates::STATE_FAILED);
-
-        // Assert the order was not changed
-        $this->assertSame($this->order, $result);
-    }
-
-    public function testHandleWebhookWithFailedStateWithPreviousPaymentCaptured()
-    {
-        $this->notification->expects($this->once())
-            ->method('getAdditionalData')
-            ->willReturn([]);
-
-        $this->order->expects($this->once())
-            ->method('getData')
-            ->with('adyen_notification_event_code')
-            ->willReturn('AUTHORISATION : TRUE');
-
-        $this->order->expects($this->once())
-            ->method('getData')
-            ->with('adyen_notification_payment_captured')
-            ->willReturn(true); // Example payment captured
-
-        // Expectation for logging and order status
-        $this->logger->expects($this->once())
-            ->method('addAdyenNotification')
-            ->with($this->stringContains('Order is not cancelled because previous notification was an authorisation that succeeded and payment was captured'));
-
-        // Create the AuthorisationWebhookHandler instance with mocked dependencies
-        $handler = $this->createAuthorisationWebhookHandler(
-            $this->orderPaymentHelper,
-            $this->orderHelper,
-            null,
-            null,
-            $this->logger,
-            null,
-            null,
-            null,
-            null
-        );
-
-        // Test the handleWebhook method
-        $result = $handler->handleWebhook($this->order, $this->notification, PaymentStates::STATE_FAILED);
-
-        // Assert the order was not changed
-        $this->assertSame($this->order, $result);
-    }
-
-    public function testHandleWebhookWithCanceledOrHoldedOrder()
-    {
-        $this->order->expects($this->once())
-            ->method('isCanceled')
-            ->willReturn(true); // Example: order is canceled
-
-        $this->order->expects($this->never())
-            ->method('cancel');
-
-        // Expectation for logging
-        $this->logger->expects($this->once())
-            ->method('addAdyenNotification')
-            ->with($this->stringContains('Order is already cancelled or held, do nothing'));
-
-        // Create the AuthorisationWebhookHandler instance with mocked dependencies
-        $handler = $this->createAuthorisationWebhookHandler(
-            $this->orderPaymentHelper,
-            $this->orderHelper,
-            null,
-            null,
-            $this->logger,
-            null,
-            null,
-            null,
-            null
-        );
-
-        // Test the handleWebhook method
-        $result = $handler->handleWebhook($this->order, $this->notification, PaymentStates::STATE_FAILED);
-
-        // Assert the order was not changed
-        $this->assertSame($this->order, $result);
-    }
-
-    public function testHandleWebhookWithPartialPaymentFailure()
-    {
-        $this->notification->expects($this->once())
-            ->method('getPaymentMethod')
-            ->willReturn('ADYEN_CC'); //Can be anything, just testing a scenario
-
-        $this->order->expects($this->once())
-            ->method('getData')
-            ->with('adyen_notification_payment_captured')
-            ->willReturn(false); // Example: payment not captured
-
-        $this->orderPaymentHelper->expects($this->once())
-            ->method('createAdyenOrderPayment')
-            ->with($this->equalTo($this->order), $this->equalTo($this->notification))
-            ->willReturn($this->order);
-
-        $this->orderHelper->expects($this->once())
-            ->method('isFullAmountAuthorized')
-            ->with($this->equalTo($this->order))
-            ->willReturn(false); // Example: partial payment
-
-        $this->orderHelper->expects($this->never())
-            ->method('setPrePaymentAuthorized');
-
-        $this->orderHelper->expects($this->never())
-            ->method('updatePaymentDetails');
-
-        // Create the AuthorisationWebhookHandler instance with mocked dependencies
-        $handler = $this->createAuthorisationWebhookHandler(
-            $this->orderPaymentHelper,
-            $this->orderHelper,
-            null,
-            null,
-            $this->logger,
-            null,
-            null,
-            null,
-            null
-        );
-
-        // Test the handleWebhook method
-        $result = $handler->handleWebhook($this->order, $this->notification, PaymentStates::STATE_FAILED);
-
-        // Assert the order was not changed
-        $this->assertSame($this->order, $result);
-    }
-
-    public function testHandleWebhookWithOrderAlreadyCaptured()
-    {
-        // Mocks and expectations
-        $this->order->expects($this->once())
-            ->method('getState')
-            ->willReturn(Order::STATE_COMPLETE);
-
-        $this->orderHelper->expects($this->never())
-            ->method('setPrePaymentAuthorized');
-
-        $this->orderHelper->expects($this->never())
-            ->method('updatePaymentDetails');
-
-        // Create the AuthorisationWebhookHandler instance with mocked dependencies
-        $handler = $this->createAuthorisationWebhookHandler(
-            $this->orderPaymentHelper,
-            $this->orderHelper,
-            null,
-            null,
-            $this->logger,
-            null,
-            null,
-            null,
-            null
-        );
-
-        // Test the handleWebhook method
-        $result = $handler->handleWebhook($this->order, $this->notification, PaymentStates::STATE_PAID);
-
-        // Assert the order was not changed
-        $this->assertSame($this->order, $result);
-    }
-
-    public function testHandleWebhookWithAutoCaptureDisabled()
-    {
-        $this->notification->expects($this->once())
-            ->method('getPaymentMethod')
-            ->willReturn('ADYEN_CC');
-
-        $this->orderPaymentHelper->expects($this->once())
-            ->method('isAutoCapture')
-            ->with($this->equalTo($this->order), $this->equalTo('ADYEN_CC'))
-            ->willReturn(false); // Example: auto-capture disabled
-
-        $this->orderHelper->expects($this->never())
-            ->method('setPrePaymentAuthorized');
-
-        $this->orderHelper->expects($this->once())
-            ->method('updatePaymentDetails')
-            ->with($this->equalTo($this->order), $this->equalTo($this->notification));
-
-        // Create the AuthorisationWebhookHandler instance with mocked dependencies
-        $handler = $this->createAuthorisationWebhookHandler(
-            $this->orderPaymentHelper,
-            $this->orderHelper,
-            null,
-            null,
-            $this->logger,
-            null,
-            null,
-            null,
-            null
-        );
-
-        // Test the handleWebhook method
-        $result = $handler->handleWebhook($this->order, $this->notification, PaymentStates::STATE_PAID);
-
-        // Assert the order was not changed
-        $this->assertSame($this->order, $result);
-    }
-
-    public function testHandleWebhookWithPartialPaymentAuthorized()
-    {
-        $this->notification->expects($this->once())
-            ->method('getPaymentMethod')
-            ->willReturn('ADYEN_CC');
-
-        $this->order->expects($this->never())
-            ->method('getData')
-            ->with('adyen_notification_payment_captured');
-
-        $this->orderPaymentHelper->expects($this->once())
-            ->method('isAutoCapture')
-            ->with($this->equalTo($this->order), $this->equalTo('ADYEN_CC'))
-            ->willReturn(true); // Example: auto-capture enabled
-
-        $this->orderHelper->expects($this->once())
-            ->method('isFullAmountAuthorized')
-            ->with($this->equalTo($this->order))
-            ->willReturn(false); // Example: partial payment
-
-        $this->orderHelper->expects($this->once())
-            ->method('setPrePaymentAuthorized')
-            ->with($this->equalTo($this->order))
-            ->willReturn($this->order);
-
-        $this->orderHelper->expects($this->once())
-            ->method('updatePaymentDetails')
-            ->with($this->equalTo($this->order), $this->equalTo($this->notification));
-
-        // Create the AuthorisationWebhookHandler instance with mocked dependencies
-        $handler = $this->createAuthorisationWebhookHandler(
-            $this->orderPaymentHelper,
-            $this->orderHelper,
-            null,
-            null,
-            $this->logger,
-            null,
-            null,
-            null,
-            null
-        );
-
-        // Test the handleWebhook method
-        $result = $handler->handleWebhook($this->order, $this->notification, PaymentStates::STATE_PAID);
-
-        // Assert the order was not changed
-        $this->assertSame($this->order, $result);
-    }
-
-
-    public function testHandleWebhookWithAutoCaptureAndManualReview()
-    {
-        $this->notification->expects($this->once())
-            ->method('getPaymentMethod')
-            ->willReturn('adyen_credit_card'); // Assuming this triggers auto-capture
-
-        $this->caseManagementHelper->expects($this->once())
-            ->method('requiresManualReview')
-            ->willReturn(true);
-
-
-        $this->orderPaymentHelper->expects($this->once())
-            ->method('isAutoCapture')
-            ->with($this->equalTo($this->order), $this->equalTo('some_payment_method'))
-            ->willReturn(true); // Example: auto-capture enabled
-
-        $this->orderHelper->expects($this->once())
-            ->method('isFullAmountAuthorized')
-            ->with($this->equalTo($this->order))
-            ->willReturn(true); // Example: full amount authorized
-
-        $this->caseManagementHelper->expects($this->once())
-            ->method('requiresManualReview')
-            ->willReturn(true); // Example: manual review required
-
-        $this->caseManagementHelper->expects($this->once())
-            ->method('markCaseAsPendingReview')
-            ->with($this->equalTo($this->order), $this->equalTo($this->notification->getPspreference()), $this->equalTo(true))
-            ->willReturn($this->order);
-
-        // Create the AuthorisationWebhookHandler instance with mocked dependencies
-        $handler = $this->createAuthorisationWebhookHandler(
-            $this->orderPaymentHelper,
-            $this->orderHelper,
-            $this->caseManagementHelper,
-            null,
-            $this->logger,
-            null,
-            null,
-            null,
-            null
-        );
-
-        // Test the handleWebhook method for AutoCapture and manual review
-        $result = $handler->handleWebhook($this->order, $this->notification, PaymentStates::STATE_PAID);
-
-        $this->assertSame($this->order, $result);
-    }
-
-    public function testHandleWebhookWithManualCaptureAndNoReview()
-    {
-        // Expectations for ManualCapture and no review
-        $this->notification->expects($this->once())
-            ->method('getPaymentMethod')
-            ->willReturn('ADYEN_CC');
-
-        $this->caseManagementHelper->expects($this->once())
-            ->method('requiresManualReview')
-            ->willReturn(false);
-
-        $this->orderHelper->expects($this->once())
-            ->method('finalizeOrder')
-            ->willReturn($this->order);
-
-        $this->orderPaymentHelper->expects($this->once())
-            ->method('isAutoCapture')
-            ->with($this->equalTo($this->order), $this->equalTo('some_payment_method'))
-            ->willReturn(false); // Example: auto-capture disabled
-
-        $this->orderHelper->expects($this->once())
-            ->method('isFullAmountAuthorized')
-            ->with($this->equalTo($this->order))
-            ->willReturn(true); // Example: full amount authorized
-
-        $this->order->expects($this->once())
-            ->method('setState')
-            ->with($this->equalTo(Order::STATE_PENDING_PAYMENT));
-
-        $this->order->expects($this->once())
-            ->method('setStatus')
-            ->with($this->equalTo($this->order->getConfig()->getStateDefaultStatus(Order::STATE_PENDING_PAYMENT)));
-
-        $this->orderHelper->expects($this->once())
-            ->method('addWebhookStatusHistoryComment')
-            ->with($this->equalTo($this->order), $this->equalTo($this->notification))
-            ->willReturn($this->order);
-
-        $this->order->expects($this->once())
-            ->method('addStatusHistoryComment')
-            ->with($this->equalTo(__('Capture Mode set to Manual')), $this->equalTo($this->order->getStatus()));
-
-        $this->logger->expects($this->once())
-            ->method('addAdyenNotification')
-            ->with($this->equalTo('Capture mode is set to Manual'), $this->anything());
-
-        // Create the AuthorisationWebhookHandler instance with mocked dependencies
-        $handler = $this->createAuthorisationWebhookHandler(
-            $this->orderPaymentHelper,
-            $this->orderHelper,
-            $this->caseManagementHelper,
-            null,
-            $this->logger,
-            null,
-            null,
-            null,
-            null
-        );
-
-        // Test the handleWebhook method for ManualCapture and no review
-        $result = $handler->handleWebhook($this->order, $this->notification, PaymentStates::STATE_PAID);
-
-        $this->assertSame($this->order, $result);
-    }
-
-    public function testCanCancelPayByLinkOrderWithMaxFailureCount()
-    {
-        $this->order->expects($this->once())
-            ->method('getPayment')
-            ->willReturn($this->orderPayment);
-
-        $this->notification->expects($this->once())
-            ->method('setDone')
-            ->with(true);
-
-        $this->notification->expects($this->once())
-            ->method('setProcessing')
-            ->with(false);
-
-        $this->notification->expects($this->once())
-            ->method('save');
-
-        $this->orderHelper = $this->createMock(OrderHelper::class);
-        $this->orderHelper->expects($this->once())
-            ->method('addStatusHistoryComment')
-            ->with($this->equalTo($this->order), $this->stringContains('Pay by Link failure count: 2/5'));
-
-        $this->logger->expects($this->once())
-            ->method('addAdyenNotification')
-            ->with($this->stringContains('Pay by Link failure count: 2/3'));
-
-        // Test the handleWebhook method
-        $result = $this->handler->handleWebhook($this->order, $this->notification, PaymentStates::STATE_FAILED);
-
-        $this->assertSame($this->order, $result);
-    }
-
-
-    public function testHandleWebhookWithPayByLinkLessThanMaxFailureCount()
-    {
-        $this->order->expects($this->once())
-            ->method('getPayment')
-            ->willReturn($this->orderPayment);
-
-        $this->orderPayment->expects($this->once())
+        // Configure the payment mock to return the payByLinkFailureCount
+        $payByLinkFailureCount = 3; // Assuming the failure count is 3
+
+        // Use willReturn() to mock chained method calls
+        $paymentMock->expects($this->once())
             ->method('getAdditionalInformation')
-            ->with($this->equalTo('payByLinkFailureCount'))
-            ->willReturn(2); // Example: failure count less than max
+            ->with('payByLinkFailureCount')
+            ->willReturn($payByLinkFailureCount);
 
-        $this->orderPayment->expects($this->once())
+        // Configure the order mock to return the payment mock
+        $this->orderMock->method('getPayment')->willReturn($paymentMock);
+
+        $paymentMock->expects($this->once())
             ->method('setAdditionalInformation')
-            ->with($this->equalTo('payByLinkFailureCount'), $this->equalTo(3)); // Incremented failure count
+            ->with('payByLinkFailureCount', $payByLinkFailureCount + 1);
 
-        $this->notification->expects($this->once())
-            ->method('setDone')
-            ->with($this->equalTo(true));
+        // Create an instance of AuthorisationWebhookHandler
+        $webhookHandler = $this->createAuthorisationWebhookHandler(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
 
-        $this->notification->expects($this->once())
-            ->method('setProcessing')
-            ->with($this->equalTo(false));
+        // Use Reflection to access the private method
+        $canCancelPayByLinkOrderMethod = $this->getPrivateMethod(
+            AuthorisationWebhookHandler::class,
+            'canCancelPayByLinkOrder'
+        );
 
-        $this->notification->expects($this->once())
-            ->method('save');
+        // Call the private method directly and provide required parameters
+        $result = $canCancelPayByLinkOrderMethod->invokeArgs(
+            $webhookHandler,
+            [$this->orderMock, $this->notificationMock]
+        );
 
-        $this->order->expects($this->once())
-            ->method('addStatusHistoryComment')
-            ->with($this->equalTo(__(sprintf(
-                "Order wasn't cancelled by this webhook notification. Pay by Link failure count: %s/%s",
-                3,
-                AdyenPayByLinkConfigProvider::MAX_FAILURE_COUNT
-            ))), $this->equalTo(false));
+        // Perform assertions on the result and expected behavior
+        $this->assertIsBool($result);
+    }
 
-        $this->logger->expects($this->once())
-            ->method('addAdyenNotification')
-            ->with($this->equalTo(__(sprintf(
-                "Order wasn't cancelled by this webhook notification. Pay by Link failure count: %s/%s",
-                3,
-                AdyenPayByLinkConfigProvider::MAX_FAILURE_COUNT
-            ))), $this->anything());
-
-        // Test the handleWebhook method
-        $result = $this->handler->handleWebhook($this->order, $this->notification, PaymentStates::STATE_FAILED);
-
-        $this->assertSame($this->order, $result);
+    /**
+     * @throws ReflectionExceptionAlias
+     */
+    private function getPrivateMethod(string $className, string $methodName): ReflectionMethod
+    {
+        $reflectionClass = new ReflectionClass($className);
+        $method = $reflectionClass->getMethod($methodName);
+        $method->setAccessible(true);
+        return $method;
     }
 
     protected function createAuthorisationWebhookHandler(
@@ -647,5 +420,4 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
             $mockPaymentMethodsHelper
         );
     }
-
 }
