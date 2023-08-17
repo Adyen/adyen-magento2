@@ -42,7 +42,7 @@ $_colspan = $block->isAddAfter() ? 2 : 1;
 
                 // define row prototypeJS template
                 template: mageTemplate(
-                    '<tr id="can">'
+                    '<tr id="<%- _id %>">'
                         <?php foreach ($block->getColumns() as $columnName => $column): ?>
                             + '<td>'
                             + '<?= $block->escapeJs($block->renderCellTemplate($columnName)) ?>'
