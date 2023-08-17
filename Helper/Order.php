@@ -470,10 +470,6 @@ class Order extends AbstractHelper
             sprintf('Refund has failed. Unable to change back status of the order.<br /> %s', $description)
         ), $order->getStatus());
 
-        /*
-         * Check adyen_creditmemo table.
-         * If credit memo doesn't exist for this notification, create it.
-         */
         $linkedAdyenCreditmemo = $this->adyenCreditmemoHelper->getAdyenCreditmemoByPspreference(
             $notification->getPspreference()
         );
