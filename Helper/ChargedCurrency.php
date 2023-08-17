@@ -92,20 +92,23 @@ class ChargedCurrency
                 $item->getBasePrice(),
                 $item->getQuote()->getBaseCurrencyCode(),
                 $item->getBaseDiscountAmount(),
-                $item->getBasePriceInclTax() - $item->getBasePrice(),
+                ($item->getBaseTaxAmount() + $item->getBaseDiscountTaxCompensationAmount()) / $item->getQty(),
                 null,
                 $item->getBasePriceInclTax()
             );
         }
-        $amount = $item->getRowTotal()/$item->getQty();
-        $amountIncludingTax = $item->getRowTotalInclTax()/$item->getQty();
+
+        // This `amount` can be ambiguous due to different tax configurations.
+        // Please use tax inc/excl amounts for precise calculations.
+        $amount = $item->getRowTotal() / $item->getQty();
+
         return new AdyenAmountCurrency(
             $amount,
             $item->getQuote()->getQuoteCurrencyCode(),
             $item->getDiscountAmount(),
-            $amountIncludingTax - $amount,
+            ($item->getTaxAmount() + $item->getDiscountTaxCompensationAmount()) / $item->getQty(),
             null,
-            $amountIncludingTax
+            $item->getPriceInclTax()
         );
     }
 
@@ -230,21 +233,39 @@ class ChargedCurrency
     {
         $chargedCurrency = $this->config->getChargedCurrency($quote->getStoreId());
         if ($chargedCurrency == self::BASE) {
+            // Magento can't update tax discount compensation. Possible Magento bug.
+            $quote->getShippingAddress()->setBaseDiscountTaxCompensationAmount(
+                $quote->getShippingAddress()->getBaseShippingInclTax() -
+                $quote->getShippingAddress()->getBaseShippingAmount() -
+                $quote->getShippingAddress()->getBaseShippingTaxAmount()
+            );
+            $quote->save();
+
             return new AdyenAmountCurrency(
                 $quote->getShippingAddress()->getBaseShippingAmount(),
                 $quote->getBaseCurrencyCode(),
-                $quote->getShippingAddress()->getBaseShippingDiscountAmount(),
-                $quote->getShippingAddress()->getBaseShippingTaxAmount(),
+                $quote->getShippingAddress()->getBaseShippingDiscountAmount() + $quote->getShippingAddress()->getBaseShippingDiscountTaxCompensationAmnt(),
+                $quote->getShippingAddress()->getBaseShippingTaxAmount() + $quote->getShippingAddress()->getBaseShippingDiscountTaxCompensationAmnt(),
                 null,
                 $quote->getShippingAddress()->getBaseShippingInclTax()
             );
         }
+
+        // Magento can't update tax discount compensation. Possible Magento bug.
+        $quote->getShippingAddress()->setShippingDiscountTaxCompensationAmount(
+            $quote->getShippingAddress()->getShippingInclTax() -
+            $quote->getShippingAddress()->getShippingAmount() -
+            $quote->getShippingAddress()->getShippingTaxAmount()
+        );
+        $quote->save();
+
         return new AdyenAmountCurrency(
             $quote->getShippingAddress()->getShippingAmount(),
             $quote->getQuoteCurrencyCode(),
-            $quote->getShippingAddress()->getShippingDiscountAmount(),
-            $quote->getShippingAddress()->getShippingTaxAmount(),
+            $quote->getShippingAddress()->getShippingDiscountAmount() + $quote->getShippingAddress()->getShippingDiscountTaxCompensationAmount(),
+            $quote->getShippingAddress()->getShippingTaxAmount() + $quote->getShippingAddress()->getShippingDiscountTaxCompensationAmount(),
             null,
+            // Magento calculates wrong order total for discount applied shipping taxes. Tax incl. value calculated without compensation due to this issue.
             $quote->getShippingAddress()->getShippingInclTax()
         );
     }

@@ -51,6 +51,11 @@ class AdyenAmountCurrency
         return $this->amountIncludingTax;
     }
 
+    public function getAmountExcludingTax()
+    {
+        return $this->amountIncludingTax - $this->getTaxAmount();
+    }
+
     public function getCurrencyCode()
     {
         return $this->currencyCode;
