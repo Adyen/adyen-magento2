@@ -23,6 +23,7 @@ use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Adyen\Service\Checkout;
 use Adyen\Service\CheckoutUtility;
 use Adyen\Service\PosPayment;
+use Adyen\Service\Recurring;
 use DateTime;
 use Exception;
 use Magento\Backend\Helper\Data as BackendHelper;
@@ -42,7 +43,6 @@ use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Module\ModuleListInterface;
-use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Asset\File;
 use Magento\Framework\View\Asset\Repository;
@@ -1317,12 +1317,15 @@ class Data extends AbstractHelper
     public function getVariantIcon($variant)
     {
         $asset = $this->createAsset(sprintf("Adyen_Payment::images/logos/%s_small.png", $variant));
-        list($width, $height) = getimagesize($asset->getSourceFile());
-        $icon = [
-            'url' => $asset->getUrl(),
-            'width' => $width,
-            'height' => $height
-        ];
+
+        if($this->_assetSource->findSource($asset)) {
+            list($width, $height) = getimagesize($asset->getSourceFile());
+            $icon = ['url' => $asset->getUrl(), 'width' => $width, 'height' => $height];
+        } else {
+            $url = "https://checkoutshopper-test.adyen.com/checkoutshopper/images/logos/$variant.svg";
+            $icon = ['url' => $url, 'width' => 77, 'height' => 50];
+        }
+
         return $icon;
     }
 
@@ -1348,12 +1351,12 @@ class Data extends AbstractHelper
 
     /**
      * @param $client
-     * @return \Adyen\Service\Recurring
+     * @return Recurring
      * @throws AdyenException
      */
     public function createAdyenRecurringService($client)
     {
-        return new \Adyen\Service\Recurring($client);
+        return new Recurring($client);
     }
 
     /**
