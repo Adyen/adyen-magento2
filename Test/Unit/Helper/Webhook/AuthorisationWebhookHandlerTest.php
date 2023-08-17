@@ -108,6 +108,9 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
         $this->assertInstanceOf(Order::class, $result);
     }
 
+    /**
+     * @throws ReflectionExceptionAlias
+     */
     public function testHandleSuccessfulAuthorisationWithAutoCaptureEnabled()
     {
         // Mock
@@ -176,6 +179,9 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
         $this->assertInstanceOf(Order::class, $result);
     }
 
+    /**
+     * @throws ReflectionExceptionAlias
+     */
     public function testHandleFailedAuthorisation()
     {
         $this->orderMock->expects($this->atLeastOnce())
@@ -193,17 +199,7 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
             });
 
         // Create an instance of AuthorisationWebhookHandler
-        $webhookHandler = $this->createAuthorisationWebhookHandler(
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-        );
+        $webhookHandler = $this->createAuthorisationWebhookHandler();
 
         $handleFailedAuthorisationMethod = $this->getPrivateMethod(
             AuthorisationWebhookHandler::class,
@@ -217,6 +213,9 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
         $this->assertInstanceOf(Order::class, $result);
     }
 
+    /**
+     * @throws ReflectionExceptionAlias
+     */
     public function testHandleAutoCapture()
     {
         // Set up expectations for the mocks
@@ -229,17 +228,7 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
             ->willReturnSelf();
 
         // Create an instance of AuthorisationWebhookHandler
-        $webhookHandler = $this->createAuthorisationWebhookHandler(
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-        );
+        $webhookHandler = $this->createAuthorisationWebhookHandler();
 
         // Use Reflection to access the private method
         $handleAutoCaptureMethod = $this->getPrivateMethod(
@@ -257,6 +246,9 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
         $this->assertInstanceOf(Order::class, $result);
     }
 
+    /**
+     * @throws ReflectionExceptionAlias
+     */
     public function testHandleManualCapture()
     {
         // Set up expectations for handleManualCapture private method
@@ -272,13 +264,7 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
         $webhookHandler = $this->createAuthorisationWebhookHandler(
             null,
             $this->orderHelperMock,
-            $this->caseManagementMock,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
+            $this->caseManagementMock
         );
 
         // Use Reflection to access the private method
@@ -297,6 +283,9 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
         $this->assertInstanceOf(Order::class, $result);
     }
 
+    /**
+     * @throws ReflectionExceptionAlias
+     */
     public function testCanCancelPayByLinkOrder()
     {
         // Create mocks for the required dependencies
@@ -321,17 +310,7 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
             ->with('payByLinkFailureCount', $payByLinkFailureCount + 1);
 
         // Create an instance of AuthorisationWebhookHandler
-        $webhookHandler = $this->createAuthorisationWebhookHandler(
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-        );
+        $webhookHandler = $this->createAuthorisationWebhookHandler();
 
         // Use Reflection to access the private method
         $canCancelPayByLinkOrderMethod = $this->getPrivateMethod(
