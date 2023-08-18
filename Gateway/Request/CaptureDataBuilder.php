@@ -143,16 +143,17 @@ class CaptureDataBuilder implements BuilderInterface
             return $this->buildPartialOrMultipleCaptureData($payment, $currency, $adyenOrderPayments, $invoiceAmountCurrency->getAmount());
         }
 
-        $modificationAmount = ['currency' => $currency, 'value' => $amount];
+        $modificationAmount = ['value' => $amount, 'currency' => $currency];
         $requestBody = [
-            "modificationAmount" => $modificationAmount,
+            "amount" => $modificationAmount,
             "reference" => $payment->getOrder()->getIncrementId(),
-            "originalReference" => $pspReference
+            "paymentPspReference" => $pspReference
         ];
 
+        //Check additionaldata
         if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) {
             $openInvoiceFields = $this->openInvoiceHelper->getOpenInvoiceData($order);
-            $requestBody["additionalData"] = $openInvoiceFields;
+           $requestBody = array_merge($requestBody, $openInvoiceFields);
         }
         $request['body'] = $requestBody;
         $request['clientConfig'] = ["storeId" => $payment->getOrder()->getStoreId()];
@@ -204,7 +205,7 @@ class CaptureDataBuilder implements BuilderInterface
                     'value' => $amountCents
                 ];
                 $authToCapture = [
-                    "modificationAmount" => $modificationAmount,
+                    "amount" => $modificationAmount,
                     "reference" => $payment->getOrder()->getIncrementId(),
                     "originalReference" => $adyenOrderPayment[OrderPaymentInterface::PSPREFRENCE]
                 ];
