@@ -474,7 +474,7 @@ class Order extends AbstractHelper
             $notification->getPspreference()
         );
 
-        if (is_array($linkedAdyenCreditmemo instanceof AdyenCreditmemoModel)) {
+        if ($linkedAdyenCreditmemo instanceof AdyenCreditmemoModel) {
             $this->adyenCreditmemoHelper->updateAdyenCreditmemosStatus(
                 $linkedAdyenCreditmemo[''],
                 AdyenCreditmemoModel::FAILED_STATUS
