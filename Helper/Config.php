@@ -436,12 +436,7 @@ class Config
     public function getAutoCaptureOpenInvoice(int $storeId): bool
     {
         $captureForOpenInvoice = $this->getConfigData('capture_for_openinvoice', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId, true);
-        if (strcmp((string) $captureForOpenInvoice, self::AUTO_CAPTURE_OPENINVOICE) === 0) {
-            return true;
-        }
-        else {
-            return false;
-        }
+        return strcmp((string) $captureForOpenInvoice, self::AUTO_CAPTURE_OPENINVOICE) === 0;
     }
 
     public function getSupportMailAddress(int $storeId): ?string
