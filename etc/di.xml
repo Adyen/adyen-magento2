@@ -1096,62 +1096,62 @@
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
     </type>
-    <type name="Adyen\Payment\Helper\Webhook\authorisationWebhookHandler">
+    <type name="Adyen\Payment\Helper\Webhook\AuthorisationWebhookHandler">
         <arguments>
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
     </type>
-    <type name="Adyen\Payment\Helper\Webhook\captureWebhookHandler">
+    <type name="Adyen\Payment\Helper\Webhook\CaptureWebhookHandler">
         <arguments>
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
     </type>
-    <type name="Adyen\Payment\Helper\Webhook\offerClosedWebhookHandler">
+    <type name="Adyen\Payment\Helper\Webhook\OfferClosedWebhookHandler">
         <arguments>
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
     </type>
-    <type name="Adyen\Payment\Helper\Webhook\refundWebhookHandler">
+    <type name="Adyen\Payment\Helper\Webhook\RefundWebhookHandler">
         <arguments>
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
     </type>
-    <type name="Adyen\Payment\Helper\Webhook\refundFailedWebhookHandler">
+    <type name="Adyen\Payment\Helper\Webhook\RefundFailedWebhookHandler">
         <arguments>
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
     </type>
-    <type name="Adyen\Payment\Helper\Webhook\manualReviewAcceptWebhookHandler">
+    <type name="Adyen\Payment\Helper\Webhook\ManualReviewAcceptWebhookHandler">
         <arguments>
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
     </type>
-    <type name="Adyen\Payment\Helper\Webhook\manualReviewRejectWebhookHandler">
+    <type name="Adyen\Payment\Helper\Webhook\ManualReviewRejectWebhookHandler">
         <arguments>
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
     </type>
-    <type name="Adyen\Payment\Helper\Webhook\recurringContractWebhookHandler">
+    <type name="Adyen\Payment\Helper\Webhook\RecurringContractWebhookHandler">
         <arguments>
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
     </type>
-    <type name="Adyen\Payment\Helper\Webhook\pendingWebhookHandler">
+    <type name="Adyen\Payment\Helper\Webhook\PendingWebhookHandler">
         <arguments>
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
     </type>
-    <type name="Adyen\Payment\Helper\Webhook\cancellationWebhookHandler">
+    <type name="Adyen\Payment\Helper\Webhook\CancellationWebhookHandler">
         <arguments>
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
     </type>
-    <type name="Adyen\Payment\Helper\Webhook\cancelOrRefundWebhookHandler">
+    <type name="Adyen\Payment\Helper\Webhook\CancelOrRefundWebhookHandler">
         <arguments>
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
     </type>
-    <type name="Adyen\Payment\Helper\Webhook\orderClosedWebhookHandler">
+    <type name="Adyen\Payment\Helper\Webhook\OrderClosedWebhookHandler">
         <arguments>
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
