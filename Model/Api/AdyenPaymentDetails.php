@@ -16,10 +16,10 @@ use Adyen\Payment\Api\AdyenPaymentDetailsInterface;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
 use Adyen\Payment\Helper\PaymentResponseHandler;
+use Adyen\Payment\Helper\Util\DataArrayValidator;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Service\Validator\DataArrayValidator;
 use Magento\Checkout\Model\Session;
-use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\ValidatorException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Api\OrderRepositoryInterface;
 
@@ -90,7 +90,7 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
     /**
      * @param string $payload
      * @return string
-     * @throws LocalizedException
+     * @throws ValidatorException
      * @throws NoSuchEntityException
      * @api
      */
@@ -101,12 +101,12 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
 
         // Validate JSON that has just been parsed if it was in a valid format
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new LocalizedException(__('Payment details call failed because the request was not a valid JSON'));
+            throw new ValidatorException(__('Payment details call failed because the request was not a valid JSON'));
         }
 
         //Get order from payload and remove orderId from the array
         if (empty($payload['orderId'])) {
-            throw new LocalizedException
+            throw new ValidatorException
             (__('Payment details call failed because of a missing order ID'));
         } else {
             $order = $this->orderRepository->get($payload['orderId']);
@@ -146,14 +146,14 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
             if (!empty($payload['cancelled'])) {
                 throw $this->createCancelledException();
             } else {
-                throw new LocalizedException(__('Payment details call failed'));
+                throw new ValidatorException(__('Payment details call failed'));
             }
         }
 
         // Handle response
         if (!$this->paymentResponseHandler->handlePaymentResponse($paymentDetails, $payment, $order)) {
             $this->checkoutSession->restoreQuote();
-            throw new LocalizedException(__('The payment is REFUSED.'));
+            throw new ValidatorException(__('The payment is REFUSED.'));
         }
 
         $action = null;
@@ -170,10 +170,10 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
     }
 
     /**
-     * @return LocalizedException
+     * @return ValidatorException
      */
-    protected function createCancelledException(): LocalizedException
+    protected function createCancelledException(): ValidatorException
     {
-        return new LocalizedException(__('Payment has been cancelled'));
+        return new ValidatorException(__('Payment has been cancelled'));
     }
 }

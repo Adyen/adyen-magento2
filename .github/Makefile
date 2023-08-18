@@ -20,6 +20,11 @@ install:
 	bin/magento setup:upgrade
 	bin/magento setup:di:compile
 
+# Install developer module
+dev-module:
+	bin/magento module:enable Adyen_Developer
+	bin/magento setup:upgrade
+
 # Configuration
 configure: n98-magerun2.phar
 	bin/magento config:set payment/adyen_abstract/demo_mode 1

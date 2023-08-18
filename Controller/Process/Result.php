@@ -20,13 +20,13 @@ use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
 use Adyen\Payment\Helper\Quote;
 use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\StateData;
+use Adyen\Payment\Helper\Util\DataArrayValidator;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
-use Adyen\Service\Validator\DataArrayValidator;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
@@ -216,6 +216,13 @@ class Result extends Action
 
         if ($response) {
             $result = $this->validateResponse($response);
+            $order = $this->_order;
+            $additionalInformation = $order->getPayment()->getAdditionalInformation();
+            $resultCode = isset($response['resultCode']) ? $response['resultCode'] : null;
+            $paymentBrandCode = isset($additionalInformation['brand_code']) ? $additionalInformation['brand_code'] : null;
+            if ($resultCode === 'cancelled' && $paymentBrandCode === 'svs') {
+                $this->dataHelper->cancelOrder($order);
+            }
 
             // Adjust the success path, fail path, and restore quote based on if it is a multishipping quote
             if (

@@ -12,10 +12,10 @@
 namespace Adyen\Payment\Observer;
 
 use Adyen\Payment\Helper\StateData;
+use Adyen\Payment\Helper\Util\CheckoutStateDataValidator;
+use Adyen\Payment\Helper\Util\DataArrayValidator;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Model\ResourceModel\StateData\Collection;
-use Adyen\Service\Validator\CheckoutStateDataValidator;
-use Adyen\Service\Validator\DataArrayValidator;
 use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
