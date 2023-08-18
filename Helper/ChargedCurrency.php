@@ -260,23 +260,35 @@ class ChargedCurrency
             );
         }
 
-        // Magento can't update tax discount compensation. Possible Magento bug.
-        $quote->getShippingAddress()->setShippingDiscountTaxCompensationAmount(
-            $quote->getShippingAddress()->getShippingInclTax() -
-            $quote->getShippingAddress()->getShippingAmount() -
-            $quote->getShippingAddress()->getShippingTaxAmount()
-        );
-        $quote->save();
+        // If discount applied including tax
+        if ($quote->getShippingAddress()->getShippingDiscountTaxCompensationAmount() > 0) {
+            $taxAmount = $quote->getShippingAddress()->getShippingTaxAmount() + $quote->getShippingAddress()->getShippingDiscountTaxCompensationAmount();
+            $discount = $quote->getShippingAddress()->getShippingDiscountAmount();
+        } else {
+            $taxAmount = $item->getPriceInclTax() - $item->getPrice();
+            $discount = $item->getDiscountAmount() + (($item->getPriceInclTax() - $item->getPrice() - ($item->getTaxAmount() / $item->getQty())) * $item->getQty());
+        }
 
         return new AdyenAmountCurrency(
             $quote->getShippingAddress()->getShippingAmount(),
             $quote->getQuoteCurrencyCode(),
-            $quote->getShippingAddress()->getShippingDiscountAmount() + $quote->getShippingAddress()->getShippingDiscountTaxCompensationAmount(),
-            $quote->getShippingAddress()->getShippingTaxAmount() + $quote->getShippingAddress()->getShippingDiscountTaxCompensationAmount(),
+            $discount,
+            $taxAmount,
             null,
             // Magento calculates wrong order total for discount applied shipping taxes. Tax incl. value calculated without compensation due to this issue.
             $quote->getShippingAddress()->getShippingInclTax()
         );
+
+//        return new AdyenAmountCurrency(
+//            $quote->getShippingAddress()->getShippingAmount(),
+//            $quote->getQuoteCurrencyCode(),
+//            // $quote->getShippingAddress()->getShippingDiscountAmount() + $quote->getShippingAddress()->getShippingDiscountTaxCompensationAmount(),
+//            $quote->getShippingAddress()->getShippingDiscountAmount(),
+//            $quote->getShippingAddress()->getShippingTaxAmount() + $quote->getShippingAddress()->getShippingDiscountTaxCompensationAmount(),
+//            null,
+//            // Magento calculates wrong order total for discount applied shipping taxes. Tax incl. value calculated without compensation due to this issue.
+//            $quote->getShippingAddress()->getShippingInclTax()
+//        );
     }
 
     /**
