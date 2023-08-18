@@ -102,11 +102,20 @@ class ChargedCurrency
         // Please use tax inc/excl amounts for precise calculations.
         $amount = $item->getRowTotal() / $item->getQty();
 
+        // If discount applied including tax
+        if ( $item->getDiscountTaxCompensationAmount() > 0) {
+            $taxAmount = ($item->getTaxAmount() + $item->getDiscountTaxCompensationAmount()) / $item->getQty();
+            $discount = $item->getDiscountAmount();
+        } else {
+            $taxAmount = $item->getPriceInclTax() - $item->getPrice();
+            $discount = $item->getDiscountAmount() + (($item->getPriceInclTax() - $item->getPrice() - ($item->getTaxAmount() / $item->getQty())) * $item->getQty());
+        }
+
         return new AdyenAmountCurrency(
             $amount,
             $item->getQuote()->getQuoteCurrencyCode(),
-            $item->getDiscountAmount(),
-            ($item->getTaxAmount() + $item->getDiscountTaxCompensationAmount()) / $item->getQty(),
+            $discount,
+            $taxAmount,
             null,
             $item->getPriceInclTax()
         );
