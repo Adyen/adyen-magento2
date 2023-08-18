@@ -14,7 +14,6 @@ jobs:
     runs-on:
       group: larger-runners
       labels: ubuntu-latest-8-cores
-    timeout-minutes: 20
     env:
       PHP_VERSION: "8.1"
       MAGENTO_VERSION: "2.4.5"
@@ -22,6 +21,7 @@ jobs:
       ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
     steps:
       - uses: actions/checkout@v3
+
       - name: Install Magento
         run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm web make magento
 
@@ -41,28 +41,6 @@ jobs:
 
       - name: Install plugin
         run: docker exec -u www-data magento2-container make plugin
-      
-      - name: Checkout developer module
-        uses: actions/checkout@v3
-        with: 
-          repository: Adyen/adyen-magento2-dev
-          ref: 'main'
-          token: ${{ secrets.ADYEN_AUTOMATION_BOT_TEST_ACCESS_TOKEN }}
-          path: Developer
-      
-      - name: Make the folder for dev module
-        run: docker exec -u www-data magento2-container mkdir -p /var/www/html/app/code/Adyen
-
-      - name: Copy dev module into Docker container
-        run: docker cp ./Developer magento2-container:/var/www/html/app/code/Adyen
-
-      - name: Change ownership of developer module folder
-        run: docker exec magento2-container chown -R www-data:www-data /var/www/html/app/code/Adyen/Developer
-
-      - name: Enable developer module
-        run: docker exec -u www-data magento2-container make dev-module
-
-      - run: docker exec magento2-container /etc/init.d/cron stop
 
       - name: Switch to production mode
         run: docker exec -u www-data magento2-container make production
