@@ -11,7 +11,7 @@
 /*global define*/
 define([
     'jquery',
-    'Adyen_Payment/js/view/payment/method-renderer/adyen-klarna-method',
+    'Adyen_Payment/js/view/payment/method-renderer/adyen-ideal-method',
     'Adyen_Payment/js/model/adyen-payment-service',
     'Adyen_Payment/js/model/adyen-configuration',
     'Magento_Checkout/js/model/quote'

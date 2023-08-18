@@ -10,25 +10,39 @@
  * Author: Adyen <magento@adyen.com>
  */
 ?>
+<!-- ko template: getTemplate() --><!-- /ko -->
 <script>
     require([
         'uiLayout',
-        'jquery'
-    ], function (layout, $) {
+        'jquery',
+        'Adyen_Payment/js/model/adyen-payment-service'
+    ], function (layout, $, adyenPaymentService) {
         $(function () {
-            var paymentMethodData = {
-                method: 'adyen_klarna'
-            };
-            layout([
-                {
-                    component: 'Adyen_Payment/js/view/payment/method-renderer/multishipping/adyen-klarna-method',
-                    name: 'payment_method_adyen_klarna',
-                    method: paymentMethodData.method,
-                    item: paymentMethodData
-                }
-            ]);
-            $('body').trigger('contentUpdated');
+
+            let pmResponse = ['klarna', 'ideal'];
+
+            adyenPaymentService.retrievePaymentMethods();
+
+            pmResponse.map((paymentMethod) => {
+                let paymentMethodData = {
+                    method: `adyen_${paymentMethod}`
+                };
+
+                console.log('payment method: ', paymentMethod);
+
+
+                layout([
+                    {
+                        component: `Adyen_Payment/js/view/payment/method-renderer/multishipping/adyen-${paymentMethod}-method`,
+                        name: `payment_method_adyen_${paymentMethod}`,
+                        method: paymentMethodData.method,
+                        item: paymentMethodData
+
+                    }
+                ]);
+                $('body').trigger('contentUpdated');
+            })
         })
     })
 </script>
-<!-- ko template: getTemplate() --><!-- /ko -->
+-<!-- ko template: getTemplate() --><!-- /ko -->
