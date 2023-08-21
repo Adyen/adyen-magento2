@@ -160,9 +160,9 @@ class RefundDataBuilder implements BuilderInterface
                     ];
 
                     $requestBody[] = [
-                        "modificationAmount" => $modificationAmountObject,
+                        "amount" => $modificationAmountObject,
                         "reference" => $payment->getOrder()->getIncrementId(),
-                        "originalReference" => $partialPayment->getPspreference(),
+                        "paymentPspReference" => $partialPayment->getPspreference(),
                     ];
                 }
             }
@@ -173,9 +173,9 @@ class RefundDataBuilder implements BuilderInterface
 
             $requestBody = [
                 [
-                    "modificationAmount" => $modificationAmount,
+                    "amount" => $modificationAmount,
                     "reference" => $payment->getOrder()->getIncrementId(),
-                    "originalReference" => $pspReference,
+                    "paymentPspReference" => $pspReference,
                 ]
             ];
 

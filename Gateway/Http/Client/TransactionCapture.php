@@ -109,18 +109,18 @@ class TransactionCapture implements ClientInterface
      * @param $requestContainer
      * @return array
      */
-    private function placeMultipleCaptureRequests(Modification $service, $requestContainer, $requestOptions)
+    private function placeMultipleCaptureRequests( $service, $requestContainer, $requestOptions)
     {
         $response = [];
         foreach ($requestContainer[self::MULTIPLE_AUTHORIZATIONS] as $request) {
             try {
                 // Copy merchant account from parent array to every request array
                 $request[Requests::MERCHANT_ACCOUNT] = $requestContainer[Requests::MERCHANT_ACCOUNT];
-                $singleResponse = $service->capture($request, $requestOptions);
-                $singleResponse[self::FORMATTED_CAPTURE_AMOUNT] = $request['modificationAmount']['currency'] . ' ' .
+                $singleResponse = $service->captures($request, $requestOptions);
+                $singleResponse[self::FORMATTED_CAPTURE_AMOUNT] = $request['amount']['currency'] . ' ' .
                 $this->adyenHelper->originalAmount(
-                    $request['modificationAmount']['value'],
-                    $request['modificationAmount']['currency']
+                    $request['amount']['value'],
+                    $request['amount']['currency']
                 );
                 $singleResponse = $this->copyParamsToResponse($singleResponse, $request);
                 $response[self::MULTIPLE_AUTHORIZATIONS][] = $singleResponse;
