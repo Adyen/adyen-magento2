@@ -181,9 +181,10 @@
     require(
         [
             'Magento_Checkout/js/model/quote',
+            'Adyen_Payment/js/model/adyen-payment-service',
             'jquery',
             'domReady!'
-        ], function(quote, $) {
+        ], function(quote, adyenPaymentService, $) {
             quote.billingAddress({
                 city: '<?= $block->escapeJs($block->getAddress()->getCity()); ?>',
                 company: '<?= $block->escapeJs($block->getAddress()->getCompany()); ?>',
@@ -199,6 +200,17 @@
                 region: '<?= $block->escapeJs($block->getAddress()->getRegion()); ?>',
                 street: <?= /* @noEscape */ json_encode($block->getAddress()->getStreet()); ?>,
                 telephone: '<?= $block->escapeJs($block->getAddress()->getTelephone()); ?>'
+            });
+            adyenPaymentService.retrievePaymentMethods().done(function(paymentMethods) {
+                try {
+                    paymentMethods = JSON.parse(paymentMethods);
+                } catch(error) {
+                    console.log(error);
+                    paymentMethods = null;
+                }
+                adyenPaymentService.setPaymentMethods(paymentMethods);
+            }).fail(function() {
+                console.log('Fetching multishipping payment methods failed!');
             });
         });
     //]]>

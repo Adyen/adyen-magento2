@@ -26,7 +26,7 @@ define([
 
     return Component.extend({
         defaults: {
-            template: 'Adyen_Payment/payment/multishipping/generic-form'
+            template: 'Adyen_Payment/payment/multishipping/abstract-form'
         },
 
         selectPaymentMethod: function () {
