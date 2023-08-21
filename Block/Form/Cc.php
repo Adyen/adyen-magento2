@@ -16,7 +16,6 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Installments;
 use Adyen\Payment\Helper\PaymentMethods;
-use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Backend\Model\Session\Quote;
@@ -135,7 +134,8 @@ class Cc extends \Magento\Payment\Block\Form\Cc
      */
     public function getClientKey()
     {
-        return $this->configHelper->getClientKey();
+        $environment = $this->configHelper->isDemoMode() ? 'test' : 'live';
+        return $this->configHelper->getClientKey($environment);
     }
 
     /**
@@ -177,14 +177,6 @@ class Cc extends \Magento\Payment\Block\Form\Cc
     public function getCcAvailableTypesByAlt(): array
     {
         return $this->paymentMethodsHelper->getCcAvailableTypesByAlt();
-    }
-
-    /**
-     * @return bool
-     */
-    public function isVaultEnabled(): bool
-    {
-        return $this->vaultHelper->isCardVaultEnabled();
     }
 
     /**
@@ -230,8 +222,7 @@ class Cc extends \Magento\Payment\Block\Form\Cc
      */
     public function getEnableStoreDetails(): bool
     {
-
-        $enableOneclick = (bool)$this->configHelper->getAdyenAbstractConfigData('enable_oneclick');
+        $enableOneclick = (bool)$this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick');
         $enableVault = $this->isVaultEnabled();
         $loggedIn = $this->customerSession->isLoggedIn();
         return ($enableOneclick || $enableVault) && $loggedIn;

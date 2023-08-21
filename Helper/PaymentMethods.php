@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -22,8 +22,6 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\RequestInterface;
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\View\Asset\Repository;
@@ -31,27 +29,24 @@ use Magento\Framework\View\Asset\Source;
 use Magento\Framework\View\Design\Theme\ThemeProviderInterface;
 use Magento\Framework\View\DesignInterface;
 use Magento\Payment\Helper\Data as MagentoDataHelper;
+use Magento\Payment\Model\MethodInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Api\Data\PaymentMethodInterface;
 use Magento\Sales\Model\Order;
 use Adyen\Payment\Helper\Data as AdyenDataHelper;
 use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\Store;
 
-/**
- * @SuppressWarnings(PHPMD.LongVariable)
- */
 class PaymentMethods extends AbstractHelper
 {
     const ADYEN_HPP = 'adyen_hpp';
     const ADYEN_CC = 'adyen_cc';
     const ADYEN_ONE_CLICK = 'adyen_oneclick';
     const ADYEN_PAY_BY_LINK = 'adyen_pay_by_link';
-
     const ADYEN_PREFIX = 'adyen_';
-
     const METHODS_WITH_BRAND_LOGO = [
         "giftcard"
     ];
-
     const METHODS_WITH_LOGO_FILE_MAPPING = [
         "scheme" => "card"
     ];
@@ -59,84 +54,25 @@ class PaymentMethods extends AbstractHelper
     const FUNDING_SOURCE_DEBIT = 'debit';
     const FUNDING_SOURCE_CREDIT = 'credit';
 
-    /**
-     * @var CartRepositoryInterface
-     */
-    protected $quoteRepository;
+    const ADYEN_GROUP_ALTERNATIVE_PAYMENT_METHODS = 'adyen-alternative-payment-method';
 
-    /**
-     * @var ScopeConfigInterface $config
-     */
-    protected $config;
-
-    /**
-     * @var Data
-     */
-    protected $adyenHelper;
-
-    /**
-     * @var MagentoDataHelper
-     */
-    private $dataHelper;
-
-    /**
-     * @var ResolverInterface
-     */
-    protected $localeResolver;
-
-    /**
-     * @var AdyenLogger
-     */
-    protected $adyenLogger;
-
-    /**
-     * @var AdyenDataHelper
-     */
-    protected $adyenDataHelper;
-
-    /**
-     * @var Repository
-     */
-    protected $assetRepo;
-
-    /**
-     * @var RequestInterface
-     */
-    protected $request;
-
-    /**
-     * @var Source
-     */
-    protected $assetSource;
-
-    /**
-     * @var DesignInterface
-     */
-    protected $design;
-
-    /**
-     * @var ThemeProviderInterface
-     */
-    protected $themeProvider;
-
-    /**
-     * @var \Magento\Quote\Model\Quote
-     */
-    protected $quote;
-
-    /**
-     * @var ChargedCurrency
-     */
-    private $chargedCurrency;
-
-    /** @var Config */
-    private $configHelper;
-
-    /** @var ManualCapture  */
-    private $manualCapture;
-
-    /** @var SerializerInterface */
-    private $serializer;
+    protected CartRepositoryInterface $quoteRepository;
+    protected ScopeConfigInterface $config;
+    protected Data $adyenHelper;
+    private MagentoDataHelper $dataHelper;
+    protected ResolverInterface $localeResolver;
+    protected AdyenLogger $adyenLogger;
+    protected Data $adyenDataHelper;
+    protected Repository $assetRepo;
+    protected RequestInterface $request;
+    protected Source $assetSource;
+    protected DesignInterface $design;
+    protected ThemeProviderInterface $themeProvider;
+    protected \Magento\Quote\Model\Quote $quote;
+    private ChargedCurrency $chargedCurrency;
+    private Config $configHelper;
+    private ManualCapture $manualCapture;
+    private SerializerInterface $serializer;
 
     public function __construct(
         Context $context,
@@ -176,7 +112,7 @@ class PaymentMethods extends AbstractHelper
         $this->adyenDataHelper = $adyenDataHelper;
     }
 
-    public function getPaymentMethods(int $quoteId, string $country = null, ?string $shopperLocale = null): string
+    public function getPaymentMethods(int $quoteId, ?string $country = null, ?string $shopperLocale = null): string
     {
         // get quote from quoteId
         $quote = $this->quoteRepository->getActive($quoteId);
@@ -190,20 +126,11 @@ class PaymentMethods extends AbstractHelper
         return $this->fetchPaymentMethods($country, $shopperLocale);
     }
 
-    /**
-     * @param string $methodCode
-     * @return bool
-     */
     public function isAdyenPayment(string $methodCode): bool
     {
         return in_array($methodCode, $this->getAdyenPaymentMethods(), true);
     }
 
-    /**
-     * Returns an array of Adyen payment method codes
-     *
-     * @return string[]
-     */
     public function getAdyenPaymentMethods() : array
     {
         $paymentMethods = $this->dataHelper->getPaymentMethodList();
@@ -219,13 +146,6 @@ class PaymentMethods extends AbstractHelper
         return array_keys($filtered);
     }
 
-    /**
-     * @param string|null $country
-     * @param string|null $shopperLocale
-     * @return string
-     * @throws AdyenException
-     * @throws LocalizedException
-     */
     protected function fetchPaymentMethods(?string $country = null, ?string $shopperLocale = null): string
     {
         $quote = $this->getQuote();
@@ -236,7 +156,7 @@ class PaymentMethods extends AbstractHelper
             return json_encode([]);
         }
 
-        $requestData = $this->getPaymentMethodsRequest($merchantAccount, $store, $quote, $country, $shopperLocale);
+        $requestData = $this->getPaymentMethodsRequest($merchantAccount, $store, $quote, $shopperLocale, $country);
         $responseData = $this->getPaymentMethodsResponse($requestData, $store);
         if (empty($responseData['paymentMethods'])) {
             return json_encode([]);
@@ -258,11 +178,7 @@ class PaymentMethods extends AbstractHelper
         return json_encode($response);
     }
 
-    /**
-     * @return float
-     * @throws \Exception
-     */
-    protected function getCurrentPaymentAmount()
+    protected function getCurrentPaymentAmount(): float
     {
         $total = $this->chargedCurrency->getQuoteAmountCurrency($this->getQuote())->getAmount();
 
@@ -290,21 +206,11 @@ class PaymentMethods extends AbstractHelper
         );
     }
 
-    /**
-     * @param $store
-     * @return string
-     */
-    protected function getCurrentCountryCode($store): string
+    protected function getCurrentCountryCode(Store $store): string
     {
-        // if fixed countryCode is setup in config use this
-        $countryCode = $this->configHelper->getAdyenHppConfigData('country_code', $store->getId());
-
-        if ($countryCode != "") {
-            return $countryCode;
-        }
-
         $quote = $this->getQuote();
         $billingAddressCountry = $quote->getBillingAddress()->getCountryId();
+
         // If customer is guest, billing address country might not be set yet
         if (isset($billingAddressCountry)) {
             return $billingAddressCountry;
@@ -323,13 +229,7 @@ class PaymentMethods extends AbstractHelper
         return "";
     }
 
-    /**
-     * @param $requestParams
-     * @param $store
-     * @return array
-     * @throws AdyenException
-     */
-    protected function getPaymentMethodsResponse($requestParams, $store)
+    protected function getPaymentMethodsResponse(array $requestParams, Store $store): array
     {
         // initialize the adyen client
         $client = $this->adyenHelper->initializeAdyenClient($store->getId());
@@ -356,50 +256,34 @@ class PaymentMethods extends AbstractHelper
         return $responseData;
     }
 
-    /**
-     * @return \Magento\Quote\Model\Quote
-     */
-    protected function getQuote()
+    protected function getQuote(): \Magento\Quote\Model\Quote
     {
         return $this->quote;
     }
 
-    /**
-     * @param \Magento\Quote\Model\Quote $quote
-     */
-    protected function setQuote(\Magento\Quote\Model\Quote $quote)
+    protected function setQuote(\Magento\Quote\Model\Quote $quote): void
     {
         $this->quote = $quote;
     }
 
-    /**
-     * @return int
-     */
-    protected function getCurrentShopperReference()
+    protected function getCurrentShopperReference(): ?int
     {
         return $this->getQuote()->getCustomerId();
     }
 
-    /**
-     * @param $merchantAccount
-     * @param \Magento\Store\Model\Store $store
-     * @param \Magento\Quote\Model\Quote $quote
-     * @param string|null $shopperLocale
-     * @return array
-     * @throws \Exception
-     */
     protected function getPaymentMethodsRequest(
         $merchantAccount,
-        \Magento\Store\Model\Store $store,
+        Store $store,
         \Magento\Quote\Model\Quote $quote,
-        ?string $shopperLocale = null
+        ?string $shopperLocale = null,
+        ?string $country = null
     ): array {
         $currencyCode = $this->chargedCurrency->getQuoteAmountCurrency($quote)->getCurrencyCode();
 
         $paymentMethodRequest = [
             "channel" => "Web",
             "merchantAccount" => $merchantAccount,
-            "countryCode" => $this->getCurrentCountryCode($store),
+            "countryCode" => $country ?? $this->getCurrentCountryCode($store),
             "shopperLocale" => $shopperLocale ?: $this->adyenHelper->getCurrentLocaleCode($store->getId()),
             "amount" => [
                 "currency" => $currencyCode
@@ -426,13 +310,7 @@ class PaymentMethods extends AbstractHelper
         return $paymentMethodRequest;
     }
 
-    /**
-     * @param $paymentMethods
-     * @param array $paymentMethodsExtraDetails
-     * @return array
-     * @throws LocalizedException
-     */
-    protected function showLogosPaymentMethods($paymentMethods, array $paymentMethodsExtraDetails)
+    protected function showLogosPaymentMethods(array $paymentMethods, array $paymentMethodsExtraDetails): array
     {
         if (!$this->adyenHelper->showLogos()) {
             return $paymentMethodsExtraDetails;
@@ -467,28 +345,7 @@ class PaymentMethods extends AbstractHelper
                 ? self::METHODS_WITH_LOGO_FILE_MAPPING[$paymentMethod['type']]
                 : $paymentMethodCode;
 
-            $asset = $this->assetRepo->createAsset(
-                'Adyen_Payment::images/logos/' .
-                $paymentMethodCode . '.png',
-                $params
-            );
-
-            $placeholder = $this->assetSource->findSource($asset);
-
-            if ($placeholder) {
-                list($width, $height) = getimagesize($asset->getSourceFile());
-                $icon = [
-                    'url' => $asset->getUrl(),
-                    'width' => $width,
-                    'height' => $height
-                ];
-            } else {
-                $icon = [
-                    'url' => 'https://checkoutshopper-live.adyen.com/checkoutshopper/images/logos/medium/' . $paymentMethodCode . '.png',
-                    'width' => 77,
-                    'height' => 50
-                ];
-            }
+            $icon = $this->buildPaymentMethodIcon($paymentMethodCode, $params);
 
             $paymentMethodsExtraDetails[$paymentMethodCode]['icon'] = $icon;
 
@@ -500,8 +357,10 @@ class PaymentMethods extends AbstractHelper
         return $paymentMethodsExtraDetails;
     }
 
-    protected function addExtraConfigurationToPaymentMethods($paymentMethods, array $paymentMethodsExtraDetails)
-    {
+    protected function addExtraConfigurationToPaymentMethods(
+        array $paymentMethods,
+        array $paymentMethodsExtraDetails
+    ): array {
         $quote = $this->getQuote();
         $currencyCode = $this->chargedCurrency->getQuoteAmountCurrency($quote)->getCurrencyCode();
         $amountValue = $this->adyenHelper->formatAmount($this->getCurrentPaymentAmount(), $currencyCode);
@@ -521,12 +380,7 @@ class PaymentMethods extends AbstractHelper
         return $paymentMethodsExtraDetails;
     }
 
-    /**
-     * Checks if a payment is wallet payment method
-     * @param $notificationPaymentMethod
-     * @return bool
-     */
-    public function isWalletPaymentMethod($notificationPaymentMethod): bool
+    public function isWalletTxVariant(string $notificationPaymentMethod): bool
     {
         $walletPaymentMethods = [
             'googlepay',
@@ -541,38 +395,26 @@ class PaymentMethods extends AbstractHelper
         return in_array($notificationPaymentMethod, $walletPaymentMethods);
     }
 
-    /**
-     * Check if the method of the passed payment is equal to the method passed in this function
-     *
-     * @param $payment
-     * @param string $method
-     * @return bool
-     */
-    public function checkPaymentMethod($payment, string $method): bool
+    public function isWalletPaymentMethod(MethodInterface $paymentMethodInstance): bool
+    {
+        return boolval($paymentMethodInstance->getConfigData('is_wallet'));
+    }
+
+    public function isAlternativePaymentMethod(MethodInterface $paymentMethodInstance): bool
+    {
+        return $paymentMethodInstance->getConfigData('group') === self::ADYEN_GROUP_ALTERNATIVE_PAYMENT_METHODS;
+    }
+
+    public function paymentMethodSupportsRecurring(MethodInterface $paymentMethodInstance): bool
+    {
+        return boolval($paymentMethodInstance->getConfigData('supports_recurring'));
+    }
+
+    public function checkPaymentMethod(Order\Payment $payment, string $method): bool
     {
         return $payment->getMethod() === $method;
     }
 
-    /**
-     * Check if the passed payment method provider is a recurring one or not
-     *
-     * @param string $provider
-     * @return bool
-     */
-    public function isRecurringProvider(string $provider): bool
-    {
-        return in_array($provider, [
-            AdyenCcConfigProvider::CC_VAULT_CODE,
-            AdyenHppConfigProvider::HPP_VAULT_CODE,
-            AdyenOneclickConfigProvider::CODE
-        ]);
-    }
-
-    /**
-     * Retrieve available credit card types
-     *
-     * @return array
-     */
     public function getCcAvailableTypes(): array
     {
         $types = [];
@@ -590,11 +432,6 @@ class PaymentMethods extends AbstractHelper
         return $types;
     }
 
-    /**
-     * Retrieve available credit card type codes by alt code
-     *
-     * @return array
-     */
     public function getCcAvailableTypesByAlt(): array
     {
         $types = [];
@@ -612,13 +449,6 @@ class PaymentMethods extends AbstractHelper
         return $types;
     }
 
-    /**
-     * Check if order should be automatically captured
-     *
-     * @param Order $order
-     * @param string $notificationPaymentMethod
-     * @return bool
-     */
     public function isAutoCapture(Order $order, string $notificationPaymentMethod): bool
     {
         // validate if payment methods allows manual capture
@@ -786,13 +616,6 @@ class PaymentMethods extends AbstractHelper
         }
     }
 
-    /**
-     * Compare the payment methods linked to the magento order and the adyen notification
-     *
-     * @param Order $order
-     * @param Notification $notification
-     * @return bool
-     */
     public function compareOrderAndWebhookPaymentMethods(Order $order, Notification $notification): bool
     {
         // For cards, it can be 'VI', 'MI',... For alternatives, it can be 'ideal', 'directEbanking',...
@@ -800,7 +623,7 @@ class PaymentMethods extends AbstractHelper
         $notificationPaymentMethod = $notification->getPaymentMethod();
 
         // Returns if the payment method is wallet like wechatpayWeb, amazonpay, applepay, paywithgoogle
-        $isWalletPaymentMethod = $this->isWalletPaymentMethod($orderPaymentMethod);
+        $isWalletPaymentMethod = $this->isWalletTxVariant($orderPaymentMethod);
         $isCardPaymentMethod = $order->getPayment()->getMethod() === 'adyen_cc' || $order->getPayment()->getMethod() === 'adyen_oneclick';
 
         // If it is a wallet method OR a card OR the methods match exactly, return true
@@ -811,12 +634,6 @@ class PaymentMethods extends AbstractHelper
         return false;
     }
 
-    /**
-     * This function should be removed once we add classes for payment methods
-     *
-     * @param string $paymentMethod
-     * @return bool
-     */
     public function isBankTransfer(string $paymentMethod): bool
     {
         if (strlen($paymentMethod) >= 12 && substr($paymentMethod, 0, 12) == "bankTransfer") {
@@ -827,13 +644,7 @@ class PaymentMethods extends AbstractHelper
         return $isBankTransfer;
     }
 
-    /**
-     * @param Order $order
-     * @param Notification $notification
-     * @param $status
-     * @return bool|mixed
-     */
-    public function getBoletoStatus(Order $order, Notification $notification, $status)
+    public function getBoletoStatus(Order $order, Notification $notification, string $status): ?string
     {
         $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize(
             $notification->getAdditionalData()
@@ -878,5 +689,33 @@ class PaymentMethods extends AbstractHelper
         }
 
         return $status;
+    }
+
+    /**
+     * @param string $paymentMethodCode
+     * @param array $params
+     * @return array
+     * @throws LocalizedException
+     */
+    public function buildPaymentMethodIcon(string $paymentMethodCode, array $params): array
+    {
+        $svgAsset = $this->assetRepo->createAsset("Adyen_Payment::images/logos/$paymentMethodCode.svg", $params);
+        $pngAsset = $this->assetRepo->createAsset("Adyen_Payment::images/logos/$paymentMethodCode.png", $params);
+
+        if ($this->assetSource->findSource($svgAsset)) {
+            $asset = $svgAsset;
+        } elseif ($this->assetSource->findSource($pngAsset)) {
+            $asset = $pngAsset;
+        }
+
+        if (isset($asset)) {
+            list($width, $height) = getimagesize($asset->getSourceFile());
+            $icon = ['url' => $asset->getUrl(), 'width' => $width, 'height' => $height];
+        } else {
+            $url = "https://checkoutshopper-live.adyen.com/checkoutshopper/images/logos/$paymentMethodCode.svg";
+            $icon = ['url' => $url, 'width' => 77, 'height' => 50];
+        }
+
+        return $icon;
     }
 }

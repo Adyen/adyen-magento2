@@ -11,6 +11,9 @@
 
 namespace Adyen\Payment\Block\Info;
 
+/**
+ * @deprecated
+ */
 class Oneclick extends Cc
 {
     /**

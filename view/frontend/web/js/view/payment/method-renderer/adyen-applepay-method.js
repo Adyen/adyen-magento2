@@ -17,20 +17,18 @@ define(
         adyenPaymentMethodComponent,
     ) {
         return adyenPaymentMethodComponent.extend({
+            placeOrderButtonVisible: false,
+            txVariant: 'applepay',
             initialize: function () {
-                if (!this.checkBrowserCompatibility()) {
-                    return;
-                }
-
                 this._super();
             },
-            buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo, result) {
+            buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo) {
                 let baseComponentConfiguration = this._super();
                 let applePayConfiguration = Object.assign(baseComponentConfiguration,
                     {
                         showPayButton: true,
                         totalPriceLabel: baseComponentConfiguration.configuration.merchantName,
-                        amount: paymentMethodsExtraInfo[paymentMethod.methodIdentifier].configuration.amount
+                        amount: paymentMethodsExtraInfo[paymentMethod.type].configuration.amount
                     }
                 );
 

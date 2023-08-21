@@ -18,6 +18,7 @@ define(
         adyenPaymentMethod,
     ) {
         return adyenPaymentMethod.extend({
+            txVariant: 'bcmc_mobile',
             initialize: function () {
                 this._super();
             }

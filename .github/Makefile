@@ -24,8 +24,6 @@ install:
 configure: n98-magerun2.phar
 	bin/magento config:set payment/adyen_abstract/demo_mode 1
 	bin/magento adyen:enablepaymentmethods:run
-	bin/magento config:set payment/adyen_oneclick/card_mode 'Magento Vault'
-	bin/magento config:set payment/adyen_oneclick/card_type 'CardOnFile'
 	bin/magento config:set payment/adyen_abstract/has_holder_name 1
 	bin/magento config:set payment/adyen_boleto/boletotypes 'boletobancario_santander'
 	bin/magento config:set payment/adyen_pay_by_link/days_to_expire 5

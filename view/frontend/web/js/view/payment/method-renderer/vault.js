@@ -2,11 +2,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
-<<<<<<< HEAD
- * Copyright (c) 2023 Adyen BV (https://www.adyen.com/)
-=======
  * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
->>>>>>> origin/develop
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -120,12 +116,13 @@ define([
                 return false
             }
 
-            self.installments(0);
+            let requireCvc = window.checkoutConfig.payment.adyenCc.requireCvc;
 
+            self.installments(0);
             let allInstallments = self.getAllInstallments();
 
             let componentConfig = {
-                hideCVC: false,
+                hideCVC: !requireCvc,
                 brand: this.getCardType(),
                 storedPaymentMethodId: this.getGatewayToken(),
                 expiryMonth: this.getExpirationMonth(),
