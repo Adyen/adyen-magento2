@@ -13,11 +13,19 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
 use Adyen\Client;
+use Adyen\Environment;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Config\Source\RenderMode;
 use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
 use Adyen\Payment\Helper\Config as ConfigHelper;
+use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
+use Adyen\Service\Checkout;
+use Adyen\Service\CheckoutUtility;
 use Adyen\Service\PosPayment;
+use Adyen\Service\Recurring;
+use DateTime;
+use Exception;
 use Magento\Backend\Helper\Data as BackendHelper;
 use Magento\Directory\Model\Config\Source\Country;
 use Magento\Framework\App\CacheInterface;
@@ -25,19 +33,25 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Cache\Type\Config as ConfigCache;
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Framework\App\State;
+use Magento\Framework\Component\ComponentRegistrar;
 use Magento\Framework\Component\ComponentRegistrarInterface;
 use Magento\Framework\Config\DataInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Module\ModuleListInterface;
+use Magento\Framework\UrlInterface;
+use Magento\Framework\View\Asset\File;
 use Magento\Framework\View\Asset\Repository;
 use Magento\Framework\View\Asset\Source;
 use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Status\HistoryFactory;
 use Magento\Sales\Model\Service\OrderService;
+use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Tax\Model\Calculation;
 use Magento\Tax\Model\Config;
@@ -261,8 +275,17 @@ class Data extends AbstractHelper
     public function getCaptureModes()
     {
         return [
-            'auto' => 'immediate',
-            'manual' => 'manual'
+            'auto' => 'Immediate',
+            'manual' => 'Manual'
+        ];
+    }
+
+    public function getOpenInvoiceCaptureModes()
+    {
+        return [
+            'auto' => 'Immediate',
+            'manual' => 'Manual',
+            'onshipment' => 'On shipment'
         ];
     }
 
@@ -537,7 +560,7 @@ class Data extends AbstractHelper
         $order->setActionFlag($orderStatus, true);
 
         switch ($orderStatus) {
-            case \Magento\Sales\Model\Order::STATE_HOLDED:
+            case Order::STATE_HOLDED:
                 if ($order->canHold()) {
                     $order->hold()->save();
                 }
@@ -552,7 +575,7 @@ class Data extends AbstractHelper
                                 ->setStatus(Order::STATE_CANCELED)
                                 ->setComment(__('Order has been cancelled by "%1" payment response.', $order->getPayment()->getMethod()));
                             $this->orderManagement->addComment($order->getEntityId(), $orderStatusHistory);
-                        } catch (\Exception $e) {
+                        } catch (Exception $e) {
                             $this->adyenLogger->addAdyenDebug(
                                 __('Order cancel history comment error: %1', $e->getMessage()),
                                 $this->adyenLogger->getOrderContext($order)
@@ -634,7 +657,7 @@ class Data extends AbstractHelper
     public function getModuleVersion()
     {
         $moduleDir = $this->componentRegistrar->getPath(
-            \Magento\Framework\Component\ComponentRegistrar::MODULE,
+            ComponentRegistrar::MODULE,
             'Adyen_Payment'
         );
 
@@ -725,7 +748,7 @@ class Data extends AbstractHelper
     public function showLogos()
     {
         $showLogos = $this->configHelper->getAdyenAbstractConfigData('title_renderer');
-        if ($showLogos == \Adyen\Payment\Model\Config\Source\RenderMode::MODE_TITLE_IMAGE) {
+        if ($showLogos == RenderMode::MODE_TITLE_IMAGE) {
             return true;
         }
         return false;
@@ -736,7 +759,7 @@ class Data extends AbstractHelper
      *
      * @param string $fileId
      * @param array $params
-     * @return \Magento\Framework\View\Asset\File
+     * @return File
      */
     public function createAsset($fileId, array $params = [])
     {
@@ -747,14 +770,14 @@ class Data extends AbstractHelper
     public function getStoreLocale($storeId)
     {
         $path = \Magento\Directory\Helper\Data::XML_PATH_DEFAULT_LOCALE;
-        $storeLocale = $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
+        $storeLocale = $this->scopeConfig->getValue($path, ScopeInterface::SCOPE_STORE, $storeId);
         return $this->localeHelper->mapLocaleCode($storeLocale);
     }
 
     public function getCustomerStreetLinesEnabled($storeId)
     {
         $path = 'customer/address/street_lines';
-        return $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
+        return $this->scopeConfig->getValue($path, ScopeInterface::SCOPE_STORE, $storeId);
     }
 
     /**
@@ -981,7 +1004,7 @@ class Data extends AbstractHelper
 
         if ($this->isVatCategoryHigh(
             $payment->getAdditionalInformation(
-                \Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver::BRAND_CODE
+                AdyenPaymentMethodDataAssignObserver::BRAND_CODE
             )
         )
         ) {
@@ -1135,9 +1158,9 @@ class Data extends AbstractHelper
         $client->setMerchantApplication($this->getModuleName(), $moduleVersion);
         $client->setExternalPlatform($this->productMetadata->getName(), $this->productMetadata->getVersion(), 'Adyen');
         if ($isDemo) {
-            $client->setEnvironment(\Adyen\Environment::TEST);
+            $client->setEnvironment(Environment::TEST);
         } else {
-            $client->setEnvironment(\Adyen\Environment::LIVE, $this->configHelper->getLiveEndpointPrefix($storeId));
+            $client->setEnvironment(Environment::LIVE, $this->configHelper->getLiveEndpointPrefix($storeId));
         }
 
         return $client;
@@ -1172,9 +1195,9 @@ class Data extends AbstractHelper
         if ($paymentOriginUrl = $this->configHelper->getAdyenAbstractConfigData("payment_origin_url", $storeId) ) {
             return $paymentOriginUrl;
         }
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $state = $objectManager->get(\Magento\Framework\App\State::class);
-        $baseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
+        $objectManager = ObjectManager::getInstance();
+        $state = $objectManager->get(State::class);
+        $baseUrl = $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_WEB);
         if ('adminhtml' === $state->getAreaCode()) {
             $baseUrl = $this->backendHelper->getHomePageUrl();
         }
@@ -1229,7 +1252,7 @@ class Data extends AbstractHelper
         try {
             $service = $this->createAdyenCheckoutUtilityService($client);
             $response = $service->originKeys($params);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->adyenLogger->error($e->getMessage());
         }
 
@@ -1266,21 +1289,21 @@ class Data extends AbstractHelper
 
     /**
      * @param Client $client
-     * @return \Adyen\Service\CheckoutUtility
+     * @return CheckoutUtility
      * @throws AdyenException
      */
     private function createAdyenCheckoutUtilityService($client)
     {
-        return new \Adyen\Service\CheckoutUtility($client);
+        return new CheckoutUtility($client);
     }
 
     /**
      * Method can be used by interceptors to provide the customer ID in a different way.
      *
-     * @param \Magento\Sales\Model\Order $order
+     * @param Order $order
      * @return int|null
      */
-    public function getCustomerId(\Magento\Sales\Model\Order $order)
+    public function getCustomerId(Order $order)
     {
         return $order->getCustomerId();
     }
@@ -1294,12 +1317,15 @@ class Data extends AbstractHelper
     public function getVariantIcon($variant)
     {
         $asset = $this->createAsset(sprintf("Adyen_Payment::images/logos/%s_small.png", $variant));
-        list($width, $height) = getimagesize($asset->getSourceFile());
-        $icon = [
-            'url' => $asset->getUrl(),
-            'width' => $width,
-            'height' => $height
-        ];
+
+        if($this->_assetSource->findSource($asset)) {
+            list($width, $height) = getimagesize($asset->getSourceFile());
+            $icon = ['url' => $asset->getUrl(), 'width' => $width, 'height' => $height];
+        } else {
+            $url = "https://checkoutshopper-test.adyen.com/checkoutshopper/images/logos/$variant.svg";
+            $icon = ['url' => $url, 'width' => 77, 'height' => 50];
+        }
+
         return $icon;
     }
 
@@ -1316,21 +1342,21 @@ class Data extends AbstractHelper
 
     /**
      * @param $client
-     * @return \Adyen\Service\Checkout
+     * @return Checkout
      */
     public function createAdyenCheckoutService($client)
     {
-        return new \Adyen\Service\Checkout($client);
+        return new Checkout($client);
     }
 
     /**
      * @param $client
-     * @return \Adyen\Service\Recurring
+     * @return Recurring
      * @throws AdyenException
      */
     public function createAdyenRecurringService($client)
     {
-        return new \Adyen\Service\Recurring($client);
+        return new Recurring($client);
     }
 
     /**
@@ -1343,7 +1369,7 @@ class Data extends AbstractHelper
         if (strlen($date) < 0) {
             $date = date('d-m-Y H:i:s');
         }
-        $timeStamp = new \DateTime($date);
+        $timeStamp = new DateTime($date);
         return $timeStamp->format($format);
     }
 
@@ -1387,7 +1413,7 @@ class Data extends AbstractHelper
         // should have the value if not fall back to default
         $localeCode = $this->config->getValue(
             \Magento\Directory\Helper\Data::XML_PATH_DEFAULT_LOCALE,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORES,
+            ScopeInterface::SCOPE_STORES,
             $this->storeManager->getStore($storeId)->getCode()
         );
 
