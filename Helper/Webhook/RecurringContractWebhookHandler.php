@@ -15,6 +15,7 @@ namespace Adyen\Payment\Helper\Webhook;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Helper\Vault;
+use Exception;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Vault\Model\PaymentTokenManagement;

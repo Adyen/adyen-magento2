@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -26,23 +26,6 @@ use Magento\Vault\Model\Method\Vault;
 
 class PaymentMethodVault extends Vault
 {
-    /**
-     * Constructor
-     *
-     * @param ConfigInterface $config
-     * @param ConfigFactoryInterface $configFactory
-     * @param ObjectManagerInterface $objectManager
-     * @param MethodInterface $vaultProvider
-     * @param ManagerInterface $eventManager
-     * @param ValueHandlerPoolInterface $valueHandlerPool
-     * @param CommandManagerPoolInterface $commandManagerPool
-     * @param PaymentTokenManagementInterface $tokenManagement
-     * @param OrderPaymentExtensionInterfaceFactory $paymentExtensionFactory
-     * @param string $code
-     * @param Json|null $jsonSerializer
-     *
-     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
-     */
     public function __construct(
         ConfigInterface $config,
         ConfigFactoryInterface $configFactory,
@@ -71,9 +54,6 @@ class PaymentMethodVault extends Vault
         );
     }
 
-    /**
-     * @return false
-     */
     public function isInitializeNeeded(): bool
     {
         return false;

@@ -27,17 +27,17 @@
     <type name="Adyen\Payment\Model\Ui\AdyenGenericConfigProvider">
         <arguments>
             <argument name="txVariants" xsi:type="array">
-                <item name="adyen_ideal" xsi:type="const">Adyen\Payment\Model\Methods\Ideal::TX_VARIANT</item>
-                <item name="adyen_klarna" xsi:type="const">Adyen\Payment\Model\Methods\Klarna::TX_VARIANT</item>
-                <item name="adyen_paypal" xsi:type="const">Adyen\Payment\Model\Methods\Paypal::TX_VARIANT</item>
-                <item name="adyen_bcmc_mobile" xsi:type="const">Adyen\Payment\Model\Methods\BcmcMobile::TX_VARIANT</item>
-                <item name="adyen_dotpay" xsi:type="const">Adyen\Payment\Model\Methods\Dotpay::TX_VARIANT</item>
-                <item name="adyen_amazonpay" xsi:type="const">Adyen\Payment\Model\Methods\AmazonPay::TX_VARIANT</item>
-                <item name="adyen_googlepay" xsi:type="const">Adyen\Payment\Model\Methods\GooglePay::TX_VARIANT</item>
-                <item name="adyen_multibanco" xsi:type="const">Adyen\Payment\Model\Methods\Multibanco::TX_VARIANT</item>
-                <item name="adyen_facilypay_3x" xsi:type="const">Adyen\Payment\Model\Methods\Facilypay3x::TX_VARIANT</item>
-                <item name="adyen_sepadirectdebit" xsi:type="const">Adyen\Payment\Model\Methods\SepaDirectDebit::TX_VARIANT</item>
-                <item name="adyen_applepay" xsi:type="const">Adyen\Payment\Model\Methods\Applepay::TX_VARIANT</item>
+                <item name="adyen_ideal" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::IDEAL_TX_VARIANT</item>
+                <item name="adyen_klarna" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::KLARNA_TX_VARIANT</item>
+                <item name="adyen_paypal" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::PAYPAL_TX_VARIANT</item>
+                <item name="adyen_bcmc_mobile" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::BCMC_MOBILE_TX_VARIANT</item>
+                <item name="adyen_dotpay" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::DOTPAY_TX_VARIANT</item>
+                <item name="adyen_amazonpay" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::AMAZONPAY_TX_VARIANT</item>
+                <item name="adyen_googlepay" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::GOOGLEPAY_TX_VARIANT</item>
+                <item name="adyen_multibanco" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::MULTIBANCO_TX_VARIANT</item>
+                <item name="adyen_facilypay_3x" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::FACILYPAY_3X_TX_VARIANT</item>
+                <item name="adyen_sepadirectdebit" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::SEPADIRECTDEBIT_TX_VARIANT</item>
+                <item name="adyen_applepay" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::APPLEPAY_TX_VARIANT</item>
             </argument>
         </arguments>
     </type>
