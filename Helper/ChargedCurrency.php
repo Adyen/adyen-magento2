@@ -242,7 +242,6 @@ class ChargedCurrency
     {
         $chargedCurrency = $this->config->getChargedCurrency($quote->getStoreId());
         if ($chargedCurrency == self::BASE) {
-            // Magento can't update tax discount compensation. Possible Magento bug.
             $quote->getShippingAddress()->setBaseDiscountTaxCompensationAmount(
                 $quote->getShippingAddress()->getBaseShippingInclTax() -
                 $quote->getShippingAddress()->getBaseShippingAmount() -
@@ -265,8 +264,9 @@ class ChargedCurrency
             $taxAmount = $quote->getShippingAddress()->getShippingTaxAmount() + $quote->getShippingAddress()->getShippingDiscountTaxCompensationAmount();
             $discount = $quote->getShippingAddress()->getShippingDiscountAmount();
         } else {
-            $taxAmount = $item->getPriceInclTax() - $item->getPrice();
-            $discount = $item->getDiscountAmount() + (($item->getPriceInclTax() - $item->getPrice() - ($item->getTaxAmount() / $item->getQty())) * $item->getQty());
+            $taxAmount =  $quote->getShippingAddress()->getShippingInclTax() - $quote->getShippingAddress()->getShippingAmount();
+            $discount = $quote->getShippingAddress()->getShippingDiscountAmount() +
+                ($quote->getShippingAddress()->getShippingInclTax() - $quote->getShippingAddress()->getShippingAmount() - $quote->getShippingAddress()->getShippingTaxAmount());
         }
 
         return new AdyenAmountCurrency(
