@@ -87,7 +87,6 @@ class CaptureDataBuilder implements BuilderInterface
         Context $context,
         Payment $orderPaymentResourceModel,
         OpenInvoice $openInvoiceHelper
-
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->chargedCurrency = $chargedCurrency;

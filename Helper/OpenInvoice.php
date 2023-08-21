@@ -10,9 +10,7 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-
 namespace Adyen\Payment\Helper;
-
 
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Catalog\Helper\Image;
@@ -44,7 +42,6 @@ class OpenInvoice
      */
     protected $imageHelper;
 
-
     public function __construct(
         Data $adyenHelper,
         CartRepositoryInterface $cartRepository,
@@ -58,6 +55,7 @@ class OpenInvoice
         $this->configHelper = $configHelper;
         $this->imageHelper = $imageHelper;
     }
+
     public function getOpenInvoiceData($order): array
     {
         $formFields = [
