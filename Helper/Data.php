@@ -275,8 +275,17 @@ class Data extends AbstractHelper
     public function getCaptureModes()
     {
         return [
-            'auto' => 'immediate',
-            'manual' => 'manual'
+            'auto' => 'Immediate',
+            'manual' => 'Manual'
+        ];
+    }
+
+    public function getOpenInvoiceCaptureModes()
+    {
+        return [
+            'auto' => 'Immediate',
+            'manual' => 'Manual',
+            'onshipment' => 'On shipment'
         ];
     }
 
