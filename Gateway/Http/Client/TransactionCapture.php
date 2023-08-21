@@ -105,11 +105,11 @@ class TransactionCapture implements ClientInterface
     }
 
     /**
-     * @param Modification $service
+     * @param $service
      * @param $requestContainer
      * @return array
      */
-    private function placeMultipleCaptureRequests( $service, $requestContainer, $requestOptions)
+    private function placeMultipleCaptureRequests($service, $requestContainer, $requestOptions): array
     {
         $response = [];
         foreach ($requestContainer[self::MULTIPLE_AUTHORIZATIONS] as $request) {

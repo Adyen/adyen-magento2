@@ -212,7 +212,7 @@ class CaptureDataBuilder implements BuilderInterface
 
                 if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($adyenOrderPayment[OrderPaymentInterface::PAYMENT_METHOD])) {
                     $openInvoiceFields = $this->openInvoiceHelper->getOpenInvoiceData($payment);
-                    $authToCapture["additionalData"] = $openInvoiceFields;
+                    $authToCapture = array_merge($authToCapture, $openInvoiceFields);
                 }
 
                 $captureData[] = $authToCapture;
