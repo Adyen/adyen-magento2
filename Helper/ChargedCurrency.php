@@ -278,17 +278,6 @@ class ChargedCurrency
             // Magento calculates wrong order total for discount applied shipping taxes. Tax incl. value calculated without compensation due to this issue.
             $quote->getShippingAddress()->getShippingInclTax()
         );
-
-//        return new AdyenAmountCurrency(
-//            $quote->getShippingAddress()->getShippingAmount(),
-//            $quote->getQuoteCurrencyCode(),
-//            // $quote->getShippingAddress()->getShippingDiscountAmount() + $quote->getShippingAddress()->getShippingDiscountTaxCompensationAmount(),
-//            $quote->getShippingAddress()->getShippingDiscountAmount(),
-//            $quote->getShippingAddress()->getShippingTaxAmount() + $quote->getShippingAddress()->getShippingDiscountTaxCompensationAmount(),
-//            null,
-//            // Magento calculates wrong order total for discount applied shipping taxes. Tax incl. value calculated without compensation due to this issue.
-//            $quote->getShippingAddress()->getShippingInclTax()
-//        );
     }
 
     /**
