@@ -76,6 +76,8 @@ services:
       - ADYEN_API_KEY
       - ADYEN_CLIENT_KEY
       - ADYEN_MERCHANT
+      - WEBHOOK_USERNAME
+      - WEBHOOK_PASSWORD
     volumes:
       - ../../scripts/e2e.sh:/e2e.sh
       - ../../../test-report:/tmp/test-report
