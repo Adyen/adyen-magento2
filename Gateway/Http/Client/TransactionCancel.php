@@ -15,7 +15,7 @@ use Adyen\AdyenException;
 use Adyen\Client;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
-use Adyen\Service\Modification;
+use Adyen\Service\Checkout\ModificationsApi;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
@@ -59,9 +59,8 @@ class TransactionCancel implements ClientInterface
         $request = $transferObject->getBody();
         $headers = $transferObject->getHeaders();
 
-        $service = new Modification(
-            $this->adyenHelper->initializeAdyenClient($transferObject->getClientConfig()['storeId'])
-        );
+        $client = $this->adyenHelper->initializeAdyenClient();
+        $service = $this->adyenHelper->createAdyenCheckoutService($client);
 
         $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
             $request,
@@ -70,10 +69,9 @@ class TransactionCancel implements ClientInterface
 
         $requestOptions['idempotencyKey'] = $idempotencyKey;
 
-        $this->adyenHelper
-            ->logRequest($request, Client::API_PAYMENT_VERSION, '/pal/servlet/Payment/{version}/cancel');
+        $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/cancels');
         try {
-            $response = $service->cancel($request, $requestOptions);
+            $response = $service->cancels($request, $requestOptions);
         } catch (AdyenException $e) {
             $response['error'] = $e->getMessage();
         }
