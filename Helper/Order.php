@@ -476,7 +476,7 @@ class Order extends AbstractHelper
 
         if ($linkedAdyenCreditmemo instanceof AdyenCreditmemoModel) {
             $this->adyenCreditmemoHelper->updateAdyenCreditmemosStatus(
-                $linkedAdyenCreditmemo[''],
+                $linkedAdyenCreditmemo,
                 AdyenCreditmemoModel::FAILED_STATUS
             );
         }
