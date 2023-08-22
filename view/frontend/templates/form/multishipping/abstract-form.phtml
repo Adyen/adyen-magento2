@@ -19,28 +19,63 @@
     ], function (layout, $, adyenPaymentService) {
         $(function () {
 
-            let pmResponse = ['klarna', 'ideal'];
+            let allowedPaymentMethods = [
+                // 'amazonpay',
+                // 'applepay',
+                // 'bcmc_mobile',
+                // 'boleto',
+                // 'dotpay',
+                // 'facilypay_3x',
+                // 'googlepay',
+                'ideal',
+                'klarna',
+                // 'multibanco',
+                // 'paypal'
+            ];
 
-            let paymentmeths = adyenPaymentService.retrievePaymentMethods().done(
-                response => console.log('rok was here: ', response);
-        )
+            let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
+            paymentMethodsObserver.subscribe(
+                function(paymentMethodsResponse) {
+                    let filteredPaymentMethods = paymentMethodsResponse.paymentMethodsResponse.paymentMethods.filter(paymentMethod => {
+                        return allowedPaymentMethods.includes(paymentMethod.type);
+                    });
 
-            pmResponse.map((paymentMethod) => {
-                    let paymentMethodData = {
-                        method: `adyen_${paymentMethod}`
-                    };
+                    filteredPaymentMethods.map((paymentMethod) => {
+                        console.log('paymentMethod: ', paymentMethod.type)
+                        let paymentMethodData = {
+                            method: `adyen_${paymentMethod.type}`
+                        };
 
-                    layout([
-                        {
-                            component: `Adyen_Payment/js/view/payment/method-renderer/multishipping/adyen-${paymentMethod}-method`,
-                            name: `payment_method_adyen_${paymentMethod}`,
-                            method: paymentMethodData.method,
-                            item: paymentMethodData
+                        layout([
+                            {
+                                component: `Adyen_Payment/js/view/payment/method-renderer/multishipping/adyen-${paymentMethod.type}-method`,
+                                name: `payment_method_adyen_${paymentMethod.type}`,
+                                method: paymentMethodData.method,
+                                item: paymentMethodData
 
-                        }
-                    ]);
-                    $('body').trigger('contentUpdated');
-                })
+                            }
+                        ]);
+                        $('body').trigger('contentUpdated');
+                    })
+                }
+            );
+
+            // pmResponse.map((paymentMethod) => {
+            //         let paymentMethodData = {
+            //             method: `adyen_${paymentMethod}`
+            //         };
+            //
+            //         layout([
+            //             {
+            //                 component: `Adyen_Payment/js/view/payment/method-renderer/multishipping/adyen-${paymentMethod}-method`,
+            //                 name: `payment_method_adyen_${paymentMethod}`,
+            //                 method: paymentMethodData.method,
+            //                 item: paymentMethodData
+            //
+            //             }
+            //         ]);
+            //         $('body').trigger('contentUpdated');
+            //     })
         })
     })
 </script>

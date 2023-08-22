@@ -201,17 +201,6 @@
                 street: <?= /* @noEscape */ json_encode($block->getAddress()->getStreet()); ?>,
                 telephone: '<?= $block->escapeJs($block->getAddress()->getTelephone()); ?>'
             });
-            adyenPaymentService.retrievePaymentMethods().done(function(paymentMethods) {
-                try {
-                    paymentMethods = JSON.parse(paymentMethods);
-                } catch(error) {
-                    console.log(error);
-                    paymentMethods = null;
-                }
-                adyenPaymentService.setPaymentMethods(paymentMethods);
-            }).fail(function() {
-                console.log('Fetching multishipping payment methods failed!');
-            });
         });
     //]]>
 </script>
