@@ -654,7 +654,9 @@ class Order extends AbstractHelper
         }
 
         if ($linkedAdyenCreditmemo instanceof AdyenCreditmemoModel) {
-            $this->adyenCreditmemoHelper->updateAdyenCreditmemosStatus($linkedAdyenCreditmemo, AdyenCreditmemoModel::COMPLETED_STATUS);
+            $this->adyenCreditmemoHelper->updateAdyenCreditmemosStatus(
+                $linkedAdyenCreditmemo, AdyenCreditmemoModel::COMPLETED_STATUS
+            );
         }
 
         $order->addStatusHistoryComment(__('Refund Webhook successfully handled'), $order->getStatus());
