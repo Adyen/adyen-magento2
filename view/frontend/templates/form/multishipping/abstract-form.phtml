@@ -40,42 +40,25 @@
                         return allowedPaymentMethods.includes(paymentMethod.type);
                     });
 
-                    filteredPaymentMethods.map((paymentMethod) => {
-                        console.log('paymentMethod: ', paymentMethod.type)
+                    let layoutConfigurations = [];
+
+                    filteredPaymentMethods.forEach((paymentMethod) => {
                         let paymentMethodData = {
                             method: `adyen_${paymentMethod.type}`
                         };
 
-                        layout([
-                            {
-                                component: `Adyen_Payment/js/view/payment/method-renderer/multishipping/adyen-${paymentMethod.type}-method`,
-                                name: `payment_method_adyen_${paymentMethod.type}`,
-                                method: paymentMethodData.method,
-                                item: paymentMethodData
-
-                            }
-                        ]);
-                        $('body').trigger('contentUpdated');
+                        layoutConfigurations.push({
+                            component: `Adyen_Payment/js/view/payment/method-renderer/multishipping/adyen-${paymentMethod.type}-method`,
+                            name: `payment_method_adyen_${paymentMethod.type}`,
+                            method: paymentMethodData.method,
+                            item: paymentMethodData
+                        });
                     })
+
+                    layout(layoutConfigurations);
+                    $('body').trigger('contentUpdated');
                 }
             );
-
-            // pmResponse.map((paymentMethod) => {
-            //         let paymentMethodData = {
-            //             method: `adyen_${paymentMethod}`
-            //         };
-            //
-            //         layout([
-            //             {
-            //                 component: `Adyen_Payment/js/view/payment/method-renderer/multishipping/adyen-${paymentMethod}-method`,
-            //                 name: `payment_method_adyen_${paymentMethod}`,
-            //                 method: paymentMethodData.method,
-            //                 item: paymentMethodData
-            //
-            //             }
-            //         ]);
-            //         $('body').trigger('contentUpdated');
-            //     })
         })
     })
 </script>

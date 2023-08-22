@@ -201,6 +201,11 @@
                 street: <?= /* @noEscape */ json_encode($block->getAddress()->getStreet()); ?>,
                 telephone: '<?= $block->escapeJs($block->getAddress()->getTelephone()); ?>'
             });
+
+            adyenPaymentService.retrievePaymentMethods().done(function (paymentMethods) {
+                paymentMethods = JSON.parse(paymentMethods);
+                adyenPaymentService.setPaymentMethods(paymentMethods);
+            });
         });
     //]]>
 </script>
