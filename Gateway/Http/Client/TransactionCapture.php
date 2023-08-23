@@ -150,7 +150,7 @@ class TransactionCapture implements ClientInterface
     private function copyParamsToResponse(array $response, array $request): array
     {
         $response[self::CAPTURE_AMOUNT] = $request['amount']['value'];
-        $response[self::ORIGINAL_REFERENCE] = $request['paymentPspReference'];
+        $response[self::ORIGINAL_REFERENCE] = $request[self::ORIGINAL_REFERENCE];
 
         return $response;
     }
