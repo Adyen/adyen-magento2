@@ -51,7 +51,7 @@
                         layoutConfigurations.push({
                             component: `Adyen_Payment/js/view/payment/method-renderer/multishipping/adyen-${paymentMethod}-method`,
                             name: `payment_method_adyen_${paymentMethod}`,
-                            method: paymentMethodData,
+                            method: paymentMethodData.method,
                             item: paymentMethodData
                         });
                     })
