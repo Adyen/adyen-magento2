@@ -372,6 +372,10 @@ class Data extends AbstractHelper
      */
     public function formatAmount($amount, $currency)
     {
+        if ($amount === null) {
+            // PHP 8 does not accept first param to be NULL
+            $amount = 0;
+        }
         return (int)number_format($amount, $this->decimalNumbers($currency), '', '');
     }
 
