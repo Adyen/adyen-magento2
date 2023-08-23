@@ -14,7 +14,6 @@ Inside Adyen toggle the following settings on inside the API and Responses secti
 
 ## Requirements
 This plugin supports Magento2 version
-* 2.3.7 and higher
 * 2.4 and higher
 
 ## Releases
@@ -37,10 +36,8 @@ The schedule for the current maintained branches is:
 
 |  Plugin Major Version   |  Release Date  |  Level 1 Support ends   |  Level 2 Support ends   |  Level 3 Support ends  |
 |  :-----          |  :-----          |  :-----          |  :-----          |  :-----          |
-|  Version 6 |  March 2020  |  September 30 2021 |  March 31 2022 |  January 31 2023 |
-|  Version 7 |  April 2021 |  September 30 2022 |  March 31 2023 |  September 30 2023 |
-|  Version 8 |  November 2021 |  March 31 2023 |  September 2023 | March 2024 |
-|  Version 9 |  - |  12 months after release |  18 months after release |  24 months after release |
+|  Version 8 |  November 2021 |  March 2023 |  September 2023 | March 2024 |
+|  Version 9 |  September 2023 |  September 2024 |  March 2025 |  September 2025 |
 
 Or, visualised as a calendar:
 
@@ -48,18 +45,14 @@ Or, visualised as a calendar:
 gantt
     title Currently Supported Versions
     dateFormat  YYYY-MM-DD   
-    section Version 6
-    Level 1   :l61, 2020-03-31, 2021-09-30
-    Level 2   :l62, after l61, 2022-03-31     
-    Level 3   :l63, after l62, 2023-01-31
-    section Version 7
-    Level 1   :l71, 2021-04-09, 2022-09-30
-    Level 2   :l72, after l71, 2023-03-31
-    Level 3   :l73, after l72, 2023-09-30
     section Version 8
     Level 1   :l81, 2021-11-22, 2023-03-31
     Level 2   :l82, after l81, 2023-09-30
     Level 3   :l83, after l82, 2024-03-31
+    section Version 9
+    Level 1   :l91, 2023-09-15, 2024-09-30
+    Level 2   :l92, after l91, 2025-03-31
+    Level 3   :l93, after l92, 2025-09-30
 ```
 
 ## Contributing
