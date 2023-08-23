@@ -29,7 +29,9 @@ use Magento\Framework\View\Asset\Source;
 use Magento\Framework\View\Design\Theme\ThemeProviderInterface;
 use Magento\Framework\View\DesignInterface;
 use Magento\Payment\Helper\Data as MagentoDataHelper;
+use Magento\Payment\Model\MethodInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Api\Data\PaymentMethodInterface;
 use Magento\Sales\Model\Order;
 use Adyen\Payment\Helper\Data as AdyenDataHelper;
 use Magento\Store\Model\ScopeInterface;
@@ -51,6 +53,8 @@ class PaymentMethods extends AbstractHelper
 
     const FUNDING_SOURCE_DEBIT = 'debit';
     const FUNDING_SOURCE_CREDIT = 'credit';
+
+    const ADYEN_GROUP_ALTERNATIVE_PAYMENT_METHODS = 'adyen-alternative-payment-method';
 
     protected CartRepositoryInterface $quoteRepository;
     protected ScopeConfigInterface $config;
@@ -376,7 +380,7 @@ class PaymentMethods extends AbstractHelper
         return $paymentMethodsExtraDetails;
     }
 
-    public function isWalletPaymentMethod(string $notificationPaymentMethod): bool
+    public function isWalletTxVariant(string $notificationPaymentMethod): bool
     {
         $walletPaymentMethods = [
             'googlepay',
@@ -391,18 +395,24 @@ class PaymentMethods extends AbstractHelper
         return in_array($notificationPaymentMethod, $walletPaymentMethods);
     }
 
+    public function isWalletPaymentMethod(MethodInterface $paymentMethodInstance): bool
+    {
+        return boolval($paymentMethodInstance->getConfigData('is_wallet'));
+    }
+
+    public function isAlternativePaymentMethod(MethodInterface $paymentMethodInstance): bool
+    {
+        return $paymentMethodInstance->getConfigData('group') === self::ADYEN_GROUP_ALTERNATIVE_PAYMENT_METHODS;
+    }
+
+    public function paymentMethodSupportsRecurring(MethodInterface $paymentMethodInstance): bool
+    {
+        return boolval($paymentMethodInstance->getConfigData('supports_recurring'));
+    }
+
     public function checkPaymentMethod(Order\Payment $payment, string $method): bool
     {
         return $payment->getMethod() === $method;
-    }
-
-    public function isRecurringProvider(string $provider): bool
-    {
-        return in_array($provider, [
-            AdyenCcConfigProvider::CC_VAULT_CODE,
-            AdyenHppConfigProvider::HPP_VAULT_CODE,
-            AdyenOneclickConfigProvider::CODE
-        ]);
     }
 
     public function getCcAvailableTypes(): array
@@ -613,7 +623,7 @@ class PaymentMethods extends AbstractHelper
         $notificationPaymentMethod = $notification->getPaymentMethod();
 
         // Returns if the payment method is wallet like wechatpayWeb, amazonpay, applepay, paywithgoogle
-        $isWalletPaymentMethod = $this->isWalletPaymentMethod($orderPaymentMethod);
+        $isWalletPaymentMethod = $this->isWalletTxVariant($orderPaymentMethod);
         $isCardPaymentMethod = $order->getPayment()->getMethod() === 'adyen_cc' || $order->getPayment()->getMethod() === 'adyen_oneclick';
 
         // If it is a wallet method OR a card OR the methods match exactly, return true

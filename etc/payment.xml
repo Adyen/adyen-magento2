@@ -16,6 +16,9 @@
         <group id="adyen">
             <label>Adyen Payment Methods</label>
         </group>
+        <group id="adyen-alternative-payment-method">
+            <label>Adyen Alternative Payment Methods</label>
+        </group>
     </groups>
     <methods>
         <method name="adyen_cc">
