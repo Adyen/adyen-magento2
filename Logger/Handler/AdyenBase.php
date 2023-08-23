@@ -30,7 +30,12 @@ class AdyenBase extends Base
      * @param string|null $fileName
      * @param string|null $logFormat
      */
-    public function __construct(DriverInterface $filesystem, ?string $filePath = null, ?string $fileName = null, ?string $logFormat = null)
+    public function __construct(
+        DriverInterface $filesystem,
+        ?string $filePath = null,
+        ?string $fileName = null,
+        ?string $logFormat = null
+    )
     {
         parent::__construct($filesystem, $filePath, $fileName);
 
