@@ -30,7 +30,6 @@ define([
         },
 
         selectPaymentMethod: function () {
-            debugger;
             $('#stateData').val(JSON.stringify(this.paymentComponent.data));
             return this._super();
         },
