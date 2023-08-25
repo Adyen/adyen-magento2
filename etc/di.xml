@@ -1571,6 +1571,7 @@
                 type="Adyen\Payment\Model\Api\AdyenDonations"/>
     <preference for="Adyen\Payment\Api\Data\NotificationInterface"
                 type="Adyen\Payment\Model\Notification"/>
+
     <type name="Magento\Vault\Api\PaymentTokenRepositoryInterface">
         <plugin name="AdyenPaymentVaultDeleteToken" type="Adyen\Payment\Plugin\PaymentVaultDeleteToken" sortOrder="10"/>
     </type>
@@ -1587,6 +1588,9 @@
     </type>
     <type name="Magento\Vault\Model\CustomerTokenManagement">
         <plugin name="FilterVaultTokens" type="Adyen\Payment\Plugin\CustomerFilterVaultTokens" sortOrder="10"/>
+    </type>
+    <type name="Magento\Payment\Model\MethodList">
+        <plugin name="FilterSortCheckoutPaymentMethods" type="Adyen\Payment\Plugin\FilterSortPaymentMethods" sortOrder="10"/>
     </type>
 
     <virtualType name="AdyenCancelOrders" type="Adyen\Payment\Cron\CancelOrders">
