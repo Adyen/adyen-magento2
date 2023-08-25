@@ -18,11 +18,6 @@ use Magento\Framework\Filesystem\DriverInterface;
 class AdyenBase extends Base
 {
     /**
-     * @var string|null
-     */
-    private $logFormat;
-
-    /**
      * AdyenBase constructor.
      *
      * @param DriverInterface $filesystem
@@ -39,10 +34,8 @@ class AdyenBase extends Base
     {
         parent::__construct($filesystem, $filePath, $fileName);
 
-        $this->logFormat = $logFormat;
-
-        if ($this->logFormat) {
-            $this->setFormatter(new LineFormatter($this->logFormat));
+        if ($logFormat) {
+            $this->setFormatter(new LineFormatter($logFormat));
         }
     }
     /**
