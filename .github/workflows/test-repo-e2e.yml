@@ -64,8 +64,8 @@ jobs:
 
       - run: docker exec magento2-container /etc/init.d/cron stop
 
-      - name: Switch to production mode
-        run: docker exec -u www-data magento2-container make production
+      # - name: Switch to production mode
+      #   run: docker exec -u www-data magento2-container make production
 
       - name: Setup permissions
         run: docker exec magento2-container make fs
