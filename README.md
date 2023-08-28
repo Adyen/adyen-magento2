@@ -97,7 +97,7 @@ If you need to setup your cronjob in Magento <a href="http://devdocs.magento.com
 
 ## Supported payment methods
 
-Please check documents from [here](https://docs.adyen.com/plugins/adobe-commerce/supported-payment-methods/)
+See our [documentation](https://docs.adyen.com/plugins/adobe-commerce/supported-payment-methods/) for a full list of supported payment methods.
 
 ## Support
 If you have a feature request, or spotted a bug or a technical problem, create a GitHub issue. For other questions, contact our [support team](https://support.adyen.com/hc/en-us/requests/new?ticket_form_id=360000705420).
