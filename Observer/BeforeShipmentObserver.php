@@ -13,6 +13,7 @@
 namespace Adyen\Payment\Observer;
 
 use Adyen\Payment\Helper\Data as AdyenHelper;
+use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Exception;
@@ -26,7 +27,13 @@ use Throwable;
 
 class BeforeShipmentObserver extends AbstractDataAssignObserver
 {
+    const XML_ADYEN_ABSTRACT_PREFIX = "adyen_abstract";
+    const ONSHIPMENT_CAPTURE_OPENINVOICE = 'onshipment';
+
     private $adyenHelper;
+
+    private $configHelper;
+
     /**
      * @var LoggerInterface
      */
@@ -46,10 +53,12 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
      */
     public function __construct(
         AdyenHelper $adyenHelper,
+        ConfigHelper $configHelper,
         AdyenLogger $logger,
         InvoiceRepository $invoiceRepository
     ) {
         $this->adyenHelper = $adyenHelper;
+        $this->configHelper = $configHelper;
         $this->logger = $logger;
         $this->invoiceRepository = $invoiceRepository;
     }
@@ -72,13 +81,14 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
             return;
         }
 
-        $captureOnShipment = $this->adyenHelper->getConfigData(
-            'capture_on_shipment',
-            'adyen_abstract',
+        $openInvoiceCapture = $this->configHelper->getConfigData(
+            'capture_for_openinvoice',
+            self::XML_ADYEN_ABSTRACT_PREFIX,
             $order->getStoreId()
         );
 
-        if (!$captureOnShipment) {
+        if (strcmp((string) $openInvoiceCapture, self::ONSHIPMENT_CAPTURE_OPENINVOICE) === 0)
+        {
             $this->logger->info(
                 "Capture on shipment not configured for order id {$order->getId()}",
                 ['observer' => 'BeforeShipmentObserver']

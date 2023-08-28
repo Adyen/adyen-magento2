@@ -15,6 +15,7 @@ use Adyen\AdyenException;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
 use Adyen\Payment\Helper\Quote;
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
@@ -23,9 +24,7 @@ use Adyen\Service\Validator\DataArrayValidator;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
-use Magento\Framework\Exception\AlreadyExistsException as AlreadyExistsExceptionAlias;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Status\HistoryFactory;
@@ -56,90 +55,22 @@ class Index extends Action
         'threeds2.fingerprint'
     ];
 
-    /**
-     * @var OrderFactory
-     */
     protected OrderFactory $orderFactory;
-
-    /**
-     * @var Order
-     */
+    protected Config $configHelper;
     protected Order $order;
-
-    /**
-     * @var HistoryFactory
-     */
     protected HistoryFactory $orderHistoryFactory;
-
-    /**
-     * @var Session
-     */
     protected Session $session;
-
-    /**
-     * @var AdyenLogger
-     */
     protected AdyenLogger $adyenLogger;
-
-    /**
-     * @var StoreManagerInterface
-     */
     protected StoreManagerInterface $storeManager;
-
-    /**
-     * @var Quote
-     */
     private Quote $quoteHelper;
-
-    /**
-     * @var Order\Payment
-     */
     private Order\Payment $payment;
-
-    /**
-     * @var Vault
-     */
     private Vault $vaultHelper;
-
-    /**
-     * @var OrderResource
-     */
     private OrderResource $orderResourceModel;
-
-    /**
-     * @var StateData
-     */
     private StateData $stateDataHelper;
-
-    /**
-     * @var Data
-     */
     private Data $adyenDataHelper;
-
-    /**
-     * @var OrderRepositoryInterface
-     */
     private OrderRepositoryInterface $orderRepository;
+    private Idempotency $idempotencyHelper;
 
-    /**
-     * @var Idempotency
-     */
-    private $idempotencyHelper;
-
-    /**
-     * @param Context $context
-     * @param OrderFactory $orderFactory
-     * @param HistoryFactory $orderHistoryFactory
-     * @param Session $session
-     * @param AdyenLogger $adyenLogger
-     * @param StoreManagerInterface $storeManager
-     * @param Quote $quoteHelper
-     * @param Vault $vaultHelper
-     * @param OrderResource $orderResourceModel
-     * @param StateData $stateDataHelper
-     * @param Data $adyenDataHelper
-     * @param OrderRepositoryInterface $orderRepository
-     */
     public function __construct(
         Context                  $context,
         OrderFactory             $orderFactory,
@@ -153,7 +84,8 @@ class Index extends Action
         StateData                $stateDataHelper,
         Data                     $adyenDataHelper,
         OrderRepositoryInterface $orderRepository,
-        Idempotency              $idempotencyHelper
+        Idempotency              $idempotencyHelper,
+        Config                   $configHelper
     ) {
         parent::__construct($context);
 
@@ -168,14 +100,10 @@ class Index extends Action
         $this->orderResourceModel = $orderResourceModel;
         $this->stateDataHelper = $stateDataHelper;
         $this->orderRepository = $orderRepository;
+        $this->configHelper = $configHelper;
         $this->idempotencyHelper = $idempotencyHelper;
     }
 
-    /**
-     * @throws AdyenException
-     * @throws LocalizedException
-     * @throws NoSuchEntityException
-     */
     public function execute(): void
     {
         $result = false;
@@ -185,6 +113,13 @@ class Index extends Action
 
         if ($response) {
             $result = $this->validateResponse($response);
+            $order = $this->order;
+            $additionalInformation = $order->getPayment()->getAdditionalInformation();
+            $resultCode = isset($response['resultCode']) ? $response['resultCode'] : null;
+            $paymentBrandCode = isset($additionalInformation['brand_code']) ? $additionalInformation['brand_code'] : null;
+            if ($resultCode === 'cancelled' && $paymentBrandCode === 'svs') {
+                $this->adyenDataHelper->cancelOrder($order);
+            }
 
             // Adjust the success path, fail path, and restore quote based on if it is a multishipping quote
             if (
@@ -194,12 +129,12 @@ class Index extends Action
                 $successPath = $failPath = 'multishipping/checkout/success';
                 $setQuoteAsActive = true;
             } else {
-                $successPath = $this->adyenDataHelper->getAdyenAbstractConfigData('custom_success_redirect_path') ?? 'checkout/onepage/success';
-                $failPath = $this->adyenDataHelper->getAdyenAbstractConfigData('return_path');
+                $successPath = $this->configHelper->getAdyenAbstractConfigData('custom_success_redirect_path') ?? 'checkout/onepage/success';
+                $failPath = $this->configHelper->getAdyenAbstractConfigData('return_path');
                 $setQuoteAsActive = false;
             }
         } else {
-            $this->_redirect($this->adyenDataHelper->getAdyenAbstractConfigData('return_path'));
+            $this->_redirect($this->configHelper->getAdyenAbstractConfigData('return_path'));
         }
 
         if ($result) {
@@ -219,7 +154,7 @@ class Index extends Action
             }
 
             // Add OrderIncrementId to redirect parameters for headless support.
-            $redirectParams = $this->adyenDataHelper->getAdyenAbstractConfigData('custom_success_redirect_path')
+            $redirectParams = $this->configHelper->getAdyenAbstractConfigData('custom_success_redirect_path')
                 ? ['_query' => ['utm_nooverride' => '1', 'order_increment_id' => $this->order->getIncrementId()]]
                 : ['_query' => ['utm_nooverride' => '1']];
             $this->_redirect($successPath, $redirectParams);
@@ -236,10 +171,6 @@ class Index extends Action
         }
     }
 
-    /**
-     * @param array $response
-     * @return void
-     */
     protected function replaceCart(array $response): void
     {
         $this->session->restoreQuote();
@@ -251,12 +182,6 @@ class Index extends Action
         }
     }
 
-    /**
-     * @param array $response
-     * @return bool
-     * @throws AdyenException
-     * @throws LocalizedException
-     */
     protected function validateResponse(array $response): bool
     {
         $this->adyenLogger->addAdyenResult('Processing ResultUrl');
@@ -301,12 +226,6 @@ class Index extends Action
         return $result;
     }
 
-    /**
-     * @param Order $order
-     * @param array $response
-     * @return bool
-     * @throws AlreadyExistsExceptionAlias
-     */
     protected function validateUpdateOrder(Order $order, array $response): bool
     {
         $result = false;
@@ -426,49 +345,6 @@ class Index extends Action
         return $result;
     }
 
-    /**
-     * Authenticate using sha256 Merchant signature
-     *
-     * @param array $response
-     * @return bool
-     * @throws AdyenException
-     */
-    protected function authenticate(array $response): bool
-    {
-        $merchantSigNotification = $response['merchantSig'];
-
-        // do it like this because $_GET is converting dot to underscore
-        $queryString = $_SERVER['QUERY_STRING'];
-        $result = [];
-        $pairs = explode("&", (string) $queryString);
-
-        foreach ($pairs as $pair) {
-            $nv = explode("=", $pair);
-            $name = urldecode($nv[0]);
-            $value = urldecode($nv[1]);
-            $result[$name] = $value;
-        }
-
-        // do not include the merchantSig in the merchantSig calculation
-        unset($result['merchantSig']);
-
-        // Sign request using secret key
-        $hmacKey = $this->adyenDataHelper->getHmac();
-        $merchantSig = \Adyen\Util\Util::calculateSha256Signature($hmacKey, $result);
-
-        if (strcmp($merchantSig, (string) $merchantSigNotification) === 0) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Get order based on increment_id
-     *
-     * @param string|null $incrementId
-     * @return Order
-     */
     protected function getOrder(string $incrementId = null): Order
     {
         if (!isset($this->order)) {
@@ -483,15 +359,6 @@ class Index extends Action
         return $this->order;
     }
 
-    /**
-     * Validates the payload from checkout /payments hpp and returns the api response
-     *
-     * @param array $result
-     * @return mixed
-     * @throws AdyenException
-     * @throws LocalizedException
-     * @throws NoSuchEntityException
-     */
     protected function validatePayloadAndReturnResponse(array $result): array
     {
         $client = $this->adyenDataHelper->initializeAdyenClient($this->storeManager->getStore()->getId());

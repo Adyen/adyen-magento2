@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -61,6 +61,7 @@ class TransactionPayment implements ClientInterface
     {
         $request = $transferObject->getBody();
         $headers = $transferObject->getHeaders();
+        $clientConfig = $transferObject->getClientConfig();
 
         $client = $this->adyenHelper->initializeAdyenClient();
         $service = $this->adyenHelper->createAdyenCheckoutService($client);
@@ -72,6 +73,19 @@ class TransactionPayment implements ClientInterface
             //Initiate has already a response
             return $request;
         }
+
+        //Check if it is a MOTO Transaction
+        if(isset($clientConfig['isMotoTransaction']) && $clientConfig['isMotoTransaction'] === true) {
+            $client = $this->adyenHelper->initializeAdyenClient(
+                $clientConfig['storeId'],
+                null,
+                $request['merchantAccount']
+            );
+        } else {
+            $client = $this->adyenHelper->initializeAdyenClient();
+        }
+
+        $service = $this->adyenHelper->createAdyenCheckoutService($client);
 
         if (isset($request['giftcardRequestParameters'])) {
             $redeemedGiftcards = $request['giftcardRequestParameters'];
@@ -110,7 +124,6 @@ class TransactionPayment implements ClientInterface
             $request,
             $headers['idempotencyExtraData'] ?? null
         );
-
         $requestOptions['idempotencyKey'] = $idempotencyKey;
 
         $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/payments');

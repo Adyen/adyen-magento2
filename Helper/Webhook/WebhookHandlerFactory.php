@@ -19,6 +19,7 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Invoice;
 use Adyen\Payment\Helper\Order;
 use Adyen\Payment\Helper\PaymentMethods;
+use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as OrderPaymentCollectionFactory;
@@ -77,6 +78,8 @@ class WebhookHandlerFactory
     /** @var OrderPaymentResourceModel */
     private static OrderPaymentResourceModel $orderPaymentResourceModel;
 
+    private static Vault $vaultHelper;
+
     /**
      * @param AdyenOrderPayment $adyenOrderPayment
      * @param Order $orderHelper
@@ -109,7 +112,8 @@ class WebhookHandlerFactory
         OrderPaymentCollectionFactory $adyenOrderPaymentCollectionFactory,
         PaymentTokenManagementInterface $paymentTokenManagement,
         PaymentTokenRepositoryInterface $paymentTokenRepository,
-        OrderPaymentResourceModel $orderPaymentResourceModel
+        OrderPaymentResourceModel $orderPaymentResourceModel,
+        Vault $vaultHelper
     ) {
         self::$adyenOrderPayment = $adyenOrderPayment;
         self::$orderHelper = $orderHelper;
@@ -126,6 +130,7 @@ class WebhookHandlerFactory
         self::$tokenManagement = $paymentTokenManagement;
         self::$paymentTokenRepository = $paymentTokenRepository;
         self::$orderPaymentResourceModel = $orderPaymentResourceModel;
+        self::$vaultHelper = $vaultHelper;
     }
 
     /**
@@ -192,7 +197,8 @@ class WebhookHandlerFactory
                 return new RecurringContractWebhookHandler(
                     self::$adyenLogger,
                     self::$tokenManagement,
-                    self::$paymentTokenRepository
+                    self::$paymentTokenRepository,
+                    self::$vaultHelper
                 );
             case Notification::PENDING:
                 return new PendingWebhookHandler(

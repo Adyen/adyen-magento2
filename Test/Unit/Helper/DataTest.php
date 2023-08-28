@@ -53,7 +53,6 @@ class DataTest extends AbstractAdyenTestCase
         $dataStorage = $this->createMock(DataInterface::class);
         $country = $this->createMock(Country::class);
         $moduleList = $this->createMock(ModuleListInterface::class);
-        $billingAgreementCollectionFactory = $this->createGeneratedMock(BillingAgreementCollectionFactory::class);
         $assetRepo = $this->createMock(Repository::class);
         $assetSource = $this->createMock(Source::class);
         $notificationFactory = $this->createGeneratedMock(NotificationCollectionFactory::class);
@@ -66,7 +65,6 @@ class DataTest extends AbstractAdyenTestCase
         $cache = $this->createMock(CacheInterface::class);
         $localeResolver = $this->createMock(ResolverInterface::class);
         $config = $this->createMock(ScopeConfigInterface::class);
-        $serializer = $this->createMock(SerializerInterface::class);
         $componentRegistrar = $this->createMock(ComponentRegistrarInterface::class);
         $localeHelper = $this->createMock(Locale::class);
         $orderManagement = $this->createMock(OrderManagementInterface::class);
@@ -79,7 +77,6 @@ class DataTest extends AbstractAdyenTestCase
             $dataStorage,
             $country,
             $moduleList,
-            $billingAgreementCollectionFactory,
             $assetRepo,
             $assetSource,
             $notificationFactory,
@@ -92,7 +89,6 @@ class DataTest extends AbstractAdyenTestCase
             $cache,
             $localeResolver,
             $config,
-            $serializer,
             $componentRegistrar,
             $localeHelper,
             $orderManagement,

@@ -23,7 +23,7 @@
         <include path="Adyen_Payment::system/adyen_payment_methods.xml"/>
         <include path="Adyen_Payment::system/adyen_online_checkout.xml"/>
         <include path="Adyen_Payment::system/adyen_inperson_payments.xml"/>
-        <include path="Adyen_Payment::system/adyen_social_selling.xml"/>
+        <include path="Adyen_Payment::system/adyen_admin_orders.xml"/>
         <include path="Adyen_Payment::system/adyen_giving.xml"/>
     </group>
 </include>

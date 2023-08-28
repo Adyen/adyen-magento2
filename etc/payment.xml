@@ -16,15 +16,18 @@
         <group id="adyen">
             <label>Adyen Payment Methods</label>
         </group>
+        <group id="adyen-alternative-payment-method">
+            <label>Adyen Alternative Payment Methods</label>
+        </group>
     </groups>
     <methods>
         <method name="adyen_cc">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
-        <method name="adyen_oneclick">
+        <method name="adyen_hpp">
             <allow_multiple_address>0</allow_multiple_address>
         </method>
-        <method name="adyen_hpp">
+        <method name="adyen_klarna">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
     </methods>

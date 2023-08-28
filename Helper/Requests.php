@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Model\Config\Source\CcType;
+use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Util\Uuid;
 use Magento\Framework\App\Helper\AbstractHelper;
@@ -29,44 +30,24 @@ class Requests extends AbstractHelper
     ];
     const SHOPPER_INTERACTION_CONTAUTH = 'ContAuth';
 
-    /**
-     * @var Data
-     */
-    private $adyenHelper;
+    private Data $adyenHelper;
+    private Config $adyenConfig;
+    private Address $addressHelper;
+    private StateData $stateData;
+    private Vault $vaultHelper;
 
-    /**
-     * @var Config
-     */
-    private $adyenConfig;
-
-    /**
-     * @var Address
-     */
-    private $addressHelper;
-
-    /**
-     * @var StateData
-     */
-    private $stateData;
-
-    /**
-     * Requests constructor.
-     *
-     * @param Data $adyenHelper
-     * @param Config $adyenConfig
-     * @param Address $addressHelper
-     * @param StateData $stateData
-     */
     public function __construct(
         Data $adyenHelper,
         Config $adyenConfig,
         Address $addressHelper,
-        StateData $stateData
+        StateData $stateData,
+        Vault $vaultHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenConfig = $adyenConfig;
         $this->addressHelper = $addressHelper;
         $this->stateData = $stateData;
+        $this->vaultHelper = $vaultHelper;
     }
 
     /**
@@ -187,7 +168,7 @@ class Requests extends AbstractHelper
             // Save the defaults for later to compare if anything has changed
             $requestBilling = $requestBillingDefaults;
 
-            $houseNumberStreetLine = $this->adyenHelper->getAdyenAbstractConfigData(
+            $houseNumberStreetLine = $this->adyenConfig->getAdyenAbstractConfigData(
                 Config::XML_HOUSE_NUMBER_STREET_LINE,
                 $storeId
             );
@@ -348,7 +329,7 @@ class Requests extends AbstractHelper
     {
         $request = [];
 
-        if (!$this->adyenConfig->getCardRecurringActive($storeId)) {
+        if (!$this->vaultHelper->getPaymentMethodRecurringActive(AdyenCcConfigProvider::CODE, $storeId)) {
             return $request;
         }
 
@@ -374,7 +355,10 @@ class Requests extends AbstractHelper
             if (isset($recurringProcessingModel)) {
                 $request['recurringProcessingModel'] = $recurringProcessingModel;
             } else {
-                $request['recurringProcessingModel'] = $this->adyenConfig->getCardRecurringType($storeId);
+                $request['recurringProcessingModel'] = $this->vaultHelper->getPaymentMethodRecurringProcessingModel(
+                    $payment->getMethod(),
+                    $storeId
+                );
             }
         }
 
@@ -399,11 +383,14 @@ class Requests extends AbstractHelper
             $request['recurringProcessingModel'] = $recurringProcessingModel;
         } else {
             if (in_array($payment->getAdditionalInformation('cc_type'), CcType::ALLOWED_TYPES)) {
-                $recurringProcessingModel = $this->adyenConfig->getCardRecurringType($storeId);
+                $recurringProcessingModel = $this->vaultHelper->getPaymentMethodRecurringProcessingModel(
+                    AdyenCcConfigProvider::CODE,
+                    $storeId
+                );
                 $request['recurringProcessingModel'] = $recurringProcessingModel;
             } else {
                 $request['recurringProcessingModel'] =
-                    $this->adyenConfig->getAlternativePaymentMethodTokenType($storeId);
+                    $this->vaultHelper->getPaymentMethodRecurringProcessingModel($payment->getMethod(), $storeId);
             }
         }
 

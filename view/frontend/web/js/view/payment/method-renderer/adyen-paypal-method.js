@@ -11,20 +11,31 @@ define(
     [
         'Magento_Checkout/js/model/quote',
         'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-method',
+        'Magento_Checkout/js/model/full-screen-loader',
     ],
     function(
         quote,
         adyenPaymentMethod,
+        fullScreenLoader
     ) {
         return adyenPaymentMethod.extend({
+            placeOrderButtonVisible: false,
+            txVariant: 'paypal',
             initialize: function () {
                 this._super();
             },
-            buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo, result) {
+            buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo) {
                 let baseComponentConfiguration = this._super();
-                let paypalConfiguration = Object.assign(baseComponentConfiguration.showPayButton=true, paymentMethodsExtraInfo[paymentMethod.methodIdentifier].configuration);
+                let paypalConfiguration = Object.assign(baseComponentConfiguration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
+                paypalConfiguration.showPayButton = true;
+
                 return paypalConfiguration
-            }
+            },
+            renderActionComponent: function(resultCode, action, component) {
+                fullScreenLoader.stopLoader();
+
+                this.actionComponent = component.handleAction(action);
+            },
         })
     }
 );
