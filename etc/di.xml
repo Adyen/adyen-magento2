@@ -45,6 +45,7 @@
     <virtualType name="AdyenPaymentGiftcardFacade" type="Adyen\Payment\Model\Method\Adapter">
         <arguments>
             <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGiftcardConfigProvider::CODE</argument>
+            <argument name="formBlockType" xsi:type="string">Adyen\Payment\Block\Form\Hpp</argument>
             <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\Giftcard</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentGiftcardValueHandlerPool</argument>
             <argument name="commandPool" xsi:type="object">AdyenPaymentGiftcardCommandPool</argument>
