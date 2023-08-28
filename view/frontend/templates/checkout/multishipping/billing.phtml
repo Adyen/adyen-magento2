@@ -181,10 +181,9 @@
     require(
         [
             'Magento_Checkout/js/model/quote',
-            'Adyen_Payment/js/model/adyen-payment-service',
             'jquery',
             'domReady!'
-        ], function(quote, adyenPaymentService, $) {
+        ], function(quote, $) {
             quote.billingAddress({
                 city: '<?= $block->escapeJs($block->getAddress()->getCity()); ?>',
                 company: '<?= $block->escapeJs($block->getAddress()->getCompany()); ?>',
