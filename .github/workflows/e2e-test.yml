@@ -41,7 +41,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: Adyen/adyen-magento2-dev
-          ref: 'main'
+          ref: 'debug-e2e-500'
           token: ${{ secrets.ADYEN_AUTOMATION_BOT_TEST_ACCESS_TOKEN }}
           path: Developer
 
