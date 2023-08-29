@@ -41,7 +41,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: Adyen/adyen-magento2-dev
-          ref: 'debug-e2e-500'
+          ref: 'main'
           token: ${{ secrets.ADYEN_AUTOMATION_BOT_TEST_ACCESS_TOKEN }}
           path: Developer
 
@@ -59,8 +59,8 @@ jobs:
 
       - run: docker exec magento2-container /etc/init.d/cron stop
 
-      # - name: Switch to production mode
-      #   run: docker exec -u www-data magento2-container make production
+      - name: Switch to production mode
+        run: docker exec -u www-data magento2-container make production
 
       - name: Setup permissions
         run: docker exec magento2-container make fs
