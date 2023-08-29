@@ -63,8 +63,6 @@ class TransactionPayment implements ClientInterface
         $headers = $transferObject->getHeaders();
         $clientConfig = $transferObject->getClientConfig();
 
-        $client = $this->adyenHelper->initializeAdyenClient();
-        $service = $this->adyenHelper->createAdyenCheckoutService($client);
 
         $this->remainingOrderAmount = $request['amount']['value'];
 
