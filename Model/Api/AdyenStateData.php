@@ -14,6 +14,7 @@ namespace Adyen\Payment\Model\Api;
 
 use Adyen\Payment\Api\AdyenStateDataInterface;
 use Adyen\Payment\Helper\Util\CheckoutStateDataValidator;
+use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\ResourceModel\StateData as StateDataResourceModel;
 use Adyen\Payment\Model\StateData;
 use Adyen\Payment\Model\StateDataFactory;
@@ -24,15 +25,18 @@ class AdyenStateData implements AdyenStateDataInterface
     private CheckoutStateDataValidator $checkoutStateDataValidator;
     private StateDataFactory $stateDataFactory;
     private StateDataResourceModel $stateDataResourceModel;
+    private AdyenLogger $adyenLogger;
 
     public function __construct(
         CheckoutStateDataValidator $checkoutStateDataValidator,
         StateDataFactory $stateDataFactory,
-        StateDataResourceModel $stateDataResourceModel
+        StateDataResourceModel $stateDataResourceModel,
+        AdyenLogger $adyenLogger
     ) {
         $this->checkoutStateDataValidator = $checkoutStateDataValidator;
         $this->stateDataFactory = $stateDataFactory;
         $this->stateDataResourceModel = $stateDataResourceModel;
+        $this->adyenLogger = $adyenLogger;
     }
 
     public function save(string $stateData, int $quoteId): void
@@ -59,9 +63,9 @@ class AdyenStateData implements AdyenStateDataInterface
         $stateDataObj->setEntityId($stateDataId);
 
         try {
-            $adyenStateData = $this->stateDataResourceModel->delete($stateDataObj);
+            $this->stateDataResourceModel->delete($stateDataObj);
         } catch (\Exception $e) {
-            // Log the exception
+            $this->adyenLogger->error('An error occurred while deleting state data: ' . $e->getMessage());
             return false;
         }
 
