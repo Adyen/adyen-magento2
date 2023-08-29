@@ -10,21 +10,21 @@
  */
 -->
 
-<!-- ko if: showGiftcardSummary() -->
+<!-- ko if: showGiftcardSummary -->
 <tr class="grand totals">
     <th class="mark" scope="row">
-        <strong>Giftcard Discount</strong>
+        <strong data-bind="text: $t('Place Giftcard Discount')"></strong>
     </th>
     <td class="amount">
-        <strong><span data-bind="text: getGiftcardDiscount()"></span></strong>
+        <strong><span data-bind="text: giftcardDiscount"></span></strong>
     </td>
 </tr>
 <tr class="grand totals">
     <th class="mark" scope="row">
-        <strong>Remaining Amount</strong>
+        <strong data-bind="text: $t('Remaining Amount')"></strong>
     </th>
     <td class="amount">
-        <strong><span data-bind="text: getRemainingAmount()"></span></strong>
+        <strong><span data-bind="text: remainingAmount"></span></strong>
     </td>
 </tr>
 <!--/ko-->

@@ -16,7 +16,17 @@
                name="payment[method]"
                class="radio"
                data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()"/>
-        <label data-bind="attr: {'for': getCode()}" class="label"><span data-bind="text: getTitle()"></span></label>
+        <label data-bind="attr: {'for': getCode()}" class="label">
+            <!-- ko if: icon() -->
+            <img data-bind="attr: {
+                'src': icon().url,
+                'alt': getTitle() + ' logo',
+                'height': icon().height,
+                'width': icon().width
+                }">
+            <!--/ko-->
+            <span data-bind="text: getTitle()"></span>
+        </label>
     </div>
     <div class="payment-method-content">
         <!-- ko foreach: getRegion('messages') -->
@@ -62,7 +72,16 @@
             <!-- ko foreach: { data: redeemedCards, as: 'redeemedCard' } -->
                 <div class="adyen-giftcard-item">
                     <div class="adyen-giftcard-title">
-                        <img src="https://checkoutshopper-live.adyen.com/checkoutshopper/images/logos/genericgiftcard.svg" alt="adyen-giftcard-logo" class="adyen-giftcard-logo">
+<!--                        <img src="https://checkoutshopper-live.adyen.com/checkoutshopper/images/logos/genericgiftcard.svg" alt="adyen-giftcard-logo" class="adyen-giftcard-logo">-->
+
+                        <img data-bind="attr: {
+                            'src': redeemedCard.icon.url,
+                            'alt': redeemedCard.title + ' logo',
+                            'height': redeemedCard.icon.height,
+                            'width': redeemedCard.icon.width,
+                            'class': 'adyen-giftcard-logo'
+                        }">
+
                         <span data-bind="attr: {'class': 'adyen-giftcard-brand'}, text: redeemedCard.title"></span>
                         <a href="#" data-bind="click: $parent.removeGiftcard.bind($parent), text: $t('Remove')" class="adyen-giftcard-remove-button"></a>
                     </div>

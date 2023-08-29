@@ -49,13 +49,6 @@ class GiftcardPayment
         $this->adyenHelper = $adyenHelper;
     }
 
-    /**
-     * @param array $request
-     * @param array $orderData
-     * @param array $stateData
-     * @param int $amount
-     * @return array
-     */
     public function buildGiftcardPaymentRequest(
         array $request,
         array $orderData,
@@ -79,7 +72,7 @@ class GiftcardPayment
         return $giftcardPaymentRequest;
     }
 
-    public function getQuoteGiftcardDiscount(CartInterface $quote): ?int
+    public function getQuoteGiftcardDiscount(CartInterface $quote): int
     {
         $formattedOrderAmount = $this->adyenHelper->formatAmount(
             $quote->getGrandTotal(),
@@ -88,18 +81,18 @@ class GiftcardPayment
 
         $totalGiftcardBalance = $this->getQuoteGiftcardTotalBalance($quote->getId());
 
-        if (isset($totalGiftcardBalance)) {
+        if ($totalGiftcardBalance > 0) {
             if ($totalGiftcardBalance > $formattedOrderAmount) {
                 return $formattedOrderAmount;
             } else {
                 return $totalGiftcardBalance;
             }
+        } else {
+            return 0;
         }
-
-        return null;
     }
 
-    public function getQuoteGiftcardTotalBalance(int $quoteId): ?int
+    public function getQuoteGiftcardTotalBalance(int $quoteId): int
     {
         $stateDataArray = $this->adyenStateData->getStateDataRowsWithQuoteId($quoteId);
         $totalBalance = 0;
@@ -114,6 +107,6 @@ class GiftcardPayment
             }
         }
 
-        return $totalBalance > 0 ? $totalBalance : null;
+        return $totalBalance;
     }
 }

@@ -17,6 +17,7 @@ define(
         'Adyen_Payment/js/model/adyen-payment-service',
         'Adyen_Payment/js/model/adyen-configuration',
         'Adyen_Payment/js/adyen',
+        'Magento_Customer/js/customer-data',
         'mage/translate'
     ],
     function(
@@ -28,15 +29,18 @@ define(
         adyenPaymentService,
         adyenConfiguration,
         adyenCheckout,
+        customerData,
         $t
     ) {
         'use strict';
+        const giftcardChangedEvent = 'Adyen_Payment_Event:giftcardChangedEvent';
 
         return Component.extend({
             defaults: {
                 template: 'Adyen_Payment/payment/giftcard-form'
             },
             giftcardPaymentMethods: ko.observable(null),
+            paymentMethodsResponse: ko.observable(null),
             selectedGiftcard: ko.observable(null),
             redeemedCards: ko.observableArray(),
             totalGiftcardBalance: ko.observable(),
@@ -46,6 +50,7 @@ define(
             showPlaceOrderButton: ko.observable(false),
             selectedGiftcardPaymentMethod: ko.observable(null),
             giftcardTitle: ko.observable(null),
+            icon: ko.observable(window.checkoutConfig.payment.adyen.giftcard.icon),
 
             initialize: async function () {
                 this._super();
@@ -54,11 +59,17 @@ define(
                 var paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
                 paymentMethodsObserver.subscribe(
                     function(paymentMethodsResponse) {
+                        self.paymentMethodsResponse(paymentMethodsResponse);
                         self.fetchGiftcardPaymentMethods(paymentMethodsResponse);
+                        self.fetchRedeemedGiftcards();
                     }
                 );
 
-                await this.fetchRedeemedGiftcards();
+                if(!!paymentMethodsObserver()) {
+                    this.paymentMethodsResponse(paymentMethodsObserver());
+                    this.fetchGiftcardPaymentMethods(paymentMethodsObserver());
+                    this.fetchRedeemedGiftcards();
+                }
             },
 
             addNewGiftcard: function () {
@@ -198,19 +209,21 @@ define(
 
             fetchRedeemedGiftcards: function () {
                 let self = this;
-
                 let orderAmount = window.checkoutConfig.payment.adyen.giftcard.quoteAmount;
 
-                adyenPaymentService.fetchRedeemedGiftcards().done(function (giftcards) {
-                    giftcards = JSON.parse(giftcards);
+                adyenPaymentService.fetchRedeemedGiftcards().done(function (response) {
+                    response = JSON.parse(response);
+                    customerData.set(giftcardChangedEvent, response);
                     let totalBalance = 0;
 
-                    $.each(giftcards, function (index, item) {
+                    $.each(response.redeemedGiftcards, function (index, item) {
                         totalBalance += item.balance.value;
+                        response.redeemedGiftcards[index].icon =
+                            self.paymentMethodsResponse().paymentMethodsExtraDetails[item.brand].icon;
                     });
 
                     self.totalGiftcardBalance(totalBalance);
-                    self.redeemedCards(giftcards);
+                    self.redeemedCards(response.redeemedGiftcards);
 
                     // Compare the new total giftcard balance with the order amount
                     if (orderAmount > self.totalGiftcardBalance()) {

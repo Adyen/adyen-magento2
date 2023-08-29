@@ -17,20 +17,17 @@ use Adyen\Payment\Api\AdyenPaymentMethodsBalanceInterface;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Store\Model\StoreManager;
 
 class AdyenPaymentMethodsBalance implements AdyenPaymentMethodsBalanceInterface
 {
+    const SUCCESS_CODE = 'Success';
+
     private Json $jsonSerializer;
-
     private StoreManager $storeManager;
-
     private Config $config;
-
     private Data $adyenHelper;
-
     private AdyenLogger $adyenLogger;
 
     public function __construct(
@@ -47,10 +44,6 @@ class AdyenPaymentMethodsBalance implements AdyenPaymentMethodsBalanceInterface
         $this->adyenLogger = $adyenLogger;
     }
 
-    /**
-     * @throws NoSuchEntityException
-     * @throws AdyenException
-     */
     public function getBalance(string $payload): string
     {
         $payload = $this->jsonSerializer->unserialize($payload);
@@ -63,6 +56,12 @@ class AdyenPaymentMethodsBalance implements AdyenPaymentMethodsBalanceInterface
             $service = $this->adyenHelper->createAdyenCheckoutService($client);
 
             $response = $service->paymentMethodsBalance($payload);
+
+            if ($response['resultCode'] !== self::SUCCESS_CODE) {
+                // Balance endpoint doesn't send HTTP status 422 for invalid PIN, manual handling required.
+                $errorMessage = $response['additionalData']['acquirerResponseCode'] ?? null;
+                throw new AdyenException($errorMessage);
+            }
 
             return json_encode($response);
         } catch (AdyenException $e) {

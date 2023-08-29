@@ -14,8 +14,9 @@ namespace Adyen\Payment\Model\Api;
 
 use Adyen\Payment\Api\AdyenGiftcardInterface;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\GiftcardPayment;
 use Adyen\Payment\Model\ResourceModel\StateData\Collection as StateDataCollection;
-use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Pricing\Helper\Data as PricingData;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
 
@@ -24,15 +25,21 @@ class AdyenGiftcard implements AdyenGiftcardInterface
     private StateDataCollection $adyenStateData;
     private CartRepositoryInterface $quoteRepository;
     private Data $adyenHelper;
+    private GiftcardPayment $giftcardPaymentHelper;
+    private PricingData $pricingDataHelper;
 
     public function __construct(
         StateDataCollection $adyenStateData,
         CartRepositoryInterface $quoteRepository,
-        Data $adyenHelper
+        Data $adyenHelper,
+        GiftcardPayment $giftcardPaymentHelper,
+        PricingData $pricingDataHelper
     ) {
         $this->adyenStateData = $adyenStateData;
         $this->quoteRepository = $quoteRepository;
         $this->adyenHelper = $adyenHelper;
+        $this->giftcardPaymentHelper = $giftcardPaymentHelper;
+        $this->pricingDataHelper = $pricingDataHelper;
     }
 
     public function getRedeemedGiftcards(string $quoteId): string
@@ -40,7 +47,38 @@ class AdyenGiftcard implements AdyenGiftcardInterface
         $stateDataArray = $this->adyenStateData->getStateDataRowsWithQuoteId($quoteId, 'ASC');
         $quote = $this->quoteRepository->get($quoteId);
 
-        return json_encode($this->filterGiftcardStateData($stateDataArray->getData(), $quote));
+        $currency = $quote->getQuoteCurrencyCode();
+        $formattedOrderAmount = $this->adyenHelper->formatAmount(
+            $quote->getGrandTotal(),
+            $currency
+        );
+        $giftcardDiscount = $this->giftcardPaymentHelper->getQuoteGiftcardDiscount($quote);
+
+        $totalDiscount = $this->pricingDataHelper->currency(
+            $this->adyenHelper->originalAmount(
+                $giftcardDiscount,
+                $currency
+            ),
+            $currency,
+            false
+        );
+
+        $remainingOrderAmount = $this->pricingDataHelper->currency(
+            $this->adyenHelper->originalAmount(
+                $formattedOrderAmount - $giftcardDiscount,
+                $currency
+            ),
+            $currency,
+            false
+        );
+
+        $response = [
+            'redeemedGiftcards' => $this->filterGiftcardStateData($stateDataArray->getData(), $quote),
+            'remainingAmount' => $remainingOrderAmount,
+            'totalDiscount' => $totalDiscount
+        ];
+
+        return json_encode($response);
     }
 
     private function filterGiftcardStateData(array $stateDataArray, CartInterface $quote): array
@@ -72,9 +110,13 @@ class AdyenGiftcard implements AdyenGiftcardInterface
                 'brand' => $stateData['paymentMethod']['brand'],
                 'title' => $stateData['giftcard']['title'],
                 'balance' => $stateData['giftcard']['balance'],
-                'deductedAmount' => $this->adyenHelper->originalAmount(
-                    $deductedAmount,
-                    $quote->getCurrency()->getQuoteCurrencyCode()
+                'deductedAmount' =>  $this->pricingDataHelper->currency(
+                    $this->adyenHelper->originalAmount(
+                        $deductedAmount,
+                        $quote->getCurrency()->getQuoteCurrencyCode()
+                    ),
+                    $quote->getCurrency()->getQuoteCurrencyCode(),
+                    false
                 )
             ];
 

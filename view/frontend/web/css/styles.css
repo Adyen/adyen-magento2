@@ -52,10 +52,11 @@
 
 .adyen-giftcard-logo {
     width: 75px;
+    margin-right: 10px;
 }
 
 .adyen-giftcard-summary {
-    margin-left: 10px;
+    margin-top: 5px;
     color: #666;
     font-size: 90%;
 }

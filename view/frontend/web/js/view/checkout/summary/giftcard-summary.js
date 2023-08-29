@@ -9,27 +9,66 @@
  */
 define(
     [
-        'Magento_Checkout/js/view/summary/abstract-total'
+        'ko',
+        'Magento_Checkout/js/view/summary/abstract-total',
+        'Magento_Customer/js/customer-data',
+        'mage/translate'
     ],
     function(
-        Component
+        ko,
+        Component,
+        customerData,
+        $t
     ) {
         "use strict";
+        const giftcardChangedEvent = 'Adyen_Payment_Event:giftcardChangedEvent';
+
         return Component.extend({
             defaults: {
                 template: 'Adyen_Payment/checkout/summary/giftcard-summary'
             },
 
-            getGiftcardDiscount: function() {
-                return window.checkoutConfig.payment.adyen.giftcard.totalDiscount;
+            giftcardDiscount: ko.observable(null),
+            remainingAmount: ko.observable(null),
+            showGiftcardSummary: ko.observable(null),
+
+            initialize: function () {
+                this._super();
+                let self = this;
+
+                customerData.get(giftcardChangedEvent).subscribe(function (response) {
+                    let showSummaryBlock = response.redeemedGiftcards.length > 0;
+
+                    if (showSummaryBlock) {
+                        self.setGiftcardSummaryBlock(response.totalDiscount, response.remainingAmount, true)
+                    } else {
+                        self.resetGiftcardSummary();
+                    }
+                });
             },
 
-            getRemainingAmount: function () {
-                return window.checkoutConfig.payment.adyen.giftcard.remainingOrderAmount;
+            setGiftcardDiscount: function (totalDiscount) {
+                this.giftcardDiscount(totalDiscount);
             },
 
-            showGiftcardSummary: function () {
-                return window.checkoutConfig.payment.adyen.giftcard.isRedeemed;
+            setRemainingAmount: function (amount) {
+                this.remainingAmount(amount);
+            },
+
+            setShowgiftcardSummary: function (isRedeemed) {
+                this.showGiftcardSummary(isRedeemed);
+            },
+
+            resetGiftcardSummary: function () {
+                this.setGiftcardDiscount(0);
+                this.setRemainingAmount(0);
+                this.setShowgiftcardSummary(false);
+            },
+
+            setGiftcardSummaryBlock: function (totalDiscount, remainingAmount, showBlock) {
+                this.setGiftcardDiscount(totalDiscount);
+                this.setRemainingAmount(remainingAmount);
+                this.setShowgiftcardSummary(showBlock);
             }
         });
     }
