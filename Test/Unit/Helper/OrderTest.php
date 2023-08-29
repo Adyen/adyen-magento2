@@ -8,6 +8,7 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
+
 namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Payment\Helper\AdyenOrderPayment;
@@ -19,6 +20,8 @@ use Adyen\Payment\Helper\Order;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Model\AdyenAmountCurrency;
 use Adyen\Payment\Model\Config\Source\Status\AdyenState;
+use Adyen\Payment\Model\Creditmemo as AdyenCreditmemoModel;
+use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo as AdyenCreditMemoResourceModel;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\Collection;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as OrderPaymentCollectionFactory;
@@ -36,6 +39,8 @@ use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderSta
 
 class OrderTest extends AbstractAdyenTestCase
 {
+    protected $adyenCreditmemoHelperMock;
+
     public function testFinalizeOrderFinalized()
     {
         $dataHelper = $this->createConfiguredMock(Data::class, ['formatAmount' => 'EUR123']);
@@ -183,13 +188,32 @@ class OrderTest extends AbstractAdyenTestCase
         $adyenOrderPaymentHelper = $this->createMock(AdyenOrderPayment::class);
         $adyenOrderPaymentHelper->expects($this->once())->method('refundAdyenOrderPayment');
 
+        $adyenCreditmemoHelper = $this->createMock(AdyenCreditmemoHelper::class);
+        $adyenCreditMemo = $this->createMock(AdyenCreditmemoModel::class);
+        $adyenCreditmemoHelper->expects($this->once())
+            ->method('createAdyenCreditMemo')
+            ->willReturn($adyenCreditMemo);
+        $adyenCreditmemoHelper->expects($this->once())
+            ->method('updateAdyenCreditmemosStatus')
+            ->with($adyenCreditMemo, AdyenCreditmemoModel::COMPLETED_STATUS);
+
         $orderHelper = $this->createOrderHelper(
             null,
             null,
             $adyenOrderPaymentHelper,
             null,
             $dataHelper,
-            $this->createAdyenOrderPaymentCollection(1)
+            $this->createAdyenOrderPaymentCollection(1),
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $adyenCreditmemoHelper
         );
 
         $orderPaymentReturnMock = $this->createConfiguredMock(MagentoOrder\Payment::class, [
@@ -211,6 +235,57 @@ class OrderTest extends AbstractAdyenTestCase
         $orderHelper->refundOrder($order, $notification);
     }
 
+    public function testRefundFailedNotice()
+    {
+        $notification = $this->createMock(Notification::class);
+        $notification->method('getPspreference')->willReturn('123');
+        $adyenCreditmemoHelper = $this->createMock(AdyenCreditmemoHelper::class);
+        $adyenCreditMemo = $this->createMock(AdyenCreditmemoModel::class);
+
+        $adyenCreditmemoHelper->expects($this->once())
+            ->method('getAdyenCreditmemoByPspreference')
+            ->willReturn($adyenCreditMemo);
+
+        $adyenCreditmemoHelper->expects($this->once())
+            ->method('updateAdyenCreditmemosStatus')
+            ->with($adyenCreditMemo, AdyenCreditmemoModel::FAILED_STATUS);
+
+        $orderPaymentReturnMock = $this->createConfiguredMock(MagentoOrder\Payment::class, [
+            'getCreditmemo' => $this->createMock(MagentoOrder\Creditmemo::class)
+        ]);
+        $orderPaymentMock = $this->createConfiguredMock(MagentoOrder\Payment::class, [
+            'registerRefundNotification' => $orderPaymentReturnMock
+        ]);
+        $orderConfigMock = $this->createConfiguredMock(\Magento\Sales\Model\Order\Config::class, [
+            'getStateDefaultStatus' => MagentoOrder::STATE_CLOSED
+        ]);
+        $orderHelper = $this->createOrderHelper(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $adyenCreditmemoHelper
+        );
+        $order = $this->createConfiguredMock(MagentoOrder::class, [
+            'getPayment' => $orderPaymentMock,
+            'getConfig' => $orderConfigMock,
+            'canCreditmemo' => true
+        ]);
+
+        $orderHelper->addRefundFailedNotice($order, $notification);
+    }
+
     protected function createOrderHelper(
         $orderStatusCollectionFactory = null,
         $configHelper = null,
@@ -228,7 +303,8 @@ class OrderTest extends AbstractAdyenTestCase
         $paymentMethodsHelper = null,
         $adyenCreditmemoResourceModel = null,
         $adyenCreditmemoHelper = null
-    ): Order {
+    ): Order
+    {
         $context = $this->createMock(Context::class);
 
         if (is_null($builder)) {
