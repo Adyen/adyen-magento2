@@ -74,7 +74,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentIdealFacade" type="Adyen\Payment\Model\Method\Adapter">
         <arguments>
-            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_IDEAL_CODE</argument>
+            <argument name="code" xsi:type="string">adyen_ideal</argument>
             <argument name="formBlockType" xsi:type="string">Adyen\Payment\Block\Form\Hpp</argument>
             <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\Hpp</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentIdealValueHandlerPool</argument>
@@ -84,7 +84,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentAmazonPayFacade" type="Adyen\Payment\Model\Method\Adapter">
         <arguments>
-            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_AMAZONPAY_CODE</argument>
+            <argument name="code" xsi:type="string">adyen_amazonpay</argument>
             <argument name="formBlockType" xsi:type="string">Adyen\Payment\Block\Form\Hpp</argument>
             <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\Hpp</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentAmazonPayValueHandlerPool</argument>
@@ -94,7 +94,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentApplePayFacade" type="Adyen\Payment\Model\Method\Adapter">
         <arguments>
-            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_APPLEPAY_CODE</argument>
+            <argument name="code" xsi:type="string">adyen_applepay</argument>
             <argument name="formBlockType" xsi:type="string">Adyen\Payment\Block\Form\Hpp</argument>
             <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\Hpp</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentApplepayValueHandlerPool</argument>
@@ -104,7 +104,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentBcmcMobileFacade" type="Adyen\Payment\Model\Method\Adapter">
         <arguments>
-            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_BCMC_MOBILE_CODE</argument>
+            <argument name="code" xsi:type="string">adyen_bcmc_mobile</argument>
             <argument name="formBlockType" xsi:type="string">Adyen\Payment\Block\Form\Hpp</argument>
             <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\Hpp</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentBcmcMobileValueHandlerPool</argument>
@@ -114,7 +114,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentDotpayFacade" type="Adyen\Payment\Model\Method\Adapter">
         <arguments>
-            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_DOTPAY_CODE</argument>
+            <argument name="code" xsi:type="string">adyen_dotpay</argument>
             <argument name="formBlockType" xsi:type="string">Adyen\Payment\Block\Form\Hpp</argument>
             <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\Hpp</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentDotpayValueHandlerPool</argument>
@@ -124,7 +124,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentFacilypay3xFacade" type="Adyen\Payment\Model\Method\Adapter">
         <arguments>
-            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_FACILYPAY_3X_CODE</argument>
+            <argument name="code" xsi:type="string">adyen_facilypay_3x</argument>
             <argument name="formBlockType" xsi:type="string">Adyen\Payment\Block\Form\Hpp</argument>
             <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\Hpp</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentFacilypay3xValueHandlerPool</argument>
@@ -134,7 +134,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentMultibancoFacade" type="Adyen\Payment\Model\Method\Adapter">
         <arguments>
-            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_MULTIBANCO_CODE</argument>
+            <argument name="code" xsi:type="string">adyen_multibanco</argument>
             <argument name="formBlockType" xsi:type="string">Adyen\Payment\Block\Form\Hpp</argument>
             <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\Hpp</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentMultibancoValueHandlerPool</argument>
@@ -144,7 +144,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentGooglepayFacade" type="Adyen\Payment\Model\Method\Adapter">
         <arguments>
-            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_GOOGLEPAY_CODE</argument>
+            <argument name="code" xsi:type="string">adyen_googlepay</argument>
             <argument name="formBlockType" xsi:type="string">Adyen\Payment\Block\Form\Hpp</argument>
             <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\Hpp</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentGooglepayValueHandlerPool</argument>
@@ -154,7 +154,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentKlarnaFacade" type="Adyen\Payment\Model\Method\Adapter">
         <arguments>
-            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_KLARNA_CODE</argument>
+            <argument name="code" xsi:type="string">adyen_klarna</argument>
             <argument name="formBlockType" xsi:type="string">Adyen\Payment\Block\Form\Hpp</argument>
             <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\Hpp</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentKlarnaValueHandlerPool</argument>
@@ -164,7 +164,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentPaypalFacade" type="Adyen\Payment\Model\Method\Adapter">
         <arguments>
-            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_PAYPAL_CODE</argument>
+            <argument name="code" xsi:type="string">adyen_paypal</argument>
             <argument name="formBlockType" xsi:type="string">Adyen\Payment\Block\Form\Hpp</argument>
             <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\Hpp</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentPaypalValueHandlerPool</argument>
@@ -174,7 +174,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentSepadirectdebitFacade" type="Adyen\Payment\Model\Method\Adapter">
         <arguments>
-            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_SEPADIRECTDEBIT_CODE</argument>
+            <argument name="code" xsi:type="string">adyen_sepadirectdebit</argument>
             <argument name="formBlockType" xsi:type="string">Adyen\Payment\Block\Form\Hpp</argument>
             <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\Hpp</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentSepadirectdebitValueHandlerPool</argument>
@@ -227,7 +227,7 @@
 
     <virtualType name="AdyenPaymentPaypalVaultFacade" type="Adyen\Payment\Model\Method\PaymentMethodVault">
         <arguments>
-            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_PAYPAL_VAULT_CODE</argument>
+            <argument name="code" xsi:type="string">adyen_paypal_vault</argument>
             <argument name="config" xsi:type="object">AdyenPaymentPaypalVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentPaypalVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentPaypalFacade</argument>
@@ -237,7 +237,7 @@
 
     <virtualType name="AdyenPaymentKlarnaVaultFacade" type="Adyen\Payment\Model\Method\PaymentMethodVault">
         <arguments>
-            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_KLARNA_VAULT_CODE</argument>
+            <argument name="code" xsi:type="string">adyen_klarna_vault</argument>
             <argument name="config" xsi:type="object">AdyenPaymentKlarnaVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentKlarnaVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentKlarnaFacade</argument>
@@ -247,7 +247,7 @@
 
     <virtualType name="AdyenPaymentGooglepayVaultFacade" type="Adyen\Payment\Model\Method\PaymentMethodVault">
         <arguments>
-            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_GOOGLEPAY_VAULT_CODE</argument>
+            <argument name="code" xsi:type="string">adyen_googlepay_vault</argument>
             <argument name="config" xsi:type="object">AdyenPaymentGooglepayVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentGooglepayVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentGooglepayFacade</argument>
@@ -257,7 +257,7 @@
 
     <virtualType name="AdyenPaymentSepadirectdebitVaultFacade" type="Adyen\Payment\Model\Method\PaymentMethodVault">
         <arguments>
-            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_SEPADIRECTDEBIT_VAULT_CODE</argument>
+            <argument name="code" xsi:type="string">adyen_sepadirectdebit_vault</argument>
             <argument name="config" xsi:type="object">AdyenPaymentSepadirectdebitVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentSepadirectdebitVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentSepadirectdebitFacade</argument>
@@ -407,7 +407,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentAmazonPayConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
-            <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_AMAZONPAY_CODE</argument>
+            <argument name="methodCode" xsi:type="string">adyen_amazonpay</argument>
         </arguments>
     </virtualType>
 
@@ -425,7 +425,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentBcmcMobileConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
-            <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_BCMC_MOBILE_CODE</argument>
+            <argument name="methodCode" xsi:type="string">adyen_bcmc_mobile</argument>
         </arguments>
     </virtualType>
 
@@ -443,7 +443,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentDotpayConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
-            <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_DOTPAY_CODE</argument>
+            <argument name="methodCode" xsi:type="string">adyen_dotpay</argument>
         </arguments>
     </virtualType>
 
@@ -461,7 +461,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentFacilypay3xConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
-            <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_FACILYPAY_3X_CODE</argument>
+            <argument name="methodCode" xsi:type="string">adyen_facilypay_3x</argument>
         </arguments>
     </virtualType>
 
@@ -479,7 +479,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentGooglepayConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
-            <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_GOOGLEPAY_CODE</argument>
+            <argument name="methodCode" xsi:type="string">adyen_googlepay</argument>
         </arguments>
     </virtualType>
 
@@ -497,7 +497,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentIdealConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
-            <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_IDEAL_CODE</argument>
+            <argument name="methodCode" xsi:type="string">adyen_ideal</argument>
         </arguments>
     </virtualType>
 
@@ -515,7 +515,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentKlarnaConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
-            <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_KLARNA_CODE</argument>
+            <argument name="methodCode" xsi:type="string">adyen_klarna</argument>
         </arguments>
     </virtualType>
 
@@ -533,7 +533,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentMultibancoConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
-            <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_MULTIBANCO_CODE</argument>
+            <argument name="methodCode" xsi:type="string">adyen_multibanco</argument>
         </arguments>
     </virtualType>
 
@@ -551,7 +551,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentPaypalConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
-            <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_PAYPAL_CODE</argument>
+            <argument name="methodCode" xsi:type="string">adyen_paypal</argument>
         </arguments>
     </virtualType>
 
@@ -569,7 +569,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentSepadirectdebitConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
-            <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_SEPADIRECTDEBIT_CODE</argument>
+            <argument name="methodCode" xsi:type="string">adyen_sepadirectdebit</argument>
         </arguments>
     </virtualType>
 
@@ -587,7 +587,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentSepadirectdebitVaultConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
-            <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_SEPADIRECTDEBIT_VAULT_CODE</argument>
+            <argument name="methodCode" xsi:type="string">adyen_sepadirectdebit_vault</argument>
         </arguments>
     </virtualType>
 
@@ -605,7 +605,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentPaypalVaultConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
-            <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_PAYPAL_VAULT_CODE</argument>
+            <argument name="methodCode" xsi:type="string">adyen_paypal_vault</argument>
         </arguments>
     </virtualType>
 
@@ -623,7 +623,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentGooglepayVaultConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
-            <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_GOOGLEPAY_VAULT_CODE</argument>
+            <argument name="methodCode" xsi:type="string">adyen_googlepay_vault</argument>
         </arguments>
     </virtualType>
 
@@ -641,7 +641,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentKlarnaVaultConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
-            <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_KLARNA_VAULT_CODE</argument>
+            <argument name="methodCode" xsi:type="string">adyen_klarna_vault</argument>
         </arguments>
     </virtualType>
 
@@ -659,7 +659,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentApplepayConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
-            <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_APPLEPAY_CODE</argument>
+            <argument name="methodCode" xsi:type="string">adyen_applepay</argument>
         </arguments>
     </virtualType>
     <!-- End of value handler pools -->
