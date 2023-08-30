@@ -11,7 +11,7 @@
 /*global define*/
 define([
     'jquery',
-    'Adyen_Payment/js/view/payment/method-renderer/adyen-klarna-method',
+    'Adyen_Payment/js/view/payment/method-renderer/adyen-ideal-method',
     'Adyen_Payment/js/helper/configHelper'
 ], function (
     $,
