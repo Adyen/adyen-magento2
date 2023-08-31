@@ -18,7 +18,6 @@ define(
     ) {
         return adyenPaymentMethodComponent.extend({
             placeOrderButtonVisible: false,
-            txVariant: 'applepay',
             initialize: function () {
                 this._super();
             },

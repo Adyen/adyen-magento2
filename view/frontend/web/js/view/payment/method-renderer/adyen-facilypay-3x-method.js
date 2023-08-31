@@ -17,7 +17,6 @@ define(
         adyenPaymentMethod,
     ) {
         return adyenPaymentMethod.extend({
-            txVariant: 'facilypay_3x',
             initialize: function () {
                 this._super();
             },

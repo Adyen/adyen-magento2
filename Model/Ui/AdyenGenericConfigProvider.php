@@ -33,6 +33,11 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
      * corresponding txVariant (ideal). The txVariant will then be used to instantiate the component
      */
     private array $txVariants;
+    /**
+     * These payment methods have a custom method render file. This array has been used in the adyen-method.js
+     * file to push correct payment method renderer.
+     */
+    private array $customMethodRenderers;
 
     public function __construct(
         Data $adyenHelper,
@@ -40,7 +45,8 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
         StoreManagerInterface $storeManager,
         RequestInterface $request,
         UrlInterface $url,
-        array $txVariants = []
+        array $txVariants = [],
+        array $customMethodRenderers = []
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenConfigHelper = $adyenConfigHelper;
@@ -48,6 +54,7 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
         $this->request = $request;
         $this->url = $url;
         $this->txVariants = $txVariants;
+        $this->customMethodRenderers = $customMethodRenderers;
     }
 
     public function getConfig(): array
@@ -76,6 +83,7 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
         $config['payment']['customerStreetLinesEnabled'] = $this->adyenHelper->getCustomerStreetLinesEnabled($storeId);
         /* TODO: Do some filtering to only pass the payment methods that are enabled */
         $config['payment']['adyen']['txVariants'] = $this->txVariants;
+        $config['payment']['adyen']['customMethodRenderers'] = $this->customMethodRenderers;
         $config['payment']['adyen']['successPage'] = $this->url->getUrl(
             'checkout/onepage/success',
             ['_secure' => $this->request->isSecure()]
