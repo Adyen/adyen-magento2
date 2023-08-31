@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2023 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -11,40 +11,29 @@
 
 namespace Adyen\Payment\Model\Ui;
 
-use Adyen\Payment\Exception\PaymentMethodException;
 use Adyen\Payment\Helper\Data;
-use Adyen\Payment\Helper\Vault;
-use Exception;
-use Magento\Framework\App\RequestInterface;
-use Magento\Framework\UrlInterface;
+use Adyen\Payment\Helper\Vault;;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Vault\Model\Ui\TokenUiComponentInterface;
 use Magento\Vault\Model\Ui\TokenUiComponentProviderInterface;
 use Magento\Vault\Model\Ui\TokenUiComponentInterfaceFactory;
 
-class PaymentMethodUiComponentProvider extends AdyenUiComponentProvider implements TokenUiComponentProviderInterface
+class PaymentMethodTokenUiComponentProvider implements TokenUiComponentProviderInterface
 {
+    private TokenUiComponentInterfaceFactory $componentFactory;
+    private Data $dataHelper;
     private Vault $vaultHelper;
 
     public function __construct(
         TokenUiComponentInterfaceFactory $componentFactory,
         Data $dataHelper,
-        UrlInterface $url,
-        RequestInterface $request,
         Vault $vaultHelper
     ) {
-        parent::__construct($componentFactory, $dataHelper, $url, $request);
+        $this->componentFactory = $componentFactory;
+        $this->dataHelper = $dataHelper;
         $this->vaultHelper = $vaultHelper;
     }
 
-    /**
-     * Get UI component for token
-     *
-     * @param PaymentTokenInterface $paymentToken
-     * @return TokenUiComponentInterface
-     * @throws PaymentMethodException
-     * @throws Exception
-     */
     public function getComponentForToken(PaymentTokenInterface $paymentToken): TokenUiComponentInterface
     {
         $tokenType = $this->vaultHelper->getAdyenTokenType($paymentToken);
