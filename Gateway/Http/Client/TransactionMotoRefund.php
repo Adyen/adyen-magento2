@@ -17,7 +17,7 @@ use Magento\Payment\Gateway\Http\ClientInterface;
 /**
  * Class TransactionSale
  */
-class TransactionMotoRefund implements ClientInterface
+class TransactionMotoRefund implements TransactionRefundInterface
 {
     /**
      * @var \Adyen\Payment\Helper\Data
@@ -58,6 +58,11 @@ class TransactionMotoRefund implements ClientInterface
                 ->logRequest($request, Client::API_PAYMENT_VERSION, '/pal/servlet/Payment/{version}/refund');
             try {
                 $response = $service->refund($request);
+
+                // Add amount original reference and amount information to response
+                $response[self::REFUND_AMOUNT] = $request['modificationAmount']['value'];
+                $response[self::REFUND_CURRENCY] = $request['modificationAmount']['currency'];
+                $response[self::ORIGINAL_REFERENCE] = $request['originalReference'];
             } catch (\Adyen\AdyenException $e) {
                 $response = ['error' => $e->getMessage()];
             }
