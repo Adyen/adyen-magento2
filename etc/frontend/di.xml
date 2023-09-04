@@ -59,6 +59,7 @@
                 <item name="adyen_paypal" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
                 <item name="adyen_klarna" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
                 <item name="adyen_sepadirectdebit" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
+                <item name="adyen_amazonpay" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
             </argument>
         </arguments>
     </type>

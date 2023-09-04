@@ -244,6 +244,15 @@
             <argument name="commandPool" xsi:type="object">AdyenPaymentHppCommandPool</argument>
         </arguments>
     </virtualType>
+    <virtualType name="AdyenPaymentAmazonpayVaultFacade" type="Adyen\Payment\Model\Method\PaymentMethodVault">
+        <arguments>
+            <argument name="code" xsi:type="string">adyen_amazonpay_vault</argument>
+            <argument name="config" xsi:type="object">AdyenPaymentAmazonpayVaultConfig</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentAmazonpayVaultValueHandlerPool</argument>
+            <argument name="vaultProvider" xsi:type="object">AdyenPaymentAmazonPayFacade</argument>
+            <argument name="commandPool" xsi:type="object">AdyenPaymentHppCommandPool</argument>
+        </arguments>
+    </virtualType>
 
     <virtualType name="AdyenPaymentGooglepayVaultFacade" type="Adyen\Payment\Model\Method\PaymentMethodVault">
         <arguments>
@@ -642,6 +651,24 @@
     <virtualType name="AdyenPaymentKlarnaVaultConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
             <argument name="methodCode" xsi:type="string">adyen_klarna_vault</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="AdyenPaymentAmazonpayVaultValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AdyenPaymentAmazonpayVaultConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentAmazonpayVaultConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AdyenPaymentAmazonpayVaultConfig</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentAmazonpayVaultConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="string">adyen_amazonpay_vault</argument>
         </arguments>
     </virtualType>
 
