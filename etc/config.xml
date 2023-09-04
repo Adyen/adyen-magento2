@@ -269,7 +269,7 @@
         <group>adyen-alternative-payment-method</group>
       </adyen_amazonpay>
       <adyen_amazonpay_vault>
-        <title>Stored Amazonpay</title>
+        <title>Stored Amazon Pay</title>
         <model>AdyenPaymentAmazonpayVaultFacade</model>
       </adyen_amazonpay_vault>
       <adyen_googlepay>
