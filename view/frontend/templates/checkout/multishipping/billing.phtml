@@ -95,7 +95,7 @@
                                 }
                                 ?>
                                 <div data-bind="scope: 'payment_method_<?= $block->escapeHtml($code);?>'">
-                                    <dt class="item-title">
+                                    <dt class="item-title" data-bind="<?= str_starts_with($code, 'adyen_') ? 'visible: paymentMethodReady' : '' ?>">
                                         <?php if ($methodsCount > 1): ?>
                                             <input type="radio"
                                                    id="p_method_<?= $block->escapeHtml($code); ?>"
@@ -203,4 +203,32 @@
         });
     //]]>
 </script>
-
+<!-- Adyen plugin customization -->
+<script>
+    require([
+        'Adyen_Payment/js/model/adyen-payment-service',
+        'Magento_Checkout/js/model/full-screen-loader',
+        'Magento_Customer/js/customer-data'
+    ], function(
+        adyenPaymentService,
+        fullScreenLoader,
+        // customerData initiates url.setBaseUrl() although it's not being used in this file. Don't remove it!
+        customerData
+    ) {
+        fullScreenLoader.startLoader();
+        // Retrieve adyen payment methods
+        adyenPaymentService.retrievePaymentMethods().done(function(paymentMethods) {
+            try {
+                paymentMethods = JSON.parse(paymentMethods);
+            } catch(error) {
+                console.log(error);
+                paymentMethods = null;
+            }
+            adyenPaymentService.setPaymentMethods(paymentMethods);
+            fullScreenLoader.stopLoader();
+        }).fail(function() {
+            console.log('Fetching the payment methods failed!');
+        });
+    });
+</script>
+<!-- End: Adyen plugin customization -->
