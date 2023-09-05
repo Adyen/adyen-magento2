@@ -712,7 +712,7 @@
             <argument name="configInterface" xsi:type="object">AdyenPaymentApplePayVaultConfig</argument>
         </arguments>
     </virtualType>
-    <virtualType name="AdyenPaymentAmazonpayVaultConfig" type="Magento\Payment\Gateway\Config\Config">
+    <virtualType name="AdyenPaymentApplePayVaultConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
             <argument name="methodCode" xsi:type="string">adyen_applepay_vault</argument>
         </arguments>
