@@ -5,21 +5,18 @@
             <argument name="dataProviders" xsi:type="array">
                 <item name="adyen_boleto" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenBoleto</item>
                 <item name="adyen_cc" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenCc</item>
-                <item name="adyen_hpp" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenHpp</item>
-                <item name="adyen_oneclick" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenOneclick</item>
                 <item name="adyen_pos_cloud" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPosCloud</item>
-                <item name="adyen_amazonpay" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenHpp</item>
-                <item name="adyen_bcmc_mobile" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenHpp</item>
-                <item name="adyen_dotpay" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenHpp</item>
-                <item name="adyen_facilypay_3x" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenHpp</item>
-                <item name="adyen_googlepay" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenHpp</item>
-                <item name="adyen_ideal" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenHpp</item>
-                <item name="adyen_ideal" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenHpp</item>
-                <item name="adyen_klarna" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenHpp</item>
-                <item name="adyen_multibanco" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenHpp</item>
-                <item name="adyen_paypal" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenHpp</item>
-                <item name="adyen_sepadirectdebit" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenHpp</item>
-                <item name="adyen_applepay" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenHpp</item>
+                <item name="adyen_amazonpay" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_bcmc_mobile" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_dotpay" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_facilypay_3x" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_googlepay" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_ideal" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_klarna" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_multibanco" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_paypal" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_sepadirectdebit" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_applepay" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
             </argument>
         </arguments>
     </type>
@@ -33,7 +30,6 @@
                 <item name="adyen_holder_name_required" xsi:type="string">payment/adyen_abstract/holder_name_required</item>
                 <item name="adyen_title_renderer" xsi:type="string">payment/adyen_abstract/title_renderer</item>
                 <item name="adyen_return_path_error" xsi:type="string">payment/adyen_abstract/return_path</item>
-                <item name="adyen_oneclick_card_mode" xsi:type="string">payment/adyen_oneclick/card_mode</item>
                 <item name="adyen_checkout_frontend_region" xsi:type="string">payment/adyen_abstract/checkout_frontend_region</item>
             </argument>
         </arguments>
