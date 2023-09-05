@@ -49,6 +49,12 @@ configure: n98-magerun2.phar
 flush:
 	bin/magento cache:flush
 
+# Setup upgrade
+enable-express:
+	bin/magento module:enable Adyen_ExpressCheckout
+	bin/magento setup:upgrade
+	bin/magento cache:clean
+
 # Full plugin setup
 plugin: install configure flush
 
