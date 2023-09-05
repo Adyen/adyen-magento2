@@ -485,6 +485,10 @@
         <is_wallet>1</is_wallet>
         <group>adyen-alternative-payment-method</group>
       </adyen_applepay>
+      <adyen_applepay_vault>
+        <title>Stored Applepay</title>
+        <model>AdyenPaymentApplepayVaultFacade</model>
+      </adyen_applepay_vault>
     </payment>
   </default>
 </config>

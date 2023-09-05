@@ -41,6 +41,7 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
     const ADYEN_KLARNA_VAULT_CODE = 'adyen_klarna_vault';
     const ADYEN_PAYPAL_VAULT_CODE = 'adyen_paypal_vault';
     const ADYEN_GOOGLEPAY_VAULT_CODE = 'adyen_googlepay_vault';
+    const ADYEN_APPLEPAY_VAULT_CODE = 'adyen_applepay_vault';
 
     // Separate payment method tx_variants
     const IDEAL_TX_VARIANT = 'ideal';

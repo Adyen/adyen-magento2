@@ -255,6 +255,16 @@
         </arguments>
     </virtualType>
 
+    <virtualType name="AdyenPaymentApplepayVaultFacade" type="Adyen\Payment\Model\Method\PaymentMethodVault">
+        <arguments>
+            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_APPLEPAY_VAULT_CODE</argument>
+            <argument name="config" xsi:type="object">AdyenPaymentApplepayVaultConfig</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentApplepayVaultValueHandlerPool</argument>
+            <argument name="vaultProvider" xsi:type="object">AdyenPaymentApplePayFacade</argument>
+            <argument name="commandPool" xsi:type="object">AdyenPaymentHppCommandPool</argument>
+        </arguments>
+    </virtualType>
+
     <virtualType name="AdyenPaymentSepadirectdebitVaultFacade" type="Adyen\Payment\Model\Method\PaymentMethodVault">
         <arguments>
             <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_SEPADIRECTDEBIT_VAULT_CODE</argument>
@@ -624,6 +634,24 @@
     <virtualType name="AdyenPaymentGooglepayVaultConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
             <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_GOOGLEPAY_VAULT_CODE</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="AdyenPaymentApplepayVaultValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AdyenPaymentApplepayVaultConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentApplepayVaultConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AdyenPaymentApplepayVaultConfig</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentApplepayVaultConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::ADYEN_APPLEPAY_VAULT_CODE</argument>
         </arguments>
     </virtualType>
 
