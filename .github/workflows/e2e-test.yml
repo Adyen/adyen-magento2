@@ -1,7 +1,9 @@
 name: E2E Test
-run-name: Headless E2E tests for Adyen Magento2 Plugin
+run-name: Headless E2E tests - Basic coverage
 
-on: [pull_request]
+on: 
+  pull_request:
+    branches-ignore: [main]
 
 jobs:
   build:
