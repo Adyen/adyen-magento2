@@ -491,7 +491,7 @@
       </adyen_applepay>
       <adyen_applepay_vault>
         <title>Stored Applepay</title>
-        <model>AdyenPaymentApplepayVaultFacade</model>
+        <model>AdyenPaymentApplePayVaultFacade</model>
       </adyen_applepay_vault>
     </payment>
   </default>
