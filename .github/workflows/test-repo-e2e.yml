@@ -14,6 +14,7 @@ jobs:
     runs-on:
       group: larger-runners
       labels: ubuntu-latest-8-cores
+    timeout-minutes: 20
     env:
       PHP_VERSION: "8.1"
       MAGENTO_VERSION: "2.4.5"
