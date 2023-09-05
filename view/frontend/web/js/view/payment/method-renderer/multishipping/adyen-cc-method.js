@@ -11,12 +11,14 @@
 /*global define*/
 define([
     'jquery',
+    'ko',
     'Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method',
     'Adyen_Payment/js/model/adyen-configuration',
     'Adyen_Payment/js/model/adyen-payment-service',
     'Magento_Checkout/js/model/full-screen-loader',
 ], function (
     $,
+    ko,
     Component,
     adyenConfiguration,
     adyenPaymentService,
@@ -27,32 +29,28 @@ define([
         defaults: {
             template: 'Adyen_Payment/payment/multishipping/cc-form'
         },
-        initialize: function () {
-            var self = this;
 
-            // Retrieve adyen payment methods
-            adyenPaymentService.retrievePaymentMethods().done(function (paymentMethods) {
-                paymentMethods = JSON.parse(paymentMethods);
-                adyenPaymentService.setPaymentMethods(paymentMethods);
-                fullScreenLoader.stopLoader();
+        paymentMethodReady: ko.observable(false),
 
-                let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
-                paymentMethodsObserver.subscribe(
-                    function (paymentMethodsResponse) {
-                        self.loadCheckoutComponent(paymentMethodsResponse)
-                    });
-
-                self.loadCheckoutComponent(paymentMethodsObserver())
-
-                return this;
-            });
-
+        initialize: function() {
+            let self = this;
             this._super();
+
+            let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
+            paymentMethodsObserver.subscribe(
+                function(paymentMethods) {
+                    self.paymentMethodReady(paymentMethods);
+                }
+            );
+
+            this.paymentMethodReady(paymentMethodsObserver());
         },
+
         selectPaymentMethod: function () {
             this.renderSecureFields();
             return this._super();
         },
+
         renderSecureFields: function () {
             let self = this;
 
