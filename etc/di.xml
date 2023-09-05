@@ -97,7 +97,7 @@
             <argument name="code" xsi:type="string">adyen_applepay</argument>
             <argument name="formBlockType" xsi:type="string">Adyen\Payment\Block\Form\Hpp</argument>
             <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\Hpp</argument>
-            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentApplepayValueHandlerPool</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentApplePayValueHandlerPool</argument>
             <argument name="validatorPool" xsi:type="object">AdyenPaymentHppValidatorPool</argument>
             <argument name="commandPool" xsi:type="object">AdyenPaymentHppCommandPool</argument>
         </arguments>
