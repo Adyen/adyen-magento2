@@ -216,7 +216,7 @@ define(
             },
 
             getTxVariant: function () {
-                return this.txVariant;
+                return window.checkoutConfig.payment.adyen.txVariants[this.getCode()];
             },
 
             getMethodCode: function () {

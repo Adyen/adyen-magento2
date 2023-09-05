@@ -40,10 +40,10 @@ class Cc extends AbstractInfo
     /**
      * Return credit card type
      *
-     * @return string
+     * @return string|null
      * @throws LocalizedException
      */
-    public function getCcTypeName(): string
+    public function getCcTypeName(): ?string
     {
         $types = $this->adyenHelper->getAdyenCcTypes();
         $ccType = $this->getInfo()->getCcType();

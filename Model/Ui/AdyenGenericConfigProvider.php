@@ -23,52 +23,21 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
 {
     const CODE = 'adyen_abstract';
 
-    // Seperate payment method codes
-    const ADYEN_IDEAL_CODE = 'adyen_ideal';
-    const ADYEN_AMAZONPAY_CODE = 'adyen_amazonpay';
-    const ADYEN_APPLEPAY_CODE = 'adyen_applepay';
-    const ADYEN_BCMC_MOBILE_CODE = 'adyen_bcmc_mobile';
-    const ADYEN_DOTPAY_CODE = 'adyen_dotpay';
-    const ADYEN_FACILYPAY_3X_CODE = 'adyen_facilypay_3x';
-    const ADYEN_MULTIBANCO_CODE = 'adyen_multibanco';
-    const ADYEN_GOOGLEPAY_CODE = 'adyen_googlepay';
-    const ADYEN_KLARNA_CODE = 'adyen_klarna';
-    const ADYEN_PAYPAL_CODE = 'adyen_paypal';
-    const ADYEN_SEPADIRECTDEBIT_CODE = 'adyen_sepadirectdebit';
-
-    // Vault payment method codes
-    const ADYEN_SEPADIRECTDEBIT_VAULT_CODE = 'adyen_sepadirectdebit_vault';
-    const ADYEN_KLARNA_VAULT_CODE = 'adyen_klarna_vault';
-    const ADYEN_PAYPAL_VAULT_CODE = 'adyen_paypal_vault';
-    const ADYEN_GOOGLEPAY_VAULT_CODE = 'adyen_googlepay_vault';
-    const ADYEN_APPLEPAY_VAULT_CODE = 'adyen_applepay_vault';
-
-    // Separate payment method tx_variants
-    const IDEAL_TX_VARIANT = 'ideal';
-    const AMAZONPAY_TX_VARIANT = 'amazonpay';
-    const APPLEPAY_TX_VARIANT = 'applepay';
-    const BCMC_MOBILE_TX_VARIANT = 'bcmc_mobile';
-    const DOTPAY_TX_VARIANT = 'dotpay';
-    const FACILYPAY_3X_TX_VARIANT = 'facilypay_3x';
-    const MULTIBANCO_TX_VARIANT = 'multibanco';
-    const GOOGLEPAY_TX_VARIANT = 'googlepay';
-    const KLARNA_TX_VARIANT = 'klarna';
-    const PAYPAL_TX_VARIANT = 'paypal';
-    const SEPADIRECTDEBIT_TX_VARIANT = 'sepadirectdebit';
-
     protected Data $adyenHelper;
     protected StoreManagerInterface $storeManager;
     protected RequestInterface $request;
     protected UrlInterface $url;
     private Config $adyenConfigHelper;
-
     /**
      * This data member will be passed to the js frontend. It will be used to map the method code (adyen_ideal) to the
      * corresponding txVariant (ideal). The txVariant will then be used to instantiate the component
-     *
-     * @var array
      */
-    private $txVariants;
+    private array $txVariants;
+    /**
+     * These payment methods have a custom method render file. This array has been used in the adyen-method.js
+     * file to push correct payment method renderer.
+     */
+    private array $customMethodRenderers;
 
     public function __construct(
         Data $adyenHelper,
@@ -76,7 +45,8 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
         StoreManagerInterface $storeManager,
         RequestInterface $request,
         UrlInterface $url,
-        array $txVariants = []
+        array $txVariants = [],
+        array $customMethodRenderers = []
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenConfigHelper = $adyenConfigHelper;
@@ -84,14 +54,10 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
         $this->request = $request;
         $this->url = $url;
         $this->txVariants = $txVariants;
+        $this->customMethodRenderers = $customMethodRenderers;
     }
 
-    /**
-     * Define foreach payment methods the RedirectUrl
-     *
-     * @return array
-     */
-    public function getConfig()
+    public function getConfig(): array
     {
         $environment = $this->adyenConfigHelper->isDemoMode() ? 'test' : 'live';
         $storeId = $this->storeManager->getStore()->getId();
@@ -117,6 +83,7 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
         $config['payment']['customerStreetLinesEnabled'] = $this->adyenHelper->getCustomerStreetLinesEnabled($storeId);
         /* TODO: Do some filtering to only pass the payment methods that are enabled */
         $config['payment']['adyen']['txVariants'] = $this->txVariants;
+        $config['payment']['adyen']['customMethodRenderers'] = $this->customMethodRenderers;
         $config['payment']['adyen']['successPage'] = $this->url->getUrl(
             'checkout/onepage/success',
             ['_secure' => $this->request->isSecure()]
@@ -125,10 +92,7 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
         return $config;
     }
 
-    /**
-     * @return bool
-     */
-    protected function showLogos()
+    protected function showLogos(): bool
     {
         $showLogos = $this->adyenConfigHelper->getAdyenAbstractConfigData('title_renderer');
         if ($showLogos == RenderMode::MODE_TITLE_IMAGE) {

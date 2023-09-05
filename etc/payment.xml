@@ -30,6 +30,18 @@
         <method name="adyen_ideal">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="adyen_bcmc_mobile">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_dotpay">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_multibanco">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_sepadirectdebit">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>
 

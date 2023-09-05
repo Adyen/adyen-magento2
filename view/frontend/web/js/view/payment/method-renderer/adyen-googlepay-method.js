@@ -18,7 +18,6 @@ define(
     ) {
         return adyenPaymentMethod.extend({
             placeOrderButtonVisible: false,
-            txVariant: 'googlepay',
             initialize: function () {
                 this._super();
             },

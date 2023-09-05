@@ -27,30 +27,40 @@
     <type name="Adyen\Payment\Model\Ui\AdyenGenericConfigProvider">
         <arguments>
             <argument name="txVariants" xsi:type="array">
-                <item name="adyen_ideal" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::IDEAL_TX_VARIANT</item>
-                <item name="adyen_klarna" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::KLARNA_TX_VARIANT</item>
-                <item name="adyen_paypal" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::PAYPAL_TX_VARIANT</item>
-                <item name="adyen_bcmc_mobile" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::BCMC_MOBILE_TX_VARIANT</item>
-                <item name="adyen_dotpay" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::DOTPAY_TX_VARIANT</item>
-                <item name="adyen_amazonpay" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::AMAZONPAY_TX_VARIANT</item>
-                <item name="adyen_googlepay" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::GOOGLEPAY_TX_VARIANT</item>
-                <item name="adyen_multibanco" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::MULTIBANCO_TX_VARIANT</item>
-                <item name="adyen_facilypay_3x" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::FACILYPAY_3X_TX_VARIANT</item>
-                <item name="adyen_sepadirectdebit" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::SEPADIRECTDEBIT_TX_VARIANT</item>
-                <item name="adyen_applepay" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::APPLEPAY_TX_VARIANT</item>
+                <item name="adyen_ideal" xsi:type="string">ideal</item>
+                <item name="adyen_klarna" xsi:type="string">klarna</item>
+                <item name="adyen_paypal" xsi:type="string">paypal</item>
+                <item name="adyen_bcmc_mobile" xsi:type="string">bcmc_mobile</item>
+                <item name="adyen_dotpay" xsi:type="string">dotpay</item>
+                <item name="adyen_amazonpay" xsi:type="string">amazonpay</item>
+                <item name="adyen_googlepay" xsi:type="string">googlepay</item>
+                <item name="adyen_multibanco" xsi:type="string">multibanco</item>
+                <item name="adyen_facilypay_3x" xsi:type="string">facilypay_3x</item>
+                <item name="adyen_sepadirectdebit" xsi:type="string">sepadirectdebit</item>
+                <item name="adyen_applepay" xsi:type="string">applepay</item>
+            </argument>
+            <argument name="customMethodRenderers" xsi:type="array">
+                <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
+                <item name="adyen_amazonpay" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-amazonpay-method</item>
+                <item name="adyen_applepay" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-applepay-method</item>
+                <item name="adyen_boleto" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-boleto-method</item>
+                <item name="adyen_facilypay_3x" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-facilypay-3x-method</item>
+                <item name="adyen_googlepay" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-googlepay-method</item>
+                <item name="adyen_paypal" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-paypal-method</item>
             </argument>
         </arguments>
     </type>
     <type name="Magento\Vault\Model\Ui\TokensConfigProvider">
         <arguments>
             <argument name="tokenUiComponentProviders" xsi:type="array">
-                <item name="adyen_cc" xsi:type="object">Adyen\Payment\Model\Ui\TokenUiComponentProvider</item>
-                <item name="adyen_googlepay" xsi:type="object">Adyen\Payment\Model\Ui\TokenUiComponentProvider</item>
-                <item name="adyen_hpp" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodUiComponentProvider</item>
-                <item name="adyen_paypal" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodUiComponentProvider</item>
-                <item name="adyen_klarna" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodUiComponentProvider</item>
-                <item name="adyen_sepadirectdebit" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodUiComponentProvider</item>
-                <item name="adyen_applepay" xsi:type="object">Adyen\Payment\Model\Ui\TokenUiComponentProvider</item>
+                <item name="adyen_cc" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
+                <item name="adyen_googlepay" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
+                <item name="adyen_hpp" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
+                <item name="adyen_paypal" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
+                <item name="adyen_klarna" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
+                <item name="adyen_sepadirectdebit" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
+                <item name="adyen_amazonpay" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
+                <item name="adyen_applepay" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
             </argument>
         </arguments>
     </type>

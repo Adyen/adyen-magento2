@@ -37,7 +37,6 @@ define(
                 firstname: self.firstname,
                 lastname: self.lastname
             },
-            txVariant: 'boleto',
             initObservable: function () {
                 this._super()
                     .observe([
