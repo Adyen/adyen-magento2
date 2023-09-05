@@ -13,6 +13,7 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
 use Adyen\Client;
+use Adyen\Service\Checkout;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory as BillingCollectionFactory;
@@ -1682,12 +1683,16 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param $client
-     * @return \Adyen\Service\Checkout
+     * @throws AdyenException
+     * @throws NoSuchEntityException
      */
-    public function createAdyenCheckoutService($client)
+    public function createAdyenCheckoutService(Client $client = null): Checkout
     {
-        return new \Adyen\Service\Checkout($client);
+        if (!$client) {
+            $client = $this->initializeAdyenClient();
+        }
+
+        return new Checkout($client);
     }
 
     /**
