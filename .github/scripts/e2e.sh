@@ -9,7 +9,6 @@ git checkout $INTEGRATION_TESTS_BRANCH;
 
 # Setup environment
 rm -rf package-lock.json;
-npm i;
 
 # Run tests
 npm run test:ci:magento
