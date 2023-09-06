@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -12,20 +12,20 @@
 namespace Adyen\Payment\Block\Info;
 
 use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Model\AdyenAmountCurrency;
+use Adyen\Payment\Model\ResourceModel\Order\Payment\Collection;
+use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory;
 use Magento\Framework\View\Element\Template;
 
-class Hpp extends AbstractInfo
+class PaymentMethodInfo extends AbstractInfo
 {
-
-    /**
-     * @var ChargedCurrency
-     */
-    private $chargedCurrency;
+    private ChargedCurrency $chargedCurrency;
+    protected $_template = 'Adyen_Payment::info/adyen_pm.phtml';
 
     public function __construct(
-        \Adyen\Payment\Helper\Config $configHelper,
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory,
+        Config $configHelper,
+        CollectionFactory $adyenOrderPaymentCollectionFactory,
         Template\Context $context,
         ChargedCurrency $chargedCurrency,
         array $data = []
@@ -35,17 +35,9 @@ class Hpp extends AbstractInfo
     }
 
     /**
-     * @var string
-     */
-    protected $_template = 'Adyen_Payment::info/adyen_hpp.phtml';
-
-    /**
      * Get all Banktransfer related data
-     *
-     * @return array
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function getBankTransferData()
+    public function getBankTransferData(): array
     {
         $result = [];
         if (!empty($this->getInfo()->getOrder()) &&
@@ -60,11 +52,8 @@ class Hpp extends AbstractInfo
 
     /**
      * Get all Multibanco related data
-     *
-     * @return array
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function getMultibancoData()
+    public function getMultibancoData(): array
     {
         $result = [];
         if (!empty($this->getInfo()->getOrder()) &&
@@ -77,28 +66,17 @@ class Hpp extends AbstractInfo
         return $result;
     }
 
-    /**
-     * @return mixed
-     * @throws \Magento\Framework\Exception\LocalizedException
-     */
-    public function getOrder()
+    public function getOrder(): mixed
     {
         return $this->getInfo()->getOrder();
     }
 
-    /**
-     * @return \Adyen\Payment\Model\AdyenAmountCurrency
-     */
-    public function getOrderAmountCurrency()
+    public function getOrderAmountCurrency(): AdyenAmountCurrency
     {
         return $this->chargedCurrency->getOrderAmountCurrency($this->getInfo()->getOrder(), false);
     }
 
-    /**
-     * @return null
-     * @throws \Magento\Framework\Exception\LocalizedException
-     */
-    public function getPartialPayments()
+    public function getPartialPayments(): ?Collection
     {
         // retrieve partial payments of the order
         $orderPaymentCollection = $this->adyenOrderPaymentCollectionFactory

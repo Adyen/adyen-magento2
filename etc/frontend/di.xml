@@ -17,7 +17,6 @@
             <argument name="configProviders" xsi:type="array">
                 <item name="adyen_generic_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider</item>
                 <item name="adyen_cc_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenCcConfigProvider</item>
-                <item name="adyen_oneclick_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider</item>
                 <item name="adyen_hpp_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenHppConfigProvider</item>
                 <item name="adyen_boleto_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider</item>
                 <item name="adyen_pos_cloud_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider</item>
