@@ -31,69 +31,26 @@ define(
         cancelCouponAction
     ) {
         'use strict';
+
         const paymentMethodComponent = 'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-method';
-        rendererList.push(
-            {
-                type:'adyen_giftcard',
-                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-giftcard-method'
-            },
-            {
-                type: 'adyen_cc',
-                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method'
-            },
-            {
-                type: 'adyen_boleto',
-                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-boleto-method'
-            },
-            {
-                type: 'adyen_pos_cloud',
-                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-pos-cloud-method'
-            },
-            {
-                type: 'adyen_ideal',
-                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-ideal-method'
-            },
-            {
-                type: 'adyen_klarna',
-                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-klarna-method'
-            },
-            {
-                type: 'adyen_paypal',
-                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-paypal-method'
-            },
-            {
-                type: 'adyen_amazonpay',
-                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-amazonpay-method'
-            },
-            {
-                type: 'adyen_dotpay',
-                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-dotpay-method'
-            },
-            {
-                type: 'adyen_bcmc_mobile',
-                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-bcmc-method'
-            },
-            {
-                type: 'adyen_googlepay',
-                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-googlepay-method'
-            },
-            {
-                type:'adyen_multibanco',
-                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-multibanco-method'
-            },
-            {
-                type:'adyen_facilypay_3x',
-                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-facilypay-3x-method'
-            },
-            {
-                type:'adyen_sepadirectdebit',
-                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-sepadirectdebit-method'
-            },
-            {
-                type:'adyen_applepay',
-                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-applepay-method'
-            }
-        );
+        const adyenTxVariants = window.checkoutConfig.payment.adyen.txVariants;
+        const customMethodRenderers = window.checkoutConfig.payment.adyen.customMethodRenderers;
+
+        // Push payment method renderers for alternative payment methods
+        Object.keys(adyenTxVariants).forEach((index) => {
+            rendererList.push({
+                type: index,
+                component: paymentMethodComponent
+            });
+        });
+
+        // Push custom payment method renderers
+        Object.keys(customMethodRenderers).forEach((index) => {
+            rendererList.push({
+                type: index,
+                component: customMethodRenderers[index]
+            });
+        });
 
         /** Add view logic here if needed */
         return Component.extend({

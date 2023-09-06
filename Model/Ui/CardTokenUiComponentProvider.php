@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2023 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -19,7 +19,7 @@ use Magento\Vault\Model\Ui\TokenUiComponentInterface;
 use Magento\Vault\Model\Ui\TokenUiComponentProviderInterface;
 use Magento\Vault\Model\Ui\TokenUiComponentInterfaceFactory;
 
-class AdyenUiComponentProvider
+class CardTokenUiComponentProvider implements TokenUiComponentProviderInterface
 {
     const GATEWAY_TOKEN = 'gatewayToken';
     const TOKEN_ID = 'tokenId';
@@ -41,13 +41,7 @@ class AdyenUiComponentProvider
         $this->request = $request;
     }
 
-    /**
-     * Get UI component for token
-     *
-     * @param PaymentTokenInterface $paymentToken
-     * @return TokenUiComponentInterface
-     */
-    public function getCardComponentForToken(PaymentTokenInterface $paymentToken): TokenUiComponentInterface
+    public function getComponentForToken(PaymentTokenInterface $paymentToken): TokenUiComponentInterface
     {
         $details = json_decode($paymentToken->getTokenDetails() ?: '{}', true);
         $details['icon'] = $this->dataHelper->getVariantIcon($details['type']);

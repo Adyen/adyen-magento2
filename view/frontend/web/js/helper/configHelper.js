@@ -1,77 +1,25 @@
 /**
  *
- * Adyen Payment Module
+ * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2021 Adyen N.V.
- * This file is open source and available under the MIT license.
- * See the LICENSE file for more info.
+ * Copyright (c) 2023 Adyen NV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
-/*global define*/
 define([
     'jquery',
-    'Adyen_Payment/js/view/payment/method-renderer/adyen-klarna-method',
-    'Adyen_Payment/js/model/adyen-payment-service',
     'Adyen_Payment/js/model/adyen-configuration',
     'Magento_Checkout/js/model/quote'
-], function (
-    $,
-    Component,
-    adyenPaymentService,
-    adyenConfiguration,
-    quote
-) {
+], function ($, adyenConfiguration, quote) {
     'use strict';
 
-    return Component.extend({
-        defaults: {
-            template: 'Adyen_Payment/payment/multishipping/klarna-form'
-        },
-        initialize: function () {
-            // Retrieve adyen payment methods
-            adyenPaymentService.retrievePaymentMethods();
-            this._super();
-        },
-        selectPaymentMethod: function () {
-            $('#stateData').val(JSON.stringify(this.paymentComponent.data));
-            return this._super();
-        },
-        buildComponentConfiguration: function(paymentMethod, paymentMethodsExtraInfo) {
-            var self = this;
-
-            var firstName = '';
-            var lastName = '';
-            var telephone = '';
-            var email = '';
-            var shopperGender = '';
-            var shopperDateOfBirth = '';
-
-            if (!!customerData.email) {
-                email = customerData.email;
-            } else if (!!quote.guestEmail) {
-                email = quote.guestEmail;
-            }
-
-            shopperGender = customerData.gender;
-            shopperDateOfBirth = customerData.dob;
-
-            var formattedShippingAddress = {};
-            var formattedBillingAddress = {};
-
-            if (!!quote.shippingAddress()) {
-                formattedShippingAddress = getFormattedAddress(quote.shippingAddress());
-            }
-
-            if (!!quote.billingAddress()) {
-                formattedBillingAddress = getFormattedAddress(quote.billingAddress());
-            }
-
-            /**
-             * @param address
-             * @returns {{country: (string|*), firstName: (string|*), lastName: (string|*), city: (*|string), street: *, postalCode: (*|string), houseNumber: string, telephone: (string|*)}}
-             */
-            function getFormattedAddress(address) {
+    return {
+        /**
+         * @param address
+         * @returns {{country: (string|*), firstName: (string|*), lastName: (string|*), city: (*|string), street: *, postalCode: (*|string), houseNumber: string, telephone: (string|*)}}
+         */
+        getFormattedAddress: function (address) {
                 let city = '';
                 let country = '';
                 let postalCode = '';
@@ -101,9 +49,9 @@ define([
                     street = street.join(' ');
                 }
 
-                firstName = address.firstname;
-                lastName = address.lastname;
-                telephone = address.telephone;
+                var firstName = address.firstname;
+                var lastName = address.lastname;
+                var telephone = address.telephone;
 
                 return {
                     city: city,
@@ -115,16 +63,40 @@ define([
                     lastName: lastName,
                     telephone: telephone
                 };
+        },
+        getAdyenGender: function (gender) {
+            if (gender === 1) {
+                return 'MALE';
+            } else if (gender === 2) {
+                return 'FEMALE';
+            }
+            return 'UNKNOWN';
+        },
+        buildComponentConfiguration: function(paymentMethod, paymentMethodsExtraInfo) {
+            var self = this;
+
+            var email = '';
+            var shopperGender = '';
+            var shopperDateOfBirth = '';
+
+            if (!!customerData.email) {
+                email = customerData.email;
+            } else if (!!quote.guestEmail) {
+                email = quote.guestEmail;
             }
 
-            function getAdyenGender(gender) {
-                if (gender == 1) {
-                    return 'MALE';
-                } else if (gender == 2) {
-                    return 'FEMALE';
-                }
-                return 'UNKNOWN';
+            shopperGender = customerData.gender;
+            shopperDateOfBirth = customerData.dob;
 
+            var formattedShippingAddress = {};
+            var formattedBillingAddress = {};
+
+            if (!!quote.shippingAddress()) {
+                formattedShippingAddress = this.getFormattedAddress(quote.shippingAddress());
+            }
+
+            if (!!quote.billingAddress()) {
+                formattedBillingAddress = this.getFormattedAddress(quote.billingAddress());
             }
 
             /*Use the storedPaymentMethod object and the custom onChange function as the configuration object together*/
@@ -141,7 +113,7 @@ define([
                             lastName: formattedBillingAddress.lastName,
                             telephoneNumber: formattedBillingAddress.telephone,
                             shopperEmail: email,
-                            gender: getAdyenGender(shopperGender),
+                            gender: this.getAdyenGender(shopperGender),
                             dateOfBirth: shopperDateOfBirth,
                         },
                         billingAddress: {
@@ -181,5 +153,6 @@ define([
 
             return configuration;
         }
-    });
+    };
 });
+
