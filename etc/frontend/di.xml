@@ -20,6 +20,7 @@
                 <item name="adyen_hpp_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenHppConfigProvider</item>
                 <item name="adyen_boleto_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider</item>
                 <item name="adyen_pos_cloud_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider</item>
+                <item name="adyen_giftcard_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenGiftcardConfigProvider</item>
             </argument>
         </arguments>
     </type>
@@ -46,6 +47,7 @@
                 <item name="adyen_facilypay_3x" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-facilypay-3x-method</item>
                 <item name="adyen_googlepay" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-googlepay-method</item>
                 <item name="adyen_paypal" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-paypal-method</item>
+                <item name="adyen_giftcard" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-giftcard-method</item>
             </argument>
         </arguments>
     </type>
