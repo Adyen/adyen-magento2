@@ -63,7 +63,6 @@ class TransactionPayment implements ClientInterface
         $headers = $transferObject->getHeaders();
         $clientConfig = $transferObject->getClientConfig();
 
-
         $this->remainingOrderAmount = $request['amount']['value'];
 
         // If the payments call is already done return the request
@@ -85,47 +84,19 @@ class TransactionPayment implements ClientInterface
 
         $service = $this->adyenHelper->createAdyenCheckoutService($client);
 
-        if (isset($request['giftcardRequestParameters'])) {
-            $redeemedGiftcards = $request['giftcardRequestParameters'];
-            unset($request['giftcardRequestParameters']);
-
-            try {
-                $ordersResponse = $this->orderApiHelper->createOrder(
-                    $request['reference'],
-                    $request['amount']['value'],
-                    $request['amount']['currency'],
-                    $this->storeManager->getStore()->getId()
-                );
-
-                $response = $this->handleGiftcardPayments($request, $service, $redeemedGiftcards, $ordersResponse);
-
-                $request['amount']['value'] = $this->remainingOrderAmount;
-                $request['order'] = [
-                    'pspReference' => $ordersResponse['pspReference'],
-                    'orderData' => $ordersResponse['orderData']
-                ];
-            } catch (AdyenException $e) {
-                $response['error'] = $e->getMessage();
-                $response['errorCode'] = $e->getAdyenErrorCode();
-
-                $this->adyenHelper->logResponse($response);
-
-                return $response;
-            }
-
-            if ($this->remainingOrderAmount === 0) {
-                return $response;
-            }
-        }
-
-        $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
-            $request,
-            $headers['idempotencyExtraData'] ?? null
-        );
-        $requestOptions['idempotencyKey'] = $idempotencyKey;
-
-        $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/payments');
         try {
+            list($request, $giftcardResponse) = $this->processGiftcards($request, $service);
+            if (isset($giftcardResponse) && $this->remainingOrderAmount === 0) {
+                return $giftcardResponse;
+            }
+
+            $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
+                $request,
+                $headers['idempotencyExtraData'] ?? null
+            );
+            $requestOptions['idempotencyKey'] = $idempotencyKey;
+
+            $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/payments');
             $response = $service->payments($request, $requestOptions);
 
             // Store the /payments response in the database in case it is needed in order to finish the payment
@@ -195,5 +166,29 @@ class TransactionPayment implements ClientInterface
         }
 
         return $response;
+    }
+
+    public function processGiftcards(array $request, Checkout $service): array
+    {
+        if (isset($request['giftcardRequestParameters'])) {
+            $redeemedGiftcards = $request['giftcardRequestParameters'];
+            unset($request['giftcardRequestParameters']);
+
+            $ordersResponse = $this->orderApiHelper->createOrder(
+                $request['reference'],
+                $request['amount']['value'],
+                $request['amount']['currency'],
+                $this->storeManager->getStore()->getId()
+            );
+
+            $giftcardResponse = $this->handleGiftcardPayments($request, $service, $redeemedGiftcards, $ordersResponse);
+
+            $request['amount']['value'] = $this->remainingOrderAmount;
+            $request['order'] = [
+                'pspReference' => $ordersResponse['pspReference'],
+                'orderData' => $ordersResponse['orderData']
+            ];
+        }
+        return array($request, $giftcardResponse);
     }
 }
