@@ -44,7 +44,7 @@ define(
             isAvailable: ko.observable(true),
 
             defaults: {
-                template: 'Adyen_Payment/payment/hpp-form',
+                template: 'Adyen_Payment/payment/pm-form',
                 orderId: null,
                 modalLabel: 'hpp_actionModal'
             },
@@ -216,7 +216,7 @@ define(
             },
 
             getTxVariant: function () {
-                return this.txVariant;
+                return window.checkoutConfig.payment.adyen.txVariants[this.getCode()];
             },
 
             getMethodCode: function () {

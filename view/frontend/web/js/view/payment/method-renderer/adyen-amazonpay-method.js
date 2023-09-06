@@ -21,7 +21,6 @@ define(
         const amazonSessionKey = 'amazonCheckoutSessionId';
         return adyenPaymentMethod.extend({
             placeOrderButtonVisible: false,
-            txVariant: 'amazonpay',
             initialize: function () {
                 this._super();
             },

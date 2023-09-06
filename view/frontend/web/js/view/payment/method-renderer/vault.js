@@ -119,6 +119,7 @@ define([
             let requireCvc = window.checkoutConfig.payment.adyenCc.requireCvc;
 
             self.installments(0);
+
             let allInstallments = self.getAllInstallments();
 
             let componentConfig = {

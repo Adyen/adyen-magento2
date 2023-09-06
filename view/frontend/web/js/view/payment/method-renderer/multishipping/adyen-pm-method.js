@@ -11,18 +11,38 @@
 /*global define*/
 define([
     'jquery',
-    'Adyen_Payment/js/view/payment/method-renderer/adyen-klarna-method',
-    'Adyen_Payment/js/helper/configHelper'
+    'ko',
+    'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-method',
+    'Adyen_Payment/js/helper/configHelper',
+    'Adyen_Payment/js/model/adyen-payment-service'
 ], function (
     $,
+    ko,
     Component,
-    configHelper
+    configHelper,
+    adyenPaymentService
 ) {
     'use strict';
 
     return Component.extend({
         defaults: {
             template: 'Adyen_Payment/payment/multishipping/abstract-form'
+        },
+
+        paymentMethodReady: ko.observable(false),
+
+        initialize: function() {
+            let self = this;
+            this._super();
+
+            let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
+            paymentMethodsObserver.subscribe(
+                function(paymentMethods) {
+                    self.paymentMethodReady(paymentMethods);
+                }
+            );
+
+            this.paymentMethodReady(paymentMethodsObserver());
         },
 
         selectPaymentMethod: function () {

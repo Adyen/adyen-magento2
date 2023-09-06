@@ -26,3 +26,59 @@
     height: 24px;
     width: auto;
 }
+
+.adyen-checkout-ctp__card-image {
+    height: 24px;
+    width: auto;
+}
+
+#adyen_giftcard_new_giftcard_wrapper {
+    margin-bottom: 10px;
+}
+
+#adyen-redeemed-giftcards {
+    margin-top: 10px;
+}
+
+.adyen-giftcard-title {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.adyen-giftcard-remove-button {
+    margin-left: auto;
+}
+
+.adyen-giftcard-logo {
+    width: 75px;
+    margin-right: 10px;
+}
+
+.adyen-giftcard-summary {
+    margin-top: 5px;
+    color: #666;
+    font-size: 90%;
+}
+
+.adyen-giftcard-item {
+    padding: 10px 0;
+}
+
+.adyen-giftcard-item + .adyen-giftcard-item {
+    border-top: 1px solid #999;
+}
+
+.adyen-giftcard-remove-single {
+    margin-top: 25px;
+    background-color: #999;
+}
+
+.adyen-checkout__input {
+    width: unset;
+}
+
+.adyen-giftcard-header {
+    font-size: 95%;
+    font-weight: bold;
+}

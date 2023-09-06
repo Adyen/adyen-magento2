@@ -21,9 +21,13 @@
             <arguments>
                 <argument name="checkout_data" xsi:type="object">Magento\Multishipping\Block\DataProviders\Billing</argument>
                 <argument name="form_templates" xsi:type="array">
-                    <item name="adyen_cc" xsi:type="string">Adyen_Payment::form/multishipping/cc-form.phtml</item>
+                    <item name="adyen_cc" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
                     <item name="adyen_klarna" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
                     <item name="adyen_ideal" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_bcmc_mobile" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_dotpay" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_multibanco" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_sepadirectdebit" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
                 </argument>
                 <argument name="cacheable" xsi:type="boolean">false</argument>
             </arguments>

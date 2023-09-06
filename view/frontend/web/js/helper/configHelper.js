@@ -74,7 +74,7 @@ define([
         },
         buildComponentConfiguration: function(paymentMethod, paymentMethodsExtraInfo) {
             var self = this;
-            debugger;
+
             var email = '';
             var shopperGender = '';
             var shopperDateOfBirth = '';
