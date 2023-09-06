@@ -405,6 +405,15 @@ class PaymentMethods extends AbstractHelper
         return $paymentMethodInstance->getConfigData('group') === self::ADYEN_GROUP_ALTERNATIVE_PAYMENT_METHODS;
     }
 
+    public function getAlternativePaymentMethodTxVariant(MethodInterface $paymentMethodInstance): string
+    {
+        if (!$this->isAlternativePaymentMethod($paymentMethodInstance)) {
+            throw new AdyenException('Given payment method is not an Adyen alternative payment method!');
+        }
+
+        return str_replace('adyen_', '', $paymentMethodInstance->getCode());
+    }
+
     public function paymentMethodSupportsRecurring(MethodInterface $paymentMethodInstance): bool
     {
         return boolval($paymentMethodInstance->getConfigData('supports_recurring'));
