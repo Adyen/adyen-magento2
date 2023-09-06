@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Gateway\Request;
 
 use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Model\ResourceModel\Invoice\CollectionFactory;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as PaymentCollectionFactory;
@@ -67,12 +68,14 @@ class RefundDataBuilder implements BuilderInterface
         Data $adyenHelper,
         PaymentCollectionFactory   $orderPaymentCollectionFactory,
         CollectionFactory          $adyenInvoiceCollectionFactory,
-        ChargedCurrency            $chargedCurrency
+        ChargedCurrency            $chargedCurrency,
+        Config $configHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->orderPaymentCollectionFactory = $orderPaymentCollectionFactory;
         $this->adyenInvoiceCollectionFactory = $adyenInvoiceCollectionFactory;
         $this->chargedCurrency = $chargedCurrency;
+        $this->configHelper = $configHelper;
     }
 
     /**

@@ -93,8 +93,11 @@
     <column xsi:type="timestamp" name="created_at" on_update="false" nullable="true" default="CURRENT_TIMESTAMP" comment="Created at"/>
     <constraint xsi:type="primary" referenceId="PRIMARY">
       <column name="entity_id"/>
-      <column name="entity_id"/>
     </constraint>
+    <constraint xsi:type="foreign" referenceId="ADYEN_STATE_DATA_QUOTE_ID_QUOTE_ENTITY_ID" table="adyen_state_data" column="quote_id" referenceTable="quote" referenceColumn="entity_id" onDelete="CASCADE"/>
+    <index referenceId="ADYEN_STATE_DATA_QUOTE_ID" indexType="btree">
+      <column name="quote_id"/>
+    </index>
   </table>
   <table name="adyen_payment_response" resource="default" engine="innodb" comment="Adyen Payment Response">
     <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Adyen Payment Response Entity ID"/>
