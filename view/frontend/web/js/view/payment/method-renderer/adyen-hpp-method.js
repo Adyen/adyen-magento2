@@ -523,7 +523,7 @@ define(
                     selectedAlternativePaymentMethodType();
                 var validate = $(form).validation() &&
                     $(form).validation('isValid');
-                return validate && additionalValidators.validate();
+                return validate && additionalValidators.validate() && this.isPlaceOrderActionAllowed();
             },
             isButtonActive: function() {
                 return this.getCode() == this.isChecked() &&
