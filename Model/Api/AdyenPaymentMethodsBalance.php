@@ -22,7 +22,7 @@ use Magento\Store\Model\StoreManager;
 
 class AdyenPaymentMethodsBalance implements AdyenPaymentMethodsBalanceInterface
 {
-    const SUCCESS_CODE = 'Success';
+    const FAILED_RESULT_CODE = 'Failed';
 
     private Json $jsonSerializer;
     private StoreManager $storeManager;
@@ -57,9 +57,9 @@ class AdyenPaymentMethodsBalance implements AdyenPaymentMethodsBalanceInterface
 
             $response = $service->paymentMethodsBalance($payload);
 
-            if ($response['resultCode'] !== self::SUCCESS_CODE) {
+            if ($response['resultCode'] === self::FAILED_RESULT_CODE) {
                 // Balance endpoint doesn't send HTTP status 422 for invalid PIN, manual handling required.
-                $errorMessage = $response['additionalData']['acquirerResponseCode'] ?? null;
+                $errorMessage = $response['additionalData']['acquirerResponseCode'] ?? 'Unknown error!';
                 throw new AdyenException($errorMessage);
             }
 

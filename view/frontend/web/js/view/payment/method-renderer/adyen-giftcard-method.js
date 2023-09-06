@@ -161,6 +161,11 @@ define(
                     brand: this.selectedGiftcard().value,
                     showPayButton: true,
                     onBalanceCheck: function (resolve, reject, data) {
+                        let remainingBalance = window.checkoutConfig.payment.adyen.giftcard.quoteAmount - self.totalGiftcardBalance();
+                        data.amount = {
+                            currency: window.checkoutConfig.payment.adyen.giftcard.currency,
+                            value: (remainingBalance < 0) ? 0 : remainingBalance
+                        }
                         adyenPaymentService.paymentMethodsBalance(data)
                             .done(function (balanceResponse) {
                                 let response = JSON.parse(balanceResponse);
