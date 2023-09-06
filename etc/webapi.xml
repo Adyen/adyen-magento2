@@ -56,21 +56,21 @@
     <route url="/V1/adyen/carts/mine/state-data" method="POST">
         <service class="Adyen\Payment\Api\AdyenStateDataInterface" method="save"/>
         <resources>
-            <resource ref="anonymous"/>
+            <resource ref="self"/>
         </resources>
     </route>
 
     <route url="/V1/adyen/carts/mine/state-data/:stateDataId" method="DELETE">
         <service class="Adyen\Payment\Api\AdyenStateDataInterface" method="remove"/>
         <resources>
-            <resource ref="anonymous"/>
+            <resource ref="self"/>
         </resources>
     </route>
 
     <route url="/V1/adyen/giftcards/mine/:quoteId" method="GET">
         <service class="Adyen\Payment\Api\AdyenGiftcardInterface" method="getRedeemedGiftcards"/>
         <resources>
-            <resource ref="anonymous"/>
+            <resource ref="self"/>
         </resources>
     </route>
 
