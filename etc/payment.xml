@@ -42,6 +42,9 @@
         <method name="adyen_sepadirectdebit">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="adyen_googlepay">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>
 
