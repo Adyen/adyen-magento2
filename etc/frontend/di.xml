@@ -43,6 +43,7 @@
                 <item name="adyen_alipay_hk" xsi:type="string">alipay_hk</item>
                 <item name="adyen_alma" xsi:type="string">alma</item>
                 <item name="adyen_atome" xsi:type="string">atome</item>
+                <item name="adyen_afterpay_default" xsi:type="string">afterpay_default</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
