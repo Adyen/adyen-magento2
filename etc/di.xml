@@ -1683,6 +1683,9 @@
     <type name="Magento\Vault\Model\CustomerTokenManagement">
         <plugin name="FilterVaultTokens" type="Adyen\Payment\Plugin\CustomerFilterVaultTokens" sortOrder="10"/>
     </type>
+    <type name="Magento\Payment\Model\MethodList">
+        <plugin name="FilterSortCheckoutPaymentMethods" type="Adyen\Payment\Plugin\FilterSortPaymentMethods" sortOrder="10"/>
+    </type>
 
     <virtualType name="AdyenCancelOrders" type="Adyen\Payment\Cron\CancelOrders">
         <arguments>
