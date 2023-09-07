@@ -39,6 +39,7 @@
                 <item name="adyen_applepay" xsi:type="string">applepay</item>
                 <item name="adyen_affirm" xsi:type="string">affirm</item>
                 <item name="adyen_afterpaytouch" xsi:type="string">afterpaytouch</item>
+                <item name="adyen_alipay" xsi:type="string">alipay</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>

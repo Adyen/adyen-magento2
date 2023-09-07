@@ -83,4 +83,7 @@
     <event name="payment_method_assign_data_adyen_afterpaytouch">
         <observer name="adyen_afterpaytouch_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_alipay">
+        <observer name="adyen_alipay_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
 </config>
