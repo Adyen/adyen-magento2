@@ -89,4 +89,7 @@
     <event name="payment_method_assign_data_adyen_alipay_hk">
         <observer name="adyen_alipay_hk_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_alma">
+        <observer name="adyen_alma_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
 </config>

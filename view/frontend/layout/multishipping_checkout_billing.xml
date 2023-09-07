@@ -31,6 +31,7 @@
                     <item name="adyen_afterpaytouch" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
                     <item name="adyen_alipay" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
                     <item name="adyen_alipay_hk" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_alma" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
                 </argument>
                 <argument name="cacheable" xsi:type="boolean">false</argument>
             </arguments>

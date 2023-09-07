@@ -53,5 +53,8 @@
         <method name="adyen_alipay_hk">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="adyen_alma">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>
