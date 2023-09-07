@@ -13,6 +13,7 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
 use Adyen\Client;
+use Adyen\Service\Checkout;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory as BillingCollectionFactory;
@@ -372,6 +373,10 @@ class Data extends AbstractHelper
      */
     public function formatAmount($amount, $currency)
     {
+        if ($amount === null) {
+            // PHP 8 does not accept first param to be NULL
+            $amount = 0;
+        }
         return (int)number_format($amount, $this->decimalNumbers($currency), '', '');
     }
 
@@ -922,10 +927,10 @@ class Data extends AbstractHelper
      * @param $customerId
      * @param $storeId
      * @param $grandTotal
-     * @param $recurringType
+     * @param $recurringTypes
      * @return array
      */
-    public function getOneClickPaymentMethods($customerId, $storeId, $grandTotal, $subType=null)
+    public function getOneClickPaymentMethods($customerId, $storeId, $grandTotal, $recurringTypes = [])
     {
         $billingAgreements = [];
 
@@ -948,9 +953,33 @@ class Data extends AbstractHelper
             // check if contractType is supporting the selected contractType for OneClick payments
             $allowedContractTypes = $agreementData['contractTypes'];
 
-            // RecurringType::ONECLICK is kept in the if block to still display tokens that were created before changes in contract types
-            // even when $subType is not passed in /Block/Form/Oneclick.php, show all tokens with all contract types for admin orders
-            if (is_null($subType) || in_array(RecurringType::ONECLICK, $allowedContractTypes) || in_array($subType, $allowedContractTypes)) {
+            $fetchToken = false;
+
+            if (!empty($recurringTypes)) {
+                // Old contract types ONECLICK and RECURRING are added to support older tokens
+                if (in_array(Recurring::CARD_ON_FILE, $recurringTypes)) {
+                    $recurringTypes[] = RecurringType::ONECLICK;
+                }
+                if (
+                    !empty(
+                        array_intersect([Recurring::SUBSCRIPTION, Recurring::UNSCHEDULED_CARD_ON_FILE], $recurringTypes)
+                    )
+                ) {
+                    $recurringTypes[] = RecurringType::RECURRING;
+                }
+
+                // Fetch the token if it contains any or the specified $recurringTypes
+                foreach ($recurringTypes as $recurringType) {
+                    if (in_array($recurringType, $allowedContractTypes)) {
+                        $fetchToken = true;
+                    }
+                }
+            } else {
+                // Fetch all stored tokens if no recurring types are specified
+                $fetchToken = true;
+            }
+
+            if ($fetchToken) {
                 // check if AgreementLabel is set and if contract has an recurringType
                 if ($billingAgreement->getAgreementLabel()) {
                     // for Ideal use sepadirectdebit because it is
@@ -1678,12 +1707,16 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param $client
-     * @return \Adyen\Service\Checkout
+     * @throws AdyenException
+     * @throws NoSuchEntityException
      */
-    public function createAdyenCheckoutService($client)
+    public function createAdyenCheckoutService(Client $client = null): Checkout
     {
-        return new \Adyen\Service\Checkout($client);
+        if (!$client) {
+            $client = $this->initializeAdyenClient();
+        }
+
+        return new Checkout($client);
     }
 
     /**
