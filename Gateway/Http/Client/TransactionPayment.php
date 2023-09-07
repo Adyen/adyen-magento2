@@ -188,6 +188,8 @@ class TransactionPayment implements ClientInterface
                 'pspReference' => $ordersResponse['pspReference'],
                 'orderData' => $ordersResponse['orderData']
             ];
+        } else {
+            $giftcardResponse = null;
         }
         return array($request, $giftcardResponse);
     }
