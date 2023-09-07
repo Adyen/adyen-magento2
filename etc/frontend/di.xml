@@ -45,6 +45,7 @@
                 <item name="adyen_atome" xsi:type="string">atome</item>
                 <item name="adyen_afterpay_default" xsi:type="string">afterpay_default</item>
                 <item name="adyen_bankTransfer_BE" xsi:type="string">bankTransfer_BE</item>
+                <item name="adyen_bankTransfer_CH" xsi:type="string">bankTransfer_CH</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
