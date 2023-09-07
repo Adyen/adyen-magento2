@@ -72,7 +72,7 @@ define([
             }
             return 'UNKNOWN';
         },
-        buildComponentConfiguration: function(paymentMethod, paymentMethodsExtraInfo) {
+        buildComponentConfiguration: function(paymentMethod, paymentMethodsExtraInfo, parent) {
             var self = this;
 
             var email = '';
@@ -128,7 +128,7 @@ define([
                         $('#stateData').val(state.isValid ? JSON.stringify(state.data) : '');
                     },
                     onClick: function(resolve, reject) {
-                        if (self.validate()) {
+                        if (parent.validate()) {
                             resolve();
                         } else {
                             reject();
