@@ -10,8 +10,7 @@
  * Author: Adyen <magento@adyen.com>
  */
 -->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <type name="Magento\Checkout\Model\CompositeConfigProvider">
         <arguments>
             <argument name="configProviders" xsi:type="array">
@@ -38,6 +37,7 @@
                 <item name="adyen_facilypay_3x" xsi:type="string">facilypay_3x</item>
                 <item name="adyen_sepadirectdebit" xsi:type="string">sepadirectdebit</item>
                 <item name="adyen_applepay" xsi:type="string">applepay</item>
+                <item name="adyen_affirm" xsi:type="string">affirm</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
@@ -48,6 +48,7 @@
                 <item name="adyen_googlepay" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-googlepay-method</item>
                 <item name="adyen_paypal" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-paypal-method</item>
                 <item name="adyen_giftcard" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-giftcard-method</item>
+                <item name="adyen_affirm" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-affirm-method</item>
             </argument>
         </arguments>
     </type>

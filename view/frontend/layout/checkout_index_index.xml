@@ -12,8 +12,8 @@
 -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/layout_generic.xsd">
     <head>
-        <css src="Adyen_Payment::css/adyen.css"/>
-        <css src="Adyen_Payment::css/styles.css"/>
+        <css src="Adyen_Payment::css/adyen.css" />
+        <css src="Adyen_Payment::css/styles.css" />
     </head>
     <body>
         <referenceBlock name="checkout.root">
@@ -29,7 +29,7 @@
                                                 <item name="totals" xsi:type="array">
                                                     <item name="children" xsi:type="array">
                                                         <item name="adyen_giftcard_summary" xsi:type="array">
-                                                            <item name="component"  xsi:type="string">Adyen_Payment/js/view/checkout/summary/giftcard-summary</item>
+                                                            <item name="component" xsi:type="string">Adyen_Payment/js/view/checkout/summary/giftcard-summary</item>
                                                         </item>
                                                     </item>
                                                 </item>
@@ -96,6 +96,9 @@
                                                                             <item name="isBillingAddressRequired" xsi:type="boolean">true</item>
                                                                         </item>
                                                                         <item name="adyen_sepadirectdebit" xsi:type="array">
+                                                                            <item name="isBillingAddressRequired" xsi:type="boolean">true</item>
+                                                                        </item>
+                                                                        <item name="adyen_affirm" xsi:type="array">
                                                                             <item name="isBillingAddressRequired" xsi:type="boolean">true</item>
                                                                         </item>
                                                                     </item>

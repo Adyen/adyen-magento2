@@ -10,8 +10,7 @@
  * Author: Adyen <magento@adyen.com>
  */
 -->
-<payment xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Payment:etc/payment.xsd">
+<payment xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Payment:etc/payment.xsd">
     <groups>
         <group id="adyen">
             <label>Adyen Payment Methods</label>
@@ -42,7 +41,8 @@
         <method name="adyen_sepadirectdebit">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="adyen_affirm">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>
-
-
