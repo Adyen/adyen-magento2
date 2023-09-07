@@ -77,5 +77,8 @@
         <method name="adyen_bankTransfer_IBAN">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="adyen_bankTransfer_NL">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>
