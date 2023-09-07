@@ -38,6 +38,7 @@
                 <item name="adyen_sepadirectdebit" xsi:type="string">sepadirectdebit</item>
                 <item name="adyen_applepay" xsi:type="string">applepay</item>
                 <item name="adyen_affirm" xsi:type="string">affirm</item>
+                <item name="adyen_afterpaytouch" xsi:type="string">afterpaytouch</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
