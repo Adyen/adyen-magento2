@@ -98,4 +98,7 @@
     <event name="payment_method_assign_data_adyen_afterpay_default">
         <observer name="adyen_afterpay_default_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_bankTransfer_BE">
+        <observer name="adyen_bankTransfer_BE_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
 </config>
