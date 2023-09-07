@@ -74,4 +74,7 @@
   <event name="payment_method_assign_data_adyen_applepay">
     <observer name="adyen_applepay_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver"/>
   </event>
+    <event name="payment_method_assign_data_adyen_giftcard">
+        <observer name="adyen_giftcard_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver"/>
+    </event>
 </config>

@@ -18,7 +18,7 @@ use Magento\QuoteGraphQl\Model\Cart\Payment\AdditionalDataProviderInterface;
 /**
  * Interface for payment method additional data provider
  */
-class AdyenOneclick implements AdditionalDataProviderInterface
+class AdyenPm implements AdditionalDataProviderInterface
 {
     /**
      * @param array $data
@@ -28,8 +28,8 @@ class AdyenOneclick implements AdditionalDataProviderInterface
     {
         $result = [];
         foreach ($data as $key => $additionalData) {
-            if ($key == 'adyen_additional_data_oneclick') {
-                foreach ($data['adyen_additional_data_oneclick'] as $adyenKey => $adyenAdditionalData) {
+            if ($key == 'adyen_additional_data_hpp') {
+                foreach ($data['adyen_additional_data_hpp'] as $adyenKey => $adyenAdditionalData) {
                     $result[$adyenKey] = $adyenAdditionalData;
                 }
             } else {
