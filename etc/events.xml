@@ -110,4 +110,7 @@
     <event name="payment_method_assign_data_adyen_bankTransfer_GB">
         <observer name="adyen_bankTransfer_GB_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_bankTransfer_IBAN">
+        <observer name="adyen_bankTransfer_IBAN_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
 </config>

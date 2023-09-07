@@ -48,6 +48,7 @@
                 <item name="adyen_bankTransfer_CH" xsi:type="string">bankTransfer_CH</item>
                 <item name="adyen_bankTransfer_DE" xsi:type="string">bankTransfer_DE</item>
                 <item name="adyen_bankTransfer_GB" xsi:type="string">bankTransfer_GB</item>
+                <item name="adyen_bankTransfer_IBAN" xsi:type="string">bankTransfer_IBAN</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
