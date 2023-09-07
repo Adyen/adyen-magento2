@@ -706,13 +706,11 @@ class PaymentMethods extends AbstractHelper
         }
 
         if (isset($asset)) {
-            list($width, $height) = getimagesize($asset->getSourceFile());
-            $icon = ['url' => $asset->getUrl(), 'width' => $width, 'height' => $height];
+            $url = $asset->getUrl();
         } else {
             $url = "https://checkoutshopper-live.adyen.com/checkoutshopper/images/logos/$paymentMethodCode.svg";
-            $icon = ['url' => $url, 'width' => 77, 'height' => 50];
         }
 
-        return $icon;
+        return ['url' => $url, 'width' => 77, 'height' => 50];
     }
 }
