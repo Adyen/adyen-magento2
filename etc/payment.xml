@@ -71,5 +71,8 @@
         <method name="adyen_bankTransfer_DE">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="adyen_bankTransfer_GB">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>
