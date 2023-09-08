@@ -128,5 +128,8 @@
         <method name="adyen_giropay">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="adyen_grabpay_MY">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>

@@ -164,4 +164,7 @@
     <event name="payment_method_assign_data_adyen_giropay">
         <observer name="adyen_giropay_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_grabpay_MY">
+        <observer name="adyen_grabpay_MY_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
 </config>
