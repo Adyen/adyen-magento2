@@ -131,4 +131,7 @@
     <event name="payment_method_assign_data_adyen_ebanking_FI">
         <observer name="adyen_ebanking_FI_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_econtext_atm">
+        <observer name="adyen_econtext_atm_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
 </config>
