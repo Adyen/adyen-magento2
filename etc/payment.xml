@@ -188,5 +188,8 @@
         <method name="adyen_trustly">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="adyen_twint">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>
