@@ -75,6 +75,7 @@
                 <item name="adyen_mbway" xsi:type="string">mbway</item>
                 <item name="adyen_molpay_cash" xsi:type="string">molpay_cash</item>
                 <item name="adyen_molpay_ebanking_fpx_MY" xsi:type="string">molpay_ebanking_fpx_MY</item>
+                <item name="adyen_molpay_ebanking_TH" xsi:type="string">molpay_ebanking_TH</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>

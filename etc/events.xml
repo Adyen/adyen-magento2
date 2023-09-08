@@ -191,4 +191,7 @@
     <event name="payment_method_assign_data_adyen_molpay_ebanking_fpx_MY">
         <observer name="adyen_molpay_ebanking_fpx_MY_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_molpay_ebanking_TH">
+        <observer name="adyen_molpay_ebanking_TH_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
 </config>
