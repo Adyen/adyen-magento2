@@ -61,6 +61,7 @@
                 <item name="adyen_econtext_stores" xsi:type="string">econtext_stores</item>
                 <item name="adyen_entercash" xsi:type="string">entercash</item>
                 <item name="adyen_eps" xsi:type="string">eps</item>
+                <item name="adyen_facilypay_4x" xsi:type="string">facilypay_4x</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
