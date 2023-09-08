@@ -85,6 +85,7 @@
                 <item name="adyen_ratepay" xsi:type="string">ratepay</item>
                 <item name="adyen_ratepay_directdebit" xsi:type="string">ratepay_directdebit</item>
                 <item name="adyen_swish" xsi:type="string">swish</item>
+                <item name="adyen_trustly" xsi:type="string">trustly</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
@@ -118,6 +119,7 @@
                 <item name="adyen_klarna_account" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
                 <item name="adyen_klarna_paynow" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
                 <item name="adyen_paybybank" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
+                <item name="adyen_trustly" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
             </argument>
         </arguments>
     </type>
