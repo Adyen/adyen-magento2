@@ -54,6 +54,7 @@
                 <item name="adyen_clearpay" xsi:type="string">clearpay</item>
                 <item name="adyen_directdebit_GB" xsi:type="string">directdebit_GB</item>
                 <item name="adyen_directEbanking" xsi:type="string">directEbanking</item>
+                <item name="adyen_ebanking_FI" xsi:type="string">ebanking_FI</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>

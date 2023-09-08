@@ -92,5 +92,8 @@
         <method name="adyen_directEbanking">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="adyen_ebanking_FI">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>
