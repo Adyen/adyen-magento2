@@ -70,6 +70,7 @@
                 <item name="adyen_grabpay_PH" xsi:type="string">grabpay_PH</item>
                 <item name="adyen_grabpay_SG" xsi:type="string">grabpay_SG</item>
                 <item name="adyen_kakaopay" xsi:type="string">kakaopay</item>
+                <item name="adyen_klarna_account" xsi:type="string">klarna_account</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
@@ -98,6 +99,7 @@
                 <item name="adyen_eps" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
                 <item name="adyen_giropay" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
                 <item name="adyen_kakaopay" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
+                <item name="adyen_klarna_account" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
             </argument>
         </arguments>
     </type>

@@ -176,4 +176,7 @@
     <event name="payment_method_assign_data_adyen_kakaopay">
         <observer name="adyen_kakaopay_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_klarna_account">
+        <observer name="adyen_klarna_account_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
 </config>
