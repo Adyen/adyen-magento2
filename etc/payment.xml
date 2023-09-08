@@ -107,5 +107,8 @@
         <method name="adyen_econtext_stores">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="adyen_entercash">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>
