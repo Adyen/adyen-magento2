@@ -10,16 +10,16 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Api\Internal;
+namespace Adyen\Payment\Api;
 
-interface InternalAdyenDonationsInterface
+interface GuestAdyenDonationsInterface
 {
     /**
-     * Build and send internal donation payment request
+     * Build and send donation payment request for guest shoppers
      *
      * @param string $payload
-     * @param string $formKey
+     * @param string $orderId
      * @return void
      */
-    public function handleInternalRequest(string $payload, string $formKey): void;
+    public function donate(string $payload, string $orderId): void;
 }

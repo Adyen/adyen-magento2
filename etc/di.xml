@@ -1562,6 +1562,11 @@
             <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
         </arguments>
     </type>
+    <type name="Adyen\Payment\Model\Api\GuestAdyenDonations">
+        <arguments>
+            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
+        </arguments>
+    </type>
     <type name="Adyen\Payment\Console\Command\WebhookProcessorCommand">
         <arguments>
             <argument name="webhookProcessor" xsi:type="object">Adyen\Payment\Cron\WebhookProcessor\Proxy</argument>
@@ -1592,10 +1597,10 @@
                 type="Adyen\Payment\Model\Api\GuestAdyenOrderPaymentStatus"/>
     <preference for="Adyen\Payment\Api\AdyenStateDataInterface"
                 type="Adyen\Payment\Model\Api\AdyenStateData"/>
-    <preference for="Adyen\Payment\Api\Internal\InternalAdyenDonationsInterface"
-                type="Adyen\Payment\Model\Api\Internal\InternalAdyenDonations"/>
     <preference for="Adyen\Payment\Api\AdyenDonationsInterface"
                 type="Adyen\Payment\Model\Api\AdyenDonations"/>
+    <preference for="Adyen\Payment\Api\GuestAdyenDonationsInterface"
+                type="Adyen\Payment\Model\Api\GuestAdyenDonations"/>
     <preference for="Adyen\Payment\Api\Data\NotificationInterface"
                 type="Adyen\Payment\Model\Notification"/>
     <type name="Magento\Vault\Api\PaymentTokenRepositoryInterface">

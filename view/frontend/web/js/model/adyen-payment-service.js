@@ -111,14 +111,25 @@ define(
                 );
             },
 
-            donate: function (data) {
+            donate: function (data, orderId) {
+                let serviceUrl;
                 let request = {
-                    payload: JSON.stringify(data),
-                    formKey: $.mage.cookies.get('form_key')
+                    payload: JSON.stringify(data)
                 };
 
-                const serviceUrl = urlBuilder.createUrl('/internal/adyen/donations', {});
- 
+                if (customer.isLoggedIn()) {
+                    serviceUrl = urlBuilder.createUrl(
+                        '/adyen/orders/carts/mine/donations',
+                        {}
+                    );
+                } else {
+                    serviceUrl = urlBuilder.createUrl(
+                        '/adyen/orders/guest-carts/:orderId/donations', {
+                            orderId,
+                        }
+                    );
+                }
+
                 return storage.post(
                     serviceUrl,
                     JSON.stringify(request),
