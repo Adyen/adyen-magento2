@@ -2717,4 +2717,57 @@
             <argument name="methodCode" xsi:type="string">adyen_klarna_account_vault</argument>
         </arguments>
     </virtualType>
+    <virtualType name="AdyenPaymentKlarnaPaynowFacade" type="Adyen\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="string">adyen_klarna_paynow</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\PaymentMethodInfo</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentKlarnaPaynowValueHandlerPool</argument>
+            <argument name="validatorPool" xsi:type="object">AdyenPaymentValidatorPool</argument>
+            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentKlarnaPaynowValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AdyenPaymentKlarnaPaynowConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentKlarnaPaynowConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AdyenPaymentKlarnaPaynowConfig</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentKlarnaPaynowConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="string">adyen_klarna_paynow</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentKlarnaPaynowVaultFacade" type="Adyen\Payment\Model\Method\PaymentMethodVault">
+        <arguments>
+            <argument name="code" xsi:type="string">adyen_klarna_paynow_vault</argument>
+            <argument name="config" xsi:type="object">AdyenPaymentKlarnaPaynowVaultConfig</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentKlarnaPaynowVaultValueHandlerPool</argument>
+            <argument name="vaultProvider" xsi:type="object">AdyenPaymentKlarnaPaynowFacade</argument>
+            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentKlarnaPaynowVaultValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AdyenPaymentKlarnaPaynowVaultConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentKlarnaPaynowVaultConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AdyenPaymentKlarnaPaynowVaultConfig</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentKlarnaPaynowVaultConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="string">adyen_klarna_paynow_vault</argument>
+        </arguments>
+    </virtualType>
 </config>
