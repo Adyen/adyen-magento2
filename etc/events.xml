@@ -230,4 +230,7 @@
     <event name="payment_method_assign_data_adyen_walley">
         <observer name="adyen_walley_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_wechatpayWeb">
+        <observer name="adyen_wechatpayWeb_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
 </config>

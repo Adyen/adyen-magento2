@@ -88,6 +88,7 @@
                 <item name="adyen_trustly" xsi:type="string">trustly</item>
                 <item name="adyen_twint" xsi:type="string">twint</item>
                 <item name="adyen_walley" xsi:type="string">walley</item>
+                <item name="adyen_wechatpayWeb" xsi:type="string">wechatpayWeb</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
