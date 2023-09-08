@@ -233,6 +233,9 @@
                                                                         <item name="adyen_pix" xsi:type="array">
                                                                             <item name="isBillingAddressRequired" xsi:type="boolean">true</item>
                                                                         </item>
+                                                                        <item name="adyen_ratepay" xsi:type="array">
+                                                                            <item name="isBillingAddressRequired" xsi:type="boolean">true</item>
+                                                                        </item>
                                                                     </item>
                                                                 </item>
                                                             </item>

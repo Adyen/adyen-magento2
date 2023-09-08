@@ -82,6 +82,7 @@
                 <item name="adyen_paybright" xsi:type="string">paybright</item>
                 <item name="adyen_paybybank" xsi:type="string">paybybank</item>
                 <item name="adyen_pix" xsi:type="string">pix</item>
+                <item name="adyen_ratepay" xsi:type="string">ratepay</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
@@ -93,6 +94,7 @@
                 <item name="adyen_paypal" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-paypal-method</item>
                 <item name="adyen_giftcard" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-giftcard-method</item>
                 <item name="adyen_affirm" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-affirm-method</item>
+                <item name="adyen_ratepay" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-ratepay-method</item>
             </argument>
         </arguments>
     </type>
