@@ -158,5 +158,8 @@
         <method name="adyen_molpay_ebanking_TH">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="adyen_onlineBanking_CZ">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>
