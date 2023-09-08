@@ -125,4 +125,7 @@
     <event name="payment_method_assign_data_adyen_directdebit_GB">
         <observer name="adyen_directdebit_GB_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_directEbanking">
+        <observer name="adyen_directEbanking_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
 </config>
