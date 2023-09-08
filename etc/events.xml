@@ -236,4 +236,7 @@
     <event name="payment_method_assign_data_adyen_wechatpayQR">
         <observer name="adyen_wechatpayQR_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_zip">
+        <observer name="adyen_zip_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
 </config>

@@ -200,5 +200,8 @@
         <method name="adyen_wechatpayQR">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="adyen_zip">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>
