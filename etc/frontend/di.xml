@@ -72,6 +72,7 @@
                 <item name="adyen_kakaopay" xsi:type="string">kakaopay</item>
                 <item name="adyen_klarna_account" xsi:type="string">klarna_account</item>
                 <item name="adyen_klarna_paynow" xsi:type="string">klarna_paynow</item>
+                <item name="adyen_mbway" xsi:type="string">mbway</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
