@@ -134,5 +134,8 @@
         <method name="adyen_grabpay_PH">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="adyen_grabpay_SG">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>

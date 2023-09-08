@@ -68,6 +68,7 @@
                 <item name="adyen_giropay" xsi:type="string">giropay</item>
                 <item name="adyen_grabpay_MY" xsi:type="string">grabpay_MY</item>
                 <item name="adyen_grabpay_PH" xsi:type="string">grabpay_PH</item>
+                <item name="adyen_grabpay_SG" xsi:type="string">grabpay_SG</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
