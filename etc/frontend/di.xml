@@ -77,6 +77,7 @@
                 <item name="adyen_molpay_ebanking_fpx_MY" xsi:type="string">molpay_ebanking_fpx_MY</item>
                 <item name="adyen_molpay_ebanking_TH" xsi:type="string">molpay_ebanking_TH</item>
                 <item name="adyen_onlineBanking_CZ" xsi:type="string">onlineBanking_CZ</item>
+                <item name="adyen_onlineBanking_PL" xsi:type="string">onlineBanking_PL</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>

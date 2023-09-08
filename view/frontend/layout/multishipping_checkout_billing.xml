@@ -67,6 +67,7 @@
                     <item name="adyen_molpay_ebanking_fpx_MY" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
                     <item name="adyen_molpay_ebanking_TH" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
                     <item name="adyen_onlineBanking_CZ" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_onlineBanking_PL" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
                 </argument>
                 <argument name="cacheable" xsi:type="boolean">false</argument>
             </arguments>

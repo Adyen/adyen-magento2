@@ -197,4 +197,7 @@
     <event name="payment_method_assign_data_adyen_onlineBanking_CZ">
         <observer name="adyen_onlineBanking_CZ_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_onlineBanking_PL">
+        <observer name="adyen_onlineBanking_PL_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
 </config>
