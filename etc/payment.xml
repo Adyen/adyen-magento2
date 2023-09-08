@@ -104,5 +104,8 @@
         <method name="adyen_econtext_seven_eleven">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="adyen_econtext_stores">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>

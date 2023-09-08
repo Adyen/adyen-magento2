@@ -58,6 +58,7 @@
                 <item name="adyen_econtext_atm" xsi:type="string">econtext_atm</item>
                 <item name="adyen_econtext_online" xsi:type="string">econtext_online</item>
                 <item name="adyen_econtext_seven_eleven" xsi:type="string">econtext_seven_eleven</item>
+                <item name="adyen_econtext_stores" xsi:type="string">econtext_stores</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
