@@ -185,4 +185,7 @@
     <event name="payment_method_assign_data_adyen_mbway">
         <observer name="adyen_mbway_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_molpay_cash">
+        <observer name="adyen_molpay_cash_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
 </config>
