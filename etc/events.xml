@@ -215,4 +215,7 @@
     <event name="payment_method_assign_data_adyen_ratepay">
         <observer name="adyen_ratepay_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_ratepay_directdebit">
+        <observer name="adyen_ratepay_directdebit_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
 </config>
