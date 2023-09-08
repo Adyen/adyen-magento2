@@ -1,0 +1,30 @@
+<!--
+/**
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+
+<!-- ko if: showGiftcardSummary -->
+<tr class="grand totals">
+    <th class="mark" scope="row">
+        <strong data-bind="text: $t('Giftcard Discount')"></strong>
+    </th>
+    <td class="amount">
+        <strong><span data-bind="text: giftcardDiscount"></span></strong>
+    </td>
+</tr>
+<tr class="grand totals">
+    <th class="mark" scope="row">
+        <strong data-bind="text: $t('Remaining Amount')"></strong>
+    </th>
+    <td class="amount">
+        <strong><span data-bind="text: remainingAmount"></span></strong>
+    </td>
+</tr>
+<!--/ko-->
