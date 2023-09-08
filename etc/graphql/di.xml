@@ -40,6 +40,7 @@
                 <item name="adyen_econtext_seven_eleven" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
                 <item name="adyen_econtext_stores" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
                 <item name="adyen_entercash" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_eps" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
             </argument>
         </arguments>
     </type>

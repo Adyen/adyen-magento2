@@ -146,4 +146,7 @@
     <event name="payment_method_assign_data_adyen_entercash">
         <observer name="adyen_entercash_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_eps">
+        <observer name="adyen_eps_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
 </config>
