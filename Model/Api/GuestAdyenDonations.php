@@ -15,27 +15,17 @@ namespace Adyen\Payment\Model\Api;
 use Adyen\Payment\Api\GuestAdyenDonationsInterface;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NotFoundException;
-use Magento\Quote\Model\QuoteIdMaskFactory;
-use Magento\Sales\Model\Order;
-use Magento\Sales\Model\OrderFactory;
 
 
 class GuestAdyenDonations implements GuestAdyenDonationsInterface
 {
-    private $quoteIdMaskFactory;
-    private $orderFactory;
     private $checkoutSession;
     private $adyenDonationsModel;
 
     public function __construct(
-        QuoteIdMaskFactory $quoteIdMaskFactory,
-        OrderFactory $orderFactory,
         Session $checkoutSession,
         AdyenDonations $adyenDonationsModel
     ) {
-        $this->quoteIdMaskFactory = $quoteIdMaskFactory;
-        $this->orderFactory = $orderFactory;
         $this->checkoutSession = $checkoutSession;
         $this->adyenDonationsModel = $adyenDonationsModel;
     }
@@ -49,8 +39,8 @@ class GuestAdyenDonations implements GuestAdyenDonationsInterface
     public function donate(string $payload, string $orderId): void
     {
         if ($this->checkoutSession->getLastOrderId() !== $orderId) {
-            throw new NotFoundException(
-                __("The entity that was requested doesn't exist. Verify the entity and try again.")
+            throw new LocalizedException(
+                __("Donation failed!")
             );
         }
 
