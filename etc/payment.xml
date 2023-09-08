@@ -86,5 +86,8 @@
         <method name="adyen_clearpay">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="adyen_directdebit_GB">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>
