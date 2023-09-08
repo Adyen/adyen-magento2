@@ -65,6 +65,7 @@
                 <item name="adyen_facilypay_6x" xsi:type="string">facilypay_6x</item>
                 <item name="adyen_facilypay_10x" xsi:type="string">facilypay_10x</item>
                 <item name="adyen_facilypay_12x" xsi:type="string">facilypay_12x</item>
+                <item name="adyen_giropay" xsi:type="string">giropay</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
@@ -91,6 +92,7 @@
                 <item name="adyen_amazonpay" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
                 <item name="adyen_directEbanking" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
                 <item name="adyen_eps" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
+                <item name="adyen_giropay" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
             </argument>
         </arguments>
     </type>
