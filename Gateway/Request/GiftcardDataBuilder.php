@@ -33,10 +33,12 @@ class GiftcardDataBuilder implements BuilderInterface
         $paymentDataObject = SubjectReader::readPayment($buildSubject);
         $order = $paymentDataObject->getOrder();
 
+        $request = [];
+
         $stateDataCollection = $this->adyenStateData->getStateDataRowsWithQuoteId($order->getQuoteId(), 'ASC');
         $stateDataArray = $this->validateGiftcardStateData($stateDataCollection->getData());
 
-        if (isset($stateDataArray)) {
+        if (!empty($stateDataArray)) {
             $request['body'] = [
                 'giftcardRequestParameters' => $stateDataArray,
             ];
