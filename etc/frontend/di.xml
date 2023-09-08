@@ -81,6 +81,7 @@
                 <item name="adyen_onlineBanking_SK" xsi:type="string">onlineBanking_SK</item>
                 <item name="adyen_paybright" xsi:type="string">paybright</item>
                 <item name="adyen_paybybank" xsi:type="string">paybybank</item>
+                <item name="adyen_pix" xsi:type="string">pix</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>

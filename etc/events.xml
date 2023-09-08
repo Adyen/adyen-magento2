@@ -209,4 +209,7 @@
     <event name="payment_method_assign_data_adyen_paybybank">
         <observer name="adyen_paybybank_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_pix">
+        <observer name="adyen_pix_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
 </config>
