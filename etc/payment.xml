@@ -116,5 +116,8 @@
         <method name="adyen_facilypay_4x">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="adyen_facilypay_6x">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>
