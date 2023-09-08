@@ -51,6 +51,7 @@
                 <item name="adyen_bankTransfer_IBAN" xsi:type="string">bankTransfer_IBAN</item>
                 <item name="adyen_bankTransfer_NL" xsi:type="string">bankTransfer_NL</item>
                 <item name="adyen_blik" xsi:type="string">blik</item>
+                <item name="adyen_clearpay" xsi:type="string">clearpay</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>

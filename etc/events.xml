@@ -119,4 +119,7 @@
     <event name="payment_method_assign_data_adyen_blik">
         <observer name="adyen_blik_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_clearpay">
+        <observer name="adyen_clearpay_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
 </config>
