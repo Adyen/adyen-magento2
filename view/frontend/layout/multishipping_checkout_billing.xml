@@ -70,6 +70,7 @@
                     <item name="adyen_onlineBanking_PL" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
                     <item name="adyen_onlineBanking_SK" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
                     <item name="adyen_paybright" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_paybybank" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
                 </argument>
                 <argument name="cacheable" xsi:type="boolean">false</argument>
             </arguments>

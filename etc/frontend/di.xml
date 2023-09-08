@@ -80,6 +80,7 @@
                 <item name="adyen_onlineBanking_PL" xsi:type="string">onlineBanking_PL</item>
                 <item name="adyen_onlineBanking_SK" xsi:type="string">onlineBanking_SK</item>
                 <item name="adyen_paybright" xsi:type="string">paybright</item>
+                <item name="adyen_paybybank" xsi:type="string">paybybank</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
@@ -110,6 +111,7 @@
                 <item name="adyen_kakaopay" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
                 <item name="adyen_klarna_account" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
                 <item name="adyen_klarna_paynow" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
+                <item name="adyen_paybybank" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
             </argument>
         </arguments>
     </type>
