@@ -83,7 +83,8 @@ graphql:
 	@cd ${MAGENTO_ROOT}/dev/tests/api-functional && \
 		${MAGENTO_ROOT}/vendor/bin/phpunit --prepend ${GRAPHQL_PHP} --configuration ${GRAPHQL_XML} ${GRAPHQL_SUITE}
 
-webapi:
+# REST API tests
+restapi:
     @cd ${MAGENTO_ROOT}/dev/tests/api-functional && \
         ${MAGENTO_ROOT}/vendor/bin/phpunit --prepend /data/extensions/workdir/Test/phpunit_rest.php \
         --configuration ${MAGENTO_ROOT}/dev/tests/api-functional/phpunit_rest.xml.dist \

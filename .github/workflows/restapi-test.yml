@@ -40,4 +40,4 @@ jobs:
       - run: docker exec magento2-container /etc/init.d/cron stop
 
       - name: Run REST API tests
-        run: docker exec magento2-container make webapi
+        run: docker exec magento2-container make restapi
