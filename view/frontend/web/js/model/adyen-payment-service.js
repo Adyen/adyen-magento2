@@ -117,18 +117,9 @@ define(
                     payload: JSON.stringify(data)
                 };
 
-                if (customer.isLoggedIn()) {
-                    serviceUrl = urlBuilder.createUrl(
-                        '/adyen/orders/carts/mine/donations',
-                        {}
-                    );
-                } else {
-                    serviceUrl = urlBuilder.createUrl(
-                        '/adyen/orders/guest-carts/:orderId/donations', {
-                            orderId,
-                        }
-                    );
-                }
+                serviceUrl = customer.isLoggedIn()
+                    ? urlBuilder.createUrl('/adyen/orders/carts/mine/donations', {})
+                    : urlBuilder.createUrl('/adyen/orders/guest-carts/:orderId/donations', {orderId});
 
                 return storage.post(
                     serviceUrl,
