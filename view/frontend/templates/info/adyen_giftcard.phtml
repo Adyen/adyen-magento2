@@ -3,26 +3,34 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
 // @codingStandardsIgnoreFile
+/**
+ * @var Giftcard $block
+ */
+
+use Adyen\Payment\Block\Info\Giftcard;
 
 ?>
-<dl class="payment-method adyen_cc">
-    <dt class="title">
-        <?= sprintf("%s: %s", $block->escapeHtml(ucwords($block->getMethod()->getTitle())), $block->escapeHtml(__($block->getCcTypeName()))) ?>
-    </dt>
+<?php $_info = $block->getInfo(); ?>
 
+<dl class="payment-method adyen_hpp">
     <?php if ($block->getPartialPayments()): ?>
+        <dt class="title"><?= $block->escapeHtml($_info->getMethodInstance()->getTitle()); ?></dt>
         <dt class="title"><b><?= $block->escapeHtml(__("Partial Payments")) ?></b></dt>
         <?php foreach ($block->getPartialPayments() as $payment): ?>
             <dt class="title">
                 <?= sprintf("%s - %s", $block->escapeHtml(ucwords($payment->getPaymentMethod())), $block->escapeHtml($payment->getFormattedAmountWithCurrency())) ?>
             </dt>
         <?php endforeach; ?>
+    <?php else: ?>
+        <dt class="title">
+            <?= sprintf("%s: %s", $block->escapeHtml($_info->getMethodInstance()->getTitle()), $block->escapeHtml(ucwords($_info->getAdditionalInformation('brand_code')))); ?>
+        </dt>
     <?php endif; ?>
 </dl>
