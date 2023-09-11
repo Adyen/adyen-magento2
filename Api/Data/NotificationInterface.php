@@ -214,9 +214,9 @@ interface NotificationInterface
     public function setErrorMessage(string $errorMessage): NotificationInterface;
 
     /**
-     * @return DateTime|null
+     * @return string|null
      */
-    public function getCreatedAt(): ?DateTime;
+    public function getCreatedAt(): ?string;
 
     /**
      * @param DateTime $createdAt
@@ -225,9 +225,9 @@ interface NotificationInterface
     public function setCreatedAt(DateTime $createdAt): NotificationInterface;
 
     /**
-     * @return DateTime|null
+     * @return string|null
      */
-    public function getUpdatedAt(): ?DateTime;
+    public function getUpdatedAt(): ?string;
 
     /**
      * @param DateTime $timestamp
