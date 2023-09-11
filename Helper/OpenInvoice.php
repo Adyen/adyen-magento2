@@ -134,20 +134,30 @@ class OpenInvoice
         ) {
             $shippingAmountCurrency = $this->chargedCurrency->getQuoteShippingAmountCurrency($cart);
 
+            var_dump($shippingAmountCurrency->getAmount(), $currency);
+
             $formattedPriceExcludingTax = $this->adyenHelper->formatAmount(
                 $shippingAmountCurrency->getAmount(),
                 $currency
             );
+
+            var_dump($formattedPriceExcludingTax);
 
             $formattedPriceIncludingTax = $this->adyenHelper->formatAmount(
                 $shippingAmountCurrency->getAmountIncludingTax(),
                 $currency
             );
 
+            var_dump($formattedPriceIncludingTax);
+
             $formattedTaxAmount = $this->adyenHelper->formatAmount(
                 $shippingAmountCurrency->getTaxAmount(),
                 $currency
             );
+
+            var_dump($formattedPriceExcludingTax);
+
+            var_dump($formattedPriceExcludingTax, $formattedTaxAmount);
 
             $formFields['lineItems'][] = [
                 'id' => 'shippingCost',
