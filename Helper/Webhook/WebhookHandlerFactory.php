@@ -216,6 +216,8 @@ class WebhookHandlerFactory
                     self::$serializer,
                     self::$orderHelper
                 );
+            case Notification::ORDER_OPENED:
+                return new OrderOpenedWebhookHandler(self::$adyenLogger);
             case Notification::ORDER_CLOSED:
                 return new OrderClosedWebhookHandler(
                     self::$adyenOrderPayment,
