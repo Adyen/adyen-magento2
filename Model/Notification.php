@@ -40,6 +40,7 @@ class Notification extends AbstractModel implements NotificationInterface
     const MANUAL_REVIEW_REJECT = 'MANUAL_REVIEW_REJECT';
     const RECURRING_CONTRACT = "RECURRING_CONTRACT";
     const REPORT_AVAILABLE = "REPORT_AVAILABLE";
+    const ORDER_OPENED = 'ORDER_OPENED';
     const ORDER_CLOSED = "ORDER_CLOSED";
     const OFFER_CLOSED = "OFFER_CLOSED";
     const MAX_ERROR_COUNT = 5;
