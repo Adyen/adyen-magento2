@@ -13,43 +13,32 @@
 namespace Adyen\Payment\Model\Api;
 
 use Adyen\Payment\Api\AdyenStateDataInterface;
+use Adyen\Payment\Helper\Util\CheckoutStateDataValidator;
+use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\ResourceModel\StateData as StateDataResourceModel;
 use Adyen\Payment\Model\StateData;
 use Adyen\Payment\Model\StateDataFactory;
-use Adyen\Service\Validator\CheckoutStateDataValidator;
-use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 
 class AdyenStateData implements AdyenStateDataInterface
 {
     private CheckoutStateDataValidator $checkoutStateDataValidator;
-
     private StateDataFactory $stateDataFactory;
-
     private StateDataResourceModel $stateDataResourceModel;
+    private AdyenLogger $adyenLogger;
 
-    /**
-     * @param CheckoutStateDataValidator $checkoutStateDataValidator
-     * @param StateDataFactory $stateDataFactory
-     * @param StateDataResourceModel $stateDataResourceModel
-     */
     public function __construct(
         CheckoutStateDataValidator $checkoutStateDataValidator,
         StateDataFactory $stateDataFactory,
-        StateDataResourceModel $stateDataResourceModel
+        StateDataResourceModel $stateDataResourceModel,
+        AdyenLogger $adyenLogger
     ) {
         $this->checkoutStateDataValidator = $checkoutStateDataValidator;
         $this->stateDataFactory = $stateDataFactory;
         $this->stateDataResourceModel = $stateDataResourceModel;
+        $this->adyenLogger = $adyenLogger;
     }
 
-    /**
-     * @param string $stateData
-     * @param int $quoteId
-     * @return void
-     * @throws LocalizedException
-     * @throws AlreadyExistsException
-     */
     public function save(string $stateData, int $quoteId): void
     {
         // Decode payload from frontend
@@ -66,5 +55,20 @@ class AdyenStateData implements AdyenStateDataInterface
         $stateDataObj = $this->stateDataFactory->create();
         $stateDataObj->setQuoteId((int)$quoteId)->setStateData((string)$stateData);
         $this->stateDataResourceModel->save($stateDataObj);
+    }
+
+    public function remove(int $stateDataId): bool
+    {
+        $stateDataObj = $this->stateDataFactory->create();
+        $stateDataObj->setEntityId($stateDataId);
+
+        try {
+            $this->stateDataResourceModel->delete($stateDataObj);
+        } catch (\Exception $e) {
+            $this->adyenLogger->error('An error occurred while deleting state data: ' . $e->getMessage());
+            return false;
+        }
+
+        return true;
     }
 }

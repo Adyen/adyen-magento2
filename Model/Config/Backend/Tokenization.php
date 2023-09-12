@@ -20,7 +20,6 @@ use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Value;
 use Magento\Framework\Data\Collection\AbstractDb;
-use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Math\Random;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
@@ -35,7 +34,6 @@ use Magento\Payment\Helper\Data;
 class Tokenization extends Value
 {
     private SerializerInterface $serializer;
-    private EncryptorInterface $encryptor;
     protected Random $mathRandom;
     private PaymentMethods $paymentMethodsHelper;
     private Data $dataHelper;
@@ -47,14 +45,12 @@ class Tokenization extends Value
         TypeListInterface $cacheTypeList,
         Random $mathRandom,
         SerializerInterface $serializer,
-        EncryptorInterface $encryptor,
         PaymentMethods $paymentMethodsHelper,
         Data $dataHelper,
         AbstractResource $resource = null,
         AbstractDb $resourceCollection = null,
         array $data = []
     ) {
-        $this->encryptor = $encryptor;
         $this->mathRandom = $mathRandom;
         $this->serializer = $serializer;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
@@ -128,39 +124,19 @@ class Tokenization extends Value
     private function buildPaymentMethodArray(): array
     {
         $adyenPaymentMethods = $this->paymentMethodsHelper->getAdyenPaymentMethods();
-
         $result = [];
 
         foreach ($adyenPaymentMethods as $adyenPaymentMethod) {
             $methodInstance = $this->dataHelper->getMethodInstance($adyenPaymentMethod);
 
-            if ($adyenPaymentMethod === AdyenCcConfigProvider::CODE) {
+            if ($this->paymentMethodsHelper->paymentMethodSupportsRecurring($methodInstance)) {
                 $paymentMethodValue = [
-                    'name' => 'Cards',
-                    'payment_method_code' => AdyenCcConfigProvider::CODE,
-                    'enabled' => false,
-                    'recurring_processing_model' => null
-                ];
-
-                $arrayKey = $this->mathRandom->getUniqueHash('_');
-                $result[$arrayKey] = $paymentMethodValue;
-            } elseif ($methodInstance instanceof PaymentMethodInterface && $methodInstance->supportsRecurring()) {
-                $paymentMethodValue = [
-                    'name' => $methodInstance::NAME,
+                    'name' => $methodInstance->getTitle(),
                     'payment_method_code' => $adyenPaymentMethod,
                     'enabled' => false,
                     'recurring_processing_model' => null
                 ];
 
-                $arrayKey = $this->mathRandom->getUniqueHash('_');
-                $result[$arrayKey] = $paymentMethodValue;
-            } elseif ($adyenPaymentMethod === AdyenPosCloudConfigProvider::CODE ){
-                $paymentMethodValue = [
-                    'name' => 'In-person payments',
-                    'payment_method_code' => AdyenPosCloudConfigProvider::CODE,
-                    'enabled'=> false,
-                    'recurring_processing_model' => null
-                ];
                 $arrayKey = $this->mathRandom->getUniqueHash('_');
                 $result[$arrayKey] = $paymentMethodValue;
             }

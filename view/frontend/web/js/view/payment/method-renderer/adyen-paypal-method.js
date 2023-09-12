@@ -20,7 +20,6 @@ define(
     ) {
         return adyenPaymentMethod.extend({
             placeOrderButtonVisible: false,
-            txVariant: 'paypal',
             initialize: function () {
                 this._super();
             },
