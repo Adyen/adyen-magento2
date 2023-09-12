@@ -146,18 +146,15 @@ define(
             },
 
             saveStateData: function (stateData) {
-                let serviceUrl;
-
-                let urlPath = '/adyen/guest-carts/:cartId/state-data'
-                let urlParams = {cartId: quote.getQuoteId()}
+                let urlPath = '/adyen/guest-carts/:cartId/state-data';
+                let urlParams = {cartId: quote.getQuoteId()};
                 
                 if (customer.isLoggedIn()) {
                     urlPath = '/adyen/carts/mine/state-data';
-                    urlParams = {}
+                    urlParams = {};
                 } 
                 
-                serviceUrl = urlBuilder.createUrl(urlPath, urlParams);
-
+                let serviceUrl = urlBuilder.createUrl(urlPath, urlParams);
                 let request = {
                     stateData: JSON.stringify(stateData)
                 };
@@ -169,43 +166,36 @@ define(
             },
 
             removeStateData: function (stateDataId) {
-                let serviceUrl;
+                let urlPath = '/adyen/guest-carts/:cartId/state-data/:stateDataId';
+                let urlParams = {cartId: quote.getQuoteId(), stateDataId: stateDataId};
 
                 if (customer.isLoggedIn()) {
-                    serviceUrl = urlBuilder.createUrl('/adyen/carts/mine/state-data/:stateDataId', {
-                        stateDataId: stateDataId
-                    });
-                } else {
-                    serviceUrl = urlBuilder.createUrl('/adyen/guest-carts/:cartId/state-data/:stateDataId', {
-                        cartId: quote.getQuoteId(),
-                        stateDataId: stateDataId
-                    });
+                    urlPath = '/adyen/carts/mine/state-data/:stateDataId';
+                    urlParams = {stateDataId: stateDataId};
                 }
 
-                let request = {};
+                let serviceUrl = urlBuilder.createUrl(urlPath, urlParams);
 
                 return storage.delete(
                     serviceUrl,
-                    JSON.stringify(request),
+                    JSON.stringify({}),
                 );
             },
 
             fetchRedeemedGiftcards: function () {
-                let serviceUrl;
+                let urlPath = '/adyen/giftcards/guest-carts/:cartId';
+                let urlParams = {cartId: quote.getQuoteId()};
 
                 if (customer.isLoggedIn()) {
-                    serviceUrl = urlBuilder.createUrl('/adyen/giftcards/mine', {});
-                } else {
-                    serviceUrl = urlBuilder.createUrl('/adyen/giftcards/guest-carts/:cartId', {
-                        cartId: quote.getQuoteId()
-                    });
+                    urlPath = '/adyen/giftcards/mine';
+                    urlParams = {};
                 }
 
-                let request = {};
+                let serviceUrl = urlBuilder.createUrl(urlPath, urlParams);
 
                 return storage.get(
                     serviceUrl,
-                    JSON.stringify(request),
+                    JSON.stringify({}),
                 );
             }
         };
