@@ -54,6 +54,7 @@ class FilterSortPaymentMethods
         $this->fetchPaymentMethods($quote);
 
         if (!empty($this->fetchPaymentMethodsResponse)) {
+            $this->filterPaymentMethods();
             $this->sortPaymentMethodsList();
         }
 
