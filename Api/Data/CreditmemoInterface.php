@@ -27,6 +27,9 @@ interface CreditmemoInterface
     const STATUS = 'status';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
+    const WAITING_FOR_WEBHOOK_STATUS= 'WAITING_FOR_WEBHOOK';
+    const FAILED_STATUS = 'FAILED';
+    const COMPLETED_STATUS = 'COMPLETED';
 
     /**
      * Gets the ID for the creditmemo.

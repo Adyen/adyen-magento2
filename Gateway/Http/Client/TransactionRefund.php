@@ -22,12 +22,8 @@ use Magento\Payment\Gateway\Http\TransferInterface;
 /**
  * Class TransactionSale
  */
-class TransactionRefund implements ClientInterface
+class TransactionRefund implements TransactionRefundInterface
 {
-    const REFUND_AMOUNT = 'refund_amount';
-    const REFUND_CURRENCY = 'refund_currency';
-    const ORIGINAL_REFERENCE = 'original_reference';
-
     /**
      * @var Data
      */
