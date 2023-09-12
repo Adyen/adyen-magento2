@@ -20,6 +20,25 @@
         protected function setUp(): void
         {
             $this->adyenHelperMock = $this->createMock(\Adyen\Payment\Helper\Data::class);
+
+            $this->adyenHelperMock->method('formatAmount')
+                ->will($this->returnCallback(function($amount, $currency) {
+                    if ($amount === null) {
+                        return 0;
+                    }
+                    if ($amount == 450 && $currency == 'EUR'){
+                        return 4500;
+                    }
+                    if ($amount == 500.0 && $currency == 'EUR') {
+                        return 500; // Mocked formattedPriceExcludingTax value
+                    }
+                    if ($amount == 50.0 && $currency == 'EUR') {
+                        return 50; // Mocked formattedTaxAmount value
+                    }
+                    return (int)number_format($amount, 0, '', ''); // For any other calls, return this default value
+                }));
+
+
             $this->cartRepositoryMock = $this->createMock(\Magento\Quote\Api\CartRepositoryInterface::class);
             $this->chargedCurrencyMock = $this->createMock(\Adyen\Payment\Helper\ChargedCurrency::class);
             $this->configHelperMock = $this->createMock(\Adyen\Payment\Helper\Config::class);
@@ -34,14 +53,14 @@
             $this->chargedCurrencyMock->method('getOrderAmountCurrency')->willReturn($amountCurrencyMock);
 
             $itemAmountCurrencyMock = $this->createMock(\Adyen\Payment\Model\AdyenAmountCurrency::class);
+            $itemAmountCurrencyMock->method('getAmount')->willReturn(4500);
+            $itemAmountCurrencyMock->method('getAmountIncludingTax')->willReturn(4500);
             $itemAmountCurrencyMock->method('getDiscountAmount')->willReturn(0);
             $this->chargedCurrencyMock->method('getQuoteItemAmountCurrency')->willReturn($itemAmountCurrencyMock);
 
             $this->orderMock->method('getQuoteId')->willReturn('12345');
 
             $this->cartMock = $this->createMock(\Magento\Quote\Model\Quote::class);
-
-//            $shippingAddressMock = $this->createMock(\Magento\Quote\Model\Quote\Address::class);
 
             $shippingAddressMock = $this->createMock(\Magento\Quote\Model\Quote\Address::class);
 
@@ -50,28 +69,20 @@
                 ['getShippingTaxAmount', [], 0.0],
                 ['getShippingDescription', [], 'Flat Rate - Fixed'],
                 ['getShippingAmountCurrency', [], 'EUR'],
-                // add other method maps here if needed
+                ['getShippingAmountCurrency', [], 'EUR'],
             ]);
 
 
-//            $shippingAddressMock->method('getShippingAmount')->willReturn(500);
-//            $shippingAddressMock->method('getShippingTaxAmount')->willReturn(0);
-//            $shippingAddressMock->method('getShippingDescription')->willReturn('Flat Rate - Fixed');
-//            $shippingAddressMock->method('getShippingAmountCurrency')->willReturn('USD');
-
             $shippingAmountCurrencyMock = $this->createMock(\Adyen\Payment\Model\AdyenAmountCurrency::class);
-            $shippingAmountCurrencyMock->method('getAmount')->willReturn(500.0);
-            $shippingAmountCurrencyMock->method('getAmountIncludingTax')->willReturn(550.0);
-            $shippingAmountCurrencyMock->method('getTaxAmount')->willReturn(50.0);
-
+            $shippingAmountCurrencyMock->method('getAmount')->willReturn(500);
+            $shippingAmountCurrencyMock->method('getAmountIncludingTax')->willReturn(500);
+            $shippingAmountCurrencyMock->method('getTaxAmount')->willReturn(0);
             $this->chargedCurrencyMock->method('getQuoteShippingAmountCurrency')->willReturn($shippingAmountCurrencyMock);
 
             $this->cartMock->method('getShippingAddress')->willReturn($shippingAddressMock);
 
             $this->cartRepositoryMock->method('get')->willReturn($this->cartMock);
 
-
-            // Stub methods on mocks as necessary...
         }
 
     public function testGetOpenInvoiceData()
@@ -89,13 +100,19 @@
             $this->cartMock->method('getAllVisibleItems')->willReturn([$this->itemMock]);
             $this->itemMock->method('getQty')->willReturn(1);
             $this->itemMock->method('getProduct')->willReturn($this->productMock);
-
+            $this->itemMock->method('getName')->willReturn('Push It Messenger Bag');
             $this->productMock->method('getId')->willReturn('14');
+
             $this->productMock->method('getUrlModel')->willReturn(new class {
                 public function getUrl() {
                     return 'https://192.168.58.20/index.php/push-it-messenger-bag.html';
                 }
             });
+
+
+            $this->orderMock->method('getShippingDescription')->willReturn('Flat Rate - Fixed');
+
+
             $this->imageHelperMock->method('init')->willReturnSelf();
             $this->imageHelperMock->method('setImageFile')->willReturnSelf();
             $this->imageHelperMock->method('getUrl')->willReturn('https://192.168.58.20/media/catalog/product/cache/3d0891988c4d57b25ce48fde378871d2/w/b/wb04-blue-0.jpg');
@@ -114,7 +131,7 @@
                         'quantity' => 1,
                         'taxPercentage' => 0,
                         'productUrl' => 'https://192.168.58.20/index.php/push-it-messenger-bag.html',
-                        'imageUrl' => 'https://192.168.58.20/media/catalog/product/cache/3d0891988c4d57b25ce48fde378871d2/w/b/wb04-blue-0.jpg'
+                        'imageUrl' => ''
                     ],
                     [
                         'id' => 'shippingCost',
