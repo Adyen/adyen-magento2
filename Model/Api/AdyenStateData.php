@@ -13,62 +13,25 @@
 namespace Adyen\Payment\Model\Api;
 
 use Adyen\Payment\Api\AdyenStateDataInterface;
-use Adyen\Payment\Helper\Util\CheckoutStateDataValidator;
-use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\ResourceModel\StateData as StateDataResourceModel;
-use Adyen\Payment\Model\StateData;
-use Adyen\Payment\Model\StateDataFactory;
-use Magento\Framework\Exception\LocalizedException;
+use Adyen\Payment\Helper\StateData as StateDataHelper;
 
 class AdyenStateData implements AdyenStateDataInterface
 {
-    private CheckoutStateDataValidator $checkoutStateDataValidator;
-    private StateDataFactory $stateDataFactory;
-    private StateDataResourceModel $stateDataResourceModel;
-    private AdyenLogger $adyenLogger;
+    private StateDataHelper $stateDataHelper;
 
     public function __construct(
-        CheckoutStateDataValidator $checkoutStateDataValidator,
-        StateDataFactory $stateDataFactory,
-        StateDataResourceModel $stateDataResourceModel,
-        AdyenLogger $adyenLogger
+        StateDataHelper $stateDataHelper
     ) {
-        $this->checkoutStateDataValidator = $checkoutStateDataValidator;
-        $this->stateDataFactory = $stateDataFactory;
-        $this->stateDataResourceModel = $stateDataResourceModel;
-        $this->adyenLogger = $adyenLogger;
+        $this->stateDataHelper = $stateDataHelper;
     }
 
     public function save(string $stateData, int $quoteId): void
     {
-        // Decode payload from frontend
-        $stateData = json_decode($stateData, true);
-
-        // Validate JSON that has just been parsed if it was in a valid format
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new LocalizedException(__('State data call failed because the request was not a valid JSON'));
-        }
-
-        $stateData = json_encode($this->checkoutStateDataValidator->getValidatedAdditionalData($stateData));
-
-        /** @var StateData $stateDataObj */
-        $stateDataObj = $this->stateDataFactory->create();
-        $stateDataObj->setQuoteId((int)$quoteId)->setStateData((string)$stateData);
-        $this->stateDataResourceModel->save($stateDataObj);
+        $this->stateDataHelper->saveStateData($stateData, $quoteId);
     }
 
-    public function remove(int $stateDataId): bool
+    public function remove(int $stateDataId, int $quoteId): bool
     {
-        $stateDataObj = $this->stateDataFactory->create();
-        $stateDataObj->setEntityId($stateDataId);
-
-        try {
-            $this->stateDataResourceModel->delete($stateDataObj);
-        } catch (\Exception $e) {
-            $this->adyenLogger->error('An error occurred while deleting state data: ' . $e->getMessage());
-            return false;
-        }
-
-        return true;
+        return $this->stateDataHelper->removeStateData($stateDataId, $quoteId);
     }
 }

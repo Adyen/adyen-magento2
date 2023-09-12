@@ -1557,7 +1557,9 @@
     <preference for="Adyen\Payment\Api\AdyenOrderPaymentStatusInterface" type="Adyen\Payment\Model\Api\AdyenOrderPaymentStatus" />
     <preference for="Adyen\Payment\Api\GuestAdyenOrderPaymentStatusInterface" type="Adyen\Payment\Model\Api\GuestAdyenOrderPaymentStatus" />
     <preference for="Adyen\Payment\Api\AdyenStateDataInterface" type="Adyen\Payment\Model\Api\AdyenStateData" />
+    <preference for="Adyen\Payment\Api\GuestAdyenStateDataInterface" type="Adyen\Payment\Model\Api\GuestAdyenStateData" />
     <preference for="Adyen\Payment\Api\AdyenGiftcardInterface" type="Adyen\Payment\Model\Api\AdyenGiftcard" />
+    <preference for="Adyen\Payment\Api\GuestAdyenGiftcardInterface" type="Adyen\Payment\Model\Api\GuestAdyenGiftcard" />
     <preference for="Adyen\Payment\Api\Internal\InternalAdyenDonationsInterface" type="Adyen\Payment\Model\Api\Internal\InternalAdyenDonations" />
     <preference for="Adyen\Payment\Api\AdyenDonationsInterface" type="Adyen\Payment\Model\Api\AdyenDonations" />
     <preference for="Adyen\Payment\Api\Data\NotificationInterface" type="Adyen\Payment\Model\Notification" />
