@@ -30,7 +30,7 @@ class Tokenization extends AbstractFieldArray
             'name', [
                 'label' => __('Payment Method'),
                 'class' => 'required-entry',
-                'style' => 'width:130px',
+                'style' => 'width:100%',
                 'renderer' => $this->getNameRenderer()
             ]
         );
