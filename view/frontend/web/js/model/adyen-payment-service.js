@@ -148,13 +148,15 @@ define(
             saveStateData: function (stateData) {
                 let serviceUrl;
 
+                let urlPath = '/adyen/guest-carts/:cartId/state-data'
+                let urlParams = {cartId: quote.getQuoteId()}
+                
                 if (customer.isLoggedIn()) {
-                    serviceUrl = urlBuilder.createUrl('/adyen/carts/mine/state-data', {});
-                } else {
-                    serviceUrl = urlBuilder.createUrl('/adyen/guest-carts/:cartId/state-data', {
-                        cartId: quote.getQuoteId()
-                    });
-                }
+                    urlPath = '/adyen/carts/mine/state-data';
+                    urlParams = {}
+                } 
+                
+                serviceUrl = urlBuilder.createUrl(urlPath, urlParams);
 
                 let request = {
                     stateData: JSON.stringify(stateData)
