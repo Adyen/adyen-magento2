@@ -490,7 +490,7 @@
         <group>adyen-alternative-payment-method</group>
       </adyen_applepay>
       <adyen_applepay_vault>
-        <title>Stored Applepay</title>
+        <title>Stored Apple Pay</title>
         <model>AdyenPaymentApplePayVaultFacade</model>
       </adyen_applepay_vault>
     </payment>
