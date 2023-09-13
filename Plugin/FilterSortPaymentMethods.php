@@ -13,6 +13,8 @@ namespace Adyen\Payment\Plugin;
 
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
 use Exception;
 use Magento\Payment\Model\MethodList;
 use Magento\Quote\Api\Data\CartInterface;
@@ -24,6 +26,10 @@ class FilterSortPaymentMethods
     const ADYEN_PAYMENT_METHODS = 'adyen_payment_methods_response';
     const PAYMENT_METHOD_MAP = [
         'cc' => 'scheme'
+    ];
+    const EXCLUDED_PAYMENT_METHODS_FROM_FILTERING = [
+        AdyenPosCloudConfigProvider::CODE,
+        AdyenPayByLinkConfigProvider::CODE
     ];
 
     private PaymentMethods $paymentMethods;
@@ -66,6 +72,10 @@ class FilterSortPaymentMethods
         $adyenPaymentMethods = $this->getAdyenPaymentMethods();
 
         foreach ($this->magentoPaymentMethods as $key => $paymentMethod) {
+            if (in_array($paymentMethod->getCode(), self::EXCLUDED_PAYMENT_METHODS_FROM_FILTERING)) {
+                continue;
+            }
+
             $txVariant = $this->paymentMethodTypeReplace(
                 str_starts_with($paymentMethod->getCode(), self::ADYEN_PREFIX) ?
                     substr($paymentMethod->getCode(), strlen(self::ADYEN_PREFIX)) :
@@ -103,20 +113,10 @@ class FilterSortPaymentMethods
                     false
             );
 
-            if (!$aTxVariant && !$bTxVariant) {
-                return 0;
-            } elseif ($aTxVariant && $bTxVariant) {
-                $aSort = array_search($aTxVariant, array_column($adyenPaymentMethods, 'type'), true);
-                $bSort = array_search($bTxVariant, array_column($adyenPaymentMethods, 'type'), true);
+            $aSort = array_search($aTxVariant, array_column($adyenPaymentMethods, 'type'), true);
+            $bSort = array_search($bTxVariant, array_column($adyenPaymentMethods, 'type'), true);
 
-                return ($aSort ?: -1) <=> ($bSort ?: -1);
-            } elseif ($aTxVariant) {
-                return -1;
-            } elseif ($bTxVariant) {
-                return 1;
-            }
-
-            return 0;
+            return ($aSort === false ? PHP_INT_MAX : $aSort) <=> ($bSort === false ? PHP_INT_MAX : $bSort);
         });
     }
 
