@@ -16,6 +16,7 @@ use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\OpenInvoice;
 use Adyen\Payment\Model\ResourceModel\Invoice\CollectionFactory;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as PaymentCollectionFactory;
+use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
@@ -100,6 +101,11 @@ class RefundDataBuilder implements BuilderInterface
         $currency = $creditMemoAmountCurrency->getCurrencyCode();
         $amount = $creditMemoAmountCurrency->getAmount();
 
+        //Get Merchant Account
+        $storeId = $order ->getStoreId();
+        $method = $payment->getMethod();
+        $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($method, $storeId);
+
         // check if it contains a partial payment
         $orderPaymentCollection = $this->orderPaymentCollectionFactory
             ->create()
@@ -109,7 +115,7 @@ class RefundDataBuilder implements BuilderInterface
         if ($orderPaymentCollection->getSize() > self::REFUND_STRATEGY_ASCENDING_ORDER) {
             $refundStrategy = $this->adyenHelper->getAdyenAbstractConfigData(
                 'partial_payments_refund_strategy',
-                $order->getStoreId()
+                $storeId
             );
             $ratio = null;
 
@@ -160,6 +166,7 @@ class RefundDataBuilder implements BuilderInterface
                     ];
 
                     $requestBody[] = [
+                        "merchantAccount" => $merchantAccount,
                         "amount" => $modificationAmountObject,
                         "reference" => $payment->getOrder()->getIncrementId(),
                         "paymentPspReference" => $partialPayment->getPspreference(),
@@ -173,6 +180,7 @@ class RefundDataBuilder implements BuilderInterface
 
             $requestBody = [
                 [
+                    "merchantAccount" => $merchantAccount,
                     "amount" => $modificationAmount,
                     "reference" => $payment->getOrder()->getIncrementId(),
                     "paymentPspReference" => $pspReference,
@@ -180,7 +188,7 @@ class RefundDataBuilder implements BuilderInterface
             ];
 
             $brandCode = $payment->getAdditionalInformation(
-                \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE
+                AdyenHppDataAssignObserver::BRAND_CODE
             );
 
             if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) {
