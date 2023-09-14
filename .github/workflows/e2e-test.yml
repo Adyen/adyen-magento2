@@ -1,5 +1,5 @@
 name: E2E Test
-run-name: Headless E2E tests - Basic coverage
+run-name: E2E tests for Adyen Magento2 Plugin
 
 on: 
   pull_request:
