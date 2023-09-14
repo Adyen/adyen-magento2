@@ -1,4 +1,4 @@
-name: E2E Test
+name: E2E Test Pipeline
 run-name: E2E tests for Adyen Magento2 Plugin
 
 on: 
@@ -60,8 +60,6 @@ jobs:
           ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
           ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
           ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
-          GOOGLE_USERNAME: ${{secrets.GOOGLE_USERNAME}}
-          GOOGLE_PASSWORD: ${{secrets.GOOGLE_PASSWORD}}
 
       - name: Archive test result artifacts
         if: always()

@@ -1,5 +1,5 @@
 name: Integration Test Repository Pipeline
-run-name: Headless E2E tests - Full Coverage - Test Repo Branch ${{inputs.testBranch}} with Express Checkout ${{inputs.expressBranch}}
+run-name: E2E tests against Test Repository ${{inputs.testBranch}} with Express Checkout ${{inputs.expressBranch}}
 
 on:
   pull_request:
