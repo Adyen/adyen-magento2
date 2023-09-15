@@ -146,11 +146,17 @@ define(
             },
 
             saveStateData: function (stateData) {
-                let serviceUrl = urlBuilder.createUrl('/adyen/carts/mine/state-data', {});
-
+                let urlPath = '/adyen/guest-carts/:cartId/state-data';
+                let urlParams = {cartId: quote.getQuoteId()};
+                
+                if (customer.isLoggedIn()) {
+                    urlPath = '/adyen/carts/mine/state-data';
+                    urlParams = {};
+                } 
+                
+                let serviceUrl = urlBuilder.createUrl(urlPath, urlParams);
                 let request = {
-                    stateData: JSON.stringify(stateData),
-                    quoteId: quote.getQuoteId()
+                    stateData: JSON.stringify(stateData)
                 };
 
                 return storage.post(
@@ -160,28 +166,36 @@ define(
             },
 
             removeStateData: function (stateDataId) {
-                let serviceUrl = urlBuilder.createUrl('/adyen/carts/mine/state-data/:stateDataId', {
-                    stateDataId: stateDataId
-                });
+                let urlPath = '/adyen/guest-carts/:cartId/state-data/:stateDataId';
+                let urlParams = {cartId: quote.getQuoteId(), stateDataId: stateDataId};
 
-                let request = {};
+                if (customer.isLoggedIn()) {
+                    urlPath = '/adyen/carts/mine/state-data/:stateDataId';
+                    urlParams = {stateDataId: stateDataId};
+                }
+
+                let serviceUrl = urlBuilder.createUrl(urlPath, urlParams);
 
                 return storage.delete(
                     serviceUrl,
-                    JSON.stringify(request),
+                    JSON.stringify({}),
                 );
             },
 
             fetchRedeemedGiftcards: function () {
-                let serviceUrl = urlBuilder.createUrl('/adyen/giftcards/mine/:quoteId', {
-                    quoteId: quote.getQuoteId()
-                });
+                let urlPath = '/adyen/giftcards/guest-carts/:cartId';
+                let urlParams = {cartId: quote.getQuoteId()};
 
-                let request = {};
+                if (customer.isLoggedIn()) {
+                    urlPath = '/adyen/giftcards/mine';
+                    urlParams = {};
+                }
+
+                let serviceUrl = urlBuilder.createUrl(urlPath, urlParams);
 
                 return storage.get(
                     serviceUrl,
-                    JSON.stringify(request),
+                    JSON.stringify({}),
                 );
             }
         };
