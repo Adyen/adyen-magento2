@@ -195,7 +195,7 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
                 $customerId,
                 $storeId,
                 $grandTotal,
-                Recurring::CARD_ON_FILE
+                [Recurring::CARD_ON_FILE]
             );
         }
         return $billingAgreements;

@@ -789,7 +789,6 @@
     <virtualType name="AdyenPaymentRefundRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
         <arguments>
             <argument name="builders" xsi:type="array">
-                <item name="refundmerchantaccount" xsi:type="string">Adyen\Payment\Gateway\Request\RefundMerchantAccountDataBuilder</item>
                 <item name="refund" xsi:type="string">Adyen\Payment\Gateway\Request\RefundDataBuilder</item>
             </argument>
         </arguments>

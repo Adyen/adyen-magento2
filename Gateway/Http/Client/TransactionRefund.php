@@ -60,10 +60,9 @@ class TransactionRefund implements TransactionRefundInterface
         $headers = $transferObject->getHeaders();
 
         foreach ($requests as $request) {
-            // call lib
-            $service = new \Adyen\Service\Modification(
-                $this->adyenHelper->initializeAdyenClient($transferObject->getClientConfig()['storeId'])
-            );
+
+            $client = $this->adyenHelper->initializeAdyenClient();
+            $service = $this->adyenHelper->createAdyenCheckoutService($client);
 
             $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
                 $request,
@@ -73,15 +72,15 @@ class TransactionRefund implements TransactionRefundInterface
             $requestOptions['idempotencyKey'] = $idempotencyKey;
 
             $this->adyenHelper
-                ->logRequest($request, Client::API_PAYMENT_VERSION, '/pal/servlet/Payment/{version}/refund');
+                ->logRequest($request, Client::API_CHECKOUT_VERSION, '/refunds');
             try {
-                $response = $service->refund($request, $requestOptions);
+                $response = $service->refunds($request, $requestOptions);
 
                 // Add amount original reference and amount information to response
-                $response[self::REFUND_AMOUNT] = $request['modificationAmount']['value'];
-                $response[self::REFUND_CURRENCY] = $request['modificationAmount']['currency'];
+                $response[self::REFUND_AMOUNT] = $request['amount']['value'];
+                $response[self::REFUND_CURRENCY] = $request['amount']['currency'];
 
-                $response[self::ORIGINAL_REFERENCE] = $request['originalReference'];
+                $response[self::ORIGINAL_REFERENCE] = $request['paymentPspReference'];
             } catch (AdyenException $e) {
                 $response = ['error' => $e->getMessage()];
             }
