@@ -56,42 +56,6 @@ define(
         return Component.extend({
             initialize: function () {
                 this._super();
-
-                var billingAddressCountry = "";
-                var retrievePaymentMethods = function (){
-                    fullScreenLoader.startLoader();
-                    // Retrieve adyen payment methods
-                    adyenPaymentService.retrievePaymentMethods().done(function(paymentMethods) {
-                        try {
-                            paymentMethods = JSON.parse(paymentMethods);
-                        } catch(error) {
-                            console.log(error);
-                            paymentMethods = null;
-                        }
-                        adyenPaymentService.setPaymentMethods(paymentMethods);
-                        fullScreenLoader.stopLoader();
-                    }).fail(function() {
-                        console.log('Fetching the payment methods failed!');
-                    });
-                };
-                quote.billingAddress.subscribe(function(address) {
-                    if (!!quote.billingAddress()) {
-                        // In case the country hasn't changed don't retrieve new payment methods
-                        if (billingAddressCountry === quote.billingAddress().countryId) {
-                            return;
-                        }
-                        billingAddressCountry = quote.billingAddress().countryId;
-                        retrievePaymentMethods();
-                    }
-                });
-                //Retrieve payment methods to ensure the amount is updated, when applying the discount code
-                setCouponCodeAction.registerSuccessCallback(function () {
-                    retrievePaymentMethods();
-                });
-                //Retrieve payment methods to ensure the amount is updated, when canceling the discount code
-                cancelCouponAction.registerSuccessCallback(function () {
-                    retrievePaymentMethods();
-                });
             }
         });
     }
