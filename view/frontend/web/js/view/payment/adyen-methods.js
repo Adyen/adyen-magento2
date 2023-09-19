@@ -12,23 +12,11 @@
 define(
     [
         'uiComponent',
-        'Magento_Checkout/js/model/payment/renderer-list',
-        'Adyen_Payment/js/model/adyen-payment-service',
-        'Adyen_Payment/js/model/adyen-configuration',
-        'Magento_Checkout/js/model/quote',
-        'Magento_Checkout/js/model/full-screen-loader',
-        'Magento_SalesRule/js/action/set-coupon-code',
-        'Magento_SalesRule/js/action/cancel-coupon'
+        'Magento_Checkout/js/model/payment/renderer-list'
     ],
     function (
         Component,
-        rendererList,
-        adyenPaymentService,
-        adyenConfiguration,
-        quote,
-        fullScreenLoader,
-        setCouponCodeAction,
-        cancelCouponAction
+        rendererList
     ) {
         'use strict';
 
