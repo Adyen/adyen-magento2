@@ -23,7 +23,7 @@ class PaymentMethodsFilter
     ];
 
     private PaymentMethods $paymentMethods;
-    protected CartRepositoryInterface $cartRepository;
+    private CartRepositoryInterface $cartRepository;
 
     public function __construct(
         PaymentMethods $paymentMethods,
