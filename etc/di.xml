@@ -1578,9 +1578,13 @@
     <type name="Magento\Vault\Model\CustomerTokenManagement">
         <plugin name="FilterVaultTokens" type="Adyen\Payment\Plugin\CustomerFilterVaultTokens" sortOrder="10" />
     </type>
-    <type name="Magento\Payment\Model\MethodList">
-        <plugin name="FilterSortCheckoutPaymentMethods" type="Adyen\Payment\Plugin\FilterSortPaymentMethods" sortOrder="10" />
+    <type name="Magento\Checkout\Model\PaymentInformationManagement">
+        <plugin name="CustomPaymentInformationManagement" type="Adyen\Payment\Plugin\PaymentInformationManagement" sortOrder="10" />
     </type>
+    <type name="Magento\Checkout\Model\ShippingInformationManagement">
+        <plugin name="CustomShippingInformationManagement" type="Adyen\Payment\Plugin\ShippingInformationManagement" sortOrder="10" />
+    </type>
+
     <virtualType name="AdyenCancelOrders" type="Adyen\Payment\Cron\CancelOrders">
         <arguments>
             <argument name="providers" xsi:type="array">
