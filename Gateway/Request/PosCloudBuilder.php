@@ -104,7 +104,15 @@ class PosCloudBuilder implements BuilderInterface
                 ]
         ];
 
-        if ($fundingSource === PaymentMethods::FUNDING_SOURCE_CREDIT) {
+        if ($fundingSource === PaymentMethods::FUNDING_SOURCE_DEBIT) {
+            $request['SaleToPOIRequest']['PaymentRequest']['PaymentTransaction']['TransactionConditions'] = [
+                "DebitPreferredFlag" => true
+            ];
+
+            $request['SaleToPOIRequest']['PaymentData'] = [
+                'PaymentType' => $transactionType,
+            ];
+        } else {
             if (isset($numberOfInstallments)) {
                 $request['SaleToPOIRequest']['PaymentRequest']['PaymentData'] = [
                     "PaymentType" => "Instalment",
@@ -124,14 +132,6 @@ class PosCloudBuilder implements BuilderInterface
 
             $request['SaleToPOIRequest']['PaymentRequest']['PaymentTransaction']['TransactionConditions'] = [
                 "DebitPreferredFlag" => false
-            ];
-        } elseif ($fundingSource === PaymentMethods::FUNDING_SOURCE_DEBIT) {
-            $request['SaleToPOIRequest']['PaymentRequest']['PaymentTransaction']['TransactionConditions'] = [
-                "DebitPreferredFlag" => true
-            ];
-
-            $request['SaleToPOIRequest']['PaymentData'] = [
-                'PaymentType' => $transactionType,
             ];
         }
 
