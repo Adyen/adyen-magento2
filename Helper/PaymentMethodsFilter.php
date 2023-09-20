@@ -11,6 +11,8 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
 use Magento\Quote\Api\CartRepositoryInterface;
 
 class PaymentMethodsFilter
