@@ -12,7 +12,9 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Model\ResourceModel\StateData\Collection as StateDataCollection;
+use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
+use Magento\Framework\Pricing\Helper\Data as PricingData;
 
 class GiftcardPayment
 {
@@ -40,13 +42,19 @@ class GiftcardPayment
 
     private StateDataCollection $adyenStateData;
     private Data $adyenHelper;
+    private PricingData $pricingDataHelper;
+    private CartRepositoryInterface $quoteRepository;
 
     public function __construct(
         StateDataCollection $adyenStateData,
-        Data $adyenHelper
+        Data $adyenHelper,
+        PricingData $pricingDataHelper,
+        CartRepositoryInterface $quoteRepository
     ) {
         $this->adyenStateData = $adyenStateData;
         $this->adyenHelper = $adyenHelper;
+        $this->pricingDataHelper = $pricingDataHelper;
+        $this->quoteRepository = $quoteRepository;
     }
 
     public function buildGiftcardPaymentRequest(
@@ -108,5 +116,89 @@ class GiftcardPayment
         }
 
         return $totalBalance;
+    }
+
+    public function fetchRedeemedGiftcards(int $quoteId): string
+    {
+        $quote = $this->quoteRepository->get($quoteId);
+
+        $stateDataArray = $this->adyenStateData->getStateDataRowsWithQuoteId($quote->getId(), 'ASC');
+        $currency = $quote->getQuoteCurrencyCode();
+        $formattedOrderAmount = $this->adyenHelper->formatAmount(
+            $quote->getGrandTotal(),
+            $currency
+        );
+        $giftcardDiscount = $this->getQuoteGiftcardDiscount($quote);
+
+        $totalDiscount = $this->pricingDataHelper->currency(
+            $this->adyenHelper->originalAmount(
+                $giftcardDiscount,
+                $currency
+            ),
+            $currency,
+            false
+        );
+
+        $remainingOrderAmount = $this->pricingDataHelper->currency(
+            $this->adyenHelper->originalAmount(
+                $formattedOrderAmount - $giftcardDiscount,
+                $currency
+            ),
+            $currency,
+            false
+        );
+
+        $response = [
+            'redeemedGiftcards' => $this->filterGiftcardStateData($stateDataArray->getData(), $quote),
+            'remainingAmount' => $remainingOrderAmount,
+            'totalDiscount' => $totalDiscount
+        ];
+
+        return json_encode($response);
+    }
+
+    private function filterGiftcardStateData(array $stateDataArray, CartInterface $quote): array
+    {
+        $responseArray = [];
+
+        $remainingAmount = $this->adyenHelper->formatAmount(
+            $quote->getGrandTotal(),
+            $quote->getCurrency()->getQuoteCurrencyCode()
+        );
+
+        foreach ($stateDataArray as $key => $item) {
+            $stateData = json_decode($item['state_data'], true);
+            if (!isset($stateData['paymentMethod']['type']) ||
+                !isset($stateData['paymentMethod']['brand']) ||
+                $stateData['paymentMethod']['type'] !== 'giftcard') {
+                unset($stateDataArray[$key]);
+                continue;
+            }
+
+            if ($remainingAmount > $stateData['giftcard']['balance']['value']) {
+                $deductedAmount = $stateData['giftcard']['balance']['value'];
+            } else {
+                $deductedAmount = $remainingAmount;
+            }
+
+            $responseArray[] = [
+                'stateDataId' => $item['entity_id'],
+                'brand' => $stateData['paymentMethod']['brand'],
+                'title' => $stateData['giftcard']['title'],
+                'balance' => $stateData['giftcard']['balance'],
+                'deductedAmount' =>  $this->pricingDataHelper->currency(
+                    $this->adyenHelper->originalAmount(
+                        $deductedAmount,
+                        $quote->getCurrency()->getQuoteCurrencyCode()
+                    ),
+                    $quote->getCurrency()->getQuoteCurrencyCode(),
+                    false
+                )
+            ];
+
+            $remainingAmount -= $deductedAmount;
+        }
+
+        return $responseArray;
     }
 }

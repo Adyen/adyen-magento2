@@ -64,7 +64,7 @@
                 <!--/ko-->
 
                 <fieldset class="fieldset" data-bind='attr: {id: "payment_fieldset_" + getCode()}'>
-                    <div class="checkout-component-dock" data-bind="attr: { id: adyenPaymentMethod().method + 'Container'}"></div>
+                    <div class="checkout-component-dock" afterRender="renderCheckoutComponent()" data-bind="attr: { id: adyenPaymentMethod().method + 'Container'}"></div>
                 </fieldset>
 
                 <!-- ko if: showPlaceOrderButton() -->

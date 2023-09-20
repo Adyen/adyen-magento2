@@ -14,6 +14,7 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Model\Method\TxVariant;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
 use DateInterval;
 use DateTime;
 use DateTimeZone;
@@ -202,7 +203,8 @@ class Vault
                 'expirationDate' => $additionalData['expiryDate']
             ];
             $paymentToken->setExpiresAt($this->getExpirationDate($additionalData['expiryDate']));
-        } elseif ($paymentMethodCode == PaymentMethods::ADYEN_CC) {
+        } elseif ($paymentMethodCode === PaymentMethods::ADYEN_CC ||
+            $paymentMethodCode === AdyenPosCloudConfigProvider::CODE) {
             $paymentToken->setType(PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD);
             $details = [
                 'type' => $additionalData[self::PAYMENT_METHOD],

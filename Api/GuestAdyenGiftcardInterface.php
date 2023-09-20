@@ -15,13 +15,13 @@ namespace Adyen\Payment\Api;
 /**
  * Interface for managing redeemed Adyen giftcards
  */
-interface AdyenGiftcardInterface
+interface GuestAdyenGiftcardInterface
 {
     /**
      * Fetches all the adyen_state_data entities and returns giftcard related objects.
      *
-     * @param int $cartId
+     * @param string $cartId
      * @return string
      */
-    public function getRedeemedGiftcards(int $cartId): string;
+    public function getRedeemedGiftcards(string $cartId): string;
 }
