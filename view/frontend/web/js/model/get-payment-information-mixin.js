@@ -17,8 +17,8 @@ define([
 ) {
     'use strict';
 
-    return function (shippingInformationAction) {
-        return wrapper.wrap(shippingInformationAction, function (originalAction) {
+    return function (paymentInformationAction) {
+        return wrapper.wrap(paymentInformationAction, function (originalAction) {
             return originalAction().then(function (result) {
                 let adyenPaymentMethodsResponse = result.extension_attributes.adyen_payment_methods_response;
 

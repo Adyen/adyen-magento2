@@ -9,15 +9,11 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Plugin;
+namespace Adyen\Payment\Helper;
 
-use Adyen\Payment\Helper\PaymentMethods;
-use Adyen\Payment\Logger\AdyenLogger;
-use Exception;
-use Magento\Payment\Model\MethodList;
-use Magento\Quote\Api\Data\CartInterface;
+use Magento\Quote\Api\CartRepositoryInterface;
 
-class FilterSortPaymentMethods
+class PaymentMethodsFilter
 {
     const ADYEN_PREFIX = 'adyen_';
     const VAULT_SUFFIX = '_vault';
@@ -27,45 +23,39 @@ class FilterSortPaymentMethods
     ];
 
     private PaymentMethods $paymentMethods;
-    private AdyenLogger $adyenLogger;
-    private array $fetchPaymentMethodsResponse;
-    private array $magentoPaymentMethods;
+    private CartRepositoryInterface $cartRepository;
 
     public function __construct(
         PaymentMethods $paymentMethods,
-        AdyenLogger $adyenLogger
+        CartRepositoryInterface $cartRepository
     ) {
         $this->paymentMethods = $paymentMethods;
-        $this->adyenLogger = $adyenLogger;
-        $this->fetchPaymentMethodsResponse = [];
+        $this->cartRepository = $cartRepository;
     }
 
-    public function afterGetAvailableMethods(
-        MethodList $methodListObject,
-        array $result,
-        CartInterface $quote = null
-    ): array {
-        if (!empty($result)) {
-            $this->magentoPaymentMethods = $result;
-        } else {
-            return $result;
-        }
-
-        $this->fetchPaymentMethods($quote);
-
-        if (!empty($this->fetchPaymentMethodsResponse)) {
-            $this->filterPaymentMethods();
-            $this->sortPaymentMethodsList();
-        }
-
-        return $this->magentoPaymentMethods;
-    }
-
-    private function filterPaymentMethods(): void
+    public function sortAndFilterPaymentMethods(array $magentoPaymentMethods, int $quoteId): array
     {
-        $adyenPaymentMethods = $this->getAdyenPaymentMethods();
+        $quote = $this->cartRepository->get($quoteId);
 
-        foreach ($this->magentoPaymentMethods as $key => $paymentMethod) {
+        $adyenPaymentMethodsResponse = $this->paymentMethods->getPaymentMethods(
+            $quote->getId(),
+            $quote->getBillingAddress()->getCountryId()
+        );
+
+        if (!empty($adyenPaymentMethodsResponse)) {
+            $adyenPaymentMethodsDecoded = json_decode($adyenPaymentMethodsResponse, true);
+            $adyenPaymentMethods = $adyenPaymentMethodsDecoded['paymentMethodsResponse']['paymentMethods'];
+
+            $magentoPaymentMethods = $this->filterPaymentMethods($magentoPaymentMethods, $adyenPaymentMethods);
+            $magentoPaymentMethods = $this->sortPaymentMethodsList($magentoPaymentMethods, $adyenPaymentMethods);
+        }
+
+        return [$magentoPaymentMethods, $adyenPaymentMethodsResponse];
+    }
+
+    private function filterPaymentMethods(array $magentoPaymentMethods, array $adyenPaymentMethods): array
+    {
+        foreach ($magentoPaymentMethods as $key => $paymentMethod) {
             $txVariant = $this->paymentMethodTypeReplace(
                 str_starts_with($paymentMethod->getCode(), self::ADYEN_PREFIX) ?
                     substr($paymentMethod->getCode(), strlen(self::ADYEN_PREFIX)) :
@@ -81,20 +71,20 @@ class FilterSortPaymentMethods
 
             if ($txVariant &&
                 !in_array($txVariant, array_column($adyenPaymentMethods, 'type'), true)) {
-                unset($this->magentoPaymentMethods[$key]);
+                unset($magentoPaymentMethods[$key]);
             }
         }
+
+        return $magentoPaymentMethods;
     }
 
-    private function sortPaymentMethodsList(): void
+    private function sortPaymentMethodsList(array $magentoPaymentMethods, array $adyenPaymentMethods): array
     {
-        usort($this->magentoPaymentMethods, function ($a, $b) {
-            $adyenPaymentMethods = $this->getAdyenPaymentMethods();
-
+        usort($magentoPaymentMethods, function ($a, $b) use ($adyenPaymentMethods) {
             $aTxVariant = $this->paymentMethodTypeReplace(
                 str_starts_with($a->getCode(), self::ADYEN_PREFIX) ?
-                substr($a->getCode(), strlen(self::ADYEN_PREFIX)) :
-                false
+                    substr($a->getCode(), strlen(self::ADYEN_PREFIX)) :
+                    false
             );
 
             $bTxVariant = $this->paymentMethodTypeReplace(
@@ -118,31 +108,8 @@ class FilterSortPaymentMethods
 
             return 0;
         });
-    }
 
-    private function fetchPaymentMethods(CartInterface $quote): void
-    {
-        try {
-            $paymentMethods = $this->paymentMethods->getPaymentMethods(
-                $quote->getId(),
-                $quote->getBillingAddress()->getCountryId()
-            );
-
-            $paymentMethodsArray = json_decode($paymentMethods, true);
-        } catch (Exception $e) {
-            $this->adyenLogger->error(
-                'There was an error while fetching payment methods: ' . $e->getMessage()
-            );
-        }
-
-        if (!empty($paymentMethodsArray)) {
-            $this->fetchPaymentMethodsResponse = $paymentMethodsArray;
-        }
-    }
-
-    private function getAdyenPaymentMethods(): ?array
-    {
-        return $this->fetchPaymentMethodsResponse['paymentMethodsResponse']['paymentMethods'] ?? null;
+        return $magentoPaymentMethods;
     }
 
     private function paymentMethodTypeReplace(string $type): string
