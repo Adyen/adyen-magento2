@@ -107,7 +107,6 @@ define(
                                     : undefined,
                                 method: this.getTxVariant()
                             });
-                            this.renderCheckoutComponent();
                         }
                     }
                 }
