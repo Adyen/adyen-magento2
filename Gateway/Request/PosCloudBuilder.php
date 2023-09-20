@@ -113,7 +113,7 @@ class PosCloudBuilder implements BuilderInterface
                 'PaymentType' => $transactionType,
             ];
         } else {
-            if (isset($numberOfInstallments)) {
+            if (isset($numberOfInstallments) && !empty($numberOfInstallments)) {
                 $request['SaleToPOIRequest']['PaymentRequest']['PaymentData'] = [
                     "PaymentType" => "Instalment",
                     "Instalment" => [

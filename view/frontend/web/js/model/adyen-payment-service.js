@@ -27,6 +27,7 @@ define(
         'use strict';
         return {
             paymentMethods: ko.observable(null),
+            connectedTerminals: ko.observable(null),
 
             /**
              * Retrieve the list of available payment methods from Adyen
@@ -61,6 +62,14 @@ define(
 
             setPaymentMethods: function(paymentMethods) {
                 this.paymentMethods(paymentMethods);
+            },
+
+            getConnectedTerminals: function() {
+                return this.connectedTerminals;
+            },
+
+            setConnectedTerminals: function(connectedTerminals) {
+                this.connectedTerminals(connectedTerminals);
             },
 
             getOrderPaymentStatus: function(orderId) {
