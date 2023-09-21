@@ -3,6 +3,7 @@ run-name: E2E tests against Test Repository ${{inputs.testBranch}} with Express 
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     branches: [main]
     
   workflow_dispatch:
@@ -18,7 +19,11 @@ on:
 
 jobs:
   build:
-    if: ${{ github.actor != 'renovate[bot]' || github.actor != 'lgtm-com[bot]' }}
+    if: |
+      ${{ 
+      github.event.pull_request.draft == false &&
+      (github.actor != 'renovate[bot]' || github.actor != 'lgtm-com[bot]')
+      }}
     runs-on:
       group: larger-runners
       labels: ubuntu-latest-8-cores
