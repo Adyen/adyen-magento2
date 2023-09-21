@@ -270,7 +270,7 @@
             <argument name="config" xsi:type="object">AdyenPaymentApplePayVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentApplePayVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentApplePayFacade</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentHppCommandPool</argument>
+            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
         </arguments>
     </virtualType>
 
