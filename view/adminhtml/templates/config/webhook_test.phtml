@@ -5,7 +5,6 @@
         ],
         function(jQuery)
         {
-            jQuery('#adyen_webhook_test_errors').hide();
             let progressSpan = jQuery('#webhook_progress');
             jQuery('#adyen_webhook_test').click(function () {
 
@@ -54,9 +53,6 @@
         <img class="test-processing" hidden="hidden" alt="Configuring" style="margin:0 5px" src="<?php echo $block->getViewFileUrl('images/process_spinner.gif') ?>"/>
         <img class="test-configured" hidden="hidden" alt="Configured" style="margin:-3px 5px" src="<?php echo $block->getViewFileUrl('images/rule_component_apply.gif') ?>"/>
         <span id="adyen_webhook_test_message"></span>
-        <div id="adyen_webhook_test_errors" class="message-system-inner">
-            <div class="message message-warning"></div>
-        </div>
     </span>
     <p class="note">
         <span><?php echo __('Sends sample notifications to test if the webhook is set up correctly.'); ?></span>
