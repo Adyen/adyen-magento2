@@ -14,7 +14,6 @@ namespace Adyen\Payment\Block\Info;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Model\AdyenAmountCurrency;
-use Adyen\Payment\Model\ResourceModel\Order\Payment\Collection;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory;
 use Magento\Framework\View\Element\Template;
 
@@ -24,14 +23,15 @@ class PaymentMethodInfo extends AbstractInfo
     protected $_template = 'Adyen_Payment::info/adyen_pm.phtml';
 
     public function __construct(
-        Config $configHelper,
         CollectionFactory $adyenOrderPaymentCollectionFactory,
+        Config $configHelper,
         Template\Context $context,
         ChargedCurrency $chargedCurrency,
         array $data = []
     ) {
-        $this->chargedCurrency = $chargedCurrency;
         parent::__construct($configHelper, $adyenOrderPaymentCollectionFactory, $context, $data);
+
+        $this->chargedCurrency = $chargedCurrency;
     }
 
     /**
@@ -74,19 +74,5 @@ class PaymentMethodInfo extends AbstractInfo
     public function getOrderAmountCurrency(): AdyenAmountCurrency
     {
         return $this->chargedCurrency->getOrderAmountCurrency($this->getInfo()->getOrder(), false);
-    }
-
-    public function getPartialPayments(): ?Collection
-    {
-        // retrieve partial payments of the order
-        $orderPaymentCollection = $this->adyenOrderPaymentCollectionFactory
-            ->create()
-            ->addPaymentFilterAscending($this->getInfo()->getId());
-
-        if ($orderPaymentCollection->getSize() > 0) {
-            return $orderPaymentCollection;
-        } else {
-            return null;
-        }
     }
 }

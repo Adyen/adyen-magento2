@@ -19,27 +19,42 @@ use Magento\Framework\Model\AbstractModel;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
 use Magento\Framework\Registry;
+use Magento\Sales\Model\Order\Payment\Repository as MagentoPaymentRepository;
+use Magento\Sales\Api\Data\OrderPaymentInterface as MagentoPaymentInterface;
+use Magento\Framework\Pricing\Helper\Data as PricingData;
 
 class Payment extends AbstractModel implements OrderPaymentInterface
 {
+    protected ?MagentoPaymentInterface $magentoPayment = null;
+    protected MagentoPaymentRepository $magentoPaymentRepository;
+    private PricingData $pricingData;
+
     public function __construct(
         Context $context,
         Registry $registry,
+        PricingData $pricingData,
+        MagentoPaymentRepository $magentoPaymentRepository,
         AbstractResource $resource = null,
         AbstractDb $resourceCollection = null,
         array $data = []
     ) {
+        $this->magentoPaymentRepository = $magentoPaymentRepository;
+        $this->pricingData = $pricingData;
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
     }
 
-    /**
-     * Initialize resource model
-     *
-     * @return void
-     */
     protected function _construct()
     {
         $this->_init(\Adyen\Payment\Model\ResourceModel\Order\Payment::class);
+    }
+
+    public function getMagentoPayment(): ?MagentoPaymentInterface
+    {
+        if (!$this->magentoPayment && $this->getPaymentId()) {
+            $this->magentoPayment = $this->magentoPaymentRepository->get($this->getPaymentId());
+        }
+
+        return $this->magentoPayment;
     }
 
     public function getPspreference(): string
@@ -140,5 +155,32 @@ class Payment extends AbstractModel implements OrderPaymentInterface
     public function setTotalCaptured(float $totalCaptured): OrderPaymentInterface
     {
         return $this->setData(self::TOTAL_CAPTURED, $totalCaptured);
+    }
+
+    public function getFormattedAmountWithCurrency(): string
+    {
+        return $this->pricingData->currency(
+            $this->getAmount(),
+            $this->getMagentoPayment()->getOrder()->getOrderCurrencyCode(),
+            false
+        );
+    }
+
+    public function getFormattedTotalRefundedWithCurrency(): string
+    {
+        return $this->pricingData->currency(
+            $this->getTotalRefunded(),
+            $this->getMagentoPayment()->getOrder()->getOrderCurrencyCode(),
+            false
+        );
+    }
+
+    public function getFormattedTotalCapturedWithCurrency(): string
+    {
+        return $this->pricingData->currency(
+            $this->getTotalCaptured(),
+            $this->getMagentoPayment()->getOrder()->getOrderCurrencyCode(),
+            false
+        );
     }
 }
