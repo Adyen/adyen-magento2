@@ -1,15 +1,18 @@
-name: E2E Test
-run-name: Headless E2E tests for Adyen Magento2 Plugin
+name: E2E Test Pipeline
+run-name: E2E tests for Adyen Magento2 Plugin
 
-on: [pull_request]
+on: 
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches-ignore: [main]
 
 jobs:
   build:
-    strategy:
-      matrix:
-        php-version: ["8.1"]
-        magento-version: ["2.4.5"]
-    if: ${{ github.actor != 'renovate[bot]' || github.actor != 'lgtm-com[bot]' }}
+    if: |
+      ${{ 
+      github.event.pull_request.draft == false &&
+      (github.actor != 'renovate[bot]' || github.actor != 'lgtm-com[bot]')
+      }}
     runs-on:
       group: larger-runners
       labels: ubuntu-latest-8-cores
