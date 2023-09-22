@@ -83,21 +83,15 @@ class PaymentResponseHandler
     public function formatPaymentResponse(
         string $resultCode,
         array $action = null,
-        array $additionalData = null,
-        string $donationToken = null
+        array $additionalData = null
     ): array {
         switch ($resultCode) {
             case self::AUTHORISED:
-                return [
-                    "isFinal" => true,
-                    "resultCode" => $resultCode
-                ];
             case self::REFUSED:
             case self::ERROR:
                 return [
                     "isFinal" => true,
-                    "resultCode" => $resultCode,
-                    "donationToken" => $donationToken
+                    "resultCode" => $resultCode
                 ];
             case self::REDIRECT_SHOPPER:
             case self::IDENTIFY_SHOPPER:
