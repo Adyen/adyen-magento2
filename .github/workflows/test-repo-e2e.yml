@@ -1,7 +1,11 @@
 name: Integration Test Repository Pipeline
-run-name: Headless E2E test run triggered by adyen-integration-tools-tests ${{inputs.testBranch}}
+run-name: E2E tests against Test Repository ${{inputs.testBranch}} with Express Checkout ${{inputs.expressBranch}}
 
 on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main]
+    
   workflow_dispatch:
     inputs:
       testBranch:
@@ -11,9 +15,15 @@ on:
 
 jobs:
   build:
+    if: |
+      ${{ 
+      github.event.pull_request.draft == false &&
+      (github.actor != 'renovate[bot]' || github.actor != 'lgtm-com[bot]')
+      }}
     runs-on:
       group: larger-runners
       labels: ubuntu-latest-8-cores
+    timeout-minutes: 20
     env:
       PHP_VERSION: "8.1"
       MAGENTO_VERSION: "2.4.5"
