@@ -29,7 +29,7 @@
                         } else {
                             resultText = response.responseJSON.statusCode;
                             if(resultText==='Success'){
-                                progressSpan.find('.test-').show();
+                                progressSpan.find('.test-configured').show();
                             }
                         }
                         jQuery('#adyen_webhook_test_message').text(resultText);
@@ -48,7 +48,7 @@
 
         });
 </script>
-<?php if ($block->isWebhookId()) : ?>
+<?php if ($block->isWebhookIdConfigured()) : ?>
     <?php echo $block->getButtonHtml() ?>
     <span class="adyen_webhook_test_config" id="webhook_progress">
         <img class="test-processing" hidden="hidden" alt="Configuring" style="margin:0 5px" src="<?php echo $block->getViewFileUrl('images/process_spinner.gif') ?>"/>
