@@ -25,8 +25,8 @@ jobs:
       labels: ubuntu-latest-8-cores
     timeout-minutes: 20
     env:
-      PHP_VERSION: "8.2"
-      MAGENTO_VERSION: "2.4.6-p2"
+      PHP_VERSION: "8.1"
+      MAGENTO_VERSION: "2.4.5"
       ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
       ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
     steps:
