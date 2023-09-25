@@ -198,18 +198,11 @@ class MagentoPaymentDetailsTest extends AbstractAdyenTestCase
         $extensionAttributesMock->method('getAdyenConnectedTerminals')
             ->willReturn(self::CONNECTED_TERMINALS);
 
-        $paymentDetails = new PaymentDetails(
-            $this->createMock(Context::class),
-            $this->createMock(Registry::class),
-            $this->createMock(ExtensionAttributesFactory::class),
-            $this->createMock(AttributeValueFactory::class),
-            $this->createMock(AbstractResource::class),
-            $this->createMock(AbstractDb::class),
-            []
-        );
 
-        $paymentDetails->setPaymentMethods($this->magentoPaymentMethods);
-        $paymentDetails->setExtensionAttributes($extensionAttributesMock);
+        $paymentDetailsMock = $this->createConfiguredMock(PaymentDetails::class, [
+            'getPaymentMethods' => $this->magentoPaymentMethods,
+            'getExtensionAttributes' => $extensionAttributesMock
+        ]);
 
         $paymentMethodsFilterMock = $this->createConfiguredMock(PaymentMethodsFilter::class, [
             'sortAndFilterPaymentMethods' => [
@@ -233,7 +226,7 @@ class MagentoPaymentDetailsTest extends AbstractAdyenTestCase
             $connectedTerminalsMock
         );
 
-        $paymentDetails = $magentoPaymentDetails->addAdyenExtensionAttributes($paymentDetails, $quoteId);
+        $paymentDetails = $magentoPaymentDetails->addAdyenExtensionAttributes($paymentDetailsMock, $quoteId);
         $extensionAttributes = $paymentDetails->getExtensionAttributes();
 
         $adyenPaymentMethodsResponse = $extensionAttributes->getAdyenPaymentMethodsResponse();
