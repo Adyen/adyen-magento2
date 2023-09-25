@@ -1142,7 +1142,7 @@ class Data extends AbstractHelper
 
             // Override the x-api-key and demo mode setting if MOTO merchant account is set.
             $apiKey = $this->_encryptor->decrypt($motoMerchantAccountProperties['apikey']);
-            $isDemo = $this->configHelper->isMotoDemoMode($motoMerchantAccountProperties);
+            $isDemo = $this->isMotoDemoMode($motoMerchantAccountProperties);
         }
 
         $client = $this->createAdyenClient();

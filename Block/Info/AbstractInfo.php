@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Block\Info;
 
 use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Model\ResourceModel\Order\Payment\Collection;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory;
 use Magento\Framework\View\Element\Template;
 use Magento\Payment\Block\Info;
@@ -50,5 +51,19 @@ class AbstractInfo extends Info
     {
         $storeId = $this->getInfo()->getOrder()->getStoreId();
         return $this->configHelper->getAdyenAbstractConfigDataFlag('demo_mode', $storeId);
+    }
+
+    public function getPartialPayments(): ?Collection
+    {
+        // retrieve partial payments of the order
+        $orderPaymentCollection = $this->adyenOrderPaymentCollectionFactory
+            ->create()
+            ->addPaymentFilterAscending($this->getInfo()->getId());
+
+        if ($orderPaymentCollection->getSize() > 1) {
+            return $orderPaymentCollection;
+        } else {
+            return null;
+        }
     }
 }

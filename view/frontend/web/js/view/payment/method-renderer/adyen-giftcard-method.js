@@ -265,8 +265,11 @@ define(
                 var self = this;
 
                 let additionalData = {};
-                additionalData.brand_code = 'genericgiftcard';
-                additionalData.stateData = JSON.stringify(stateData.data);
+
+                if (!!stateData.data) {
+                    additionalData.brand_code = stateData.data.paymentMethod.brand;
+                    additionalData.stateData = JSON.stringify(stateData.data);
+                }
 
                 let data = {
                     'method': this.item.method,

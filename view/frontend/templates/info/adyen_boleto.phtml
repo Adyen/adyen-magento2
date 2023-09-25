@@ -24,4 +24,13 @@ $_info = $block->getInfo();
     <dt class="title"><a target="_blank" href="<?= $block->escapeHtml(
         $block->getPaymentActionData('downloadUrl')
     ); ?>"><?= $block->escapeHtml(__("Click here to download Boleto PDF.")); ?></a></dt>
+
+    <?php if ($block->getPartialPayments()): ?>
+        <dt class="title"><b><?= $block->escapeHtml(__("Partial Payments")) ?></b></dt>
+        <?php foreach ($block->getPartialPayments() as $payment): ?>
+            <dt class="title">
+                <?= sprintf("%s - %s", $block->escapeHtml(ucwords($payment->getPaymentMethod())), $block->escapeHtml($payment->getFormattedAmountWithCurrency())) ?>
+            </dt>
+        <?php endforeach; ?>
+    <?php endif; ?>
 </dl>
