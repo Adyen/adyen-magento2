@@ -11,7 +11,7 @@
 
 namespace Adyen\Payment\Plugin;
 
-use Adyen\Payment\Helper\PaymentMethodsFilter;
+use Adyen\Payment\Helper\MagentoPaymentDetails;
 use Magento\Checkout\Api\Data\PaymentDetailsInterface;
 use Magento\Checkout\Api\Data\ShippingInformationInterface;
 use Magento\Checkout\Model\PaymentDetailsFactory;
@@ -19,12 +19,12 @@ use Magento\Checkout\Model\ShippingInformationManagement as MagentoShippingInfor
 
 class ShippingInformationManagement
 {
-    protected PaymentMethodsFilter $paymentMethodsFilter;
+    protected MagentoPaymentDetails $magentoPaymentDetailsHelper;
 
     public function __construct(
-        PaymentMethodsFilter $paymentMethodsFilter
+        MagentoPaymentDetails $magentoPaymentDetailsHelper
     ) {
-        $this->paymentMethodsFilter = $paymentMethodsFilter;
+        $this->magentoPaymentDetailsHelper = $magentoPaymentDetailsHelper;
     }
 
     public function afterSaveAddressInformation(
@@ -33,17 +33,6 @@ class ShippingInformationManagement
         int $cartId,
         ShippingInformationInterface $addressInformation
     ): PaymentDetailsInterface {
-        $magentoPaymentMethods = $result->getPaymentMethods();
-
-        list($magentoPaymentMethods, $adyenPaymentMethodsResponse) =
-            $this->paymentMethodsFilter->sortAndFilterPaymentMethods($magentoPaymentMethods, $cartId);
-
-        $result->setPaymentMethods($magentoPaymentMethods);
-
-        $extensionAttributes = $result->getExtensionAttributes();
-        $extensionAttributes->setAdyenPaymentMethodsResponse($adyenPaymentMethodsResponse);
-        $result->setExtensionAttributes($extensionAttributes);
-
-        return $result;
+        return $this->magentoPaymentDetailsHelper->addAdyenExtensionAttributes($result, $cartId);
     }
 }

@@ -75,7 +75,6 @@ class AdyenPosCloudConfigProvider implements ConfigProviderInterface
         ];
 
         if ($this->configHelper->getAdyenPosCloudConfigData("active", null, true)) {
-            $config['payment']['adyenPos']['connectedTerminals'] = $this->getConnectedTerminals();
             $config['payment']['adyenPos']['fundingSourceOptions'] = $this->getFundingSourceOptions();
         }
 
@@ -104,21 +103,6 @@ class AdyenPosCloudConfigProvider implements ConfigProviderInterface
     protected function getRequest()
     {
         return $this->request;
-    }
-
-    /**
-     * @return array|mixed
-     * @throws \Adyen\AdyenException
-     */
-    protected function getConnectedTerminals()
-    {
-        $connectedTerminals = $this->connectedTerminalsHelper->getConnectedTerminals();
-
-        if (!empty($connectedTerminals['uniqueTerminalIds'])) {
-            return $connectedTerminals['uniqueTerminalIds'];
-        }
-
-        return [];
     }
 
     /**
