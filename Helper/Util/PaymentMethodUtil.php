@@ -61,7 +61,14 @@ class PaymentMethodUtil
         'walley_b2b',
         'mc_clicktopay',
         'visa_clicktopay',
-        'ach'
+        'ach',
+        'visa_amazonpay',
+        'mc_amazonpay',
+        'amex_amazonpay',
+        'discover_amazonpay',
+        'maestro_amazonpay',
+        'elo_amazonpay',
+        'jcb_amazonpay'
     ];
 
     const OPEN_INVOICE_PAYMENT_METHODS = [
