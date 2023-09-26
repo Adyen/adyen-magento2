@@ -254,4 +254,7 @@
     <event name="payment_method_assign_data_adyen_walley_b2b">
         <observer name="adyen_walley_b2b_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_paysafecard">
+        <observer name="adyen_paysafecard_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
 </config>

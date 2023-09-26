@@ -218,5 +218,8 @@
         <method name="adyen_walley_b2b">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="adyen_paysafecard">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>
