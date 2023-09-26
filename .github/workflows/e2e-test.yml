@@ -44,8 +44,9 @@ jobs:
 
       - name: Install plugin
         run: docker exec -u www-data magento2-container make plugin
-
-      - run: docker exec magento2-container /etc/init.d/cron stop
+        
+      - name: Kill Cron Jobs
+        run: docker exec magento2-container /etc/init.d/cron stop
 
       - name: Switch to production mode
         run: docker exec -u www-data magento2-container make production
