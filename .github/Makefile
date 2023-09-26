@@ -52,6 +52,14 @@ configure: n98-magerun2.phar
 flush:
 	bin/magento cache:flush
 
+# Setup upgrade
+enable-express:
+	bin/magento module:enable Adyen_ExpressCheckout
+	bin/magento setup:upgrade
+	bin/magento config:set payment/adyen_hpp/show_google_pay_on "1,2,3"
+	bin/magento config:set payment/adyen_hpp/show_apple_pay_on "1,2,3"
+	bin/magento cache:clean
+
 # Full plugin setup
 plugin: install configure flush
 
