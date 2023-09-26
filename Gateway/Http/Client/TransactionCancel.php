@@ -41,7 +41,7 @@ class TransactionCancel implements ClientInterface
      * @param Idempotency $idempotencyHelper
      */
     public function __construct(
-        Data $adyenHelper,
+        Data        $adyenHelper,
         Idempotency $idempotencyHelper
     ) {
         $this->adyenHelper = $adyenHelper;
@@ -62,21 +62,31 @@ class TransactionCancel implements ClientInterface
         $client = $this->adyenHelper->initializeAdyenClient();
         $service = $this->adyenHelper->createAdyenCheckoutService($client);
 
-        $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
-            $request,
-            $headers['idempotencyExtraData'] ?? null
-        );
 
-        $requestOptions['idempotencyKey'] = $idempotencyKey;
+        $response = [];
 
-        $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/cancels');
-        try {
-            $response = $service->cancels($request, $requestOptions);
-        } catch (AdyenException $e) {
-            $response['error'] = $e->getMessage();
+
+        foreach ($request as $requests) {
+
+            $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
+                $requests,
+                $headers['idempotencyExtraData'] ?? null
+            );
+
+            $requestOptions['idempotencyKey'] = $idempotencyKey;
+
+            $this->adyenHelper->logRequest($requests, Client::API_CHECKOUT_VERSION, '/cancels');
+            try {
+                $responses = $service->cancels($requests, $requestOptions);
+            } catch (AdyenException $e) {
+                $response['error'] = $e->getMessage();
+            }
+            $this->adyenHelper->logResponse($responses);
+
+            $response = $responses;
         }
-        $this->adyenHelper->logResponse($response);
 
         return $response;
     }
+
 }
