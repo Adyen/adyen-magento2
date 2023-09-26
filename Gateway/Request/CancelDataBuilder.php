@@ -28,8 +28,6 @@ class CancelDataBuilder implements BuilderInterface
 
     /** @var Data $adyenHelper */
     private $adyenHelper;
-
-
     public function __construct(
         Payment $adyenPaymentResourceModel,
         Data $adyenHelper
