@@ -523,7 +523,12 @@ define(
                     selectedAlternativePaymentMethodType();
                 var validate = $(form).validation() &&
                     $(form).validation('isValid');
-                return validate && additionalValidators.validate() && this.isPlaceOrderActionAllowed();
+
+                if (['googlepay', 'paywithgoogle'].includes(selectedAlternativePaymentMethodType())) {
+                    return validate && additionalValidators.validate() && this.isPlaceOrderActionAllowed();
+                }
+
+                return validate && additionalValidators.validate();
             },
             isButtonActive: function() {
                 return this.getCode() == this.isChecked() &&

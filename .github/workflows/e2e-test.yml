@@ -1,13 +1,18 @@
-name: E2E Test Pipeline
+name: Magento 2 E2E Pipeline
 run-name: E2E tests for Adyen Magento2 Plugin
 
 on: 
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     branches-ignore: [main]
 
 jobs:
   build:
-    if: ${{ github.actor != 'renovate[bot]' || github.actor != 'lgtm-com[bot]' }}
+    if: |
+      ${{ 
+      github.event.pull_request.draft == false &&
+      (github.actor != 'renovate' || github.actor != 'lgtm-com')
+      }}
     runs-on:
       group: larger-runners
       labels: ubuntu-latest-8-cores
@@ -60,6 +65,8 @@ jobs:
           ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
           ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
           ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
+          WEBHOOK_USERNAME: ${{secrets.WEBHOOK_USERNAME}}
+          WEBHOOK_PASSWORD: ${{secrets.WEBHOOK_PASSWORD}}
 
       - name: Archive test result artifacts
         if: always()
