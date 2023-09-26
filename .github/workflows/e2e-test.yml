@@ -11,7 +11,8 @@ jobs:
     if: |
       ${{ 
       github.event.pull_request.draft == false &&
-      (github.actor != 'renovate' || github.actor != 'lgtm-com')}}
+      (github.actor != 'renovate' || github.actor != 'lgtm-com')
+      }}
     runs-on:
       group: larger-runners
       labels: ubuntu-latest-8-cores
