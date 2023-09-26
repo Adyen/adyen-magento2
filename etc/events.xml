@@ -251,4 +251,7 @@
     <event name="payment_method_assign_data_adyen_carnet">
         <observer name="adyen_carnet_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_walley_b2b">
+        <observer name="adyen_walley_b2b_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
 </config>
