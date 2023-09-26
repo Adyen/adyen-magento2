@@ -92,6 +92,7 @@
                 <item name="adyen_wechatpayQR" xsi:type="string">wechatpayQR</item>
                 <item name="adyen_zip" xsi:type="string">zip</item>
                 <item name="adyen_gcash" xsi:type="string">gcash</item>
+                <item name="adyen_oxxo" xsi:type="string">oxxo</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>

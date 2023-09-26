@@ -242,4 +242,7 @@
     <event name="payment_method_assign_data_adyen_gcash">
         <observer name="adyen_gcash_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_oxxo">
+        <observer name="adyen_oxxo_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
 </config>

@@ -206,5 +206,8 @@
         <method name="adyen_gcash">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="adyen_oxxo">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>
