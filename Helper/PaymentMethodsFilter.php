@@ -14,6 +14,7 @@ namespace Adyen\Payment\Helper;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
 use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Api\Data\CartInterface;
 
 class PaymentMethodsFilter
 {
@@ -29,20 +30,15 @@ class PaymentMethodsFilter
     ];
 
     private PaymentMethods $paymentMethods;
-    private CartRepositoryInterface $cartRepository;
 
     public function __construct(
-        PaymentMethods $paymentMethods,
-        CartRepositoryInterface $cartRepository
+        PaymentMethods $paymentMethods
     ) {
         $this->paymentMethods = $paymentMethods;
-        $this->cartRepository = $cartRepository;
     }
 
-    public function sortAndFilterPaymentMethods(array $magentoPaymentMethods, int $quoteId): array
+    public function sortAndFilterPaymentMethods(array $magentoPaymentMethods, CartInterface $quote): array
     {
-        $quote = $this->cartRepository->get($quoteId);
-
         $adyenPaymentMethodsResponse = $this->paymentMethods->getPaymentMethods(
             $quote->getId(),
             $quote->getBillingAddress()->getCountryId()

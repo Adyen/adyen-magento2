@@ -1,15 +1,18 @@
-name: E2E Test
-run-name: Headless E2E tests for Adyen Magento2 Plugin
+name: Magento 2 E2E Pipeline
+run-name: E2E tests for Adyen Magento2 Plugin
 
-on: [pull_request]
+on: 
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches-ignore: [main]
 
 jobs:
   build:
-    strategy:
-      matrix:
-        php-version: ["8.1"]
-        magento-version: ["2.4.5"]
-    if: ${{ github.actor != 'renovate[bot]' || github.actor != 'lgtm-com[bot]' }}
+    if: |
+      ${{ 
+      github.event.pull_request.draft == false &&
+      (github.actor != 'renovate' || github.actor != 'lgtm-com')
+      }}
     runs-on:
       group: larger-runners
       labels: ubuntu-latest-8-cores
@@ -53,7 +56,7 @@ jobs:
       - name: Run E2E tests
         run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm playwright /e2e.sh
         env:
-          INTEGRATION_TESTS_BRANCH: develop
+          INTEGRATION_TESTS_BRANCH: develop-9
           MAGENTO_ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
           MAGENTO_ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
           MAGENTO_BASE_URL: ${{secrets.MAGENTO_BASE_URL}}
@@ -62,6 +65,8 @@ jobs:
           ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
           ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
           ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
+          WEBHOOK_USERNAME: ${{secrets.WEBHOOK_USERNAME}}
+          WEBHOOK_PASSWORD: ${{secrets.WEBHOOK_PASSWORD}}
 
       - name: Archive test result artifacts
         if: always()
