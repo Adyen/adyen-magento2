@@ -221,5 +221,8 @@
         <method name="adyen_paysafecard">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="adyen_momo_wallet">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>
