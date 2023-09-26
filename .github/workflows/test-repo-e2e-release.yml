@@ -64,7 +64,7 @@ jobs:
         run: docker exec magento2-container /etc/init.d/cron stop
 
       - name: Install Express module
-        run: docker exec -u www-data magento2-container composer require adyen/adyen-magento2-expresscheckout
+        run: docker exec -u www-data magento2-container composer require adyen/adyen-magento2-expresscheckout:dev-rc-v2
 
       - name: Enable Express module
         run: docker exec -u www-data magento2-container make enable-express
