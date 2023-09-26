@@ -490,6 +490,10 @@
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_applepay>
+            <adyen_applepay_vault>
+                <title>Stored Apple Pay</title>
+                <model>AdyenPaymentApplePayVaultFacade</model>
+            </adyen_applepay_vault>
             <adyen_giftcard>
                 <active>1</active>
                 <model>AdyenPaymentGiftcardFacade</model>
