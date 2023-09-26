@@ -72,7 +72,7 @@ define([
             }
             return 'UNKNOWN';
         },
-        buildComponentConfiguration: function(paymentMethod, paymentMethodsExtraInfo) {
+        buildMultishippingComponentConfiguration: function(paymentMethod, paymentMethodsExtraInfo) {
             var self = this;
 
             var email = '';

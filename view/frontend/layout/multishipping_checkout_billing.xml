@@ -16,7 +16,8 @@
         <css src="Adyen_Payment::css/adyen.css" />
     </head>
     <body>
-        <referenceBlock name="checkout_billing" template="Adyen_Payment::checkout/multishipping/billing.phtml">
+        <referenceBlock name="checkout_billing" class="Adyen\Payment\Block\Checkout\Multishipping\Billing"
+                        template="Adyen_Payment::checkout/multishipping/billing.phtml">
             <arguments>
                 <argument name="checkout_data" xsi:type="object">Magento\Multishipping\Block\DataProviders\Billing</argument>
                 <argument name="form_templates" xsi:type="array">
