@@ -1584,7 +1584,6 @@
     <type name="Magento\Checkout\Model\ShippingInformationManagement">
         <plugin name="CustomShippingInformationManagement" type="Adyen\Payment\Plugin\ShippingInformationManagement" sortOrder="10" />
     </type>
-
     <virtualType name="AdyenCancelOrders" type="Adyen\Payment\Cron\CancelOrders">
         <arguments>
             <argument name="providers" xsi:type="array">
@@ -3390,6 +3389,59 @@
     <virtualType name="AdyenPaymentZipVaultConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
             <argument name="methodCode" xsi:type="string">adyen_zip_vault</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentGcashFacade" type="Adyen\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="string">adyen_gcash</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\PaymentMethodInfo</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentGcashValueHandlerPool</argument>
+            <argument name="validatorPool" xsi:type="object">AdyenPaymentValidatorPool</argument>
+            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentGcashValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AdyenPaymentGcashConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentGcashConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AdyenPaymentGcashConfig</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentGcashConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="string">adyen_gcash</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentGcashVaultFacade" type="Adyen\Payment\Model\Method\PaymentMethodVault">
+        <arguments>
+            <argument name="code" xsi:type="string">adyen_gcash_vault</argument>
+            <argument name="config" xsi:type="object">AdyenPaymentGcashVaultConfig</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentGcashVaultValueHandlerPool</argument>
+            <argument name="vaultProvider" xsi:type="object">AdyenPaymentGcashFacade</argument>
+            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentGcashVaultValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AdyenPaymentGcashVaultConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentGcashVaultConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AdyenPaymentGcashVaultConfig</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentGcashVaultConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="string">adyen_gcash_vault</argument>
         </arguments>
     </virtualType>
 </config>
