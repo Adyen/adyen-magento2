@@ -98,6 +98,7 @@
                 <item name="adyen_walley_b2b" xsi:type="string">walley_b2b</item>
                 <item name="adyen_paysafecard" xsi:type="string">paysafecard</item>
                 <item name="adyen_momo_wallet" xsi:type="string">momo_wallet</item>
+                <item name="adyen_touchngo" xsi:type="string">touchngo</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
