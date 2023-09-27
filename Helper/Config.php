@@ -42,6 +42,7 @@ class Config
     const XML_ADYEN_HPP_VAULT = 'adyen_hpp_vault';
     const XML_ADYEN_CC_VAULT = 'adyen_cc_vault';
     const XML_ADYEN_MOTO = 'adyen_moto';
+    const XML_ADYEN_RATEPAY = 'adyen_ratepay';
     const XML_PAYMENT_ORIGIN_URL = 'payment_origin_url';
     const XML_PAYMENT_RETURN_URL = 'payment_return_url';
     const XML_STATUS_FRAUD_MANUAL_REVIEW = 'fraud_manual_review_status';
@@ -546,7 +547,7 @@ class Config
 
     public function getRatePayId(int $storeId = null)
     {
-        return $this->getAdyenHppConfigData("ratepay_id", $storeId);
+        return $this->getConfigData("ratepay_id", self::XML_ADYEN_RATEPAY, $storeId);
     }
 
     public function getConfigData(string $field, string $xmlPrefix, ?int $storeId, bool $flag = false): mixed
