@@ -239,4 +239,28 @@
     <event name="payment_method_assign_data_adyen_zip">
         <observer name="adyen_zip_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_gcash">
+        <observer name="adyen_gcash_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
+    <event name="payment_method_assign_data_adyen_oxxo">
+        <observer name="adyen_oxxo_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
+    <event name="payment_method_assign_data_adyen_doku_paymentmethods">
+        <observer name="adyen_doku_paymentmethods_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
+    <event name="payment_method_assign_data_adyen_carnet">
+        <observer name="adyen_carnet_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
+    <event name="payment_method_assign_data_adyen_walley_b2b">
+        <observer name="adyen_walley_b2b_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
+    <event name="payment_method_assign_data_adyen_paysafecard">
+        <observer name="adyen_paysafecard_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
+    <event name="payment_method_assign_data_adyen_momo_wallet">
+        <observer name="adyen_momo_wallet_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
+    <event name="payment_method_assign_data_adyen_touchngo">
+        <observer name="adyen_touchngo_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
 </config>
