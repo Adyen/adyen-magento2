@@ -15,7 +15,7 @@ use Magento\Framework\Setup\Patch\DataPatchInterface;
 
 class ApplePayCertificateUrlPath implements DataPatchInterface
 {
-    const APPLEPAY_CERTIFICATE_URL = 'https://docs.adyen.com/reuse/payment-method-pages/apple-pay/adyen-certificate/apple-developer-merchantid-domain-association.zip';
+    const APPLEPAY_CERTIFICATE_URL = 'https://docs.adyen.com/payment-methods/apple-pay/web-component/apple-developer-merchantid-domain-association.zip';
     const APPLEPAY_CERTIFICATE_CONFIG_PATH = 'payment/adyen_hpp/apple_pay_certificate_url';
 
     /**
