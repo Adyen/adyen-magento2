@@ -25,6 +25,7 @@ use Magento\Framework\Controller\ResultFactory;
 use Magento\Backend\App\Action;
 use Magento\Framework\Filesystem\Io\File;
 use Exception;
+use ZipArchive;
 
 class DownloadApplePayCertificate extends Action
 {
@@ -33,6 +34,7 @@ class DownloadApplePayCertificate extends Action
     const MAX_SIZE = 1000000;
     const MAX_RATIO = 5;
     const FILE_NAME = 'apple-developer-merchantid-domain-association';
+    const APPLEPAY_CERTIFICATE_URL = 'https://docs.adyen.com/payment-methods/apple-pay/web-component/apple-developer-merchantid-domain-association.zip';
     /**
      * @var DirectoryList
      */
@@ -42,11 +44,6 @@ class DownloadApplePayCertificate extends Action
      * @var File
      */
     private $fileIo;
-
-    /**
-     * @var Config
-     */
-    private $configHelper;
 
     /**
      * @var AdyenLogger
@@ -63,14 +60,12 @@ class DownloadApplePayCertificate extends Action
     public function __construct(
         Context       $context,
         DirectoryList $directoryList,
-        Config        $configHelper,
         File          $fileIo,
         AdyenLogger   $adyenLogger
     )
     {
         parent::__construct($context);
         $this->directoryList = $directoryList;
-        $this->configHelper = $configHelper;
         $this->fileIo = $fileIo;
         $this->adyenLogger = $adyenLogger;
     }
@@ -91,7 +86,7 @@ class DownloadApplePayCertificate extends Action
         $wellknownPath = $pubPath . '/' . $directoryName;
         $applepayPath = $wellknownPath . '/' . self::FILE_NAME;
 
-        $applepayUrl = $this->configHelper->getApplePayUrlPath();
+        $applepayUrl = self::APPLEPAY_CERTIFICATE_URL;
 
         try {
             if ($this->fileIo->checkAndCreateFolder($wellknownPath, 0700)) {
@@ -122,7 +117,7 @@ class DownloadApplePayCertificate extends Action
         $tmpPath = tempnam(sys_get_temp_dir(), self::FILE_NAME);
         file_put_contents($tmpPath, file_get_contents($applepayUrl));
 
-        $zip = new \ZipArchive;
+        $zip = new ZipArchive;
         $fileCount = 0;
         $totalSize = 0;
 
