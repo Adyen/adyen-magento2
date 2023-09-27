@@ -53,7 +53,7 @@ class RatepayIdConfiguration implements DataPatchInterface, PatchVersionInterfac
     ): void {
         $config = $this->findConfig($setup, $oldPath);
 
-        if (isset($config)) {
+        if ($config !== false) {
             $this->configWriter->save(
                 $newPath,
                 $config['value'],
