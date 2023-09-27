@@ -65,7 +65,7 @@ class RatepayIdConfiguration implements DataPatchInterface, PatchVersionInterfac
         $this->reinitableConfig->reinit();
     }
 
-    private function findConfig(ModuleDataSetupInterface $setup, string $path): ?array
+    private function findConfig(ModuleDataSetupInterface $setup, string $path): mixed
     {
         $configDataTable = $setup->getTable('core_config_data');
         $connection = $setup->getConnection();
