@@ -203,5 +203,29 @@
         <method name="adyen_zip">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="adyen_gcash">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_oxxo">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_doku_paymentmethods">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_carnet">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_walley_b2b">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_paysafecard">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_momo_wallet">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_touchngo">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>

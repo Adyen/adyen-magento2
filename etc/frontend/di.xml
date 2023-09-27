@@ -91,6 +91,14 @@
                 <item name="adyen_wechatpayWeb" xsi:type="string">wechatpayWeb</item>
                 <item name="adyen_wechatpayQR" xsi:type="string">wechatpayQR</item>
                 <item name="adyen_zip" xsi:type="string">zip</item>
+                <item name="adyen_gcash" xsi:type="string">gcash</item>
+                <item name="adyen_oxxo" xsi:type="string">oxxo</item>
+                <item name="adyen_doku_paymentmethods" xsi:type="string">doku_paymentmethods</item>
+                <item name="adyen_carnet" xsi:type="string">carnet</item>
+                <item name="adyen_walley_b2b" xsi:type="string">walley_b2b</item>
+                <item name="adyen_paysafecard" xsi:type="string">paysafecard</item>
+                <item name="adyen_momo_wallet" xsi:type="string">momo_wallet</item>
+                <item name="adyen_touchngo" xsi:type="string">touchngo</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
@@ -128,6 +136,10 @@
                 <item name="adyen_trustly" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
                 <item name="adyen_twint" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
                 <item name="adyen_zip" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
+                <item name="adyen_gcash" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
+                <item name="adyen_carnet" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
+                <item name="adyen_momo_wallet" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
+                <item name="adyen_applepay" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
             </argument>
         </arguments>
     </type>
