@@ -74,7 +74,6 @@ class TransactionPosCloudSync implements ClientInterface
     public function placeRequest(TransferInterface $transferObject): array
     {
         $request = $transferObject->getBody();
-        //always do status call and return the response of the status call
         $service = $this->adyenHelper->createAdyenPosPaymentService($this->client);
 
         $this->adyenHelper->logRequest($request, '', '/sync');

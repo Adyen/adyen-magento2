@@ -20,10 +20,17 @@ define([
     return function (shippingInformationAction) {
         return wrapper.wrap(shippingInformationAction, function (originalAction) {
             return originalAction().then(function (result) {
-                let adyenPaymentMethodsResponse = result.extension_attributes.adyen_payment_methods_response;
+                if (!!result.extension_attributes) {
+                    let adyenPaymentMethodsResponse = result.extension_attributes.adyen_payment_methods_response;
+                    let adyenConnectedTerminals = result.extension_attributes.adyen_connected_terminals;
 
-                if (!!adyenPaymentMethodsResponse) {
-                    adyenPaymentService.setPaymentMethods(JSON.parse(adyenPaymentMethodsResponse));
+                    if (!!adyenPaymentMethodsResponse) {
+                        adyenPaymentService.setPaymentMethods(JSON.parse(adyenPaymentMethodsResponse));
+                    }
+
+                    if (!!adyenConnectedTerminals) {
+                        adyenPaymentService.setConnectedTerminals(adyenConnectedTerminals);
+                    }
                 }
 
                 return result;

@@ -139,6 +139,7 @@
                 <item name="adyen_gcash" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
                 <item name="adyen_carnet" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
                 <item name="adyen_momo_wallet" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
+                <item name="adyen_applepay" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
             </argument>
         </arguments>
     </type>

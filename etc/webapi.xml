@@ -31,13 +31,6 @@
         </data>
     </route>
 
-    <route url="/V1/adyen/initiate-terminal" method="POST">
-        <service class="Adyen\Payment\Api\AdyenInitiateTerminalApiInterface" method="initiate"/>
-        <resources>
-            <resource ref="anonymous"/>
-        </resources>
-    </route>
-
     <route url="/V1/adyen/guest-carts/:cartId/payments-details" method="POST">
         <service class="Adyen\Payment\Api\GuestAdyenPaymentsDetailsInterface" method="initiate"/>
         <resources>

@@ -11,15 +11,25 @@
 
 namespace Adyen\Payment\Test\Unit\Helper;
 
-use Adyen\Payment\Helper\PaymentMethods;
+use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\ConnectedTerminals;
+use Adyen\Payment\Helper\MagentoPaymentDetails;
 use Adyen\Payment\Helper\PaymentMethodsFilter;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Magento\Checkout\Api\Data\PaymentDetailsExtensionInterface;
+use Magento\Checkout\Model\PaymentDetails;
+use Magento\Framework\Api\AttributeValueFactory;
+use Magento\Framework\Api\ExtensionAttributesFactory;
+use Magento\Framework\Model\Context;
+use Magento\Framework\Registry;
 use Magento\Payment\Model\Method\Adapter;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Sales\Model\Order\Address;
+use Magento\Framework\Model\ResourceModel\AbstractResource;
+use Magento\Framework\Data\Collection\AbstractDb;
 
-class PaymentMethodsFilterTest extends AbstractAdyenTestCase
+class MagentoPaymentDetailsTest extends AbstractAdyenTestCase
 {
     const PAYMENT_METHODS = [
         'adyen_alma',
@@ -33,14 +43,11 @@ class PaymentMethodsFilterTest extends AbstractAdyenTestCase
         'adyen_klarna_account'
     ];
 
-    const PAYMENT_METHODS_SORTED = [
-        'adyen_sepadirectdebit',
-        'adyen_alma',
-        'adyen_paypal',
-        'adyen_clearpay',
-        'adyen_klarna_account',
-        'unknown',
-        'undefined'
+    const CONNECTED_TERMINALS = [
+        'uniqueTerminalIds' => [
+            'ABC-123456XY',
+            'DEF-678912TZ'
+        ]
     ];
 
     const PAYMENT_METHODS_RESPONSE = <<<JSON
@@ -166,10 +173,11 @@ class PaymentMethodsFilterTest extends AbstractAdyenTestCase
         }
     }
 
-    public function testSortAndFilterPaymentMethods()
+    public function testAddAdyenExtensionAttributes()
     {
+        $quoteId = 1;
         $quoteMock = $this->createConfiguredMock(CartInterface::class, [
-            'getId' => 1,
+            'getId' => $quoteId,
             'getBillingAddress' => $this->createConfiguredMock(Address::class, [
                 'getCountryId' => 1
             ])
@@ -179,38 +187,82 @@ class PaymentMethodsFilterTest extends AbstractAdyenTestCase
             'get' => $quoteMock
         ]);
 
-        $paymentMethodsHelperMock = $this->createConfiguredMock(PaymentMethods::class, [
-            'getPaymentMethods' => self::PAYMENT_METHODS_RESPONSE
+        $extensionAttributesMock = $this->createGeneratedMock(PaymentDetailsExtensionInterface::class, [
+            'setAdyenPaymentMethodsResponse',
+            'getAdyenPaymentMethodsResponse',
+            'setAdyenConnectedTerminals',
+            'getAdyenConnectedTerminals'
+        ]);
+        $extensionAttributesMock->method('getAdyenPaymentMethodsResponse')
+            ->willReturn(self::PAYMENT_METHODS_RESPONSE);
+        $extensionAttributesMock->method('getAdyenConnectedTerminals')
+            ->willReturn(self::CONNECTED_TERMINALS);
+
+
+        $paymentDetailsMock = $this->createConfiguredMock(PaymentDetails::class, [
+            'getPaymentMethods' => $this->magentoPaymentMethods,
+            'getExtensionAttributes' => $extensionAttributesMock
         ]);
 
-        $paymentMethodsFilterHelper = $this->createPaymentMethodsFilterHelper(
-            $paymentMethodsHelperMock,
-            $cartRepositoryInterfaceMock
+        $paymentMethodsFilterMock = $this->createConfiguredMock(PaymentMethodsFilter::class, [
+            'sortAndFilterPaymentMethods' => [
+                $this->magentoPaymentMethods,
+                self::PAYMENT_METHODS_RESPONSE
+            ]
+        ]);
+
+        $connectedTerminalsMock = $this->createConfiguredMock(ConnectedTerminals::class, [
+            'getConnectedTerminals' => self::CONNECTED_TERMINALS
+        ]);
+
+        $configHelperMock = $this->createConfiguredMock(Config::class, [
+            'getAdyenPosCloudConfigData' => true
+        ]);
+
+        $magentoPaymentDetails = $this->createMagentoPaymentDetailsHelper(
+            $paymentMethodsFilterMock,
+            $configHelperMock,
+            $cartRepositoryInterfaceMock,
+            $connectedTerminalsMock
         );
 
-        $sortedMagentoPaymentMethods =
-            $paymentMethodsFilterHelper->sortAndFilterPaymentMethods($this->magentoPaymentMethods, $quoteMock)[0];
+        $paymentDetails = $magentoPaymentDetails->addAdyenExtensionAttributes($paymentDetailsMock, $quoteId);
+        $extensionAttributes = $paymentDetails->getExtensionAttributes();
 
-        $assertArray = [];
-        foreach ($sortedMagentoPaymentMethods as $paymentMethod) {
-            $assertArray[] = $paymentMethod->getCode();
-        };
+        $adyenPaymentMethodsResponse = $extensionAttributes->getAdyenPaymentMethodsResponse();
+        $adyenConnectedTerminals = $extensionAttributesMock->getAdyenConnectedTerminals();
 
-        $this->assertEquals(self::PAYMENT_METHODS_SORTED, $assertArray);
+        $this->assertEquals(self::CONNECTED_TERMINALS, $adyenConnectedTerminals);
+        $this->assertEquals(self::PAYMENT_METHODS_RESPONSE, $adyenPaymentMethodsResponse);
     }
 
-    protected function createPaymentMethodsFilterHelper(
-        $paymentMethodsHelperMock = null,
-        $cartRepositoryInterfaceMock = null
+    private function createMagentoPaymentDetailsHelper(
+        $paymentMethodsFilterMock = null,
+        $configHelperMock = null,
+        $cartRepositoryInterfaceMock = null,
+        $connectedTerminalsMock = null
     ) {
-        if (is_null($paymentMethodsHelperMock)) {
-            $paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
+        if (is_null($paymentMethodsFilterMock)) {
+            $paymentMethodsFilterMock = $this->createMock(PaymentMethodsFilter::class);
+        }
+
+        if (is_null($configHelperMock)) {
+            $configHelperMock = $this->createMock(Config::class);
         }
 
         if (is_null($cartRepositoryInterfaceMock)) {
             $cartRepositoryInterfaceMock = $this->createMock(CartRepositoryInterface::class);
         }
 
-        return new PaymentMethodsFilter($paymentMethodsHelperMock, $cartRepositoryInterfaceMock);
+        if (is_null($connectedTerminalsMock)) {
+            $connectedTerminalsMock = $this->createMock(ConnectedTerminals::class);
+        }
+
+        return new MagentoPaymentDetails(
+            $paymentMethodsFilterMock,
+            $configHelperMock,
+            $cartRepositoryInterfaceMock,
+            $connectedTerminalsMock
+        );
     }
 }
