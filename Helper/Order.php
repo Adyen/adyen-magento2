@@ -452,6 +452,17 @@ class Order extends AbstractHelper
             sprintf('Refund has failed. Unable to change back status of the order.<br /> %s', $description)
         ), $order->getStatus());
 
+        $linkedAdyenCreditmemo = $this->adyenCreditmemoHelper->getAdyenCreditmemoByPspreference(
+            $notification->getPspreference()
+        );
+
+        if ($linkedAdyenCreditmemo instanceof AdyenCreditmemoModel) {
+            $this->adyenCreditmemoHelper->updateAdyenCreditmemosStatus(
+                $linkedAdyenCreditmemo,
+                AdyenCreditmemoModel::FAILED_STATUS
+            );
+        }
+
         return $notification;
     }
 
@@ -552,7 +563,7 @@ class Order extends AbstractHelper
          * Check adyen_creditmemo table.
          * If credit memo doesn't exist for this notification, create it.
          */
-        $linkedAdyenCreditmemo = $this->adyenCreditmemoResourceModel->getAdyenCreditmemoByPspreference(
+        $linkedAdyenCreditmemo = $this->adyenCreditmemoHelper->getAdyenCreditmemoByPspreference(
             $notification->getPspreference()
         );
 
@@ -563,7 +574,7 @@ class Order extends AbstractHelper
                     $notification->getAmountCurrency()
                 );
 
-                $this->adyenCreditmemoHelper->createAdyenCreditMemo(
+                $linkedAdyenCreditmemo = $this->adyenCreditmemoHelper->createAdyenCreditMemo(
                     $order->getPayment(),
                     $notification->getPspreference(),
                     $notification->getOriginalReference(),
@@ -621,6 +632,12 @@ class Order extends AbstractHelper
                     $this->adyenLogger->getOrderContext($order),
                     ['pspReference' => $notification->getPspreference()]
                 )
+            );
+        }
+
+        if ($linkedAdyenCreditmemo instanceof AdyenCreditmemoModel) {
+            $this->adyenCreditmemoHelper->updateAdyenCreditmemosStatus(
+                $linkedAdyenCreditmemo, AdyenCreditmemoModel::COMPLETED_STATUS
             );
         }
 

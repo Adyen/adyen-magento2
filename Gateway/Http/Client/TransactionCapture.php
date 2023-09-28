@@ -18,7 +18,8 @@ use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
 use Adyen\Payment\Helper\Requests;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Service\Modification;
+use Adyen\Service\Checkout\ModificationsApi;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 
@@ -27,8 +28,8 @@ class TransactionCapture implements ClientInterface
     const MULTIPLE_AUTHORIZATIONS = 'multiple_authorizations';
     const FORMATTED_CAPTURE_AMOUNT = 'formatted_capture_amount';
     const CAPTURE_AMOUNT = 'capture_amount';
-    const ORIGINAL_REFERENCE = 'original_reference';
-    const CAPTURE_RECEIVED = '[capture-received]';
+    const ORIGINAL_REFERENCE = 'paymentPspReference';
+    const CAPTURE_RECEIVED = 'received';
 
     private Data $adyenHelper;
     private AdyenLogger $adyenLogger;
@@ -50,7 +51,7 @@ class TransactionCapture implements ClientInterface
         $headers = $transferObject->getHeaders();
         $clientConfig = $transferObject->getClientConfig();
 
-        //Check if it is a MOTO Transaction
+
         if(isset($clientConfig['isMotoTransaction']) && $clientConfig['isMotoTransaction'] === true) {
             $client = $this->adyenHelper->initializeAdyenClient(
                 $clientConfig['storeId'],
@@ -62,7 +63,9 @@ class TransactionCapture implements ClientInterface
             $client = $this->adyenHelper->initializeAdyenClient($transferObject->getClientConfig()['storeId']);
         }
 
-        $service = new Modification($client);
+        $service = $this->adyenHelper->createAdyenCheckoutService($client);
+
+
         $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
             $request,
                 $headers['idempotencyExtraData'] ?? null
@@ -74,10 +77,10 @@ class TransactionCapture implements ClientInterface
             return $this->placeMultipleCaptureRequests($service, $request, $requestOptions);
         }
 
-        $this->adyenHelper
-            ->logRequest($request, Client::API_PAYMENT_VERSION, '/pal/servlet/Payment/{version}/capture');
+        $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/captures');
+
         try {
-            $response = $service->capture($request, $requestOptions);
+            $response = $service->captures($request, $requestOptions);
             $response = $this->copyParamsToResponse($response, $request);
         } catch (AdyenException $e) {
             $response['error'] = $e->getMessage();
@@ -87,18 +90,18 @@ class TransactionCapture implements ClientInterface
         return $response;
     }
 
-    private function placeMultipleCaptureRequests(Modification $service, $requestContainer, $requestOptions): array
+    private function placeMultipleCaptureRequests($service, $requestContainer, $requestOptions): array
     {
         $response = [];
         foreach ($requestContainer[self::MULTIPLE_AUTHORIZATIONS] as $request) {
             try {
                 // Copy merchant account from parent array to every request array
                 $request[Requests::MERCHANT_ACCOUNT] = $requestContainer[Requests::MERCHANT_ACCOUNT];
-                $singleResponse = $service->capture($request, $requestOptions);
-                $singleResponse[self::FORMATTED_CAPTURE_AMOUNT] = $request['modificationAmount']['currency'] . ' ' .
+                $singleResponse = $service->captures($request, $requestOptions);
+                $singleResponse[self::FORMATTED_CAPTURE_AMOUNT] = $request['amount']['currency'] . ' ' .
                 $this->adyenHelper->originalAmount(
-                    $request['modificationAmount']['value'],
-                    $request['modificationAmount']['currency']
+                    $request['amount']['value'],
+                    $request['amount']['currency']
                 );
                 $singleResponse = $this->copyParamsToResponse($singleResponse, $request);
                 $response[self::MULTIPLE_AUTHORIZATIONS][] = $singleResponse;
@@ -120,8 +123,8 @@ class TransactionCapture implements ClientInterface
 
     private function copyParamsToResponse(array $response, array $request): array
     {
-        $response[self::CAPTURE_AMOUNT] = $request['modificationAmount']['value'];
-        $response[self::ORIGINAL_REFERENCE] = $request['originalReference'];
+        $response[self::CAPTURE_AMOUNT] = $request['amount']['value'];
+        $response[self::ORIGINAL_REFERENCE] = $request[self::ORIGINAL_REFERENCE];
 
         return $response;
     }
