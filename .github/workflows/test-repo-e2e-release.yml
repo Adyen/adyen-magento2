@@ -40,8 +40,31 @@ jobs:
       - name: Install plugin
         run: docker exec -u www-data magento2-container make plugin
 
+      - name: Checkout developer module
+        uses: actions/checkout@v3
+        with:
+          repository: Adyen/adyen-magento2-dev
+          ref: 'main'
+          token: ${{ secrets.ADYEN_AUTOMATION_BOT_TEST_ACCESS_TOKEN }}
+          path: Developer
+
+      - name: Make the folder for dev module
+        run: docker exec -u www-data magento2-container mkdir -p /var/www/html/app/code/Adyen
+
+      - name: Copy dev module into Docker container
+        run: docker cp ./Developer magento2-container:/var/www/html/app/code/Adyen
+
+      - name: Change ownership of developer module folder
+        run: docker exec magento2-container chown -R www-data:www-data /var/www/html/app/code/Adyen/Developer
+
+      - name: Enable developer module
+        run: docker exec -u www-data magento2-container make dev-module
+      
+      - name: Kill Cron Jobs
+        run: docker exec magento2-container /etc/init.d/cron stop
+
       - name: Install Express module
-        run: docker exec -u www-data magento2-container composer require adyen/adyen-magento2-expresscheckout
+        run: docker exec -u www-data magento2-container composer require adyen/adyen-magento2-expresscheckout:dev-rc-v2
 
       - name: Enable Express module
         run: docker exec -u www-data magento2-container make enable-express
