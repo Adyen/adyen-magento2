@@ -33,11 +33,12 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
+use Magento\Csp\Api\CspAwareActionInterface;
 
 /**
  * Class Json extends Action
  */
-class Json extends Action
+class Json extends Action implements CspAwareActionInterface
 {
     /**
      * @var NotificationFactory
@@ -206,6 +207,14 @@ class Json extends Action
         } catch (Exception $e) {
             throw new LocalizedException(__($e->getMessage()));
         }
+    }
+
+    /**
+     * Remove CSP policies, as not needed in API routes
+     */
+    public function modifyCsp(array $appliedPolicies): array
+    {
+       return [];
     }
 
     /**
