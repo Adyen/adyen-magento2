@@ -44,18 +44,6 @@ $_isDemoMode = $block->isDemoMode();
     <div><?= $block->escapeHtml(__('Payment Method: %1', $_brandCode)); ?></div>
 <?php endif; ?>
 
-<?php if ($_info->getAdditionalInformation('firstname') != ""): ?>
-    <div>
-        <?= $block->escapeHtml(__('Firstname: %1', $_info->getAdditionalInformation('firstname'))); ?>
-    </div>
-<?php endif; ?>
-
-<?php if ($_info->getAdditionalInformation('lastname') != ""): ?>
-    <div>
-        <?= $block->escapeHtml(__('Lastname: %1', $_info->getAdditionalInformation('lastname'))); ?>
-    </div>
-<?php endif; ?>
-
 <?php if (!empty($block->getPaymentActionData('expiresAt'))): ?>
     <div>
         <?= $block->escapeHtml(__('Expiration Date: %1', $block->getPaymentActionData('expiresAt'))); ?>
