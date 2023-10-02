@@ -169,17 +169,6 @@ class CheckoutDataBuilder implements BuilderInterface
         }
 
         if ($payment->getMethod() == 'adyen_boleto') {
-//            $boletoTypes = $this->configHelper->getAdyenBoletoConfigData('boletotypes');
-//            $boletoTypes = explode(',', (string) $boletoTypes);
-//
-//            if (count($boletoTypes) == 1) {
-//                $requestBody['selectedBrand'] = $boletoTypes[0];
-//                //$requestBodyPaymentMethod['type'] = $boletoTypes[0];
-//            } else {
-//                $requestBody['selectedBrand'] = $payment->getAdditionalInformation("boleto_type");
-//                //$requestBodyPaymentMethod['type'] = $payment->getAdditionalInformation("boleto_type");
-//            }
-
             $deliveryDays = (int)$this->configHelper->getAdyenBoletoConfigData("delivery_days", $storeId);
             $deliveryDays = (!empty($deliveryDays)) ? $deliveryDays : 5;
             $deliveryDate = date(

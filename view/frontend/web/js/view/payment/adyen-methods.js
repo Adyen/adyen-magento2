@@ -42,7 +42,6 @@ define(
                 component: customMethodRenderers[index]
             });
         });
-debugger;
         /** Add view logic here if needed */
         return Component.extend({
             initialize: function () {

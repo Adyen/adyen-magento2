@@ -24,7 +24,6 @@ define(
             buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo) {
                 let baseComponentConfiguration = this._super();
                 let formattedBillingAddress = {};
-debugger;
                 if (!!quote.billingAddress()) {
                     formattedBillingAddress = this.getFormattedAddress(quote.billingAddress());
                     baseComponentConfiguration.data.firstName = formattedBillingAddress.firstName;
