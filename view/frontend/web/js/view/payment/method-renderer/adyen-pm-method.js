@@ -270,9 +270,6 @@ define(
                         'method': this.item.method
                     };
 
-                    console.log(this.paymentMethod().type);
-                    // check the value of this.paymentMethod() .type or ()()
-
                     let additionalData = {};
                     additionalData.brand_code = this.paymentMethod().type;
 
