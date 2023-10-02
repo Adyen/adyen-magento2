@@ -271,7 +271,6 @@ define(
                         'method': this.item.method
                     };
 
-                    debugger
                     console.log(this.paymentMethod().type);
                     // check the value of this.paymentMethod() .type or ()()
 
