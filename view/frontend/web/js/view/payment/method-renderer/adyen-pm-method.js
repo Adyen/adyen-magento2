@@ -81,7 +81,7 @@ define(
             createCheckoutComponent: async function(paymentMethodsResponse) {
                 // Set to null by default and modify depending on the paymentMethods response
                 this.adyenPaymentMethod(null);
-
+                console.log("In debug mode");
                 if (this.checkBrowserCompatibility() && !!paymentMethodsResponse.paymentMethodsResponse) {
                     this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
                         paymentMethodsResponse,
@@ -190,7 +190,6 @@ define(
             buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo) {
                 let self = this;
                 let showPayButton = false;
-
                 let formattedShippingAddress = {};
                 let formattedBillingAddress = {};
 
@@ -271,6 +270,10 @@ define(
                     let data = {
                         'method': this.item.method
                     };
+
+                    debugger
+                    console.log(this.paymentMethod().type);
+                    // check the value of this.paymentMethod() .type or ()()
 
                     let additionalData = {};
                     additionalData.brand_code = this.paymentMethod().type;

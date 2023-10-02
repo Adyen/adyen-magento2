@@ -671,24 +671,6 @@ class Data extends AbstractHelper
         return $composerJson['version'];
     }
 
-    public function getBoletoTypes()
-    {
-        return [
-            [
-                'value' => 'boletobancario_itau',
-                'label' => __('boletobancario_itau'),
-            ],
-            [
-                'value' => 'boletobancario_santander',
-                'label' => __('boletobancario_santander'),
-            ],
-            [
-                'value' => 'primeiropay_boleto',
-                'label' => __('primeiropay_boleto'),
-            ]
-        ];
-    }
-
     /**
      * @param $paymentMethod
      * @return bool

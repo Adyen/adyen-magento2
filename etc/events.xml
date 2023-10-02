@@ -51,7 +51,7 @@
         <observer name="adyen_pos_cloud_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPosCloudDataAssignObserver" />
     </event>
     <event name="payment_method_assign_data_adyen_boleto">
-        <observer name="adyen_boleto_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenBoletoDataAssignObserver" />
+        <observer name="adyen_boleto_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
     <event name="sales_model_service_quote_submit_before">
         <observer name="adyen_sales_order_charged_currency" instance="Adyen\Payment\Observer\AdyenSalesOrderChargedCurrencyObserver" />

@@ -15,7 +15,6 @@ use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\StateData;
-use Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
@@ -25,13 +24,14 @@ use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
 
 class CheckoutDataBuilder implements BuilderInterface
 {
     const ORDER_EMAIL_REQUIRED_METHODS = [
         AdyenPayByLinkConfigProvider::CODE,
-        AdyenBoletoConfigProvider::CODE
+        'adyen_boleto'
     ];
 
     /**
@@ -168,17 +168,17 @@ class CheckoutDataBuilder implements BuilderInterface
             $requestBody['shopperName']['lastName'] = $payment->getAdditionalInformation("lastname");
         }
 
-        if ($payment->getMethod() == AdyenBoletoConfigProvider::CODE) {
-            $boletoTypes = $this->configHelper->getAdyenBoletoConfigData('boletotypes');
-            $boletoTypes = explode(',', (string) $boletoTypes);
-
-            if (count($boletoTypes) == 1) {
-                $requestBody['selectedBrand'] = $boletoTypes[0];
-                $requestBodyPaymentMethod['type'] = $boletoTypes[0];
-            } else {
-                $requestBody['selectedBrand'] = $payment->getAdditionalInformation("boleto_type");
-                $requestBodyPaymentMethod['type'] = $payment->getAdditionalInformation("boleto_type");
-            }
+        if ($payment->getMethod() == 'adyen_boleto') {
+//            $boletoTypes = $this->configHelper->getAdyenBoletoConfigData('boletotypes');
+//            $boletoTypes = explode(',', (string) $boletoTypes);
+//
+//            if (count($boletoTypes) == 1) {
+//                $requestBody['selectedBrand'] = $boletoTypes[0];
+//                //$requestBodyPaymentMethod['type'] = $boletoTypes[0];
+//            } else {
+//                $requestBody['selectedBrand'] = $payment->getAdditionalInformation("boleto_type");
+//                //$requestBodyPaymentMethod['type'] = $payment->getAdditionalInformation("boleto_type");
+//            }
 
             $deliveryDays = (int)$this->configHelper->getAdyenBoletoConfigData("delivery_days", $storeId);
             $deliveryDays = (!empty($deliveryDays)) ? $deliveryDays : 5;
@@ -281,7 +281,7 @@ class CheckoutDataBuilder implements BuilderInterface
             'lineItems' => []
         ];
 
-        /** @var \Magento\Quote\Model\Quote $cart */
+        /** @var Quote $cart */
         $cart = $this->cartRepository->get($order->getQuoteId());
         $amountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order);
         $currency = $amountCurrency->getCurrencyCode();

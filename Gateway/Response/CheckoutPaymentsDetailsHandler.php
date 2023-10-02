@@ -12,7 +12,6 @@
 namespace Adyen\Payment\Gateway\Response;
 
 use Adyen\Payment\Helper\Data;
-use Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 use Magento\Sales\Model\Order\Payment;
@@ -44,7 +43,7 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
 
         // Email sending is set at CheckoutDataBuilder for Boleto
         // Otherwise, we don't want to send a confirmation email
-        if ($payment->getMethod() != AdyenBoletoConfigProvider::CODE) {
+        if ($payment->getMethod() != 'adyen_boleto') {
             $payment->getOrder()->setCanSendNewEmailFlag(false);
         }
 

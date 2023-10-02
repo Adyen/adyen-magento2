@@ -44,20 +44,6 @@ $_isDemoMode = $block->isDemoMode();
     <div><?= $block->escapeHtml(__('Payment Method: %1', $_brandCode)); ?></div>
 <?php endif; ?>
 
-<?php if ($_info->getAdditionalInformation('social_security_number') != ""): ?>
-    <div>
-        <?= $block->escapeHtml(
-            __('Social Security Number: %1', $_info->getAdditionalInformation('social_security_number'))
-        ); ?>
-    </div>
-<?php endif; ?>
-
-<?php if ($_info->getAdditionalInformation('boleto_type') != ""): ?>
-    <div>
-        <?= $block->escapeHtml(__('Boleto Type: %1', $_info->getAdditionalInformation('boleto_type'))); ?>
-    </div>
-<?php endif; ?>
-
 <?php if ($_info->getAdditionalInformation('firstname') != ""): ?>
     <div>
         <?= $block->escapeHtml(__('Firstname: %1', $_info->getAdditionalInformation('firstname'))); ?>
