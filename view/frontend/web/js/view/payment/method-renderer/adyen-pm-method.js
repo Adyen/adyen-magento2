@@ -81,7 +81,6 @@ define(
             createCheckoutComponent: async function(paymentMethodsResponse) {
                 // Set to null by default and modify depending on the paymentMethods response
                 this.adyenPaymentMethod(null);
-                console.log("In debug mode");
                 if (this.checkBrowserCompatibility() && !!paymentMethodsResponse.paymentMethodsResponse) {
                     this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
                         paymentMethodsResponse,
