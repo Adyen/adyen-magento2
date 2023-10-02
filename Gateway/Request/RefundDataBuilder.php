@@ -75,7 +75,6 @@ class RefundDataBuilder implements BuilderInterface
         //Get Merchant Account
         $storeId = $order ->getStoreId();
         $method = $payment->getMethod();
-//        $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($method, $storeId);
 
         if (isset($method) && $method === 'adyen_moto') {
             $merchantAccount = $payment->getAdditionalInformation('motoMerchantAccount');

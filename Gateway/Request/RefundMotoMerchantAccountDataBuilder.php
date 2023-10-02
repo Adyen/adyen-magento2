@@ -22,14 +22,11 @@ class RefundMotoMerchantAccountDataBuilder implements BuilderInterface
         /** @var PaymentDataObject $paymentDataObject */
         $paymentDataObject = SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
-//        $merchantAccount = $paymentDataObject->getPayment()->getAdditionalInformation('motoMerchantAccount');
-
 
         $request['body'] = [];
         $request['clientConfig']['motoMerchantAccount'] = $payment->getAdditionalInformation('motoMerchantAccount');
         $request['clientConfig']['storeId'] = $payment->getMethodInstance()->getStore();
         $request['clientConfig']['isMotoTransaction'] = true;
-//        $requestBody[] = ["merchantAccount" => $merchantAccount];z
         return $request;
     }
 }

@@ -17,6 +17,7 @@ use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as OrderPaymentCollectionFactory;
 use Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo as AdyenCreditMemoResourceModel;
 use Adyen\Payment\Helper\Creditmemo as AdyenCreditmemoHelper;
+use Adyen\Payment\Model\Creditmemo as AdyenCreditmemoModel;
 use Exception;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Helper\AbstractHelper;

@@ -1076,7 +1076,7 @@
     <virtualType name="AdyenPaymentMotoAuthorizeRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
         <arguments>
             <argument name="builders" xsi:type="array">
-                <item name="merchantaccount" xsi:type="string">Adyen\Payment\Gateway\Request\MotoClientConfigBuilder</item>
+                <item name="motoconfig" xsi:type="string">Adyen\Payment\Gateway\Request\MotoClientConfigBuilder</item>
                 <item name="customer" xsi:type="string">Adyen\Payment\Gateway\Request\CustomerDataBuilder</item>
                 <item name="customerip" xsi:type="string">Adyen\Payment\Gateway\Request\CustomerIpDataBuilder</item>
                 <item name="address" xsi:type="string">Adyen\Payment\Gateway\Request\AddressDataBuilder</item>
@@ -1258,7 +1258,7 @@
     <virtualType name="AdyenPaymentMotoCaptureRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
         <arguments>
             <argument name="builders" xsi:type="array">
-                <item name="merchantaccount" xsi:type="string">Adyen\Payment\Gateway\Request\MotoClientConfigBuilder</item>
+                <item name="motoconfig" xsi:type="string">Adyen\Payment\Gateway\Request\MotoClientConfigBuilder</item>
                 <item name="capture" xsi:type="string">Adyen\Payment\Gateway\Request\CaptureDataBuilder</item>
             </argument>
         </arguments>
@@ -1290,7 +1290,7 @@
     <virtualType name="AdyenPaymentMotoCancelRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
         <arguments>
             <argument name="builders" xsi:type="array">
-                <item name="merchantaccount" xsi:type="string">Adyen\Payment\Gateway\Request\MotoClientConfigBuilder</item>
+                <item name="motoconfig" xsi:type="string">Adyen\Payment\Gateway\Request\MotoClientConfigBuilder</item>
                 <item name="cancel" xsi:type="string">Adyen\Payment\Gateway\Request\CancelDataBuilder</item>
             </argument>
         </arguments>

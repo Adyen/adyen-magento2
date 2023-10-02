@@ -65,7 +65,6 @@ class TransactionCapture implements ClientInterface
 
         $service = $this->adyenHelper->createAdyenCheckoutService($client);
 
-
         $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
             $request,
                 $headers['idempotencyExtraData'] ?? null

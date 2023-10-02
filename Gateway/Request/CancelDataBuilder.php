@@ -18,7 +18,6 @@ use Adyen\Payment\Model\ResourceModel\Order\Payment;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Config;
 
-
 /**
  * Class CustomerDataBuilder
  */
@@ -27,23 +26,20 @@ class CancelDataBuilder implements BuilderInterface
     /** @var Payment $adyenPaymentResourceModel */
     private $adyenPaymentResourceModel;
 
+    /** @var Config $configHelper */
     private $configHelper;
-
 
     /** @var Data $adyenHelper */
     private $adyenHelper;
-
 
     public function __construct(
         Payment      $adyenPaymentResourceModel,
         Data         $adyenHelper,
         Config $configHelper
-    )
-    {
+    ){
         $this->adyenPaymentResourceModel = $adyenPaymentResourceModel;
         $this->adyenHelper = $adyenHelper;
         $this->configHelper = $configHelper;
-
     }
 
     /**
