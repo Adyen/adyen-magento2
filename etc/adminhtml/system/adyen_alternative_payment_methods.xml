@@ -46,5 +46,10 @@
             <tooltip>This will override the default shopper locale of the Magento store (e.g. nl_NL). Leave empty to let Magento decide.</tooltip>
             <config_path>payment/adyen_hpp/shopper_locale</config_path>
         </field>
+        <field id="delivery_days" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0"><label>Boleto Days for Delivery</label>
+            <tooltip>How many days to be added to the current date for delivery. Only numbers allowed.</tooltip>
+            <frontend_class>validate-number</frontend_class>
+            <config_path>payment/adyen_boleto/delivery_days</config_path>
+        </field>
     </group>
 </include>
