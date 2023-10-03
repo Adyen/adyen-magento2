@@ -16,8 +16,8 @@ define(
     ) {
         return adyenPaymentMethod.extend({
             buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo) {
-                var ratePayId = window.checkoutConfig.payment.adyenHpp.ratePayId;
-                var dfValueRatePay = self.getRatePayDeviceIdentToken();
+                var ratePayId = window.checkoutConfig.payment.adyenPm.ratePayId;
+                var dfValueRatePay = window.checkoutConfig.payment.adyenPm.deviceIdentToken;
 
                 window.di = {
                     t: dfValueRatePay.replace(':', ''),
