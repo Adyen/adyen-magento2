@@ -51,7 +51,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentHppVaultFacade" type="Adyen\Payment\Model\Method\PaymentMethodVault">
         <arguments>
-            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenPmConfigProvider::PM_VAULT_CODE</argument>
+            <argument name="code" xsi:type="string">adyen_pm_vault</argument>
             <argument name="config" xsi:type="object">AdyenPaymentHppVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentHppVaultPaymentValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentHppFacade</argument>
@@ -69,7 +69,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentHppFacade" type="Adyen\Payment\Model\Method\Adapter">
         <arguments>
-            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenPmConfigProvider::CODE</argument>
+            <argument name="code" xsi:type="string">adyen_pm</argument>
             <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
             <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\PaymentMethodInfo</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentPmValueHandlerPool</argument>
@@ -738,7 +738,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentHppVaultConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
-            <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenPmConfigProvider::PM_VAULT_CODE</argument>
+            <argument name="methodCode" xsi:type="string">adyen_pm_vault</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentOneclickConfig" type="Magento\Payment\Gateway\Config\Config">
@@ -748,7 +748,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentPmConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
-            <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenPmConfigProvider::CODE</argument>
+            <argument name="methodCode" xsi:type="string">adyen_pm</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentBoletoConfig" type="Magento\Payment\Gateway\Config\Config">

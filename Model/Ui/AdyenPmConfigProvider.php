@@ -99,9 +99,6 @@ class AdyenPmConfigProvider implements ConfigProviderInterface
         $this->configHelper = $configHelper;
     }
 
-    const PM_VAULT_CODE = 'adyen_pm_vault';
-    const CODE = 'adyen_pm';
-
     public function getConfig()
     {
         $storeId = $this->storeManager->getStore()->getId();
@@ -109,8 +106,8 @@ class AdyenPmConfigProvider implements ConfigProviderInterface
         // set to active
         $config = [
             'payment' => [
-                self::CODE => [
-                    'vaultCode' => self::PM_VAULT_CODE,
+                'adyen_pm' => [
+                    'vaultCode' => 'adyen_pm_vault',
                     'isActive' => true,
                     'successPage' => $this->urlBuilder->getUrl(
                         'checkout/onepage/success',
