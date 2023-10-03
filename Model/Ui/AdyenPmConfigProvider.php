@@ -16,10 +16,8 @@ use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Payment\Helper\Data as PaymentHelper;
 use Magento\Directory\Helper\Data;
 
-class AdyenHppConfigProvider implements ConfigProviderInterface
+class AdyenPmConfigProvider implements ConfigProviderInterface
 {
-    const CODE = 'adyen_hpp';
-    const HPP_VAULT_CODE = 'adyen_hpp_vault';
 
     /**
      * @var PaymentHelper
@@ -101,11 +99,9 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         $this->configHelper = $configHelper;
     }
 
-    /**
-     * Set configuration for AdyenHPP payment method
-     *
-     * @return array
-     */
+    const PM_VAULT_CODE = 'adyen_pm_vault';
+    const CODE = 'adyen_pm';
+
     public function getConfig()
     {
         $storeId = $this->storeManager->getStore()->getId();
@@ -114,7 +110,7 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         $config = [
             'payment' => [
                 self::CODE => [
-                    'vaultCode' => self::HPP_VAULT_CODE,
+                    'vaultCode' => self::PM_VAULT_CODE,
                     'isActive' => true,
                     'successPage' => $this->urlBuilder->getUrl(
                         'checkout/onepage/success',
@@ -125,7 +121,6 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         ];
 
         $genderConfig = "";
-        $dob = "";
 
         // get customer
         if ($this->customerSession->isLoggedIn()) {
@@ -141,24 +136,17 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
             }
         }
 
-        $adyenHppConfig['locale'] = $this->adyenHelper->getCurrentLocaleCode(
+        $adyenPmConfig['locale'] = $this->adyenHelper->getCurrentLocaleCode(
             $storeId
         );
 
-        // add to config
-        $adyenHppConfig['gender'] = $genderConfig;
-        $adyenHppConfig['dob'] = $dob;
+        $adyenPmConfig['gender'] = $genderConfig;
+        $adyenPmConfig['genderTypes'] =  $this->gender->getGenderTypes();
 
-        // gender types
-        $adyenHppConfig['genderTypes'] =  $this->gender->getGenderTypes();
+        $adyenPmConfig['ratePayId'] = $this->configHelper->getRatePayId($storeId);
+        $adyenPmConfig['deviceIdentToken'] = hash("sha256", $this->session->getQuoteId() . date('c'));
 
-        $adyenHppConfig['ratePayId'] = $this->configHelper->getRatePayId($storeId);
-        $adyenHppConfig['deviceIdentToken'] = hash("sha256", $this->session->getQuoteId() . date('c'));
-        $adyenHppConfig['nordicCountries'] = ['SE', 'NO', 'DK', 'FI'];
-
-        $adyenHppConfig['methodCode'] = self::CODE;
-
-        $config['payment']['adyenHpp'] = $adyenHppConfig;
+        $config['payment']['adyenPm'] = $adyenPmConfig;
         return $config;
     }
 
