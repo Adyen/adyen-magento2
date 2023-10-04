@@ -190,7 +190,7 @@
     <virtualType name="AdyenPaymentBoletoFacade" type="Magento\Payment\Model\Method\Adapter">
         <arguments>
             <argument name="code" xsi:type="string">adyen_boleto</argument>
-            <argument name="formBlockType" xsi:type="string">Adyen\Payment\Block\Form\Boleto</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
             <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\Boleto</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentBoletoValueHandlerPool</argument>
             <argument name="validatorPool" xsi:type="object">AdyenPaymentBoletoValidatorPool</argument>
