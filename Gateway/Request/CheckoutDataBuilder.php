@@ -29,9 +29,10 @@ use Magento\Sales\Model\Order;
 
 class CheckoutDataBuilder implements BuilderInterface
 {
+    const ADYEN_BOLETO = 'adyen_boleto';
     const ORDER_EMAIL_REQUIRED_METHODS = [
         AdyenPayByLinkConfigProvider::CODE,
-        'adyen_boleto'
+        self::ADYEN_BOLETO
     ];
 
     /**
@@ -168,7 +169,7 @@ class CheckoutDataBuilder implements BuilderInterface
             $requestBody['shopperName']['lastName'] = $payment->getAdditionalInformation("lastname");
         }
 
-        if ($payment->getMethod() == 'adyen_boleto') {
+        if ($payment->getMethod() == self::ADYEN_BOLETO) {
             $deliveryDays = (int)$this->configHelper->getAdyenBoletoConfigData("delivery_days", $storeId);
             $deliveryDays = (!empty($deliveryDays)) ? $deliveryDays : 5;
             $deliveryDate = date(

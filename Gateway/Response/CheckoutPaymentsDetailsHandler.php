@@ -20,6 +20,7 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
 {
     /** @var Data  */
     protected $adyenHelper;
+    const ADYEN_BOLETO = 'adyen_boleto';
 
     public function __construct(
         Data $adyenHelper
@@ -43,7 +44,7 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
 
         // Email sending is set at CheckoutDataBuilder for Boleto
         // Otherwise, we don't want to send a confirmation email
-        if ($payment->getMethod() != 'adyen_boleto') {
+        if ($payment->getMethod() != self::ADYEN_BOLETO) {
             $payment->getOrder()->setCanSendNewEmailFlag(false);
         }
 
