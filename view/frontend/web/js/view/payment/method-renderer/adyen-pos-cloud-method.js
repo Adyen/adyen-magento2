@@ -114,11 +114,11 @@ define(
                 let connectedTerminals = [];
                 let connectedTerminalsList = adyenPaymentService.getConnectedTerminals();
 
-                for (let i = 0; i < connectedTerminalsList().length; i++) {
+                for (let terminal of connectedTerminalsList()) {
                     connectedTerminals.push(
                         {
-                            key: connectedTerminalsList()[i],
-                            value: connectedTerminalsList()[i]
+                            key: terminal,
+                            terminal
                         }
                     );
                 }

@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Gateway\Request;
 
 use Magento\Framework\App\RequestInterface;
+use Magento\Payment\Gateway\Http\ClientException;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
 class AdminOrderOneclickCheckoutDataBuilder implements BuilderInterface
@@ -37,10 +38,15 @@ class AdminOrderOneclickCheckoutDataBuilder implements BuilderInterface
      *
      * @param array $buildSubject
      * @return array
+     * @throws ClientException
      */
     public function build(array $buildSubject)
     {
         $paymentFormFields = $this->request->getParam('payment');
+
+        if (empty($paymentFormFields['recurring_detail_reference'])) {
+            throw new ClientException(__('Please select one of the stored payment methods to continue'));
+        }
 
         $requestBody = array(
             'paymentMethod' => array(

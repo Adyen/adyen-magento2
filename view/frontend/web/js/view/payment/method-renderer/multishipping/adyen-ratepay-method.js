@@ -16,8 +16,8 @@ define(
     ) {
         return adyenPaymentMethod.extend({
             buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo) {
-                var ratePayId = window.checkoutConfig.payment.adyenPm.ratePayId;
-                var dfValueRatePay = window.checkoutConfig.payment.adyenPm.deviceIdentToken;
+                let ratePayId = window.checkoutConfig.payment.adyenPm.ratePayId;
+                let dfValueRatePay = window.checkoutConfig.payment.adyenPm.deviceIdentToken;
 
                 window.di = {
                     t: dfValueRatePay.replace(':', ''),
@@ -26,12 +26,12 @@ define(
                 };
 
                 // Load Ratepay script
-                var ratepayScriptTag = document.createElement('script');
+                let ratepayScriptTag = document.createElement('script');
                 ratepayScriptTag.src = '//d.ratepay.com/' + ratePayId + '/di.js';
                 ratepayScriptTag.type = 'text/javascript';
                 document.body.appendChild(ratepayScriptTag);
 
-                return baseComponentConfiguration = this._super();
+                return this._super();
             }
         })
     }

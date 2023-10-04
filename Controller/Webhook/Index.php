@@ -263,7 +263,7 @@ class Index extends Action
         }
 
         // Validate the Hmac calculation
-        $hasHmacCheck = $this->configHelper->getNotificationsHmacKey() && 
+        $hasHmacCheck = $this->configHelper->getNotificationsHmacKey() &&
             $this->hmacSignature->isHmacSupportedEventCode($response);
         if ($hasHmacCheck && !$this->notificationReceiver->validateHmac(
             $response,
