@@ -54,7 +54,7 @@ $_isDemoMode = $block->isDemoMode();
     ?>
 
     <div>
-        <table class="edit-order-table" style="text-align:left; margin-top:5px; margin-bottom:0;">
+        <table class="edit-order-table" style="text-align:left; margin-top:5px; margin-bottom:0;" aria-describedby="Payment Details">
             <tbody>
             <?php if (!empty($orderAmountCurrency->getAmount())): ?>
                 <tr>
@@ -106,7 +106,7 @@ $_isDemoMode = $block->isDemoMode();
     ?>
 
     <div>
-        <table class="edit-order-table" style="text-align:left; margin-top:5px; margin-bottom:0;">
+        <table class="edit-order-table" style="text-align:left; margin-top:5px; margin-bottom:0;" aria-describedby="Multibanco Details">
             <tbody>
             <?php if (!empty($multibancoData['comprafacil.entity'])): ?>
                 <tr>
@@ -150,7 +150,7 @@ $_isDemoMode = $block->isDemoMode();
 
 <?php if ($block->getPartialPayments()): ?>
     <p style="margin-top: 10px"><b>Partial Payments</b></p>
-    <table class="edit-order-table" style="text-align:left; margin-top:5px; margin-bottom:0;">
+    <table class="edit-order-table" style="text-align:left; margin-top:5px; margin-bottom:0; " aria-describedby="Partial Payments">
         <tr>
             <th scope="col">PspReference</th>
             <th scope="col">Payment Method</th>
@@ -181,7 +181,7 @@ $_isDemoMode = $block->isDemoMode();
 <?php endif; ?>
 
 <?php if ($_specificInfo = $block->getSpecificInformation()): ?>
-    <table class="data-table admin__table-secondary">
+    <table class="data-table admin__table-secondary" aria-describedby="Specific Information">
         <?php foreach ($_specificInfo as $_label => $_value): ?>
             <tr>
                 <th scope="row"><?= $block->escapeHtml($_label) ?>:</th>
