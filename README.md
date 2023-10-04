@@ -2,7 +2,7 @@
 Use Adyen's plugin for Magento 2 to offer frictionless payments online, in-app, and in-store.
 
 ## Integration
-The plugin integrates card component (Secured Fields) using Adyen Checkout for all card payments. For Point Of Sale (POS) payments we use Terminal API using Cloud-based communication. Boleto and SEPA are a direct API integration into Adyen.
+The plugin integrates card component (Secured Fields) using Adyen Checkout for all card payments. For Point Of Sale (POS) payments we use Terminal API using Cloud-based communication.
 
 ### Support Vault and Instant Purchase ###
 Inside Adyen toggle the following settings on inside the API and Responses section (Settings -> API and Responses):
@@ -13,8 +13,7 @@ Inside Adyen toggle the following settings on inside the API and Responses secti
 * Variant
 
 ## Requirements
-This plugin supports Magento2 version
-* 2.4 and higher
+This plugin supports Magento 2 version 2.4.4 and higher.
 
 ## Releases
 
@@ -26,7 +25,7 @@ This plugin supports Magento2 version
 ## Support & Maintenance
 
 We provide three levels of support:
-1. **Level 1 (12 months)**: full support (including new features) *Keep in mind that some new features are not possible on older versions, therefore this is not inclusive of ALL new features that are built.* 
+1. **Level 1 (12 months)**: full support (including new features) *Keep in mind that some new features are not possible on older versions, therefore this is not inclusive of ALL new features that are built.*
 2. **Level 2 (12 months - 18 months)**: high priority bugs / security only.
 3. **Level 3 (18 months - 24 months)**: security updates only (no support from support team).
 
@@ -34,10 +33,10 @@ We provide three levels of support:
 
 The schedule for the current maintained branches is:
 
-|  Plugin Major Version   |  Release Date  |  Level 1 Support ends   |  Level 2 Support ends   |  Level 3 Support ends  |
-|  :-----          |  :-----          |  :-----          |  :-----          |  :-----          |
-|  Version 8 |  November 2021 |  March 2023 |  September 2023 | March 2024 |
-|  Version 9 |  September 2023 |  September 2024 |  March 2025 |  September 2025 |
+|  Plugin Major Version   | Release Date  |  Level 1 Support ends   | Level 2 Support ends |  Level 3 Support ends  |
+|  :-----          |:--------------|  :-----          |:---------------------|  :-----          |
+|  Version 8 | November 2021 |  March 2023 | September 2023       | March 2024 |
+|  Version 9 | October 2023  |  October 2024 | April 2025           |  October 2025 |
 
 Or, visualised as a calendar:
 
@@ -73,7 +72,7 @@ bin/magento setup:upgrade
 ```
 For more information see our [installation section](https://docs.adyen.com/developers/plugins/magento-2/set-up-the-plugin-in-magento?redirect#step1installtheplugin).
 
- ## Documentation
+## Documentation
 [Magento 2 documentation](https://docs.adyen.com/developers/plugins/magento-2)
 
 
