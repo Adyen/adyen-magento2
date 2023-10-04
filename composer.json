@@ -12,17 +12,17 @@
   ],
   "require": {
     "php": ">=8.1",
-    "adyen/php-api-library": "^15.0.0",
-    "adyen/php-webhook-module": "^0.7.0",
-    "magento/framework": ">=101.0.8 <102 || >=102.0.1",
-    "magento/module-vault": "101.*",
-    "magento/module-multishipping": ">=100.3.7",
+    "adyen/php-api-library": "^15.4.0",
+    "adyen/php-webhook-module": "^0.8.0",
+    "magento/framework": ">=103.0.4",
+    "magento/module-vault": ">=101.2.4",
+    "magento/module-multishipping": ">=100.4.4",
     "ext-json": "*"
   },
   "require-dev": {
-    "phpunit/phpunit": "^9",
+    "phpunit/phpunit": "~9.5.0",
     "magento/magento-coding-standard": "*",
-    "squizlabs/php_codesniffer": "~3.5.3"
+    "squizlabs/php_codesniffer": "~3.6.0"
   },
   "autoload": {
     "files": [
