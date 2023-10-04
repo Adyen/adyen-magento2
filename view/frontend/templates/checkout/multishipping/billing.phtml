@@ -12,8 +12,9 @@
 
 /**
  * @extends Magento_Multishipping::checkout/billing.phtml
- * @var \Magento\Multishipping\Block\Checkout\Billing $block
+ * @var Adyen\Payment\Block\Checkout\Multishipping\Billing $block
  */
+
 ?>
 <div id="checkout-loader" data-role="checkout-loader" class="loading-mask" data-mage-init='{"billingLoader": {}}'>
     <div class="loader">
@@ -206,29 +207,14 @@
 <!-- Adyen plugin customization -->
 <script>
     require([
-        'Adyen_Payment/js/model/adyen-payment-service',
-        'Magento_Checkout/js/model/full-screen-loader',
-        'Magento_Customer/js/customer-data'
+        'Adyen_Payment/js/model/adyen-payment-service'
     ], function(
-        adyenPaymentService,
-        fullScreenLoader,
-        // customerData initiates url.setBaseUrl() although it's not being used in this file. Don't remove it!
-        customerData
+        adyenPaymentService
     ) {
-        fullScreenLoader.startLoader();
-        // Retrieve adyen payment methods
-        adyenPaymentService.retrievePaymentMethods().done(function(paymentMethods) {
-            try {
-                paymentMethods = JSON.parse(paymentMethods);
-            } catch(error) {
-                console.log(error);
-                paymentMethods = null;
-            }
-            adyenPaymentService.setPaymentMethods(paymentMethods);
-            fullScreenLoader.stopLoader();
-        }).fail(function() {
-            console.log('Fetching the payment methods failed!');
-        });
+        let adyenPaymentMethods = '<?= $block->getAdyenPaymentMethodsResponse() ?>';
+        let paymentMethods = JSON.parse(adyenPaymentMethods);
+
+        adyenPaymentService.setPaymentMethods(paymentMethods);
     });
 </script>
 <!-- End: Adyen plugin customization -->

@@ -76,7 +76,7 @@ class PaymentMethodsFilterTest extends AbstractAdyenTestCase
           "paymentMethodsExtraDetails": {
             "sepadirectdebit": {
               "icon": {
-                "url": "https://192.168.58.20/static/version1695118335/frontend/Magento/luma/en_US/Adyen_Payment/images/logos/sepadirectdebit.svg",
+                "url": "https://localhost.store/static/version1695118335/frontend/Magento/luma/en_US/Adyen_Payment/images/logos/sepadirectdebit.svg",
                 "width": 77,
                 "height": 50
               },
@@ -91,7 +91,7 @@ class PaymentMethodsFilterTest extends AbstractAdyenTestCase
             },
             "alma": {
               "icon": {
-                "url": "https://192.168.58.20/static/version1695118335/frontend/Magento/luma/en_US/Adyen_Payment/images/logos/alma.svg",
+                "url": "https://localhost.store/static/version1695118335/frontend/Magento/luma/en_US/Adyen_Payment/images/logos/alma.svg",
                 "width": 77,
                 "height": 50
               },
@@ -106,7 +106,7 @@ class PaymentMethodsFilterTest extends AbstractAdyenTestCase
             },
             "paypal": {
               "icon": {
-                "url": "https://192.168.58.20/static/version1695118335/frontend/Magento/luma/en_US/Adyen_Payment/images/logos/paypal.svg",
+                "url": "https://localhost.store/static/version1695118335/frontend/Magento/luma/en_US/Adyen_Payment/images/logos/paypal.svg",
                 "width": 77,
                 "height": 50
               },
@@ -121,7 +121,7 @@ class PaymentMethodsFilterTest extends AbstractAdyenTestCase
             },
             "clearpay": {
               "icon": {
-                "url": "https://192.168.58.20/static/version1695118335/frontend/Magento/luma/en_US/Adyen_Payment/images/logos/clearpay.svg",
+                "url": "https://localhost.store/static/version1695118335/frontend/Magento/luma/en_US/Adyen_Payment/images/logos/clearpay.svg",
                 "width": 77,
                 "height": 50
               },
@@ -136,7 +136,7 @@ class PaymentMethodsFilterTest extends AbstractAdyenTestCase
             },
             "klarna_account": {
               "icon": {
-                "url": "https://192.168.58.20/static/version1695118335/frontend/Magento/luma/en_US/Adyen_Payment/images/logos/klarna_account.svg",
+                "url": "https://localhost.store/static/version1695118335/frontend/Magento/luma/en_US/Adyen_Payment/images/logos/klarna_account.svg",
                 "width": 77,
                 "height": 50
               },
@@ -194,7 +194,7 @@ class PaymentMethodsFilterTest extends AbstractAdyenTestCase
         $assertArray = [];
         foreach ($sortedMagentoPaymentMethods as $paymentMethod) {
             $assertArray[] = $paymentMethod->getCode();
-        };
+        }
 
         $this->assertEquals(self::PAYMENT_METHODS_SORTED, $assertArray);
     }

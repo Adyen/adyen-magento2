@@ -46,12 +46,18 @@ class PaymentPosCloudHandler implements HandlerInterface
         $payment->getOrder()->setCanSendNewEmailFlag(false);
 
 
-        if (!empty($paymentResponse['Response']['AdditionalResponse'])) 
+        if (!empty($paymentResponse['Response']['AdditionalResponse']))
         {
-            $paymentResponseDecoded = json_decode(base64_decode($paymentResponse['Response']['AdditionalResponse']), true);
+            $paymentResponseDecoded = json_decode(
+                base64_decode($paymentResponse['Response']['AdditionalResponse']),
+                true
+            );
             $payment->setAdditionalInformation('additionalData', $paymentResponseDecoded['additionalData']);
 
-            $this->vaultHelper->handlePaymentResponseRecurringDetails($payment->getOrder()->getPayment(), $paymentResponseDecoded);
+            $this->vaultHelper->handlePaymentResponseRecurringDetails(
+                $payment->getOrder()->getPayment(),
+                $paymentResponseDecoded
+            );
 
         }
         // set transaction(status)

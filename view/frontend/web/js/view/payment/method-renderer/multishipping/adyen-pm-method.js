@@ -26,7 +26,7 @@ define([
 
     return Component.extend({
         defaults: {
-            template: 'Adyen_Payment/payment/multishipping/abstract-form'
+            template: 'Adyen_Payment/payment/multishipping/pm-form'
         },
 
         paymentMethodReady: ko.observable(false),
@@ -46,12 +46,15 @@ define([
         },
 
         selectPaymentMethod: function () {
-            $('#stateData').val(JSON.stringify(this.paymentComponent.data));
+            if (!!this.paymentComponent && this.paymentComponent.isValid) {
+                $('#stateData').val(JSON.stringify(this.paymentComponent.data));
+            }
+
             return this._super();
         },
 
         buildComponentConfiguration: function(paymentMethod, paymentMethodsExtraInfo) {
-            return configHelper.buildComponentConfiguration(paymentMethod, paymentMethodsExtraInfo);
+            return configHelper.buildMultishippingComponentConfiguration(paymentMethod, paymentMethodsExtraInfo);
         }
     });
 });

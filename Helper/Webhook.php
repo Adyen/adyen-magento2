@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2022 Adyen N.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -53,13 +53,10 @@ class Webhook
      * @var AdyenLogger
      */
     private $logger;
-
     /** @var OrderHelper */
     private $orderHelper;
-
     /** @var OrderRepository */
     private $orderRepository;
-
     /**
      * @var Data
      */
@@ -80,15 +77,10 @@ class Webhook
      * @var ChargedCurrency
      */
     private $chargedCurrency;
-
     private $boletoPaidAmount;
-
     private $klarnaReservationNumber;
-
     private $ratepayDescriptor;
-
-    /** @var WebhookHandlerFactory */
-    private static $webhookHandlerFactory;
+    private $webhookHandlerFactory;
 
     public function __construct(
         Data $adyenHelper,
@@ -109,7 +101,7 @@ class Webhook
         $this->logger = $logger;
         $this->orderHelper = $orderHelper;
         $this->orderRepository = $orderRepository;
-        self::$webhookHandlerFactory = $webhookHandlerFactory;
+        $this->webhookHandlerFactory = $webhookHandlerFactory;
     }
 
     /**
@@ -187,7 +179,7 @@ class Webhook
 
             $transitionState = $this->getTransitionState($notification, $currentState);
 
-            $webhookHandler = self::$webhookHandlerFactory::create($notification->getEventCode());
+            $webhookHandler = $this->webhookHandlerFactory->create($notification->getEventCode());
             $order = $webhookHandler->handleWebhook($order, $notification, $transitionState);
             $this->orderRepository->save($order);
 
@@ -244,7 +236,6 @@ class Webhook
                     ['pspReference' => $notification->getPspReference()]
                 )
             );
-
             return false;
         } catch (Exception $e) {
             $this->updateNotification($notification, false, false);
@@ -261,7 +252,6 @@ class Webhook
                     ['pspReference' => $notification->getPspReference()]
                 )
             );
-
             return false;
         }
     }
@@ -271,12 +261,6 @@ class Webhook
         return self::WEBHOOK_ORDER_STATE_MAPPING[$orderState] ?? null;
     }
 
-    /**
-     * @param Notification $notification
-     * @param $currentOrderState
-     * @return string
-     * @throws InvalidDataException
-     */
     private function getTransitionState(Notification $notification, $currentOrderState): string
     {
         $webhookNotificationItem = WebhookNotification::createItem([
@@ -290,12 +274,7 @@ class Webhook
         return $processor->process();
     }
 
-    /**
-     * @param Notification $notification
-     * @param $processing
-     * @param $done
-     */
-    private function updateNotification(Notification $notification, $processing, $done)
+    private function updateNotification(Notification $notification, $processing, $done): void
     {
         if ($done) {
             $notification->setDone(true);
@@ -305,13 +284,7 @@ class Webhook
         $notification->save();
     }
 
-    /**
-     * Declare private variables for processing notification
-     *
-     * @param Notification $notification
-     * @return void
-     */
-    private function declareVariables(Notification $notification)
+    private function declareVariables(Notification $notification): void
     {
         $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize(
             $notification->getAdditionalData()
@@ -331,9 +304,6 @@ class Webhook
         }
     }
 
-    /**
-     * @desc order comments or history
-     */
     private function addNotificationDetailsHistoryComment(Order $order, Notification $notification): Order
     {
         $successResult = $notification->isSuccessful() ? 'true' : 'false';
@@ -427,9 +397,6 @@ class Webhook
         return $order;
     }
 
-    /**
-     * @param Notification $notification
-     */
     private function updateAdyenAttributes(Order $order, Notification $notification): Order
     {
         $this->logger->addAdyenNotification(
@@ -464,9 +431,6 @@ class Webhook
         return $order;
     }
 
-    /**
-     * TODO: Move this function or refactor or both
-     */
     private function updateOrderPaymentWithAdyenAttributes(
         Order\Payment $payment,
         Notification $notification,
@@ -528,13 +492,7 @@ class Webhook
         }
     }
 
-    /**
-     * retrieve last 4 digits of card from the reason field
-     *
-     * @param $reason
-     * @return string
-     */
-    private function retrieveLast4DigitsFromReason($reason)
+    private function retrieveLast4DigitsFromReason($reason): string
     {
         $result = "";
 
@@ -547,24 +505,13 @@ class Webhook
         return $result;
     }
 
-    /**
-     * Add/update info on notification processing errors
-     *
-     */
     private function handleNotificationError(Order $order, Notification $notification, string $errorMessage): void
     {
         $this->setNotificationError($notification, $errorMessage);
         $this->addNotificationErrorComment($order, $errorMessage);
     }
 
-    /**
-     * Increases error count and appends error message to notification
-     *
-     * @param Notification $notification
-     * @param string $errorMessage
-     * @return void
-     */
-    private function setNotificationError(Notification $notification, string $errorMessage)
+    private function setNotificationError(Notification $notification, string $errorMessage): void
     {
         $notification->setErrorCount($notification->getErrorCount() + 1);
         $oldMessage = $notification->getErrorMessage();
@@ -586,16 +533,11 @@ class Webhook
         $notification->save();
     }
 
-    /**
-     * Adds a comment to the order history with the notification processing error
-     *
-     */
     private function addNotificationErrorComment(Order $order, string $errorMessage): Order
     {
         $comment = __('The order failed to update: %1', $errorMessage);
         $order->addStatusHistoryComment($comment, $order->getStatus());
         $this->orderRepository->save($order);
-
         return $order;
     }
 }
