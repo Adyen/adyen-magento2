@@ -121,7 +121,6 @@
             <argument name="tokenUiComponentProviders" xsi:type="array">
                 <item name="adyen_cc" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
                 <item name="adyen_googlepay" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
-                <item name="adyen_pm" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
                 <item name="adyen_paypal" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
                 <item name="adyen_klarna" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
                 <item name="adyen_sepadirectdebit" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
