@@ -2,7 +2,7 @@
 Use Adyen's plugin for Magento 2 to offer frictionless payments online, in-app, and in-store.
 
 ## Integration
-The plugin integrates card component (Secured Fields) using Adyen Checkout for all card payments. For Point Of Sale (POS) payments we use Terminal API using Cloud-based communication.
+The plugin integrates card component (Secured Fields) using Adyen Checkout for all card payments. For Point Of Sale (POS) payments we use Terminal API using Cloud-based communication. Boleto and SEPA are a direct API integration into Adyen.
 
 ### Support Vault and Instant Purchase ###
 Inside Adyen toggle the following settings on inside the API and Responses section (Settings -> API and Responses):
@@ -13,7 +13,8 @@ Inside Adyen toggle the following settings on inside the API and Responses secti
 * Variant
 
 ## Requirements
-This plugin supports Magento 2 version 2.4.4 and higher.
+This plugin supports Magento2 version
+* 2.4 and higher
 
 ## Releases
 
@@ -33,10 +34,10 @@ We provide three levels of support:
 
 The schedule for the current maintained branches is:
 
-|  Plugin Major Version   | Release Date  |  Level 1 Support ends   | Level 2 Support ends |  Level 3 Support ends  |
-|  :-----          |:--------------|  :-----          |:---------------------|  :-----          |
-|  Version 8 | November 2021 |  March 2023 | September 2023       | March 2024 |
-|  Version 9 | October 2023  |  October 2024 | April 2025           |  October 2025 |
+|  Plugin Major Version   |  Release Date  |  Level 1 Support ends   |  Level 2 Support ends   |  Level 3 Support ends  |
+|  :-----          |  :-----          |  :-----          |  :-----          |  :-----          |
+|  Version 8 |  November 2021 |  March 2023 |  September 2023 | March 2024 |
+|  Version 9 |  September 2023 |  September 2024 |  March 2025 |  September 2025 |
 
 Or, visualised as a calendar:
 
