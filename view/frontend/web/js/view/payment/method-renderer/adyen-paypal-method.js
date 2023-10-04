@@ -27,6 +27,7 @@ define(
                 let baseComponentConfiguration = this._super();
                 let paypalConfiguration = Object.assign(baseComponentConfiguration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
                 paypalConfiguration.showPayButton = true;
+
                 return paypalConfiguration
             },
             renderActionComponent: function(resultCode, action, component) {
