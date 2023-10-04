@@ -15,7 +15,8 @@ use Adyen\AdyenException;
 use Adyen\Client;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
-use Adyen\Service\Modification;
+use Adyen\Service\Checkout\ModificationsApi;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 
@@ -38,31 +39,35 @@ class TransactionCancel implements ClientInterface
         $headers = $transferObject->getHeaders();
         $clientConfig = $transferObject->getClientConfig();
 
-        //Check if it is a MOTO Transaction
         if(isset($clientConfig['isMotoTransaction']) && $clientConfig['isMotoTransaction'] === true) {
             $client = $this->adyenHelper->initializeAdyenClient(
                 $clientConfig['storeId'],
                 null,
-                $request['merchantAccount']
+                $clientConfig['motoMerchantAccount']
             );
         } else {
             $client = $this->adyenHelper->initializeAdyenClient($transferObject->getClientConfig()['storeId']);
         }
 
-        $service = new Modification($client);
-        $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
-            $request,
-            $headers['idempotencyExtraData'] ?? null
-        );
+        $service = $this->adyenHelper->createAdyenCheckoutService($client);
 
-        $requestOptions['idempotencyKey'] = $idempotencyKey;
+        $response = [];
 
-        $this->adyenHelper
-            ->logRequest($request, Client::API_PAYMENT_VERSION, '/pal/servlet/Payment/{version}/cancel');
-        try {
-            $response = $service->cancel($request, $requestOptions);
-        } catch (AdyenException $e) {
-            $response['error'] = $e->getMessage();
+        foreach ($request as $requests) {
+            $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
+                $requests,
+                $headers['idempotencyExtraData'] ?? null
+            );
+            $requestOptions['idempotencyKey'] = $idempotencyKey;
+            $this->adyenHelper->logRequest($requests, Client::API_CHECKOUT_VERSION, '/cancels');
+            try {
+                $responses = $service->cancels($requests, $requestOptions);
+            } catch (AdyenException $e) {
+                $response['error'] = $e->getMessage();
+            }
+            $this->adyenHelper->logResponse($responses);
+
+            $response = $responses;
         }
         $this->adyenHelper->logResponse($response);
 

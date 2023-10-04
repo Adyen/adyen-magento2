@@ -26,7 +26,10 @@ class TransactionRefund implements ClientInterface
     const REFUND_CURRENCY = 'refund_currency';
     const ORIGINAL_REFERENCE = 'original_reference';
 
-    private Data $adyenHelper;
+    /**
+     * @var Data
+     */
+    private $adyenHelper;
 
     private Idempotency $idempotencyHelper;
 
@@ -44,19 +47,19 @@ class TransactionRefund implements ClientInterface
         $headers = $transferObject->getHeaders();
         $clientConfig = $transferObject->getClientConfig();
 
-        foreach ($requests as $request) {
-            //Check if it is a MOTO Transaction
-            if(isset($clientConfig['isMotoTransaction']) && $clientConfig['isMotoTransaction'] === true) {
-                $client = $this->adyenHelper->initializeAdyenClient(
-                    $clientConfig['storeId'],
-                    null,
-                    $request['merchantAccount']
-                );
-            } else {
-                $client = $this->adyenHelper->initializeAdyenClient($clientConfig['storeId']);
-            }
+        if(isset($clientConfig['isMotoTransaction']) && $clientConfig['isMotoTransaction'] === true) {
+            $client = $this->adyenHelper->initializeAdyenClient(
+                $clientConfig['storeId'],
+                null,
+                $clientConfig['motoMerchantAccount']
+            );
+        } else {
+            $client = $this->adyenHelper->initializeAdyenClient($clientConfig['storeId']);
+        }
 
-            $service = new Modification($client);
+        $service = $this->adyenHelper->createAdyenCheckoutService($client);
+
+        foreach ($requests as $request) {
 
             $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
                 $request,
@@ -66,21 +69,13 @@ class TransactionRefund implements ClientInterface
             $requestOptions['idempotencyKey'] = $idempotencyKey;
 
             $this->adyenHelper
-                ->logRequest($request, Client::API_PAYMENT_VERSION, '/pal/servlet/Payment/{version}/refund');
-            if(isset($clientConfig['isMotoTransaction']) && $clientConfig['isMotoTransaction'] === true) {
+                ->logRequest($request, Client::API_CHECKOUT_VERSION, '/refunds');
                 try {
-                    $response = $service->refund($request);
-                } catch (\Adyen\AdyenException $e) {
-                    $response = ['error' => $e->getMessage()];
-                }
-            } else {
-                try {
-                    $response = $service->refund($request, $requestOptions);
-
+                    $response = $service->refunds($request, $requestOptions);
                     // Add amount original reference and amount information to response
-                    $response[self::REFUND_AMOUNT] = $request['modificationAmount']['value'];
-                    $response[self::REFUND_CURRENCY] = $request['modificationAmount']['currency'];
-                    $response[self::ORIGINAL_REFERENCE] = $request['originalReference'];
+                    $response[self::REFUND_AMOUNT] = $request['amount']['value'];
+                    $response[self::REFUND_CURRENCY] = $request['amount']['currency'];
+                    $response[self::ORIGINAL_REFERENCE] = $request['paymentPspReference'];
                 } catch (AdyenException $e) {
                     $response = ['error' => $e->getMessage()];
                 }
@@ -88,7 +83,6 @@ class TransactionRefund implements ClientInterface
             $this->adyenHelper->logResponse($response);
 
             $responses[] = $response;
-        }
         return $responses;
     }
 }

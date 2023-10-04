@@ -17,6 +17,8 @@ use Adyen\Payment\Model\Api\AdyenOrderPaymentStatus;
 use Adyen\Payment\Model\Api\AdyenPaymentsDetails;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\Serializer\Json;
+use Magento\Quote\Api\Data\CartInterface;
+use Magento\Sales\Api\Data\OrderInterface;
 
 class GetAdyenPaymentStatus
 {
@@ -64,9 +66,17 @@ class GetAdyenPaymentStatus
      * @return array
      * @throws LocalizedException
      */
-    public function getGetAdyenPaymentDetails(string $payload): array
+    public function getGetAdyenPaymentDetails(string $payload, OrderInterface $order, CartInterface $cart): array
     {
-        $adyenPaymentDetails = $this->jsonSerializer->unserialize($this->adyenPaymentDetails->initiate($payload));
+        if ($order->getQuoteId() !== $cart->getId()) {
+            throw new LocalizedException(__('Your QuoteId and CartId do not match'));
+        }
+        $adyenPaymentDetails = $this->jsonSerializer->unserialize(
+            $this->adyenPaymentDetails->initiate(
+                $payload,
+                (string) $order->getEntityId()
+            )
+        );
         return $this->formatResponse($adyenPaymentDetails);
     }
 

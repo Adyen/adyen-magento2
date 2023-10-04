@@ -11,19 +11,19 @@
 
 namespace Adyen\Payment\Plugin;
 
-use Adyen\Payment\Helper\PaymentMethodsFilter;
+use Adyen\Payment\Helper\MagentoPaymentDetails;
 use Magento\Checkout\Api\Data\PaymentDetailsInterface;
 use Magento\Checkout\Model\PaymentDetailsFactory;
 use Magento\Checkout\Model\PaymentInformationManagement as MagentoPaymentInformationManagement;
 
 class PaymentInformationManagement
 {
-    protected PaymentMethodsFilter $paymentMethodsFilter;
+    protected MagentoPaymentDetails $magentoPaymentDetailsHelper;
 
     public function __construct(
-        PaymentMethodsFilter $paymentMethodsFilter
+        MagentoPaymentDetails $magentoPaymentDetailsHelper
     ) {
-        $this->paymentMethodsFilter = $paymentMethodsFilter;
+        $this->magentoPaymentDetailsHelper = $magentoPaymentDetailsHelper;
     }
 
     public function afterGetPaymentInformation(
@@ -31,17 +31,6 @@ class PaymentInformationManagement
         PaymentDetailsInterface $result,
         int $cartId
     ): PaymentDetailsInterface {
-        $magentoPaymentMethods = $result->getPaymentMethods();
-
-        list($magentoPaymentMethods, $adyenPaymentMethodsResponse) =
-            $this->paymentMethodsFilter->sortAndFilterPaymentMethods($magentoPaymentMethods, $cartId);
-
-        $result->setPaymentMethods($magentoPaymentMethods);
-
-        $extensionAttributes = $result->getExtensionAttributes();
-        $extensionAttributes->setAdyenPaymentMethodsResponse($adyenPaymentMethodsResponse);
-        $result->setExtensionAttributes($extensionAttributes);
-
-        return $result;
+        return $this->magentoPaymentDetailsHelper->addAdyenExtensionAttributes($result, $cartId);
     }
 }

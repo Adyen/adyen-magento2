@@ -63,7 +63,7 @@ class PaymentCaptureDetailsHandler implements HandlerInterface
 
             // The capture request will return a capture-received message, but it doesn't mean the capture has been final
             // so the invoice is set to Pending
-            if ($response["response"] === TransactionCapture::CAPTURE_RECEIVED) {
+            if ($response["status"] === TransactionCapture::CAPTURE_RECEIVED) {
                 $this->setInvoiceToPending($payment);
             }
         }
