@@ -45,10 +45,10 @@ class CancelResponseValidator extends AbstractValidator
         $isValid = true;
         $errorMessages = [];
 
-        // The available response codes that the API can return in case of a successful cancellation
-        $expectedResponses = ['[cancelOrRefund-received]', '[cancel-received]'];
+        // The available response code that the API can return in case of a successful cancellation
+        $expectedResponses = ['received'];
 
-        if (empty($response['response']) || !in_array($response['response'], $expectedResponses)) {
+        if (empty($response['status']) || !in_array($response['status'], $expectedResponses)) {
             $errorMsg = __('Error with cancellation');
             $this->adyenLogger->error($errorMsg);
 

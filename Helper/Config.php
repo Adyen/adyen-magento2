@@ -436,7 +436,11 @@ class Config
 
     public function getAutoCaptureOpenInvoice(int $storeId): bool
     {
-        $captureForOpenInvoice = $this->getConfigData('capture_for_openinvoice', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
+        $captureForOpenInvoice = $this->getConfigData(
+            'capture_for_openinvoice',
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId
+        );
         return $captureForOpenInvoice === self::AUTO_CAPTURE_OPENINVOICE;
     }
 
@@ -561,8 +565,12 @@ class Config
         }
     }
 
-    public function setConfigData($value, string $field, string $xmlPrefix, $scope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT): void
-    {
+    public function setConfigData(
+        $value,
+        string $field,
+        string $xmlPrefix,
+        $scope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT
+    ): void {
         $path = implode("/", [self::XML_PAYMENT_PREFIX, $xmlPrefix, $field]);
         $this->configWriter->save($path, $value, $scope);
     }

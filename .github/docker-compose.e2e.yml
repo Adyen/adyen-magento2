@@ -1,7 +1,7 @@
 version: '3'
 services:
   playwright:
-    image: mcr.microsoft.com/playwright:v1.36.1-focal
+    image: mcr.microsoft.com/playwright:v1.36.2-focal
     shm_size: 1gb
     ipc: host
     cap_add:
@@ -18,6 +18,8 @@ services:
       - ADYEN_API_KEY
       - ADYEN_CLIENT_KEY
       - ADYEN_MERCHANT
+      - GOOGLE_USERNAME
+      - GOOGLE_PASSWORD
       - WEBHOOK_USERNAME
       - WEBHOOK_PASSWORD
 
