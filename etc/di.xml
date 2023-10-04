@@ -738,7 +738,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentHppVaultConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
-            <argument name="methodCode" xsi:type="string">adyen_pm_vault</argument>
+            <argument name="methodCode" xsi:type="string">adyen_hpp_vault</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentOneclickConfig" type="Magento\Payment\Gateway\Config\Config">
