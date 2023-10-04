@@ -88,7 +88,10 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
 
         if ($isRecurringEnabled) {
             try {
-                $paymentToken = $this->vaultHelper->createVaultToken($order->getPayment(), $notification->getPspreference());
+                $paymentToken = $this->vaultHelper->createVaultToken(
+                    $order->getPayment(),
+                    $notification->getPspreference()
+                );
                 $extensionAttributes = $this->vaultHelper->getExtensionAttributes($order->getPayment());
                 $extensionAttributes->setVaultPaymentToken($paymentToken);
             } catch (Exception $exception) {

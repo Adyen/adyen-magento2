@@ -24,11 +24,11 @@ define([
                     let adyenPaymentMethodsResponse = result.extension_attributes.adyen_payment_methods_response;
                     let adyenConnectedTerminals = result.extension_attributes.adyen_connected_terminals;
 
-                    if (!!adyenPaymentMethodsResponse) {
+                    if (adyenPaymentMethodsResponse) {
                         adyenPaymentService.setPaymentMethods(JSON.parse(adyenPaymentMethodsResponse));
                     }
 
-                    if (!!adyenConnectedTerminals) {
+                    if (adyenConnectedTerminals) {
                         adyenPaymentService.setConnectedTerminals(adyenConnectedTerminals);
                     }
                 }

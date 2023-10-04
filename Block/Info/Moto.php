@@ -61,9 +61,11 @@ class Moto extends AbstractInfo
 
         if (!empty($pspReference) && !empty($motoMerchantAccount)) {
             try {
-                $motoMerchantAccountProperties = $this->configHelper->getMotoMerchantAccountProperties($motoMerchantAccount, $storeId);
-
-                if ($this->configHelper->isMotoDemoMode($motoMerchantAccountProperties)) {
+                $motoMerchantAccountProperties = $this->configHelper->getMotoMerchantAccountProperties(
+                    $motoMerchantAccount,
+                    $storeId
+                );
+                if ($this->adyenHelper->isMotoDemoMode($motoMerchantAccountProperties)) {
                     $url = 'https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=';
                 }
                 else {
