@@ -116,7 +116,7 @@ class Index extends Action
             $order = $this->order;
             $additionalInformation = $order->getPayment()->getAdditionalInformation();
             $resultCode = isset($response['resultCode']) ? $response['resultCode'] : null;
-            $paymentBrandCode = isset($additionalInformation['brand_code']) ? $additionalInformation['brand_code'] : null;
+            $paymentBrandCode = $additionalInformation['brand_code'] ?? null;
             if ($resultCode === 'cancelled' && $paymentBrandCode === 'svs') {
                 $this->adyenDataHelper->cancelOrder($order);
             }
@@ -129,7 +129,8 @@ class Index extends Action
                 $successPath = $failPath = 'multishipping/checkout/success';
                 $setQuoteAsActive = true;
             } else {
-                $successPath = $this->configHelper->getAdyenAbstractConfigData('custom_success_redirect_path') ?? 'checkout/onepage/success';
+                $successPath = $this->configHelper->getAdyenAbstractConfigData('custom_success_redirect_path') ??
+                    'checkout/onepage/success';
                 $failPath = $this->configHelper->getAdyenAbstractConfigData('return_path');
                 $setQuoteAsActive = false;
             }
@@ -336,7 +337,7 @@ class Index extends Action
 
         // Cleanup state data
         try {
-            $this->stateDataHelper->CleanQuoteStateData($order->getQuoteId(), $authResult);
+            $this->stateDataHelper->cleanQuoteStateData($order->getQuoteId(), $authResult);
         } catch (\Exception $exception) {
             $this->adyenLogger->error(__('Error cleaning the payment state data: %s', $exception->getMessage()));
         }

@@ -117,7 +117,11 @@ class GetAdyenPaymentDetails implements ResolverInterface
         $payload['orderId'] = $order->getId();
 
         try {
-            return $this->getAdyenPaymentStatusDataProvider->getGetAdyenPaymentDetails($this->jsonSerializer->serialize($payload), $order, $cart);
+            return $this->getAdyenPaymentStatusDataProvider->getGetAdyenPaymentDetails(
+                $this->jsonSerializer->serialize($payload),
+                $order,
+                $cart
+            );
         } catch (LocalizedException $e) {
             throw $this->getFormattedException($e, $field, $context, $info);
         } catch (Exception $exception) {
