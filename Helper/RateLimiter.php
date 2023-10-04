@@ -112,6 +112,6 @@ class RateLimiter
     private function calculateNotificationCacheLifetime($numberOfAttempts)
     {
 
-        return max(self::INITIAL_COOLDOWN_PERIOD, pow(self::POWER, $numberOfAttempts));
+        return min(PHP_INT_MAX, max(self::INITIAL_COOLDOWN_PERIOD, pow(self::POWER, $numberOfAttempts)));
     }
 }
