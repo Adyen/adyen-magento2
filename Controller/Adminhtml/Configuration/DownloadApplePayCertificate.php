@@ -68,7 +68,7 @@ class DownloadApplePayCertificate extends Action
         $wellknownPath = $pubPath . '/' . $directoryName;
         $applepayPath = $wellknownPath . '/' . self::FILE_NAME;
 
-        $applepayUrl = self::APPLEPAY_CERTIFICATE_URL
+        $applepayUrl = self::APPLEPAY_CERTIFICATE_URL;
 
         try {
             if ($this->fileIo->checkAndCreateFolder($wellknownPath, 0700)) {
