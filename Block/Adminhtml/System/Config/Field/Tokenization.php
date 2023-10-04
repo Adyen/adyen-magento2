@@ -119,7 +119,12 @@ class Tokenization extends AbstractFieldArray
         }
 
         if ($recurringProcessingModel) {
-            $options['option_' . $this->getRecurringProcessingModelRenderer()->calcOptionHash($recurringProcessingModel)] = 'selected=\"selected\"';
+            $key = sprintf(
+                "option_%s",
+                $this->getRecurringProcessingModelRenderer()->calcOptionHash($recurringProcessingModel)
+            );
+
+            $options[$key] = 'selected=\"selected\"';
         }
 
         $row->setData('option_extra_attrs', $options);

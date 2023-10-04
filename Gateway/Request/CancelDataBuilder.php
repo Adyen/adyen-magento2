@@ -14,12 +14,34 @@ namespace Adyen\Payment\Gateway\Request;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
+use Adyen\Payment\Model\ResourceModel\Order\Payment;
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Config;
 
 /**
  * Class CustomerDataBuilder
  */
 class CancelDataBuilder implements BuilderInterface
 {
+    /** @var Payment $adyenPaymentResourceModel */
+    private $adyenPaymentResourceModel;
+
+    /** @var Config $configHelper */
+    private $configHelper;
+
+    /** @var Data $adyenHelper */
+    private $adyenHelper;
+
+    public function __construct(
+        Payment      $adyenPaymentResourceModel,
+        Data         $adyenHelper,
+        Config $configHelper
+    ){
+        $this->adyenPaymentResourceModel = $adyenPaymentResourceModel;
+        $this->adyenHelper = $adyenHelper;
+        $this->configHelper = $configHelper;
+    }
+
     /**
      * Create cancel_or_refund request
      *
@@ -32,14 +54,32 @@ class CancelDataBuilder implements BuilderInterface
         $paymentDataObject = SubjectReader::readPayment($buildSubject);
         $order = $paymentDataObject->getOrder();
         $payment = $paymentDataObject->getPayment();
-        $pspReference = $payment->getCcTransId();
 
-        $request['body'] = [
-            "reference" => $order->getOrderIncrementId(),
-            "originalReference" => $pspReference
-        ];
+        $storeId = $order->getStoreId();
+        $method = $payment->getMethod();
 
-        $request['clientConfig'] = ["storeId" => $order->getStoreId()];
-        return $request;
+        if (isset($method) && $method === 'adyen_moto') {
+            $merchantAccount = $payment->getAdditionalInformation('motoMerchantAccount');
+        } else {
+            $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($method, $storeId);
+        }
+        $pspReferences = $this->adyenPaymentResourceModel->getLinkedAdyenOrderPayments(
+            $payment->getEntityId()
+        );
+
+        $requests['body'] = [];
+
+        foreach ($pspReferences as $pspReference) {
+            $request = [
+                "paymentPspReference" => $pspReference['pspreference'],
+                "reference" => $order->getOrderIncrementId(),
+                "merchantAccount" => $merchantAccount
+            ];
+
+            $requests['body'][] = $request;
+        }
+        $requests['clientConfig'] = ["storeId" => $order->getStoreId()];
+
+        return $requests;
     }
 }

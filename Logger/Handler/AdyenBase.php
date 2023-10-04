@@ -12,9 +12,32 @@
 namespace Adyen\Payment\Logger\Handler;
 
 use Magento\Framework\Logger\Handler\Base;
+use Monolog\Formatter\LineFormatter;
+use Magento\Framework\Filesystem\DriverInterface;
 
 class AdyenBase extends Base
 {
+    /**
+     * AdyenBase constructor.
+     *
+     * @param DriverInterface $filesystem
+     * @param string|null $filePath
+     * @param string|null $fileName
+     * @param string|null $logFormat
+     */
+    public function __construct(
+        DriverInterface $filesystem,
+        ?string $filePath = null,
+        ?string $fileName = null,
+        ?string $logFormat = null
+    )
+    {
+        parent::__construct($filesystem, $filePath, $fileName);
+
+        if ($logFormat) {
+            $this->setFormatter(new LineFormatter($logFormat));
+        }
+    }
     /**
      * overwrite core it needs to be the exact level otherwise use different handler
      *

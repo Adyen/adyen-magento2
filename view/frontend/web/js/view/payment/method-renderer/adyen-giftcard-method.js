@@ -60,7 +60,7 @@ define(
                 this._super();
                 let self = this;
 
-                var paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
+                let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
                 paymentMethodsObserver.subscribe(
                     function(paymentMethodsResponse) {
                         self.paymentMethodsResponse(paymentMethodsResponse);
@@ -274,7 +274,7 @@ define(
             },
 
             placeOrder: async function(stateData) {
-                var self = this;
+                let self = this;
 
                 let additionalData = {};
 
@@ -303,8 +303,8 @@ define(
             },
 
             validateActionOrPlaceOrder: function(responseJSON, orderId) {
-                var self = this;
-                var response = JSON.parse(responseJSON);
+                let self = this;
+                let response = JSON.parse(responseJSON);
 
                 if (!!response.isFinal) {
                     // Status is final redirect to the success page
