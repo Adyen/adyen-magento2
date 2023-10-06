@@ -13,6 +13,7 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Model\ApplicationInfo;
+use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
 use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
@@ -21,16 +22,16 @@ class PointOfSale
 {
     private Data $dataHelper;
     private ProductMetadataInterface $productMetadata;
-    protected Config $configHelper;
+    private Vault $vaultHelper;
 
     public function __construct(
         Data $dataHelper,
         ProductMetadataInterface $productMetadata,
-        Config $configHelper
+        Vault $vaultHelper
     ) {
         $this->dataHelper = $dataHelper;
         $this->productMetadata = $productMetadata;
-        $this->configHelper = $configHelper;
+        $this->vaultHelper = $vaultHelper;
     }
 
     public function addSaleToAcquirerData(array $request, Order $order) : array
@@ -43,12 +44,19 @@ class PointOfSale
 
         // If customer exists add it into the request to store request
         if (!empty($customerId)) {
-            $recurringContract = $this->configHelper->getAdyenPosCloudConfigData('recurring_type', $storeId);
+            $posRecurringEnabled = $this->vaultHelper->getPaymentMethodRecurringActive(
+                AdyenPosCloudConfigProvider::CODE,
+                $storeId
+            );
+            $recurringProcessingModel = $this->vaultHelper->getPaymentMethodRecurringProcessingModel(
+                AdyenPosCloudConfigProvider::CODE,
+                $storeId
+            );
 
-            if (!empty($recurringContract) && !empty($shopperEmail)) {
+            if (!empty($posRecurringEnabled) && !empty($shopperEmail)) {
                 $saleToAcquirerData['shopperEmail'] = $shopperEmail;
                 $saleToAcquirerData['shopperReference'] = $this->dataHelper->padShopperReference($customerId);
-                $saleToAcquirerData['recurringContract'] = $recurringContract;
+                $saleToAcquirerData['recurringProcessingModel'] = $recurringProcessingModel;
             }
         }
 

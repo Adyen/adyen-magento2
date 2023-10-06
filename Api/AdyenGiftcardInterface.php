@@ -20,8 +20,8 @@ interface AdyenGiftcardInterface
     /**
      * Fetches all the adyen_state_data entities and returns giftcard related objects.
      *
-     * @param string $quoteId
+     * @param int $cartId
      * @return string
      */
-    public function getRedeemedGiftcards(string $quoteId): string;
+    public function getRedeemedGiftcards(int $cartId): string;
 }

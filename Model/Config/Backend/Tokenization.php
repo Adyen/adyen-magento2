@@ -11,7 +11,11 @@
 
 namespace Adyen\Payment\Model\Config\Backend;
 
+use Adyen\Payment\Gateway\Request\PosCloudBuilder;
 use Adyen\Payment\Helper\PaymentMethods;
+use Adyen\Payment\Model\Method\PaymentMethodInterface;
+use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Value;

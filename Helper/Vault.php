@@ -14,6 +14,7 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Model\Method\TxVariant;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
 use DateInterval;
 use DateTime;
 use DateTimeZone;
@@ -202,7 +203,8 @@ class Vault
                 'expirationDate' => $additionalData['expiryDate']
             ];
             $paymentToken->setExpiresAt($this->getExpirationDate($additionalData['expiryDate']));
-        } elseif ($paymentMethodCode == PaymentMethods::ADYEN_CC) {
+        } elseif ($paymentMethodCode === PaymentMethods::ADYEN_CC ||
+            $paymentMethodCode === AdyenPosCloudConfigProvider::CODE) {
             $paymentToken->setType(PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD);
             $details = [
                 'type' => $additionalData[self::PAYMENT_METHOD],
@@ -215,7 +217,12 @@ class Vault
             $today = new DateTime();
             $details = [
                 'type' => $payment->getCcType(),
-                self::TOKEN_LABEL => $paymentMethodInstance->getTitle() . ' token created on ' . $today->format('Y-m-d'),
+                self::TOKEN_LABEL => sprintf(
+                    "%s % %",
+                    $paymentMethodInstance->getTitle(),
+                    __("token created on"),
+                    $today->format('Y-m-d')
+                ),
                 'expirationDate' => $today->add(new DateInterval('P1Y'))
             ];
             $paymentToken->setExpiresAt($today->add(new DateInterval('P1Y')));
@@ -277,7 +284,10 @@ class Vault
 
         if ($this->hasRecurringDetailReference($response) && $isRecurringEnabled) {
             try {
-                $paymentToken = $this->createVaultToken($payment, $response['additionalData'][self::RECURRING_DETAIL_REFERENCE]);
+                $paymentToken = $this->createVaultToken(
+                    $payment,
+                    $response['additionalData'][self::RECURRING_DETAIL_REFERENCE]
+                );
                 $extensionAttributes = $this->getExtensionAttributes($payment);
                 $extensionAttributes->setVaultPaymentToken($paymentToken);
             } catch (Exception $exception) {

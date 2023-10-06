@@ -107,7 +107,6 @@ define(
                                     : undefined,
                                 method: this.getTxVariant()
                             });
-                            this.renderCheckoutComponent();
                         }
                     }
                 }
@@ -144,7 +143,7 @@ define(
 
                 adyenPaymentService.paymentDetails(request, self.orderId).done(function() {
                     $.mage.redirect(
-                        window.checkoutConfig.payment[quote.paymentMethod().method].successPage,
+                        window.checkoutConfig.payment.adyen.successPage
                     );
                 }).fail(function(response) {
                     fullScreenLoader.stopLoader();

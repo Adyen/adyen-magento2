@@ -25,7 +25,7 @@
         <field id="ratepay_id" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>RatePAY Device Ident SId</label>
             <tooltip>Unique RatePAY Id provided by RatePAY integration consultant</tooltip>
-            <config_path>payment/adyen_hpp/ratepay_id</config_path>
+            <config_path>payment/adyen_ratepay/ratepay_id</config_path>
         </field>
         <field id="partial_payments_refund_strategy" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Refund Strategy for giftcard</label>
@@ -45,11 +45,6 @@
             <label>Language locale (optional)</label>
             <tooltip>This will override the default shopper locale of the Magento store (e.g. nl_NL). Leave empty to let Magento decide.</tooltip>
             <config_path>payment/adyen_hpp/shopper_locale</config_path>
-        </field>
-        <field id="cctypes" translate="label" type="multiselect" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
-            <label>Boleto Types</label>
-            <source_model>Adyen\Payment\Model\Config\Source\BoletoType</source_model>
-            <config_path>payment/adyen_boleto/boletotypes</config_path>
         </field>
         <field id="delivery_days" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>Boleto Days for Delivery</label>

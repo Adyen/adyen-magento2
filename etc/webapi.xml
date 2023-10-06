@@ -11,7 +11,6 @@
  */
 -->
 
-
 <routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
 
@@ -30,13 +29,6 @@
         <data>
             <parameter name="cartId" force="true">%cart_id%</parameter>
         </data>
-    </route>
-
-    <route url="/V1/adyen/initiate-terminal" method="POST">
-        <service class="Adyen\Payment\Api\AdyenInitiateTerminalApiInterface" method="initiate"/>
-        <resources>
-            <resource ref="anonymous"/>
-        </resources>
     </route>
 
     <route url="/V1/adyen/guest-carts/:cartId/payments-details" method="POST">
@@ -58,6 +50,9 @@
         <resources>
             <resource ref="self"/>
         </resources>
+        <data>
+            <parameter name="cartId" force="true">%cart_id%</parameter>
+        </data>
     </route>
 
     <route url="/V1/adyen/carts/mine/state-data/:stateDataId" method="DELETE">
@@ -65,12 +60,39 @@
         <resources>
             <resource ref="self"/>
         </resources>
+        <data>
+            <parameter name="cartId" force="true">%cart_id%</parameter>
+        </data>
     </route>
 
-    <route url="/V1/adyen/giftcards/mine/:quoteId" method="GET">
+    <route url="/V1/adyen/guest-carts/:cartId/state-data" method="POST">
+        <service class="Adyen\Payment\Api\GuestAdyenStateDataInterface" method="save"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
+    <route url="/V1/adyen/guest-carts/:cartId/state-data/:stateDataId" method="DELETE">
+        <service class="Adyen\Payment\Api\GuestAdyenStateDataInterface" method="remove"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
+    <route url="/V1/adyen/giftcards/mine" method="GET">
         <service class="Adyen\Payment\Api\AdyenGiftcardInterface" method="getRedeemedGiftcards"/>
         <resources>
             <resource ref="self"/>
+        </resources>
+        <data>
+            <parameter name="cartId" force="true">%cart_id%</parameter>
+        </data>
+    </route>
+
+    <route url="/V1/adyen/giftcards/guest-carts/:cartId" method="GET">
+        <service class="Adyen\Payment\Api\GuestAdyenGiftcardInterface" method="getRedeemedGiftcards"/>
+        <resources>
+            <resource ref="anonymous"/>
         </resources>
     </route>
 
@@ -87,18 +109,18 @@
             <resource ref="anonymous"/>
         </resources>
     </route>
+  
+    <route url="/V1/adyen/donations" method="POST">
+        <service class="Adyen\Payment\Api\AdyenDonationsInterface" method="donate"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
 
     <route url="/V1/adyen/orders/carts/mine/donations" method="POST">
         <service class="Adyen\Payment\Api\AdyenDonationsInterface" method="donate"/>
         <resources>
             <resource ref="self"/>
-        </resources>
-    </route>
-
-    <route url="/V1/adyen/orders/guest-carts/:orderId/donations" method="POST">
-        <service class="Adyen\Payment\Api\GuestAdyenDonationsInterface" method="donate"/>
-        <resources>
-            <resource ref="anonymous"/>
         </resources>
     </route>
 
