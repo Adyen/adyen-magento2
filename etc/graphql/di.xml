@@ -3,7 +3,7 @@
     <type name="Magento\QuoteGraphQl\Model\Cart\Payment\AdditionalDataProviderPool">
         <arguments>
             <argument name="dataProviders" xsi:type="array">
-                <item name="adyen_boleto" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenBoleto</item>
+                <item name="adyen_boleto" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
                 <item name="adyen_cc" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenCc</item>
                 <item name="adyen_pos_cloud" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPosCloud</item>
                 <item name="adyen_amazonpay" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
