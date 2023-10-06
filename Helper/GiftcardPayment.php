@@ -102,7 +102,9 @@ class GiftcardPayment
 
     public function getQuoteGiftcardTotalBalance(int $quoteId): int
     {
-        $stateDataArray = $this->adyenStateData->getStateDataRowsWithQuoteId($quoteId);
+        $stateDataCollection = $this->adyenStateData->getStateDataRowsWithQuoteId($quoteId);
+        $stateDataArray = $stateDataCollection->getData();
+
         $totalBalance = 0;
 
         foreach ($stateDataArray as $stateData) {
