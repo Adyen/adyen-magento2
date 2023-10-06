@@ -71,8 +71,7 @@ class GuestAdyenOrderPaymentStatus implements GuestAdyenOrderPaymentStatusInterf
         return json_encode($this->paymentResponseHandler->formatPaymentResponse(
             $additionalInformation['resultCode'],
             !empty($additionalInformation['action']) ? $additionalInformation['action'] : null,
-            !empty($additionalInformation['additionalData']) ? $additionalInformation['additionalData'] : null,
-            !empty($additionalInformation['donationToken']) ? $additionalInformation['donationToken'] : null
+            !empty($additionalInformation['additionalData']) ? $additionalInformation['additionalData'] : null
         ));
     }
 }
