@@ -50,7 +50,7 @@ class StateData
         $this->adyenLogger = $adyenLogger;
     }
 
-    public function CleanQuoteStateData(int $quoteId, string $resultCode): void
+    public function cleanQuoteStateData(int $quoteId, string $resultCode): void
     {
         if (in_array($resultCode, self::CLEANUP_RESULT_CODES)) {
             $rows = $this->stateDataCollection->getStateDataRowsWithQuoteId($quoteId)->getItems();

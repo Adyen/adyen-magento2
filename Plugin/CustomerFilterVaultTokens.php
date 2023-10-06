@@ -47,10 +47,11 @@ class CustomerFilterVaultTokens
                     $tokenDetails = json_decode((string)$token->getTokenDetails());
                     $storeId = $this->storeManager->getStore()->getId();
                     if ((property_exists($tokenDetails, Vault::TOKEN_TYPE) &&
-                            in_array($tokenDetails->tokenType, [
-                                    Vault::SUBSCRIPTION,
-                                    Vault::UNSCHEDULED_CARD_ON_FILE]
-                            )) || !$this->vaultHelper->getPaymentMethodRecurringActive($token->getPaymentMethodCode(), $storeId)
+                        in_array($tokenDetails->tokenType, [
+                                Vault::SUBSCRIPTION,
+                                Vault::UNSCHEDULED_CARD_ON_FILE]
+                        )) ||
+                        !$this->vaultHelper->getPaymentMethodRecurringActive($token->getPaymentMethodCode(), $storeId)
                     ) {
                         unset($customerSessionTokens[$key]);
                     }

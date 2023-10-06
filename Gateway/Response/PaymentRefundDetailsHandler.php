@@ -11,13 +11,12 @@
 
 namespace Adyen\Payment\Gateway\Response;
 
-use Adyen\Payment\Gateway\Http\Client\TransactionRefund;
+use Adyen\Payment\Gateway\Http\Client\TransactionRefundInterface as TransactionRefund;
 use Adyen\Payment\Helper\Creditmemo;
 use Adyen\Payment\Helper\Data;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Response\HandlerInterface;
-use Adyen\Util\Currency;
 
 class PaymentRefundDetailsHandler implements HandlerInterface
 {

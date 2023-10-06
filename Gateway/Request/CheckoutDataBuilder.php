@@ -15,6 +15,8 @@ use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\StateData;
+use Adyen\Payment\Helper\OpenInvoice;
+use Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
@@ -51,10 +53,6 @@ class CheckoutDataBuilder implements BuilderInterface
     private $chargedCurrency;
 
     /**
-     * @var Image
-     */
-    private $imageHelper;
-    /**
      * @var StateData
      */
     private $stateData;
@@ -62,29 +60,32 @@ class CheckoutDataBuilder implements BuilderInterface
     /** @var Config */
     private $configHelper;
 
+    /** @var OpenInvoice */
+    private $openInvoiceHelper;
+
     /**
      * CheckoutDataBuilder constructor.
      * @param Data $adyenHelper
      * @param StateData $stateData
      * @param CartRepositoryInterface $cartRepository
      * @param ChargedCurrency $chargedCurrency
-     * @param Image $imageHelper
      * @param Config $configHelper
+     * @param OpenInvoice $openInvoiceHelper
      */
     public function __construct(
         Data $adyenHelper,
         StateData $stateData,
         CartRepositoryInterface $cartRepository,
         ChargedCurrency $chargedCurrency,
-        Image $imageHelper,
-        Config $configHelper
+        Config $configHelper,
+        OpenInvoice $openInvoiceHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->stateData = $stateData;
         $this->cartRepository = $cartRepository;
         $this->chargedCurrency = $chargedCurrency;
-        $this->imageHelper = $imageHelper;
         $this->configHelper = $configHelper;
+        $this->openInvoiceHelper = $openInvoiceHelper;
     }
 
     /**
@@ -129,7 +130,8 @@ class CheckoutDataBuilder implements BuilderInterface
             (isset($brandCode) && $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) ||
             $payment->getMethod() === AdyenPayByLinkConfigProvider::CODE
         ) {
-            $openInvoiceFields = $this->getOpenInvoiceData($order);
+
+            $openInvoiceFields = $this->openInvoiceHelper->getOpenInvoiceData($order);
             $requestBody = array_merge($requestBody, $openInvoiceFields);
 
             if (isset($brandCode) &&

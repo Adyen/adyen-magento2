@@ -143,17 +143,6 @@ class Index extends Action
      */
     public function execute()
     {
-        // if version is in the notification string show the module version
-        $response = $this->getRequest()->getParams();
-        if (isset($response['version'])) {
-            $this->getResponse()
-                ->clearHeader('Content-Type')
-                ->setHeader('Content-Type', 'text/html')
-                ->setBody($this->adyenHelper->getModuleVersion());
-
-            return;
-        }
-
         // Read JSON encoded notification body
         $notificationItems = json_decode((string) $this->getRequest()->getContent(), true);
 
@@ -274,7 +263,7 @@ class Index extends Action
         }
 
         // Validate the Hmac calculation
-        $hasHmacCheck = $this->configHelper->getNotificationsHmacKey() && 
+        $hasHmacCheck = $this->configHelper->getNotificationsHmacKey() &&
             $this->hmacSignature->isHmacSupportedEventCode($response);
         if ($hasHmacCheck && !$this->notificationReceiver->validateHmac(
             $response,

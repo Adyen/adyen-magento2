@@ -14,13 +14,13 @@ namespace Adyen\Payment\Helper;
 use Adyen\AdyenException;
 use Adyen\Client;
 use Adyen\Environment;
+use Adyen\Service\Checkout;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Config\Source\RenderMode;
 use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
-use Adyen\Service\Checkout;
 use Adyen\Service\CheckoutUtility;
 use Adyen\Service\PosPayment;
 use Adyen\Service\Recurring;
@@ -352,6 +352,10 @@ class Data extends AbstractHelper
      */
     public function formatAmount($amount, $currency)
     {
+        if ($amount === null) {
+            // PHP 8 does not accept first param to be NULL
+            $amount = 0;
+        }
         return (int)number_format($amount, $this->decimalNumbers($currency), '', '');
     }
 
@@ -1325,9 +1329,15 @@ class Data extends AbstractHelper
     /**
      * @param $client
      * @return Checkout
+     * @throws AdyenException
+     * @throws NoSuchEntityException
      */
-    public function createAdyenCheckoutService($client)
+    public function createAdyenCheckoutService(Client $client = null): Checkout
     {
+        if (!$client) {
+            $client = $this->initializeAdyenClient();
+        }
+
         return new Checkout($client);
     }
 

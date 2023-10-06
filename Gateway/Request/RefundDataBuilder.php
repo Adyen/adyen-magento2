@@ -14,6 +14,7 @@ namespace Adyen\Payment\Gateway\Request;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\OpenInvoice;
 use Adyen\Payment\Model\ResourceModel\Invoice\CollectionFactory;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as PaymentCollectionFactory;
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
@@ -43,13 +44,15 @@ class RefundDataBuilder implements BuilderInterface
         PaymentCollectionFactory   $orderPaymentCollectionFactory,
         CollectionFactory          $adyenInvoiceCollectionFactory,
         ChargedCurrency            $chargedCurrency,
-        Config $configHelper
+        Config                     $configHelper,
+        OpenInvoice                $openInvoiceHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->orderPaymentCollectionFactory = $orderPaymentCollectionFactory;
         $this->adyenInvoiceCollectionFactory = $adyenInvoiceCollectionFactory;
         $this->chargedCurrency = $chargedCurrency;
         $this->configHelper = $configHelper;
+        $this->openInvoiceHelper = $openInvoiceHelper;
     }
 
     public function build(array $buildSubject): array
@@ -68,10 +71,16 @@ class RefundDataBuilder implements BuilderInterface
         $currency = $creditMemoAmountCurrency->getCurrencyCode();
         $amount = $creditMemoAmountCurrency->getAmount();
 
+
         //Get Merchant Account
         $storeId = $order ->getStoreId();
         $method = $payment->getMethod();
-        $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($method, $storeId);
+
+        if (isset($method) && $method === 'adyen_moto') {
+            $merchantAccount = $payment->getAdditionalInformation('motoMerchantAccount');
+        } else {
+            $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($method, $storeId);
+        }
 
         // check if it contains a partial payment
         $orderPaymentCollection = $this->orderPaymentCollectionFactory
@@ -134,9 +143,9 @@ class RefundDataBuilder implements BuilderInterface
 
                     $requestBody[] = [
                         "merchantAccount" => $merchantAccount,
-                        "modificationAmount" => $modificationAmountObject,
+                        "amount" => $modificationAmountObject,
                         "reference" => $payment->getOrder()->getIncrementId(),
-                        "originalReference" => $partialPayment->getPspreference(),
+                        "paymentPspReference" => $partialPayment->getPspreference(),
                     ];
                 }
             }
@@ -148,9 +157,9 @@ class RefundDataBuilder implements BuilderInterface
             $requestBody = [
                 [
                     "merchantAccount" => $merchantAccount,
-                    "modificationAmount" => $modificationAmount,
+                    "amount" => $modificationAmount,
                     "reference" => $payment->getOrder()->getIncrementId(),
-                    "originalReference" => $pspReference,
+                    "paymentPspReference" => $pspReference,
                 ]
             ];
 
@@ -159,10 +168,9 @@ class RefundDataBuilder implements BuilderInterface
             );
 
             if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) {
-                $openInvoiceFields = $this->getOpenInvoiceData($payment);
-
+                $openInvoiceFieldsCreditMemo = $this->openInvoiceHelper->getOpenInvoiceData($creditMemo->getOrder());
                 //There is only one payment, so we add the fields to the first(and only) result
-                $requestBody[0]["additionalData"] = $openInvoiceFields;
+                $requestBody[0] =  array_merge($requestBody[0], $openInvoiceFieldsCreditMemo);
             }
         }
         $request['clientConfig'] = ["storeId" => $payment->getOrder()->getStoreId()];
@@ -177,84 +185,4 @@ class RefundDataBuilder implements BuilderInterface
         return $request;
     }
 
-    protected function getOpenInvoiceData($payment): mixed
-    {
-        $formFields = [];
-        $count = 0;
-
-        // Construct AdyenAmountCurrency from creditmemo
-        $creditMemo = $payment->getCreditMemo();
-
-        foreach ($creditMemo->getItems() as $refundItem) {
-            $numberOfItems = (int)$refundItem->getQty();
-            if ($numberOfItems == 0) {
-                continue;
-            }
-
-            ++$count;
-            $itemAmountCurrency = $this->chargedCurrency->getCreditMemoItemAmountCurrency($refundItem);
-
-            $formFields = $this->adyenHelper->createOpenInvoiceLineItem(
-                $formFields,
-                $count,
-                $refundItem->getName(),
-                $itemAmountCurrency->getAmount(),
-                $itemAmountCurrency->getCurrencyCode(),
-                $itemAmountCurrency->getTaxAmount(),
-                $itemAmountCurrency->getAmount() + $itemAmountCurrency->getTaxAmount(),
-                $refundItem->getOrderItem()->getTaxPercent(),
-                $numberOfItems,
-                $payment,
-                $refundItem->getId()
-            );
-        }
-
-        // Shipping cost
-        $shippingAmountCurrency = $this->chargedCurrency->getCreditMemoShippingAmountCurrency($creditMemo);
-        if ($shippingAmountCurrency->getAmount() > 0) {
-            ++$count;
-            $formFields = $this->adyenHelper->createOpenInvoiceLineShipping(
-                $formFields,
-                $count,
-                $payment->getOrder(),
-                $shippingAmountCurrency->getAmount(),
-                $shippingAmountCurrency->getTaxAmount(),
-                $shippingAmountCurrency->getCurrencyCode(),
-                $payment
-            );
-        }
-
-        // Adjustment
-        $adjustmentAmountCurrency = $this->chargedCurrency->getCreditMemoAdjustmentAmountCurrency($creditMemo);
-        if ($adjustmentAmountCurrency->getAmount() != 0) {
-            $positive = $adjustmentAmountCurrency->getAmount() > 0 ? 'Positive' : '';
-            $negative = $adjustmentAmountCurrency->getAmount() < 0 ? 'Negative' : '';
-            $description = "Adjustment - " . implode(' | ', array_filter([$positive, $negative]));
-
-            ++$count;
-            $formFields = $this->adyenHelper->createOpenInvoiceLineAdjustment(
-                $formFields,
-                $count,
-                $description,
-                $adjustmentAmountCurrency->getAmount(),
-                $adjustmentAmountCurrency->getCurrencyCode(),
-                $payment
-            );
-        }
-
-        $formFields['openinvoicedata.numberOfLines'] = $count;
-
-        //Retrieve acquirerReference from the adyen_invoice
-        $invoiceId = $creditMemo->getInvoice()->getId();
-        $invoices = $this->adyenInvoiceCollectionFactory->create()
-            ->addFieldToFilter('invoice_id', $invoiceId);
-
-        $invoice = $invoices->getFirstItem();
-
-        if ($invoice) {
-            $formFields['acquirerReference'] = $invoice->getAcquirerReference();
-        }
-
-        return $formFields;
-    }
 }

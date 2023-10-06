@@ -12,7 +12,7 @@
 namespace Adyen\Payment\Model\Ui;
 
 use Adyen\Payment\Helper\Data;
-use Adyen\Payment\Helper\Vault;;
+use Adyen\Payment\Helper\Vault;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Vault\Model\Ui\TokenUiComponentInterface;
 use Magento\Vault\Model\Ui\TokenUiComponentProviderInterface;

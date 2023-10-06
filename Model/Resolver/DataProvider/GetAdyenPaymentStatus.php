@@ -71,7 +71,12 @@ class GetAdyenPaymentStatus
         if ($order->getQuoteId() !== $cart->getId()) {
             throw new LocalizedException(__('Your QuoteId and CartId do not match'));
         }
-        $adyenPaymentDetails = $this->jsonSerializer->unserialize($this->adyenPaymentDetails->initiate($payload, (string) $order->getEntityId()));
+        $adyenPaymentDetails = $this->jsonSerializer->unserialize(
+            $this->adyenPaymentDetails->initiate(
+                $payload,
+                (string) $order->getEntityId()
+            )
+        );
         return $this->formatResponse($adyenPaymentDetails);
     }
 
