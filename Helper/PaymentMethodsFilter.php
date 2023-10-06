@@ -22,7 +22,8 @@ class PaymentMethodsFilter
     const VAULT_SUFFIX = '_vault';
     const ADYEN_PAYMENT_METHODS = 'adyen_payment_methods_response';
     const PAYMENT_METHOD_MAP = [
-        'cc' => 'scheme'
+        'cc' => 'scheme',
+        'boleto' => 'boletobancario'
     ];
     const EXCLUDED_PAYMENT_METHODS_FROM_FILTERING = [
         AdyenPosCloudConfigProvider::CODE,
