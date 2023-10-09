@@ -514,8 +514,12 @@ class Webhook
     private function setNotificationError(Notification $notification, string $errorMessage): void
     {
         $notification->setErrorCount($notification->getErrorCount() + 1);
-        $newMessage = "[{$notification->getUpdatedAt()}]: {$notification->getErrorMessage()}";
-
+        $oldMessage = $notification->getErrorMessage();
+        $newMessage = sprintf(
+            "[%s]: %s",
+            $this->timezone->formatDateTime($notification->getUpdatedAt()),
+            $errorMessage
+        );
         if (empty($oldMessage)) {
             $notification->setErrorMessage($newMessage);
         } else {

@@ -65,12 +65,13 @@ class WebhookReprocess extends \Magento\Backend\App\Action
         $redirect = $this->resultFactory->create(\Magento\Framework\Controller\ResultFactory::TYPE_REDIRECT);
         $redirect->setUrl($this->_redirect->getRefererUrl());
 
-        $notificationFactory = $this->notificationCollectionFactory->create();
-        $notification = $notificationFactory->getItemById($this->getRequest()->getParam('entity_id'));
+        $notification = $this->notificationCollectionFactory->create();
+        $notification = $notification->getItemById($this->getRequest()->getParam('entity_id'));
 
-        if ($this->webhookHelper->processNotification($notification)) {
+        if($this->webhookHelper->processNotification($notification)) {
             $this->messageManager->addSuccessMessage(__("Webhook notification reprocessed successfully!"));
-        } else {
+        }
+        else {
             $this->messageManager->addErrorMessage(__("Issue occured while reprocessing the webhook notification!"));
         }
 

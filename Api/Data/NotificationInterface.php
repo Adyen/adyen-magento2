@@ -207,6 +207,10 @@ interface NotificationInterface
      */
     public function getErrorMessage(): ?string;
 
+    /**
+     * @param string $errorMessage
+     * @return NotificationInterface
+     */
     public function setErrorMessage(string $errorMessage): NotificationInterface;
 
     /**
@@ -214,6 +218,10 @@ interface NotificationInterface
      */
     public function getCreatedAt(): ?string;
 
+    /**
+     * @param DateTime $createdAt
+     * @return NotificationInterface
+     */
     public function setCreatedAt(DateTime $createdAt): NotificationInterface;
 
     /**
