@@ -117,11 +117,13 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         $isFullAmountAuthorized = $this->adyenOrderPaymentHelper->isFullAmountAuthorized($order);
 
         if ($isFullAmountAuthorized) {
-            $order = $this->orderHelper->setPrePaymentAuthorized($order);
+            $order = $this->orderHelper->setPrePaymentAuthorized($order); //here we set the order as pending payment in case of customer set manual capture status to it!
             $this->orderHelper->updatePaymentDetails($order, $notification);
 
             $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize($notification->getAdditionalData()) : [];
             $requireFraudManualReview = $this->caseManagementHelper->requiresManualReview($additionalData);
+
+            $this->invoiceHelper->createInvoice($order, $notification, $isAutoCapture);
 
             if ($isAutoCapture) {
                 $order = $this->handleAutoCapture($order, $notification, $requireFraudManualReview);
@@ -217,7 +219,6 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
      */
     private function handleAutoCapture(Order $order, Notification $notification, bool $requireFraudManualReview): Order
     {
-        $this->invoiceHelper->createInvoice($order, $notification, true);
         if ($requireFraudManualReview) {
              $order = $this->caseManagementHelper->markCaseAsPendingReview($order, $notification->getPspreference(), true);
         } else {
@@ -238,9 +239,6 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         if ($requireFraudManualReview) {
             $order = $this->caseManagementHelper->markCaseAsPendingReview($order, $notification->getPspreference(), false);
         } else {
-            $order->setState(Order::STATE_PENDING_PAYMENT);
-            $order->setStatus($order->getConfig()->getStateDefaultStatus(Order::STATE_PENDING_PAYMENT));
-
             $order = $this->orderHelper->addWebhookStatusHistoryComment($order, $notification);
             $order->addStatusHistoryComment(__('Capture Mode set to Manual'), $order->getStatus());
             $this->adyenLogger->addAdyenNotification(
