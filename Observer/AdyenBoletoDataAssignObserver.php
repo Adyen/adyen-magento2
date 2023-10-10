@@ -34,9 +34,7 @@ class AdyenBoletoDataAssignObserver extends AbstractDataAssignObserver
     ];
 
     /**
-     * @var Config
-     */
-    private $configHelper;
+    private Config $configHelper;
 
     /**
      * AdyenBoletoDataAssignObserver constructor.
