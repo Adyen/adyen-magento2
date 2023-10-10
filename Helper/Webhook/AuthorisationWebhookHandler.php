@@ -117,7 +117,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         $isFullAmountAuthorized = $this->adyenOrderPaymentHelper->isFullAmountAuthorized($order);
 
         if ($isFullAmountAuthorized) {
-            $order = $this->orderHelper->setPrePaymentAuthorized($order); //here we set the order as pending payment in case of customer set manual capture status to it!
+            $order = $this->orderHelper->setPrePaymentAuthorized($order);
             $this->orderHelper->updatePaymentDetails($order, $notification);
 
             $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize($notification->getAdditionalData()) : [];
