@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -23,34 +23,21 @@ class AdyenBoletoDataAssignObserver extends AbstractDataAssignObserver
     const FIRSTNAME = 'firstname';
     const LASTNAME = 'lastname';
 
-    /**
-     * @var array
-     */
-    protected $additionalInformationList = [
+    protected array $additionalInformationList = [
         self::SOCIAL_SECURITY_NUMBER,
         self::BOLETO_TYPE,
         self::FIRSTNAME,
         self::LASTNAME
     ];
 
-    /**
     private Config $configHelper;
 
-    /**
-     * AdyenBoletoDataAssignObserver constructor.
-     *
-     * @param Config $configHelper
-     */
     public function __construct(
         Config $configHelper
     ) {
         $this->configHelper = $configHelper;
     }
 
-    /**
-     * @param Observer $observer
-     * @return void
-     */
     public function execute(Observer $observer)
     {
         $data = $this->readDataArgument($observer);
