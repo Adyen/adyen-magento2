@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Observer;
 
+use Adyen\Payment\Helper\Data;
 use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
@@ -33,17 +34,17 @@ class AdyenBoletoDataAssignObserver extends AbstractDataAssignObserver
     ];
 
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     private $adyenHelper;
 
     /**
      * AdyenBoletoDataAssignObserver constructor.
      *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param Data $adyenHelper
      */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
+        Data $adyenHelper
     ) {
         $this->adyenHelper = $adyenHelper;
     }
@@ -65,6 +66,9 @@ class AdyenBoletoDataAssignObserver extends AbstractDataAssignObserver
 
         // Remove remaining brand_code information from the previous payment
         $paymentInfo->unsAdditionalInformation('brand_code');
+
+        // Remove cc_type information from the previous payment
+        $paymentInfo->unsAdditionalInformation('cc_type');
 
         if (!empty($additionalData[self::BOLETO_TYPE])) {
             $paymentInfo->setCcType($additionalData[self::BOLETO_TYPE]);
