@@ -118,7 +118,7 @@ define(
                     connectedTerminals.push(
                         {
                             key: terminal,
-                            terminal
+                            value: terminal
                         }
                     );
                 }
