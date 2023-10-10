@@ -17,11 +17,11 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: ${{ matrix.php-version }}
-        tools: composer:v1
+        tools: composer:v2
 
     - name: Test plugin installation
       run: |
-        echo "{\"http-basic\":{\"repo.magento.com\":{\"username\":\"${MAGENTO_USERNAME}\",\"password\":\"${MAGENTO_PASSWORD}\"}}}" > auth.json
+        echo "{\"http-basic\":{\"repo.magento.com\":{\"username\":\"${MAGENTO_USERNAME_V2}\",\"password\":\"${MAGENTO_PASSWORD_V2}\"}}}" > auth.json
         composer install --prefer-dist
       env:
         CI: true
