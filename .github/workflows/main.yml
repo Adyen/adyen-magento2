@@ -25,8 +25,8 @@ jobs:
         composer install --prefer-dist
       env:
         CI: true
-        MAGENTO_USERNAME: ${{ secrets.MAGENTO_USERNAME }}
-        MAGENTO_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
+        MAGENTO_USERNAME: ${{ secrets.MAGENTO_USERNAME_V2 }}
+        MAGENTO_PASSWORD: ${{ secrets.MAGENTO_PASSWORD_V2 }}
 
     - name: Code Sniffer
       run: vendor/bin/phpcs --extensions=php,phtml --error-severity=10 --ignore-annotations
