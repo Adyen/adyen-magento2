@@ -109,7 +109,7 @@
             <resource ref="anonymous"/>
         </resources>
     </route>
-
+  
     <route url="/V1/adyen/donations" method="POST">
         <service class="Adyen\Payment\Api\AdyenDonationsInterface" method="donate"/>
         <resources>
@@ -121,20 +121,6 @@
         <service class="Adyen\Payment\Api\AdyenDonationsInterface" method="donate"/>
         <resources>
             <resource ref="self"/>
-        </resources>
-    </route>
-
-    <route url="/V1/adyen/orders/carts/mine/donations" method="POST">
-        <service class="Adyen\Payment\Api\AdyenDonationsInterface" method="donate"/>
-        <resources>
-            <resource ref="self"/>
-        </resources>
-    </route>
-
-    <route url="/V1/internal/adyen/donations" method="POST">
-        <service class="Adyen\Payment\Api\Internal\InternalAdyenDonationsInterface" method="handleInternalRequest"/>
-        <resources>
-            <resource ref="anonymous"/>
         </resources>
     </route>
 
