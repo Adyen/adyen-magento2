@@ -70,7 +70,8 @@ define([
             }
             return 'UNKNOWN';
         },
-        buildComponentConfiguration: function(paymentMethod, paymentMethodsExtraInfo) {
+      
+        buildMultishippingComponentConfiguration: function(paymentMethod, paymentMethodsExtraInfo) {
             let self = this;
 
             let email = '';

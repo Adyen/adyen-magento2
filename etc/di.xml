@@ -51,7 +51,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentHppVaultFacade" type="Adyen\Payment\Model\Method\PaymentMethodVault">
         <arguments>
-            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenHppConfigProvider::HPP_VAULT_CODE</argument>
+            <argument name="code" xsi:type="string">adyen_hpp_vault</argument>
             <argument name="config" xsi:type="object">AdyenPaymentHppVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentHppVaultPaymentValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentHppFacade</argument>
@@ -69,7 +69,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentHppFacade" type="Adyen\Payment\Model\Method\Adapter">
         <arguments>
-            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenHppConfigProvider::CODE</argument>
+            <argument name="code" xsi:type="string">adyen_hpp</argument>
             <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
             <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\PaymentMethodInfo</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentHppValueHandlerPool</argument>
@@ -189,8 +189,8 @@
     </virtualType>
     <virtualType name="AdyenPaymentBoletoFacade" type="Magento\Payment\Model\Method\Adapter">
         <arguments>
-            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider::CODE</argument>
-            <argument name="formBlockType" xsi:type="string">Adyen\Payment\Block\Form\Boleto</argument>
+            <argument name="code" xsi:type="string">adyen_boleto</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
             <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\Boleto</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentBoletoValueHandlerPool</argument>
             <argument name="validatorPool" xsi:type="object">AdyenPaymentBoletoValidatorPool</argument>
@@ -738,7 +738,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentHppVaultConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
-            <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenHppConfigProvider::HPP_VAULT_CODE</argument>
+            <argument name="methodCode" xsi:type="string">adyen_hpp_vault</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentOneclickConfig" type="Magento\Payment\Gateway\Config\Config">
@@ -748,12 +748,12 @@
     </virtualType>
     <virtualType name="AdyenPaymentHppConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
-            <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenHppConfigProvider::CODE</argument>
+            <argument name="methodCode" xsi:type="string">adyen_hpp</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentBoletoConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
-            <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider::CODE</argument>
+            <argument name="methodCode" xsi:type="string">adyen_boleto</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentPosCloudConfig" type="Magento\Payment\Gateway\Config\Config">
@@ -817,6 +817,7 @@
                 <item name="adyen_klarna" xsi:type="string">AdyenPaymentCommandManager</item>
                 <item name="adyen_googlepay" xsi:type="string">AdyenPaymentCommandManager</item>
                 <item name="adyen_sepadirectdebit" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_boleto" xsi:type="string">AdyenPaymentCommandManager</item>
             </argument>
         </arguments>
     </type>
@@ -1625,6 +1626,11 @@
             <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
         </arguments>
     </type>
+    <type name="Adyen\Payment\Model\Api\GuestAdyenDonations">
+        <arguments>
+            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
+        </arguments>
+    </type>
     <type name="Adyen\Payment\Console\Command\WebhookProcessorCommand">
         <arguments>
             <argument name="webhookProcessor" xsi:type="object">Adyen\Payment\Cron\WebhookProcessor\Proxy</argument>
@@ -1674,6 +1680,10 @@
     <type name="Magento\Checkout\Model\ShippingInformationManagement">
         <plugin name="CustomShippingInformationManagement" type="Adyen\Payment\Plugin\ShippingInformationManagement" sortOrder="10" />
     </type>
+    <type name="Adyen\Payment\Block\Checkout\Multishipping\Billing">
+        <plugin name="MultishippingPaymentMethods" type="Adyen\Payment\Plugin\MultishippingPaymentMethods" sortOrder="10" />
+    </type>
+
     <virtualType name="AdyenCancelOrders" type="Adyen\Payment\Cron\CancelOrders">
         <arguments>
             <argument name="providers" xsi:type="array">
