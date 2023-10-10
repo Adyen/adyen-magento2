@@ -67,7 +67,8 @@
                 }
                 let payload = { ...previousStateData, ...state.data };
                 payload.returnUrl = window.location.href;
-                adyenPaymentService.donate(payload)
+                const orderId = <?=$block->getOrder()->getId()?>;
+                adyenPaymentService.donate(payload, orderId)
                     .done(function (response) {
                         component.setStatus("success");
                     })
