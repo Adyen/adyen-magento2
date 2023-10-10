@@ -72,14 +72,14 @@ class MerchantAccounts extends Action
 
             $resultJson->setData($response);
             return $resultJson;
-        } catch (AdyenException | ConnectionException $e) {
+        } catch (AdyenException $e) {
             $resultJson->setHttpResponseCode(400);
-            $resultJson->setData(
-                [
-                    'error' => $e->getMessage(),
-                ]
-            );
+            $resultJson->setData(['error' => $e->getMessage(),]);
+        } catch (ConnectionException $e) {
+            $resultJson->setHttpResponseCode(500);
+            $resultJson->setData(['error' => $e->getMessage(),]);
         }
+
         return $resultJson;
     }
 }
