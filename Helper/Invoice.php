@@ -213,7 +213,7 @@ class Invoice extends AbstractHelper
             );
 
             if ($invoiceAutoMail) {
-                $this->invoiceSender->send($invoice);
+                $this->sendInvoiceMail($invoice);
             }
 
             return $invoice;
@@ -437,7 +437,7 @@ class Invoice extends AbstractHelper
         );
         $transactionSave->save();
 
-        $this->invoiceSender->send($invoice);
+        $this->sendInvoiceMail($invoice);
 
         //Send Invoice mail to customer
         $invoiceAutoMail = (bool)$this->scopeConfig->isSetFlag(
@@ -447,7 +447,7 @@ class Invoice extends AbstractHelper
         );
 
         if ($invoiceAutoMail) {
-            $this->invoiceSender->send($invoice);
+            $this->sendInvoiceMail($invoice);
             $order->addStatusHistoryComment(
                 __('Notified customer about invoice creation #%1.', $invoice->getId())
             );
@@ -477,5 +477,17 @@ class Invoice extends AbstractHelper
         ));
 
         return $adyenInvoice;
+    }
+
+    public function sendInvoiceMail(InvoiceModel $invoice)
+    {
+        try {
+            $this->invoiceSender->send($invoice);
+        } catch (Exception $exception) {
+            $this->adyenLogger->addAdyenWarning(
+                "Exception in Send Mail in Magento. This is an issue in the the core of Magento" .
+                $exception->getMessage()
+            );
+        }
     }
 }
