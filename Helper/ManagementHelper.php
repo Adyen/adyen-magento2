@@ -16,6 +16,7 @@ namespace Adyen\Payment\Helper;
  */
 
 use Adyen\AdyenException;
+use Adyen\ConnectionException;
 use Adyen\Service\Management;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Message\ManagerInterface;
@@ -83,7 +84,7 @@ class ManagementHelper
     /**
      * @param Management $managementApiService
      * @return array
-     * @throws AdyenException
+     * @throws AdyenException | ConnectionException
      * @throws NoSuchEntityException
      */
     public function getMerchantAccountsAndClientKey(Management $managementApiService): array

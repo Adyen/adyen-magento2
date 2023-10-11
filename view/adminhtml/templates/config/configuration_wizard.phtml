@@ -171,7 +171,7 @@
 
                 convertActionButtonToFinished();
 
-                progressUpdate('success', 'You completed the configuration. Now, you can click Save config to save');
+                progressUpdate('success', 'You completed the configuration. Now, you can click "<?= __('Save Config') ?>" to save it');
 
                 $(createNewWebhookSelector).on('change', function () {
                     let createNewWebhook = parseInt(this.value);
