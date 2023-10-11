@@ -109,20 +109,7 @@ class Webhook
      */
     public function processNotification(Notification $notification): bool
     {
-        // set notification processing to true
-        $this->updateNotification($notification, true, false);
-        $this->logger
-            ->addAdyenNotification(
-                sprintf(
-                    "Processing %s notification %s",
-                    $notification->getEventCode(),
-                    $notification->getEntityId(),
-                ), [
-                    'merchantReference' => $notification->getMerchantReference(),
-                    'pspReference' => $notification->getPspreference()
-                ],
-            );
-
+        // check if merchant reference is set
         if (is_null($notification->getMerchantReference())) {
             $errorMessage = sprintf(
                 'Invalid merchant reference for notification with the event code %s',
@@ -136,6 +123,20 @@ class Webhook
 
             return false;
         }
+
+        // set notification processing to true
+        $this->updateNotification($notification, true, false);
+        $this->logger
+            ->addAdyenNotification(
+                sprintf(
+                    "Processing %s notification %s",
+                    $notification->getEventCode(),
+                    $notification->getEntityId(),
+                ), [
+                    'merchantReference' => $notification->getMerchantReference(),
+                    'pspReference' => $notification->getPspreference()
+                ],
+            );
 
         $order = $this->orderHelper->getOrderByIncrementId($notification->getMerchantReference());
         if (!$order) {
