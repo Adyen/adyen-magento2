@@ -92,7 +92,7 @@ QUERY;
         $stateData = '{\"paymentMethod\":{\"type\":\"ideal\",\"issuer\":\"1154\"}}';
         $adyenAdditionalData = '
         ,
-        adyen_additional_data_hpp: {
+        adyen_additional_data: {
             brand_code: "ideal",
             stateData: "' . $stateData . '",
             returnUrl: "http://localhost/checkout/?id=:merchantReference&done=1"
@@ -139,7 +139,7 @@ QUERY;
         $stateData = '{\"paymentMethod\":{\"type\":\"ideal\",\"issuer\":\"1154\"}}';
         $adyenAdditionalData = '
         ,
-        adyen_additional_data_hpp: {
+        adyen_additional_data: {
             brand_code: "ideal",
             stateData: "' . $stateData . '"
         }';

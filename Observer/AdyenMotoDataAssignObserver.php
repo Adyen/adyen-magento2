@@ -91,6 +91,9 @@ class AdyenMotoDataAssignObserver extends AbstractDataAssignObserver
             return;
         }
 
+        // Remove cc_type information from the previous payment
+        $paymentInfo->unsAdditionalInformation('cc_type');
+
         // Get a validated additional data array
         $additionalData = DataArrayValidator::getArrayOnlyWithApprovedKeys(
             $additionalData,

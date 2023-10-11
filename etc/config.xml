@@ -29,6 +29,9 @@
                 <house_number_street_line>0</house_number_street_line>
                 <webhook_notification_processor>cron</webhook_notification_processor>
                 <adyen_support_email_address>support@adyen.com</adyen_support_email_address>
+                <payment_pre_authorized>processing</payment_pre_authorized>
+                <payment_authorized>processing</payment_authorized>
+                <payment_cancelled>canceled</payment_cancelled>
             </adyen_abstract>
             <adyen_cc>
                 <active>0</active>
