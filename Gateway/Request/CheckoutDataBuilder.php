@@ -15,6 +15,7 @@ use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\StateData;
+use Adyen\Payment\Helper\OpenInvoice;
 use Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
@@ -25,13 +26,15 @@ use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
 
 class CheckoutDataBuilder implements BuilderInterface
 {
+    const ADYEN_BOLETO = 'adyen_boleto';
     const ORDER_EMAIL_REQUIRED_METHODS = [
         AdyenPayByLinkConfigProvider::CODE,
-        AdyenBoletoConfigProvider::CODE
+        self::ADYEN_BOLETO
     ];
 
     /**
@@ -50,10 +53,6 @@ class CheckoutDataBuilder implements BuilderInterface
     private $chargedCurrency;
 
     /**
-     * @var Image
-     */
-    private $imageHelper;
-    /**
      * @var StateData
      */
     private $stateData;
@@ -61,29 +60,32 @@ class CheckoutDataBuilder implements BuilderInterface
     /** @var Config */
     private $configHelper;
 
+    /** @var OpenInvoice */
+    private $openInvoiceHelper;
+
     /**
      * CheckoutDataBuilder constructor.
      * @param Data $adyenHelper
      * @param StateData $stateData
      * @param CartRepositoryInterface $cartRepository
      * @param ChargedCurrency $chargedCurrency
-     * @param Image $imageHelper
      * @param Config $configHelper
+     * @param OpenInvoice $openInvoiceHelper
      */
     public function __construct(
         Data $adyenHelper,
         StateData $stateData,
         CartRepositoryInterface $cartRepository,
         ChargedCurrency $chargedCurrency,
-        Image $imageHelper,
-        Config $configHelper
+        Config $configHelper,
+        OpenInvoice $openInvoiceHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->stateData = $stateData;
         $this->cartRepository = $cartRepository;
         $this->chargedCurrency = $chargedCurrency;
-        $this->imageHelper = $imageHelper;
         $this->configHelper = $configHelper;
+        $this->openInvoiceHelper = $openInvoiceHelper;
     }
 
     /**
@@ -128,7 +130,8 @@ class CheckoutDataBuilder implements BuilderInterface
             (isset($brandCode) && $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) ||
             $payment->getMethod() === AdyenPayByLinkConfigProvider::CODE
         ) {
-            $openInvoiceFields = $this->getOpenInvoiceData($order);
+
+            $openInvoiceFields = $this->openInvoiceHelper->getOpenInvoiceData($order);
             $requestBody = array_merge($requestBody, $openInvoiceFields);
 
             if (isset($brandCode) &&
@@ -168,18 +171,7 @@ class CheckoutDataBuilder implements BuilderInterface
             $requestBody['shopperName']['lastName'] = $payment->getAdditionalInformation("lastname");
         }
 
-        if ($payment->getMethod() == AdyenBoletoConfigProvider::CODE) {
-            $boletoTypes = $this->configHelper->getAdyenBoletoConfigData('boletotypes');
-            $boletoTypes = explode(',', (string) $boletoTypes);
-
-            if (count($boletoTypes) == 1) {
-                $requestBody['selectedBrand'] = $boletoTypes[0];
-                $requestBodyPaymentMethod['type'] = $boletoTypes[0];
-            } else {
-                $requestBody['selectedBrand'] = $payment->getAdditionalInformation("boleto_type");
-                $requestBodyPaymentMethod['type'] = $payment->getAdditionalInformation("boleto_type");
-            }
-
+        if ($payment->getMethod() == self::ADYEN_BOLETO) {
             $deliveryDays = (int)$this->configHelper->getAdyenBoletoConfigData("delivery_days", $storeId);
             $deliveryDays = (!empty($deliveryDays)) ? $deliveryDays : 5;
             $deliveryDate = date(
@@ -281,7 +273,7 @@ class CheckoutDataBuilder implements BuilderInterface
             'lineItems' => []
         ];
 
-        /** @var \Magento\Quote\Model\Quote $cart */
+        /** @var Quote $cart */
         $cart = $this->cartRepository->get($order->getQuoteId());
         $amountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order);
         $currency = $amountCurrency->getCurrencyCode();

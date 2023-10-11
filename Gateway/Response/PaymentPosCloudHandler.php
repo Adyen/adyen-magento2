@@ -13,21 +13,23 @@
 namespace Adyen\Payment\Gateway\Response;
 
 use Adyen\AdyenException;
+use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Order\Payment;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 
 class PaymentPosCloudHandler implements HandlerInterface
 {
-    private Data $adyenHelper;
     private AdyenLogger $adyenLogger;
-    private Recurring $recurringHelper;
     private Vault $vaultHelper;
 
     public function __construct(
-        AdyenLogger $adyenLogger
+        AdyenLogger $adyenLogger,
+        Vault $vaultHelper
     ) {
         $this->adyenLogger = $adyenLogger;
+        $this->vaultHelper = $vaultHelper;
     }
 
     public function handle(array $handlingSubject, array $response)
@@ -43,41 +45,21 @@ class PaymentPosCloudHandler implements HandlerInterface
         // do not send order confirmation mail
         $payment->getOrder()->setCanSendNewEmailFlag(false);
 
-        if (!empty($paymentResponse['Response']['AdditionalResponse'])
-        ) {
-            $pairs = \explode('&', (string) $paymentResponse['Response']['AdditionalResponse']);
 
-            foreach ($pairs as $pair) {
-                $nv = \explode('=', $pair);
+        if (!empty($paymentResponse['Response']['AdditionalResponse']))
+        {
+            $paymentResponseDecoded = json_decode(
+                base64_decode($paymentResponse['Response']['AdditionalResponse']),
+                true
+            );
+            $payment->setAdditionalInformation('additionalData', $paymentResponseDecoded['additionalData']);
 
-                if ($nv[0] == 'recurring.recurringDetailReference') {
-                    $recurringDetailReference = $nv[1];
-                    break;
-                }
-            }
+            $this->vaultHelper->handlePaymentResponseRecurringDetails(
+                $payment->getOrder()->getPayment(),
+                $paymentResponseDecoded
+            );
 
-            if (!empty($recurringDetailReference) &&
-                !empty($paymentResponse['PaymentResult']['PaymentInstrumentData']['CardData'])
-            ) {
-                $maskedPan = $paymentResponse['PaymentResult']['PaymentInstrumentData']['CardData']['MaskedPan'];
-                $expiryDate = $paymentResponse['PaymentResult']['PaymentInstrumentData']['CardData']
-                ['SensitiveCardData']['ExpiryDate']; // 1225
-                $expiryDate = \substr((string) $expiryDate, 0, 2) . '/' . \substr((string) $expiryDate, 2, 2);
-                $brand = $paymentResponse['PaymentResult']['PaymentInstrumentData']['CardData']['PaymentBrand'];
-
-                // create additionalData so we can use the helper
-                $additionalData = [];
-                $additionalData['recurring.recurringDetailReference'] = $recurringDetailReference;
-                $additionalData['cardBin'] = $recurringDetailReference;
-                $additionalData['cardHolderName'] = '';
-                $additionalData['cardSummary'] = \substr((string) $maskedPan, -4);
-                $additionalData['expiryDate'] = $expiryDate;
-                $additionalData['paymentMethod'] = $brand;
-                $additionalData['recurring.recurringDetailReference'] = $recurringDetailReference;
-                $additionalData['pos_payment'] = true;
-            }
         }
-
         // set transaction(status)
         if (!empty($paymentResponse['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID']))
         {

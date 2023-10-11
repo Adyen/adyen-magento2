@@ -12,9 +12,6 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
-use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
-use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
-use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Util\ManualCapture;
@@ -405,6 +402,15 @@ class PaymentMethods extends AbstractHelper
         return $paymentMethodInstance->getConfigData('group') === self::ADYEN_GROUP_ALTERNATIVE_PAYMENT_METHODS;
     }
 
+    public function getAlternativePaymentMethodTxVariant(MethodInterface $paymentMethodInstance): string
+    {
+        if (!$this->isAlternativePaymentMethod($paymentMethodInstance)) {
+            throw new AdyenException('Given payment method is not an Adyen alternative payment method!');
+        }
+
+        return str_replace('adyen_', '', $paymentMethodInstance->getCode());
+    }
+
     public function paymentMethodSupportsRecurring(MethodInterface $paymentMethodInstance): bool
     {
         return boolval($paymentMethodInstance->getConfigData('supports_recurring'));
@@ -709,13 +715,11 @@ class PaymentMethods extends AbstractHelper
         }
 
         if (isset($asset)) {
-            list($width, $height) = getimagesize($asset->getSourceFile());
-            $icon = ['url' => $asset->getUrl(), 'width' => $width, 'height' => $height];
+            $url = $asset->getUrl();
         } else {
             $url = "https://checkoutshopper-live.adyen.com/checkoutshopper/images/logos/$paymentMethodCode.svg";
-            $icon = ['url' => $url, 'width' => 77, 'height' => 50];
         }
 
-        return $icon;
+        return ['url' => $url, 'width' => 77, 'height' => 50];
     }
 }

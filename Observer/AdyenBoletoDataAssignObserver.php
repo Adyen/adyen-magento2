@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Observer;
 
+use Adyen\Payment\Helper\Config;
 use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
@@ -22,36 +23,21 @@ class AdyenBoletoDataAssignObserver extends AbstractDataAssignObserver
     const FIRSTNAME = 'firstname';
     const LASTNAME = 'lastname';
 
-    /**
-     * @var array
-     */
-    protected $additionalInformationList = [
+    protected array $additionalInformationList = [
         self::SOCIAL_SECURITY_NUMBER,
         self::BOLETO_TYPE,
         self::FIRSTNAME,
         self::LASTNAME
     ];
 
-    /**
-     * @var \Adyen\Payment\Helper\Config
-     */
-    private $configHelper;
+    private Config $configHelper;
 
-    /**
-     * AdyenBoletoDataAssignObserver constructor.
-     *
-     * @param \Adyen\Payment\Helper\Config $configHelper
-     */
     public function __construct(
-        \Adyen\Payment\Helper\Config $configHelper
+        Config $configHelper
     ) {
         $this->configHelper = $configHelper;
     }
 
-    /**
-     * @param Observer $observer
-     * @return void
-     */
     public function execute(Observer $observer)
     {
         $data = $this->readDataArgument($observer);
@@ -62,6 +48,9 @@ class AdyenBoletoDataAssignObserver extends AbstractDataAssignObserver
         }
 
         $paymentInfo = $this->readPaymentModelArgument($observer);
+
+        // Remove cc_type information from the previous payment
+        $paymentInfo->unsAdditionalInformation('cc_type');
 
         // Remove remaining brand_code information from the previous payment
         $paymentInfo->unsAdditionalInformation('brand_code');

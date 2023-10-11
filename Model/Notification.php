@@ -40,6 +40,7 @@ class Notification extends AbstractModel implements NotificationInterface
     const MANUAL_REVIEW_REJECT = 'MANUAL_REVIEW_REJECT';
     const RECURRING_CONTRACT = "RECURRING_CONTRACT";
     const REPORT_AVAILABLE = "REPORT_AVAILABLE";
+    const ORDER_OPENED = 'ORDER_OPENED';
     const ORDER_CLOSED = "ORDER_CLOSED";
     const OFFER_CLOSED = "OFFER_CLOSED";
     const MAX_ERROR_COUNT = 5;
@@ -253,9 +254,15 @@ class Notification extends AbstractModel implements NotificationInterface
         return $this->setData(self::ERROR_MESSAGE, $errorMessage);
     }
 
-    public function getCreatedAt(): DateTime
+    public function getCreatedAt(): ?string
     {
-        return $this->getData(self::CREATED_AT);
+        $createdAt = $this->getData(self::CREATED_AT);
+
+        if ($createdAt instanceOf Datetime) {
+            return $createdAt->format('Y-m-d H:i:s');
+        }
+
+        return $createdAt;
     }
 
     public function setCreatedAt(DateTime $createdAt): NotificationInterface
@@ -263,9 +270,15 @@ class Notification extends AbstractModel implements NotificationInterface
         return $this->setData(self::CREATED_AT, $createdAt);
     }
 
-    public function getUpdatedAt(): ?DateTime
+    public function getUpdatedAt(): ?string
     {
-        return $this->getData(self::UPDATED_AT);
+        $updatedAt = $this->getData(self::CREATED_AT);
+
+        if ($updatedAt instanceOf Datetime) {
+            return $updatedAt->format('Y-m-d H:i:s');
+        }
+
+        return $updatedAt;
     }
 
     public function setUpdatedAt(DateTime $timestamp): NotificationInterface

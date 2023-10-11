@@ -17,7 +17,6 @@ define(
         adyenPaymentMethod,
     ) {
         return adyenPaymentMethod.extend({
-            txVariant: 'facilypay_3x',
             initialize: function () {
                 this._super();
             },
@@ -25,14 +24,11 @@ define(
                 let baseComponentConfiguration = this._super();
                 let self = this;
                 let formattedShippingAddress = {};
-                let formattedBillingAddress = {};
+
                 if (!quote.isVirtual() && !!quote.shippingAddress()) {
                     formattedShippingAddress = self.getFormattedAddress(quote.shippingAddress());
                 }
 
-                if (!!quote.billingAddress()) {
-                    formattedBillingAddress = self.getFormattedAddress(quote.billingAddress());
-                }
                 if (formattedShippingAddress) {
                     baseComponentConfiguration.data.shippingAddress = {
                         city: formattedShippingAddress.city,

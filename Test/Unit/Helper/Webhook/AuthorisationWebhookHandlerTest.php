@@ -108,10 +108,15 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
         $this->assertInstanceOf(Order::class, $result);
     }
 
+    public function isAutoCaptureProvider(): array
+    {
+        return [[true], [false]];
+    }
+
     /**
-     * @throws ReflectionExceptionAlias
+     * @dataProvider isAutoCaptureProvider
      */
-    public function testHandleSuccessfulAuthorisationWithAutoCaptureEnabled()
+    public function testHandleSuccessfulAuthorisation($isAutoCapture)
     {
         // Mock
         $orderAmount = 10.33;
@@ -145,15 +150,26 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
             ->method('updatePaymentDetails');
         $this->orderHelperMock->expects($this->once())
             ->method('sendOrderMail');
-        $this->orderHelperMock->expects($this->once())
-            ->method('finalizeOrder')->willReturn($this->orderMock);
+
+        if ($isAutoCapture){
+            $this->orderHelperMock->expects($this->once())
+                ->method('finalizeOrder')->willReturn($this->orderMock);
+        } else {
+            $this->orderHelperMock->expects($this->once())
+                ->method('addWebhookStatusHistoryComment')->willReturn($this->orderMock);
+        }
+
 
         $paymentMethodsMock = $this->createConfiguredMock(
             PaymentMethods::class,
             [
-                'isAutoCapture' => true
+                'isAutoCapture' => $isAutoCapture
             ]
         );
+        $this->invoiceHelperMock->expects($this->once())
+            ->method('createInvoice')
+            ->with($this->orderMock, $this->notificationMock, $isAutoCapture);
+
 
         $authorisationWebhookHandler = $this->createAuthorisationWebhookHandler(
             $this->adyenOrderPaymentMock,
@@ -163,7 +179,7 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
             null,
             $mockChargedCurrency,
             null,
-            null,
+            $this->invoiceHelperMock,
             $paymentMethodsMock
         );
 
@@ -173,7 +189,10 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
             'handleSuccessfulAuthorisation'
         );
 
-        $result = $handleSuccessfulAuthorisationMethod->invokeArgs($authorisationWebhookHandler, [$this->orderMock, $this->notificationMock]);
+        $result = $handleSuccessfulAuthorisationMethod->invokeArgs(
+            $authorisationWebhookHandler,
+            [$this->orderMock, $this->notificationMock]
+        );
 
         // Assert the result
         $this->assertInstanceOf(Order::class, $result);
@@ -207,7 +226,10 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
         );
 
         // Call the private method directly and provide required parameters
-        $result = $handleFailedAuthorisationMethod->invokeArgs($webhookHandler, [$this->orderMock, $this->notificationMock]);
+        $result = $handleFailedAuthorisationMethod->invokeArgs(
+            $webhookHandler,
+            [$this->orderMock, $this->notificationMock]
+        );
 
         // Assert the expected behavior based on the mocked logic and result
         $this->assertInstanceOf(Order::class, $result);
@@ -252,7 +274,6 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
     public function testHandleManualCapture()
     {
         // Set up expectations for handleManualCapture private method
-        $requireFraudManualReview = true; // Assuming this condition is met
         $this->orderHelperMock->expects($this->never()) // Since the condition is true
         ->method('setPrePaymentAuthorized');
 

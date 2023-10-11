@@ -20,12 +20,16 @@ install:
 	bin/magento setup:upgrade
 	bin/magento setup:di:compile
 
+# Install developer module
+dev-module:
+	bin/magento module:enable Adyen_Developer
+	bin/magento setup:upgrade
+
 # Configuration
 configure: n98-magerun2.phar
 	bin/magento config:set payment/adyen_abstract/demo_mode 1
 	bin/magento adyen:enablepaymentmethods:run
 	bin/magento config:set payment/adyen_abstract/has_holder_name 1
-	bin/magento config:set payment/adyen_boleto/boletotypes 'boletobancario_santander'
 	bin/magento config:set payment/adyen_pay_by_link/days_to_expire 5
 	bin/magento config:set payment/adyen_giving/active 1
 	bin/magento config:set payment/adyen_giving/charity_description 'test'
@@ -35,12 +39,25 @@ configure: n98-magerun2.phar
 	bin/magento config:set payment/adyen_giving/background_image ''
 	bin/magento config:set payment/adyen_abstract/merchant_account "${ADYEN_MERCHANT}"
 	bin/magento config:set payment/adyen_abstract/notifications_ip_check 0
+	bin/magento config:set payment/adyen_abstract/payment_authorized 'processing'
+	bin/magento config:set payment/adyen_abstract/payment_pre_authorized 'pending_payment'
+	bin/magento config:set payment/adyen_abstract/capture_mode 'auto'
+	bin/magento config:set payment/adyen_abstract/paypal_capture_mode 0
+
 	./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/api_key_test "${ADYEN_API_KEY}" > /dev/null
 	bin/magento config:set payment/adyen_abstract/client_key_test "${ADYEN_CLIENT_KEY}"
 
 # Clear cache
 flush:
 	bin/magento cache:flush
+
+# Setup upgrade
+enable-express:
+	bin/magento module:enable Adyen_ExpressCheckout
+	bin/magento setup:upgrade
+	bin/magento config:set payment/adyen_hpp/show_google_pay_on "1,2,3"
+	bin/magento config:set payment/adyen_hpp/show_apple_pay_on "1,2,3"
+	bin/magento cache:clean
 
 # Full plugin setup
 plugin: install configure flush

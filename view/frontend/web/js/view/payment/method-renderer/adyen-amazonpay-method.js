@@ -21,7 +21,6 @@ define(
         const amazonSessionKey = 'amazonCheckoutSessionId';
         return adyenPaymentMethod.extend({
             placeOrderButtonVisible: false,
-            txVariant: 'amazonpay',
             initialize: function () {
                 this._super();
             },
@@ -99,7 +98,7 @@ define(
             mountPaymentMethodComponent: function (paymentMethod, configuration) {
                 let self = this;
                 const containerId = '#' + paymentMethod.type + 'Container';
-                var url = new URL(location.href);
+                let url = new URL(location.href);
                 //Handles the redirect back to checkout page with amazonSessionKey in url
                 if (url.searchParams.has(amazonSessionKey)) {
                     let componentConfig = {

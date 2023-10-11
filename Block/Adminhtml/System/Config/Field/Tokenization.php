@@ -30,7 +30,7 @@ class Tokenization extends AbstractFieldArray
             'name', [
                 'label' => __('Payment Method'),
                 'class' => 'required-entry',
-                'style' => 'width:130px',
+                'style' => 'width:100%',
                 'renderer' => $this->getNameRenderer()
             ]
         );
@@ -119,7 +119,12 @@ class Tokenization extends AbstractFieldArray
         }
 
         if ($recurringProcessingModel) {
-            $options['option_' . $this->getRecurringProcessingModelRenderer()->calcOptionHash($recurringProcessingModel)] = 'selected=\"selected\"';
+            $key = sprintf(
+                "option_%s",
+                $this->getRecurringProcessingModelRenderer()->calcOptionHash($recurringProcessingModel)
+            );
+
+            $options[$key] = 'selected=\"selected\"';
         }
 
         $row->setData('option_extra_attrs', $options);

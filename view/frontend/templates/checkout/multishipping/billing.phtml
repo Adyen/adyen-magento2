@@ -12,8 +12,9 @@
 
 /**
  * @extends Magento_Multishipping::checkout/billing.phtml
- * @var \Magento\Multishipping\Block\Checkout\Billing $block
+ * @var Adyen\Payment\Block\Checkout\Multishipping\Billing $block
  */
+
 ?>
 <div id="checkout-loader" data-role="checkout-loader" class="loading-mask" data-mage-init='{"billingLoader": {}}'>
     <div class="loader">
@@ -95,7 +96,7 @@
                                 }
                                 ?>
                                 <div data-bind="scope: 'payment_method_<?= $block->escapeHtml($code);?>'">
-                                    <dt class="item-title">
+                                    <dt class="item-title" data-bind="<?= str_starts_with($code, 'adyen_') ? 'visible: paymentMethodReady' : '' ?>">
                                         <?php if ($methodsCount > 1): ?>
                                             <input type="radio"
                                                    id="p_method_<?= $block->escapeHtml($code); ?>"
@@ -203,4 +204,17 @@
         });
     //]]>
 </script>
+<!-- Adyen plugin customization -->
+<script>
+    require([
+        'Adyen_Payment/js/model/adyen-payment-service'
+    ], function(
+        adyenPaymentService
+    ) {
+        let adyenPaymentMethods = '<?= $block->getAdyenPaymentMethodsResponse() ?>';
+        let paymentMethods = JSON.parse(adyenPaymentMethods);
 
+        adyenPaymentService.setPaymentMethods(paymentMethods);
+    });
+</script>
+<!-- End: Adyen plugin customization -->

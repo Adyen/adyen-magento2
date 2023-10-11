@@ -44,7 +44,7 @@ define(
             isAvailable: ko.observable(true),
 
             defaults: {
-                template: 'Adyen_Payment/payment/hpp-form',
+                template: 'Adyen_Payment/payment/pm-form',
                 orderId: null,
                 modalLabel: 'hpp_actionModal'
             },
@@ -107,7 +107,6 @@ define(
                                     : undefined,
                                 method: this.getTxVariant()
                             });
-                            this.renderCheckoutComponent();
                         }
                     }
                 }
@@ -144,7 +143,7 @@ define(
 
                 adyenPaymentService.paymentDetails(request, self.orderId).done(function() {
                     $.mage.redirect(
-                        window.checkoutConfig.payment[quote.paymentMethod().method].successPage,
+                        window.checkoutConfig.payment.adyen.successPage
                     );
                 }).fail(function(response) {
                     fullScreenLoader.stopLoader();
@@ -216,7 +215,7 @@ define(
             },
 
             getTxVariant: function () {
-                return this.txVariant;
+                return window.checkoutConfig.payment.adyen.txVariants[this.getCode()];
             },
 
             getMethodCode: function () {
