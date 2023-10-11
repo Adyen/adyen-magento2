@@ -13,7 +13,9 @@ define(
         'ko',
         'Magento_Checkout/js/view/payment/default',
         'Magento_Checkout/js/model/full-screen-loader',
+        'Magento_Checkout/js/model/quote',
         'Magento_Checkout/js/action/place-order',
+        'Adyen_Payment/js/helper/currencyHelper',
         'Adyen_Payment/js/model/adyen-payment-service',
         'Adyen_Payment/js/model/adyen-configuration',
         'Adyen_Payment/js/adyen',
@@ -25,7 +27,9 @@ define(
         ko,
         Component,
         fullScreenLoader,
+        quote,
         placeOrderAction,
+        currencyHelper,
         adyenPaymentService,
         adyenConfiguration,
         adyenCheckout,
@@ -140,7 +144,7 @@ define(
             },
 
             initiateAdyenCheckout: function () {
-                let remainingBalance = window.checkoutConfig.payment.adyen.giftcard.quoteAmount - this.totalGiftcardBalance();
+                let formattedRemainingOrderAmount = this.getFormattedRemainingOrderAmount();
 
                 let adyenCheckoutConfiguration = {
                     locale: adyenConfiguration.getLocale(),
@@ -148,7 +152,7 @@ define(
                     environment: adyenConfiguration.getCheckoutEnvironment(),
                     amount: {
                         currency: window.checkoutConfig.payment.adyen.giftcard.currency,
-                        value: (remainingBalance < 0) ? 0 : remainingBalance
+                        value: (formattedRemainingOrderAmount < 0) ? 0 : formattedRemainingOrderAmount
                     }
                 };
 
@@ -161,10 +165,10 @@ define(
                     brand: this.selectedGiftcard().value,
                     showPayButton: true,
                     onBalanceCheck: function (resolve, reject, data) {
-                        let remainingBalance = window.checkoutConfig.payment.adyen.giftcard.quoteAmount - self.totalGiftcardBalance();
+                        let formattedRemainingOrderAmount = self.getFormattedRemainingOrderAmount();
                         data.amount = {
                             currency: window.checkoutConfig.payment.adyen.giftcard.currency,
-                            value: (remainingBalance < 0) ? 0 : remainingBalance
+                            value: (formattedRemainingOrderAmount < 0) ? 0 : formattedRemainingOrderAmount
                         }
                         adyenPaymentService.paymentMethodsBalance(data)
                             .done(function (balanceResponse) {
@@ -191,9 +195,17 @@ define(
                 });
             },
 
+            getFormattedRemainingOrderAmount: function() {
+                let rawRemainingOrderAmount = quote.totals().grand_total - this.totalGiftcardBalance();
+                return currencyHelper.formatAmount(
+                    rawRemainingOrderAmount,
+                    window.checkoutConfig.payment.adyen.giftcard.currency
+                );
+            },
+
             handleBalanceResult: function (balanceResponse, stateData, resolve) {
                 let self = this;
-                let orderAmount = window.checkoutConfig.payment.adyen.giftcard.quoteAmount;
+                let orderAmount = quote.totals().grand_total;
 
                 if(this.totalGiftcardBalance() === 0 && balanceResponse.balance.value >= orderAmount) {
                     resolve(balanceResponse);
@@ -214,7 +226,7 @@ define(
 
             fetchRedeemedGiftcards: function () {
                 let self = this;
-                let orderAmount = window.checkoutConfig.payment.adyen.giftcard.quoteAmount;
+                let orderAmount = quote.totals().grand_total;
 
                 adyenPaymentService.fetchRedeemedGiftcards().done(function (response) {
                     response = JSON.parse(response);
