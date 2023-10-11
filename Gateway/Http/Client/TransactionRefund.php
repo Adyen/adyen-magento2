@@ -20,12 +20,11 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 
-class TransactionRefund implements ClientInterface
+/**
+ * Class TransactionSale
+ */
+class TransactionRefund implements TransactionRefundInterface
 {
-    const REFUND_AMOUNT = 'refund_amount';
-    const REFUND_CURRENCY = 'refund_currency';
-    const ORIGINAL_REFERENCE = 'original_reference';
-
     /**
      * @var Data
      */
@@ -60,29 +59,27 @@ class TransactionRefund implements ClientInterface
         $service = $this->adyenHelper->createAdyenCheckoutService($client);
 
         foreach ($requests as $request) {
-
             $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
                 $request,
                 $headers['idempotencyExtraData'] ?? null
             );
-
             $requestOptions['idempotencyKey'] = $idempotencyKey;
+            $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/refunds');
 
-            $this->adyenHelper
-                ->logRequest($request, Client::API_CHECKOUT_VERSION, '/refunds');
-                try {
-                    $response = $service->refunds($request, $requestOptions);
-                    // Add amount original reference and amount information to response
-                    $response[self::REFUND_AMOUNT] = $request['amount']['value'];
-                    $response[self::REFUND_CURRENCY] = $request['amount']['currency'];
-                    $response[self::ORIGINAL_REFERENCE] = $request['paymentPspReference'];
-                } catch (AdyenException $e) {
-                    $response = ['error' => $e->getMessage()];
-                }
+            try {
+                $response = $service->refunds($request, $requestOptions);
+                // Add amount original reference and amount information to response
+                $response[self::REFUND_AMOUNT] = $request['amount']['value'];
+                $response[self::REFUND_CURRENCY] = $request['amount']['currency'];
+                $response[self::ORIGINAL_REFERENCE] = $request['paymentPspReference'];
+            } catch (AdyenException $e) {
+                $response = ['error' => $e->getMessage()];
             }
-            $this->adyenHelper->logResponse($response);
+        }
 
-            $responses[] = $response;
+        $this->adyenHelper->logResponse($response);
+        $responses[] = $response;
+
         return $responses;
     }
 }

@@ -26,7 +26,7 @@ class TransactionCancel implements ClientInterface
     private Idempotency $idempotencyHelper;
 
     public function __construct(
-        Data $adyenHelper,
+        Data        $adyenHelper,
         Idempotency $idempotencyHelper
     ) {
         $this->adyenHelper = $adyenHelper;
@@ -69,8 +69,8 @@ class TransactionCancel implements ClientInterface
 
             $response = $responses;
         }
-        $this->adyenHelper->logResponse($response);
 
         return $response;
     }
+
 }
