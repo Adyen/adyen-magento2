@@ -15,9 +15,12 @@ use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Util\CheckoutStateDataValidator;
 use Adyen\Payment\Helper\Util\DataArrayValidator;
+use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\StateData\Collection;
+use Magento\Backend\App\Area\FrontNameResolver;
 use Magento\Framework\App\State;
 use Magento\Framework\Event\Observer;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Model\Context;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
@@ -101,6 +104,9 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
         // Remove remaining brand_code information from the previous payment
         $paymentInfo->unsAdditionalInformation('brand_code');
 
+        // Remove cc_type information from the previous payment
+        $paymentInfo->unsAdditionalInformation('cc_type');
+
         // Get additional data array
         $additionalData = $data->getData(PaymentInterface::KEY_ADDITIONAL_DATA);
         if (!is_array($additionalData)) {
@@ -141,7 +147,7 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
 
         // set customerInteraction
         $recurringContractType = $this->getRecurringPaymentType();
-        if ($recurringContractType == \Adyen\Payment\Model\RecurringType::ONECLICK) {
+        if ($recurringContractType == RecurringType::ONECLICK) {
             $paymentInfo->setAdditionalInformation('customer_interaction', true);
         } else {
             $paymentInfo->setAdditionalInformation('customer_interaction', false);
@@ -152,13 +158,13 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
      * For admin use RECURRING contract for front-end get it from configuration
      *
      * @return mixed|string
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function getRecurringPaymentType()
     {
         // For admin always use Recurring
-        if ($this->appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
-            return \Adyen\Payment\Model\RecurringType::RECURRING;
+        if ($this->appState->getAreaCode() === FrontNameResolver::AREA_CODE) {
+            return RecurringType::RECURRING;
         } else {
             return $this->adyenHelper->getAdyenOneclickConfigData('recurring_payment_type');
         }

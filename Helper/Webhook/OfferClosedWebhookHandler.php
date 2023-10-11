@@ -58,6 +58,10 @@ class OfferClosedWebhookHandler implements WebhookHandlerInterface
      */
     public function handleWebhook(MagentoOrder $order, Notification $notification, string $transitionState): MagentoOrder
     {
+        //Do not process OfferClosed for Pay by Link payments
+        if($order->getPayment()->getMethod() == 'adyen_pay_by_link')
+            return $order;
+
         $capturedAdyenOrderPayments = $this->orderPaymentResourceModel->getLinkedAdyenOrderPayments(
             $order->getPayment()->getEntityId()
         );
