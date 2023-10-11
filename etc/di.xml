@@ -1077,6 +1077,7 @@
     <virtualType name="AdyenPaymentMotoAuthorizeRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
         <arguments>
             <argument name="builders" xsi:type="array">
+                <item name="merchantaccount" xsi:type="string">Adyen\Payment\Gateway\Request\MotoMerchantAccountDataBuilder</item>
                 <item name="motoconfig" xsi:type="string">Adyen\Payment\Gateway\Request\MotoClientConfigBuilder</item>
                 <item name="customer" xsi:type="string">Adyen\Payment\Gateway\Request\CustomerDataBuilder</item>
                 <item name="customerip" xsi:type="string">Adyen\Payment\Gateway\Request\CustomerIpDataBuilder</item>

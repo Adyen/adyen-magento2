@@ -56,7 +56,7 @@ class TransactionCapture implements ClientInterface
             $client = $this->adyenHelper->initializeAdyenClient(
                 $clientConfig['storeId'],
                 null,
-                $request['merchantAccount']
+                $clientConfig['motoMerchantAccount']
             );
         }
         else {
