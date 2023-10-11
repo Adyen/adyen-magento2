@@ -52,7 +52,7 @@ class PreAuthorizedSettingsMigration implements DataPatchInterface, PatchVersion
      */
     public function updateSchemaVersion(ModuleDataSetupInterface $setup)
     {
-        $path = 'payment/adyen_abstract/';
+        $path = 'payment/adyen_abstract/payment_pre_authorized';
 
         $config = $this->findConfig($setup, $path, \Magento\Sales\Model\Order::STATE_PENDING_PAYMENT);
         if (isset($config)) {
