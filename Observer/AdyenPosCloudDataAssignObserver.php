@@ -47,6 +47,9 @@ class AdyenPosCloudDataAssignObserver extends AbstractDataAssignObserver
 
         $paymentInfo = $this->readPaymentModelArgument($observer);
 
+        // Remove cc_type information from the previous payment
+        $paymentInfo->unsAdditionalInformation('cc_type');
+
         foreach ($this->additionalInformationList as $additionalInformationKey) {
             if (!empty($additionalData[$additionalInformationKey])) {
                 $paymentInfo->setAdditionalInformation(
