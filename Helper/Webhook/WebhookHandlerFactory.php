@@ -34,6 +34,10 @@ class WebhookHandlerFactory
     private OrderOpenedWebhookHandler $orderOpenedWebhookHandler;
 
     public function __construct(
+        AdyenOrderPayment $adyenOrderPayment,
+        Order $orderHelper,
+        CaseManagement $caseManagementHelper,
+        SerializerInterface $serializer,
         AdyenLogger $adyenLogger,
         AuthorisationWebhookHandler $authorisationWebhookHandler,
         CaptureWebhookHandler $captureWebhookHandler,
