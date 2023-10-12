@@ -39,7 +39,7 @@ The schedule for the current maintained branches is:
 |  :-----          |  :-----          |  :-----          |  :-----          |  :-----          |
 |  Version 6 |  March 2020  |  September 30 2021 |  March 31 2022 |  January 31 2023 |
 |  Version 7 |  April 2021 |  September 30 2022 |  March 31 2023 |  September 30 2023 |
-|  Version 8 |  November 2021 |  March 31 2023 |  September 2023 | March 2024 |
+|  Version 8 |  November 2021 | January 2024 |  May 2024 | January 2025 |
 |  Version 9 |  - |  12 months after release |  18 months after release |  24 months after release |
 
 Or, visualised as a calendar:
@@ -57,9 +57,9 @@ gantt
     Level 2   :l72, after l71, 2023-03-31
     Level 3   :l73, after l72, 2023-09-30
     section Version 8
-    Level 1   :l81, 2021-11-22, 2023-03-31
-    Level 2   :l82, after l81, 2023-09-30
-    Level 3   :l83, after l82, 2024-03-31
+    Level 1   :l81, 2021-11-22, 2024-01-31
+    Level 2   :l82, after l81, 2024-05-30
+    Level 3   :l83, after l82, 2025-01-31
 ```
 
 ## Contributing
