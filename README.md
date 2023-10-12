@@ -39,7 +39,7 @@ The schedule for the current maintained branches is:
 |  :-----          |  :-----          |  :-----          |  :-----          |  :-----          |
 |  Version 6 |  March 2020  |  September 30 2021 |  March 31 2022 |  January 31 2023 |
 |  Version 7 |  April 2021 |  September 30 2022 |  March 31 2023 |  September 30 2023 |
-|  Version 8 |  November 2021 |  March 31 2023 |  September 2023 | March 2024 |
+|  Version 8 |  November 2021 | January 2024 |  May 2024 | January 2025 |
 |  Version 9 |  - |  12 months after release |  18 months after release |  24 months after release |
 
 Or, visualised as a calendar:
