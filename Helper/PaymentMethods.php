@@ -251,6 +251,7 @@ class PaymentMethods extends AbstractHelper
             );
             return [];
         }
+        $this->adyenHelper->logResponse($responseData);
 
         return $responseData;
     }
