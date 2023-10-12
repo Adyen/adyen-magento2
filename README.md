@@ -57,9 +57,9 @@ gantt
     Level 2   :l72, after l71, 2023-03-31
     Level 3   :l73, after l72, 2023-09-30
     section Version 8
-    Level 1   :l81, 2021-11-22, 2023-03-31
-    Level 2   :l82, after l81, 2023-09-30
-    Level 3   :l83, after l82, 2024-03-31
+    Level 1   :l81, 2021-11-22, 2024-01-31
+    Level 2   :l82, after l81, 2024-05-30
+    Level 3   :l83, after l82, 2025-01-31
 ```
 
 ## Contributing
