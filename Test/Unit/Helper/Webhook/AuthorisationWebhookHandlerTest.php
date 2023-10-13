@@ -116,7 +116,7 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
     /**
      * @dataProvider isAutoCaptureProvider
      */
-    public function testHandleSuccessfulAuthorisation($isAutoCapture)
+    public function testHandleSuccessfulAuthorisation($isAutoCapture): void
     {
         // Mock
         $orderAmount = 10.33;
