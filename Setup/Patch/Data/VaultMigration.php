@@ -167,7 +167,7 @@ class VaultMigration implements DataPatchInterface
     /**
      * @inheritdoc
      */
-    public function getAliases()
+    public function getAliases(): array
     {
         return [];
     }
