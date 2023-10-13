@@ -84,7 +84,7 @@ class RatepayIdConfiguration implements DataPatchInterface, PatchVersionInterfac
     /**
      * @inheritdoc
      */
-    public function getAliases()
+    public function getAliases(): array
     {
         return [];
     }
