@@ -85,7 +85,7 @@ QUERY;
      * @magentoApiDataFixture Magento/GraphQl/Quote/_files/set_new_billing_address.php
      * @magentoApiDataFixture Magento/GraphQl/Quote/_files/set_flatrate_shipping_method.php
      */
-    public function testAdyenPaymentStatus()
+    public function testAdyenPaymentStatus(): void
     {
         $methodCode = "adyen_ideal";
         $maskedQuoteId = $this->getMaskedQuoteIdByReservedOrderId->execute('test_quote');
