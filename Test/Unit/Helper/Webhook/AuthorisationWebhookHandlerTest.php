@@ -201,7 +201,7 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
     /**
      * @throws ReflectionExceptionAlias
      */
-    public function testHandleFailedAuthorisation()
+    public function testHandleFailedAuthorisation(): void
     {
         $this->orderMock->expects($this->atLeastOnce())
             ->method('getData')
