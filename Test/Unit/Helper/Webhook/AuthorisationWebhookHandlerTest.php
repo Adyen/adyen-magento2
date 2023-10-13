@@ -271,7 +271,7 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
     /**
      * @throws ReflectionExceptionAlias
      */
-    public function testHandleManualCapture()
+    public function testHandleManualCapture(): void
     {
         // Set up expectations for handleManualCapture private method
         $this->orderHelperMock->expects($this->never()) // Since the condition is true
