@@ -99,7 +99,7 @@ class PreAuthorizedSettingsMigration implements DataPatchInterface, PatchVersion
     /**
      * @inheritdoc
      */
-    public function getAliases()
+    public function getAliases(): array
     {
         return [];
     }
