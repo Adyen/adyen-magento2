@@ -307,7 +307,7 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
     /**
      * @throws ReflectionExceptionAlias
      */
-    public function testCanCancelPayByLinkOrder()
+    public function testCanCancelPayByLinkOrder(): void
     {
         // Create mocks for the required dependencies
         $paymentMock = $this->getMockBuilder(Order\Payment::class)
