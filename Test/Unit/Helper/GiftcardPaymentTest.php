@@ -228,7 +228,7 @@ class GiftcardPaymentTest extends AbstractAdyenTestCase
 
     private $quote;
 
-    public function testBuildGiftcardPaymentRequest()
+    public function testBuildGiftcardPaymentRequest(): void
     {
         $redeemedGiftcardAmount = 5000;
         $giftcardPaymentHelper = $this->createGiftcardPaymentHelper();
