@@ -38,7 +38,7 @@ class PreAuthorizedSettingsMigration implements DataPatchInterface, PatchVersion
      *
      * @return void
      */
-    public function apply()
+    public function apply(): void
     {
         $this->moduleDataSetup->getConnection()->startSetup();
         $this->updateSchemaVersion($this->moduleDataSetup);
