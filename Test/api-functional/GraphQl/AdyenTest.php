@@ -132,7 +132,7 @@ QUERY;
      * @magentoApiDataFixture Magento/GraphQl/Quote/_files/add_simple_product.php
      * @magentoApiDataFixture Magento/GraphQl/Quote/_files/set_new_shipping_address.php
      */
-    public function testSetAdyenPaymentMethodOnCart()
+    public function testSetAdyenPaymentMethodOnCart(): void
     {
         $methodCode = "adyen_ideal";
         $maskedQuoteId = $this->getMaskedQuoteIdByReservedOrderId->execute('test_quote');
