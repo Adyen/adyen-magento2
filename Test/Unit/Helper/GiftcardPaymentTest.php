@@ -378,7 +378,7 @@ class GiftcardPaymentTest extends AbstractAdyenTestCase
         $adyenHelperMock = null,
         $pricingDataHelperMock = null,
         $quoteRepositoryMock = null
-    ) {
+    ): GiftcardPayment {
         if (is_null($adyenStateDataMock)) {
             $adyenStateDataMock = $this->createMock(StateDataCollection::class);
         }
