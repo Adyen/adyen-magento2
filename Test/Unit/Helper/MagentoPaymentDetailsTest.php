@@ -173,7 +173,7 @@ class MagentoPaymentDetailsTest extends AbstractAdyenTestCase
         }
     }
 
-    public function testAddAdyenExtensionAttributes()
+    public function testAddAdyenExtensionAttributes(): void
     {
         $quoteId = 1;
         $quoteMock = $this->createConfiguredMock(CartInterface::class, [
