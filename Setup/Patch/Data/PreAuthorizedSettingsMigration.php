@@ -50,7 +50,7 @@ class PreAuthorizedSettingsMigration implements DataPatchInterface, PatchVersion
      *
      * @param ModuleDataSetupInterface $setup
      */
-    public function updateSchemaVersion(ModuleDataSetupInterface $setup)
+    public function updateSchemaVersion(ModuleDataSetupInterface $setup): void
     {
         $path = 'payment/adyen_abstract/payment_pre_authorized';
 
