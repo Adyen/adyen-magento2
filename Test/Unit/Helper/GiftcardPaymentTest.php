@@ -246,7 +246,7 @@ class GiftcardPaymentTest extends AbstractAdyenTestCase
         );
     }
 
-    public function testGetQuoteGiftcardTotalBalance()
+    public function testGetQuoteGiftcardTotalBalance(): void
     {
         $quoteId = 1;
         $expectedGiftcardTotalBalance = 5000;
