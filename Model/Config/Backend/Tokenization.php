@@ -59,7 +59,7 @@ class Tokenization extends Value
         parent::__construct($context, $registry, $config, $cacheTypeList, $resource, $resourceCollection, $data);
     }
 
-    public function beforeSave()
+    public function beforeSave(): Tokenization
     {
         $value = $this->getValue();
         if (!is_array($value)) {
