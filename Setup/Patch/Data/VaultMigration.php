@@ -55,7 +55,7 @@ class VaultMigration implements DataPatchInterface
         $this->moduleDataSetup->getConnection()->endSetup();
     }
 
-    private function migrateBillingAgreementsToVault(ModuleDataSetupInterface $setup)
+    private function migrateBillingAgreementsToVault(ModuleDataSetupInterface $setup): void
     {
         $paypalTable = $setup->getTable('paypal_billing_agreement');
         $connection = $setup->getConnection();
