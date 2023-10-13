@@ -48,7 +48,7 @@ class VaultMigration implements DataPatchInterface
         $this->adyenLogger = $adyenLogger;
     }
 
-    public function apply()
+    public function apply(): void
     {
         $this->moduleDataSetup->getConnection()->startSetup();
         $this->migrateBillingAgreementsToVault($this->moduleDataSetup);
