@@ -27,7 +27,7 @@ class RequestsTest extends AbstractAdyenTestCase
         $this->assertEmpty($this->sut->buildCardRecurringData(1, $this->paymentMock));
     }
 
-    public function testBuildCardRecurringStorePaymentMethodTrueVault()
+    public function testBuildCardRecurringStorePaymentMethodTrueVault(): void
     {
         $this->setMockObjects(['storePaymentMethod' => true], true, Vault::SUBSCRIPTION);
         $request = $this->sut->buildCardRecurringData(1, $this->paymentMock);
