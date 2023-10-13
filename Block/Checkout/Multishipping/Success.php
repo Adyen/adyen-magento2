@@ -78,8 +78,6 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
 
     private $configHelper;
 
-
-
     /**
      * @var []
      */

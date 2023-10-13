@@ -108,7 +108,7 @@ class Tokenization extends AbstractFieldArray
         return $this->recurringProcessingModelRenderer;
     }
 
-    protected function _prepareArrayRow(DataObject $row)
+    protected function _prepareArrayRow(DataObject $row): void
     {
         $options = [];
         $enabled = $row->getData('enabled');
