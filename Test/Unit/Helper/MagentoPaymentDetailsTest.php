@@ -241,7 +241,7 @@ class MagentoPaymentDetailsTest extends AbstractAdyenTestCase
         $configHelperMock = null,
         $cartRepositoryInterfaceMock = null,
         $connectedTerminalsMock = null
-    ) {
+    ): MagentoPaymentDetails {
         if (is_null($paymentMethodsFilterMock)) {
             $paymentMethodsFilterMock = $this->createMock(PaymentMethodsFilter::class);
         }
