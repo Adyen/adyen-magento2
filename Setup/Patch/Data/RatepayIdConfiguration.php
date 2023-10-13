@@ -97,7 +97,7 @@ class RatepayIdConfiguration implements DataPatchInterface, PatchVersionInterfac
         return [];
     }
 
-    public static function getVersion()
+    public static function getVersion(): string
     {
         return '9.0.0';
     }
