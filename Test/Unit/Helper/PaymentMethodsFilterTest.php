@@ -202,7 +202,7 @@ class PaymentMethodsFilterTest extends AbstractAdyenTestCase
     protected function createPaymentMethodsFilterHelper(
         $paymentMethodsHelperMock = null,
         $cartRepositoryInterfaceMock = null
-    ) {
+    ): PaymentMethodsFilter {
         if (is_null($paymentMethodsHelperMock)) {
             $paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
         }
