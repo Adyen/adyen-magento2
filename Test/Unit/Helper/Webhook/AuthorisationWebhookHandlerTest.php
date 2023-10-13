@@ -59,7 +59,7 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
     /**
      * @throws LocalizedException
      */
-    public function testHandleWebhook()
+    public function testHandleWebhook(): void
     {
         // Set up expectations for mock objects
         $orderAmountCurrency = new AdyenAmountCurrency(
