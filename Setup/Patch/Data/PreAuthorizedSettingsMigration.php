@@ -107,7 +107,7 @@ class PreAuthorizedSettingsMigration implements DataPatchInterface, PatchVersion
     /**
      * @inheritdoc
      */
-    public static function getDependencies()
+    public static function getDependencies(): array
     {
         return [];
     }
