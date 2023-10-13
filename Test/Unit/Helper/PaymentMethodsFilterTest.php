@@ -166,7 +166,7 @@ class PaymentMethodsFilterTest extends AbstractAdyenTestCase
         }
     }
 
-    public function testSortAndFilterPaymentMethods()
+    public function testSortAndFilterPaymentMethods(): void
     {
         $quoteMock = $this->createConfiguredMock(CartInterface::class, [
             'getId' => 1,
