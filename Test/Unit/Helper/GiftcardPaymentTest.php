@@ -296,7 +296,7 @@ class GiftcardPaymentTest extends AbstractAdyenTestCase
      * @param int $expectedResult
      * @return void
      */
-    public function testGetQuoteGiftcardDiscount(float $quoteAmount, int $giftcardBalance, int $expectedResult)
+    public function testGetQuoteGiftcardDiscount(float $quoteAmount, int $giftcardBalance, int $expectedResult): void
     {
         $stateDataCollectionMock = [
             [
