@@ -102,7 +102,7 @@ class Tokenization extends Value
         return $this;
     }
 
-    protected function encodeArrayFieldValue(array $value)
+    protected function encodeArrayFieldValue(array $value): array
     {
         $result = [];
 
