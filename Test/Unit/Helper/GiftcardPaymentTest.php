@@ -330,7 +330,7 @@ class GiftcardPaymentTest extends AbstractAdyenTestCase
         $this->assertEquals($expectedResult, $giftcardDiscount);
     }
 
-    public function testFetchRedeemedGiftcards()
+    public function testFetchRedeemedGiftcards(): void
     {
         $this->quote = $this->createMockWithMethods(
             Quote::class,
