@@ -92,7 +92,7 @@ class RatepayIdConfiguration implements DataPatchInterface, PatchVersionInterfac
     /**
      * @inheritdoc
      */
-    public static function getDependencies()
+    public static function getDependencies(): array
     {
         return [];
     }
