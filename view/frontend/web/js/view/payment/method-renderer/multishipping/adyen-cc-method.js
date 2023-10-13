@@ -11,22 +11,48 @@
 /*global define*/
 define([
     'jquery',
+    'ko',
     'Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method',
     'Adyen_Payment/js/model/adyen-configuration',
+    'Adyen_Payment/js/model/adyen-payment-service',
+    'Magento_Checkout/js/model/full-screen-loader',
 ], function (
-    $, Component, adyenConfiguration
+    $,
+    ko,
+    Component,
+    adyenConfiguration,
+    adyenPaymentService,
+    fullScreenLoader
 ) {
     'use strict';
     return Component.extend({
         defaults: {
             template: 'Adyen_Payment/payment/multishipping/cc-form'
         },
+
+        paymentMethodReady: ko.observable(false),
+
+        initialize: function() {
+            let self = this;
+            this._super();
+
+            let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
+            paymentMethodsObserver.subscribe(
+                function(paymentMethods) {
+                    self.paymentMethodReady(paymentMethods);
+                }
+            );
+
+            this.paymentMethodReady(paymentMethodsObserver());
+        },
+
         selectPaymentMethod: function () {
             this.renderSecureFields();
             return this._super();
         },
+
         renderSecureFields: function () {
-            var self = this;
+            let self = this;
 
             if (!self.getClientKey) {
                 return;

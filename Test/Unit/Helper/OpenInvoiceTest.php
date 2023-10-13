@@ -1,21 +1,21 @@
 <?php declare(strict_types=1);
 
-    namespace Adyen\Payment\Test\Unit\Helper;
+namespace Adyen\Payment\Test\Unit\Helper;
 
-    use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
-    use Adyen\Payment\Helper\OpenInvoice;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Adyen\Payment\Helper\OpenInvoice;
 
-    class OpenInvoiceTest extends AbstractAdyenTestCase
-    {
-        private $adyenHelperMock;
-        private $cartRepositoryMock;
-        private $chargedCurrencyMock;
-        private $configHelperMock;
-        private $imageHelperMock;
-        private $orderMock;
-        private $cartMock;
-        private $itemMock;
-        private $productMock;
+class OpenInvoiceTest extends AbstractAdyenTestCase
+{
+    private $adyenHelperMock;
+    private $cartRepositoryMock;
+    private $chargedCurrencyMock;
+    private $configHelperMock;
+    private $imageHelperMock;
+    private $orderMock;
+    private $cartMock;
+    private $itemMock;
+    private $productMock;
 
         protected function setUp(): void
         {
@@ -72,83 +72,77 @@
                 ['getShippingAmountCurrency', [], 'EUR'],
             ]);
 
+        $shippingAmountCurrencyMock = $this->createMock(\Adyen\Payment\Model\AdyenAmountCurrency::class);
+        $shippingAmountCurrencyMock->method('getAmount')->willReturn(500);
+        $shippingAmountCurrencyMock->method('getAmountIncludingTax')->willReturn(500);
+        $shippingAmountCurrencyMock->method('getTaxAmount')->willReturn(0);
+        $this->chargedCurrencyMock->method('getQuoteShippingAmountCurrency')->willReturn($shippingAmountCurrencyMock);
 
-            $shippingAmountCurrencyMock = $this->createMock(\Adyen\Payment\Model\AdyenAmountCurrency::class);
-            $shippingAmountCurrencyMock->method('getAmount')->willReturn(500);
-            $shippingAmountCurrencyMock->method('getAmountIncludingTax')->willReturn(500);
-            $shippingAmountCurrencyMock->method('getTaxAmount')->willReturn(0);
-            $this->chargedCurrencyMock->method('getQuoteShippingAmountCurrency')->willReturn($shippingAmountCurrencyMock);
+        $this->cartMock->method('getShippingAddress')->willReturn($shippingAddressMock);
 
-            $this->cartMock->method('getShippingAddress')->willReturn($shippingAddressMock);
+        $this->cartRepositoryMock->method('get')->willReturn($this->cartMock);
 
-            $this->cartRepositoryMock->method('get')->willReturn($this->cartMock);
-
-        }
-
-    public function testGetOpenInvoiceData()
-        {
-            // Arrange: Set up the object with the mocks
-            $openInvoice = new OpenInvoice(
-                $this->adyenHelperMock,
-                $this->cartRepositoryMock,
-                $this->chargedCurrencyMock,
-                $this->configHelperMock,
-                $this->imageHelperMock
-            );
-
-            // Stub methods to return expected values
-            $this->cartMock->method('getAllVisibleItems')->willReturn([$this->itemMock]);
-            $this->itemMock->method('getQty')->willReturn(1);
-            $this->itemMock->method('getProduct')->willReturn($this->productMock);
-            $this->itemMock->method('getName')->willReturn('Push It Messenger Bag');
-            $this->productMock->method('getId')->willReturn('14');
-
-            $this->productMock->method('getUrlModel')->willReturn(new class {
-                public function getUrl() {
-                    return 'https://192.168.58.20/index.php/push-it-messenger-bag.html';
-                }
-            });
-
-
-            $this->orderMock->method('getShippingDescription')->willReturn('Flat Rate - Fixed');
-
-
-            $this->imageHelperMock->method('init')->willReturnSelf();
-            $this->imageHelperMock->method('setImageFile')->willReturnSelf();
-            $this->imageHelperMock->method('getUrl')->willReturn('https://192.168.58.20/media/catalog/product/cache/3d0891988c4d57b25ce48fde378871d2/w/b/wb04-blue-0.jpg');
-
-
-
-
-            $expectedResult = [
-                'lineItems' => [
-                    [
-                        'id' => '14',
-                        'amountExcludingTax' => 4500,
-                        'amountIncludingTax' => 4500,
-                        'taxAmount' => 0,
-                        'description' => 'Push It Messenger Bag',
-                        'quantity' => 1,
-                        'taxPercentage' => 0,
-                        'productUrl' => 'https://192.168.58.20/index.php/push-it-messenger-bag.html',
-                        'imageUrl' => ''
-                    ],
-                    [
-                        'id' => 'shippingCost',
-                        'amountExcludingTax' => 500,
-                        'amountIncludingTax' => 500,
-                        'taxAmount' => 0,
-                        'description' => 'Flat Rate - Fixed',
-                        'quantity' => 1,
-                        'taxPercentage' => 0
-                    ],
-                ],
-            ];
-
-            // Act: Call the method with the mocked parameters
-            $result = $openInvoice->getOpenInvoiceData($this->orderMock);
-
-            // Assert: Verify that the output matches your expectations
-            $this->assertEquals($expectedResult, $result);
-        }
     }
+
+public function testGetOpenInvoiceData(): void
+    {
+        // Arrange: Set up the object with the mocks
+        $openInvoice = new OpenInvoice(
+            $this->adyenHelperMock,
+            $this->cartRepositoryMock,
+            $this->chargedCurrencyMock,
+            $this->configHelperMock,
+            $this->imageHelperMock
+        );
+
+        // Stub methods to return expected values
+        $this->cartMock->method('getAllVisibleItems')->willReturn([$this->itemMock]);
+        $this->itemMock->method('getQty')->willReturn(1);
+        $this->itemMock->method('getProduct')->willReturn($this->productMock);
+        $this->itemMock->method('getName')->willReturn('Push It Messenger Bag');
+        $this->productMock->method('getId')->willReturn('14');
+
+        $this->productMock->method('getUrlModel')->willReturn(new class {
+            public function getUrl() {
+                return 'https://localhost.store/index.php/push-it-messenger-bag.html';
+            }
+        });
+
+        $this->orderMock->method('getShippingDescription')->willReturn('Flat Rate - Fixed');
+
+        $this->imageHelperMock->method('init')->willReturnSelf();
+        $this->imageHelperMock->method('setImageFile')->willReturnSelf();
+        $this->imageHelperMock->method('getUrl')->willReturn('https://localhost.store/media/catalog/product/cache/3d0891988c4d57b25ce48fde378871d2/w/b/wb04-blue-0.jpg');
+
+        $expectedResult = [
+            'lineItems' => [
+                [
+                    'id' => '14',
+                    'amountExcludingTax' => 4500,
+                    'amountIncludingTax' => 4500,
+                    'taxAmount' => 0,
+                    'description' => 'Push It Messenger Bag',
+                    'quantity' => 1,
+                    'taxPercentage' => 0,
+                    'productUrl' => 'https://localhost.store/index.php/push-it-messenger-bag.html',
+                    'imageUrl' => ''
+                ],
+                [
+                    'id' => 'shippingCost',
+                    'amountExcludingTax' => 500,
+                    'amountIncludingTax' => 500,
+                    'taxAmount' => 0,
+                    'description' => 'Flat Rate - Fixed',
+                    'quantity' => 1,
+                    'taxPercentage' => 0
+                ],
+            ],
+        ];
+
+        // Act: Call the method with the mocked parameters
+        $result = $openInvoice->getOpenInvoiceData($this->orderMock);
+
+        // Assert: Verify that the output matches your expectations
+        $this->assertEquals($expectedResult, $result);
+    }
+}

@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2021 Adyen B.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -17,38 +17,15 @@ use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Sales\Api\OrderRepositoryInterface;
-use \Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Exception\NoSuchEntityException;
 
 class AdyenOrderPaymentStatus implements AdyenOrderPaymentStatusInterface
 {
-    /**
-     * @var OrderRepositoryInterface
-     */
-    protected $orderRepository;
+    protected OrderRepositoryInterface $orderRepository;
+    protected AdyenLogger $adyenLogger;
+    protected Data $adyenHelper;
+    private PaymentResponseHandler $paymentResponseHandler;
 
-    /**
-     * @var AdyenLogger
-     */
-    protected $adyenLogger;
-
-    /**
-     * @var Data
-     */
-    protected $adyenHelper;
-
-    /**
-     * @var PaymentResponseHandler
-     */
-    private $paymentResponseHandler;
-
-    /**
-     * AdyenOrderPaymentStatus constructor.
-     *
-     * @param OrderRepositoryInterface $orderRepository
-     * @param AdyenLogger $adyenLogger
-     * @param Data $adyenHelper
-     * @param PaymentResponseHandler $paymentResponseHandler
-     */
     public function __construct(
         OrderRepositoryInterface $orderRepository,
         AdyenLogger $adyenLogger,
@@ -61,19 +38,15 @@ class AdyenOrderPaymentStatus implements AdyenOrderPaymentStatusInterface
         $this->paymentResponseHandler = $paymentResponseHandler;
     }
 
-    /**
-     * @param string $orderId
-     * @return bool|string
-     */
-    public function getOrderPaymentStatus($orderId)
+    public function getOrderPaymentStatus(string $orderId): string
     {
         try {
             $order = $this->orderRepository->get($orderId);
         } catch (NoSuchEntityException $exception) {
-            $this->adyenLogger->error('Order not found.');
-            return json_encode(
-                $this->paymentResponseHandler->formatPaymentResponse(PaymentResponseHandler::ERROR)
-            );
+            $errorMessage = sprintf("Order for ID %s not found!", $orderId);
+            $this->adyenLogger->error($errorMessage);
+
+            throw $exception;
         }
 
         $payment = $order->getPayment();
@@ -89,8 +62,7 @@ class AdyenOrderPaymentStatus implements AdyenOrderPaymentStatusInterface
         return json_encode($this->paymentResponseHandler->formatPaymentResponse(
             $additionalInformation['resultCode'],
             !empty($additionalInformation['action']) ? $additionalInformation['action'] : null,
-            !empty($additionalInformation['additionalData']) ? $additionalInformation['additionalData'] : null,
-            !empty($additionalInformation['donationToken']) ? $additionalInformation['donationToken'] : null
+            !empty($additionalInformation['additionalData']) ? $additionalInformation['additionalData'] : null
         ));
     }
 }

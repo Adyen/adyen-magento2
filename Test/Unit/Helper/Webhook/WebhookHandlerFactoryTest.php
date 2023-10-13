@@ -10,6 +10,7 @@ use Adyen\Payment\Helper\Webhook\ManualReviewAcceptWebhookHandler;
 use Adyen\Payment\Helper\Webhook\ManualReviewRejectWebhookHandler;
 use Adyen\Payment\Helper\Webhook\OfferClosedWebhookHandler;
 use Adyen\Payment\Helper\Webhook\OrderClosedWebhookHandler;
+use Adyen\Payment\Helper\Webhook\OrderOpenedWebhookHandler;
 use Adyen\Payment\Helper\Webhook\PendingWebhookHandler;
 use Adyen\Payment\Helper\Webhook\RecurringContractWebhookHandler;
 use Adyen\Payment\Helper\Webhook\RefundFailedWebhookHandler;
@@ -61,6 +62,7 @@ class WebhookHandlerFactoryTest extends AbstractAdyenTestCase
         $cancellationWebhookHandler = $this->createMock(CancellationWebhookHandler::class);
         $cancelOrRefundWebhookHandler = $this->createMock(CancelOrRefundWebhookHandler::class);
         $orderClosedWebhookHandler = $this->createMock(OrderClosedWebhookHandler::class);
+        $orderOpenedWebhookHandler = $this->createMock(OrderOpenedWebhookHandler::class);
 
         $factory = new WebhookHandlerFactory(
             $adyenLogger,
@@ -75,7 +77,8 @@ class WebhookHandlerFactoryTest extends AbstractAdyenTestCase
             $pendingWebhookHandler,
             $cancellationWebhookHandler,
             $cancelOrRefundWebhookHandler,
-            $orderClosedWebhookHandler
+            $orderClosedWebhookHandler,
+            $orderOpenedWebhookHandler
         );
 
         $handler = $factory->create($notificationType);

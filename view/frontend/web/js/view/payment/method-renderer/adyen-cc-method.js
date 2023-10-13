@@ -85,13 +85,24 @@ define(
                 paymentMethodsObserver.subscribe(
                     function (paymentMethodsResponse) {
                         self.loadCheckoutComponent(paymentMethodsResponse)
-                    });
+                    }
+                );
 
-                self.loadCheckoutComponent(paymentMethodsObserver());
-                return this;
+                if(!!paymentMethodsObserver()) {
+                    self.loadCheckoutComponent(paymentMethodsObserver());
+                }
+            },
+            isSchemePaymentsEnabled: function (paymentMethod) {
+                return paymentMethod.type === "scheme";
             },
             loadCheckoutComponent: async function (paymentMethodsResponse) {
                 let self = this;
+
+                // Check the paymentMethods response to enable Credit Card payments
+                if (!!paymentMethodsResponse &&
+                    !paymentMethodsResponse.paymentMethodsResponse.paymentMethods.find(self.isSchemePaymentsEnabled)) {
+                    return;
+                }
 
                 this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
                     paymentMethodsResponse,
@@ -112,8 +123,7 @@ define(
              * @returns {*|boolean}
              */
             getEnableStoreDetails: function () {
-                // TODO refactor the configuration for this
-                return this.isOneClickEnabled() || this.isVaultEnabled();
+                return this.isCardRecurringEnabled() && this.isVaultEnabled();
             },
             /**
              * Renders the secure fields,
@@ -200,7 +210,7 @@ define(
             },
 
             handleAction: function(action, orderId) {
-                var self = this;
+                let self = this;
                 let popupModal;
 
                 fullScreenLoader.stopLoader();
@@ -271,7 +281,7 @@ define(
              * @returns {boolean}
              */
             placeOrder: function(data, event) {
-                var self = this;
+                let self = this;
 
                 if (event) {
                     event.preventDefault();
@@ -305,8 +315,8 @@ define(
              * @param responseJSON
              */
             handleAdyenResult: function(responseJSON, orderId) {
-                var self = this;
-                var response = JSON.parse(responseJSON);
+                let self = this;
+                let response = JSON.parse(responseJSON);
 
                 if (!!response.isFinal) {
                     // Status is final redirect to the success page
@@ -323,10 +333,9 @@ define(
                 let request = result.data;
                 AdyenPaymentModal.hideModalLabel(this.modalLabel);
                 fullScreenLoader.startLoader();
-                request.orderId = self.orderId;
                 let popupModal = self.showModal();
 
-                adyenPaymentService.paymentDetails(request).
+                adyenPaymentService.paymentDetails(request, self.orderId).
                     done(function(responseJSON) {
                         fullScreenLoader.stopLoader();
                         self.handleAdyenResult(responseJSON, self.orderId);
@@ -344,9 +353,9 @@ define(
              * @returns {boolean}
              */
             validate: function() {
-                var form = 'form[data-role=adyen-cc-form]';
+                let form = 'form[data-role=adyen-cc-form]';
 
-                var validate = $(form).validation() &&
+                let validate = $(form).validation() &&
                     $(form).validation('isValid') &&
                     this.cardComponent.isValid;
 
@@ -365,7 +374,7 @@ define(
              * @returns {*}
              */
             getCcCodeByAltCode: function(altCode) {
-                var ccTypes = window.checkoutConfig.payment.ccform.availableTypesByAlt[this.getCode()];
+                let ccTypes = window.checkoutConfig.payment.ccform.availableTypesByAlt[this.getCode()];
                 if (ccTypes.hasOwnProperty(altCode)) {
                     return ccTypes[altCode];
                 }
@@ -399,9 +408,9 @@ define(
             getCode: function() {
                 return window.checkoutConfig.payment.adyenCc.methodCode;
             },
-            isOneClickEnabled: function () {
+            isCardRecurringEnabled: function () {
                 if (customer.isLoggedIn()) {
-                    return window.checkoutConfig.payment.adyenCc.isOneClickEnabled;
+                    return window.checkoutConfig.payment.adyenCc.isCardRecurringEnabled;
                 }
 
                 return false;
@@ -433,9 +442,9 @@ define(
                 if (quote.billingAddress() === null) {
                     return false;
                 }
-                var countryId = quote.billingAddress().countryId;
-                var currencyCode = quote.totals().quote_currency_code;
-                var allowedCurrenciesByCountry = {
+                let countryId = quote.billingAddress().countryId;
+                let currencyCode = quote.totals().quote_currency_code;
+                let allowedCurrenciesByCountry = {
                     'BR': 'BRL',
                     'MX': 'MXN',
                 };

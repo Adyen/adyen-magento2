@@ -14,7 +14,7 @@ namespace Adyen\Payment\Model\Ui;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentMethods;
-use Adyen\Payment\Helper\Recurring;
+use Adyen\Payment\Helper\Vault;
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Serialize\SerializerInterface;
@@ -28,61 +28,17 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
     const CODE = 'adyen_cc';
     const CC_VAULT_CODE = 'adyen_cc_vault';
 
-    /**
-     * @var Data
-     */
-    protected $_adyenHelper;
+    protected Data $adyenHelper;
+    protected Source $assetSource;
+    protected RequestInterface $request;
+    protected UrlInterface $urlBuilder;
+    private CcConfig $ccConfig;
+    private StoreManagerInterface $storeManager;
+    private SerializerInterface $serializer;
+    private Config $configHelper;
+    private PaymentMethods $paymentMethodsHelper;
+    private Vault $vaultHelper;
 
-    /**
-     * @var Source
-     */
-    protected $_assetSource;
-
-    /**
-     * Request object
-     *
-     * @var RequestInterface
-     */
-    protected $_request;
-
-    /**
-     * @var UrlInterface
-     */
-    protected $_urlBuilder;
-
-    /**
-     * @var CcConfig
-     */
-    private $ccConfig;
-
-    /**
-     * @var StoreManagerInterface
-     */
-    private $storeManager;
-
-    /**
-     * @var SerializerInterface
-     */
-    private $serializer;
-
-    /** @var Config $configHelper */
-    private $configHelper;
-
-    /** @var PaymentMethods */
-    private $paymentMethodsHelper;
-
-    /**
-     * AdyenCcConfigProvider constructor.
-     *
-     * @param Data $adyenHelper
-     * @param RequestInterface $request
-     * @param UrlInterface $urlBuilder
-     * @param Source $assetSource
-     * @param StoreManagerInterface $storeManager
-     * @param CcConfig $ccConfig
-     * @param SerializerInterface $serializer
-     * @param Config $configHelper
-     */
     public function __construct(
         Data $adyenHelper,
         RequestInterface $request,
@@ -92,23 +48,22 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         CcConfig $ccConfig,
         SerializerInterface $serializer,
         Config $configHelper,
-        PaymentMethods $paymentMethodsHelper
+        PaymentMethods $paymentMethodsHelper,
+        Vault $vaultHelper
     ) {
-        $this->_adyenHelper = $adyenHelper;
-        $this->_request = $request;
-        $this->_urlBuilder = $urlBuilder;
-        $this->_assetSource = $assetSource;
+        $this->adyenHelper = $adyenHelper;
+        $this->request = $request;
+        $this->urlBuilder = $urlBuilder;
+        $this->assetSource = $assetSource;
         $this->ccConfig = $ccConfig;
         $this->storeManager = $storeManager;
         $this->serializer = $serializer;
         $this->configHelper = $configHelper;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
+        $this->vaultHelper = $vaultHelper;
     }
 
-    /**
-     * @return array
-     */
-    public function getConfig()
+    public function getConfig(): array
     {
         // set to active
         $config = [
@@ -116,7 +71,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
                 self::CODE => [
                     'vaultCode' => self::CC_VAULT_CODE,
                     'isActive' => true,
-                    'successPage' => $this->_urlBuilder->getUrl(
+                    'successPage' => $this->urlBuilder->getUrl(
                         'checkout/onepage/success',
                         ['_secure' => $this->_getRequest()->isSecure()]
                     )
@@ -147,11 +102,11 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         );
 
         $storeId = $this->storeManager->getStore()->getId();
-        $recurringEnabled = $this->configHelper->getConfigData('active', Config::XML_ADYEN_ONECLICK, $storeId, true);
+        $cardRecurringEnabled = $this->vaultHelper->getPaymentMethodRecurringActive(self::CODE, $storeId);
 
         $config['payment']['adyenCc']['methodCode'] = self::CODE;
-        $config['payment']['adyenCc']['locale'] = $this->_adyenHelper->getStoreLocale($storeId);
-        $config['payment']['adyenCc']['isOneClickEnabled'] = $recurringEnabled;
+        $config['payment']['adyenCc']['locale'] = $this->adyenHelper->getStoreLocale($storeId);
+        $config['payment']['adyenCc']['isCardRecurringEnabled'] = $cardRecurringEnabled;
         $config['payment']['adyenCc']['icons'] = $this->getIcons();
         $config['payment']['adyenCc']['isClickToPayEnabled'] = $this->configHelper->isClickToPayEnabled($storeId);
 
@@ -159,8 +114,8 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         $config['payment']['adyenCc']['hasInstallments'] = false;
 
         // get Installments
-        $installmentsEnabled = $this->_adyenHelper->getAdyenCcConfigData('enable_installments');
-        $installments = $this->_adyenHelper->getAdyenCcConfigData('installments');
+        $installmentsEnabled = $this->configHelper->getAdyenCcConfigData('enable_installments');
+        $installments = $this->configHelper->getAdyenCcConfigData('installments');
 
         if ($installmentsEnabled && $installments) {
             $config['payment']['adyenCc']['installments'] = $this->serializer->unserialize($installments);
@@ -188,11 +143,11 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
     protected function getIcons()
     {
         $icons = [];
-        $types = $this->_adyenHelper->getAdyenCcTypes();
+        $types = $this->adyenHelper->getAdyenCcTypes();
         foreach (array_keys($types) as $code) {
             if (!array_key_exists($code, $icons)) {
                 $asset = $this->ccConfig->createAsset('Magento_Payment::images/cc/' . strtolower($code) . '.png');
-                $placeholder = $this->_assetSource->findSource($asset);
+                $placeholder = $this->assetSource->findSource($asset);
                 if ($placeholder) {
                     list($width, $height) = getimagesize($asset->getSourceFile());
                     $icons[$code] = [
@@ -233,7 +188,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
      */
     protected function hasVerification()
     {
-        return $this->_adyenHelper->getAdyenCcConfigData('useccv');
+        return $this->configHelper->getAdyenCcConfigData('useccv');
     }
 
     /**
@@ -253,6 +208,6 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
      */
     protected function _getRequest()
     {
-        return $this->_request;
+        return $this->request;
     }
 }
