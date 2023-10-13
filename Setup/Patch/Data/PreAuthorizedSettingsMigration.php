@@ -112,7 +112,7 @@ class PreAuthorizedSettingsMigration implements DataPatchInterface, PatchVersion
         return [];
     }
 
-    public static function getVersion()
+    public static function getVersion(): string
     {
         return '9.0.0';
     }
