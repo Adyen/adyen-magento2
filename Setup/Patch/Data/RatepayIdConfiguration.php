@@ -33,7 +33,7 @@ class RatepayIdConfiguration implements DataPatchInterface, PatchVersionInterfac
         $this->reinitableConfig = $reinitableConfig;
     }
 
-    public function apply()
+    public function apply(): void
     {
         $this->moduleDataSetup->getConnection()->startSetup();
 
