@@ -87,7 +87,7 @@ class Tokenization extends Value
         return $this;
     }
 
-    protected function _afterLoad()
+    protected function _afterLoad(): Tokenization
     {
         $value = $this->getValue();
 
