@@ -247,7 +247,7 @@ class ManagementHelperTest extends AbstractAdyenTestCase
         $this->assertEquals('WH-0123456789', $result);
     }
 
-    public function testSetupWebhookCredentialsFailLive()
+    public function testSetupWebhookCredentialsFailLive(): void
     {
         $merchantId = 'TestMerchantAccount';
         $username = 'USERNAME';

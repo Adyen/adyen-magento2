@@ -173,7 +173,7 @@ class MagentoPaymentDetailsTest extends AbstractAdyenTestCase
         }
     }
 
-    public function testAddAdyenExtensionAttributes()
+    public function testAddAdyenExtensionAttributes(): void
     {
         $quoteId = 1;
         $quoteMock = $this->createConfiguredMock(CartInterface::class, [
@@ -241,7 +241,7 @@ class MagentoPaymentDetailsTest extends AbstractAdyenTestCase
         $configHelperMock = null,
         $cartRepositoryInterfaceMock = null,
         $connectedTerminalsMock = null
-    ) {
+    ): MagentoPaymentDetails {
         if (is_null($paymentMethodsFilterMock)) {
             $paymentMethodsFilterMock = $this->createMock(PaymentMethodsFilter::class);
         }

@@ -166,7 +166,7 @@ class PaymentMethodsFilterTest extends AbstractAdyenTestCase
         }
     }
 
-    public function testSortAndFilterPaymentMethods()
+    public function testSortAndFilterPaymentMethods(): void
     {
         $quoteMock = $this->createConfiguredMock(CartInterface::class, [
             'getId' => 1,
@@ -202,7 +202,7 @@ class PaymentMethodsFilterTest extends AbstractAdyenTestCase
     protected function createPaymentMethodsFilterHelper(
         $paymentMethodsHelperMock = null,
         $cartRepositoryInterfaceMock = null
-    ) {
+    ): PaymentMethodsFilter {
         if (is_null($paymentMethodsHelperMock)) {
             $paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
         }
