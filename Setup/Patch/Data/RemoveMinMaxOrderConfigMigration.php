@@ -77,6 +77,6 @@ class RemoveMinMaxOrderConfigMigration implements DataPatchInterface, PatchVersi
      */
     public static function getVersion()
     {
-        return '9.0.2';
+        return '9.0.0';
     }
 }
