@@ -3,7 +3,6 @@
 namespace Adyen\Payment\Setup\Patch\Data;
 
 use Magento\Framework\App\Config\ReinitableConfigInterface;
-use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
 use Magento\Framework\Setup\Patch\PatchVersionInterface;
@@ -11,17 +10,14 @@ use Magento\Framework\Setup\Patch\PatchVersionInterface;
 class RemoveMinMaxOrderConfigMigration implements DataPatchInterface, PatchVersionInterface
 {
     private ModuleDataSetupInterface $moduleDataSetup;
-    private WriterInterface $configWriter;
     private ReinitableConfigInterface $reinitableConfig;
 
     public function __construct(
         ModuleDataSetupInterface  $moduleDataSetup,
-        WriterInterface           $configWriter,
         ReinitableConfigInterface $reinitableConfig
     )
     {
         $this->moduleDataSetup = $moduleDataSetup;
-        $this->configWriter = $configWriter;
         $this->reinitableConfig = $reinitableConfig;
     }
 
