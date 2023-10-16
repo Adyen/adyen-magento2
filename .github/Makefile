@@ -134,6 +134,7 @@ setup-mftf:
 	echo 'SELENIUM_HOST=selenium' >> dev/tests/acceptance/.env;
 
 	cp dev/tests/acceptance/.htaccess.sample dev/tests/acceptance/.htaccess
+	cp dev/tests/acceptance/.credentials.example dev/tests/acceptance/.credentials
 
 	vendor/bin/mftf doctor
 
