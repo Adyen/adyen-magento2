@@ -45,8 +45,9 @@ class PaymentMethodsFilter
             $quote->getBillingAddress()->getCountryId()
         );
 
-        if (!empty($adyenPaymentMethodsResponse)) {
-            $adyenPaymentMethodsDecoded = json_decode($adyenPaymentMethodsResponse, true);
+        $adyenPaymentMethodsDecoded = json_decode($adyenPaymentMethodsResponse, true);
+
+        if (!empty($adyenPaymentMethodsDecoded)) {
             $adyenPaymentMethods = $adyenPaymentMethodsDecoded['paymentMethodsResponse']['paymentMethods'];
 
             $magentoPaymentMethods = $this->filterPaymentMethods($magentoPaymentMethods, $adyenPaymentMethods);
