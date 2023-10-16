@@ -52,7 +52,8 @@ class RemoveMinMaxOrderConfigMigration implements DataPatchInterface, PatchVersi
         ];
 
         $connection = $setup->getConnection();
-        $connection->delete('core_config_data', ['path IN(?)' => $deletedConfigPaths]);
+        $configTable = $setup->getTable('core_config_data');
+        $connection->delete($configTable, ['path IN(?)' => $deletedConfigPaths]);
     }
 
     /**
@@ -76,6 +77,6 @@ class RemoveMinMaxOrderConfigMigration implements DataPatchInterface, PatchVersi
      */
     public static function getVersion()
     {
-        return '9.0.1';
+        return '9.0.2';
     }
 }
