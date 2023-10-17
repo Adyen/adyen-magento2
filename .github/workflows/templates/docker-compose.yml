@@ -54,6 +54,7 @@ services:
       - composer:/usr/local/bin
       - magento:/var/www/html
       - ../../Makefile:/var/www/html/Makefile
+      - ../../../magento-logs:/var/www/html/var/log
     networks:
       backend:
         aliases:
