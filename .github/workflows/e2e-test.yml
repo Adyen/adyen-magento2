@@ -4,7 +4,9 @@ run-name: E2E tests for Adyen Magento2 Plugin
 on: 
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-    branches-ignore: [main]
+    # This workflow will be used for all PRs temporarily
+    # Until express checkout flow is fixed
+    # branches-ignore: [main]
 
 jobs:
   build:
