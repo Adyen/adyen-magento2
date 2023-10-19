@@ -151,6 +151,11 @@ $paymentResponseEntities = $block->getPaymentResponseEntities();
                     handleAdyenResult(responseJSON, $(paymentSelected).data('order-id'));
                 }).fail(function (response) {
                     errorProcessor.process(response, self.messageContainer);
+                    let buttonLabel = "<?= $block->escapeHtml($block->getPaymentFailedLabel()) ?>";
+                    $(paymentSelected).attr('disabled', true)
+                        .addClass('adyen-payment-finished')
+                        .removeClass('adyen-payment-unfinished')
+                        .html(buttonLabel);
                 });
                 closeModal(popupModal);
                 fullScreenLoader.stopLoader();
