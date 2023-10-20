@@ -40,7 +40,7 @@
                 <title>Credit Card</title>
                 <allowspecific>0</allowspecific>
                 <sort_order>2</sort_order>
-                <cctypes>AE,VI,MC,DI</cctypes>
+                <cctypes>AE,VI,MC,DI,ELO</cctypes>
                 <useccv>1</useccv>
                 <has_holder_name>1</has_holder_name>
                 <holder_name_required>0</holder_name_required>
