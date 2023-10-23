@@ -85,14 +85,14 @@ QUERY;
      * @magentoApiDataFixture Magento/GraphQl/Quote/_files/set_new_billing_address.php
      * @magentoApiDataFixture Magento/GraphQl/Quote/_files/set_flatrate_shipping_method.php
      */
-    public function testAdyenPaymentStatus()
+    public function testAdyenPaymentStatus(): void
     {
-        $methodCode = "adyen_hpp";
+        $methodCode = "adyen_ideal";
         $maskedQuoteId = $this->getMaskedQuoteIdByReservedOrderId->execute('test_quote');
         $stateData = '{\"paymentMethod\":{\"type\":\"ideal\",\"issuer\":\"1154\"}}';
         $adyenAdditionalData = '
         ,
-        adyen_additional_data_hpp: {
+        adyen_additional_data: {
             brand_code: "ideal",
             stateData: "' . $stateData . '",
             returnUrl: "http://localhost/checkout/?id=:merchantReference&done=1"
@@ -132,14 +132,14 @@ QUERY;
      * @magentoApiDataFixture Magento/GraphQl/Quote/_files/add_simple_product.php
      * @magentoApiDataFixture Magento/GraphQl/Quote/_files/set_new_shipping_address.php
      */
-    public function testSetAdyenPaymentMethodOnCart()
+    public function testSetAdyenPaymentMethodOnCart(): void
     {
-        $methodCode = "adyen_hpp";
+        $methodCode = "adyen_ideal";
         $maskedQuoteId = $this->getMaskedQuoteIdByReservedOrderId->execute('test_quote');
         $stateData = '{\"paymentMethod\":{\"type\":\"ideal\",\"issuer\":\"1154\"}}';
         $adyenAdditionalData = '
         ,
-        adyen_additional_data_hpp: {
+        adyen_additional_data: {
             brand_code: "ideal",
             stateData: "' . $stateData . '"
         }';

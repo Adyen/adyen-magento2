@@ -39,13 +39,11 @@
     </div>
 
     <div class="payment-method-content">
-
         <div data-bind="attr: {id: 'card_action_modal_' + getId() + 'Wrapper'}">
             <div data-bind="attr: {id: 'card_action_modal_' + getId()}">
                 <div data-bind="attr: {id: 'card_action_modal_' + getId() + 'Content'}"></div>
             </div>
         </div>
-
         <!-- ko ifnot: (getClientKey()) -->
         <span class="message message-error error"><!-- ko text: $t('Please configure an API Key, a Client Key and a live endpoint prefix(if in Production Mode) in your Adyen Required Settings')--><!-- /ko --></span>
         <!--/ko-->
@@ -60,7 +58,6 @@
         <form class="form" action="#" method="post" data-bind="attr: {'id': getId(), 'data-role': getId() }">
             <fieldset
                     data-bind="attr: {class: 'fieldset payment items ccard adyen_cc_vault', id: 'payment_form_' + 'adyen_cc_form' + '_' + getId()}">
-
                 <div class="field number">
                     <label class="label">
                         <span><!-- ko text: $t('Credit Card Number') --><!-- /ko --></span>
@@ -73,6 +70,34 @@
                 <div class="checkout-component-dock" afterRender="renderCardVaultToken()" data-bind="attr: { id: 'cvcContainer-' + getId()}"></div>
             </fieldset>
         </form>
+
+        <!-- ko if: (hasInstallments())-->
+
+        <div class="field required"
+             data-bind="attr: {id: getCode() + '_installments_div'}, visible: installments().length > 0">
+            <label data-bind="attr: {for: getCode() + '_installments'}" class="label">
+                <span><!-- ko text: $t('Installments')--><!-- /ko --></span>
+            </label>
+            <div class="control">
+
+                <select class="select"
+                        name="payment[number_of_installments]"
+                        data-bind="attr: {id: getCode() + '_installments', 'data-container': getCode() + '-installments', 'data-validate': JSON.stringify({required:false})},
+
+                                        enable: isActive($parents),
+                                        options: installments,
+                                        optionsValue: 'value',
+                                        optionsText: 'key',
+                                        optionsCaption: $t('Do not use Installments'),
+                                        value: installment"
+                        data-validate="{required:true}">
+                </select>
+            </div>
+        </div>
+        <br/>
+
+        <!-- /ko -->
+
         <div class="checkout-agreements-block">
             <!-- ko foreach: $parent.getRegion('before-place-order') -->
             <!-- ko template: getTemplate() --><!-- /ko -->

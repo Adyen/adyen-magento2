@@ -4,7 +4,9 @@ run-name: E2E tests for Adyen Magento2 Plugin
 on: 
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-    branches-ignore: [main]
+    # This workflow will be used for all PRs temporarily
+    # Until express checkout flow is fixed
+    # branches-ignore: [main]
 
 jobs:
   build:
@@ -45,7 +47,28 @@ jobs:
       - name: Install plugin
         run: docker exec -u www-data magento2-container make plugin
 
-      - run: docker exec magento2-container /etc/init.d/cron stop
+      - name: Checkout developer module
+        uses: actions/checkout@v3
+        with:
+          repository: Adyen/adyen-magento2-dev
+          ref: 'main'
+          token: ${{ secrets.ADYEN_AUTOMATION_BOT_TEST_ACCESS_TOKEN }}
+          path: Developer
+
+      - name: Make the folder for dev module
+        run: docker exec -u www-data magento2-container mkdir -p /var/www/html/app/code/Adyen
+
+      - name: Copy dev module into Docker container
+        run: docker cp ./Developer magento2-container:/var/www/html/app/code/Adyen
+
+      - name: Change ownership of developer module folder
+        run: docker exec magento2-container chown -R www-data:www-data /var/www/html/app/code/Adyen/Developer
+
+      - name: Enable developer module
+        run: docker exec -u www-data magento2-container make dev-module
+        
+      - name: Kill Cron Jobs
+        run: docker exec magento2-container /etc/init.d/cron stop
 
       - name: Switch to production mode
         run: docker exec -u www-data magento2-container make production
@@ -56,7 +79,7 @@ jobs:
       - name: Run E2E tests
         run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm playwright /e2e.sh
         env:
-          INTEGRATION_TESTS_BRANCH: develop
+          INTEGRATION_TESTS_BRANCH: develop-9
           MAGENTO_ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
           MAGENTO_ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
           MAGENTO_BASE_URL: ${{secrets.MAGENTO_BASE_URL}}

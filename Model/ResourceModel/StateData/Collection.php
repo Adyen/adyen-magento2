@@ -28,35 +28,26 @@ class Collection extends AbstractCollection
 
     /**
      * Fetch the most recent state data with quote ID or return an empty array
-     *
-     * @param $quoteId
-     * @return array
      */
-    public function getStateDataArrayWithQuoteId($quoteId)
+    public function getStateDataArrayWithQuoteId(int $quoteId): array
     {
         $stateData = $this->getStateDataRowsWithQuoteId($quoteId)
             ->getFirstItem()
             ->getData(StateDataInterface::STATE_DATA);
-        return !empty($stateData) ? json_decode($stateData, true) : [];
+        return !empty($stateData) ? json_decode((string) $stateData, true) : [];
     }
 
-    /**
-     * @param $quoteId
-     * @return Collection
-     */
-    public function getStateDataRowsWithQuoteId($quoteId)
+    public function getStateDataRowsWithQuoteId(int $quoteId, string $sorting = 'DESC'): Collection
     {
         $this->addFieldToFilter('quote_id', $quoteId);
-        $this->getSelect()->order('entity_id DESC');
+        $this->getSelect()->order("entity_id $sorting");
         return $this;
     }
 
     /**
      * Fetch old state data
-     *
-     * @return Collection
      */
-    public function getExpiredStateDataRows()
+    public function getExpiredStateDataRows(): Collection
     {
         $this->addFieldToFilter('updated_at', ['lt' => date('Y-m-d', strtotime('-1 day'))]);
         $this->getSelect()->order('entity_id DESC');

@@ -26,9 +26,26 @@ define(
         'Magento_Checkout/js/model/error-processor',
         'Magento_Ui/js/model/messages',
         'Magento_Checkout/js/action/redirect-on-success',
-        'Adyen_Payment/js/model/installments'
+        'Adyen_Payment/js/model/installments',
+        'Adyen_Payment/js/model/adyen-payment-service'
     ],
-    function (ko, $, Component, additionalValidators, placeOrderAction, quote, agreementsAssigner, customer, urlBuilder, storage, fullScreenLoader, errorProcessor, Messages, redirectOnSuccessAction, installmentsHelper) {
+    function (ko,
+              $,
+              Component,
+              additionalValidators,
+              placeOrderAction,
+              quote,
+              agreementsAssigner,
+              customer,
+              urlBuilder,
+              storage,
+              fullScreenLoader,
+              errorProcessor,
+              Messages,
+              redirectOnSuccessAction,
+              installmentsHelper,
+              adyenPaymentService
+    ) {
         'use strict';
 
         return Component.extend({
@@ -95,15 +112,17 @@ define(
             },
             getConnectedTerminals: function () {
                 let connectedTerminals = [];
-                const connectedTerminalsList = window.checkoutConfig.payment.adyenPos.connectedTerminals;
+                let connectedTerminalsList = adyenPaymentService.getConnectedTerminals();
 
-                for (let i = 0; i < connectedTerminalsList.length; i++) {
-                    connectedTerminals.push(
-                        {
-                            key: connectedTerminalsList[i],
-                            value: connectedTerminalsList[i]
-                        }
-                    );
+                if (!!connectedTerminalsList()) {
+                    for (let terminal of connectedTerminalsList()) {
+                        connectedTerminals.push(
+                            {
+                                key: terminal,
+                                value: terminal
+                            }
+                        );
+                    }
                 }
 
                 return connectedTerminals;
@@ -146,7 +165,6 @@ define(
                     additional_data: {
                         'terminal_id': this.terminalId(),
                         'number_of_installments': this.installment(),
-                        'chain_calls': true,
                         'funding_source': this.fundingSource()
                     }
                 };

@@ -11,37 +11,27 @@
 
 namespace Adyen\Payment\Block\Info;
 
+use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Model\ResourceModel\Order\Payment\Collection;
+use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory;
 use Magento\Framework\View\Element\Template;
+use Magento\Payment\Block\Info;
 
-class AbstractInfo extends \Magento\Payment\Block\Info
+class AbstractInfo extends Info
 {
-    /**
-     * @var \Adyen\Payment\Helper\Data
-     */
-    protected $_adyenHelper;
+    protected Config $configHelper;
+    protected CollectionFactory $adyenOrderPaymentCollectionFactory;
 
-    /**
-     * @var \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory
-     */
-    protected $_adyenOrderPaymentCollectionFactory;
-
-    /**
-     * AbstractInfo constructor.
-     *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory
-     * @param Template\Context $context
-     * @param array $data
-     */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory,
-        Template\Context $context,
-        array $data = []
+        Config            $configHelper,
+        CollectionFactory $adyenOrderPaymentCollectionFactory,
+        Template\Context  $context,
+        array             $data = []
     ) {
         parent::__construct($context, $data);
-        $this->_adyenHelper = $adyenHelper;
-        $this->_adyenOrderPaymentCollectionFactory = $adyenOrderPaymentCollectionFactory;
+
+        $this->adyenOrderPaymentCollectionFactory = $adyenOrderPaymentCollectionFactory;
+        $this->configHelper = $configHelper;
     }
 
     /**
@@ -60,6 +50,20 @@ class AbstractInfo extends \Magento\Payment\Block\Info
     public function isDemoMode()
     {
         $storeId = $this->getInfo()->getOrder()->getStoreId();
-        return $this->_adyenHelper->getAdyenAbstractConfigDataFlag('demo_mode', $storeId);
+        return $this->configHelper->getAdyenAbstractConfigDataFlag('demo_mode', $storeId);
+    }
+
+    public function getPartialPayments(): ?Collection
+    {
+        // retrieve partial payments of the order
+        $orderPaymentCollection = $this->adyenOrderPaymentCollectionFactory
+            ->create()
+            ->addPaymentFilterAscending($this->getInfo()->getId());
+
+        if ($orderPaymentCollection->getSize() > 1) {
+            return $orderPaymentCollection;
+        } else {
+            return null;
+        }
     }
 }

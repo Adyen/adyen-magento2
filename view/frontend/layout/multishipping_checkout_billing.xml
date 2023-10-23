@@ -11,18 +11,85 @@
  * Author: Adyen <magento@adyen.com>
  */
 -->
-<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <head>
-        <css src="Adyen_Payment::css/adyen.css"/>
+        <css src="Adyen_Payment::css/adyen.css" />
     </head>
     <body>
-        <referenceBlock name="checkout_billing" template="Adyen_Payment::checkout/multishipping/billing.phtml">
+        <referenceBlock name="checkout_billing" class="Adyen\Payment\Block\Checkout\Multishipping\Billing" template="Adyen_Payment::checkout/multishipping/billing.phtml">
             <arguments>
                 <argument name="checkout_data" xsi:type="object">Magento\Multishipping\Block\DataProviders\Billing</argument>
                 <argument name="form_templates" xsi:type="array">
-                    <item name="adyen_cc" xsi:type="string">Adyen_Payment::form/multishipping/cc-form.phtml</item>
-                    <item name="adyen_hpp" xsi:type="string">Adyen_Payment::form/multishipping/hpp-form.phtml</item>
+                    <item name="adyen_cc" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_klarna" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_ideal" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_bcmc_mobile" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_dotpay" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_multibanco" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_sepadirectdebit" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_affirm" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_afterpaytouch" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_alipay" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_alipay_hk" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_alma" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_atome" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_afterpay_default" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_bankTransfer_BE" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_bankTransfer_CH" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_bankTransfer_DE" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_bankTransfer_GB" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_bankTransfer_IBAN" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_bankTransfer_NL" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_blik" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_clearpay" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_directdebit_GB" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_directEbanking" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_ebanking_FI" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_econtext_atm" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_econtext_online" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_econtext_seven_eleven" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_econtext_stores" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_entercash" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_eps" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_facilypay_4x" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_facilypay_6x" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_facilypay_10x" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_facilypay_12x" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_giropay" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_grabpay_MY" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_grabpay_PH" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_grabpay_SG" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_kakaopay" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_klarna_account" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_klarna_paynow" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_mbway" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_molpay_cash" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_molpay_ebanking_fpx_MY" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_molpay_ebanking_TH" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_onlineBanking_CZ" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_onlineBanking_PL" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_onlineBanking_SK" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_paybright" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_paybybank" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_pix" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_ratepay" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_ratepay_directdebit" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_swish" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_trustly" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_twint" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_walley" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_wechatpayWeb" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_wechatpayQR" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_zip" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_gcash" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_oxxo" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_doku_paymentmethods" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_carnet" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_walley_b2b" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_paysafecard" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_momo_wallet" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_touchngo" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_bcmc" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
                 </argument>
                 <argument name="cacheable" xsi:type="boolean">false</argument>
             </arguments>

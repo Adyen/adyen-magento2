@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2019 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Block\Customer;
 
+use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Adyen\Payment\Helper\Data;
@@ -21,19 +22,19 @@ use Magento\Payment\Model\CcConfigProvider;
 
 class CardRenderer extends AbstractCardRenderer
 {
-    /**
-     * @var Data
-     */
-    protected $adyenHelper;
+    protected Data $adyenHelper;
+    protected Vault $vaultHelper;
 
     public function __construct(
         Template\Context $context,
         CcConfigProvider $iconsProvider,
         array $data,
-        Data $adyenHelper
+        Data $adyenHelper,
+        Vault $vaultHelper
     ) {
         parent::__construct($context, $iconsProvider, $data);
         $this->adyenHelper = $adyenHelper;
+        $this->vaultHelper = $vaultHelper;
     }
 
     /**
@@ -44,9 +45,10 @@ class CardRenderer extends AbstractCardRenderer
      */
     public function canRender(PaymentTokenInterface $token): bool
     {
+        $paymentMethodCode = $token->getPaymentMethodCode();
         $details = json_decode($token->getTokenDetails() ?: '{}', true);
-        return $token->getPaymentMethodCode() === AdyenCcConfigProvider::CODE ||
-            ($token->getPaymentMethodCode() === AdyenHppConfigProvider::CODE && array_key_exists('maskedCC', $details));
+        return $paymentMethodCode === AdyenCcConfigProvider::CODE ||
+            ($this->vaultHelper->isAdyenPaymentCode($paymentMethodCode) && array_key_exists('maskedCC', $details));
     }
 
     /**

@@ -11,26 +11,33 @@
 
 namespace Adyen\Payment\Block\Adminhtml\System\Config\Field;
 
-class MotoEnviroment extends \Magento\Framework\View\Element\Html\Select
-{
-    /**
-     * Options
-     *
-     * @var array
-     */
-    protected $_options = [
-        '0' => 'Live',
-        '1' => 'Test'
-    ];
+use Magento\Framework\View\Element\Html\Select;
 
-    /**
-     * Sets name for input element
-     *
-     * @param string $value
-     * @return $this
-     */
-    public function setInputName($value)
+class MotoEnviroment extends Select
+{
+    private function getSourceOptions(): array
+    {
+        return [
+            ['label' => 'Live', 'value' => '0'],
+            ['label' => 'Test', 'value' => '1'],
+        ];
+    }
+
+    public function _toHtml(): string
+    {
+        if (!$this->getOptions()) {
+            $this->setOptions($this->getSourceOptions());
+        }
+        return parent::_toHtml();
+    }
+
+    public function setInputName(string $value): MotoEnviroment
     {
         return $this->setName($value);
+    }
+
+    public function setInputId(string $value): MotoEnviroment
+    {
+        return $this->setId($value);
     }
 }
