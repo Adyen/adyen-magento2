@@ -1,5 +1,5 @@
-name: Integration Test Repository Dispatch Pipeline
-run-name: E2E tests against Test Repository ${{inputs.testBranch}} with Express Checkout ${{inputs.expressBranch}}
+name: Adyen Payment Plugin V8 Integration Test Dispatch Pipeline
+run-name: --V8-- E2E tests against Test Repository ${{inputs.testBranch}} with Express Checkout ${{inputs.expressBranch}}
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ on:
       testBranch:
         description: "Integration Test Repository Pipeline"
         required: true
-        default: "develop"
+        default: "develop-8"
       expressBranch:
         description: "Express Checkout Repository Pipeline"
         required: true
