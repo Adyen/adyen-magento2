@@ -1,5 +1,5 @@
 name: Magento 2 E2E Pipeline
-run-name: E2E tests for Adyen Magento2 Plugin
+run-name: Adyen Magento 2 Payment Plugin E2E tests
 
 on: 
   pull_request:
