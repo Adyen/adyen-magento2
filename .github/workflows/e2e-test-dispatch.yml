@@ -15,11 +15,6 @@ on:
 
 jobs:
   build:
-    if: |
-      ${{ 
-      github.event.pull_request.draft == false &&
-      (github.actor != 'renovate[bot]' || github.actor != 'lgtm-com[bot]')
-      }}
     runs-on:
       group: larger-runners
       labels: ubuntu-latest-8-cores
