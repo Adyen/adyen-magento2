@@ -11,7 +11,7 @@ npm i
 
 option="$1"
 
-# Run the 
+# Run the desired group of tests
 case $option in
     "standard")
         echo "Running Standard Set of E2E Tests."
