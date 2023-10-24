@@ -7,7 +7,7 @@ on:
       testBranch:
         description: "Integration Test Repository Pipeline"
         required: true
-        default: "develop-9"
+        default: "develop"
       expressBranch:
         description: "Express Checkout Repository Pipeline"
         required: true
