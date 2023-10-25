@@ -1,10 +1,10 @@
-name: Magento 2 E2E Pipeline
-run-name: E2E tests for Adyen Magento2 Plugin
+name: Magento 2 V8 E2E Pipeline
+run-name: --V8-- E2E tests for Adyen Magento2 Plugin
 
 on: 
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-    branches-ignore: [main]
+    branches-ignore: [main, main-8]
 
 jobs:
   build:
@@ -56,7 +56,7 @@ jobs:
       - name: Run E2E tests
         run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm playwright /e2e.sh
         env:
-          INTEGRATION_TESTS_BRANCH: develop
+          INTEGRATION_TESTS_BRANCH: develop-8
           MAGENTO_ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
           MAGENTO_ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
           MAGENTO_BASE_URL: ${{secrets.MAGENTO_BASE_URL}}
