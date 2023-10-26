@@ -25,7 +25,6 @@ class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
         parent::setUp();
 
         // Initialize the CaptureWebhookHandler with mock dependencies.
-        /** @noinspection PhpParamsInspection */
         $this->captureWebhookHandler = new CaptureWebhookHandler(
             invoiceHelper: $this->createMockWithMethods(Invoice::class, ['handleCaptureWebhook'], []),
             adyenOrderPaymentFactory: $this->createGeneratedMock(PaymentFactory::class, ['create', 'load']),
@@ -48,7 +47,6 @@ class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
         $notification->method('getPspreference')->willReturn('ABCD1234GHJK5678');
         $notification->method('getPaymentMethod')->willReturn('ADYEN_CC');
 
-        // Mock methods
         // Set up a partial mock for the Invoice class to expect no calls to handleCaptureWebhook
         $invoiceHelperMock = $this->createMockWithMethods(Invoice::class, ['handleCaptureWebhook'],[]);
         $invoiceHelperMock->expects($this->never())->method('handleCaptureWebhook');
@@ -142,8 +140,6 @@ class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
             ->method('load')
             ->willReturnSelf();
 
-        // Now, use $invoiceHelperMock in your CaptureWebhookHandler
-        /** @noinspection PhpParamsInspection */
         $this->captureWebhookHandler = new CaptureWebhookHandler(
             invoiceHelper: $invoiceHelperMock,
             adyenOrderPaymentFactory: $adyenOrderPaymentFactoryMock,
@@ -153,7 +149,6 @@ class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
             orderHelper: $orderHelperMock,
             paymentMethodsHelper: $paymentMethodsHelperMock
         );
-
 
         // Test handleWebhook method
         $result = $this->captureWebhookHandler->handleWebhook($order, $notification, 'paid');
@@ -179,6 +174,4 @@ class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
         // Assert that the order is not modified
         $this->assertSame($order, $result);
     }
-
-
 }
