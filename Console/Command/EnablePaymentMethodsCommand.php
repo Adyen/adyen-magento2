@@ -23,7 +23,7 @@ class EnablePaymentMethodsCommand extends Command
         parent::__construct();
     }
 
-    protected function configure()
+    protected function configure(): void
     {
         $this->setName('adyen:enablepaymentmethods:run');
         parent::configure();
@@ -32,7 +32,7 @@ class EnablePaymentMethodsCommand extends Command
     /**
      * @throws \Exception
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): void
     {
         $output->writeln('Starting enabling payment methods.');
         $availablePaymentMethods = $this->paymentMethods->getAdyenPaymentMethods();

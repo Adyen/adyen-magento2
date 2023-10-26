@@ -2,7 +2,7 @@
 /**
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2023 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -48,14 +48,14 @@ class VaultMigration implements DataPatchInterface
         $this->adyenLogger = $adyenLogger;
     }
 
-    public function apply()
+    public function apply(): void
     {
         $this->moduleDataSetup->getConnection()->startSetup();
         $this->migrateBillingAgreementsToVault($this->moduleDataSetup);
         $this->moduleDataSetup->getConnection()->endSetup();
     }
 
-    private function migrateBillingAgreementsToVault(ModuleDataSetupInterface $setup)
+    private function migrateBillingAgreementsToVault(ModuleDataSetupInterface $setup): void
     {
         $paypalTable = $setup->getTable('paypal_billing_agreement');
         $connection = $setup->getConnection();
@@ -167,7 +167,7 @@ class VaultMigration implements DataPatchInterface
     /**
      * @inheritdoc
      */
-    public function getAliases()
+    public function getAliases(): array
     {
         return [];
     }
@@ -175,7 +175,7 @@ class VaultMigration implements DataPatchInterface
     /**
      * @inheritdoc
      */
-    public static function getDependencies()
+    public static function getDependencies(): array
     {
         return [];
     }

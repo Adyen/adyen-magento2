@@ -205,7 +205,10 @@ define(
 
             handleBalanceResult: function (balanceResponse, stateData, resolve) {
                 let self = this;
-                let orderAmount = quote.totals().grand_total;
+                let orderAmount = currencyHelper.formatAmount(
+                    quote.totals().grand_total,
+                    window.checkoutConfig.payment.adyen.giftcard.currency
+                );
 
                 if(this.totalGiftcardBalance() === 0 && balanceResponse.balance.value >= orderAmount) {
                     resolve(balanceResponse);
@@ -226,7 +229,10 @@ define(
 
             fetchRedeemedGiftcards: function () {
                 let self = this;
-                let orderAmount = quote.totals().grand_total;
+                let orderAmount = currencyHelper.formatAmount(
+                    quote.totals().grand_total,
+                    window.checkoutConfig.payment.adyen.giftcard.currency
+                );
 
                 adyenPaymentService.fetchRedeemedGiftcards().done(function (response) {
                     response = JSON.parse(response);

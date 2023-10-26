@@ -93,14 +93,14 @@ define(
                 );
             },
 
-            paymentDetails: function(data, orderId) {
+            paymentDetails: function(data, orderId, isMultishipping = false) {
                 let serviceUrl;
                 let payload = {
                     'payload': JSON.stringify(data),
                     'orderId': orderId
                 };
 
-                if (customer.isLoggedIn()) {
+                if (customer.isLoggedIn() || isMultishipping) {
                     serviceUrl = urlBuilder.createUrl(
                         '/adyen/carts/mine/payments-details',
                         {}

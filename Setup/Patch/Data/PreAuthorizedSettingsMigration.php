@@ -38,7 +38,7 @@ class PreAuthorizedSettingsMigration implements DataPatchInterface, PatchVersion
      *
      * @return void
      */
-    public function apply()
+    public function apply(): void
     {
         $this->moduleDataSetup->getConnection()->startSetup();
         $this->updateSchemaVersion($this->moduleDataSetup);
@@ -50,7 +50,7 @@ class PreAuthorizedSettingsMigration implements DataPatchInterface, PatchVersion
      *
      * @param ModuleDataSetupInterface $setup
      */
-    public function updateSchemaVersion(ModuleDataSetupInterface $setup)
+    public function updateSchemaVersion(ModuleDataSetupInterface $setup): void
     {
         $path = 'payment/adyen_abstract/payment_pre_authorized';
 
@@ -99,7 +99,7 @@ class PreAuthorizedSettingsMigration implements DataPatchInterface, PatchVersion
     /**
      * @inheritdoc
      */
-    public function getAliases()
+    public function getAliases(): array
     {
         return [];
     }
@@ -107,12 +107,12 @@ class PreAuthorizedSettingsMigration implements DataPatchInterface, PatchVersion
     /**
      * @inheritdoc
      */
-    public static function getDependencies()
+    public static function getDependencies(): array
     {
         return [];
     }
 
-    public static function getVersion()
+    public static function getVersion(): string
     {
         return '9.0.0';
     }

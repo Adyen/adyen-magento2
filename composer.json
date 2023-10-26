@@ -2,7 +2,7 @@
   "name": "adyen/module-payment",
   "description": "Official Magento2 Plugin to connect to Payment Service Provider Adyen.",
   "type": "magento2-module",
-  "version": "9.0.0",
+  "version": "9.0.2",
   "license": "MIT",
   "repositories": [
     {
@@ -43,10 +43,10 @@
       "vendor/bin/phpunit -c Test/phpunit.xml"
     ],
     "post-install-cmd": [
-      "([ $COMPOSER_DEV_MODE -eq 0 ] || vendor/bin/phpcs --config-set installed_paths ../../magento/magento-coding-standard/)"
+      "([ $COMPOSER_DEV_MODE -eq 0 ] || vendor/bin/phpcs --config-set installed_paths ../../magento/magento-coding-standard/,../../phpcompatibility/php-compatibility)"
     ],
     "post-update-cmd": [
-      "([ $COMPOSER_DEV_MODE -eq 0 ] || vendor/bin/phpcs --config-set installed_paths ../../magento/magento-coding-standard/)"
+      "([ $COMPOSER_DEV_MODE -eq 0 ] || vendor/bin/phpcs --config-set installed_paths ../../magento/magento-coding-standard/,../../phpcompatibility/php-compatibility)"
     ]
   }
 }

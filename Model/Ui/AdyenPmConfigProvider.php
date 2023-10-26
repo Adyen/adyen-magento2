@@ -36,7 +36,7 @@ class AdyenPmConfigProvider implements ConfigProviderInterface
         $this->configHelper = $configHelper;
     }
 
-    public function getConfig()
+    public function getConfig(): array
     {
         $storeId = $this->storeManager->getStore()->getId();
 

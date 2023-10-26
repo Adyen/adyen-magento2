@@ -141,7 +141,7 @@ class Index extends Action
     /**
      * @throws LocalizedException
      */
-    public function execute()
+    public function execute(): void
     {
         // Read JSON encoded notification body
         $notificationItems = json_decode((string) $this->getRequest()->getContent(), true);

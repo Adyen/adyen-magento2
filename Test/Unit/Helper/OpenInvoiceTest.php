@@ -84,7 +84,7 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
 
     }
 
-public function testGetOpenInvoiceData()
+public function testGetOpenInvoiceData(): void
     {
         // Arrange: Set up the object with the mocks
         $openInvoice = new OpenInvoice(

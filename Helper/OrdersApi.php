@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
+use Adyen\Client;
 use Adyen\ConnectionException;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -50,6 +51,7 @@ class OrdersApi
         $checkoutService = $this->adyenHelper->createAdyenCheckoutService($client);
 
         try {
+            $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/orders');
             $response = $checkoutService->orders($request);
         } catch (ConnectionException $e) {
             $this->adyenLogger->error(
@@ -58,6 +60,7 @@ class OrdersApi
 
             throw $e;
         }
+        $this->adyenHelper->logResponse($response);
 
         return $response;
     }
