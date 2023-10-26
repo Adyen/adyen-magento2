@@ -1,6 +1,7 @@
 <?php
+/** @noinspection PhpParamsInspection */
 
-namespace Adyen\Payment\Test\Unit\Helper;
+namespace Adyen\Payment\Test\Unit\Helper\Webhook;
 
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\Webhook\CaptureWebhookHandler;
@@ -19,35 +20,70 @@ use Magento\Sales\Model\Order\Invoice as MagentoInvoice;
 class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
 {
     protected $captureWebhookHandler;
+    protected $order;
+    protected $notification;
 
-    protected function setUp(): void
+    protected function setUp():void
     {
         parent::setUp();
 
         // Initialize the CaptureWebhookHandler with mock dependencies.
-        $this->captureWebhookHandler = new CaptureWebhookHandler(
-            $this->createMockWithMethods(Invoice::class, ['handleCaptureWebhook'], []),
-            $this->createGeneratedMock(PaymentFactory::class, ['create', 'load']),
-            $this->createMockWithMethods(AdyenOrderPayment::class, ['refreshPaymentCaptureStatus'], []),
-            $this->createGeneratedMock(AdyenLogger::class, ['addAdyenNotification', 'getInvoiceContext']),
-            $this->createGeneratedMock(MagentoInvoiceFactory::class, ['create', 'load']),
-            $this->createGeneratedMock(Order::class, ['fetchOrderByIncrementId']),
-            $this->createGeneratedMock(PaymentMethods::class)
+        $this->captureWebhookHandler = $this->createCaptureWebhookHandler();
+        $this->order = $this->createOrder();
+        $this->notification = $this->createWebhook();
+        $this->notification->method('getEventCode')->willReturn('CAPTURE');
+        $this->notification->method('getAmountValue')->willReturn(500); // Partial capture amount
+        $this->notification->method('getOriginalReference')->willReturn('original_reference');
+        $this->notification->method('getPspreference')->willReturn('ABCD1234GHJK5678');
+        $this->notification->method('getPaymentMethod')->willReturn('ADYEN_CC');
+    }
+
+    private function createCaptureWebhookHandler(
+        $invoiceHelper = null,
+        $adyenOrderPaymentFactory = null,
+        $adyenOrderPaymentHelper = null,
+        $adyenLogger = null,
+        $magentoInvoiceFactory = null,
+        $orderHelper = null,
+        $paymentMethodsHelper = null
+    )
+    {
+        if ($invoiceHelper == null) {
+            $invoiceHelper = $this->createMockWithMethods(Invoice::class, ['handleCaptureWebhook'], []);
+        }
+        if ($adyenOrderPaymentFactory == null) {
+            $adyenOrderPaymentFactory = $this->createGeneratedMock(PaymentFactory::class, ['create', 'load']);
+        }
+        if ($adyenOrderPaymentHelper == null) {
+            $adyenOrderPaymentHelper = $this->createMockWithMethods(AdyenOrderPayment::class, ['refreshPaymentCaptureStatus'], []);
+        }
+        if ($adyenLogger == null) {
+            $adyenLogger = $this->createGeneratedMock(AdyenLogger::class, ['addAdyenNotification', 'getInvoiceContext']);
+        }
+        if ($magentoInvoiceFactory == null) {
+            $magentoInvoiceFactory = $this->createGeneratedMock(MagentoInvoiceFactory::class, ['create', 'load']);
+        }
+        if ($orderHelper == null) {
+            $orderHelper = $this->createGeneratedMock(Order::class, ['fetchOrderByIncrementId', 'finalizeOrder']);
+        }
+        if ($paymentMethodsHelper == null) {
+            $paymentMethodsHelper = $this->createGeneratedMock(PaymentMethods::class);
+        }
+
+        return new CaptureWebhookHandler(
+            $invoiceHelper,
+            $adyenOrderPaymentFactory,
+            $adyenOrderPaymentHelper,
+            $adyenLogger,
+            $magentoInvoiceFactory,
+            $orderHelper,
+            $paymentMethodsHelper
         );
     }
 
     public function testHandleWebhookWithAutoCapture()
     {
-        // Mock the necessary objects
-        $order = $this->createOrder();
-        $notification = $this->createWebhook();
-        $notification->method('getEventCode')->willReturn('CAPTURE');
-        $notification->method('getAmountValue')->willReturn(500); // Partial capture amount
-        $notification->method('getOriginalReference')->willReturn('original_reference');
-        $notification->method('getPspreference')->willReturn('ABCD1234GHJK5678');
-        $notification->method('getPaymentMethod')->willReturn('ADYEN_CC');
-
-        // Mock methods
+        // Set up a partial mock for the Invoice class to expect no calls to handleCaptureWebhook
         $invoiceHelperMock = $this->createMockWithMethods(Invoice::class, ['handleCaptureWebhook'], []);
         $invoiceHelperMock->expects($this->never())->method('handleCaptureWebhook');
 
@@ -55,34 +91,25 @@ class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
         $paymentMethodsHelperMock = $this->createMockWithMethods(PaymentMethods::class, ['isAutoCapture'], []);
         $paymentMethodsHelperMock->method('isAutoCapture')->willReturn(true);
 
-        $this->captureWebhookHandler = new CaptureWebhookHandler(
-            $this->createMockWithMethods(Invoice::class, ['handleCaptureWebhook'], []),
-            $this->createGeneratedMock(PaymentFactory::class, ['create', 'load']),
-            $this->createMockWithMethods(AdyenOrderPayment::class, ['refreshPaymentCaptureStatus'], []),
-            $this->createGeneratedMock(AdyenLogger::class, ['addAdyenNotification', 'getInvoiceContext']),
-            $this->createGeneratedMock(MagentoInvoiceFactory::class, ['create', 'load']),
-            $this->createGeneratedMock(Order::class, ['fetchOrderByIncrementId']),
+        $this->captureWebhookHandler = $this->createCaptureWebhookHandler(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
             $paymentMethodsHelperMock
         );
 
         // Test handleWebhook method
-        $result = $this->captureWebhookHandler->handleWebhook($order, $notification, 'paid');
+        $result = $this->captureWebhookHandler->handleWebhook($this->order, $this->notification, 'paid');
 
         // Assert that the order is not modified
-        $this->assertSame($order, $result);
+        $this->assertSame($this->order, $result);
     }
 
     public function testHandleWebhookWithoutAutoCapture()
     {
-        // Mock the necessary objects
-        $order = $this->createOrder();
-        $notification = $this->createWebhook();
-        $notification->method('getEventCode')->willReturn('CAPTURE');
-        $notification->method('getAmountValue')->willReturn(1000); // Full capture amount
-        $notification->method('getOriginalReference')->willReturn('original_reference');
-        $notification->method('getPspreference')->willReturn('ABCD1234GHJK5678');
-        $notification->method('getPaymentMethod')->willReturn('ADYEN_CC');
-
         // Mock methods
         $invoice = $this->createConfiguredMock(AdyenInvoice::class, ['getAdyenPaymentOrderId' => 123, 'getInvoiceId' => 456]);
 
@@ -96,11 +123,11 @@ class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
 
         // Set up a partial mock of orderHelper to expect a call to fetchOrderByIncrementId
         $orderHelperMock = $this->createGeneratedMock(Order::class, ['fetchOrderByIncrementId', 'finalizeOrder']);
-        $orderHelperMock->expects($this->once())->method('fetchOrderByIncrementId')->willReturn($order);
+        $orderHelperMock->expects($this->once())->method('fetchOrderByIncrementId')->willReturn($this->order);
         $orderHelperMock->expects($this->once())
             ->method('finalizeOrder')
-            ->with($order, $notification)
-            ->willReturn($order);
+            ->with($this->order, $this->notification)
+            ->willReturn($this->order);
 
         // Mock the adyenOrderPaymentFactory
         $adyenOrderPaymentFactoryMock = $this->createGeneratedMock(PaymentFactory::class, ['create']);
@@ -115,6 +142,7 @@ class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
             ->with(123, OrderPaymentInterface::ENTITY_ID)
             ->willReturnSelf(); // Return the mock itself
 
+        // Set up expectations for the create and load methods
         $adyenOrderPaymentFactoryMock->expects($this->once())
             ->method('create')
             ->willReturn($adyenOrderPaymentMock);
@@ -123,7 +151,7 @@ class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
 
         $adyenOrderPaymentHelperMock->expects($this->once())
             ->method('refreshPaymentCaptureStatus')
-            ->with($adyenOrderPaymentMock, $notification->getAmountCurrency());
+            ->with($adyenOrderPaymentMock, $this->notification->getAmountCurrency());
 
         // Create a mock for the magentoInvoiceFactory
         $magentoInvoiceFactoryMock = $this->createMock(MagentoInvoiceFactory::class);
@@ -139,38 +167,29 @@ class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
             ->method('load')
             ->willReturnSelf();
 
-        $this->captureWebhookHandler = new CaptureWebhookHandler(
+        $this->captureWebhookHandler = $this->createCaptureWebhookHandler(
             $invoiceHelperMock,
             $adyenOrderPaymentFactoryMock,
             $adyenOrderPaymentHelperMock,
-            $this->createGeneratedMock(AdyenLogger::class, ['addAdyenNotification', 'getInvoiceContext']),
+            null,
             $magentoInvoiceFactoryMock,
             $orderHelperMock,
             $paymentMethodsHelperMock
         );
 
         // Test handleWebhook method
-        $result = $this->captureWebhookHandler->handleWebhook($order, $notification, 'paid');
+        $result = $this->captureWebhookHandler->handleWebhook($this->order, $this->notification, 'paid');
 
         // Assert that the order is finalized
-        $this->assertSame($order, $result);
+        $this->assertSame($this->order, $result);
     }
 
     public function testHandleWebhookTransitionNotPaid()
     {
-        // Mock the necessary objects
-        $order = $this->createOrder();
-        $notification = $this->createWebhook();
-        $notification->method('getEventCode')->willReturn('CAPTURE');
-        $notification->method('getAmountValue')->willReturn(1000); // Full capture amount
-        $notification->method('getOriginalReference')->willReturn('original_reference');
-        $notification->method('getPspreference')->willReturn('ABCD1234GHJK5678');
-        $notification->method('getPaymentMethod')->willReturn('ADYEN_CC');
-
         // Test handleWebhook method with transition state different from "PAID"
-        $result = $this->captureWebhookHandler->handleWebhook($order, $notification, 'NOT_PAID');
+        $result = $this->captureWebhookHandler->handleWebhook($this->order, $this->notification, 'NOT_PAID');
 
         // Assert that the order is not modified
-        $this->assertSame($order, $result);
+        $this->assertSame($this->order, $result);
     }
 }
