@@ -150,20 +150,13 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
             ->method('updatePaymentDetails');
         $this->orderHelperMock->expects($this->once())
             ->method('sendOrderMail');
-
-        if ($isAutoCapture){
-            $this->orderHelperMock->expects($this->once())
-                ->method('finalizeOrder')->willReturn($this->orderMock);
-        } else {
-            $this->orderHelperMock->expects($this->once())
-                ->method('addWebhookStatusHistoryComment')->willReturn($this->orderMock);
-        }
-
+        $this->orderHelperMock->expects($this->once())
+            ->method('finalizeOrder')->willReturn($this->orderMock);
 
         $paymentMethodsMock = $this->createConfiguredMock(
             PaymentMethods::class,
             [
-                'isAutoCapture' => $isAutoCapture
+                'isAutoCapture' => true
             ]
         );
         $this->invoiceHelperMock->expects($this->once())
@@ -179,7 +172,7 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
             null,
             $mockChargedCurrency,
             null,
-            $this->invoiceHelperMock,
+            null,
             $paymentMethodsMock
         );
 
