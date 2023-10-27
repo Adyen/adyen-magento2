@@ -11,8 +11,27 @@
 
 namespace Adyen\Payment\Block\Info;
 
+use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory;
+use Magento\Framework\Exception\LocalizedException;
+use Adyen\Payment\Helper\Data;
+use Magento\Framework\View\Element\Template;
+
 class Cc extends AbstractInfo
 {
+    protected Data $adyenHelper;
+
+    public function __construct(
+        Data $adyenHelper,
+        Config $configHelper,
+        CollectionFactory $adyenOrderPaymentCollectionFactory,
+        Template\Context $context,
+        array $data = []
+    ) {
+        parent::__construct($configHelper, $adyenOrderPaymentCollectionFactory, $context, $data);
+        $this->adyenHelper = $adyenHelper;
+    }
+
     /**
      * @var string
      */
@@ -21,12 +40,12 @@ class Cc extends AbstractInfo
     /**
      * Return credit card type
      *
-     * @return string
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @return string|null
+     * @throws LocalizedException
      */
-    public function getCcTypeName()
+    public function getCcTypeName(): ?string
     {
-        $types = $this->_adyenHelper->getAdyenCcTypes();
+        $types = $this->adyenHelper->getAdyenCcTypes();
         $ccType = $this->getInfo()->getCcType();
 
         if (isset($types[$ccType])) {

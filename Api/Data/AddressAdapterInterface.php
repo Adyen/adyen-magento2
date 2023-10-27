@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2020 Adyen NV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen NV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -16,14 +16,12 @@ use Magento\Payment\Gateway\Data\AddressAdapterInterface as CoreAddressAdapterIn
 interface AddressAdapterInterface extends CoreAddressAdapterInterface
 {
     /**
-     * Get street line 3
      * @return string
      */
-    public function getStreetLine3();
+    public function getStreetLine3(): string;
 
     /**
-     * Get street line 4
      * @return string
      */
-    public function getStreetLine4();
+    public function getStreetLine4(): string;
 }

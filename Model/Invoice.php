@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2021 Adyen B.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -13,6 +13,7 @@
 namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Api\Data\InvoiceInterface;
+use DateTime;
 use Magento\Framework\Data\Collection\AbstractDb;
 use Magento\Framework\Model\AbstractModel;
 use Magento\Framework\Model\Context;
@@ -21,15 +22,6 @@ use Magento\Framework\Registry;
 
 class Invoice extends AbstractModel implements InvoiceInterface
 {
-    /**
-     * Invoice constructor.
-     *
-     * @param Context $context
-     * @param Registry $registry
-     * @param AbstractResource|null $resource
-     * @param AbstractDb|null $resourceCollection
-     * @param array $data
-     */
     public function __construct(
         Context $context,
         Registry $registry,
@@ -47,176 +39,85 @@ class Invoice extends AbstractModel implements InvoiceInterface
      */
     protected function _construct()
     {
-        $this->_init(\Adyen\Payment\Model\ResourceModel\Invoice\Invoice::class);
+        $this->_init(ResourceModel\Invoice\Invoice::class);
     }
 
-    /**
-     * Gets the Pspreference for the invoice(capture).
-     *
-     * @return int|null Pspreference.
-     */
-    public function getPspreference()
+    public function getPspreference(): ?string
     {
         return $this->getData(self::PSPREFERENCE);
     }
 
-    /**
-     * Sets Pspreference.
-     *
-     * @param string $pspreference
-     * @return $this
-     */
-    public function setPspreference($pspreference)
+    public function setPspreference(string $pspReference): InvoiceInterface
     {
-        return $this->setData(self::PSPREFERENCE, $pspreference);
+        return $this->setData(self::PSPREFERENCE, $pspReference);
     }
 
-    /**
-     * Gets the Pspreference of the original Payment
-     *
-     * @deprecated
-     * @return mixed
-     */
-    public function getOriginalReference()
-    {
-        return $this->getData(self::ORIGINAL_REFERENCE);
-    }
-
-    /**
-     * Sets the OriginalReference
-     *
-     * @deprecated
-     * @param $originalReference
-     * @return $this
-     */
-    public function setOriginalReference($originalReference)
-    {
-        return $this->setData(self::ORIGINAL_REFERENCE, $originalReference);
-    }
-
-    /**
-     * Gets the AcquirerReference for the invoice.
-     *
-     * @return int|null Acquirerreference.
-     */
-    public function getAcquirerReference()
+    public function getAcquirerReference(): ?string
     {
         return $this->getData(self::ACQUIRER_REFERENCE);
     }
 
-    /**
-     * Sets AcquirerReference.
-     *
-     * @param string $acquirerReference
-     * @return $this
-     */
-    public function setAcquirerReference($acquirerReference)
+    public function setAcquirerReference(?string $acquirerReference): InvoiceInterface
     {
         return $this->setData(self::ACQUIRER_REFERENCE, $acquirerReference);
     }
 
-    /**
-     * Gets the InvoiceID for the invoice.
-     *
-     * @return int|null Invoice ID.
-     */
-    public function getInvoiceId()
+    public function getInvoiceId(): ?int
     {
         return $this->getData(self::INVOICE_ID);
     }
 
-    /**
-     * Sets InvoiceID.
-     *
-     * @param int $invoiceId
-     * @return $this
-     */
-    public function setInvoiceId($invoiceId)
+    public function setInvoiceId(int $invoiceId): InvoiceInterface
     {
         return $this->setData(self::INVOICE_ID, $invoiceId);
     }
 
-    /**
-     * @return int|null
-     */
-    public function getAmount()
+    public function getAmount(): ?float
     {
         return $this->getData(self::AMOUNT);
     }
 
-    /**
-     * @param $amount
-     * @return Invoice
-     */
-    public function setAmount($amount)
+    public function setAmount(float $amount): InvoiceInterface
     {
         return $this->setData(self::AMOUNT, $amount);
     }
 
-    /**
-     * @return int|null
-     */
-    public function getAdyenPaymentOrderId()
+    public function getAdyenPaymentOrderId(): ?int
     {
         return $this->getData(self::ADYEN_ORDER_PAYMENT_ID);
     }
 
-    /**
-     * @param $id
-     * @return Invoice
-     */
-    public function setAdyenPaymentOrderId($id)
+    public function setAdyenPaymentOrderId(int $id): InvoiceInterface
     {
         return $this->setData(self::ADYEN_ORDER_PAYMENT_ID, $id);
     }
 
-    /**
-     * @return string|null
-     */
-    public function getStatus()
+    public function getStatus(): ?string
     {
         return $this->getData(self::STATUS);
     }
 
-    /**
-     * @param $status
-     * @return Invoice
-     */
-    public function setStatus($status)
+    public function setStatus(string $status): InvoiceInterface
     {
         return $this->setData(self::STATUS, $status);
     }
 
-    /**
-     * @return mixed
-     */
-    public function getCreatedAt()
+    public function getCreatedAt(): ?DateTime
     {
         return $this->getData(self::CREATED_AT);
     }
 
-    /**
-     * @param $createdAt
-     * @return Invoice
-     */
-    public function setCreatedAt($createdAt)
+    public function setCreatedAt(DateTime $createdAt): InvoiceInterface
     {
         return $this->setData(self::CREATED_AT, $createdAt);
     }
 
-    /**
-     * @return mixed
-     */
-    public function getUpdatedAt()
+    public function getUpdatedAt(): ?DateTime
     {
         return $this->getData(self::UPDATED_AT);
     }
 
-    /**
-     * @param $updatedAt
-     * @return Invoice
-     */
-    public function setUpdatedAt($updatedAt)
+    public function setUpdatedAt(DateTime $updatedAt): InvoiceInterface
     {
         return $this->setData(self::UPDATED_AT, $updatedAt);
     }

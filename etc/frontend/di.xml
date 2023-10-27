@@ -10,25 +10,137 @@
  * Author: Adyen <magento@adyen.com>
  */
 -->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <type name="Magento\Checkout\Model\CompositeConfigProvider">
         <arguments>
             <argument name="configProviders" xsi:type="array">
                 <item name="adyen_generic_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider</item>
                 <item name="adyen_cc_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenCcConfigProvider</item>
-                <item name="adyen_oneclick_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider</item>
-                <item name="adyen_hpp_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenHppConfigProvider</item>
-                <item name="adyen_boleto_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider</item>
+                <item name="adyen_pm_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenPmConfigProvider</item>
                 <item name="adyen_pos_cloud_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider</item>
+                <item name="adyen_giftcard_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenGiftcardConfigProvider</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="Adyen\Payment\Model\Ui\AdyenGenericConfigProvider">
+        <arguments>
+            <argument name="txVariants" xsi:type="array">
+                <item name="adyen_ideal" xsi:type="string">ideal</item>
+                <item name="adyen_klarna" xsi:type="string">klarna</item>
+                <item name="adyen_paypal" xsi:type="string">paypal</item>
+                <item name="adyen_bcmc_mobile" xsi:type="string">bcmc_mobile</item>
+                <item name="adyen_dotpay" xsi:type="string">dotpay</item>
+                <item name="adyen_amazonpay" xsi:type="string">amazonpay</item>
+                <item name="adyen_googlepay" xsi:type="string">googlepay</item>
+                <item name="adyen_multibanco" xsi:type="string">multibanco</item>
+                <item name="adyen_facilypay_3x" xsi:type="string">facilypay_3x</item>
+                <item name="adyen_sepadirectdebit" xsi:type="string">sepadirectdebit</item>
+                <item name="adyen_applepay" xsi:type="string">applepay</item>
+                <item name="adyen_affirm" xsi:type="string">affirm</item>
+                <item name="adyen_afterpaytouch" xsi:type="string">afterpaytouch</item>
+                <item name="adyen_alipay" xsi:type="string">alipay</item>
+                <item name="adyen_alipay_hk" xsi:type="string">alipay_hk</item>
+                <item name="adyen_alma" xsi:type="string">alma</item>
+                <item name="adyen_atome" xsi:type="string">atome</item>
+                <item name="adyen_afterpay_default" xsi:type="string">afterpay_default</item>
+                <item name="adyen_bankTransfer_BE" xsi:type="string">bankTransfer_BE</item>
+                <item name="adyen_bankTransfer_CH" xsi:type="string">bankTransfer_CH</item>
+                <item name="adyen_bankTransfer_DE" xsi:type="string">bankTransfer_DE</item>
+                <item name="adyen_bankTransfer_GB" xsi:type="string">bankTransfer_GB</item>
+                <item name="adyen_bankTransfer_IBAN" xsi:type="string">bankTransfer_IBAN</item>
+                <item name="adyen_bankTransfer_NL" xsi:type="string">bankTransfer_NL</item>
+                <item name="adyen_blik" xsi:type="string">blik</item>
+                <item name="adyen_clearpay" xsi:type="string">clearpay</item>
+                <item name="adyen_directdebit_GB" xsi:type="string">directdebit_GB</item>
+                <item name="adyen_directEbanking" xsi:type="string">directEbanking</item>
+                <item name="adyen_ebanking_FI" xsi:type="string">ebanking_FI</item>
+                <item name="adyen_econtext_atm" xsi:type="string">econtext_atm</item>
+                <item name="adyen_econtext_online" xsi:type="string">econtext_online</item>
+                <item name="adyen_econtext_seven_eleven" xsi:type="string">econtext_seven_eleven</item>
+                <item name="adyen_econtext_stores" xsi:type="string">econtext_stores</item>
+                <item name="adyen_entercash" xsi:type="string">entercash</item>
+                <item name="adyen_eps" xsi:type="string">eps</item>
+                <item name="adyen_facilypay_4x" xsi:type="string">facilypay_4x</item>
+                <item name="adyen_facilypay_6x" xsi:type="string">facilypay_6x</item>
+                <item name="adyen_facilypay_10x" xsi:type="string">facilypay_10x</item>
+                <item name="adyen_facilypay_12x" xsi:type="string">facilypay_12x</item>
+                <item name="adyen_giropay" xsi:type="string">giropay</item>
+                <item name="adyen_grabpay_MY" xsi:type="string">grabpay_MY</item>
+                <item name="adyen_grabpay_PH" xsi:type="string">grabpay_PH</item>
+                <item name="adyen_grabpay_SG" xsi:type="string">grabpay_SG</item>
+                <item name="adyen_kakaopay" xsi:type="string">kakaopay</item>
+                <item name="adyen_klarna_account" xsi:type="string">klarna_account</item>
+                <item name="adyen_klarna_paynow" xsi:type="string">klarna_paynow</item>
+                <item name="adyen_mbway" xsi:type="string">mbway</item>
+                <item name="adyen_molpay_cash" xsi:type="string">molpay_cash</item>
+                <item name="adyen_molpay_ebanking_fpx_MY" xsi:type="string">molpay_ebanking_fpx_MY</item>
+                <item name="adyen_molpay_ebanking_TH" xsi:type="string">molpay_ebanking_TH</item>
+                <item name="adyen_onlineBanking_CZ" xsi:type="string">onlineBanking_CZ</item>
+                <item name="adyen_onlineBanking_PL" xsi:type="string">onlineBanking_PL</item>
+                <item name="adyen_onlineBanking_SK" xsi:type="string">onlineBanking_SK</item>
+                <item name="adyen_paybright" xsi:type="string">paybright</item>
+                <item name="adyen_paybybank" xsi:type="string">paybybank</item>
+                <item name="adyen_pix" xsi:type="string">pix</item>
+                <item name="adyen_ratepay" xsi:type="string">ratepay</item>
+                <item name="adyen_ratepay_directdebit" xsi:type="string">ratepay_directdebit</item>
+                <item name="adyen_swish" xsi:type="string">swish</item>
+                <item name="adyen_trustly" xsi:type="string">trustly</item>
+                <item name="adyen_twint" xsi:type="string">twint</item>
+                <item name="adyen_walley" xsi:type="string">walley</item>
+                <item name="adyen_wechatpayWeb" xsi:type="string">wechatpayWeb</item>
+                <item name="adyen_wechatpayQR" xsi:type="string">wechatpayQR</item>
+                <item name="adyen_zip" xsi:type="string">zip</item>
+                <item name="adyen_gcash" xsi:type="string">gcash</item>
+                <item name="adyen_oxxo" xsi:type="string">oxxo</item>
+                <item name="adyen_doku_paymentmethods" xsi:type="string">doku_paymentmethods</item>
+                <item name="adyen_carnet" xsi:type="string">carnet</item>
+                <item name="adyen_walley_b2b" xsi:type="string">walley_b2b</item>
+                <item name="adyen_paysafecard" xsi:type="string">paysafecard</item>
+                <item name="adyen_momo_wallet" xsi:type="string">momo_wallet</item>
+                <item name="adyen_touchngo" xsi:type="string">touchngo</item>
+                <item name="adyen_boleto" xsi:type="string">boletobancario</item>
+                <item name="adyen_bcmc" xsi:type="string">bcmc</item>
+            </argument>
+            <argument name="customMethodRenderers" xsi:type="array">
+                <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
+                <item name="adyen_amazonpay" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-amazonpay-method</item>
+                <item name="adyen_applepay" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-applepay-method</item>
+                <item name="adyen_boleto" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-boleto-method</item>
+                <item name="adyen_facilypay_3x" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-facilypay-3x-method</item>
+                <item name="adyen_googlepay" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-googlepay-method</item>
+                <item name="adyen_paypal" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-paypal-method</item>
+                <item name="adyen_giftcard" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-giftcard-method</item>
+                <item name="adyen_affirm" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-affirm-method</item>
+                <item name="adyen_ratepay" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-ratepay-method</item>
+                <item name="adyen_ratepay_directdebit" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-ratepay-directdebit-method</item>
+                <item name="adyen_pos_cloud" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-pos-cloud-method</item>
             </argument>
         </arguments>
     </type>
     <type name="Magento\Vault\Model\Ui\TokensConfigProvider">
         <arguments>
             <argument name="tokenUiComponentProviders" xsi:type="array">
-                <item name="adyen_cc" xsi:type="object">Adyen\Payment\Model\Ui\TokenUiComponentProvider</item>
-                <item name="adyen_hpp" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodUiComponentProvider</item>
+                <item name="adyen_cc" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
+                <item name="adyen_googlepay" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
+                <item name="adyen_paypal" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
+                <item name="adyen_klarna" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
+                <item name="adyen_sepadirectdebit" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
+                <item name="adyen_amazonpay" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
+                <item name="adyen_directEbanking" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
+                <item name="adyen_eps" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
+                <item name="adyen_giropay" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
+                <item name="adyen_kakaopay" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
+                <item name="adyen_klarna_account" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
+                <item name="adyen_klarna_paynow" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
+                <item name="adyen_paybybank" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
+                <item name="adyen_trustly" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
+                <item name="adyen_twint" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
+                <item name="adyen_zip" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
+                <item name="adyen_gcash" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
+                <item name="adyen_carnet" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
+                <item name="adyen_momo_wallet" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
+                <item name="adyen_applepay" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
+                <item name="adyen_bcmc" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
             </argument>
         </arguments>
     </type>

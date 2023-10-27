@@ -17,13 +17,16 @@ use Adyen\Payment\Gateway\Http\Client\TransactionCapture;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Data as DataHelper;
+use Adyen\Payment\Helper\OpenInvoice;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\Order\Payment as PaymentModel;
 use Adyen\Payment\Model\ResourceModel\Order\Payment;
-use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
+use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Magento\Framework\App\Action\Context;
+use Magento\Payment\Gateway\Data\PaymentDataObject;
+use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Invoice;
 
 /**
  * Class CustomerDataBuilder
@@ -61,6 +64,11 @@ class CaptureDataBuilder implements BuilderInterface
     private $context;
 
     /**
+     * @var OpenInvoice
+     */
+    protected $openInvoiceHelper;
+
+    /**
      * CaptureDataBuilder constructor.
      *
      * @param DataHelper $adyenHelper
@@ -69,6 +77,7 @@ class CaptureDataBuilder implements BuilderInterface
      * @param AdyenLogger $adyenLogger
      * @param Context $context
      * @param Payment $orderPaymentResourceModel
+     * @param OpenInvoice $openInvoiceHelper
      */
     public function __construct(
         DataHelper $adyenHelper,
@@ -76,7 +85,8 @@ class CaptureDataBuilder implements BuilderInterface
         AdyenOrderPayment $adyenOrderPaymentHelper,
         AdyenLogger $adyenLogger,
         Context $context,
-        Payment $orderPaymentResourceModel
+        Payment $orderPaymentResourceModel,
+        OpenInvoice $openInvoiceHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->chargedCurrency = $chargedCurrency;
@@ -84,6 +94,7 @@ class CaptureDataBuilder implements BuilderInterface
         $this->adyenLogger = $adyenLogger;
         $this->context = $context;
         $this->orderPaymentResourceModel = $orderPaymentResourceModel;
+        $this->openInvoiceHelper = $openInvoiceHelper;
     }
 
     /**
@@ -93,14 +104,14 @@ class CaptureDataBuilder implements BuilderInterface
      * @return array
      * @throws AdyenException
      */
-    public function build(array $buildSubject)
+    public function build(array $buildSubject): array
     {
-        /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
-        $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
+        /** @var PaymentDataObject $paymentDataObject */
+        $paymentDataObject = SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
         /** @var Order $order */
         $order = $payment->getOrder();
-        /** @var \Magento\Sales\Model\Order\Invoice $latestInvoice */
+        /** @var Invoice $latestInvoice */
         $latestInvoice = $order->getInvoiceCollection()->getLastItem();
         $invoiceAmountCurrency = $this->chargedCurrency->getInvoiceAmountCurrency($latestInvoice);
         $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order);
@@ -109,7 +120,7 @@ class CaptureDataBuilder implements BuilderInterface
         $orderAmountCents = $this->adyenHelper->formatAmount($orderAmountCurrency->getAmount(), $currency);
 
         $pspReference = $payment->getCcTransId();
-        $brandCode = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
+        $brandCode = $payment->getAdditionalInformation(AdyenPaymentMethodDataAssignObserver::BRAND_CODE);
 
         // If total amount has not been authorized
         if (!$this->adyenOrderPaymentHelper->isFullAmountAuthorized($order)) {
@@ -131,86 +142,22 @@ class CaptureDataBuilder implements BuilderInterface
             return $this->buildPartialOrMultipleCaptureData($payment, $currency, $adyenOrderPayments, $invoiceAmountCurrency->getAmount());
         }
 
-        $modificationAmount = ['currency' => $currency, 'value' => $amount];
+        $modificationAmount = ['value' => $amount, 'currency' => $currency];
         $requestBody = [
-            "modificationAmount" => $modificationAmount,
+            "amount" => $modificationAmount,
             "reference" => $payment->getOrder()->getIncrementId(),
-            "originalReference" => $pspReference
+            "paymentPspReference" => $pspReference
         ];
 
+        //Check additionaldata
         if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) {
-            $openInvoiceFields = $this->getOpenInvoiceData($payment);
-            $requestBody["additionalData"] = $openInvoiceFields;
+            $openInvoiceFields = $this->openInvoiceHelper->getOpenInvoiceData($order);
+           $requestBody = array_merge($requestBody, $openInvoiceFields);
         }
         $request['body'] = $requestBody;
         $request['clientConfig'] = ["storeId" => $payment->getOrder()->getStoreId()];
 
         return $request;
-    }
-
-    /**
-     * @param $payment
-     * @return mixed
-     * @internal param $formFields
-     */
-    protected function getOpenInvoiceData($payment)
-    {
-        $formFields = [];
-        $count = 0;
-        $order = $payment->getOrder();
-        $invoices = $order->getInvoiceCollection();
-
-        $currency = $this->chargedCurrency
-            ->getOrderAmountCurrency($payment->getOrder(), false)
-            ->getCurrencyCode();
-
-        // The latest invoice will contain only the selected items(and quantities) for the (partial) capture
-        $latestInvoice = $invoices->getLastItem();
-
-        /* @var \Magento\Sales\Model\Order\Invoice\Item $invoiceItem */
-        foreach ($latestInvoice->getItems() as $invoiceItem) {
-            $numberOfItems = (int)$invoiceItem->getQty();
-
-            if ($invoiceItem->getOrderItem()->getParentItem() || $numberOfItems <= 0) {
-                continue;
-            }
-
-            ++$count;
-            $itemAmountCurrency = $this->chargedCurrency->getInvoiceItemAmountCurrency($invoiceItem);
-
-            $formFields = $this->adyenHelper->createOpenInvoiceLineItem(
-                $formFields,
-                $count,
-                $invoiceItem->getName(),
-                $itemAmountCurrency->getAmount(),
-                $currency,
-                $itemAmountCurrency->getTaxAmount(),
-                $itemAmountCurrency->getAmount() + $itemAmountCurrency->getTaxAmount(),
-                $invoiceItem->getOrderItem()->getTaxPercent(),
-                $numberOfItems,
-                $payment,
-                $invoiceItem->getId()
-            );
-        }
-
-        // Shipping cost
-        if ($latestInvoice->getShippingAmount() > 0) {
-            ++$count;
-            $adyenInvoiceShippingAmount = $this->chargedCurrency->getInvoiceShippingAmountCurrency($latestInvoice);
-            $formFields = $this->adyenHelper->createOpenInvoiceLineShipping(
-                $formFields,
-                $count,
-                $order,
-                $adyenInvoiceShippingAmount->getAmount(),
-                $adyenInvoiceShippingAmount->getTaxAmount(),
-                $adyenInvoiceShippingAmount->getCurrencyCode(),
-                $payment
-            );
-        }
-
-        $formFields['openinvoicedata.numberOfLines'] = $count;
-
-        return $formFields;
     }
 
     /**
@@ -257,14 +204,14 @@ class CaptureDataBuilder implements BuilderInterface
                     'value' => $amountCents
                 ];
                 $authToCapture = [
-                    "modificationAmount" => $modificationAmount,
+                    "amount" => $modificationAmount,
                     "reference" => $payment->getOrder()->getIncrementId(),
                     "originalReference" => $adyenOrderPayment[OrderPaymentInterface::PSPREFRENCE]
                 ];
 
                 if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($adyenOrderPayment[OrderPaymentInterface::PAYMENT_METHOD])) {
-                    $openInvoiceFields = $this->getOpenInvoiceData($payment);
-                    $authToCapture["additionalData"] = $openInvoiceFields;
+                    $openInvoiceFields = $this->openInvoiceHelper->getOpenInvoiceData($payment);
+                    $authToCapture = array_merge($authToCapture, $openInvoiceFields);
                 }
 
                 $captureData[] = $authToCapture;
@@ -278,6 +225,11 @@ class CaptureDataBuilder implements BuilderInterface
 
         $request['body'] = $requestBody;
         $request['clientConfig'] = ["storeId" => $payment->getOrder()->getStoreId()];
+        $request['headers'] = [
+            'idempotencyExtraData' => [
+                'totalInvoiced' => $payment->getOrder()->getTotalInvoiced() ?? 0
+            ]
+        ];
 
         return $request;
     }

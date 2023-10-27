@@ -4,7 +4,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2021 Adyen N.V. (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -15,7 +15,7 @@
     <group id="adyen_giving" translate="label" type="text" sortOrder="500" showInDefault="1" showInWebsite="1" showInStore="1">
         <label><![CDATA[Adyen Giving]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-        <comment><![CDATA[With the Adyen Giving feature, shoppers have the option to donate to a charity after they have placed an order.]]></comment>
+        <comment><![CDATA[<p>Give your shoppers the option to donate to a charity during their payment. Not sure how to register to Adyen Giving? Contact your <a href="https://www.adyen.com/contact" target="_blank">Account Manager or Support</a>.</p>]]></comment>
         <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Enabled</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>

@@ -10,24 +10,225 @@
  * Author: Adyen <magento@adyen.com>
  */
 -->
-<payment xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Payment:etc/payment.xsd">
+<payment xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Payment:etc/payment.xsd">
     <groups>
         <group id="adyen">
             <label>Adyen Payment Methods</label>
+        </group>
+        <group id="adyen-alternative-payment-method">
+            <label>Adyen Alternative Payment Methods</label>
         </group>
     </groups>
     <methods>
         <method name="adyen_cc">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
-        <method name="adyen_oneclick">
-            <allow_multiple_address>0</allow_multiple_address>
+        <method name="adyen_klarna">
+            <allow_multiple_address>1</allow_multiple_address>
         </method>
-        <method name="adyen_hpp">
+        <method name="adyen_ideal">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_bcmc_mobile">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_dotpay">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_multibanco">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_sepadirectdebit">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_affirm">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_afterpaytouch">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_alipay">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_alipay_hk">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_alma">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_atome">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_afterpay_default">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_bankTransfer_BE">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_bankTransfer_CH">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_bankTransfer_DE">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_bankTransfer_GB">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_bankTransfer_IBAN">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_bankTransfer_NL">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_blik">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_clearpay">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_directdebit_GB">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_directEbanking">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_ebanking_FI">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_econtext_atm">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_econtext_online">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_econtext_seven_eleven">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_econtext_stores">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_entercash">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_eps">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_facilypay_4x">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_facilypay_6x">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_facilypay_10x">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_facilypay_12x">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_giropay">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_grabpay_MY">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_grabpay_PH">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_grabpay_SG">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_kakaopay">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_klarna_account">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_klarna_paynow">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_mbway">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_molpay_cash">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_molpay_ebanking_fpx_MY">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_molpay_ebanking_TH">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_onlineBanking_CZ">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_onlineBanking_PL">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_onlineBanking_SK">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_paybright">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_paybybank">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_pix">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_ratepay">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_ratepay_directdebit">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_swish">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_trustly">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_twint">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_walley">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_wechatpayWeb">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_wechatpayQR">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_zip">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_gcash">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_oxxo">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_doku_paymentmethods">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_carnet">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_walley_b2b">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_paysafecard">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_momo_wallet">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_touchngo">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_bcmc">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
     </methods>
 </payment>
-
-

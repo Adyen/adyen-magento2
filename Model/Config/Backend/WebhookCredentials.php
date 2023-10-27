@@ -57,21 +57,31 @@ class WebhookCredentials extends Value
 
     public function beforeSave()
     {
-        if ($this->getFieldsetDataValue('configuration_mode')=='auto') {
+        if ($this->getFieldsetDataValue('configuration_mode') === 'auto' &&
+            $this->getFieldsetDataValue('create_new_webhook') === '1') {
             $username = $this->getValue();
             $password = $this->getFieldsetDataValue('notification_password');
 
             $webhookUrl = $this->url->getBaseUrl() . 'adyen/process/json';
-            $mode = (int)$this->getFieldsetDataValue('demo_mode') ? 'test' : 'live';
-            $apiKey = $this->getFieldsetDataValue('api_key_' . $mode);
+            $isDemoMode = (int)$this->getFieldsetDataValue('demo_mode');
+            $environment = $isDemoMode ? 'test' : 'live';
+
+            $apiKey = $this->getFieldsetDataValue('api_key_' . $environment);
             if (isset($apiKey) && preg_match('/^\*+$/', $apiKey)) {
                 // API key contains '******', set to the previously saved config value
-                $apiKey = $this->configHelper->getApiKey($mode);
+                $apiKey = $this->configHelper->getApiKey($environment);
             }
             $merchantAccount = $this->getFieldsetDataValue('merchant_account_auto');
 
-            $this->managementApiHelper
-                ->setupWebhookCredentials($apiKey, $merchantAccount, $username, $password, $webhookUrl, 'test' === $mode);
+            $managementApiService = $this->managementApiHelper->getManagementApiService($apiKey, $isDemoMode);
+            $this->managementApiHelper->setupWebhookCredentials(
+                $merchantAccount,
+                $username,
+                $password,
+                $webhookUrl,
+                $isDemoMode,
+                $managementApiService
+            );
         }
 
         return parent::beforeSave();

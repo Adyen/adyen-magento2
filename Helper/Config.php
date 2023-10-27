@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
+use Adyen\Payment\Model\Config\Source\NotificationProcessor;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
@@ -37,44 +38,27 @@ class Config
     const XML_HOUSE_NUMBER_STREET_LINE = "house_number_street_line";
     const XML_ADYEN_ONECLICK = 'adyen_oneclick';
     const XML_ADYEN_HPP = 'adyen_hpp';
+    const XML_ADYEN_CC = 'adyen_cc';
     const XML_ADYEN_HPP_VAULT = 'adyen_hpp_vault';
     const XML_ADYEN_CC_VAULT = 'adyen_cc_vault';
     const XML_ADYEN_MOTO = 'adyen_moto';
+    const XML_ADYEN_RATEPAY = 'adyen_ratepay';
     const XML_PAYMENT_ORIGIN_URL = 'payment_origin_url';
     const XML_PAYMENT_RETURN_URL = 'payment_return_url';
     const XML_STATUS_FRAUD_MANUAL_REVIEW = 'fraud_manual_review_status';
     const XML_STATUS_FRAUD_MANUAL_REVIEW_ACCEPT = 'fraud_manual_review_accept_status';
     const XML_MOTO_MERCHANT_ACCOUNTS = 'moto_merchant_accounts';
+    const XML_CONFIGURATION_MODE = 'configuration_mode';
     const XML_ADYEN_POS_CLOUD = 'adyen_pos_cloud';
+    const XML_WEBHOOK_NOTIFICATION_PROCESSOR = 'webhook_notification_processor';
+    const AUTO_CAPTURE_OPENINVOICE = 'auto';
+    const XML_RECURRING_CONFIGURATION = 'recurring_configuration';
 
-    /**
-     * @var ScopeConfigInterface
-     */
-    protected $scopeConfig;
+    protected ScopeConfigInterface $scopeConfig;
+    private EncryptorInterface $encryptor;
+    private WriterInterface $configWriter;
+    private SerializerInterface $serializer;
 
-    /**
-     * @var EncryptorInterface
-     */
-    private $encryptor;
-
-    /**
-     * @var WriterInterface
-     */
-    private $configWriter;
-
-    /**
-     * @var SerializerInterface
-     */
-    private $serializer;
-
-    /**
-     * Config constructor.
-     *
-     * @param ScopeConfigInterface $scopeConfig
-     * @param EncryptorInterface $encryptor
-     * @param WriterInterface $configWriter
-     * @param SerializerInterface $serializer
-     */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
         EncryptorInterface $encryptor,
@@ -124,9 +108,9 @@ class Config
 
     /**
      * @param $storeId
-     * @return bool|mixed
+     * @return array|null
      */
-    public function getMotoMerchantAccounts($storeId = null)
+    public function getMotoMerchantAccounts($storeId = null): ?array
     {
         $serializedData = $this->getConfigData(
             self::XML_MOTO_MERCHANT_ACCOUNTS,
@@ -135,6 +119,15 @@ class Config
         );
 
         return $this->serializer->unserialize($serializedData);
+    }
+
+    /**
+     * @param $storeId
+     * @return bool|mixed
+     */
+    public function isMotoPaymentMethodEnabled($storeId = null): bool
+    {
+        return $this->getConfigData('active', Config::XML_ADYEN_MOTO, $storeId, true);
     }
 
     /**
@@ -184,7 +177,7 @@ class Config
         if (is_null($key)) {
             return null;
         }
-        return $this->encryptor->decrypt(trim($key));
+        return $this->encryptor->decrypt(trim((string) $key));
     }
 
     /**
@@ -249,7 +242,7 @@ class Config
             return null;
         }
 
-        return $this->encryptor->decrypt(trim($key));
+        return $this->encryptor->decrypt(trim((string) $key));
     }
 
     /**
@@ -274,25 +267,13 @@ class Config
     }
 
     /**
-     * Get how the alternative payment should be tokenized
-     *
-     * @param null|int|string $storeId
-     * @return mixed
+     * @param $storeId
+     * @return bool|mixed
+     * @deprecated
      */
-    public function getAlternativePaymentMethodTokenType($storeId = null)
+    public function isAlternativePaymentMethodsEnabled($storeId = null): bool
     {
-        return $this->getConfigData('token_type', self::XML_ADYEN_HPP, $storeId);
-    }
-
-    /**
-     * Check if alternative payment methods vault is enabled
-     *
-     * @param null|int|string $storeId
-     * @return mixed
-     */
-    public function isStoreAlternativePaymentMethodEnabled($storeId = null)
-    {
-        return $this->getConfigData('active', self::XML_ADYEN_HPP_VAULT, $storeId, true);
+        return $this->getConfigData('active', Config::XML_ADYEN_HPP, $storeId, true);
     }
 
     /**
@@ -443,36 +424,9 @@ class Config
         return $this->getConfigData('send_level23_data', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId, true);
     }
 
-    /**
-     * @param $storeId
-     * @return bool|null
-     */
-    public function getCardRecurringActive($storeId): ?bool
+    public function isClickToPayEnabled($storeId): ?bool
     {
-        return $this->getConfigData('active', self::XML_ADYEN_ONECLICK, $storeId, true);
-    }
-
-    /**
-     * @param $storeId
-     * @return string|null
-     */
-    public function getCardRecurringMode($storeId): ?string
-    {
-        return $this->getConfigData('card_mode', self::XML_ADYEN_ONECLICK, $storeId);
-    }
-
-    /**
-     * @param $storeId
-     * @return string|null
-     */
-    public function getCardRecurringType($storeId): ?string
-    {
-        return $this->getConfigData('card_type', self::XML_ADYEN_ONECLICK, $storeId);
-    }
-
-    public function getTokenizedPaymentMethods($storeId)
-    {
-        return $this->getConfigData('tokenized_payment_methods', self::XML_ADYEN_HPP, $storeId);
+        return $this->getConfigData('enable_click_to_pay', self::XML_ADYEN_CC, $storeId);
     }
 
     public function debugLogsEnabled($storeId): bool
@@ -482,7 +436,17 @@ class Config
 
     public function getAutoCaptureOpenInvoice(int $storeId): bool
     {
-        return $this->getConfigData('auto_capture_openinvoice', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId, true);
+        $captureForOpenInvoice = $this->getConfigData(
+            'capture_for_openinvoice',
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId
+        );
+        return $captureForOpenInvoice === self::AUTO_CAPTURE_OPENINVOICE;
+    }
+
+    public function getSupportMailAddress(int $storeId): ?string
+    {
+        return $this->getConfigData('adyen_support_email_address', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
     }
 
     public function getAdyenPosCloudConfigData(string $field, int $storeId = null, bool $flag = false)
@@ -490,22 +454,102 @@ class Config
         return $this->getConfigData($field, self::XML_ADYEN_POS_CLOUD, $storeId, $flag);
     }
 
-    public function getApplePayUrlPath($storeId = null)
+    public function useQueueProcessor($storeId = null): bool
     {
-        return $this->getConfigData('apple_pay_certificate_url', self::XML_ADYEN_HPP, $storeId);
+        return $this->getConfigData(
+            self::XML_WEBHOOK_NOTIFICATION_PROCESSOR,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId
+        ) === NotificationProcessor::QUEUE;
     }
 
+    public function getConfigurationMode(int $storeId): string
+    {
+        return $this->getConfigData(
+            self::XML_CONFIGURATION_MODE,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId
+        );
+    }
 
-    /**
-     * Retrieve information from payment configuration
-     *
-     * @param string $field
-     * @param string $xmlPrefix
-     * @param int $storeId
-     * @param bool|false $flag
-     * @return bool|mixed
-     */
-    public function getConfigData($field, $xmlPrefix, $storeId, $flag = false)
+    public function getAdyenAbstractConfigData(string $field, int $storeId = null): mixed
+    {
+        return $this->getConfigData($field, 'adyen_abstract', $storeId);
+    }
+
+    public function getLiveEndpointPrefix(int $storeId = null): ?string
+    {
+        $prefix = $this->getAdyenAbstractConfigData('live_endpoint_url_prefix', $storeId);
+
+        if (is_null($prefix)) {
+            return null;
+        }
+
+        return trim($prefix);
+    }
+
+    public function getAdyenAbstractConfigDataFlag($field, $storeId = null): mixed
+    {
+        return $this->getConfigData($field, 'adyen_abstract', $storeId, true);
+    }
+
+    public function getAdyenCcConfigData($field, $storeId = null): mixed
+    {
+        return $this->getConfigData($field, 'adyen_cc', $storeId);
+    }
+
+    public function getAdyenHppConfigData($field, $storeId = null): mixed
+    {
+        return $this->getConfigData($field, 'adyen_hpp', $storeId);
+    }
+
+    public function getAdyenHppVaultConfigDataFlag($field, $storeId = null): mixed
+    {
+        return $this->getConfigData($field, 'adyen_hpp_vault', $storeId, true);
+    }
+
+    public function isHppVaultEnabled($storeId = null): mixed
+    {
+        return $this->getAdyenHppVaultConfigDataFlag('active', $storeId);
+    }
+
+    public function getAdyenOneclickConfigData($field, int $storeId = null): mixed
+    {
+        return $this->getConfigData($field, 'adyen_oneclick', $storeId);
+    }
+
+    public function getAdyenOneclickConfigDataFlag($field, int $storeId = null): bool
+    {
+        return $this->getConfigData($field, 'adyen_oneclick', $storeId, true);
+    }
+
+    public function isPerStoreBillingAgreement(int $storeId): bool //Only use of Flag above
+    {
+        return !$this->getAdyenOneclickConfigDataFlag('share_billing_agreement', $storeId);
+    }
+
+    public function getAdyenBoletoConfigData(string $field, int $storeId = null): mixed
+    {
+        return $this->getConfigData($field, 'adyen_boleto', $storeId);
+    }
+
+    public function getCheckoutFrontendRegion(int $storeId = null): ?string
+    {
+        $checkoutFrontendRegion = $this->getAdyenAbstractConfigData('checkout_frontend_region', $storeId);
+
+        if (is_null($checkoutFrontendRegion)) {
+            return null;
+        }
+
+        return trim($checkoutFrontendRegion);
+    }
+
+    public function getRatePayId(int $storeId = null)
+    {
+        return $this->getConfigData("ratepay_id", self::XML_ADYEN_RATEPAY, $storeId);
+    }
+
+    public function getConfigData(string $field, string $xmlPrefix, ?int $storeId, bool $flag = false): mixed
     {
         $path = implode("/", [self::XML_PAYMENT_PREFIX, $xmlPrefix, $field]);
 
@@ -516,8 +560,12 @@ class Config
         }
     }
 
-    public function setConfigData($value, $field, $xmlPrefix, $scope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT)
-    {
+    public function setConfigData(
+        $value,
+        string $field,
+        string $xmlPrefix,
+        $scope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT
+    ): void {
         $path = implode("/", [self::XML_PAYMENT_PREFIX, $xmlPrefix, $field]);
         $this->configWriter->save($path, $value, $scope);
     }

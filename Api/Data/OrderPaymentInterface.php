@@ -11,6 +11,8 @@
 
 namespace Adyen\Payment\Api\Data;
 
+use DateTime;
+
 interface OrderPaymentInterface
 {
     /**
@@ -41,166 +43,117 @@ interface OrderPaymentInterface
     // Payment has not been captured yet
     const CAPTURE_STATUS_NO_CAPTURE = 'Not captured';
 
-    /**
-     * Gets the ID for the payment.
-     *
-     * @return int|null Entity ID.
-     */
     public function getEntityId();
 
-    /**
-     * Sets entity ID.
-     *
-     * @param int $entityId
-     * @return $this
-     */
     public function setEntityId($entityId);
 
     /**
-     * Gets the Pspreference for the payment.
-     *
-     * @return int|null Pspreference.
+     * @return string
      */
-    public function getPspreference();
+    public function getPspreference(): string;
 
     /**
-     * Sets Pspreference.
-     *
-     * @param string $pspreference
-     * @return $this
+     * @param string $pspReference
+     * @return OrderPaymentInterface
      */
-    public function setPspreference($pspreference);
+    public function setPspreference(string $pspReference): OrderPaymentInterface;
 
     /**
-     * Gets the Merchantreference for the payment.
-     *
-     * @return int|null MerchantReference.
+     * @return string
      */
-    public function getMerchantReference();
+    public function getMerchantReference(): string;
 
     /**
-     * Sets MerchantReference.
-     *
      * @param string $merchantReference
-     * @return $this
+     * @return OrderPaymentInterface
      */
-    public function setMerchantReference($merchantReference);
+    public function setMerchantReference(string $merchantReference): OrderPaymentInterface;
 
     /**
-     * Gets the PaymentId for the payment.
-     *
-     * @return int|null PaymentId.
+     * @return int
      */
-    public function getPaymentId();
+    public function getPaymentId(): int;
 
     /**
-     * Sets PaymentId.
-     *
-     * @param string $paymentId
-     * @return $this
+     * @param int $paymentId
+     * @return OrderPaymentInterface
      */
-    public function setPaymentId($paymentId);
+    public function setPaymentId(int $paymentId): OrderPaymentInterface;
 
     /**
-     * Gets the Paymentmethod for the payment.
-     *
-     * @return string|null PaymentMethod.
+     * @return string|null
      */
-    public function getPaymentMethod();
+    public function getPaymentMethod(): ?string;
 
     /**
-     * Sets PaymentMethod.
-     *
      * @param string $paymentMethod
-     * @return $this
+     * @return OrderPaymentInterface
      */
-    public function setPaymentMethod($paymentMethod);
+    public function setPaymentMethod(string $paymentMethod): OrderPaymentInterface;
 
     /**
-     * Gets the Amount for the payment.
-     *
-     * @return int|null Amount.
+     * @return float
      */
-    public function getAmount();
+    public function getAmount(): float;
 
     /**
-     * Sets Amount.
-     *
-     * @param string $amount
-     * @return $this
+     * @param float $amount
+     * @return OrderPaymentInterface
      */
-    public function setAmount($amount);
+    public function setAmount(float $amount): OrderPaymentInterface;
 
     /**
-     * Gets the TotalRefunded for the payment.
-     *
-     * @return int|null TotalRefunded.
+     * @return float
      */
-    public function getTotalRefunded();
+    public function getTotalRefunded(): float;
 
     /**
-     * Sets Total Refunded.
-     *
-     * @param string $totalRefunded
-     * @return $this
+     * @param float $totalRefunded
+     * @return OrderPaymentInterface
      */
-    public function setTotalRefunded($totalRefunded);
+    public function setTotalRefunded(float $totalRefunded): OrderPaymentInterface;
 
     /**
-     * Gets the created-at timestamp for the payment.
-     *
-     * @return string|null Created-at timestamp.
+     * @return DateTime
      */
-    public function getCreatedAt();
+    public function getCreatedAt(): DateTime;
 
     /**
-     * Sets the created-at timestamp for the payment.
-     *
-     * @param string $createdAt timestamp
-     * @return $this
+     * @param DateTime $createdAt
+     * @return OrderPaymentInterface
      */
-    public function setCreatedAt($createdAt);
+    public function setCreatedAt(DateTime $createdAt): OrderPaymentInterface;
 
     /**
-     * Gets the updated-at timestamp for the payment.
-     *
-     * @return string|null Updated-at timestamp.
+     * @return DateTime
      */
-    public function getUpdatedAt();
+    public function getUpdatedAt(): DateTime;
 
     /**
-     * Sets the updated-at timestamp for the payment.
-     *
-     * @param string $timestamp
-     * @return $this
+     * @param DateTime $updatedAt
+     * @return OrderPaymentInterface
      */
-    public function setUpdatedAt($timestamp);
+    public function setUpdatedAt(DateTime $updatedAt): OrderPaymentInterface;
 
     /**
-     * Sets the captured field for the payment
-     *
-     * @param $captured
+     * @return string|null
      */
-    public function setCaptureStatus($captured);
+    public function getCaptureStatus(): ?string;
 
     /**
-     * Gets the captured field for the payment
-     *
-     * @return mixed
+     * @param string $captureStatus
+     * @return OrderPaymentInterface
      */
-    public function getCaptureStatus();
+    public function setCaptureStatus(string $captureStatus): OrderPaymentInterface;
 
     /**
-     * Gets the TotalCaptured for the payment.
-     *
      * @return int|null
      */
-    public function getTotalCaptured();
+    public function getTotalCaptured(): ?float;
 
     /**
-     * Sets Total Captured.
-     *
-     * @param $totalCaptured
+     * @param int $totalCaptured
+     * @return OrderPaymentInterface
      */
-    public function setTotalCaptured($totalCaptured);
+    public function setTotalCaptured(float $totalCaptured): OrderPaymentInterface;
 }

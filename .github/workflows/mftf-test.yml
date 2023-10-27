@@ -9,8 +9,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - php-version: "8.1"
-            magento-version: "2.4.4"
+          - php-version: '8.1'
+            magento-version: '2.4.4'
     runs-on: ubuntu-latest
     env:
       PHP_VERSION: ${{ matrix.php-version }}
@@ -18,7 +18,7 @@ jobs:
       ADMIN_USERNAME: ${{ secrets.MAGENTO_ADMIN_USERNAME }}
       ADMIN_PASSWORD: ${{ secrets.MAGENTO_ADMIN_PASSWORD }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Start services
         run: docker-compose -f .github/docker-compose.yml -f .github/docker-compose.mftf.yml up -d

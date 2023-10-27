@@ -12,12 +12,12 @@
 namespace Adyen\Payment\Observer;
 
 use Adyen\Payment\Helper\StateData;
+use Adyen\Payment\Helper\Util\CheckoutStateDataValidator;
+use Adyen\Payment\Helper\Util\DataArrayValidator;
 use Adyen\Payment\Model\ResourceModel\StateData\Collection;
 use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
-use \Adyen\Service\Validator\CheckoutStateDataValidator;
-use \Adyen\Service\Validator\DataArrayValidator;
 
 class AdyenMotoDataAssignObserver extends AbstractDataAssignObserver
 {
@@ -85,11 +85,17 @@ class AdyenMotoDataAssignObserver extends AbstractDataAssignObserver
         $data = $this->readDataArgument($observer);
         $paymentInfo = $this->readPaymentModelArgument($observer);
 
+        // Remove cc_type information from the previous payment
+        $paymentInfo->unsAdditionalInformation('cc_type');
+
         // Get additional data array
         $additionalData = $data->getData(PaymentInterface::KEY_ADDITIONAL_DATA);
         if (!is_array($additionalData)) {
             return;
         }
+
+        // Remove cc_type information from the previous payment
+        $paymentInfo->unsAdditionalInformation('cc_type');
 
         // Get a validated additional data array
         $additionalData = DataArrayValidator::getArrayOnlyWithApprovedKeys(
@@ -99,7 +105,7 @@ class AdyenMotoDataAssignObserver extends AbstractDataAssignObserver
 
         // JSON decode state data from the frontend or fetch it from the DB entity with the quote ID
         if (!empty($additionalData[self::STATE_DATA])) {
-            $orderStateData = json_decode($additionalData[self::STATE_DATA], true);
+            $orderStateData = json_decode((string) $additionalData[self::STATE_DATA], true);
         } else {
             $orderStateData = $this->stateDataCollection->getStateDataArrayWithQuoteId($paymentInfo->getData('quote_id'));
         }

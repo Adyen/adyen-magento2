@@ -13,6 +13,7 @@
 namespace Adyen\Payment\Block\Checkout\Multishipping;
 
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Model\PaymentResponse;
@@ -74,6 +75,9 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
      */
     private $searchCriteriaBuilder;
 
+
+    private $configHelper;
+
     /**
      * @var []
      */
@@ -90,6 +94,7 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
         Multishipping $multishipping,
         OrderRepositoryInterface $orderRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
+        Config $configHelper,
         array $data = []
     ) {
         $this->adyenHelper = $adyenHelper;
@@ -99,6 +104,7 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
         $this->configProvider = $configProvider;
         $this->orderRepository = $orderRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->configHelper = $configHelper;
         parent::__construct($context, $multishipping, $data);
 
         $orderIds = $this->getOrderIds();
@@ -137,7 +143,8 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
 
     public function getClientKey()
     {
-        return $this->adyenHelper->getClientKey();
+        $environment = $this->configHelper->isDemoMode() ? 'test' : 'live';
+        return $this->configHelper->getClientKey($environment);
     }
 
     public function getEnvironment()

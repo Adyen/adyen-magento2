@@ -108,8 +108,7 @@ class Creditmemo extends AbstractHelper
             $adyenOrderPayment[OrderPaymentInterface::ENTITY_ID]
         );
         $adyenCreditmemo->setAmount($refundAmount);
-
-        // Once needed, a status update for the creditmemo can be added here.
+        $adyenCreditmemo->setStatus(AdyenCreditmemoModel::WAITING_FOR_WEBHOOK_STATUS);
 
         $this->adyenCreditmemoResourceModel->save($adyenCreditmemo);
 
@@ -127,8 +126,9 @@ class Creditmemo extends AbstractHelper
         $adyenCreditmemoLoader = $this->adyenCreditmemoFactory->create();
 
         $adyenCreditmemos = $this->adyenCreditmemoResourceModel->getAdyenCreditmemosByAdyenPaymentid(
-            $adyenOrderPayment[OrderPaymentInterface::ENTITY_ID]
+            $adyenOrderPayment->getEntityId()
         );
+
         if (isset($adyenCreditmemos)) {
             foreach ($adyenCreditmemos as $adyenCreditmemo) {
                 /** @var AdyenCreditmemoModel $currAdyenCreditmemo */
@@ -140,5 +140,21 @@ class Creditmemo extends AbstractHelper
                 $this->adyenCreditmemoResourceModel->save($currAdyenCreditmemo);
             }
         }
+    }
+
+    public function updateAdyenCreditmemosStatus(AdyenCreditmemoModel $adyenCreditmemo, string $status)
+    {
+        $adyenCreditmemo->setStatus($status);
+        $this->adyenCreditmemoResourceModel->save($adyenCreditmemo);
+    }
+
+    public function getAdyenCreditmemoByPspreference(string $pspreference): ?AdyenCreditmemoModel {
+        $results = $this->adyenCreditmemoResourceModel->getAdyenCreditmemoByPspreference($pspreference);
+
+        if (is_null($results)) {
+            return null;
+        }
+
+        return $this->adyenCreditmemoFactory->create()->load($results['entity_id']);
     }
 }

@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -11,50 +11,66 @@
 
 namespace Adyen\Payment\Gateway\Http\Client;
 
+use Adyen\AdyenException;
 use Adyen\Client;
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Idempotency;
+use Adyen\Service\Checkout\ModificationsApi;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Http\ClientInterface;
+use Magento\Payment\Gateway\Http\TransferInterface;
 
-/**
- * Class TransactionSale
- */
 class TransactionCancel implements ClientInterface
 {
-    /**
-     * @var \Adyen\Payment\Helper\Data
-     */
-    private $adyenHelper;
+    private Data $adyenHelper;
+    private Idempotency $idempotencyHelper;
 
-    /**
-     * PaymentRequest constructor.
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
+        Data        $adyenHelper,
+        Idempotency $idempotencyHelper
     ) {
         $this->adyenHelper = $adyenHelper;
+        $this->idempotencyHelper = $idempotencyHelper;
     }
 
-    /**
-     * @param \Magento\Payment\Gateway\Http\TransferInterface $transferObject
-     * @return null
-     */
-    public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
+    public function placeRequest(TransferInterface $transferObject): array
     {
         $request = $transferObject->getBody();
-        // call lib
-        $service = new \Adyen\Service\Modification(
-            $this->adyenHelper->initializeAdyenClient($transferObject->getClientConfig()['storeId'])
-        );
+        $headers = $transferObject->getHeaders();
+        $clientConfig = $transferObject->getClientConfig();
 
-        $this->adyenHelper
-            ->logRequest($request, Client::API_PAYMENT_VERSION, '/pal/servlet/Payment/{version}/cancel');
-        try {
-            $response = $service->cancel($request);
-        } catch (\Adyen\AdyenException $e) {
-            $response['error'] = $e->getMessage();
+        if(isset($clientConfig['isMotoTransaction']) && $clientConfig['isMotoTransaction'] === true) {
+            $client = $this->adyenHelper->initializeAdyenClient(
+                $clientConfig['storeId'],
+                null,
+                $clientConfig['motoMerchantAccount']
+            );
+        } else {
+            $client = $this->adyenHelper->initializeAdyenClient($transferObject->getClientConfig()['storeId']);
         }
-        $this->adyenHelper->logResponse($response);
+
+        $service = $this->adyenHelper->createAdyenCheckoutService($client);
+
+        $response = [];
+
+        foreach ($request as $requests) {
+            $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
+                $requests,
+                $headers['idempotencyExtraData'] ?? null
+            );
+            $requestOptions['idempotencyKey'] = $idempotencyKey;
+            $this->adyenHelper->logRequest($requests, Client::API_CHECKOUT_VERSION, '/cancels');
+            try {
+                $responses = $service->cancels($requests, $requestOptions);
+            } catch (AdyenException $e) {
+                $response['error'] = $e->getMessage();
+            }
+            $this->adyenHelper->logResponse($responses);
+
+            $response = $responses;
+        }
 
         return $response;
     }
+
 }

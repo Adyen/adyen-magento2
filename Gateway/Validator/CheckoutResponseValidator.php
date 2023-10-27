@@ -13,7 +13,7 @@ namespace Adyen\Payment\Gateway\Validator;
 
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
-use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\ValidatorException;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Validator\AbstractValidator;
 use Magento\Payment\Gateway\Validator\ResultInterface;
@@ -114,10 +114,10 @@ class CheckoutResponseValidator extends AbstractValidator
                 case "Refused":
                     $errorMsg = __('The payment is REFUSED.');
                     // this will result the specific error
-                    throw new LocalizedException($errorMsg);
+                    throw new ValidatorException($errorMsg);
                 default:
                     $errorMsg = __('Error with payment method please select different payment method.');
-                    throw new LocalizedException($errorMsg);
+                    throw new ValidatorException($errorMsg);
             }
         } else {
             if (!empty($response['error'])) {
@@ -130,7 +130,7 @@ class CheckoutResponseValidator extends AbstractValidator
                 $errorMsg = __('Error with payment method, please select a different payment method.');
             }
 
-            throw new LocalizedException($errorMsg);
+            throw new ValidatorException($errorMsg);
         }
 
         return $this->createResult($isValid, $errorMessages);

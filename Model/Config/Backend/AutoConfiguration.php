@@ -58,12 +58,18 @@ class AutoConfiguration extends Value
     public function beforeSave()
     {
         if ('auto' === $this->getValue()) {
-            $environment = (int)$this->getFieldsetDataValue('demo_mode') ? 'test' : 'live';
+            $demoMode = (int)$this->getFieldsetDataValue('demo_mode');
+            $environment = $demoMode ? 'test' : 'live';
+
             $apiKey = $this->getFieldsetDataValue('api_key_' . $environment);
-            $configuredOrigins = $this->managementApiHelper->getAllowedOrigins($apiKey, $environment);
+
+            $managementApiService = $this->managementApiHelper->getManagementApiService($apiKey, $demoMode);
+            $configuredOrigins = $this->managementApiHelper->getAllowedOrigins($managementApiService);
+
             $domain = $this->baseUrlHelper->getDomainFromUrl($this->url->getBaseUrl());
             if (!in_array($domain, $configuredOrigins)) {
-                $this->managementApiHelper->saveAllowedOrigin($apiKey, $environment, $domain);
+                $managementApiService = $this->managementApiHelper->getManagementApiService($apiKey, $demoMode);
+                $this->managementApiHelper->saveAllowedOrigin($managementApiService, $domain);
             }
         }
         return parent::beforeSave();

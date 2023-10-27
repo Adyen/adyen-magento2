@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2021 Adyen N.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -19,64 +19,37 @@ use Magento\Framework\Model\AbstractModel;
 class PaymentResponse extends AbstractModel implements PaymentResponseInterface
 {
 
-    /**
-     * Initialize resource model
-     *
-     * @return void
-     */
     protected function _construct()
     {
         $this->_init(ResourceModel\PaymentResponse::class);
     }
 
-
-    /**
-     * @return mixed
-     */
-    public function getMerchantReference()
+    public function getMerchantReference(): ?string
     {
         return $this->getData(self::MERCHANT_REFERENCE);
     }
 
-    /**
-     * @param string $merchantReference
-     * @return mixed
-     */
-    public function setMerchantReference($merchantReference)
+    public function setMerchantReference(string $merchantReference): PaymentResponseInterface
     {
         return $this->setData(self::MERCHANT_REFERENCE, $merchantReference);
     }
 
-    /**
-     * @return mixed
-     */
-    public function getResultCode()
+    public function getResultCode(): ?string
     {
         return $this->getData(self::RESULT_CODE);
     }
 
-    /**
-     * @param string $resultCode
-     * @return mixed
-     */
-    public function setResultCode($resultCode)
+    public function setResultCode(string $resultCode): PaymentResponseInterface
     {
         return $this->setData(self::RESULT_CODE, $resultCode);
     }
 
-    /**
-     * @return mixed
-     */
-    public function getResponse()
+    public function getResponse(): ?string
     {
         return $this->getData(self::RESPONSE);
     }
 
-    /**
-     * @param string $response
-     * @return mixed
-     */
-    public function setResponse($response)
+    public function setResponse(string $response): PaymentResponseInterface
     {
         return $this->setData(self::RESPONSE, $response);
     }

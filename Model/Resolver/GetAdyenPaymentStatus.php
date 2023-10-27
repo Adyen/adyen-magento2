@@ -102,7 +102,7 @@ class GetAdyenPaymentStatus implements ResolverInterface
 
             return $this->getAdyenPaymentStatusDataProvider->getGetAdyenPaymentStatus($orderId);
         } catch (NoSuchEntityException $e) {
-            $this->adyenLogger->addWarning(sprintf(
+            $this->adyenLogger->addAdyenWarning(sprintf(
                 'Attempted to get the payment status for order %s. Exception: %s',
                 $orderIncrementId,
                 $e->getMessage()
