@@ -6,7 +6,6 @@ use Adyen\Payment\Helper\Address;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentMethods;
-use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\Requests;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Vault;
@@ -28,39 +27,31 @@ class RequestsTest extends AbstractAdyenTestCase
         $this->assertEmpty($this->sut->buildCardRecurringData(1, $this->paymentMock));
     }
 
-    public function testBuildCardRecurringStorePaymentMethodFalse()
+    public function testBuildCardRecurringStorePaymentMethodTrueVault(): void
     {
-        $this->setMockObjects(['storePaymentMethod' => false], false, '');
-        $request = $this->sut->buildCardRecurringData(1, $this->paymentMock);
-
-        $this->assertFalse($request['storePaymentMethod']);
-    }
-
-    public function testBuildCardRecurringStorePaymentMethodTrueVault()
-    {
-        $this->setMockObjects(['storePaymentMethod' => true], true, Recurring::SUBSCRIPTION);
+        $this->setMockObjects(['storePaymentMethod' => true], true, Vault::SUBSCRIPTION);
         $request = $this->sut->buildCardRecurringData(1, $this->paymentMock);
 
         $this->assertTrue($request['storePaymentMethod']);
-        $this->assertEquals(Recurring::SUBSCRIPTION, $request['recurringProcessingModel']);
+        $this->assertEquals(Vault::SUBSCRIPTION, $request['recurringProcessingModel']);
     }
 
-    public function testBuildCardRecurringStorePaymentMethodTrueAdyenCardOnFile()
+    public function testBuildCardRecurringStorePaymentMethodTrueAdyenCardOnFile(): void
     {
-        $this->setMockObjects(['storePaymentMethod' => true], false, Recurring::CARD_ON_FILE);
+        $this->setMockObjects(['storePaymentMethod' => true], true, Vault::CARD_ON_FILE);
         $request = $this->sut->buildCardRecurringData(1, $this->paymentMock);
 
         $this->assertTrue($request['storePaymentMethod']);
-        $this->assertEquals(Recurring::CARD_ON_FILE, $request['recurringProcessingModel']);
+        $this->assertEquals(Vault::CARD_ON_FILE, $request['recurringProcessingModel']);
     }
 
-    public function testBuildCardRecurringStorePaymentMethodTrueAdyenSubscription()
+    public function testBuildCardRecurringStorePaymentMethodTrueAdyenSubscription(): void
     {
-        $this->setMockObjects(['storePaymentMethod' => true], false, Recurring::SUBSCRIPTION);
+        $this->setMockObjects(['storePaymentMethod' => true], true, Vault::SUBSCRIPTION);
         $request = $this->sut->buildCardRecurringData(1, $this->paymentMock);
 
         $this->assertTrue($request['storePaymentMethod']);
-        $this->assertEquals(Recurring::SUBSCRIPTION, $request['recurringProcessingModel']);
+        $this->assertEquals(Vault::SUBSCRIPTION, $request['recurringProcessingModel']);
     }
 
     private function setMockObjects(array $stateDataArray, bool $vaultEnabled, string $tokenType): void
@@ -70,13 +61,14 @@ class RequestsTest extends AbstractAdyenTestCase
         ]);
 
         $vaultHelperMock = $this->createConfiguredMock(Vault::class, [
-            'isCardVaultEnabled' => $vaultEnabled
+            'getPaymentMethodRecurringActive' => $vaultEnabled,
+            'getPaymentMethodRecurringProcessingModel' => $tokenType
         ]);
 
 
         $configHelperMock = $this->createConfiguredMock(Config::class, [
-            'getCardRecurringType' => $tokenType,
-            'getCardRecurringActive' => true
+            //'getPaymentMethodRecurringProcessingModel' => $tokenType
+            //'getCardRecurringActive' => true
         ]);
 
         $this->sut = new Requests(
@@ -84,7 +76,6 @@ class RequestsTest extends AbstractAdyenTestCase
             $configHelperMock,
             $this->createMock(Address::class),
             $stateDataMock,
-            $this->createMock(PaymentMethods::class),
             $vaultHelperMock
         );
 
@@ -92,7 +83,8 @@ class RequestsTest extends AbstractAdyenTestCase
             'getQuoteId' => 1
         ]);
         $this->paymentMock = $this->createConfiguredMock(Payment::class, [
-            'getOrder' => $orderMock
+            'getOrder' => $orderMock,
+            'getMethod' => 'adyen_cc'
         ]);
     }
 }

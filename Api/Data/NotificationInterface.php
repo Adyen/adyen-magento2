@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -11,292 +11,227 @@
 
 namespace Adyen\Payment\Api\Data;
 
+use DateTime;
+
 interface NotificationInterface
 {
     /**
      * Constants for keys of data array. Identical to the name of the getter in snake case.
      */
-
-    /*
-     * Entity ID.
-     */
     const ENTITY_ID = 'entity_id';
-    /*
-     * Pspreference.
-     */
     const PSPREFRENCE = 'pspreference';
-    /*
-     * Pspreference.
-     */
     const ORIGINAL_REFERENCE = 'original_reference';
-    /*
-     * Merchantreference
-     */
     const MERCHANT_REFERENCE = 'merchant_reference';
-    /*
-     * Eventcode
-     */
     const EVENT_CODE = 'event_code';
-    /*
-     * Success
-     */
     const SUCCESS = 'success';
-    /*
-     * Paymentmethod
-     */
     const PAYMENT_METHOD = 'payment_method';
-    /*
-     * Amount value
-     */
     const AMOUNT_VALUE = 'amount_value';
-    /*
-     * Amount currency
-     */
     const AMOUNT_CURRENCY = 'amount_currency';
-    /*
-     * Reason
-     */
     const REASON = 'reason';
-    /*
-     * Live
-     */
     const LIVE = 'live';
-    /*
-     * Done
-     */
     const DONE = 'done';
-    /*
-     * Additional data
-     */
     const ADDITIONAL_DATA = 'additional_data';
-    /*
-     * Processing
-     */
     const PROCESSING = 'processing';
-    /*
-     * Error count
-     */
     const ERROR_COUNT = 'error_count';
-    /*
-     * Error message
-     */
     const ERROR_MESSAGE = 'error_message';
-    /*
-     * Created-at timestamp.
-     */
     const CREATED_AT = 'created_at';
-    /*
-     * Updated-at timestamp.
-     */
     const UPDATED_AT = 'updated_at';
 
     /**
-     * Gets the ID for the notification.
-     *
-     * @return int|null Entity ID.
+     * @return mixed
      */
     public function getEntityId();
 
     /**
-     * Sets entity ID.
-     *
-     * @param int $entityId
-     * @return $this
+     * @param $entityId
+     * @return mixed
      */
     public function setEntityId($entityId);
 
     /**
-     * Gets the Pspreference for the notification.
-     *
-     * @return string|null Pspreference.
+     * @return string|null
      */
-    public function getPspreference();
+    public function getPspreference(): ?string;
 
     /**
-     * Sets Pspreference.
-     *
      * @param string $pspreference
-     * @return $this
+     * @return NotificationInterface
      */
-    public function setPspreference($pspreference);
+    public function setPspreference(string $pspreference): NotificationInterface;
 
     /**
-     * Sets OriginalReference.
-     *
-     * @param string $originalReference
-     * @return $this
+     * @return string|null
      */
-    public function setOriginalReference($originalReference);
+    public function getOriginalReference(): ?string;
 
     /**
-     * Gets the OriginalReference for the notification.
-     *
-     * @return string|null OriginalReference.
+     * @param string|null $originalReference
+     * @return NotificationInterface
      */
-    public function getOriginalReference();
+    public function setOriginalReference(?string $originalReference): NotificationInterface;
 
     /**
-     * Gets the Merchantreference for the notification.
-     *
-     * @return string|null MerchantReference.
+     * @return string|null
      */
-    public function getMerchantReference();
+    public function getMerchantReference(): ?string;
 
     /**
-     * Sets MerchantReference.
-     *
      * @param string $merchantReference
-     * @return $this
+     * @return NotificationInterface
      */
-    public function setMerchantReference($merchantReference);
+    public function setMerchantReference(string $merchantReference): NotificationInterface;
 
     /**
-     * Gets the Eventcode for the notification.
-     *
-     * @return string|null Eventcode.
+     * @return string|null
      */
-    public function getEventCode();
+    public function getEventCode(): ?string;
 
     /**
-     * Sets EventCode.
-     *
      * @param string $eventCode
-     * @return $this
+     * @return NotificationInterface
      */
-    public function setEventCode($eventCode);
+    public function setEventCode(string $eventCode): NotificationInterface;
 
     /**
-     * Gets the success for the notification.
-     *
-     * @return string|null Success.
+     * @return string|null
      */
-    public function getSuccess();
+    public function getSuccess(): ?string;
 
     /**
-     * Sets Success.
-     *
      * @param string $success
-     * @return $this
+     * @return NotificationInterface
      */
-    public function setSuccess($success);
+    public function setSuccess(string $success): NotificationInterface;
 
     /**
-     * Gets the Paymentmethod for the notification.
-     *
-     * @return string|null PaymentMethod.
+     * @return string|null
      */
-    public function getPaymentMethod();
+    public function getPaymentMethod(): ?string;
 
     /**
-     * Sets PaymentMethod.
-     *
      * @param string $paymentMethod
-     * @return $this
+     * @return NotificationInterface
      */
-    public function setPaymentMethod($paymentMethod);
+    public function setPaymentMethod(string $paymentMethod): NotificationInterface;
 
     /**
-     * Gets the AmountValue for the notification.
-     *
-     * @return string|null AmountValue.
+     * @return int|null
      */
-    public function getAmountValue();
+    public function getAmountValue(): ?int;
 
     /**
-     * Sets AmountValue.
-     *
-     * @param string $amountValue
-     * @return $this
+     * @param int $amountValue
+     * @return NotificationInterface
      */
-    public function setAmountValue($amountValue);
+    public function setAmountValue(int $amountValue): NotificationInterface;
 
     /**
-     * Gets the AmountCurrency for the notification.
-     *
-     * @return string|null AmountCurrency.
+     * @return string|null
      */
-    public function getAmountCurrency();
+    public function getAmountCurrency(): ?string;
 
     /**
-     * Sets AmountCurrency.
-     *
      * @param string $amountCurrency
-     * @return $this
+     * @return NotificationInterface
      */
-    public function setAmountCurrency($amountCurrency);
+    public function setAmountCurrency(string $amountCurrency): NotificationInterface;
 
     /**
-     * Gets the Reason for the notification.
-     *
-     * @return string|null Reason.
+     * @return string|null
      */
-    public function getReason();
+    public function getReason(): ?string;
 
     /**
-     * Sets Reason.
-     *
      * @param string $reason
-     * @return $this
+     * @return NotificationInterface
      */
-    public function setReason($reason);
+    public function setReason(string $reason): NotificationInterface;
 
     /**
-     * Gets the AdditionalData for the notification.
-     *
-     * @return string|null AdditionalData.
+     * @return string|null
      */
-    public function getAdditionalData();
+    public function getLive(): ?string;
 
     /**
-     * Sets AdditionalData.
-     *
+     * @param string $live
+     * @return NotificationInterface
+     */
+    public function setLive(string $live): NotificationInterface;
+
+    /**
+     * @return string|null
+     */
+    public function getAdditionalData(): ?string;
+
+    /**
      * @param string $additionalData
-     * @return $this
+     * @return NotificationInterface
      */
-    public function setAdditionalData($additionalData);
+    public function setAdditionalData(string $additionalData): NotificationInterface;
 
     /**
-     * Gets the Done for the notification.
-     *
-     * @return int|null Done.
+     * @return bool|null
      */
-    public function getDone();
+    public function getDone(): ?bool;
 
     /**
-     * Sets Done.
-     *
-     * @param int $done
-     * @return $this
+     * @param bool $done
+     * @return NotificationInterface
      */
-    public function setDone($done);
+    public function setDone(bool $done): NotificationInterface;
 
     /**
-     * Gets the created-at timestamp for the notification.
-     *
-     * @return string|null Created-at timestamp.
+     * @return bool|null
      */
-    public function getCreatedAt();
+    public function getProcessing(): ?bool;
 
     /**
-     * Sets the created-at timestamp for the notification.
-     *
-     * @param string $createdAt timestamp
-     * @return $this
+     * @param bool $processing
+     * @return NotificationInterface
      */
-    public function setCreatedAt($createdAt);
+    public function setProcessing(bool $processing): NotificationInterface;
 
     /**
-     * Gets the updated-at timestamp for the notification.
-     *
-     * @return string|null Updated-at timestamp.
+     * @return int|null
      */
-    public function getUpdatedAt();
+    public function getErrorCount(): ?int;
 
     /**
-     * Sets the updated-at timestamp for the notification.
-     *
-     * @param string $timestamp
-     * @return $this
+     * @param int $errorCount
+     * @return NotificationInterface
      */
-    public function setUpdatedAt($timestamp);
+    public function setErrorCount(int $errorCount): NotificationInterface;
+
+    /**
+     * @return string|null
+     */
+    public function getErrorMessage(): ?string;
+
+    /**
+     * @param string $errorMessage
+     * @return NotificationInterface
+     */
+    public function setErrorMessage(string $errorMessage): NotificationInterface;
+
+    /**
+     * @return string|null
+     */
+    public function getCreatedAt(): ?string;
+
+    /**
+     * @param DateTime $createdAt
+     * @return NotificationInterface
+     */
+    public function setCreatedAt(DateTime $createdAt): NotificationInterface;
+
+    /**
+     * @return string|null
+     */
+    public function getUpdatedAt(): ?string;
+
+    /**
+     * @param DateTime $timestamp
+     * @return NotificationInterface
+     */
+    public function setUpdatedAt(DateTime $timestamp): NotificationInterface;
 }

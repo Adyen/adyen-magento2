@@ -12,11 +12,12 @@
 namespace Adyen\Payment\Gateway\Request;
 
 use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\OpenInvoice;
 use Adyen\Payment\Model\ResourceModel\Invoice\CollectionFactory;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as PaymentCollectionFactory;
-use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
+use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
@@ -32,61 +33,30 @@ class RefundDataBuilder implements BuilderInterface
     const REFUND_STRATEGY_DESCENDING_ORDER = '2';
     const REFUND_STRATEGY_BASED_ON_RATIO = '3';
 
-    /**
-     * @var Data
-     */
-    private $adyenHelper;
+    private Data $adyenHelper;
+    private Config $configHelper;
+    private PaymentCollectionFactory $orderPaymentCollectionFactory;
+    protected CollectionFactory $adyenInvoiceCollectionFactory;
+    private ChargedCurrency $chargedCurrency;
 
-    /**
-     * @var PaymentCollectionFactory
-     */
-    private $orderPaymentCollectionFactory;
-
-    /**
-     * @var CollectionFactory
-     */
-    protected $adyenInvoiceCollectionFactory;
-
-    /**
-     * @var ChargedCurrency
-     */
-    private $chargedCurrency;
-
-    /**
-     * @var OpenInvoice
-     */
-    protected $openInvoiceHelper;
-
-    /**
-     * RefundDataBuilder constructor.
-     *
-     * @param Data $adyenHelper
-     * @param PaymentCollectionFactory $orderPaymentCollectionFactory
-     * @param CollectionFactory $adyenInvoiceCollectionFactory
-     * @param ChargedCurrency $chargedCurrency
-     * @param OpenInvoice $openInvoiceHelper
-     */
     public function __construct(
         Data $adyenHelper,
         PaymentCollectionFactory   $orderPaymentCollectionFactory,
         CollectionFactory          $adyenInvoiceCollectionFactory,
         ChargedCurrency            $chargedCurrency,
+        Config                     $configHelper,
         OpenInvoice                $openInvoiceHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->orderPaymentCollectionFactory = $orderPaymentCollectionFactory;
         $this->adyenInvoiceCollectionFactory = $adyenInvoiceCollectionFactory;
         $this->chargedCurrency = $chargedCurrency;
+        $this->configHelper = $configHelper;
         $this->openInvoiceHelper = $openInvoiceHelper;
     }
 
-    /**
-     * @param array $buildSubject
-     * @return array
-     */
     public function build(array $buildSubject): array
     {
-        /** @var PaymentDataObject $paymentDataObject */
         $paymentDataObject = SubjectReader::readPayment($buildSubject);
 
         $order = $paymentDataObject->getOrder();
@@ -101,10 +71,16 @@ class RefundDataBuilder implements BuilderInterface
         $currency = $creditMemoAmountCurrency->getCurrencyCode();
         $amount = $creditMemoAmountCurrency->getAmount();
 
+
         //Get Merchant Account
         $storeId = $order ->getStoreId();
         $method = $payment->getMethod();
-        $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($method, $storeId);
+
+        if (isset($method) && $method === 'adyen_moto') {
+            $merchantAccount = $payment->getAdditionalInformation('motoMerchantAccount');
+        } else {
+            $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($method, $storeId);
+        }
 
         // check if it contains a partial payment
         $orderPaymentCollection = $this->orderPaymentCollectionFactory
@@ -113,7 +89,7 @@ class RefundDataBuilder implements BuilderInterface
 
         // partial refund if multiple payments check refund strategy
         if ($orderPaymentCollection->getSize() > self::REFUND_STRATEGY_ASCENDING_ORDER) {
-            $refundStrategy = $this->adyenHelper->getAdyenAbstractConfigData(
+            $refundStrategy = $this->configHelper->getAdyenAbstractConfigData(
                 'partial_payments_refund_strategy',
                 $storeId
             );
@@ -188,7 +164,7 @@ class RefundDataBuilder implements BuilderInterface
             ];
 
             $brandCode = $payment->getAdditionalInformation(
-                AdyenHppDataAssignObserver::BRAND_CODE
+                AdyenPaymentMethodDataAssignObserver::BRAND_CODE
             );
 
             if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) {

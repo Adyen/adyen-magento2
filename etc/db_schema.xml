@@ -72,7 +72,6 @@
   <table name="adyen_invoice" resource="default" engine="innodb" comment="Adyen Invoice">
     <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Adyen Invoice Entity ID"/>
     <column xsi:type="varchar" name="pspreference" nullable="false" length="255" comment="Adyen pspreference of the capture"/>
-    <column xsi:type="varchar" name="original_reference" nullable="true" length="255" comment="Adyen OriginalReference of the payment"/>
     <column xsi:type="varchar" name="acquirer_reference" nullable="true" length="255" comment="Adyen AcquirerReference of the capture"/>
     <column xsi:type="int" name="invoice_id" padding="10" unsigned="true" nullable="true" identity="false" comment="Link to Magento Invoice table"/>
     <column xsi:type="timestamp" name="created_at" on_update="false" nullable="true" default="CURRENT_TIMESTAMP" comment="Created at"/>
@@ -94,8 +93,11 @@
     <column xsi:type="timestamp" name="created_at" on_update="false" nullable="true" default="CURRENT_TIMESTAMP" comment="Created at"/>
     <constraint xsi:type="primary" referenceId="PRIMARY">
       <column name="entity_id"/>
-      <column name="entity_id"/>
     </constraint>
+    <constraint xsi:type="foreign" referenceId="ADYEN_STATE_DATA_QUOTE_ID_QUOTE_ENTITY_ID" table="adyen_state_data" column="quote_id" referenceTable="quote" referenceColumn="entity_id" onDelete="CASCADE"/>
+    <index referenceId="ADYEN_STATE_DATA_QUOTE_ID" indexType="btree">
+      <column name="quote_id"/>
+    </index>
   </table>
   <table name="adyen_payment_response" resource="default" engine="innodb" comment="Adyen Payment Response">
     <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Adyen Payment Response Entity ID"/>

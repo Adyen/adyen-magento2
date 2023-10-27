@@ -144,13 +144,18 @@ $paymentResponseEntities = $block->getPaymentResponseEntities();
             function handleOnAdditionalDetails(result) {
                 let self = this;
                 let request = result.data;
-                request.orderId = $(paymentSelected).data('order-id');
+                let orderId = $(paymentSelected).data('order-id');
                 fullScreenLoader.stopLoader();
                 let popupModal = showModal();
-                adyenPaymentService.paymentDetails(request).done(function (responseJSON) {
+                adyenPaymentService.paymentDetails(request, orderId, true).done(function (responseJSON) {
                     handleAdyenResult(responseJSON, $(paymentSelected).data('order-id'));
                 }).fail(function (response) {
                     errorProcessor.process(response, self.messageContainer);
+                    let buttonLabel = "<?= $block->escapeHtml($block->getPaymentFailedLabel()) ?>";
+                    $(paymentSelected).attr('disabled', true)
+                        .addClass('adyen-payment-finished')
+                        .removeClass('adyen-payment-unfinished')
+                        .html(buttonLabel);
                 });
                 closeModal(popupModal);
                 fullScreenLoader.stopLoader();

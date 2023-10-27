@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="adyen_alternative_payment_methods" translate="label" type="text" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label><![CDATA[Alternative Payment Methods]]></label>
+        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+        <fieldset_css>adyen-method-adyen-cc</fieldset_css>
+        <comment>
+            <![CDATA[<p>Set up additional payment methods to accept online and <a href="https://docs.adyen.com/get-started-with-adyen/payment-glossary#in-app-payments-or-mobile-payments" target="_blank">in-app payments</a> and eliminate the need for traditional card-based transactions.</p>]]>
+        </comment>
+        <field id="apple_pay_certificate_download" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Apple Pay Certificate</label>
+            <frontend_model>Adyen\Payment\Model\Config\Adminhtml\ApplepayCertificateButton</frontend_model>
+        </field>
+        <field id="ratepay_id" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>RatePAY Device Ident SId</label>
+            <tooltip>Unique RatePAY Id provided by RatePAY integration consultant</tooltip>
+            <config_path>payment/adyen_ratepay/ratepay_id</config_path>
+        </field>
+        <field id="partial_payments_refund_strategy" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Refund Strategy for giftcard</label>
+            <tooltip>Only relevant if you accept giftcards on Adyen platform</tooltip>
+            <source_model>Adyen\Payment\Model\Config\Source\PartialPaymentRefundStrategy</source_model>
+            <config_path>payment/adyen_abstract/partial_payments_refund_strategy</config_path>
+            <comment>
+                <![CDATA[<p>It is possible to do partial payments with GiftCards. Set here which refund strategy to use.</p>]]>
+            </comment>
+        </field>
+        <field id="country_code" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>ISO Country Code (optional)</label>
+            <tooltip>This will override the shopper billing address country when determining what payment methods to display.</tooltip>
+            <config_path>payment/adyen_hpp/country_code</config_path>
+        </field>
+        <field id="shopper_locale" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Language locale (optional)</label>
+            <tooltip>This will override the default shopper locale of the Magento store (e.g. nl_NL). Leave empty to let Magento decide.</tooltip>
+            <config_path>payment/adyen_hpp/shopper_locale</config_path>
+        </field>
+        <field id="delivery_days" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label>Boleto Days for Delivery</label>
+            <tooltip>How many days to be added to the current date for delivery. Only numbers allowed.</tooltip>
+            <frontend_class>validate-number</frontend_class>
+            <config_path>payment/adyen_boleto/delivery_days</config_path>
+        </field>
+    </group>
+</include>

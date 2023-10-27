@@ -123,6 +123,8 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
             $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize($notification->getAdditionalData()) : [];
             $requireFraudManualReview = $this->caseManagementHelper->requiresManualReview($additionalData);
 
+            $this->invoiceHelper->createInvoice($order, $notification, $isAutoCapture);
+
             if ($isAutoCapture) {
                 $order = $this->handleAutoCapture($order, $notification, $requireFraudManualReview);
             } else {
@@ -217,7 +219,6 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
      */
     private function handleAutoCapture(Order $order, Notification $notification, bool $requireFraudManualReview): Order
     {
-        $this->invoiceHelper->createInvoice($order, $notification, true);
         if ($requireFraudManualReview) {
              $order = $this->caseManagementHelper->markCaseAsPendingReview($order, $notification->getPspreference(), true);
         } else {

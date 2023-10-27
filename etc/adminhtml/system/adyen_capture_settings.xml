@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="adyen_capture_settings" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1"
+           showInStore="1">
+        <label><![CDATA[Capture settings]]></label>
+        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+        <comment>
+            <![CDATA[<p>You can do immediate or manual capture, or capture upon order shipment. Remember to configure your capture settings both here and in your Customer Area.</p>]]>
+        </comment>
+        <field id="capture_mode" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Capture Delay</label>
+            <tooltip>Immediate is the default. Set to manual if you want to perform the capture of funds manually later (only affects credit cards and a few alternative payment methods). You need to change this setting as well in Adyen Customer Area => Settings => Merchant Settings => Capture Delay. If you have selected a capture delay of a couple of days in Adyen keep it here on immediate</tooltip>
+            <source_model>Adyen\Payment\Model\Config\Source\CaptureMode</source_model>
+            <config_path>payment/adyen_abstract/capture_mode</config_path>
+        </field>
+        <field id="capture_for_openinvoice" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Capture for OpenInvoice Methods</label>
+            <tooltip>Applicable for Klarna, Afterpay Touch, Ratepay, FacilyPay/Oney, Affirm, Clearpay, Zip and PayBright. Open invoice methods are set to manual capture by default. If you want auto capture, please contact magento@adyen.com. After approval, set this field to 'Immediate'. If you want to do a request capture on shipment, set this field to 'On shipment’.</tooltip>
+            <source_model>Adyen\Payment\Model\Config\Source\OpenInvoiceCaptureMode</source_model>
+            <config_path>payment/adyen_abstract/capture_for_openinvoice</config_path>
+        </field>
+        <field id="paypal_capture_mode" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Use manual capture for PayPal</label>
+            <tooltip>Should be on 'No' by default. If you have requested with Adyen Support for your PayPal integration to be on manual capture, set this to 'Yes'.</tooltip>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_abstract/paypal_capture_mode</config_path>
+        </field>
+        <field id="sepa_flow" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Sepa Payment flow</label>
+            <tooltip>If you are not sure just leave it at 'Sale’. Sale means it is always immediate capture with auth/cap it will follow the Capture Delay. If you want to enable 'Auth/Capt' for SEPA Direct Debit, please contact support@adyen.com</tooltip>
+            <source_model>Adyen\Payment\Model\Config\Source\SepaFlow</source_model>
+            <config_path>payment/adyen_abstract/sepa_flow</config_path>
+        </field>
+    </group>
+</include>

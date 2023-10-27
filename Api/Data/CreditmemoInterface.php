@@ -12,6 +12,8 @@
 
 namespace Adyen\Payment\Api\Data;
 
+use DateTime;
+
 interface CreditmemoInterface
 {
     /**
@@ -20,7 +22,6 @@ interface CreditmemoInterface
     const ENTITY_ID = 'entity_id';
     const PSPREFERENCE = 'pspreference';
     const ORIGINAL_REFERENCE = 'original_reference';
-
     const CREDITMEMO_ID = 'creditmemo_id';
     const ADYEN_ORDER_PAYMENT_ID = 'adyen_order_payment_id';
     const AMOUNT = 'amount';
@@ -31,59 +32,42 @@ interface CreditmemoInterface
     const FAILED_STATUS = 'FAILED';
     const COMPLETED_STATUS = 'COMPLETED';
 
-    /**
-     * Gets the ID for the creditmemo.
-     *
-     * @return int|null Entity ID.
-     */
-    public function getEntityId(): ?int;
+    public function getEntityId();
+
+    public function setEntityId($entityId);
 
     /**
-     * Sets entity ID.
-     *
-     * @param int $entityId
-     * @return $this
-     */
-    public function setEntityId($entityId): CreditmemoInterface;
-
-    /**
-     * Gets the Pspreference for the creditmemo(capture)
-     *
-     * @return string|null Pspreference.
+     * @return string|null
      */
     public function getPspreference(): ?string;
 
     /**
-     * Sets Pspreference.
-     *
-     * @param string $pspreference
-     * @return $this
+     * @param string $pspReference
+     * @return CreditmemoInterface
      */
-    public function setPspreference(string $pspreference): CreditmemoInterface;
+    public function setPspreference(string $pspReference): CreditmemoInterface;
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getOriginalReference(): string;
+    public function getOriginalReference(): ?string;
 
     /**
-     * @param  string $originalReference
-     * @return $this
+     * @param string $originalReference
+     * @return CreditmemoInterface
      */
     public function setOriginalReference(string $originalReference): CreditmemoInterface;
 
     /**
-     * Gets the CreditmemoID for the creditmemo.
-     *
-     * @return int|null Creditmemo ID.
+     * @return int|null
      */
     public function getCreditmemoId(): ?int;
 
     /**
      * @param int $creditMemoId
-     * @return $this
+     * @return CreditmemoInterface
      */
-    public function setCreditmemoId(int $creditmemoId): CreditmemoInterface;
+    public function setCreditmemoId(int $creditMemoId): CreditmemoInterface;
 
     /**
      * @return float|null
@@ -92,7 +76,7 @@ interface CreditmemoInterface
 
     /**
      * @param float $amount
-     * @return $this
+     * @return CreditmemoInterface
      */
     public function setAmount(float $amount): CreditmemoInterface;
 
@@ -103,7 +87,7 @@ interface CreditmemoInterface
 
     /**
      * @param int $id
-     * @return $this
+     * @return CreditmemoInterface
      */
     public function setAdyenPaymentOrderId(int $id): CreditmemoInterface;
 
@@ -114,29 +98,29 @@ interface CreditmemoInterface
 
     /**
      * @param string $status
-     * @return $this
+     * @return CreditmemoInterface
      */
     public function setStatus(string $status): CreditmemoInterface;
 
     /**
-     * @return \DateTime
+     * @return DateTime|null
      */
-    public function getCreatedAt(): \DateTime;
+    public function getCreatedAt(): ?DateTime;
 
     /**
-     * @param \DateTime $createdAt
-     * @return $this
+     * @param DateTime $createdAt
+     * @return CreditmemoInterface
      */
-    public function setCreatedAt(\DateTime $createdAt): CreditmemoInterface;
+    public function setCreatedAt(DateTime $createdAt): CreditmemoInterface;
 
     /**
-     * @return \DateTime
+     * @return DateTime|null
      */
-    public function getUpdatedAt(): \DateTime;
+    public function getUpdatedAt(): ?DateTime;
 
     /**
-     * @param \DateTime $updatedAt
-     * @return $this
+     * @param DateTime $updatedAt
+     * @return CreditmemoInterface
      */
-    public function setUpdatedAt(\DateTime $updatedAt): CreditmemoInterface;
+    public function setUpdatedAt(DateTime $updatedAt): CreditmemoInterface;
 }

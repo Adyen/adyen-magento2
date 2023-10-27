@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="adyen_accepting_payments" translate="label" type="text" sortOrder="300" showInDefault="1"
+           showInWebsite="1"
+           showInStore="1">
+        <label><![CDATA[Accepting payments]]></label>
+        <comment>
+            <![CDATA[<p>Set up the payment methods you want to offer and how they are shown to your shoppers in your storefront.</p>]]>
+        </comment>
+        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+        <include path="Adyen_Payment::system/adyen_payment_methods.xml"/>
+        <include path="Adyen_Payment::system/adyen_online_checkout.xml"/>
+        <include path="Adyen_Payment::system/adyen_inperson_payments.xml"/>
+        <include path="Adyen_Payment::system/adyen_admin_orders.xml"/>
+        <include path="Adyen_Payment::system/adyen_giving.xml"/>
+    </group>
+</include>

@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2018 Adyen B.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -22,23 +22,9 @@ use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
 
 class PosCloudResponseValidator extends AbstractValidator
 {
-    /**
-     * @var AdyenLogger
-     */
-    private $adyenLogger;
+    private AdyenLogger $adyenLogger;
+    private Data $adyenHelper;
 
-    /**
-     * @var Data
-     */
-    private $adyenHelper;
-
-    /**
-     * PosCloudResponseValidator constructor.
-     *
-     * @param ResultInterfaceFactory $resultFactory
-     * @param AdyenLogger $adyenLogger
-     * @param Data $adyenHelper
-     */
     public function __construct(
         ResultInterfaceFactory $resultFactory,
         AdyenLogger $adyenLogger,
@@ -49,12 +35,7 @@ class PosCloudResponseValidator extends AbstractValidator
         parent::__construct($resultFactory);
     }
 
-    /**
-     * @param array $validationSubject
-     * @return ResultInterface
-     * @throws LocalizedException
-     */
-    public function validate(array $validationSubject)
+    public function validate(array $validationSubject): ResultInterface
     {
         $response = SubjectReader::readResponse($validationSubject);
         $paymentDataObjectInterface = SubjectReader::readPayment($validationSubject);
@@ -73,7 +54,7 @@ class PosCloudResponseValidator extends AbstractValidator
             }
         } else {
             // We have a paymentResponse from the terminal
-            $paymentResponse = $response;
+            $paymentResponse = $response['SaleToPOIResponse']['PaymentResponse'];
         }
 
         if (!empty($paymentResponse) && $paymentResponse['Response']['Result'] != 'Success') {

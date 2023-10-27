@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="adyen_admin_orders" translate="label" type="text" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label><![CDATA[Admin Orders]]></label>
+        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+        <fieldset_css>adyen-method-adyen-cc</fieldset_css>
+        <comment>
+            <![CDATA[<p>Allow shoppers to make purchases through payment links or phone calls by contacting your sales team.</p>]]>
+        </comment>
+        <field id="adyen_pbl_active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Pay by link enabled</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_pay_by_link/active</config_path>
+        </field>
+        <field id="adyen_pbl_title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Pay by Link title</label>
+            <config_path>payment/adyen_pay_by_link/title</config_path>
+        </field>
+        <field id="adyen_pbl_days_to_expire" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Default expiration days for Pay by Link</label>
+            <frontend_class>validate-number</frontend_class>
+            <config_path>payment/adyen_pay_by_link/days_to_expire</config_path>
+            <tooltip><![CDATA[Can be changed during order placement]]></tooltip>
+        </field>
+        <field id="adyen_moto_active" translate="label" type="select" sortOrder="40" showInDefault="1"
+               showInWebsite="1" showInStore="1">
+            <label>MOTO enabled</label>
+            <tooltip><![CDATA[Set to Yes to enable MOTO and use this payment method while creating orders in the admin panel.]]></tooltip>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_moto/active</config_path>
+        </field>
+        <field id="adyen_moto_accounts" translate="label" sortOrder="45" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>MOTO accounts</label>
+            <depends>
+                <field id="adyen_moto_active">1</field>
+            </depends>
+            <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\Field\Moto</frontend_model>
+            <backend_model>Adyen\Payment\Model\Config\Backend\Moto</backend_model>
+            <config_path>payment/adyen_moto/moto_merchant_accounts</config_path>
+        </field>
+    </group>
+</include>

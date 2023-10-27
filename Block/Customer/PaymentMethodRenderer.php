@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2019 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -11,45 +11,33 @@
 
 namespace Adyen\Payment\Block\Customer;
 
-use Adyen\Payment\Exception\PaymentMethodException;
 use Adyen\Payment\Helper\Data;
-use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
-use Adyen\Payment\Helper\PaymentMethods\PaymentMethodInterface;
-use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
+use Adyen\Payment\Helper\Vault;
 use Magento\Framework\View\Element\Template\Context;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Vault\Block\AbstractTokenRenderer;
 
 class PaymentMethodRenderer extends AbstractTokenRenderer
 {
-    /** @var Data */
-    private $dataHelper;
-
-    /** @var PaymentMethodFactory */
-    private $paymentMethodFactory;
-
+    private Data $dataHelper;
+    private Vault $vaultHelper;
 
     public function __construct(
         Context $context,
         Data $dataHelper,
-        PaymentMethodFactory $paymentMethodFactory,
+        Vault $vaultHelper,
         array $data = []
     ) {
         parent::__construct($context, $data);
         $this->dataHelper = $dataHelper;
-        $this->paymentMethodFactory = $paymentMethodFactory;
+        $this->vaultHelper = $vaultHelper;
     }
 
     public function getText(): string
     {
-        try {
-            $paymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($this->getTokenDetails()['type']);
-            $text = $paymentMethod->getPaymentMethodName();
-        } catch (PaymentMethodException $exception) {
-            $text = '';
-        }
+        $details = $this->getTokenDetails();
 
-        return $text;
+        return array_key_exists(Vault::TOKEN_LABEL, $details) ? $details[Vault::TOKEN_LABEL] : '';
     }
 
     public function getIconUrl(): string
@@ -69,6 +57,10 @@ class PaymentMethodRenderer extends AbstractTokenRenderer
 
     public function canRender(PaymentTokenInterface $token): bool
     {
-        return $token->getPaymentMethodCode() === AdyenHppConfigProvider::CODE;
+        $details = json_decode($token->getTokenDetails() ?: '{}', true);
+        $showToken = array_key_exists(Vault::TOKEN_TYPE, $details) &&
+            $details[Vault::TOKEN_TYPE] === Vault::CARD_ON_FILE;
+
+        return $this->vaultHelper->isAdyenPaymentCode($token->getPaymentMethodCode()) && $showToken;
     }
 }

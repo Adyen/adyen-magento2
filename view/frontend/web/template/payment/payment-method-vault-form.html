@@ -4,7 +4,7 @@
  * See COPYING.txt for license details.
  */
 -->
-<div data-bind="visible: displayToken()" class="payment-method" css="'_active': (getId() === isChecked())">
+<div class="payment-method" css="'_active': (getId() === isChecked())">
     <div class="payment-method-title field choice">
         <input type="radio"
                name="payment[method]"
@@ -22,7 +22,7 @@
             'height': getIcons(getPaymentMethodType()).height,
             'alt': getIcons(getPaymentMethodType()).title
             }" class="payment-icon">
-            <span text="getLabel()"></span> <span translate="'created on'"></span>: <span text="getCreatedDate()"></span>
+            <span text="getLabel()"></span></span>
         </label>
     </div>
 

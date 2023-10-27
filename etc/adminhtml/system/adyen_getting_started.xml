@@ -4,26 +4,16 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 -->
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
-    <group id="adyen_getting_started" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+    <group id="adyen_getting_started" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
         <label><![CDATA[Documentation & Support]]></label>
-        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-        <comment><![CDATA[
-                            <ul class="adyen-list">
-                                <li><a target="_blank" href="https://docs.adyen.com/plugins/magento-2">Documentation for setting up the module</a>.</li>
-                                <li><a target="_blank" href="https://www.adyen.com/signup"><strong>Sign up</strong> for a test account</a>.</li>
-                                <li>The latest version of the Adyen Magento module is also available through <a target="_blank" href="https://github.com/adyen/adyen-magento2/releases">GitHub</a>.</li>
-                                <li>In the test environment you need to use test cards. Test cards can be found <a target="_blank" href="http://adyen.com/test-card-numbers">here</a>.</li>
-                                <li>The Adyen Customer Area can be found on <a target="_blank" href="https://ca-test.adyen.com">https://ca-test.adyen.com</a> for test or <a target="_blank" href="https://ca-live.adyen.com">https://ca-live.adyen.com</a> for live.</li>
-                            </ul>
-                            <p>If you have any further questions, please visit the <a target="_blank" href="http://www.adyen.com">Adyen</a> website or reach out to our support team by filling out the <a href="https://ca-test.adyen.com/ca/ca/contactUs/support.shtml?topic=magento&form=magento" target="_blank">support form</a>.</p>
-                            ]]></comment>
+        <frontend_model>Adyen\Payment\Model\Config\Adminhtml\GettingStarted</frontend_model>
         <field id="version" translate="label" type="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>Extension version</label>
             <frontend_model>\Adyen\Payment\Block\Adminhtml\System\Config\Field\Version</frontend_model>

@@ -94,6 +94,9 @@ class AdyenMotoDataAssignObserver extends AbstractDataAssignObserver
             return;
         }
 
+        // Remove cc_type information from the previous payment
+        $paymentInfo->unsAdditionalInformation('cc_type');
+
         // Get a validated additional data array
         $additionalData = DataArrayValidator::getArrayOnlyWithApprovedKeys(
             $additionalData,
@@ -102,7 +105,7 @@ class AdyenMotoDataAssignObserver extends AbstractDataAssignObserver
 
         // JSON decode state data from the frontend or fetch it from the DB entity with the quote ID
         if (!empty($additionalData[self::STATE_DATA])) {
-            $orderStateData = json_decode($additionalData[self::STATE_DATA], true);
+            $orderStateData = json_decode((string) $additionalData[self::STATE_DATA], true);
         } else {
             $orderStateData = $this->stateDataCollection->getStateDataArrayWithQuoteId($paymentInfo->getData('quote_id'));
         }

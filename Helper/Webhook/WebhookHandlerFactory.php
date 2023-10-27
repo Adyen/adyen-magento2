@@ -18,19 +18,20 @@ use Adyen\Webhook\Exception\InvalidDataException;
 
 class WebhookHandlerFactory
 {
-    private $authorisationWebhookHandler;
-    private $captureWebhookHandler;
-    private $offerClosedWebhookHandler;
-    private $adyenLogger;
-    private $refundWebhookHandler;
-    private $refundFailedWebhookHandler;
-    private $manualReviewAcceptWebhookHandler;
-    private $manualReviewRejectWebhookHandler;
-    private $recurringContractWebhookHandler;
-    private $pendingWebhookHandler;
-    private $cancellationWebhookHandler;
-    private $cancelOrRefundWebhookHandler;
-    private $orderClosedWebhookHandler;
+    private AuthorisationWebhookHandler $authorisationWebhookHandler;
+    private CaptureWebhookHandler $captureWebhookHandler;
+    private OfferClosedWebhookHandler $offerClosedWebhookHandler;
+    private AdyenLogger $adyenLogger;
+    private RefundWebhookHandler $refundWebhookHandler;
+    private RefundFailedWebhookHandler $refundFailedWebhookHandler;
+    private ManualReviewAcceptWebhookHandler $manualReviewAcceptWebhookHandler;
+    private ManualReviewRejectWebhookHandler $manualReviewRejectWebhookHandler;
+    private RecurringContractWebhookHandler $recurringContractWebhookHandler;
+    private PendingWebhookHandler $pendingWebhookHandler;
+    private CancellationWebhookHandler $cancellationWebhookHandler;
+    private CancelOrRefundWebhookHandler $cancelOrRefundWebhookHandler;
+    private OrderClosedWebhookHandler $orderClosedWebhookHandler;
+    private OrderOpenedWebhookHandler $orderOpenedWebhookHandler;
 
     public function __construct(
         AdyenLogger $adyenLogger,
@@ -45,7 +46,8 @@ class WebhookHandlerFactory
         PendingWebhookHandler $pendingWebhookHandler,
         CancellationWebhookHandler $cancellationWebhookHandler,
         CancelOrRefundWebhookHandler $cancelOrRefundWebhookHandler,
-        OrderClosedWebhookHandler $orderClosedWebhookHandler
+        OrderClosedWebhookHandler $orderClosedWebhookHandler,
+        OrderOpenedWebhookHandler $orderOpenedWebhookHandler
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->authorisationWebhookHandler = $authorisationWebhookHandler;
@@ -60,6 +62,7 @@ class WebhookHandlerFactory
         $this->cancellationWebhookHandler = $cancellationWebhookHandler;
         $this->cancelOrRefundWebhookHandler = $cancelOrRefundWebhookHandler;
         $this->orderClosedWebhookHandler = $orderClosedWebhookHandler;
+        $this->orderOpenedWebhookHandler = $orderOpenedWebhookHandler;
     }
 
     /**
@@ -91,6 +94,8 @@ class WebhookHandlerFactory
                 return $this->cancellationWebhookHandler;
             case Notification::CANCEL_OR_REFUND:
                 return $this->cancelOrRefundWebhookHandler;
+            case Notification::ORDER_OPENED:
+                return $this->orderOpenedWebhookHandler;
             case Notification::ORDER_CLOSED:
                 return $this->orderClosedWebhookHandler;
         }

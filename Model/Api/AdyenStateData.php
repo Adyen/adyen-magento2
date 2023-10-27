@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2021 Adyen N.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -13,59 +13,25 @@
 namespace Adyen\Payment\Model\Api;
 
 use Adyen\Payment\Api\AdyenStateDataInterface;
-use Adyen\Payment\Helper\Util\CheckoutStateDataValidator;
-use Adyen\Payment\Model\ResourceModel\StateData as StateDataResourceModel;
-use Adyen\Payment\Model\StateData;
-use Adyen\Payment\Model\StateDataFactory;
-use Magento\Framework\Exception\AlreadyExistsException;
-use Magento\Framework\Exception\LocalizedException;
+use Adyen\Payment\Helper\StateData as StateDataHelper;
 
 class AdyenStateData implements AdyenStateDataInterface
 {
-    /**
-     * @var CheckoutStateDataValidator
-     */
-    private $checkoutStateDataValidator;
-
-    /**
-     * @var StateDataFactory
-     */
-    private $stateDataFactory;
-
-    /**
-     * @var StateDataResourceModel
-     */
-    private $stateDataResourceModel;
+    private StateDataHelper $stateDataHelper;
 
     public function __construct(
-        CheckoutStateDataValidator $checkoutStateDataValidator,
-        StateDataFactory $stateDataFactory,
-        StateDataResourceModel $stateDataResourceModel
+        StateDataHelper $stateDataHelper
     ) {
-        $this->checkoutStateDataValidator = $checkoutStateDataValidator;
-        $this->stateDataFactory = $stateDataFactory;
-        $this->stateDataResourceModel = $stateDataResourceModel;
+        $this->stateDataHelper = $stateDataHelper;
     }
 
-    /**
-     * @throws AlreadyExistsException
-     * @throws LocalizedException
-     */
-    public function save($stateData, $quoteId)
+    public function save(string $stateData, int $quoteId): void
     {
-        // Decode payload from frontend
-        $stateData = json_decode($stateData, true);
+        $this->stateDataHelper->saveStateData($stateData, $quoteId);
+    }
 
-        // Validate JSON that has just been parsed if it was in a valid format
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new LocalizedException(__('State data call failed because the request was not a valid JSON'));
-        }
-
-        $stateData = json_encode($this->checkoutStateDataValidator->getValidatedAdditionalData($stateData));
-
-        /** @var StateData $stateDataObj */
-        $stateDataObj = $this->stateDataFactory->create();
-        $stateDataObj->setQuoteId((int)$quoteId)->setStateData((string)$stateData);
-        $this->stateDataResourceModel->save($stateDataObj);
+    public function remove(int $stateDataId, int $quoteId): bool
+    {
+        return $this->stateDataHelper->removeStateData($stateDataId, $quoteId);
     }
 }
