@@ -45,7 +45,7 @@ gantt
     title Currently Supported Versions
     dateFormat  YYYY-MM-DD   
     section Version 8
-    Level 1   :l81, 2021-11-22, 2024-01-pending
+    Level 1   :l81, 2021-11-22, 2024-01-31
     Level 2   :l82, after l81, 2024-05-30
     Level 3   :l83, after l82, 2025-01-31
     section Version 9
