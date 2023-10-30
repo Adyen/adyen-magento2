@@ -118,9 +118,19 @@ class InvoiceObserver implements ObserverInterface
             $this->adyenOrderPaymentHelper->updatePaymentTotalCaptured($adyenOrderPaymentObject, $linkedAmount);
         }
 
-        $order = $this->orderHelper->setPrePaymentAuthorized($order);
+        $status = $this->configHelper->getConfigData(
+            'payment_pre_authorized',
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            $order->getStoreId()
+        );
 
-        $order->getIsInProcess()
+        if (empty($status)) {
+            $status = $this->statusResolver->getOrderStatusByState($order, Order::STATE_PENDING_PAYMENT);
+        }
+
+        // Set order to PROCESSING to allow further invoices to be generated
+        $order->setState(Order::STATE_PAYMENT_REVIEW);
+        $order->setStatus($status);
 
         $this->logger->addAdyenDebug(
             'Event sales_order_invoice_save_after for invoice {invoiceId} was handled',
