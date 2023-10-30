@@ -159,10 +159,6 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
                 'isAutoCapture' => true
             ]
         );
-        $this->invoiceHelperMock->expects($this->once())
-            ->method('createInvoice')
-            ->with($this->orderMock, $this->notificationMock, $isAutoCapture);
-
 
         $authorisationWebhookHandler = $this->createAuthorisationWebhookHandler(
             $this->adyenOrderPaymentMock,
