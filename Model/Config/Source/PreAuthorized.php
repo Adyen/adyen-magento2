@@ -11,6 +11,8 @@
 
 namespace Adyen\Payment\Model\Config\Source;
 
+use Magento\Sales\Model\Order;
+
 /**
  * Order Statuses source model
  */
@@ -20,7 +22,6 @@ class PreAuthorized extends \Magento\Sales\Model\Config\Source\Order\Status
      * @var string[]
      */
     protected $_stateStatuses = [
-        \Magento\Sales\Model\Order::STATE_PENDING_PAYMENT,
-        \Magento\Sales\Model\Order::STATE_NEW
+        Order::STATE_NEW
     ];
 }

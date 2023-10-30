@@ -45,7 +45,7 @@ class Webhook
      * Indicative matrix for possible states to enter after given event
      */
     const STATE_TRANSITION_MATRIX = [
-        'payment_pre_authorized' => [Order::STATE_NEW, Order::STATE_PENDING_PAYMENT],
+        'payment_pre_authorized' => [Order::STATE_NEW],
         'payment_authorized' => [Order::STATE_PROCESSING]
     ];
 
