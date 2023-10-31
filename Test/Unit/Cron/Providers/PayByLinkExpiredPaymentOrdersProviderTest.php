@@ -1,5 +1,7 @@
 <?php
 
+namespace Adyen\Payment\Test\Corn\Providers;
+
 use Adyen\Payment\Cron\Providers\PayByLinkExpiredPaymentOrdersProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
