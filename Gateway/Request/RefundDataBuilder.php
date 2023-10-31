@@ -112,7 +112,7 @@ class RefundDataBuilder implements BuilderInterface
             ->addFieldToFilter('payment_id', $payment->getId());
 
         // partial refund if multiple payments check refund strategy
-        if ($orderPaymentCollection->getSize() > self::REFUND_STRATEGY_ASCENDING_ORDER) {
+        if ($orderPaymentCollection->getSize() > 1) {
             $refundStrategy = $this->adyenHelper->getAdyenAbstractConfigData(
                 'partial_payments_refund_strategy',
                 $storeId

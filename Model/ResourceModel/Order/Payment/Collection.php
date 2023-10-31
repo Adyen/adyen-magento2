@@ -83,7 +83,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     public function addPaymentFilterDescending($paymentId)
     {
         $this->addFieldToFilter('payment_id', $paymentId);
-        $this->getSelect()->order(['created_at DESC', 'entity_id DESC']);
+        $this->getSelect()->order(['created_at DESC']);
         return $this;
     }
 }
