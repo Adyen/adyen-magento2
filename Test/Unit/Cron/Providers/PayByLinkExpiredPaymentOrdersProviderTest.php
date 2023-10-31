@@ -1,19 +1,17 @@
 <?php
 
-use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Cron\Providers\PayByLinkExpiredPaymentOrdersProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
-use Magento\Framework\Api\AbstractSimpleObject;
 use Magento\Framework\Api\FilterBuilder;
 use Magento\Framework\Api\ObjectFactory;
 use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\Api\Search\FilterGroupBuilder;
 use Magento\Framework\Api\SearchCriteriaInterface;
+use Magento\Framework\Api\Search\FilterGroupBuilder;
 use Magento\Framework\Data\Collection;
-use Magento\Sales\Model\Order\Payment\Interceptor as OrderPayment;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderPaymentRepositoryInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Sales\Model\Order\Payment\Interceptor as OrderPayment;
 use PHPUnit\Framework\TestCase;
 use PHPUnit_Framework_MockObject_MockObject as MockObject;
 
