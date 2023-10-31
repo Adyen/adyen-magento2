@@ -65,7 +65,7 @@ class ConfigurationSettingsForm extends Generic
 
         $fieldset->addType(
             'textarea',
-            'Adyen\Payment\Block\Adminhtml\Support\Form\Element\CustomTextareaElement'
+            \Adyen\Payment\Block\Adminhtml\Support\Form\Element\CustomTextareaElement::class
         );
 
         $fieldset->addField(
@@ -143,7 +143,7 @@ class ConfigurationSettingsForm extends Generic
             </div>
        </div>');
 
-        $fieldset->addType('file', 'Adyen\Payment\Block\Adminhtml\Support\Form\Element\MultipleFileElement');
+        $fieldset->addType('file', \Adyen\Payment\Block\Adminhtml\Support\Form\Element\MultipleFileElement::class);
         $fieldset->addField(
             'attachments',
             'file',
