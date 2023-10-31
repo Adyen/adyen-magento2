@@ -71,7 +71,7 @@ class PayByLinkExpiredPaymentOrdersProvider implements OrdersProviderInterface
      * @retrun int[]
      * @throws InputException
      */
-    public function getExpiredOrderIds(): array
+    protected function getExpiredOrderIds(): array
     {
         $orderPayments = $this->getPendingPayByLinkPayments();
         $expiredOrderIds = [];
@@ -97,7 +97,7 @@ class PayByLinkExpiredPaymentOrdersProvider implements OrdersProviderInterface
      * @return OrderInterface[]
      * @throws InputException
      */
-    public function getExpiredOrders($expiredOrderIds): array
+    protected function getExpiredOrders($expiredOrderIds): array
     {
         $sortOrder = new SortOrder();
         $sortOrder->setField(OrderInterface::CREATED_AT)->setDirection('ASC');
@@ -127,7 +127,7 @@ class PayByLinkExpiredPaymentOrdersProvider implements OrdersProviderInterface
      * @return \Magento\Sales\Api\Data\OrderPaymentInterface[]
      * @throws InputException
      */
-    public function getPendingPayByLinkPayments(): array
+    protected function getPendingPayByLinkPayments(): array
     {
         $sortOrder = new SortOrder();
         $sortOrder->setField('parent_id')->setDirection('DESC');
