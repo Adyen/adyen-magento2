@@ -105,10 +105,14 @@ class TransactionCapture implements ClientInterface
                 $singleResponse = $this->copyParamsToResponse($singleResponse, $request);
                 $response[self::MULTIPLE_AUTHORIZATIONS][] = $singleResponse;
             } catch (AdyenException $e) {
+                $pspReference = isset($request[OrderPaymentInterface::PSPREFRENCE]) ?
+                    $request[OrderPaymentInterface::PSPREFRENCE] :
+                    'pspReference not set';
+
                 $message = sprintf(
                     'Exception occurred when attempting to capture multiple authorizations.
                     Authorization with pspReference %s: %s',
-                    $request[OrderPaymentInterface::PSPREFRENCE],
+                    $pspReference,
                     $e->getMessage()
                 );
 
