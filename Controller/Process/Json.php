@@ -341,7 +341,15 @@ class Json extends Action
 
         // do this to set both fields in the correct timezone
         $date = new DateTime();
-        $notification->setCreatedAt($date);
+        if (isset($requestItem['eventDate'])) {
+            $eventDate = DateTime::createFromFormat(DATE_ATOM, $requestItem['eventDate']);
+            // Change webhook's timezone to server's timezone
+            if ($eventDate) {
+                $formattedEventDate = $eventDate->setTimezone($date->getTimezone());
+            }
+        }
+
+        $notification->setCreatedAt($formattedEventDate ?? $date);
         $notification->setUpdatedAt($date);
     }
 

@@ -18,6 +18,7 @@ use Adyen\Payment\Model\Order\Payment;
 use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as AdyenOrderPaymentCollection;
+use DateTime;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Exception\AlreadyExistsException;
@@ -210,7 +211,9 @@ class AdyenOrderPayment extends AbstractHelper
         $pspReference = $notification->getPspreference();
 
         try {
-            $date = new \DateTime();
+            $date = new DateTime();
+            $eventDate = DateTime::createFromFormat('Y-m-d H:i:s', $notification->getCreatedAt());
+
             $adyenOrderPayment = $this->adyenOrderPaymentFactory->create();
             $adyenOrderPayment->setPspreference($pspReference);
             $adyenOrderPayment->setMerchantReference($merchantReference);
@@ -219,7 +222,7 @@ class AdyenOrderPayment extends AbstractHelper
             $adyenOrderPayment->setCaptureStatus($captureStatus);
             $adyenOrderPayment->setAmount($amount);
             $adyenOrderPayment->setTotalRefunded(0);
-            $adyenOrderPayment->setCreatedAt($date);
+            $adyenOrderPayment->setCreatedAt($eventDate);
             $adyenOrderPayment->setUpdatedAt($date);
             $this->orderPaymentResourceModel->save($adyenOrderPayment);
         } catch (\Exception $e) {
@@ -249,7 +252,7 @@ class AdyenOrderPayment extends AbstractHelper
     {
         $amountRefunded = $adyenOrderPayment->getTotalRefunded() +
             $this->adyenDataHelper->originalAmount($notification->getAmountValue(), $notification->getAmountCurrency());
-        $adyenOrderPayment->setUpdatedAt(new \DateTime());
+        $adyenOrderPayment->setUpdatedAt(new DateTime());
         $adyenOrderPayment->setTotalRefunded($amountRefunded);
         $adyenOrderPayment->save();
 
@@ -266,7 +269,7 @@ class AdyenOrderPayment extends AbstractHelper
     public function refundFullyAdyenOrderPayment(OrderPaymentInterface $adyenOrderPayment): OrderPaymentInterface
     {
         $amountRefunded = $adyenOrderPayment->getAmount();
-        $adyenOrderPayment->setUpdatedAt(new \DateTime());
+        $adyenOrderPayment->setUpdatedAt(new DateTime());
         $adyenOrderPayment->setTotalRefunded($amountRefunded);
         $adyenOrderPayment->save();
 
