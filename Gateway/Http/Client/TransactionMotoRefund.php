@@ -53,16 +53,17 @@ class TransactionMotoRefund implements TransactionRefundInterface
                 null,
                 $request['merchantAccount']
             );
-            $service = new \Adyen\Service\Modification($client);
+
+            $service = $this->adyenHelper->createAdyenCheckoutService($client);
             $this->adyenHelper
-                ->logRequest($request, Client::API_PAYMENT_VERSION, '/pal/servlet/Payment/{version}/refund');
+                ->logRequest($request, Client::API_CHECKOUT_VERSION, '/refunds');
             try {
-                $response = $service->refund($request);
+                $response = $service->refunds($request);
 
                 // Add amount original reference and amount information to response
-                $response[self::REFUND_AMOUNT] = $request['modificationAmount']['value'];
-                $response[self::REFUND_CURRENCY] = $request['modificationAmount']['currency'];
-                $response[self::ORIGINAL_REFERENCE] = $request['originalReference'];
+                $response[self::REFUND_AMOUNT] = $request['amount']['value'];
+                $response[self::REFUND_CURRENCY] = $request['amount']['currency'];
+                $response[self::ORIGINAL_REFERENCE] = $request['paymentPspReference'];
             } catch (\Adyen\AdyenException $e) {
                 $response = ['error' => $e->getMessage()];
             }
