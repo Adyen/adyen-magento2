@@ -19,11 +19,26 @@ use PHPUnit_Framework_MockObject_MockObject as MockObject;
 
 class PayByLinkExpiredPaymentOrdersProviderTest extends AbstractAdyenTestCase
 {
-    protected PayByLinkExpiredPaymentOrdersProvider $payByLinkExpiredPaymentOrdersProvider;
-    protected OrderRepositoryInterface|MockObject $orderRepositoryMock;
-    protected OrderPaymentRepositoryInterface|MockObject $orderPaymentRepositoryMock;
-    protected Collection|MockObject $orderPaymentCollectionMock;
-    protected Collection|MockObject $orderCollectionMock;
+    /**
+     * @var PayByLinkExpiredPaymentOrdersProvider
+     */
+    protected $payByLinkExpiredPaymentOrdersProvider;
+    /**
+     * @var OrderRepositoryInterface|MockObject|\PHPUnit\Framework\MockObject\MockObject
+     */
+    protected $orderRepositoryMock;
+    /**
+     * @var OrderPaymentRepositoryInterface|MockObject|\PHPUnit\Framework\MockObject\MockObject
+     */
+    protected $orderPaymentRepositoryMock;
+    /**
+     * @var Collection|MockObject|\PHPUnit\Framework\MockObject\MockObject
+     */
+    protected $orderPaymentCollectionMock;
+    /**
+     * @var Collection|MockObject|\PHPUnit\Framework\MockObject\MockObject
+     */
+    protected $orderCollectionMock;
 
     public function setUp(): void
     {
