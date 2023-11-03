@@ -1,10 +1,10 @@
-name: Magento 2 Release E2E Pipeline
-run-name: E2E tests against Test Repository with Express Checkout
+name: Magento 2 V8 Release E2E Pipeline
+run-name: --V8-- E2E tests against Test Repository with Express Checkout
 
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-    branches: [main]
+    branches: [main-8]
 
 jobs:
   build:
@@ -55,7 +55,7 @@ jobs:
       - name: Run E2E tests
         run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm playwright /e2e-all.sh
         env:
-          INTEGRATION_TESTS_BRANCH: develop
+          INTEGRATION_TESTS_BRANCH: develop-8
           MAGENTO_ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
           MAGENTO_ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
           MAGENTO_BASE_URL: ${{secrets.MAGENTO_BASE_URL}}
