@@ -154,18 +154,24 @@ class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
             ->with($adyenOrderPaymentMock, $this->notification->getAmountCurrency());
 
         // Create a mock for the magentoInvoiceFactory
-        $magentoInvoiceFactoryMock = $this->createMock(MagentoInvoiceFactory::class);
+        $magentoInvoiceFactoryMock = $this->createGeneratedMock(MagentoInvoiceFactory::class, ['create']);
 
         // Create a mock for MagentoInvoice
-        $magentoInvoiceMock = $this->createMock(MagentoInvoice::class);
-
-        // Configure the magentoInvoiceFactoryMock to return the magentoInvoiceMock
-        $magentoInvoiceFactoryMock->method('create')->willReturn($magentoInvoiceMock);
+        $magentoInvoiceMock = $this->getMockBuilder(MagentoInvoice::class)
+            ->setMethods(['load']) // Define the method you want to mock
+            ->disableOriginalConstructor()
+            ->getMock();
 
         // Configure the load method of the magentoInvoiceMock to return the same mock
         $magentoInvoiceMock->expects($this->once())
             ->method('load')
-            ->willReturnSelf();
+            ->with(456, MagentoInvoice::ENTITY_ID)
+            ->willReturnSelf(); // Return the mock itself
+
+        // Configure the magentoInvoiceFactoryMock to return the magentoInvoiceMock
+        $magentoInvoiceFactoryMock->expects($this->once())
+            ->method('create')
+            ->willReturn($magentoInvoiceMock);
 
         $this->captureWebhookHandler = $this->createCaptureWebhookHandler(
             $invoiceHelperMock,
