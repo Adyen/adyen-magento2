@@ -106,7 +106,7 @@ class OfferClosedWebhookHandlerTest extends AbstractAdyenTestCase
         $mockAdyenLogger = null,
         $mockConfigHelper = null,
         $mockOrderHelper = null,
-        $mockOrderPaymentResourceModel = null,
+        $mockOrderPaymentResourceModel = null
     ): OfferClosedWebhookHandler
     {
         if (is_null($mockOrderPaymentResourceModel)) {
