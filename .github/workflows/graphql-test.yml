@@ -43,3 +43,10 @@ jobs:
 
       - name: Run GraphQL tests
         run: docker exec magento2-container make graphql
+
+      - name: Archive Magento log artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: magento-logs
+          path: magento-logs
