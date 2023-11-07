@@ -125,15 +125,16 @@ class PayByLinkExpiredPaymentOrdersProvider implements OrdersProviderInterface
             ->setValue(Order::STATE_NEW)
             ->create();
 
-        $orderIdFilter = $this->filterBuilder->setField('state')
+        $orderIdFilter = $this->filterBuilder->setField('entity_id')
             ->setConditionType('in')
             ->setValue($expiredOrderIds)
             ->create();
 
-        $filterGroup = $this->filterGroupBuilder->setFilters([$stateFilter, $orderIdFilter])->create();
+        $stateFilterGroup = $this->filterGroupBuilder->setFilters([$stateFilter])->create();
+        $orderIdFilterGroup = $this->filterGroupBuilder->setFilters([$orderIdFilter])->create();
 
         $searchCriteria = $this->searchCriteriaBuilder
-            ->setFilterGroups([$filterGroup])
+            ->setFilterGroups([$stateFilterGroup, $orderIdFilterGroup])
             ->setSortOrders([$sortOrder])
             ->setPageSize(500)
             ->create();
@@ -149,22 +150,23 @@ class PayByLinkExpiredPaymentOrdersProvider implements OrdersProviderInterface
     {
         $sortOrder = new SortOrder();
         $sortOrder->setField('parent_id')->setDirection('DESC');
-        $payPerLinkFilters = [
-            $this->filterBuilder->setField('method')
-                ->setConditionType('eq')
-                ->setValue(PaymentMethods::ADYEN_PAY_BY_LINK)
-                ->create(),
-            $this->filterBuilder->setField('adyen_psp_reference')
-                ->setConditionType('null')
-                ->create()
-        ];
 
-        $filterGroup = $this->filterGroupBuilder->setFilters($payPerLinkFilters)->create();
+        $paymentMethodFilter = $this->filterBuilder->setField('method')
+            ->setConditionType('eq')
+            ->setValue(PaymentMethods::ADYEN_PAY_BY_LINK)
+            ->create();
+
+        $pspreferenceFilter = $this->filterBuilder->setField('adyen_psp_reference')
+            ->setConditionType('null')
+            ->create();
+
+        $paymentMethodFilterGroup = $this->filterGroupBuilder->setFilters([$paymentMethodFilter])->create();
+        $pspreferenceFilterGroup = $this->filterGroupBuilder->setFilters([$pspreferenceFilter])->create();
 
         $searchCriteria = $this->searchCriteriaBuilder
-            ->setFilterGroups([$filterGroup])
+            ->setFilterGroups([$paymentMethodFilterGroup, $pspreferenceFilterGroup])
             ->setSortOrders([$sortOrder])
-            ->setPageSize(1000)
+            ->setPageSize(500)
             ->create();
 
         return $this->orderPaymentRepository->getList($searchCriteria)->getItems();
