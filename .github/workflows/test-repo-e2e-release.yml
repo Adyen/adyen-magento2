@@ -41,7 +41,7 @@ jobs:
         run: docker exec -u www-data magento2-container make plugin
 
       - name: Install Express module
-        run: docker exec -u www-data magento2-container composer require adyen/adyen-magento2-expresscheckout
+        run: docker exec -u www-data magento2-container composer require adyen/adyen-magento2-expresscheckout:dev-develop-1
 
       - name: Enable Express module
         run: docker exec -u www-data magento2-container make enable-express
