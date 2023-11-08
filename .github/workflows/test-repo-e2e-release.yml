@@ -3,11 +3,12 @@ run-name: --V8-- E2E tests against Test Repository with Express Checkout
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize]
     branches: [main-8]
 
 jobs:
   build:
+    if: ${{ github.event.pull_request.draft == false }}
     runs-on:
       group: larger-runners
       labels: ubuntu-latest-8-cores

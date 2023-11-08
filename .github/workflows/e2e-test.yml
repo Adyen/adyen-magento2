@@ -3,7 +3,7 @@ run-name: --V8-- E2E tests for Adyen Magento2 Plugin
 
 on: 
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize]
     branches-ignore: [main, main-8]
 
 jobs:
