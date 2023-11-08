@@ -4,7 +4,7 @@ run-name: Adyen Magento 2 Express Checkout Plugin E2E tests
 on:
   workflow_dispatch:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize]
     branches: [main]
 
 jobs:
