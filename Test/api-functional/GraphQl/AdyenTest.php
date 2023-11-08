@@ -251,7 +251,7 @@ JSON;
         }';
         $query = $this->getPlaceOrderQuery($maskedQuoteId, "adyen_cc", $adyenAdditionalData);
 
-        $response = $this->graphQlMutation($query);
+        $response = $this->graphQlMutation($query, [], '', $this->getHeaderMap());
 
         self::assertEquals('Authorised', $response['placeOrder']['order']['adyen_payment_status']['resultCode']);
     }
