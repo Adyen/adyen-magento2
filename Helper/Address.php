@@ -40,6 +40,12 @@ class Address
         $this->logger = $logger;
     }
 
+    public function dummyFunction() {
+        $var = 11;
+
+        return $var * 11;
+    }
+
     /**
      * @param AddressAdapterInterface $address
      * @param $houseNumberStreetLine
