@@ -18,6 +18,7 @@ jobs:
       with:
         php-version: ${{ matrix.php-version }}
         tools: composer:v1
+        coverage: xdebug
 
     - name: Test plugin installation
       run: |
