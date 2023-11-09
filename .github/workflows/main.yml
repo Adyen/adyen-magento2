@@ -12,13 +12,14 @@ jobs:
     
     steps:
     - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
 
     - name: Use PHP ${{ matrix.php-version }}
       uses: shivammathur/setup-php@v2
       with:
         php-version: ${{ matrix.php-version }}
         tools: composer:v1
-        coverage: xdebug
 
     - name: Test plugin installation
       run: |
