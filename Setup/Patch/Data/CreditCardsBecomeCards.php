@@ -42,11 +42,22 @@ class CreditCardsBecomeCards implements DataPatchInterface, PatchVersionInterfac
         $oldValue = 'Credit Card';
         $newValue = 'Cards';
 
-        $connection->update(
-            $configTable,
-            ['value' => $newValue],
-            ['value = ?' => $oldValue]
-        );
+        $select = $connection->select()
+            ->from($configTable)
+            ->where(
+                'path = ?',
+                'payment/adyen_cc/title'
+            );
+
+        $partialPaymentConfig = $connection->fetchRow($select);
+
+        if (!is_null($partialPaymentConfig)) {
+            $connection->update(
+                $configTable,
+                ['value' => $newValue],
+                ['value = ?' => $oldValue]
+            );
+        }
     }
 
     /**
