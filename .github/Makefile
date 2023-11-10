@@ -135,6 +135,8 @@ setup-mftf:
 		--ELASTICSEARCH_VERSION 7;
 	echo 'SELENIUM_HOST=selenium' >> dev/tests/acceptance/.env;
 
+	echo 'magento/MAGENTO_ADMIN_PASSWORD=${ADMIN_PASSWORD}' >> dev/tests/acceptance/.credentials
+
 	cp dev/tests/acceptance/.htaccess.sample dev/tests/acceptance/.htaccess
 
 	vendor/bin/mftf doctor
