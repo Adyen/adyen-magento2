@@ -34,7 +34,7 @@ class CreateStatusAuthorizedTest extends AbstractAdyenTestCase
         $createStatusAuthorized = $this->getCreateStatusAuthorized();
         $aliases = $createStatusAuthorized->getAliases();
 
-        $this->assertTrue($aliases === []);
+        $this->assertSame([], $aliases);
     }
 
     public function testGetDependencies()
@@ -42,7 +42,7 @@ class CreateStatusAuthorizedTest extends AbstractAdyenTestCase
         $createStatusAuthorized = $this->getCreateStatusAuthorized();
         $dependencies = $createStatusAuthorized::getDependencies();
 
-        $this->assertTrue($dependencies === []);
+        $this->assertSame([], $dependencies);
     }
 
     public function getVersion()
