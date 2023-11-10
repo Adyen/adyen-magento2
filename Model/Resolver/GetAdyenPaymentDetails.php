@@ -144,9 +144,9 @@ class GetAdyenPaymentDetails implements ResolverInterface
      */
     private function getFormattedException($e, Field $field, ContextInterface $context, ResolveInfo $info)
     {
-        if (class_exists('\Magento\QuoteGraphQl\Helper\Error\PlaceOrderMessageFormatter')) {
+        if (class_exists(\Magento\QuoteGraphQl\Helper\Error\PlaceOrderMessageFormatter::class)) {
             $errorMessageFormatter = \Magento\Framework\App\ObjectManager::getInstance()
-                ->get('\Magento\QuoteGraphQl\Helper\Error\PlaceOrderMessageFormatter');
+                ->get(\Magento\QuoteGraphQl\Helper\Error\PlaceOrderMessageFormatter::class);
             return $errorMessageFormatter->getFormatted(
                 $e,
                 __('Unable to place order: A server error stopped your order from being placed. ' .
