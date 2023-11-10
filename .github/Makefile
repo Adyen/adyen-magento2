@@ -57,8 +57,8 @@ flush:
 enable-express:
 	bin/magento module:enable Adyen_ExpressCheckout
 	bin/magento setup:upgrade
-	bin/magento config:set payment/adyen_hpp/show_google_pay_on "1,2,3"
-	bin/magento config:set payment/adyen_hpp/show_apple_pay_on "1,2,3"
+	bin/magento config:set payment/adyen_express/show_google_pay_on "1,2,3"
+	bin/magento config:set payment/adyen_express/show_apple_pay_on "1,2,3"
 	bin/magento cache:clean
 
 # Full plugin setup
@@ -134,6 +134,8 @@ setup-mftf:
 		--BROWSER chrome \
 		--ELASTICSEARCH_VERSION 7;
 	echo 'SELENIUM_HOST=selenium' >> dev/tests/acceptance/.env;
+
+	echo 'magento/MAGENTO_ADMIN_PASSWORD=${ADMIN_PASSWORD}' >> dev/tests/acceptance/.credentials
 
 	cp dev/tests/acceptance/.htaccess.sample dev/tests/acceptance/.htaccess
 
