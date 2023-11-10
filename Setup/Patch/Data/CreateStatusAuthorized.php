@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace Adyen\Payment\Setup\Patch\Data;
 
+use Adyen\Payment\Helper\DataPatch;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
 use Magento\Framework\Setup\Patch\PatchVersionInterface;
@@ -18,11 +19,12 @@ use Magento\Framework\App\Config\ReinitableConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Sales\Model\Order;
 
-class CreateStatusAuthorized  implements DataPatchInterface, PatchVersionInterface
+class CreateStatusAuthorized implements DataPatchInterface, PatchVersionInterface
 {
     private ModuleDataSetupInterface $moduleDataSetup;
     private WriterInterface $configWriter;
     private ReinitableConfigInterface $reinitableConfig;
+    private DataPatch $dataPatchHelper;
 
     const ADYEN_AUTHORIZED_STATUS = 'adyen_authorized';
     const ADYEN_AUTHORIZED_STATUS_LABEL = 'Authorized';
@@ -30,11 +32,13 @@ class CreateStatusAuthorized  implements DataPatchInterface, PatchVersionInterfa
     public function __construct(
         ModuleDataSetupInterface $moduleDataSetup,
         WriterInterface $configWriter,
-        ReinitableConfigInterface $reinitableConfig
+        ReinitableConfigInterface $reinitableConfig,
+        DataPatch $dataPatchHelper
     ) {
         $this->moduleDataSetup = $moduleDataSetup;
         $this->configWriter = $configWriter;
         $this->reinitableConfig = $reinitableConfig;
+        $this->dataPatchHelper = $dataPatchHelper;
     }
 
     public function apply()
@@ -66,7 +70,7 @@ class CreateStatusAuthorized  implements DataPatchInterface, PatchVersionInterfa
 
         $path = 'payment/adyen_abstract/payment_pre_authorized';
 
-        $config = $this->findConfig($setup, $path, Order::STATE_PROCESSING);
+        $config = $this->dataPatchHelper->findConfig($setup, $path, Order::STATE_PROCESSING);
         if (isset($config)) {
             $this->configWriter->save(
                 $path,
@@ -78,27 +82,6 @@ class CreateStatusAuthorized  implements DataPatchInterface, PatchVersionInterfa
 
         // re-initialize otherwise it will cause errors
         $this->reinitableConfig->reinit();
-    }
-
-    private function findConfig(ModuleDataSetupInterface $setup, string $path, ?string $value): ?array
-    {
-        $config = null;
-        $configDataTable = $setup->getTable('core_config_data');
-        $connection = $setup->getConnection();
-        $select = $connection->select()->from($configDataTable)->where('path = ?', $path);
-        $matchingConfigs = $connection->fetchAll($select);
-
-        if (!empty($matchingConfigs) && is_null($value)) {
-            $config = reset($matchingConfigs);
-        } else {
-            foreach ($matchingConfigs as $matchingConfig) {
-                if ($matchingConfig['value'] === $value) {
-                    $config = $matchingConfig;
-                }
-            }
-        }
-
-        return $config;
     }
 
     /**
