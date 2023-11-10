@@ -31,7 +31,7 @@ jobs:
         MAGENTO_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
 
     - name: Code Sniffer
-      run: vendor/bin/phpcs --extensions=php,phtml --error-severity=10 --ignore-annotations
+      run: vendor/bin/phpcs .
 
     - name: Run PHPUnit
       run: vendor/bin/phpunit --coverage-clover=build/clover.xml --log-junit=build/tests-log.xml -c Test/phpunit.xml Test/Unit
