@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2023 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -49,7 +49,7 @@ class PaymentVaultDeleteToken
      * @return PaymentTokenInterface[]|void
      * @throws NoSuchEntityException
      */
-    public function beforeDelete(PaymentTokenRepositoryInterface $subject, PaymentTokenInterface $paymentToken) {
+    public function beforeDelete(PaymentTokenRepositoryInterface $subject, PaymentTokenInterface $paymentToken): ?array {
         $paymentMethodCode = $paymentToken->getPaymentMethodCode();
         $storeId = $this->storeManager->getStore()->getStoreId();
 

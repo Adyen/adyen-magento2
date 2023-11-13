@@ -43,6 +43,8 @@ configure: n98-magerun2.phar
 	bin/magento config:set payment/adyen_abstract/payment_pre_authorized 'pending_payment'
 	bin/magento config:set payment/adyen_abstract/capture_mode 'auto'
 	bin/magento config:set payment/adyen_abstract/paypal_capture_mode 0
+	bin/magento config:set payment/adyen_abstract/recurring_configuration '{"adyen_cc":{"name":"Credit Card","enabled":"1","recurringProcessingModel":"CardOnFile"}}'
+	bin/magento config:set payment/adyen_cc_vault/require_cvc 1
 
 	./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/api_key_test "${ADYEN_API_KEY}" > /dev/null
 	bin/magento config:set payment/adyen_abstract/client_key_test "${ADYEN_CLIENT_KEY}"
@@ -55,8 +57,8 @@ flush:
 enable-express:
 	bin/magento module:enable Adyen_ExpressCheckout
 	bin/magento setup:upgrade
-	bin/magento config:set payment/adyen_hpp/show_google_pay_on "1,2,3"
-	bin/magento config:set payment/adyen_hpp/show_apple_pay_on "1,2,3"
+	bin/magento config:set payment/adyen_express/show_google_pay_on "1,2,3"
+	bin/magento config:set payment/adyen_express/show_apple_pay_on "1,2,3"
 	bin/magento cache:clean
 
 # Full plugin setup
@@ -139,6 +141,8 @@ setup-mftf:
 		--BROWSER chrome \
 		--ELASTICSEARCH_VERSION 7;
 	echo 'SELENIUM_HOST=selenium' >> dev/tests/acceptance/.env;
+
+	echo 'magento/MAGENTO_ADMIN_PASSWORD=${ADMIN_PASSWORD}' >> dev/tests/acceptance/.credentials
 
 	cp dev/tests/acceptance/.htaccess.sample dev/tests/acceptance/.htaccess
 

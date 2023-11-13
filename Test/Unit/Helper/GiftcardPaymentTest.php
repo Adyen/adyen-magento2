@@ -228,7 +228,7 @@ class GiftcardPaymentTest extends AbstractAdyenTestCase
 
     private $quote;
 
-    public function testBuildGiftcardPaymentRequest()
+    public function testBuildGiftcardPaymentRequest(): void
     {
         $redeemedGiftcardAmount = 5000;
         $giftcardPaymentHelper = $this->createGiftcardPaymentHelper();
@@ -246,7 +246,7 @@ class GiftcardPaymentTest extends AbstractAdyenTestCase
         );
     }
 
-    public function testGetQuoteGiftcardTotalBalance()
+    public function testGetQuoteGiftcardTotalBalance(): void
     {
         $quoteId = 1;
         $expectedGiftcardTotalBalance = 5000;
@@ -296,7 +296,7 @@ class GiftcardPaymentTest extends AbstractAdyenTestCase
      * @param int $expectedResult
      * @return void
      */
-    public function testGetQuoteGiftcardDiscount(float $quoteAmount, int $giftcardBalance, int $expectedResult)
+    public function testGetQuoteGiftcardDiscount(float $quoteAmount, int $giftcardBalance, int $expectedResult): void
     {
         $stateDataCollectionMock = [
             [
@@ -330,7 +330,7 @@ class GiftcardPaymentTest extends AbstractAdyenTestCase
         $this->assertEquals($expectedResult, $giftcardDiscount);
     }
 
-    public function testFetchRedeemedGiftcards()
+    public function testFetchRedeemedGiftcards(): void
     {
         $this->quote = $this->createMockWithMethods(
             Quote::class,
@@ -378,7 +378,7 @@ class GiftcardPaymentTest extends AbstractAdyenTestCase
         $adyenHelperMock = null,
         $pricingDataHelperMock = null,
         $quoteRepositoryMock = null
-    ) {
+    ): GiftcardPayment {
         if (is_null($adyenStateDataMock)) {
             $adyenStateDataMock = $this->createMock(StateDataCollection::class);
         }

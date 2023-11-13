@@ -76,7 +76,7 @@ class TransactionPayment implements ClientInterface
             $client = $this->adyenHelper->initializeAdyenClient(
                 $clientConfig['storeId'],
                 null,
-                $request['merchantAccount']
+                $clientConfig['motoMerchantAccount']
             );
         } else {
             $client = $this->adyenHelper->initializeAdyenClient();

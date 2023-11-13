@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
+use Adyen\Client;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Util\ManualCapture;
@@ -235,6 +236,7 @@ class PaymentMethods extends AbstractHelper
         $service = $this->adyenHelper->createAdyenCheckoutService($client);
 
         try {
+            $this->adyenHelper->logRequest($requestParams, Client::API_CHECKOUT_VERSION, '/paymentMethods');
             $responseData = $service->paymentMethods($requestParams);
         } catch (AdyenException $e) {
             $this->adyenLogger->error(
@@ -249,6 +251,7 @@ class PaymentMethods extends AbstractHelper
             );
             return [];
         }
+        $this->adyenHelper->logResponse($responseData);
 
         return $responseData;
     }

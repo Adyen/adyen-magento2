@@ -433,14 +433,14 @@ class Data extends AbstractHelper
     {
         switch ($this->isDemoMode($storeId)) {
             case true:
-                $hmacTest = $this->getAdyenHppConfigData('hmac_test', $storeId);
+                $hmacTest = $this->configHelper->getAdyenHppConfigData('hmac_test', $storeId);
                 if (is_null($hmacTest)) {
                     return null;
                 }
                 $secretWord = $this->_encryptor->decrypt(trim((string) $hmacTest));
                 break;
             default:
-                $hmacLive = $this->getAdyenHppConfigData('hmac_live', $storeId);
+                $hmacLive = $this->configHelper->getAdyenHppConfigData('hmac_live', $storeId);
                 if (is_null($hmacLive)) {
                     return null;
                 }
@@ -459,7 +459,7 @@ class Data extends AbstractHelper
      */
     public function isDemoMode($storeId = null)
     {
-        return $this->getAdyenAbstractConfigDataFlag('demo_mode', $storeId);
+        return $this->configHelper->getAdyenAbstractConfigDataFlag('demo_mode', $storeId);
     }
 
     public function isMotoDemoMode(array $motoMerchantAccountProperties): bool
@@ -477,13 +477,13 @@ class Data extends AbstractHelper
     public function getAPIKey($storeId = null)
     {
         if ($this->isDemoMode($storeId)) {
-            $encryptedApiKeyTest = $this->getAdyenAbstractConfigData('api_key_test', $storeId);
+            $encryptedApiKeyTest = $this->configHelper->getAdyenAbstractConfigData('api_key_test', $storeId);
             if (is_null($encryptedApiKeyTest)) {
                 return null;
             }
             $apiKey = $this->_encryptor->decrypt(trim((string) $encryptedApiKeyTest));
         } else {
-            $encryptedApiKeyLive = $this->getAdyenAbstractConfigData('api_key_live', $storeId);
+            $encryptedApiKeyLive = $this->configHelper->getAdyenAbstractConfigData('api_key_live', $storeId);
             if (is_null($encryptedApiKeyLive)) {
                 return null;
             }
@@ -500,7 +500,7 @@ class Data extends AbstractHelper
      */
     public function getClientKey($storeId = null)
     {
-        $clientKey = $this->getAdyenAbstractConfigData(
+        $clientKey = $this->configHelper->getAdyenAbstractConfigData(
             $this->isDemoMode($storeId) ? 'client_key_test' : 'client_key_live',
             $storeId
         );
@@ -521,13 +521,13 @@ class Data extends AbstractHelper
     public function getWsUsername($storeId = null)
     {
         if ($this->isDemoMode($storeId)) {
-            $wsUsernameTest = $this->getAdyenAbstractConfigData('ws_username_test', $storeId);
+            $wsUsernameTest = $this->configHelper->getAdyenAbstractConfigData('ws_username_test', $storeId);
             if (is_null($wsUsernameTest)) {
                 return null;
             }
             $wsUsername = trim((string) $wsUsernameTest);
         } else {
-            $wsUsernameLive = $this->getAdyenAbstractConfigData('ws_username_live', $storeId);
+            $wsUsernameLive = $this->configHelper->getAdyenAbstractConfigData('ws_username_live', $storeId);
             if (is_null($wsUsernameLive)) {
                 return null;
             }
@@ -544,7 +544,7 @@ class Data extends AbstractHelper
      */
     public function getLiveEndpointPrefix($storeId = null)
     {
-        $prefix = $this->getAdyenAbstractConfigData('live_endpoint_url_prefix', $storeId);
+        $prefix = $this->configHelper->getAdyenAbstractConfigData('live_endpoint_url_prefix', $storeId);
 
         if (is_null($prefix)) {
             return null;
@@ -1323,7 +1323,7 @@ class Data extends AbstractHelper
      */
     public function isHppVaultEnabled($storeId = null)
     {
-        return $this->getAdyenHppVaultConfigDataFlag('active', $storeId);
+        return $this->configHelper->getAdyenHppVaultConfigDataFlag('active', $storeId);
     }
 
     /**

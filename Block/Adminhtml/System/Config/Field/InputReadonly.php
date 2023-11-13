@@ -16,7 +16,7 @@ use Magento\Framework\View\Element\Template;
 
 class InputReadonly extends Template
 {
-    public function _toHtml()
+    public function _toHtml(): string
     {
         $inputName = $this->getInputName();
         $column = $this->getColumn();

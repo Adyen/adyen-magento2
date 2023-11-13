@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2023 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -254,9 +254,15 @@ class Notification extends AbstractModel implements NotificationInterface
         return $this->setData(self::ERROR_MESSAGE, $errorMessage);
     }
 
-    public function getCreatedAt(): string
+    public function getCreatedAt(): ?string
     {
-        return $this->getData(self::CREATED_AT);
+        $createdAt = $this->getData(self::CREATED_AT);
+
+        if ($createdAt instanceOf Datetime) {
+            return $createdAt->format('Y-m-d H:i:s');
+        }
+
+        return $createdAt;
     }
 
     public function setCreatedAt(DateTime $createdAt): NotificationInterface
@@ -266,7 +272,13 @@ class Notification extends AbstractModel implements NotificationInterface
 
     public function getUpdatedAt(): ?string
     {
-        return $this->getData(self::UPDATED_AT);
+        $updatedAt = $this->getData(self::CREATED_AT);
+
+        if ($updatedAt instanceOf Datetime) {
+            return $updatedAt->format('Y-m-d H:i:s');
+        }
+
+        return $updatedAt;
     }
 
     public function setUpdatedAt(DateTime $timestamp): NotificationInterface

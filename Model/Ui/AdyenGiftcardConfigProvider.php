@@ -43,7 +43,7 @@ class AdyenGiftcardConfigProvider implements ConfigProviderInterface
         $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
 
-    public function getConfig()
+    public function getConfig(): array
     {
         $quote = $this->checkoutSession->getQuote();
         $currency = $quote->getQuoteCurrencyCode();

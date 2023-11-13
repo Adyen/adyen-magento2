@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2022 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -33,7 +33,7 @@ class StateDataHandler implements HandlerInterface
         $this->adyenLogger = $adyenLogger;
     }
 
-    public function handle(array $handlingSubject, array $response)
+    public function handle(array $handlingSubject, array $response): self
     {
         $readPayment = SubjectReader::readPayment($handlingSubject);
         $quoteId = $readPayment->getOrder()->getQuoteId();

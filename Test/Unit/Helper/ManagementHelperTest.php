@@ -247,10 +247,8 @@ class ManagementHelperTest extends AbstractAdyenTestCase
         $this->assertEquals('WH-0123456789', $result);
     }
 
-    public function testSetupWebhookCredentialsFailLive()
+    public function testSetupWebhookCredentialsFailLive(): void
     {
-        $this->expectException(\Exception::class);
-
         $merchantId = 'TestMerchantAccount';
         $username = 'USERNAME';
         $password = 'PASSWORD';
@@ -296,7 +294,7 @@ class ManagementHelperTest extends AbstractAdyenTestCase
             'create' => $this->throwException(new \Exception('Mock Service Exception'))
         ]);
 
-        $managementHelper->setupWebhookCredentials(
+        $resultWebhookId = $managementHelper->setupWebhookCredentials(
             $merchantId,
             $username,
             $password,
@@ -304,6 +302,8 @@ class ManagementHelperTest extends AbstractAdyenTestCase
             $isDemoMode,
             $managementApiService
         );
+
+        $this->assertEquals($webhookId, $resultWebhookId);
     }
 
     public function testGetAllowedOrigins()

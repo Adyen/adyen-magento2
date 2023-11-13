@@ -28,8 +28,8 @@ class AdyenPm implements AdditionalDataProviderInterface
     {
         $result = [];
         foreach ($data as $key => $additionalData) {
-            if ($key == 'adyen_additional_data_hpp') {
-                foreach ($data['adyen_additional_data_hpp'] as $adyenKey => $adyenAdditionalData) {
+            if ($key == 'adyen_additional_data') {
+                foreach ($data['adyen_additional_data'] as $adyenKey => $adyenAdditionalData) {
                     $result[$adyenKey] = $adyenAdditionalData;
                 }
             } else {

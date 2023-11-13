@@ -17,60 +17,60 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
     private $itemMock;
     private $productMock;
 
-    protected function setUp(): void
-    {
-        $this->adyenHelperMock = $this->createMock(\Adyen\Payment\Helper\Data::class);
+        protected function setUp(): void
+        {
+            $this->adyenHelperMock = $this->createMock(\Adyen\Payment\Helper\Data::class);
 
-        $this->adyenHelperMock->method('formatAmount')
-            ->will($this->returnCallback(function($amount, $currency) {
-                if ($amount === null) {
-                    return 0;
-                }
-                if ($amount == 450 && $currency == 'EUR'){
-                    return 4500;
-                }
-                if ($amount == 500.0 && $currency == 'EUR') {
-                    return 500; // Mocked formattedPriceExcludingTax value
-                }
-                if ($amount == 50.0 && $currency == 'EUR') {
-                    return 50; // Mocked formattedTaxAmount value
-                }
-                return (int)number_format($amount, 0, '', ''); // For any other calls, return this default value
-            }));
+            $this->adyenHelperMock->method('formatAmount')
+                ->will($this->returnCallback(function($amount, $currency) {
+                    if ($amount === null) {
+                        return 0;
+                    }
+                    if ($amount == 450 && $currency == 'EUR'){
+                        return 4500;
+                    }
+                    if ($amount == 500.0 && $currency == 'EUR') {
+                        return 500; // Mocked formattedPriceExcludingTax value
+                    }
+                    if ($amount == 50.0 && $currency == 'EUR') {
+                        return 50; // Mocked formattedTaxAmount value
+                    }
+                    return (int)number_format($amount, 0, '', ''); // For any other calls, return this default value
+                }));
 
 
-        $this->cartRepositoryMock = $this->createMock(\Magento\Quote\Api\CartRepositoryInterface::class);
-        $this->chargedCurrencyMock = $this->createMock(\Adyen\Payment\Helper\ChargedCurrency::class);
-        $this->configHelperMock = $this->createMock(\Adyen\Payment\Helper\Config::class);
-        $this->imageHelperMock = $this->createMock(\Magento\Catalog\Helper\Image::class);
-        $this->orderMock = $this->createMock(\Magento\Sales\Model\Order::class);
-        $this->cartMock = $this->createMock(\Magento\Quote\Model\Quote::class);
-        $this->itemMock = $this->createMock(\Magento\Quote\Model\Quote\Item::class);
-        $this->productMock = $this->createMock(\Magento\Catalog\Model\Product::class);
+            $this->cartRepositoryMock = $this->createMock(\Magento\Quote\Api\CartRepositoryInterface::class);
+            $this->chargedCurrencyMock = $this->createMock(\Adyen\Payment\Helper\ChargedCurrency::class);
+            $this->configHelperMock = $this->createMock(\Adyen\Payment\Helper\Config::class);
+            $this->imageHelperMock = $this->createMock(\Magento\Catalog\Helper\Image::class);
+            $this->orderMock = $this->createMock(\Magento\Sales\Model\Order::class);
+            $this->cartMock = $this->createMock(\Magento\Quote\Model\Quote::class);
+            $this->itemMock = $this->createMock(\Magento\Quote\Model\Quote\Item::class);
+            $this->productMock = $this->createMock(\Magento\Catalog\Model\Product::class);
 
-        $amountCurrencyMock = $this->createMock(\Adyen\Payment\Model\AdyenAmountCurrency::class);
-        $amountCurrencyMock->method('getCurrencyCode')->willReturn('EUR');
-        $this->chargedCurrencyMock->method('getOrderAmountCurrency')->willReturn($amountCurrencyMock);
+            $amountCurrencyMock = $this->createMock(\Adyen\Payment\Model\AdyenAmountCurrency::class);
+            $amountCurrencyMock->method('getCurrencyCode')->willReturn('EUR');
+            $this->chargedCurrencyMock->method('getOrderAmountCurrency')->willReturn($amountCurrencyMock);
 
-        $itemAmountCurrencyMock = $this->createMock(\Adyen\Payment\Model\AdyenAmountCurrency::class);
-        $itemAmountCurrencyMock->method('getAmount')->willReturn(4500);
-        $itemAmountCurrencyMock->method('getAmountIncludingTax')->willReturn(4500);
-        $itemAmountCurrencyMock->method('getDiscountAmount')->willReturn(0);
-        $this->chargedCurrencyMock->method('getQuoteItemAmountCurrency')->willReturn($itemAmountCurrencyMock);
+            $itemAmountCurrencyMock = $this->createMock(\Adyen\Payment\Model\AdyenAmountCurrency::class);
+            $itemAmountCurrencyMock->method('getAmount')->willReturn(4500);
+            $itemAmountCurrencyMock->method('getAmountIncludingTax')->willReturn(4500);
+            $itemAmountCurrencyMock->method('getDiscountAmount')->willReturn(0);
+            $this->chargedCurrencyMock->method('getQuoteItemAmountCurrency')->willReturn($itemAmountCurrencyMock);
 
-        $this->orderMock->method('getQuoteId')->willReturn('12345');
+            $this->orderMock->method('getQuoteId')->willReturn('12345');
 
-        $this->cartMock = $this->createMock(\Magento\Quote\Model\Quote::class);
+            $this->cartMock = $this->createMock(\Magento\Quote\Model\Quote::class);
 
-        $shippingAddressMock = $this->createMock(\Magento\Quote\Model\Quote\Address::class);
+            $shippingAddressMock = $this->createMock(\Magento\Quote\Model\Quote\Address::class);
 
-        $shippingAddressMock->method('__call')->willReturnMap([
-            ['getShippingAmount', [], 500.0],
-            ['getShippingTaxAmount', [], 0.0],
-            ['getShippingDescription', [], 'Flat Rate - Fixed'],
-            ['getShippingAmountCurrency', [], 'EUR'],
-            ['getShippingAmountCurrency', [], 'EUR'],
-        ]);
+            $shippingAddressMock->method('__call')->willReturnMap([
+                ['getShippingAmount', [], 500.0],
+                ['getShippingTaxAmount', [], 0.0],
+                ['getShippingDescription', [], 'Flat Rate - Fixed'],
+                ['getShippingAmountCurrency', [], 'EUR'],
+                ['getShippingAmountCurrency', [], 'EUR'],
+            ]);
 
         $shippingAmountCurrencyMock = $this->createMock(\Adyen\Payment\Model\AdyenAmountCurrency::class);
         $shippingAmountCurrencyMock->method('getAmount')->willReturn(500);
@@ -84,7 +84,7 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
 
     }
 
-public function testGetOpenInvoiceData()
+public function testGetOpenInvoiceData(): void
     {
         // Arrange: Set up the object with the mocks
         $openInvoice = new OpenInvoice(

@@ -83,7 +83,7 @@ class Moto extends \Magento\Config\Block\System\Config\Form\Field\FieldArray\Abs
     {
         if (!$this->apiKeyRenderer) {
             $this->apiKeyRenderer = $this->getLayout()->createBlock(
-                '\Adyen\Payment\Block\Adminhtml\System\Config\Field\ApiKey'
+                \Adyen\Payment\Block\Adminhtml\System\Config\Field\ApiKey::class
             );
         }
         return $this->apiKeyRenderer;

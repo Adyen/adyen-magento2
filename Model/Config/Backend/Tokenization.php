@@ -59,7 +59,7 @@ class Tokenization extends Value
         parent::__construct($context, $registry, $config, $cacheTypeList, $resource, $resourceCollection, $data);
     }
 
-    public function beforeSave()
+    public function beforeSave(): Tokenization
     {
         $value = $this->getValue();
         if (!is_array($value)) {
@@ -87,7 +87,7 @@ class Tokenization extends Value
         return $this;
     }
 
-    protected function _afterLoad()
+    protected function _afterLoad(): Tokenization
     {
         $value = $this->getValue();
 
@@ -102,7 +102,7 @@ class Tokenization extends Value
         return $this;
     }
 
-    protected function encodeArrayFieldValue(array $value)
+    protected function encodeArrayFieldValue(array $value): array
     {
         $result = [];
 

@@ -33,7 +33,7 @@ class RatepayIdConfiguration implements DataPatchInterface, PatchVersionInterfac
         $this->reinitableConfig = $reinitableConfig;
     }
 
-    public function apply()
+    public function apply(): void
     {
         $this->moduleDataSetup->getConnection()->startSetup();
 
@@ -84,7 +84,7 @@ class RatepayIdConfiguration implements DataPatchInterface, PatchVersionInterfac
     /**
      * @inheritdoc
      */
-    public function getAliases()
+    public function getAliases(): array
     {
         return [];
     }
@@ -92,12 +92,12 @@ class RatepayIdConfiguration implements DataPatchInterface, PatchVersionInterfac
     /**
      * @inheritdoc
      */
-    public static function getDependencies()
+    public static function getDependencies(): array
     {
         return [];
     }
 
-    public static function getVersion()
+    public static function getVersion(): string
     {
         return '9.0.0';
     }

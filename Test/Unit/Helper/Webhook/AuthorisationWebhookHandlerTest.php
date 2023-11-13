@@ -59,7 +59,7 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
     /**
      * @throws LocalizedException
      */
-    public function testHandleWebhook()
+    public function testHandleWebhook(): void
     {
         // Set up expectations for mock objects
         $orderAmountCurrency = new AdyenAmountCurrency(
@@ -108,10 +108,15 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
         $this->assertInstanceOf(Order::class, $result);
     }
 
+    public function isAutoCaptureProvider(): array
+    {
+        return [[true], [false]];
+    }
+
     /**
-     * @throws ReflectionExceptionAlias
+     * @dataProvider isAutoCaptureProvider
      */
-    public function testHandleSuccessfulAuthorisationWithAutoCaptureEnabled()
+    public function testHandleSuccessfulAuthorisation($isAutoCapture): void
     {
         // Mock
         $orderAmount = 10.33;
@@ -145,15 +150,26 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
             ->method('updatePaymentDetails');
         $this->orderHelperMock->expects($this->once())
             ->method('sendOrderMail');
-        $this->orderHelperMock->expects($this->once())
-            ->method('finalizeOrder')->willReturn($this->orderMock);
+
+        if ($isAutoCapture){
+            $this->orderHelperMock->expects($this->once())
+                ->method('finalizeOrder')->willReturn($this->orderMock);
+        } else {
+            $this->orderHelperMock->expects($this->once())
+                ->method('addWebhookStatusHistoryComment')->willReturn($this->orderMock);
+        }
+
 
         $paymentMethodsMock = $this->createConfiguredMock(
             PaymentMethods::class,
             [
-                'isAutoCapture' => true
+                'isAutoCapture' => $isAutoCapture
             ]
         );
+        $this->invoiceHelperMock->expects($this->once())
+            ->method('createInvoice')
+            ->with($this->orderMock, $this->notificationMock, $isAutoCapture);
+
 
         $authorisationWebhookHandler = $this->createAuthorisationWebhookHandler(
             $this->adyenOrderPaymentMock,
@@ -163,7 +179,7 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
             null,
             $mockChargedCurrency,
             null,
-            null,
+            $this->invoiceHelperMock,
             $paymentMethodsMock
         );
 
@@ -185,7 +201,7 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
     /**
      * @throws ReflectionExceptionAlias
      */
-    public function testHandleFailedAuthorisation()
+    public function testHandleFailedAuthorisation(): void
     {
         $this->orderMock->expects($this->atLeastOnce())
             ->method('getData')
@@ -222,7 +238,7 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
     /**
      * @throws ReflectionExceptionAlias
      */
-    public function testHandleAutoCapture()
+    public function testHandleAutoCapture(): void
     {
         // Set up expectations for the mocks
         $this->orderMock->expects($this->any())
@@ -255,7 +271,7 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
     /**
      * @throws ReflectionExceptionAlias
      */
-    public function testHandleManualCapture()
+    public function testHandleManualCapture(): void
     {
         // Set up expectations for handleManualCapture private method
         $this->orderHelperMock->expects($this->never()) // Since the condition is true
@@ -291,7 +307,7 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
     /**
      * @throws ReflectionExceptionAlias
      */
-    public function testCanCancelPayByLinkOrder()
+    public function testCanCancelPayByLinkOrder(): void
     {
         // Create mocks for the required dependencies
         $paymentMock = $this->getMockBuilder(Order\Payment::class)

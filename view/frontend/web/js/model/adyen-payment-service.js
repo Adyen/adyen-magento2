@@ -93,14 +93,14 @@ define(
                 );
             },
 
-            paymentDetails: function(data, orderId) {
+            paymentDetails: function(data, orderId, isMultishipping = false) {
                 let serviceUrl;
                 let payload = {
                     'payload': JSON.stringify(data),
                     'orderId': orderId
                 };
 
-                if (customer.isLoggedIn()) {
+                if (customer.isLoggedIn() || isMultishipping) {
                     serviceUrl = urlBuilder.createUrl(
                         '/adyen/carts/mine/payments-details',
                         {}
@@ -120,14 +120,16 @@ define(
                 );
             },
 
-            donate: function (data) {
+            donate: function (data, orderId) {
+                let serviceUrl;
                 let request = {
-                    payload: JSON.stringify(data),
-                    formKey: $.mage.cookies.get('form_key')
+                    payload: JSON.stringify(data)
                 };
 
-                const serviceUrl = urlBuilder.createUrl('/internal/adyen/donations', {});
- 
+                serviceUrl = customer.isLoggedIn()
+                    ? urlBuilder.createUrl('/adyen/orders/carts/mine/donations', {})
+                    : urlBuilder.createUrl('/adyen/orders/guest-carts/:orderId/donations', {orderId});
+
                 return storage.post(
                     serviceUrl,
                     JSON.stringify(request),

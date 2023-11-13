@@ -1,17 +1,16 @@
 name: Magento 2 E2E Pipeline
-run-name: E2E tests for Adyen Magento2 Plugin
+run-name: Adyen Magento 2 Payment Plugin E2E tests
 
 on: 
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-    branches-ignore: [main]
 
 jobs:
   build:
     if: |
       ${{ 
       github.event.pull_request.draft == false &&
-      (github.actor != 'renovate' || github.actor != 'lgtm-com')
+      (github.actor != 'renovate[bot]' || github.actor != 'lgtm-com[bot]')
       }}
     runs-on:
       group: larger-runners
@@ -45,28 +44,30 @@ jobs:
       - name: Install plugin
         run: docker exec -u www-data magento2-container make plugin
 
-      - name: Checkout developer module
-        uses: actions/checkout@v3
-        with:
-          repository: Adyen/adyen-magento2-dev
-          ref: 'main'
-          token: ${{ secrets.ADYEN_AUTOMATION_BOT_TEST_ACCESS_TOKEN }}
-          path: Developer
+      # The commented out section will be re-enabled with ECP-8686
 
-      - name: Make the folder for dev module
-        run: docker exec -u www-data magento2-container mkdir -p /var/www/html/app/code/Adyen
+      # - name: Checkout developer module
+      #   uses: actions/checkout@v3
+      #   with:
+      #     repository: Adyen/adyen-magento2-dev
+      #     ref: 'main'
+      #     token: ${{ secrets.ADYEN_AUTOMATION_BOT_TEST_ACCESS_TOKEN }}
+      #     path: Developer
 
-      - name: Copy dev module into Docker container
-        run: docker cp ./Developer magento2-container:/var/www/html/app/code/Adyen
+      # - name: Make the folder for dev module
+      #   run: docker exec -u www-data magento2-container mkdir -p /var/www/html/app/code/Adyen
 
-      - name: Change ownership of developer module folder
-        run: docker exec magento2-container chown -R www-data:www-data /var/www/html/app/code/Adyen/Developer
+      # - name: Copy dev module into Docker container
+      #   run: docker cp ./Developer magento2-container:/var/www/html/app/code/Adyen
 
-      - name: Enable developer module
-        run: docker exec -u www-data magento2-container make dev-module
+      # - name: Change ownership of developer module folder
+      #   run: docker exec magento2-container chown -R www-data:www-data /var/www/html/app/code/Adyen/Developer
+
+      # - name: Enable developer module
+      #   run: docker exec -u www-data magento2-container make dev-module
         
-      - name: Kill Cron Jobs
-        run: docker exec magento2-container /etc/init.d/cron stop
+      # - name: Kill Cron Jobs
+      #   run: docker exec magento2-container /etc/init.d/cron stop
 
       - name: Switch to production mode
         run: docker exec -u www-data magento2-container make production
@@ -75,9 +76,9 @@ jobs:
         run: docker exec magento2-container make fs
 
       - name: Run E2E tests
-        run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm playwright /e2e.sh
+        run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm playwright /e2e.sh standard
         env:
-          INTEGRATION_TESTS_BRANCH: develop-9
+          INTEGRATION_TESTS_BRANCH: develop
           MAGENTO_ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
           MAGENTO_ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
           MAGENTO_BASE_URL: ${{secrets.MAGENTO_BASE_URL}}

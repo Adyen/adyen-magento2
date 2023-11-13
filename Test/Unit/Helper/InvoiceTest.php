@@ -365,6 +365,35 @@ class InvoiceTest extends AbstractAdyenTestCase
         $this->assertInstanceOf(AdyenInvoice::class, $adyenInvoice);
     }
 
+    public function testSendInvoiceMailCatchesException()
+    {
+        $invoiceSenderMock = $this->createMock(InvoiceSender::class);
+        $invoiceModelMock = $this->createMock(InvoiceModel::class);
+
+        $invoiceSenderMock
+            ->expects($this->once())
+            ->method('send')
+            ->willThrowException(new \Exception('Test Exception Message'));
+
+        $invoiceHelper = $this->createInvoiceHelper(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $invoiceSenderMock
+        );
+
+        $invoiceHelper->sendInvoiceMail($invoiceModelMock);
+    }
+
     /**
      * @param $contextMock
      * @param $adyenLoggerMock

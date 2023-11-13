@@ -16,6 +16,7 @@ namespace Adyen\Payment\Helper;
  */
 
 use Adyen\AdyenException;
+use Adyen\ConnectionException;
 use Adyen\Service\Management;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Message\ManagerInterface;
@@ -37,7 +38,7 @@ class ManagementHelper
      * @var Config
      */
     private $configHelper;
-    
+
     /**
      * @var EncryptorInterface
      */
@@ -83,7 +84,7 @@ class ManagementHelper
     /**
      * @param Management $managementApiService
      * @return array
-     * @throws AdyenException
+     * @throws AdyenException | ConnectionException
      * @throws NoSuchEntityException
      */
     public function getMerchantAccountsAndClientKey(Management $managementApiService): array
@@ -172,35 +173,46 @@ class ManagementHelper
         $storeId = $this->storeManager->getStore()->getId();
         $webhookId = $this->configHelper->getWebhookId($storeId);
         $savedMerchantAccount = $this->configHelper->getMerchantAccount($storeId);
+        // Try to reuse saved webhookId if merchant account is the same.
+        if (!empty($webhookId) && $merchantId === $savedMerchantAccount) {
+            try {
+                $response = $managementApiService->merchantWebhooks->update($merchantId, $webhookId, $params);
+            } catch (AdyenException $exception){
+                $this->adyenLogger->error($exception->getMessage());
+            }
+        }
 
-        try {
-            // reuse saved webhookId if merchant account is the same.
-            if (!empty($webhookId) && $merchantId === $savedMerchantAccount) {
-                $managementApiService->merchantWebhooks->update($merchantId, $webhookId, $params);
-            } else {
+        // If update request fails, meas that webhook has been removed. Create new webhook.
+        if (!isset($response) || empty($webhookId)) {
+            try {
                 $params['type'] = 'standard';
                 $response = $managementApiService->merchantWebhooks->create($merchantId, $params);
                 // save webhook_id to configuration
                 $webhookId = $response['id'];
                 $this->configHelper->setConfigData($webhookId, 'webhook_id', Config::XML_ADYEN_ABSTRACT_PREFIX);
+            } catch (\Exception $exception) {
+                $this->adyenLogger->error($exception->getMessage());
             }
-
-            // generate hmac key and save
-            $response = $managementApiService->merchantWebhooks->generateHmac($merchantId, $webhookId);
-            $hmacKey = $response['hmacKey'];
-            $hmac = $this->encryptor->encrypt($hmacKey);
-            $mode = $demoMode ? 'test' : 'live';
-            $this->configHelper->setConfigData($hmac, 'notification_hmac_key_' . $mode, Config::XML_ADYEN_ABSTRACT_PREFIX);
-        } catch (\Exception $exception) {
-            $this->adyenLogger->error($exception->getMessage());
-
-            if (!$demoMode) {
-                throw $exception;
-            }
-
-            $this->messageManager->addErrorMessage(__("Credentials saved but webhook and HMAC key couldn't be generated! Please check the error logs."));
         }
 
+        if (!empty($webhookId)) {
+            try {
+                // generate hmac key and save
+                $response = $managementApiService->merchantWebhooks->generateHmac($merchantId, $webhookId);
+                $hmacKey = $response['hmacKey'];
+                $hmac = $this->encryptor->encrypt($hmacKey);
+                $mode = $demoMode ? 'test' : 'live';
+                $this->configHelper->setConfigData($hmac, 'notification_hmac_key_' . $mode, Config::XML_ADYEN_ABSTRACT_PREFIX);
+            } catch (\Exception $exception) {
+                $this->adyenLogger->error($exception->getMessage());
+
+                if (!$demoMode) {
+                    throw $exception;
+                }
+
+                $this->messageManager->addErrorMessage(__("Credentials saved but webhook and HMAC key couldn't be generated! Please check the error logs."));
+            }
+        }
         return $webhookId;
     }
 
@@ -246,7 +258,7 @@ class ManagementHelper
 
             $this->adyenLogger->info(
                 sprintf( 'response from webhook test %s',
-                json_encode($response))
+                    json_encode($response))
             );
 
             return $response;
