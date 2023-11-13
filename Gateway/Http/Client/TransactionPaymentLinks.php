@@ -54,6 +54,7 @@ class TransactionPaymentLinks implements ClientInterface
     {
         $request = $transferObject->getBody();
         $headers = $transferObject->getHeaders();
+        $client = $this->adyenHelper->initializeAdyenClient($transferObject->getClientConfig()['storeId']);
 
         // If the payment links call is already done return the request
         if (!empty($request['resultCode'])) {
@@ -61,7 +62,8 @@ class TransactionPaymentLinks implements ClientInterface
             return $request;
         }
 
-        $service = $this->adyenHelper->createAdyenCheckoutService();
+        ///Add StoreId to create checkout service to get correct request
+        $service = $this->adyenHelper->createAdyenCheckoutService($client);
 
         $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
             $request,
