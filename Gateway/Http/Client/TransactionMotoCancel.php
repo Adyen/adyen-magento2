@@ -42,6 +42,8 @@ class TransactionMotoCancel implements ClientInterface
     public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
     {
         $request = $transferObject->getBody();
+        $headers = $transferObject->getHeaders();
+
         $clientConfig = $transferObject->getClientConfig();
 
         $client = $this->adyenHelper->initializeAdyenClient(
@@ -49,11 +51,19 @@ class TransactionMotoCancel implements ClientInterface
             null,
             $request['merchantAccount']
         );
-        $service = new Modification($client);
+        $service = $this->adyenHelper->createAdyenCheckoutService($client);
+
+        $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
+            $request,
+            $headers['idempotencyExtraData'] ?? null
+        );
+
+        $requestOptions['idempotencyKey'] = $idempotencyKey;
+
         $this->adyenHelper
-            ->logRequest($request, Client::API_PAYMENT_VERSION, '/pal/servlet/Payment/{version}/cancel');
+            ->logRequest($request, Client::API_CHECKOUT_VERSION, '/cancels');
         try {
-            $response = $service->cancel($request);
+            $response = $service->cancels($request, $requestOptions);
         } catch (\Adyen\AdyenException $e) {
             $response['error'] = $e->getMessage();
         }

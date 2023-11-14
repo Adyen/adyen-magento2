@@ -240,7 +240,7 @@ class Data extends AbstractHelper
         Locale $localeHelper,
         OrderManagementInterface $orderManagement,
         HistoryFactory $orderStatusHistoryFactory,
-        ConfigHelper $configHelper
+        ConfigHelper $configHelper,
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
