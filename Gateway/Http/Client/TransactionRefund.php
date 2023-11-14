@@ -61,7 +61,7 @@ class TransactionRefund implements TransactionRefundInterface
 
         foreach ($requests as $request) {
 
-            $client = $this->adyenHelper->initializeAdyenClient();
+            $client = $this->adyenHelper->initializeAdyenClient($transferObject->getClientConfig()['storeId']);
             $service = $this->adyenHelper->createAdyenCheckoutService($client);
 
             $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(

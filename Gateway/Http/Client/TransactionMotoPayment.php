@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Gateway\Http\Client;
 
 use Adyen\Client;
+use Adyen\Payment\Helper\Idempotency;
 use Adyen\Payment\Model\PaymentResponse;
 use Adyen\Payment\Model\PaymentResponseFactory;
 use Magento\Payment\Gateway\Http\ClientInterface;
@@ -41,6 +42,11 @@ class TransactionMotoPayment implements ClientInterface
     private $paymentResponseResourceModel;
 
     /**
+     * @var Idempotency
+     */
+    private $idempotencyHelper;
+
+    /**
      * TransactionPayment constructor.
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param ApplicationInfo $applicationInfo
@@ -49,12 +55,14 @@ class TransactionMotoPayment implements ClientInterface
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Model\ApplicationInfo $applicationInfo,
         PaymentResponseFactory $paymentResponseFactory,
-        \Adyen\Payment\Model\ResourceModel\PaymentResponse $paymentResponseResourceModel
+        \Adyen\Payment\Model\ResourceModel\PaymentResponse $paymentResponseResourceModel,
+        Idempotency $idempotencyHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->applicationInfo = $applicationInfo;
         $this->paymentResponseFactory = $paymentResponseFactory;
         $this->paymentResponseResourceModel = $paymentResponseResourceModel;
+        $this->idempotencyHelper = $idempotencyHelper;
     }
 
     /**
@@ -65,6 +73,7 @@ class TransactionMotoPayment implements ClientInterface
     public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
     {
         $request = $transferObject->getBody();
+        $headers = $transferObject->getHeaders();
         $clientConfig = $transferObject->getClientConfig();
 
         // If the payments call is already done return the request
@@ -79,6 +88,13 @@ class TransactionMotoPayment implements ClientInterface
             $request['merchantAccount']
         );
         $service = $this->adyenHelper->createAdyenCheckoutService($client);
+
+        $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
+            $request,
+            $headers['idempotencyExtraData'] ?? null
+        );
+
+        $requestOptions['idempotencyKey'] = $idempotencyKey;
 
         $requestOptions = [];
 

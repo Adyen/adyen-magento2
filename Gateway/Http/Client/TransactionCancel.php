@@ -59,12 +59,10 @@ class TransactionCancel implements ClientInterface
         $request = $transferObject->getBody();
         $headers = $transferObject->getHeaders();
 
-        $client = $this->adyenHelper->initializeAdyenClient();
+        $client = $this->adyenHelper->initializeAdyenClient($transferObject->getClientConfig()['storeId']);
         $service = $this->adyenHelper->createAdyenCheckoutService($client);
 
-
         $response = [];
-
 
         foreach ($request as $requests) {
 
@@ -88,5 +86,4 @@ class TransactionCancel implements ClientInterface
 
         return $response;
     }
-
 }
