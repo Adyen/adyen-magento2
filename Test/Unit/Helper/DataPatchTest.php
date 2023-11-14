@@ -16,7 +16,6 @@ use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\DB\Select;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\DB\Adapter\AdapterInterface;
-use Zend_Db_Select;
 
 class DataPatchTest extends AbstractAdyenTestCase
 {
@@ -36,7 +35,7 @@ class DataPatchTest extends AbstractAdyenTestCase
                     'updated_at' => '2023-10-11 11:05:11'
                 ]
             ],
-            'select' => $this->createConfiguredMock(Zend_Db_Select::class, [
+            'select' => $this->createConfiguredMock(Select::class, [
                 'from' => $this->createMock(Select::class)
             ])
         ]);
