@@ -1153,6 +1153,22 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @throws AdyenException
+     * @throws NoSuchEntityException
+     */
+    public function initializeAdyenClientWithClientConfig(array $clientConfig): Client
+    {
+        $storeId = $clientConfig['storeId'];
+        $motoMerchantAccount = null;
+
+        if (isset($clientConfig['isMotoTransaction']) && $clientConfig['isMotoTransaction'] === true) {
+            $motoMerchantAccount = $clientConfig['motoMerchantAccount'];
+        }
+
+        return $this->initializeAdyenClient($storeId, null, $motoMerchantAccount);
+    }
+
+    /**
      * @param Client $client
      * @return PosPayment
      * @throws AdyenException

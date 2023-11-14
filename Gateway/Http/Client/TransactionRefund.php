@@ -45,17 +45,7 @@ class TransactionRefund implements TransactionRefundInterface
         $requests = $transferObject->getBody();
         $headers = $transferObject->getHeaders();
         $clientConfig = $transferObject->getClientConfig();
-
-        if(isset($clientConfig['isMotoTransaction']) && $clientConfig['isMotoTransaction'] === true) {
-            $client = $this->adyenHelper->initializeAdyenClient(
-                $clientConfig['storeId'],
-                null,
-                $clientConfig['motoMerchantAccount']
-            );
-        } else {
-            $client = $this->adyenHelper->initializeAdyenClient($clientConfig['storeId']);
-        }
-
+        $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
         $service = $this->adyenHelper->createAdyenCheckoutService($client);
 
         foreach ($requests as $request) {
