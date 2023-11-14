@@ -56,7 +56,7 @@ class TransactionMotoPayment implements ClientInterface
         \Adyen\Payment\Model\ApplicationInfo $applicationInfo,
         PaymentResponseFactory $paymentResponseFactory,
         \Adyen\Payment\Model\ResourceModel\PaymentResponse $paymentResponseResourceModel,
-        IdempotencyHelper $idempotencyHelper
+        Idempotency $idempotencyHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->applicationInfo = $applicationInfo;
