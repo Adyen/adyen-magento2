@@ -24,13 +24,31 @@ define(
                 let baseComponentConfiguration = this._super();
                 let self = this;
                 let formattedShippingAddress = {};
+                let formattedBillingAddress = {};
+                let shopperDateOfBirth = '';
+                let email = {};
+
+                if (!!customerData.dob){
+                    shopperDateOfBirth = customerData.dob;
+                }
+
+
+                if (!!customerData.email) {
+                    email = customerData.email;
+                } else if (!!quote.guestEmail) {
+                    email = quote.guestEmail;
+                };
 
                 if (!quote.isVirtual() && !!quote.shippingAddress()) {
                     formattedShippingAddress = self.getFormattedAddress(quote.shippingAddress());
                 }
 
+                if (!quote.isVirtual() && !!quote.billingAddress()) {
+                    formattedBillingAddress = self.getFormattedAddress(quote.billingAddress());
+                }
+
                 if (formattedShippingAddress) {
-                    baseComponentConfiguration.data.shippingAddress = {
+                    baseComponentConfiguration.data.deliveryAddress = {
                         city: formattedShippingAddress.city,
                         country: formattedShippingAddress.country,
                         houseNumberOrName: formattedShippingAddress.houseNumber,
@@ -38,6 +56,24 @@ define(
                         street: formattedShippingAddress.street
                     }
                 }
+
+                if (formattedBillingAddress){
+                    baseComponentConfiguration.data.personalDetails = {
+                        firstName: formattedBillingAddress.firstName,
+                        lastName: formattedBillingAddress.lastName,
+                        telephoneNumber: formattedBillingAddress.telephone,
+                        shopperEmail: email,
+                        dateOfBirth: shopperDateOfBirth,
+                    }
+                    baseComponentConfiguration.data.billingAddress = {
+                        city: formattedBillingAddress.city,
+                        country: formattedBillingAddress.country,
+                        houseNumberOrName: formattedBillingAddress.houseNumber,
+                        postalCode: formattedBillingAddress.postalCode,
+                        street: formattedBillingAddress.street,
+                    }
+                }
+
                 return baseComponentConfiguration;
             }
         })
