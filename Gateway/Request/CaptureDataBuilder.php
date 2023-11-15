@@ -33,52 +33,14 @@ use Magento\Sales\Model\Order\Invoice;
  */
 class CaptureDataBuilder implements BuilderInterface
 {
-    /**
-     * @var DataHelper
-     */
-    private $adyenHelper;
+    private DataHelper $adyenHelper;
+    private ChargedCurrency $chargedCurrency;
+    private Payment $orderPaymentResourceModel;
+    private AdyenOrderPayment $adyenOrderPaymentHelper;
+    private AdyenLogger $adyenLogger;
+    private Context $context;
+    protected OpenInvoice $openInvoiceHelper;
 
-    /**
-     * @var ChargedCurrency
-     */
-    private $chargedCurrency;
-
-    /**
-     * @var Payment
-     */
-    private $orderPaymentResourceModel;
-
-    /**
-     * @var AdyenOrderPayment
-     */
-    private $adyenOrderPaymentHelper;
-
-    /**
-     * @var AdyenLogger
-     */
-    private $adyenLogger;
-
-    /**
-     * @var Context
-     */
-    private $context;
-
-    /**
-     * @var OpenInvoice
-     */
-    protected $openInvoiceHelper;
-
-    /**
-     * CaptureDataBuilder constructor.
-     *
-     * @param DataHelper $adyenHelper
-     * @param ChargedCurrency $chargedCurrency
-     * @param AdyenOrderPayment $adyenOrderPaymentHelper
-     * @param AdyenLogger $adyenLogger
-     * @param Context $context
-     * @param Payment $orderPaymentResourceModel
-     * @param OpenInvoice $openInvoiceHelper
-     */
     public function __construct(
         DataHelper $adyenHelper,
         ChargedCurrency $chargedCurrency,
@@ -98,10 +60,6 @@ class CaptureDataBuilder implements BuilderInterface
     }
 
     /**
-     * Create capture request
-     *
-     * @param array $buildSubject
-     * @return array
      * @throws AdyenException
      */
     public function build(array $buildSubject): array
@@ -174,12 +132,6 @@ class CaptureDataBuilder implements BuilderInterface
      * Return the data of the multiple capture requests required to capture the full amount OR
      * multiple capture requests required to capture a partial amount OR
      * a single capture request required to capture a partial amount
-     *
-     * @param $payment
-     * @param $currency
-     * @param $adyenOrderPayments
-     * @param $captureAmount
-     * @return array
      */
     public function buildPartialOrMultipleCaptureData($payment, $currency, $adyenOrderPayments, $captureAmount): array
     {
