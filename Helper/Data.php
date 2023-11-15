@@ -1105,8 +1105,12 @@ class Data extends AbstractHelper
      * @throws AdyenException
      * @throws NoSuchEntityException
      */
-    public function initializeAdyenClient($storeId = null, $apiKey = null, $motoMerchantAccount = null, ?bool $demoMode = null): Client
-    {
+    public function initializeAdyenClient(
+        $storeId = null,
+        $apiKey = null,
+        $motoMerchantAccount = null,
+        ?bool $demoMode = null
+    ): Client {
         if ($storeId === null) {
             $storeId = $this->storeManager->getStore()->getId();
         }
@@ -1119,9 +1123,11 @@ class Data extends AbstractHelper
 
         if (!is_null($motoMerchantAccount)) {
             try {
-                $motoMerchantAccountProperties = $this->configHelper->getMotoMerchantAccountProperties($motoMerchantAccount, $storeId);
-            }
-            catch (AdyenException $e) {
+                $motoMerchantAccountProperties = $this->configHelper->getMotoMerchantAccountProperties(
+                    $motoMerchantAccount,
+                    $storeId
+                );
+            } catch (AdyenException $e) {
                 $this->adyenLogger->addAdyenDebug($e->getMessage());
                 throw $e;
             }

@@ -11,35 +11,27 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Adyen\Payment\Model\Ui\Adminhtml\AdyenMotoConfigProvider;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Adyen\Payment\Model\ResourceModel\Order\Payment;
 use Adyen\Payment\Helper\Data;
-use Adyen\Payment\Helper\Config;
 
 /**
  * Class CustomerDataBuilder
  */
 class CancelDataBuilder implements BuilderInterface
 {
-    /** @var Payment $adyenPaymentResourceModel */
-    private $adyenPaymentResourceModel;
-
-    /** @var Config $configHelper */
-    private $configHelper;
-
-    /** @var Data $adyenHelper */
-    private $adyenHelper;
+    private Payment $adyenPaymentResourceModel;
+    private Data $adyenHelper;
 
     public function __construct(
-        Payment      $adyenPaymentResourceModel,
-        Data         $adyenHelper,
-        Config $configHelper
-    ){
+        Payment $adyenPaymentResourceModel,
+        Data $adyenHelper
+    ) {
         $this->adyenPaymentResourceModel = $adyenPaymentResourceModel;
         $this->adyenHelper = $adyenHelper;
-        $this->configHelper = $configHelper;
     }
 
     /**
@@ -58,7 +50,7 @@ class CancelDataBuilder implements BuilderInterface
         $storeId = $order->getStoreId();
         $method = $payment->getMethod();
 
-        if (isset($method) && $method === 'adyen_moto') {
+        if (isset($method) && $method === AdyenMotoConfigProvider::CODE) {
             $merchantAccount = $payment->getAdditionalInformation('motoMerchantAccount');
         } else {
             $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($method, $storeId);

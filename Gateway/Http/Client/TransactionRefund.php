@@ -15,9 +15,6 @@ use Adyen\AdyenException;
 use Adyen\Client;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
-use Adyen\Service\Modification;
-use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 
 /**
@@ -25,11 +22,7 @@ use Magento\Payment\Gateway\Http\TransferInterface;
  */
 class TransactionRefund implements TransactionRefundInterface
 {
-    /**
-     * @var Data
-     */
-    private $adyenHelper;
-
+    private Data $adyenHelper;
     private Idempotency $idempotencyHelper;
 
     public function __construct(

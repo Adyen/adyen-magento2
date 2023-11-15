@@ -15,8 +15,6 @@ use Adyen\AdyenException;
 use Adyen\Client;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
-use Adyen\Service\Checkout\ModificationsApi;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 
