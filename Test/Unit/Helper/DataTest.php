@@ -78,31 +78,38 @@ class DataTest extends AbstractAdyenTestCase
         $orderManagement = $this->createMock(OrderManagementInterface::class);
         $orderStatusHistoryFactory = $this->createGeneratedMock(HistoryFactory::class);
 
+        // Partial mock builder is being used for mocking the methods in the class being tested.
+        $this->dataHelper = $this->getMockBuilder(Data::class)
+            ->setMethods(['getModuleVersion'])
+            ->setConstructorArgs([
+                $context,
+                $encryptor,
+                $dataStorage,
+                $country,
+                $moduleList,
+                $assetRepo,
+                $assetSource,
+                $notificationFactory,
+                $taxConfig,
+                $taxCalculation,
+                $backendHelper,
+                $productMetadata,
+                $adyenLogger,
+                $storeManager,
+                $cache,
+                $localeResolver,
+                $config,
+                $componentRegistrar,
+                $localeHelper,
+                $orderManagement,
+                $orderStatusHistoryFactory,
+                $configHelper
+            ])
+            ->getMock();
 
-        $this->dataHelper = new Data(
-            $context,
-            $encryptor,
-            $dataStorage,
-            $country,
-            $moduleList,
-            $assetRepo,
-            $assetSource,
-            $notificationFactory,
-            $taxConfig,
-            $taxCalculation,
-            $backendHelper,
-            $productMetadata,
-            $adyenLogger,
-            $storeManager,
-            $cache,
-            $localeResolver,
-            $config,
-            $componentRegistrar,
-            $localeHelper,
-            $orderManagement,
-            $orderStatusHistoryFactory,
-            $configHelper
-        );
+        $this->dataHelper->expects($this->any())
+            ->method('getModuleVersion')
+            ->willReturn('1.2.3');
     }
 
     public function testFormatAmount()
