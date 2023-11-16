@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -12,9 +12,12 @@
 namespace Adyen\Payment\Test\Gateway\Request;
 
 use Adyen\AdyenException;
+use Adyen\Payment\Api\Data\OrderPaymentInterface;
+use Adyen\Payment\Gateway\Http\Client\TransactionCapture;
 use Adyen\Payment\Gateway\Request\CaptureDataBuilder;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Data as DataHelper;
 use Adyen\Payment\Helper\OpenInvoice;
 use Adyen\Payment\Logger\AdyenLogger;
@@ -30,17 +33,66 @@ use Magento\Sales\Model\ResourceModel\Order\Invoice\Collection as InvoiceCollect
 
 class CaptureDataBuilderTest extends AbstractAdyenTestCase
 {
-    public function testFullAmountNotAuthorized()
+    public static function adyenOrderPaymentsProvider(): array
     {
-        $this->expectException(AdyenException::class);
+        return [
+            [
+                '$adyenOrderPayments' => [
+                    [
+                        OrderPaymentInterface::ENTITY_ID => 1,
+                        OrderPaymentInterface::AMOUNT => 100,
+                        OrderPaymentInterface::TOTAL_CAPTURED => 0,
+                        OrderPaymentInterface::PSPREFRENCE => 'ABC123456789XYZ',
+                        OrderPaymentInterface::PAYMENT_METHOD => 'visa'
+                    ]
+                ],
+                '$fullAmountAuthorized' => true
+            ],
+            [
+                '$adyenOrderPayments' => [
+                    [
+                        OrderPaymentInterface::ENTITY_ID => 1,
+                        OrderPaymentInterface::AMOUNT => 400,
+                        OrderPaymentInterface::TOTAL_CAPTURED => 0,
+                        OrderPaymentInterface::PSPREFRENCE => 'ABC123456789XYZ',
+                        OrderPaymentInterface::PAYMENT_METHOD => 'svs'
+                    ],
+                    [
+                        OrderPaymentInterface::ENTITY_ID => 2,
+                        OrderPaymentInterface::AMOUNT => 600,
+                        OrderPaymentInterface::TOTAL_CAPTURED => 0,
+                        OrderPaymentInterface::PSPREFRENCE => 'XYZ123456789ABC',
+                        OrderPaymentInterface::PAYMENT_METHOD => 'klarna'
+                    ]
+                ],
+                '$fullAmountAuthorized' => true
+            ],
+            [
+                '$adyenOrderPayments' => [],
+                '$fullAmountAuthorized' => false
+            ],
+        ];
+    }
+
+    /**
+    * @dataProvider adyenOrderPaymentsProvider
+    */
+    public function testBuildCaptureRequest($adyenOrderPayments, $fullAmountAuthorized)
+    {
+        if (!$fullAmountAuthorized) {
+            $this->expectException(AdyenException::class);
+        }
 
         $orderMock = $this->createConfiguredMock(Order::class, [
             'getInvoiceCollection' => $this->createConfiguredMock(InvoiceCollection::class, [
                 'getLastItem' => $this->createMock(Invoice::class)
-            ])
+            ]),
+            'getIncrementId' => '00000000001',
+            'getTotalInvoiced' => 0
         ]);
         $paymentMock = $this->createConfiguredMock(\Magento\Sales\Model\Order\Payment::class, [
-            'getOrder' => $orderMock
+            'getOrder' => $orderMock,
+            'getCcTransId' => 'ABC123456789XYZ'
         ]);
         $paymentDataObjectMock = $this->createConfiguredMock(PaymentDataObject::class, [
             'getPayment' => $paymentMock
@@ -57,7 +109,11 @@ class CaptureDataBuilderTest extends AbstractAdyenTestCase
         ]);
 
         $adyenOrderPaymentHelperMock = $this->createConfiguredMock(AdyenOrderPayment::class, [
-            'isFullAmountAuthorized' => false
+            'isFullAmountAuthorized' => $fullAmountAuthorized
+        ]);
+
+        $orderPaymentResourceModelMock = $this->createConfiguredMock(Payment::class, [
+            'getLinkedAdyenOrderPayments' => $adyenOrderPayments
         ]);
 
         $buildSubject = [
@@ -67,11 +123,35 @@ class CaptureDataBuilderTest extends AbstractAdyenTestCase
         $captureDataBuilder = $this->buildCaptureDataBuilderObject(
             null,
             $chargedCurrencyHelperMock,
-            null,
+            $orderPaymentResourceModelMock,
             $adyenOrderPaymentHelperMock
         );
 
-        $captureDataBuilder->build($buildSubject);
+        $request = $captureDataBuilder->build($buildSubject);
+
+        $this->assertArrayHasKey('body', $request);
+        $this->assertArrayHasKey('clientConfig', $request);
+        $this->assertArrayHasKey('headers', $request);
+
+        if (count($adyenOrderPayments) > 1) {
+            $this->assertArrayHasKey(TransactionCapture::MULTIPLE_AUTHORIZATIONS, $request['body']);
+            $this->assertSame(
+                count($adyenOrderPayments),
+                count($request['body'][TransactionCapture::MULTIPLE_AUTHORIZATIONS])
+            );
+            $this->assertArrayHasKey('amount', $request['body'][TransactionCapture::MULTIPLE_AUTHORIZATIONS][0]);
+            $this->assertArrayHasKey('reference', $request['body'][TransactionCapture::MULTIPLE_AUTHORIZATIONS][0]);
+            $this->assertArrayHasKey(
+                'paymentPspReference',
+                $request['body'][TransactionCapture::MULTIPLE_AUTHORIZATIONS][0]
+            );
+        } else {
+            $this->assertArrayNotHasKey(TransactionCapture::MULTIPLE_AUTHORIZATIONS, $request['body']);
+
+            $this->assertArrayHasKey('amount', $request['body']);
+            $this->assertArrayHasKey('reference', $request['body']);
+            $this->assertArrayHasKey('paymentPspReference', $request['body']);
+        }
     }
 
     private function buildCaptureDataBuilderObject(
