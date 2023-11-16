@@ -24,40 +24,30 @@ class CreditCardsBecomeCards implements DataPatchInterface, PatchVersionInterfac
      */
     public function apply()
     {
-        $this->moduleDataSetup->getConnection()->startSetup();
-        $this->updateCreditCardToCards($this->moduleDataSetup);
-        $this->moduleDataSetup->getConnection()->endSetup();
-    }
-
-    /**
-     * Update the 'Credit Card' path to 'Cards'
-     *
-     * @param ModuleDataSetupInterface $setup
-     */
-    public function updateCreditCardToCards(ModuleDataSetupInterface $setup)
-    {
-        $connection = $setup->getConnection();
+        $setup = $this->moduleDataSetup;
+        $setup->getConnection()->startSetup();
         $configTable = $setup->getTable('core_config_data');
 
         $oldValue = 'Credit Card';
         $newValue = 'Cards';
 
-        $select = $connection->select()
+        $select = $setup->getConnection()->select()
             ->from($configTable)
             ->where(
                 'path = ?',
                 'payment/adyen_cc/title'
             );
 
-        $partialPaymentConfig = $connection->fetchRow($select);
+        $partialPaymentConfig = $setup->getConnection()->fetchRow($select);
 
         if (!is_null($partialPaymentConfig)) {
-            $connection->update(
+            $setup->getConnection()->update(
                 $configTable,
                 ['value' => $newValue],
                 ['value = ?' => $oldValue]
             );
         }
+        $setup->getConnection()->endSetup();
     }
 
     /**
