@@ -17,7 +17,6 @@ use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\OpenInvoice;
 use Adyen\Payment\Model\ResourceModel\Invoice\CollectionFactory;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as PaymentCollectionFactory;
-use Adyen\Payment\Model\Ui\Adminhtml\AdyenMotoConfigProvider;
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
@@ -77,7 +76,7 @@ class RefundDataBuilder implements BuilderInterface
         $storeId = $order ->getStoreId();
         $method = $payment->getMethod();
 
-        if (isset($method) && $method === AdyenMotoConfigProvider::CODE) {
+        if (isset($method) && $method === 'adyen_moto') {
             $merchantAccount = $payment->getAdditionalInformation('motoMerchantAccount');
         } else {
             $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($method, $storeId);
