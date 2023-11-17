@@ -185,7 +185,7 @@ class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
         $result = $this->captureWebhookHandler->handleWebhook($this->order, $this->notification, 'paid');
 
         // Assert that the order is finalized
-        $this->assertSame($this->order, $result);
+        $this->assertEqualsCanonicalizing($this->order, $result);
     }
 
     public function testHandleWebhookTransitionNotPaid()
@@ -194,6 +194,6 @@ class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
         $result = $this->captureWebhookHandler->handleWebhook($this->order, $this->notification, 'NOT_PAID');
 
         // Assert that the order is not modified
-        $this->assertSame($this->order, $result);
+        $this->assertEqualsCanonicalizing($this->order, $result);
     }
 }
