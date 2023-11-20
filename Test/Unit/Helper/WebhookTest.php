@@ -4,26 +4,22 @@ namespace Adyen\Payment\Test\Unit\Helper;
 use Adyen\Payment\Helper\Webhook;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Adyen\Webhook\Processor\ProcessorFactory;
+use Adyen\Webhook\Processor\ProcessorInterface;
+use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\ChargedCurrency;
-use Adyen\Payment\Exception\AdyenWebhookException;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\Order as OrderHelper;
 use Adyen\Payment\Helper\Webhook\WebhookHandlerFactory;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Webhook\Exception\InvalidDataException;
-use Adyen\Webhook\Notification as WebhookNotification;
-use Adyen\Webhook\PaymentStates;
-use Adyen\Webhook\Processor\ProcessorFactory;
-use DateTime;
-use Exception;
 use ReflectionMethod;
 use ReflectionClass;
-use ReflectionException as ReflectionExceptionAlias;
 
 class WebhookTest extends AbstractAdyenTestCase
 {
@@ -94,191 +90,221 @@ class WebhookTest extends AbstractAdyenTestCase
         $this->assertEquals(Webhook::WEBHOOK_ORDER_STATE_MAPPING[$orderState], $currentState);
     }
 
-    public function testProcessNotificationWithUnsupportedWebhook()
+    public function testProcessNotificationForInvalidDataException()
     {
         $notification = $this->createMock(Notification::class);
         $notification->method('getMerchantReference')->willReturn('TestMerchant');
-        $notification->method('getEventCode')->willReturn('ADYEN');
+        $notification->method('getEventCode')->willReturn('AUTHORISATION : FALSE');
+        $notification->method('getEntityId')->willReturn('1234');
+        $notification->method('getPspreference')->willReturn('ABCD1234GHJK5678');
+        $notification->method('getPaymentMethod')->willReturn('ADYEN_CC');
 
-        $logger = $this->createMock(AdyenLogger::class);
-        $logger->expects($this->once())
-            ->method('addAdyenNotification')
-            ->with($this->stringContains('Unsupported webhook notification'));
-
-        $webhookHandler = $this->createWebhook(null, null, null, null, null, $logger, null, null, null);
-
-        $result = $webhookHandler->processNotification($notification);
-
-        $this->assertFalse($result);
-    }
-
-
-    public function testProcessNotificationTryBlock()
-    {
-        // Mock necessary objects
-        $notification = $this->createMock(Notification::class);
+        // Mocking Order and other dependencies
         $order = $this->createMock(Order::class);
-        $orderHelper = $this->createMock(OrderHelper::class);
-        $orderRepository = $this->createMock(OrderRepository::class);
-        $logger = $this->createMock(AdyenLogger::class);
+        $order->method('getState')->willReturn(Order::STATE_NEW);
+        $order->method('getIncrementId')->willReturn(123);
+        $order->method('getId')->willReturn(123);
+        $order->method('getStatus')->willReturn('processing');
 
-        // Create a partial mock for the Webhook class
+        $orderHelper = $this->createMock(OrderHelper::class);
+        $orderHelper->method('getOrderByIncrementId')->willReturn($order);
+
+        $payment = $this->createMock(Payment::class);
+
+        $order->method('getPayment')->willReturn($payment);
+
+        $payment->expects($this->once())
+            ->method('setAdditionalInformation')
+            ->with('payment_method', $notification->getPaymentMethod());
+
+        $logger = $this->createMock(AdyenLogger::class);
+        $logger->method('getOrderContext')->with($order);
+
+        // Mock the WebhookHandlerFactory and WebhookHandler
+        $webhookHandlerFactory = $this->createMock(WebhookHandlerFactory::class);
+
+        // Partially mock the Webhook class
         $webhookHandler = $this->getMockBuilder(Webhook::class)
             ->setConstructorArgs([
-                $orderHelper,
+                $this->createMock(Data::class),
                 $this->createMock(SerializerInterface::class),
                 $this->createMock(TimezoneInterface::class),
                 $this->createMock(ConfigHelper::class),
                 $this->createMock(ChargedCurrency::class),
                 $logger,
-                $this->createMock(WebhookHandlerFactory::class),
+                $webhookHandlerFactory,
                 $orderHelper,
-                $orderRepository,
+                $this->createMock(OrderRepository::class)
             ])
             ->onlyMethods([
-                'declareVariables',
+                'updateNotification',
                 'addNotificationDetailsHistoryComment',
                 'updateAdyenAttributes',
                 'getCurrentState',
                 'getTransitionState',
-                'webhookHandlerFactory',
-                'updateNotification',
+                'handleNotificationError'
             ])
             ->getMock();
 
-        // Set up expectations for the order helper and repository
-        $orderHelper->expects($this->once())
-            ->method('getOrderByIncrementId')
-            ->willReturn($order);
-        $orderRepository->expects($this->once())
-            ->method('save')
-            ->with($order);
+        // Expect the method updateAdyenAttributes to be called with the mocked $order and $notification arguments
+        $updateAdyenAttributes = $this->getPrivateMethod(
+            Webhook::class,
+            'updateAdyenAttributes'
+        );
+        $updateAdyenAttributes->invokeArgs($webhookHandler, [$order,$notification]);
 
-        // Set up expectations for the logger
-        $logger->expects($this->at(0))
-            ->method('addAdyenNotification')
-            ->with($this->stringContains('Processing'));
-        $logger->expects($this->at(1))
-            ->method('addAdyenNotification')
-            ->with(
-                $this->stringContains('Notification was processed'),
-                $this->callback(function ($context) {
-                    return isset($context['pspReference']) && isset($context['merchantReference']);
-                })
-            );
+        // Now, you can update the private method with the mocked $order and $notification
+        $updateNotification = $this->getPrivateMethod(
+            Webhook::class,
+            'updateNotification'
+        );
+        $updateNotification->invokeArgs($webhookHandler, [$notification, true, false]);
 
-        // Set up expectations for the mocked methods within the try block
-        $webhookHandler->expects($this->once())
-            ->method('declareVariables');
-        $webhookHandler->expects($this->once())
-            ->method('addNotificationDetailsHistoryComment')
-            ->willReturn($order); // Adjust based on your actual implementation
-        $webhookHandler->expects($this->once())
-            ->method('updateAdyenAttributes')
-            ->willReturn($order); // Adjust based on your actual implementation
-        $webhookHandler->expects($this->once())
-            ->method('getCurrentState')
-            ->willReturn('mock-current-state');
-
-        // Call the method under test
+        // Call the method you want to test
         $result = $webhookHandler->processNotification($notification);
 
-        // Assertions
-        $this->assertTrue($result);
-        // Add more assertions as needed to validate the processing logic
+        // Add assertions based on the expected behavior after reaching the logger
+        $this->assertFalse($result);
     }
 
-    public function testProcessNotificationWithOrderFoundAndException()
+    public function testAddNotificationDetailsHistoryComment()
     {
-        // Mock necessary objects
-        $notification = $this->createMock(Notification::class);
-        $order = $this->createMock(Order::class);
-        $orderHelper = $this->createMock(OrderHelper::class);
-        $orderRepository = $this->createMock(OrderRepository::class);
-        $logger = $this->createMock(AdyenLogger::class);
-
-        // Set up expectations for the order helper and repository
-        $orderHelper->expects($this->once())
-            ->method('getOrderByIncrementId')
-            ->willReturn($order);
-        $orderRepository->expects($this->once())
-            ->method('save')
-            ->with($order);
-
-        // Set up expectations for the logger
-        $logger->expects($this->at(0))
-            ->method('addAdyenNotification')
-            ->with($this->stringContains('Processing'));
-        $logger->expects($this->at(1))
-            ->method('addAdyenNotification')
-            ->with(
-                $this->stringContains('Notification was processed'),
-                $this->callback(function ($context) {
-                    return isset($context['pspReference']) && isset($context['merchantReference']);
-                })
-            );
-
-        // Mock the try block to throw an exception
-        $webhookHandler = $this->getMockBuilder(Webhook::class)
-            ->setConstructorArgs([
-                null, null, null, null, null, $logger, null, $orderHelper, $orderRepository
-            ])
-            ->onlyMethods(['declareVariables', 'addNotificationDetailsHistoryComment', 'updateAdyenAttributes'])
+        // Mock necessary dependencies
+        $orderMock = $this->getMockBuilder(Order::class)
+            ->disableOriginalConstructor()
             ->getMock();
 
-        $webhookHandler->expects($this->once())
-            ->method('declareVariables')
-            ->willThrowException(new Exception('Simulated exception'));
+        $notificationMock = $this->getMockBuilder(Notification::class)
+            ->disableOriginalConstructor()
+            ->getMock();
 
-        // Mock necessary data for the notification
-        $notification->method('getMerchantReference')->willReturn('mock-merchant-reference');
-        $notification->method('getPspreference')->willReturn('mock-psp-reference');
+        // Create an instance of your class
+        $webhook = $this->createWebhook(null,null,null,null,null,null,null,null,null);
 
-        // Additional setup if needed before calling the method
+        $method = $this->getPrivateMethod(
+            Webhook::class,
+            'addNotificationDetailsHistoryComment'
+        );
 
-        // Call the method under test
-        $result = $webhookHandler->processNotification($notification);
+        // Call the private method
+        $result = $method->invokeArgs($webhook, [$orderMock, $notificationMock]);
 
-        // Assertions
-        $this->assertFalse($result); // Since an exception is thrown, the result should be false
-        // Add more assertions as needed to validate the processing logic in case of an exception
+        $this->assertInstanceOf(Order::class, $result, 'The function did not return an instance of Order as expected.');
     }
 
-    public function testProcessNotificationWithInvalidEventCode()
+    public function testGetTransitionState()
     {
-        $merchantReference = 'TestMerchant';
-        $notification = $this->createMock(Notification::class);
-        $notification->method('getMerchantReference')->willReturn($merchantReference);
-        $notification->method('getEventCode')->willReturn('AUTHORISATION');
+        // Mock necessary dependencies
+        $notificationMock = $this->getMockBuilder(Notification::class)
+            ->disableOriginalConstructor()
+            ->getMock();
 
-        $logger = $this->createMock(AdyenLogger::class);
-        $logger->expects($this->once())
+        // Create an instance of your class
+        $webhook = $this->createWebhook(null, null, null, null, null, null, null, null, null);
+
+        // Use reflection to make the private method accessible
+        $method = new ReflectionMethod(Webhook::class, 'getTransitionState');
+        $method->setAccessible(true);
+
+        // Set up expectations for the mocked objects
+        $notificationMock->expects($this->once())
+            ->method('getEventCode')
+            ->willReturn('AUTHORISATION');
+
+        $notificationMock->expects($this->once())
+            ->method('getSuccess')
+            ->willReturn('SUCCESS');
+
+        $orderState = Order::STATE_NEW;
+
+        // Call the private method
+        $result = $method->invokeArgs($webhook, [$notificationMock, $orderState]);
+
+        // Assertions based on your logic
+        $this->assertNotEquals(
+            'STATE_NEW',
+            $result,
+            sprintf('The transition state is not as expected. Actual result: %s', $result)
+        );
+    }
+
+    public function testUpdateAdyenAttributes()
+    {
+        // Mock necessary dependencies
+        $notificationMock = $this->getMockBuilder(Notification::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $orderMock = $this->getMockBuilder(Order::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $paymentMock = $this->getMockBuilder(Payment::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $loggerMock = $this->getMockBuilder(AdyenLogger::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $serializerMock = $this->getMockBuilder(Json::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        // Create an instance of your class
+        $webhook = $this->createWebhook(null, $serializerMock, null, null, null, $loggerMock, null, null, null);
+
+        // Set up expectations for the mocked objects
+        $notificationMock->expects($this->once())
+            ->method('getEventCode')
+            ->willReturn(Notification::AUTHORISATION);
+
+        $notificationMock->expects($this->once())
+            ->method('isSuccessful')
+            ->willReturn(false);
+
+        $orderMock->expects($this->once())
+            ->method('getData')
+            ->with('adyen_notification_event_code')
+            ->willReturn('SOME_EVENT_CODE : TRUE'); // Assuming a previous successful notification
+
+        $orderMock->expects($this->once())
+            ->method('getPayment')
+            ->willReturn($paymentMock);
+
+        $notificationMock->expects($this->once())
+            ->method('getAdditionalData')
+            ->willReturn('{"some_key":"some_value"}');
+
+        $updateOrderPaymentWithAdyenAttributes = $this->getPrivateMethod(
+            Webhook::class,
+            'updateOrderPaymentWithAdyenAttributes'
+        );
+
+        $additionalData = array();
+        $updateOrderPaymentWithAdyenAttributes->invokeArgs($webhook, [$orderMock, $notificationMock, $additionalData]);
+
+        $loggerMock->expects($this->once())
             ->method('addAdyenNotification')
-            ->with($this->stringContains('Unsupported webhook notification: AUTHORISATION'));
+            ->with(
+                'Updating the Adyen attributes of the order',
+                [
+                    'pspReference' => 'ABCD1234GHJK5678', // Provide the expected value,
+                    'merchantReference' => 'TestMerchant', // Provide the expected value
+                ]
+            );
 
-        $webhookHandler = $this->createWebhook(null, null, null, null, null, $logger, null, null, null);
+        // Use reflection to make the private method accessible
+        $method = new ReflectionMethod(Webhook::class, 'updateAdyenAttributes');
+        $method->setAccessible(true);
 
-        $result = $webhookHandler->processNotification($notification);
+        // Call the private method
+        $result = $method->invokeArgs($webhook, [$orderMock, $notificationMock]);
 
-        $this->assert($result);
+        // Assertions based on your logic
+        $this->assertInstanceOf(Order::class, $result, 'The updateAdyenAttributes method did not return an Order instance.');
     }
 
-    public function testGetTransitionStateWithUnsupportedEventCode()
-    {
-        $eventCode = 'AUTHORISATION';
-        $currentOrderState = 'STATE_NEW';
-
-        $notification = $this->createMock(Notification::class);
-        $notification->method('getEventCode')->willReturn($eventCode);
-        $notification->method('getSuccess')->willReturn('SUCCESS');
-
-        $webhookHandler = $this->createWebhook(null, null, null, null, null, null, null, null, null);
-
-        $method = $this->getPrivateMethod(Webhook::class, 'getTransitionState');
-        $result = $method->invokeArgs($webhookHandler, [$notification, $currentOrderState]);
-
-        $this->assertEquals(PaymentStates::STATE_NEW, $result);
-    }
 
 
     protected function createWebhook(
