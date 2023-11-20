@@ -2,10 +2,9 @@
 namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Payment\Helper\Webhook;
+use Adyen\Payment\Helper\Webhook\AuthorisationWebhookHandler;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
-use Adyen\Webhook\Processor\ProcessorFactory;
-use Adyen\Webhook\Processor\ProcessorInterface;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
@@ -23,18 +22,6 @@ use ReflectionClass;
 
 class WebhookTest extends AbstractAdyenTestCase
 {
-    private $webhook;
-    private $orderRepository;
-    private $serializer;
-    private $timezone;
-
-    protected function setUp(): void
-    {
-        $this->orderRepository = $this->createMock(OrderRepository::class);
-        $this->serializer = $this->createMock(SerializerInterface::class);
-        $this->timezone = $this->createMock(TimezoneInterface::class);
-    }
-
     public function testProcessNotificationWithInvalidMerchantReference()
     {
         $notification = $this->createMock(Notification::class);
@@ -266,15 +253,11 @@ class WebhookTest extends AbstractAdyenTestCase
         $orderMock->expects($this->once())
             ->method('getData')
             ->with('adyen_notification_event_code')
-            ->willReturn('SOME_EVENT_CODE : TRUE'); // Assuming a previous successful notification
+            ->willReturn('AUTHORISATION : FALSE'); // Assuming a previous successful notification
 
         $orderMock->expects($this->once())
             ->method('getPayment')
             ->willReturn($paymentMock);
-
-        $notificationMock->expects($this->once())
-            ->method('getAdditionalData')
-            ->willReturn('{"some_key":"some_value"}');
 
         $updateOrderPaymentWithAdyenAttributes = $this->getPrivateMethod(
             Webhook::class,
@@ -282,15 +265,15 @@ class WebhookTest extends AbstractAdyenTestCase
         );
 
         $additionalData = array();
-        $updateOrderPaymentWithAdyenAttributes->invokeArgs($webhook, [$orderMock, $notificationMock, $additionalData]);
+        $updateOrderPaymentWithAdyenAttributes->invokeArgs($webhook, [$paymentMock, $notificationMock, $additionalData]);
 
         $loggerMock->expects($this->once())
             ->method('addAdyenNotification')
             ->with(
                 'Updating the Adyen attributes of the order',
                 [
-                    'pspReference' => 'ABCD1234GHJK5678', // Provide the expected value,
-                    'merchantReference' => 'TestMerchant', // Provide the expected value
+                    'pspReference' => $notificationMock->getPspreference(), // Provide the expected value,
+                    'merchantReference' => $notificationMock->getMerchantReference(), // Provide the expected value
                 ]
             );
 
@@ -305,7 +288,58 @@ class WebhookTest extends AbstractAdyenTestCase
         $this->assertInstanceOf(Order::class, $result, 'The updateAdyenAttributes method did not return an Order instance.');
     }
 
+    public function testUpdateOrderPaymentWithAdyenAttributes()
+    {
+        // Mock necessary dependencies
+        $notificationMock = $this->getMockBuilder(Notification::class)
+            ->disableOriginalConstructor()
+            ->getMock();
 
+        $paymentMock = $this->getMockBuilder(Order\Payment::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        // Create an instance of your class
+        $webhook = $this->createWebhook(null, null, null, null, null, null, null, null, null);
+
+        // Use reflection to make the private method accessible
+        $method = new ReflectionMethod(Webhook::class, 'updateOrderPaymentWithAdyenAttributes');
+        $method->setAccessible(true);
+
+        // Set up expectations for the mocked objects
+        $additionalData = [
+            'avsResult' => 'some_avs_result',
+            'cvcResult' => 'some_cvc_result',
+            'totalFraudScore' => 'some_fraud_score',
+            'cardSummary' => 'some_card_summary',
+            'refusalReasonRaw' => 'some_refusal_reason',
+            'acquirerReference' => 'some_acquirer_reference',
+            'authCode' => 'some_auth_code',
+            'cardBin' => 'some_card_bin',
+            'expiryDate' => 'some_expiry_date',
+            'issuerCountry' => 'some_issuer_country',
+        ];
+
+        $notificationMock->expects($this->once())
+            ->method('getReason')
+            ->willReturn('REASON');
+
+        $notificationMock->method('getPspreference')
+            ->willReturn('ABCD1234GHJK5678');
+
+        $retrieveLast4DigitsFromReason = $this->getPrivateMethod(
+            Webhook::class,
+            'retrieveLast4DigitsFromReason'
+        );
+        $retrieveLast4DigitsFromReason->invokeArgs($webhook, [$notificationMock->getReason()]);
+
+
+        // Call the private method
+        $method->invokeArgs($webhook, [$paymentMock, $notificationMock, $additionalData]);
+
+        $this->assertNotEquals('ABCD1234GHJK5678', $paymentMock->getAdyenPspReference());
+        $this->assertNotEquals('some_psp_reference', $paymentMock->getAdditionalInformation('pspReference'));
+    }
 
     protected function createWebhook(
         $mockAdyenHelper = null,
