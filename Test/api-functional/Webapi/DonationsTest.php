@@ -19,7 +19,7 @@ class DonationsTest extends WebapiAbstract
      */
     private $customerTokenService;
 
-    private string $maskedQuoteId;
+    private $maskedQuoteId;
 
 
     protected function setUp(): void
