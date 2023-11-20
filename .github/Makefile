@@ -104,7 +104,7 @@ graphql:
 
 # REST API tests
 restapi:
-    @cd ${MAGENTO_ROOT}/dev/tests/api-functional && \
+	@cd ${MAGENTO_ROOT}/dev/tests/api-functional && \
         ${MAGENTO_ROOT}/vendor/bin/phpunit --prepend /data/extensions/workdir/Test/phpunit_rest.php \
         --configuration ${MAGENTO_ROOT}/dev/tests/api-functional/phpunit_rest.xml.dist \
         ${MAGENTO_ROOT}/vendor/adyen/module-payment/Test/api-functional/Webapi
