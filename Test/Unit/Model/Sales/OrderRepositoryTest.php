@@ -88,7 +88,7 @@ class OrderRepositoryTest extends AbstractAdyenTestCase
         }
 
         if (is_null($searchResultFactoryMock)) {
-            $searchResultFactoryMock = $this->createMock(SearchResultFactory::class);
+            $searchResultFactoryMock = $this->createGeneratedMock(SearchResultFactory::class);
         }
 
         if (is_null($collectionProcessorMock)) {
@@ -96,7 +96,7 @@ class OrderRepositoryTest extends AbstractAdyenTestCase
         }
 
         if (is_null($orderExtensionFactoryMock)) {
-            $orderExtensionFactoryMock = $this->createMock(OrderExtensionFactory::class);
+            $orderExtensionFactoryMock = $this->createGeneratedMock(OrderExtensionFactory::class);
         }
 
         if (is_null($orderTaxManagementMock)) {
@@ -104,7 +104,7 @@ class OrderRepositoryTest extends AbstractAdyenTestCase
         }
 
         if (is_null($paymentAdditionalInfoFactoryMock)) {
-            $paymentAdditionalInfoFactoryMock = $this->createMock(PaymentAdditionalInfoInterfaceFactory::class);
+            $paymentAdditionalInfoFactoryMock = $this->createGeneratedMock(PaymentAdditionalInfoInterfaceFactory::class);
         }
 
         if (is_null($serializerMock)) {
