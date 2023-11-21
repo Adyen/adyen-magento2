@@ -52,18 +52,14 @@ class WebhookTest extends AbstractAdyenTestCase
 
         $webhookHandler = $this->createWebhook(null, null, null, null, null, $logger, null, $orderHelper, null);
 
-        // Additional setup if needed before calling the method
-
         $result = $webhookHandler->processNotification($notification);
 
         // Assertions for the unsuccessful processing
         $this->assertFalse($result);
-        // Add more assertions as needed to validate the error handling logic
     }
 
     public function testGetCurrentStateWithValidOrderState()
     {
-        // Use Reflection to test private method getCurrentState
         $method = $this->getPrivateMethod(
             Webhook::class,
             'getCurrentState'
@@ -87,18 +83,16 @@ class WebhookTest extends AbstractAdyenTestCase
         $notification->method('getPaymentMethod')->willReturn('ADYEN_CC');
 
         // Mocking Order and other dependencies
+        $payment = $this->createMock(Payment::class);
         $order = $this->createMock(Order::class);
         $order->method('getState')->willReturn(Order::STATE_NEW);
         $order->method('getIncrementId')->willReturn(123);
         $order->method('getId')->willReturn(123);
         $order->method('getStatus')->willReturn('processing');
+        $order->method('getPayment')->willReturn($payment);
 
         $orderHelper = $this->createMock(OrderHelper::class);
         $orderHelper->method('getOrderByIncrementId')->willReturn($order);
-
-        $payment = $this->createMock(Payment::class);
-
-        $order->method('getPayment')->willReturn($payment);
 
         $payment->expects($this->once())
             ->method('setAdditionalInformation')
@@ -147,10 +141,8 @@ class WebhookTest extends AbstractAdyenTestCase
         );
         $updateNotification->invokeArgs($webhookHandler, [$notification, true, false]);
 
-        // Call the method you want to test
         $result = $webhookHandler->processNotification($notification);
 
-        // Add assertions based on the expected behavior after reaching the logger
         $this->assertFalse($result);
     }
 
@@ -165,7 +157,6 @@ class WebhookTest extends AbstractAdyenTestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        // Create an instance of your class
         $webhook = $this->createWebhook(null,null,null,null,null,null,null,null,null);
 
         $method = $this->getPrivateMethod(
@@ -253,7 +244,7 @@ class WebhookTest extends AbstractAdyenTestCase
         $orderMock->expects($this->once())
             ->method('getData')
             ->with('adyen_notification_event_code')
-            ->willReturn('AUTHORISATION : FALSE'); // Assuming a previous successful notification
+            ->willReturn('AUTHORISATION : FALSE');
 
         $orderMock->expects($this->once())
             ->method('getPayment')
@@ -278,11 +269,13 @@ class WebhookTest extends AbstractAdyenTestCase
             );
 
         // Use reflection to make the private method accessible
-        $method = new ReflectionMethod(Webhook::class, 'updateAdyenAttributes');
-        $method->setAccessible(true);
+        $updateAdyenAttributes = $this->getPrivateMethod(
+            Webhook::class,
+            'updateAdyenAttributes'
+        );
 
         // Call the private method
-        $result = $method->invokeArgs($webhook, [$orderMock, $notificationMock]);
+        $result = $updateAdyenAttributes->invokeArgs($webhook, [$orderMock, $notificationMock]);
 
         // Assertions based on your logic
         $this->assertInstanceOf(Order::class, $result, 'The updateAdyenAttributes method did not return an Order instance.');
@@ -303,8 +296,10 @@ class WebhookTest extends AbstractAdyenTestCase
         $webhook = $this->createWebhook(null, null, null, null, null, null, null, null, null);
 
         // Use reflection to make the private method accessible
-        $method = new ReflectionMethod(Webhook::class, 'updateOrderPaymentWithAdyenAttributes');
-        $method->setAccessible(true);
+        $updateOrderPaymentWithAdyenAttributes = $this->getPrivateMethod(
+            Webhook::class,
+            'updateOrderPaymentWithAdyenAttributes'
+        );
 
         // Set up expectations for the mocked objects
         $additionalData = [
@@ -335,7 +330,7 @@ class WebhookTest extends AbstractAdyenTestCase
 
 
         // Call the private method
-        $method->invokeArgs($webhook, [$paymentMock, $notificationMock, $additionalData]);
+        $updateOrderPaymentWithAdyenAttributes->invokeArgs($webhook, [$paymentMock, $notificationMock, $additionalData]);
 
         $this->assertNotEquals('ABCD1234GHJK5678', $paymentMock->getAdyenPspReference());
         $this->assertNotEquals('some_psp_reference', $paymentMock->getAdditionalInformation('pspReference'));
