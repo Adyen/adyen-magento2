@@ -8,10 +8,10 @@ use Magento\Framework\Setup\Patch\PatchVersionInterface;
 
 class CreditCardsBecomeCards implements DataPatchInterface, PatchVersionInterface
 {
-    private ModuleDataSetupInterface $moduleDataSetup;
+    private $moduleDataSetup;
 
     public function __construct(
-        ModuleDataSetupInterface  $moduleDataSetup
+        ModuleDataSetupInterface $moduleDataSetup
     )
     {
         $this->moduleDataSetup = $moduleDataSetup;
