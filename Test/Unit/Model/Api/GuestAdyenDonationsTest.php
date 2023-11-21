@@ -57,7 +57,7 @@ class GuestAdyenDonationsTest extends AbstractAdyenTestCase
         $quoteIdMaskMock->method('getQuoteId')
             ->willReturn(1);
 
-        $quoteIdMaskFactoryMock = $this->createPartialMock(QuoteIdMaskFactory::class, ['create']);
+        $quoteIdMaskFactoryMock = $this->createGeneratedMock(QuoteIdMaskFactory::class, ['create']);
         $quoteIdMaskFactoryMock->expects(self::atLeastOnce())
             ->method('create')
             ->willReturn($quoteIdMaskMock);
