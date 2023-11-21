@@ -35,6 +35,7 @@ class TransactionMotoRefund implements TransactionRefundInterface
     /**
      * PaymentRequest constructor.
      * @param Data $adyenHelper
+     * @param Idempotency $idempotencyHelper
      */
     public function __construct(
         Data $adyenHelper,
