@@ -129,8 +129,8 @@ class CaptureDataBuilder implements BuilderInterface
                 $order->getIncrementId()
             );
             $this->adyenLogger->error($errorMessage);
-            $this->context->getMessageManager()->addErrorMessage(__(
-                    'Full order amount has not been authorized')
+            $this->context->getMessageManager()->addErrorMessage(
+                __('Full order amount has not been authorized')
             );
 
             throw new AdyenException($errorMessage);
@@ -139,7 +139,12 @@ class CaptureDataBuilder implements BuilderInterface
         $adyenOrderPayments = $this->orderPaymentResourceModel->getLinkedAdyenOrderPayments($payment->getEntityId());
         // If the full amount won't be captured OR there are multiple payments to capture
         if (!empty($adyenOrderPayments) && ($amount < $orderAmountCents || count($adyenOrderPayments) > 1)) {
-            return $this->buildPartialOrMultipleCaptureData($payment, $currency, $adyenOrderPayments, $invoiceAmountCurrency->getAmount());
+            return $this->buildPartialOrMultipleCaptureData(
+                $payment,
+                $currency,
+                $adyenOrderPayments,
+                $invoiceAmountCurrency->getAmount()
+            );
         }
 
         $modificationAmount = ['value' => $amount, 'currency' => $currency];
@@ -156,6 +161,11 @@ class CaptureDataBuilder implements BuilderInterface
         }
         $request['body'] = $requestBody;
         $request['clientConfig'] = ["storeId" => $payment->getOrder()->getStoreId()];
+        $request['headers'] = [
+            'idempotencyExtraData' => [
+                'totalInvoiced' => $payment->getOrder()->getTotalInvoiced() ?? 0
+            ]
+        ];
 
         return $request;
     }
@@ -174,7 +184,8 @@ class CaptureDataBuilder implements BuilderInterface
     public function buildPartialOrMultipleCaptureData($payment, $currency, $adyenOrderPayments, $captureAmount): array
     {
         $this->adyenLogger->addAdyenInfoLog(sprintf(
-            'Building PARTIAL capture request for multiple authorisations, on payment %s', $payment->getId()
+            'Building PARTIAL capture request for multiple authorisations, on payment %s',
+            $payment->getId()
         ), $this->adyenLogger->getOrderContext($payment->getOrder()));
 
         $captureAmountCents = $this->adyenHelper->formatAmount($captureAmount, $currency);
@@ -186,10 +197,14 @@ class CaptureDataBuilder implements BuilderInterface
             $adyenOrderPayment = $adyenOrderPayments[$i];
             $paymentAmount = $adyenOrderPayment[OrderPaymentInterface::AMOUNT];
             $totalCaptured = $adyenOrderPayment[OrderPaymentInterface::TOTAL_CAPTURED];
-            $availableAmountToCaptureCents = $this->adyenHelper->formatAmount($paymentAmount - $totalCaptured, $currency);
+            $availableAmountToCaptureCents = $this->adyenHelper->formatAmount(
+                $paymentAmount - $totalCaptured,
+                $currency
+            );
             // If there is still some amount available to capture
             if ($availableAmountToCaptureCents > 0) {
-                // IF the counter amount + available amount to capture from this payment are LESS (or eq) than the capture amount, use the available amount
+                // IF the counter amount + available amount to capture from
+                // this payment are LESS (or eq) than the capture amount, use the available amount
                 // ELSE use only the amount required to complete the full capture
                 if ($counterAmount + $availableAmountToCaptureCents <= $captureAmountCents) {
                     $amountCents = $availableAmountToCaptureCents;
@@ -206,10 +221,12 @@ class CaptureDataBuilder implements BuilderInterface
                 $authToCapture = [
                     "amount" => $modificationAmount,
                     "reference" => $payment->getOrder()->getIncrementId(),
-                    "originalReference" => $adyenOrderPayment[OrderPaymentInterface::PSPREFRENCE]
+                    "paymentPspReference" => $adyenOrderPayment[OrderPaymentInterface::PSPREFRENCE]
                 ];
 
-                if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($adyenOrderPayment[OrderPaymentInterface::PAYMENT_METHOD])) {
+                if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod(
+                    $adyenOrderPayment[OrderPaymentInterface::PAYMENT_METHOD]
+                )) {
                     $openInvoiceFields = $this->openInvoiceHelper->getOpenInvoiceData($payment);
                     $authToCapture = array_merge($authToCapture, $openInvoiceFields);
                 }
