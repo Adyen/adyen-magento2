@@ -38,9 +38,9 @@ class CreditCardsBecomeCards implements DataPatchInterface, PatchVersionInterfac
                 'payment/adyen_cc/title'
             );
 
-        $partialPaymentConfig = $setup->getConnection()->fetchRow($select);
+        $getRowsHavingAdyenCCPath = $setup->getConnection()->fetchRow($select);
 
-        if (!is_null($partialPaymentConfig)) {
+        if (!is_null($getRowsHavingAdyenCCPath)) {
             $setup->getConnection()->update(
                 $configTable,
                 ['value' => $newValue],
