@@ -34,6 +34,13 @@ class PaymentResponseHandler
     const ADYEN_TOKENIZATION = 'Adyen Tokenization';
     const VAULT = 'Magento Vault';
 
+    const ACTION_REQUIRED_STATUSES = [
+        self::REDIRECT_SHOPPER,
+        self::IDENTIFY_SHOPPER,
+        self::CHALLENGE_SHOPPER,
+        self::PENDING
+    ];
+
     /**
      * @var AdyenLogger
      */
