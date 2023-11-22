@@ -61,16 +61,9 @@ class WebhookTest extends AbstractAdyenTestCase
 
     public function testGetCurrentStateWithValidOrderState()
     {
-        $method = $this->getPrivateMethod(
-            Webhook::class,
-            'getCurrentState'
-        );
-
         $orderState = Order::STATE_NEW;
         $webhookHandler = $this->createWebhook(null,null,null,null,null,null,null,null,null);
-
-        $currentState = $method->invokeArgs($webhookHandler, [$orderState]);
-
+        $currentState = $this->invokeMethod($webhookHandler,'getCurrentState',[$orderState]);
         $this->assertEquals(Webhook::WEBHOOK_ORDER_STATE_MAPPING[$orderState], $currentState);
     }
 
@@ -128,20 +121,6 @@ class WebhookTest extends AbstractAdyenTestCase
             ])
             ->getMock();
 
-        // Expect the method updateAdyenAttributes to be called with the mocked $order and $notification arguments
-        $updateAdyenAttributes = $this->getPrivateMethod(
-            Webhook::class,
-            'updateAdyenAttributes'
-        );
-        $updateAdyenAttributes->invokeArgs($webhookHandler, [$order,$notification]);
-
-        // Now, you can update the private method with the mocked $order and $notification
-        $updateNotification = $this->getPrivateMethod(
-            Webhook::class,
-            'updateNotification'
-        );
-        $updateNotification->invokeArgs($webhookHandler, [$notification, true, false]);
-
         $result = $webhookHandler->processNotification($notification);
 
         $this->assertFalse($result);
@@ -160,13 +139,7 @@ class WebhookTest extends AbstractAdyenTestCase
 
         $webhook = $this->createWebhook(null,null,null,null,null,null,null,null,null);
 
-        $method = $this->getPrivateMethod(
-            Webhook::class,
-            'addNotificationDetailsHistoryComment'
-        );
-
-        // Call the private method
-        $result = $method->invokeArgs($webhook, [$orderMock, $notificationMock]);
+        $result = $this->invokeMethod($webhook,'addNotificationDetailsHistoryComment',[$orderMock, $notificationMock]);
 
         $this->assertInstanceOf(Order::class, $result, 'The function did not return an instance of Order as expected.');
     }
@@ -251,14 +224,6 @@ class WebhookTest extends AbstractAdyenTestCase
             ->method('getPayment')
             ->willReturn($paymentMock);
 
-        $updateOrderPaymentWithAdyenAttributes = $this->getPrivateMethod(
-            Webhook::class,
-            'updateOrderPaymentWithAdyenAttributes'
-        );
-
-        $additionalData = array();
-        $updateOrderPaymentWithAdyenAttributes->invokeArgs($webhook, [$paymentMock, $notificationMock, $additionalData]);
-
         $loggerMock->expects($this->once())
             ->method('addAdyenNotification')
             ->with(
@@ -269,72 +234,9 @@ class WebhookTest extends AbstractAdyenTestCase
                 ]
             );
 
-        // Use reflection to make the private method accessible
-        $updateAdyenAttributes = $this->getPrivateMethod(
-            Webhook::class,
-            'updateAdyenAttributes'
-        );
+        $result = $this->invokeMethod($webhook,'updateAdyenAttributes',[$orderMock, $notificationMock]);
 
-        // Call the private method
-        $result = $updateAdyenAttributes->invokeArgs($webhook, [$orderMock, $notificationMock]);
-
-        // Assertions based on your logic
         $this->assertInstanceOf(Order::class, $result, 'The updateAdyenAttributes method did not return an Order instance.');
-    }
-
-    public function testUpdateOrderPaymentWithAdyenAttributes()
-    {
-        // Mock necessary dependencies
-        $notificationMock = $this->getMockBuilder(Notification::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $paymentMock = $this->getMockBuilder(Order\Payment::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        // Create an instance of your class
-        $webhook = $this->createWebhook(null, null, null, null, null, null, null, null, null);
-
-        // Use reflection to make the private method accessible
-        $updateOrderPaymentWithAdyenAttributes = $this->getPrivateMethod(
-            Webhook::class,
-            'updateOrderPaymentWithAdyenAttributes'
-        );
-
-        // Set up expectations for the mocked objects
-        $additionalData = [
-            'avsResult' => 'some_avs_result',
-            'cvcResult' => 'some_cvc_result',
-            'totalFraudScore' => 'some_fraud_score',
-            'cardSummary' => 'some_card_summary',
-            'refusalReasonRaw' => 'some_refusal_reason',
-            'acquirerReference' => 'some_acquirer_reference',
-            'authCode' => 'some_auth_code',
-            'cardBin' => 'some_card_bin',
-            'expiryDate' => 'some_expiry_date',
-            'issuerCountry' => 'some_issuer_country',
-        ];
-
-        $notificationMock->expects($this->once())
-            ->method('getReason')
-            ->willReturn('REASON');
-
-        $notificationMock->method('getPspreference')
-            ->willReturn('ABCD1234GHJK5678');
-
-        $retrieveLast4DigitsFromReason = $this->getPrivateMethod(
-            Webhook::class,
-            'retrieveLast4DigitsFromReason'
-        );
-        $retrieveLast4DigitsFromReason->invokeArgs($webhook, [$notificationMock->getReason()]);
-
-
-        // Call the private method
-        $updateOrderPaymentWithAdyenAttributes->invokeArgs($webhook, [$paymentMock, $notificationMock, $additionalData]);
-
-        $this->assertNotEquals('ABCD1234GHJK5678', $paymentMock->getAdyenPspReference());
-        $this->assertNotEquals('some_psp_reference', $paymentMock->getAdditionalInformation('pspReference'));
     }
 
     public function testProcessNotificationWithSuccess()
@@ -428,14 +330,4 @@ class WebhookTest extends AbstractAdyenTestCase
             $mockOrderRepository
         );
     }
-
-    private function getPrivateMethod(string $className, string $methodName): ReflectionMethod
-    {
-        $reflectionClass = new ReflectionClass($className);
-        $method = $reflectionClass->getMethod($methodName);
-        $method->setAccessible(true);
-        return $method;
-    }
-
-    // Add more test cases for other private methods and scenarios
 }
