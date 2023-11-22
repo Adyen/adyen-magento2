@@ -3,6 +3,7 @@ namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Payment\Helper\Webhook;
 use Adyen\Payment\Helper\Webhook\AuthorisationWebhookHandler;
+use Adyen\Payment\Helper\Webhook\WebhookHandlerInterface;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Serialize\Serializer\Json;
@@ -334,6 +335,46 @@ class WebhookTest extends AbstractAdyenTestCase
 
         $this->assertNotEquals('ABCD1234GHJK5678', $paymentMock->getAdyenPspReference());
         $this->assertNotEquals('some_psp_reference', $paymentMock->getAdditionalInformation('pspReference'));
+    }
+
+    public function testProcessNotificationWithSuccess()
+    {
+        $notification = $this->createMock(Notification::class);
+        $notification->method('getMerchantReference')->willReturn('TestMerchant');
+        $notification->method('getEventCode')->willReturn('AUTHORISATION');
+        $notification->method('getSuccess')->willReturn('SUCCESS');
+        $notification->method('isSuccessful')->willReturn(true);
+        $notification->method('getPspreference')->willReturn('ABCD1234GHJK5678');
+        $order = $this->createMock(Order::class);
+
+        $orderHelper = $this->createMock(OrderHelper::class);
+        $orderHelper->method('getOrderByIncrementId')->willReturn($order);
+
+        // Create a mock for the payment
+        $payment = $this->createMock(Payment::class);
+        $mockWebhookHandlerFactory = $this->createMock(WebhookHandlerFactory::class);
+        $webhookHandlerInterface = $this->createMock(WebhookHandlerInterface::class);
+        $webhookHandlerInterface->method('handleWebhook')->willReturn($order);
+        $mockWebhookHandlerFactory->method('create')->willReturn($webhookHandlerInterface);
+
+        $payment->expects($this->any())->method('getData')->will(
+            $this->returnCallback(function($key) {
+                $array = ['adyen_psp_reference'=>'ABCD1234GHJK5678',
+                'adyen_notification_event_code' => 'AUTHORISATION : TRUE'];
+                return $array[$key];
+            }));
+
+        $order->expects($this->any())
+            ->method('getPayment')
+            ->willReturn($payment);
+
+        $order->method('getState')->willReturn(Order::STATE_NEW);
+
+        $webhookHandler = $this->createWebhook(null, null, null, null, null, null, $mockWebhookHandlerFactory, $orderHelper, null);
+
+        $result = $webhookHandler->processNotification($notification);
+
+        $this->assertTrue($result);
     }
 
     protected function createWebhook(
