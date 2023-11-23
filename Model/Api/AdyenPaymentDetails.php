@@ -118,7 +118,6 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
         $apiPayload = DataArrayValidator::getArrayOnlyWithApprovedKeys($payload, self::PAYMENTS_DETAILS_KEYS);
         // cancellation request without `state.data`
         if (!empty($payload['cancelled']) && empty($apiPayload)) {
-            $this->checkoutSession->restoreQuote();
 
             // Set order status to new if it is not yet valid for cancel
             if (!$order->canCancel()) {
