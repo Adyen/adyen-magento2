@@ -14,6 +14,7 @@ namespace Adyen\Payment\Controller\Return;
 use Adyen\AdyenException;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
+use Adyen\Payment\Helper\Order as OrderHelper;
 use Adyen\Payment\Helper\Quote;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\StateData;
@@ -70,6 +71,7 @@ class Index extends Action
     private Data $adyenDataHelper;
     private OrderRepositoryInterface $orderRepository;
     private Idempotency $idempotencyHelper;
+    private OrderHelper $orderHelper;
 
     public function __construct(
         Context                  $context,
@@ -85,7 +87,8 @@ class Index extends Action
         Data                     $adyenDataHelper,
         OrderRepositoryInterface $orderRepository,
         Idempotency              $idempotencyHelper,
-        Config                   $configHelper
+        Config                   $configHelper,
+        OrderHelper $orderHelper
     ) {
         parent::__construct($context);
 
@@ -102,6 +105,7 @@ class Index extends Action
         $this->orderRepository = $orderRepository;
         $this->configHelper = $configHelper;
         $this->idempotencyHelper = $idempotencyHelper;
+        $this->orderHelper = $orderHelper;
     }
 
     public function execute(): void
@@ -200,6 +204,9 @@ class Index extends Action
             ]
         );
 
+        // Change order state from pending_payment to new and expect authorisation webhook.
+        $this->orderHelper->setStatusOrderCreation($order);
+
         // Save PSP reference from the response
         if (!empty($response['pspReference'])) {
             $this->payment->setAdditionalInformation('pspReference', $response['pspReference']);
@@ -256,7 +263,7 @@ class Index extends Action
 
         $pspReference = isset($response['pspReference']) ? trim((string) $response['pspReference']) : '';
 
-        $type = 'Adyen Result URL response:';
+        $type = 'Adyen redirect response:';
         $comment = __(
             '%1 <br /> authResult: %2 <br /> pspReference: %3 <br /> paymentMethod: %4',
             $type,

@@ -12,7 +12,6 @@
 
 namespace Adyen\Payment\Observer;
 
-use Adyen\Payment\Api\Data\PaymentResponseInterface;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Model\Method\Adapter;
 use Exception;
@@ -45,15 +44,18 @@ class SetOrderStateAfterPaymentObserver implements ObserverInterface
 
         if ($methodInstance instanceof Adapter) {
             $order = $payment->getOrder();
-            $resultCode = $payment->getAdditionalInformation(PaymentResponseInterface::RESULT_CODE);
+            $resultCode = $payment->getAdditionalInformation('resultCode');
             $action = $payment->getAdditionalInformation('action');
-            $actionType = $action['type'] ?? 'Additional';
 
             /*
              * Set order status and state to pending_payment if an addition action is required.
              * This status will be changed when the shopper completes the action or returns from a redirection.
              */
-            if (in_array($resultCode, PaymentResponseHandler::ACTION_REQUIRED_STATUSES)) {
+            if (in_array($resultCode, PaymentResponseHandler::ACTION_REQUIRED_STATUSES) &&
+            !is_null($action)
+            ) {
+                $actionType = $action['type'];
+
                 $status = $this->statusResolver->getOrderStatusByState(
                     $payment->getOrder(),
                     Order::STATE_PENDING_PAYMENT
@@ -62,8 +64,8 @@ class SetOrderStateAfterPaymentObserver implements ObserverInterface
                 $order->setStatus($status);
 
                 $message = sprintf(
-                    __("%s action is required to complete the payment.<br>Result code: %"),
-                    $actionType,
+                    __("%s action is required to complete the payment.<br>Result code: %s"),
+                    ucfirst($actionType),
                     $resultCode
                 );
 

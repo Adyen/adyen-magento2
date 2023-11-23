@@ -32,6 +32,7 @@ use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderStatusCollectionFactory;
+use Magento\TestFramework\Event\Magento;
 
 class Order extends AbstractHelper
 {
@@ -83,6 +84,8 @@ class Order extends AbstractHelper
     /** @var AdyenCreditmemoHelper */
     private $adyenCreditmemoHelper;
 
+    private MagentoOrder\StatusResolver $statusResolver;
+
     public function __construct(
         Context $context,
         Builder $transactionBuilder,
@@ -100,7 +103,8 @@ class Order extends AbstractHelper
         OrderPaymentCollectionFactory $adyenOrderPaymentCollectionFactory,
         PaymentMethods $paymentMethodsHelper,
         AdyenCreditMemoResourceModel $adyenCreditmemoResourceModel,
-        AdyenCreditmemoHelper $adyenCreditmemoHelper
+        AdyenCreditmemoHelper $adyenCreditmemoHelper,
+        MagentoOrder\StatusResolver $statusResolver
     ) {
         parent::__construct($context);
         $this->transactionBuilder = $transactionBuilder;
@@ -119,6 +123,7 @@ class Order extends AbstractHelper
         $this->paymentMethodsHelper = $paymentMethodsHelper;
         $this->adyenCreditmemoResourceModel = $adyenCreditmemoResourceModel;
         $this->adyenCreditmemoHelper = $adyenCreditmemoHelper;
+        $this->statusResolver = $statusResolver;
     }
 
     /**
@@ -358,6 +363,28 @@ class Order extends AbstractHelper
                 ]
             );
         }
+
+        return $order;
+    }
+
+    public function setStatusOrderCreation(MagentoOrder $order): MagentoOrder
+    {
+        $paymentMethod = $order->getPayment()->getMethod();
+
+        // Fetch the default order status for order creation from the configuration.
+        $status = $this->configHelper->getConfigData(
+            'order_status',
+            $paymentMethod,
+            $order->getStoreId()
+        );
+
+        if (is_null($status)) {
+            // If the configuration doesn't exist, use the default status.
+            $status = $this->statusResolver->getOrderStatusByState($order, MagentoOrder::STATE_NEW);
+        }
+
+        $order->setStatus($status);
+        $order->setState(MagentoOrder::STATE_NEW);
 
         return $order;
     }
