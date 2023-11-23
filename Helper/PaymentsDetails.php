@@ -69,7 +69,6 @@ class PaymentsDetails
             $paymentDetails = $service->paymentsDetails($apiPayload, $requestOptions);
         } catch (AdyenException $e) {
             $this->adyenLogger->error("Payment details call failed: " . $e->getMessage());
-            $this->checkoutSession->restoreQuote();
 
             // accept cancellation request, restore quote
             if (!empty($payload['cancelled'])) {
