@@ -27,6 +27,7 @@ class Requests extends AbstractHelper
         'storedPaymentMethods' => 'scheme',
         'googlepay' => 'scheme',
         'paywithgoogle' => 'scheme',
+        'applepay' => 'scheme'
     ];
     const SHOPPER_INTERACTION_CONTAUTH = 'ContAuth';
 
