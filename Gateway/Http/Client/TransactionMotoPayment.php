@@ -50,6 +50,7 @@ class TransactionMotoPayment implements ClientInterface
      * TransactionPayment constructor.
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param ApplicationInfo $applicationInfo
+     * @param Idempotency $idempotencyHelper
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,

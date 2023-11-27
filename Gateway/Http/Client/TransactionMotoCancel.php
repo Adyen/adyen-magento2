@@ -12,8 +12,8 @@
 namespace Adyen\Payment\Gateway\Http\Client;
 
 use Adyen\Client;
-use Adyen\Service\Modification;
 use Magento\Payment\Gateway\Http\ClientInterface;
+use Adyen\Payment\Helper\Idempotency;
 
 /**
  * Class TransactionSale
@@ -26,13 +26,21 @@ class TransactionMotoCancel implements ClientInterface
     private $adyenHelper;
 
     /**
+     * @var Idempotency
+     */
+    private $idempotencyHelper;
+
+    /**
      * PaymentRequest constructor.
      * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param Idempotency $idempotencyHelper
      */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        Idempotency $idempotencyHelper
     ) {
         $this->adyenHelper = $adyenHelper;
+        $this->idempotencyHelper = $idempotencyHelper;
     }
 
     /**
@@ -49,21 +57,21 @@ class TransactionMotoCancel implements ClientInterface
         $client = $this->adyenHelper->initializeAdyenClient(
             $clientConfig['storeId'],
             null,
-            $request['merchantAccount']
+            $request[0]['merchantAccount']
         );
         $service = $this->adyenHelper->createAdyenCheckoutService($client);
 
         $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
-            $request,
+            $request[0],
             $headers['idempotencyExtraData'] ?? null
         );
 
         $requestOptions['idempotencyKey'] = $idempotencyKey;
 
         $this->adyenHelper
-            ->logRequest($request, Client::API_CHECKOUT_VERSION, '/cancels');
+            ->logRequest($request[0], Client::API_CHECKOUT_VERSION, '/cancels');
         try {
-            $response = $service->cancels($request, $requestOptions);
+            $response = $service->cancels($request[0], $requestOptions);
         } catch (\Adyen\AdyenException $e) {
             $response['error'] = $e->getMessage();
         }
