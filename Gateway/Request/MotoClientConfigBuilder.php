@@ -12,21 +12,12 @@
 namespace Adyen\Payment\Gateway\Request;
 
 use Adyen\AdyenException;
-use Adyen\Payment\Helper\Requests;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
 class MotoClientConfigBuilder implements BuilderInterface
 {
-    private Requests $adyenRequestsHelper;
-
-    public function __construct(
-        Requests $adyenRequestsHelper
-    ) {
-        $this->adyenRequestsHelper = $adyenRequestsHelper;
-    }
-
     public function build(array $buildSubject): array
     {
         /** @var PaymentDataObject $paymentDataObject */

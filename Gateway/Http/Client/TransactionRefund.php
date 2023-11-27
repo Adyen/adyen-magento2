@@ -15,9 +15,6 @@ use Adyen\AdyenException;
 use Adyen\Client;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
-use Adyen\Service\Modification;
-use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 
 /**
@@ -25,11 +22,7 @@ use Magento\Payment\Gateway\Http\TransferInterface;
  */
 class TransactionRefund implements TransactionRefundInterface
 {
-    /**
-     * @var Data
-     */
-    private $adyenHelper;
-
+    private Data $adyenHelper;
     private Idempotency $idempotencyHelper;
 
     public function __construct(
@@ -45,17 +38,7 @@ class TransactionRefund implements TransactionRefundInterface
         $requests = $transferObject->getBody();
         $headers = $transferObject->getHeaders();
         $clientConfig = $transferObject->getClientConfig();
-
-        if(isset($clientConfig['isMotoTransaction']) && $clientConfig['isMotoTransaction'] === true) {
-            $client = $this->adyenHelper->initializeAdyenClient(
-                $clientConfig['storeId'],
-                null,
-                $clientConfig['motoMerchantAccount']
-            );
-        } else {
-            $client = $this->adyenHelper->initializeAdyenClient($clientConfig['storeId']);
-        }
-
+        $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
         $service = $this->adyenHelper->createAdyenCheckoutService($client);
 
         foreach ($requests as $request) {
