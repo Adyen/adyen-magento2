@@ -20,6 +20,7 @@ define(
         'Adyen_Payment/js/model/adyen-configuration',
         'Adyen_Payment/js/adyen',
         'Magento_Customer/js/customer-data',
+        'Magento_Checkout/js/model/error-processor',
         'mage/translate'
     ],
     function(
@@ -34,6 +35,7 @@ define(
         adyenConfiguration,
         adyenCheckout,
         customerData,
+        errorProcessor,
         $t
     ) {
         'use strict';
@@ -192,6 +194,11 @@ define(
                 adyenPaymentService.removeStateData(data.stateDataId).done(function () {
                     self.fetchRedeemedGiftcards();
                     fullScreenLoader.stopLoader();
+                }).fail(function(response) {
+                    fullScreenLoader.stopLoader();
+                    self.fetchRedeemedGiftcards();
+
+                    errorProcessor.process(response, this.currentMessageContainer);
                 });
             },
 
