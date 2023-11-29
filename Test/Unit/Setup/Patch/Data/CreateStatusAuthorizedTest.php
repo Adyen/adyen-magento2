@@ -72,7 +72,7 @@ class CreateStatusAuthorizedTest extends AbstractAdyenTestCase
         ]);
         $statusFactoryMock = $this->createGeneratedMock(StatusFactory::class, ['create']);
         $statusFactoryMock->method('create')->willReturn($this->createMock(Status::class));
-        $statusResourceFactoryMock = $this->createGeneratedMock(StatusResourceFactory::class);
+        $statusResourceFactoryMock = $this->createGeneratedMock(StatusResourceFactory::class, ['create']);
         $statusResourceFactoryMock->method('create')
             ->willReturn($this->createMock(StatusResource::class));
 
