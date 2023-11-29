@@ -70,7 +70,7 @@ class CreateStatusAuthorizedTest extends AbstractAdyenTestCase
         $dataPatchHelperMock = $this->createConfiguredMock(DataPatch::class, [
             'findConfig' => null
         ]);
-        $statusFactoryMock = $this->createGeneratedMock(StatusFactory::class);
+        $statusFactoryMock = $this->createGeneratedMock(StatusFactory::class, ['create']);
         $statusFactoryMock->method('create')->willReturn($this->createMock(Status::class));
         $statusResourceFactoryMock = $this->createGeneratedMock(StatusResourceFactory::class);
         $statusResourceFactoryMock->method('create')
