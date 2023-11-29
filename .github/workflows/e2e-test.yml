@@ -3,7 +3,7 @@ run-name: Adyen Magento 2 Payment Plugin E2E tests
 
 on: 
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize]
 
 jobs:
   build:
