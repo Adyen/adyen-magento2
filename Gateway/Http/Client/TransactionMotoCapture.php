@@ -55,10 +55,12 @@ class TransactionMotoCapture implements ClientInterface
      */
     public function __construct(
         Data $adyenHelper,
-        AdyenLogger $adyenLogger
+        AdyenLogger $adyenLogger,
+        Idempotency $idempotencyHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenLogger = $adyenLogger;
+        $this->idempotencyHelper = $idempotencyHelper;
     }
 
     /**
