@@ -17,6 +17,7 @@ use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\Order as OrderHelper;
 use Adyen\Payment\Helper\Webhook\WebhookHandlerFactory;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Config\Source\PreAuthorized;
 use Adyen\Payment\Model\Notification;
 use Adyen\Webhook\Exception\InvalidDataException;
 use Adyen\Webhook\Notification as WebhookNotification;
@@ -45,7 +46,7 @@ class Webhook
      * Indicative matrix for possible states to enter after given event
      */
     const STATE_TRANSITION_MATRIX = [
-        'payment_pre_authorized' => [Order::STATE_NEW],
+        'payment_pre_authorized' => [Order::STATE_NEW, PreAuthorized::STATE_ADYEN_AUTHORIZED],
         'payment_authorized' => [Order::STATE_PROCESSING]
     ];
 
