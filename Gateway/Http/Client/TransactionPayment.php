@@ -91,7 +91,8 @@ class TransactionPayment implements ClientInterface
             return $request;
         }
 
-        $service = $this->adyenHelper->createAdyenCheckoutService();
+        $client = $this->adyenHelper->initializeAdyenClient($transferObject->getClientConfig()['storeId']);
+        $service = $this->adyenHelper->createAdyenCheckoutService($client);
 
         $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
             $request,

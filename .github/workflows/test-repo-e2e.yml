@@ -11,7 +11,7 @@ on:
       expressBranch:
         description: "Express Checkout Repository Pipeline"
         required: true
-        default: "develop"
+        default: "develop-1"
 
 jobs:
   build:

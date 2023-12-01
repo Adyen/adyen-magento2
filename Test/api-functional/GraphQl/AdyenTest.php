@@ -229,14 +229,25 @@ JSON;
         "encryptedExpiryMonth": "test_03",
         "encryptedExpiryYear": "test_2030",
         "encryptedSecurityCode": "test_737"
-    }
+    },
+    "browserInfo": {
+        "acceptHeader": "*/*",
+        "colorDepth": 24,
+        "language": "en-US",
+        "javaEnabled": false,
+        "screenHeight": 1080,
+        "screenWidth": 1920,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36",
+        "timeZoneOffset": -120
+    },
+    "origin": "http://localhost",
+    "clientStateDataIndicator": true
 }
 JSON;
         $adyenAdditionalData = '
         adyen_additional_data_cc: {
             cc_type: "VI",
-            stateData: ' . json_encode($stateData) . ',
-            returnUrl: "my-app://your.package.name"
+            stateData: ' . json_encode($stateData) . '
         }';
         $query = $this->getPlaceOrderQuery($maskedQuoteId, "adyen_cc", $adyenAdditionalData);
 

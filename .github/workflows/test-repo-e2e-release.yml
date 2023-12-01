@@ -3,11 +3,12 @@ run-name: --V8-- E2E tests against Test Repository with Express Checkout
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize]
     branches: [main-8]
 
 jobs:
   build:
+    if: ${{ github.event.pull_request.draft == false }}
     runs-on:
       group: larger-runners
       labels: ubuntu-latest-8-cores
@@ -41,7 +42,7 @@ jobs:
         run: docker exec -u www-data magento2-container make plugin
 
       - name: Install Express module
-        run: docker exec -u www-data magento2-container composer require adyen/adyen-magento2-expresscheckout
+        run: docker exec -u www-data magento2-container composer require adyen/adyen-magento2-expresscheckout:dev-develop-1
 
       - name: Enable Express module
         run: docker exec -u www-data magento2-container make enable-express

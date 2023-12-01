@@ -12,6 +12,9 @@
 namespace Adyen\Payment\Gateway\Http\Client;
 
 use Adyen\Client;
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Idempotency;
+use Magento\Payment\Gateway\Http\TransferInterface;
 use Magento\Payment\Gateway\Http\ClientInterface;
 
 /**
@@ -20,27 +23,37 @@ use Magento\Payment\Gateway\Http\ClientInterface;
 class TransactionMotoRefund implements TransactionRefundInterface
 {
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     private $adyenHelper;
 
     /**
+     * @var Idempotency
+     */
+    private $idempotencyHelper;
+
+    /**
      * PaymentRequest constructor.
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param Data $adyenHelper
+     * @param Idempotency $idempotencyHelper
      */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
+        Data $adyenHelper,
+        Idempotency $idempotencyHelper
     ) {
         $this->adyenHelper = $adyenHelper;
+        $this->idempotencyHelper = $idempotencyHelper;
     }
 
     /**
-     * @param \Magento\Payment\Gateway\Http\TransferInterface $transferObject
+     * @param TransferInterface $transferObject
      * @return null
      */
-    public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
+    public function placeRequest(TransferInterface $transferObject)
     {
         $requests = $transferObject->getBody();
+        $headers = $transferObject->getHeaders();
+
         $clientConfig = $transferObject->getClientConfig();
 
         $responses = [];
@@ -55,10 +68,18 @@ class TransactionMotoRefund implements TransactionRefundInterface
             );
 
             $service = $this->adyenHelper->createAdyenCheckoutService($client);
+
+            $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
+                $request,
+                $headers['idempotencyExtraData'] ?? null
+            );
+
+            $requestOptions['idempotencyKey'] = $idempotencyKey;
+
             $this->adyenHelper
                 ->logRequest($request, Client::API_CHECKOUT_VERSION, '/refunds');
             try {
-                $response = $service->refunds($request);
+                $response = $service->refunds($request, $requestOptions);
 
                 // Add amount original reference and amount information to response
                 $response[self::REFUND_AMOUNT] = $request['amount']['value'];
