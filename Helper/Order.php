@@ -32,7 +32,6 @@ use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderStatusCollectionFactory;
-use Magento\TestFramework\Event\Magento;
 
 class Order extends AbstractHelper
 {
@@ -367,7 +366,7 @@ class Order extends AbstractHelper
         return $order;
     }
 
-    public function setStatusOrderCreation(MagentoOrder $order): MagentoOrder
+    public function setStatusOrderCreation(OrderInterface $order): OrderInterface
     {
         $paymentMethod = $order->getPayment()->getMethod();
 

@@ -17,6 +17,7 @@ use Adyen\Service\Validator\DataArrayValidator;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Exception\ValidatorException;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Model\OrderRepository;
 
 class PaymentsDetails
 {
@@ -31,19 +32,25 @@ class PaymentsDetails
     private AdyenLogger $adyenLogger;
     private PaymentResponseHandler $paymentResponseHandler;
     private Idempotency $idempotencyHelper;
+    private Order $orderHelper;
+    private OrderRepository $orderRepository;
 
     public function __construct(
         Session $checkoutSession,
         Data $adyenHelper,
         AdyenLogger $adyenLogger,
         PaymentResponseHandler $paymentResponseHandler,
-        Idempotency $idempotencyHelper
+        Idempotency $idempotencyHelper,
+        Order $orderHelper,
+        OrderRepository $orderRepository
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->adyenHelper = $adyenHelper;
         $this->adyenLogger = $adyenLogger;
         $this->paymentResponseHandler = $paymentResponseHandler;
         $this->idempotencyHelper = $idempotencyHelper;
+        $this->orderHelper = $orderHelper;
+        $this->orderRepository = $orderRepository;
     }
 
     public function initiatePaymentDetails(OrderInterface $order, string $payload): string
@@ -93,6 +100,13 @@ class PaymentsDetails
         $additionalData = null;
         if (!empty($paymentDetails['additionalData'])) {
             $additionalData = $paymentDetails['additionalData'];
+        }
+
+        if (!in_array($paymentDetails['resultCode'], PaymentResponseHandler::ACTION_REQUIRED_STATUSES)) {
+            /* Change order state from pending_payment to new and expect authorisation webhook
+             * if no additional action is required according to /paymentDetails response. */
+            $order = $this->orderHelper->setStatusOrderCreation($order);
+            $this->orderRepository->save($order);
         }
 
         return json_encode(

@@ -15,6 +15,7 @@ use Adyen\AdyenException;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
 use Adyen\Payment\Helper\Order as OrderHelper;
+use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Helper\Quote;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\StateData;
@@ -204,8 +205,11 @@ class Index extends Action
             ]
         );
 
-        // Change order state from pending_payment to new and expect authorisation webhook.
-        $this->orderHelper->setStatusOrderCreation($order);
+        if (!in_array($response['resultCode'], PaymentResponseHandler::ACTION_REQUIRED_STATUSES)) {
+            /* Change order state from pending_payment to new and expect authorisation webhook
+             * if no additional action is required according to /paymentDetails response. */
+            $order = $this->orderHelper->setStatusOrderCreation($order);
+        }
 
         // Save PSP reference from the response
         if (!empty($response['pspReference'])) {
@@ -293,6 +297,11 @@ class Index extends Action
                 $this->adyenLogger->addAdyenResult('Do nothing wait for the notification');
                 break;
             case Notification::PENDING:
+                /* Change order state from pending_payment to new and expect authorisation webhook
+                 * if no additional action is required according to /paymentDetails response. */
+                $order = $this->orderHelper->setStatusOrderCreation($order);
+                $this->orderRepository->save($order);
+
                 // do nothing wait for the notification
                 $result = true;
                 if (strpos((string) $paymentMethod, "bankTransfer") !== false) {
