@@ -63,11 +63,11 @@ class OtherTopicsForm extends Generic
 
         $fieldset->addType(
             'textarea',
-            'Adyen\Payment\Block\Adminhtml\Support\Form\Element\CustomTextareaElement'
+            \Adyen\Payment\Block\Adminhtml\Support\Form\Element\CustomTextareaElement::class
         );
         $fieldset->addType(
             'file',
-            'Adyen\Payment\Block\Adminhtml\Support\Form\Element\MultipleFileElement'
+            \Adyen\Payment\Block\Adminhtml\Support\Form\Element\MultipleFileElement::class
         );
 
         $fieldset->addField(

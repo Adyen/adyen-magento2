@@ -85,7 +85,7 @@ class PaymentCaptureDetailsHandler implements HandlerInterface
         $captureNotReceived = [];
 
         foreach ($responseContainer[TransactionCapture::MULTIPLE_AUTHORIZATIONS] as $response) {
-            if ($response["response"] !== TransactionCapture::CAPTURE_RECEIVED) {
+            if ($response["status"] !== TransactionCapture::CAPTURE_RECEIVED) {
                 $captureNotReceived[] = $response['pspReference'];
             } else {
                 $lastTransId = $response['pspReference'];
