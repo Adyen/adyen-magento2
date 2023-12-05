@@ -140,7 +140,7 @@ public function testGetOpenInvoiceData(): void
         ];
 
         // Act: Call the method with the mocked parameters
-        $result = $openInvoice->getOpenInvoiceData($this->orderMock);
+        $result = $openInvoice->getOpenInvoiceDataFromOrder($this->orderMock);
 
         // Assert: Verify that the output matches your expectations
         $this->assertEquals($expectedResult, $result);

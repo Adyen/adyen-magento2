@@ -12,8 +12,11 @@
 
 namespace Adyen\Payment\Helper;
 
+use JetBrains\PhpStorm\ArrayShape;
+use Magento\Payment\Model\InfoInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Catalog\Helper\Image;
+use Magento\Sales\Model\Order;
 
 class OpenInvoice
 {
@@ -56,7 +59,68 @@ class OpenInvoice
         $this->imageHelper = $imageHelper;
     }
 
-    public function getOpenInvoiceData($order): array
+    public function getOpenInvoiceDataFromPayment($payment)
+    {
+        $formFields = [];
+        $count = 0;
+        $order = $payment->getOrder();
+        $invoices = $order->getInvoiceCollection();
+
+        $currency = $this->chargedCurrency
+            ->getOrderAmountCurrency($payment->getOrder(), false)
+            ->getCurrencyCode();
+
+        // The latest invoice will contain only the selected items(and quantities) for the (partial) capture
+        $latestInvoice = $invoices->getLastItem();
+
+        /* @var \Magento\Sales\Model\Order\Invoice\Item $invoiceItem */
+        foreach ($latestInvoice->getItems() as $invoiceItem) {
+            $numberOfItems = (int)$invoiceItem->getQty();
+
+            if ($invoiceItem->getOrderItem()->getParentItem() || $numberOfItems <= 0) {
+                continue;
+            }
+
+            ++$count;
+            $itemAmountCurrency = $this->chargedCurrency->getInvoiceItemAmountCurrency($invoiceItem);
+
+            $formFields = $this->adyenHelper->createOpenInvoiceLineItem(
+                $formFields,
+                $count,
+                $invoiceItem->getName(),
+                $itemAmountCurrency->getAmount(),
+                $currency,
+                $itemAmountCurrency->getTaxAmount(),
+                $itemAmountCurrency->getAmount() + $itemAmountCurrency->getTaxAmount(),
+                $invoiceItem->getOrderItem()->getTaxPercent(),
+                $numberOfItems,
+                $payment,
+                $invoiceItem->getId()
+            );
+        }
+
+        // Shipping cost
+        if ($latestInvoice->getShippingAmount() > 0) {
+            ++$count;
+            $adyenInvoiceShippingAmount = $this->chargedCurrency->getInvoiceShippingAmountCurrency($latestInvoice);
+            $formFields = $this->adyenHelper->createOpenInvoiceLineShipping(
+                $formFields,
+                $count,
+                $order,
+                $adyenInvoiceShippingAmount->getAmount(),
+                $adyenInvoiceShippingAmount->getTaxAmount(),
+                $adyenInvoiceShippingAmount->getCurrencyCode(),
+                $payment
+            );
+        }
+
+        $formFields['openinvoicedata.numberOfLines'] = $count;
+
+        return $formFields;
+    }
+
+
+    public function getOpenInvoiceDataFromOrder(Order $order): array
     {
         $formFields = [
             'lineItems' => []
