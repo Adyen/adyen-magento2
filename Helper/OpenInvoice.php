@@ -59,7 +59,7 @@ class OpenInvoice
         $this->imageHelper = $imageHelper;
     }
 
-    public function getOpenInvoiceDataFromPayment($payment)
+    public function getOpenInvoiceDataFromPayment($payment): array
     {
         $formFields = [];
         $count = 0;
