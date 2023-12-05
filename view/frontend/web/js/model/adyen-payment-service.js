@@ -52,7 +52,8 @@ define(
 
                 return storage.post(
                     serviceUrl,
-                    JSON.stringify(payload)
+                    JSON.stringify(payload),
+                    false
                 );
             },
 
