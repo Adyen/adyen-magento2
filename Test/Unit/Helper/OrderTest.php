@@ -273,7 +273,8 @@ class OrderTest extends AbstractAdyenTestCase
         $notifierPool = null,
         $paymentMethodsHelper = null,
         $adyenCreditmemoResourceModel = null,
-        $adyenCreditmemoHelper = null
+        $adyenCreditmemoHelper = null,
+        $statusResolver = null
     ): Order
     {
         $context = $this->createMock(Context::class);
@@ -342,6 +343,10 @@ class OrderTest extends AbstractAdyenTestCase
             $adyenCreditmemoHelper = $this->createMock(AdyenCreditmemoHelper::class);
         }
 
+        if (is_null($statusResolver)) {
+            $statusResolver = $this->createMock(MagentoOrder\StatusResolver::class);
+        }
+
         return new Order(
             $context,
             $builder,
@@ -359,7 +364,8 @@ class OrderTest extends AbstractAdyenTestCase
             $orderPaymentCollectionFactory,
             $paymentMethodsHelper,
             $adyenCreditmemoResourceModel,
-            $adyenCreditmemoHelper
+            $adyenCreditmemoHelper,
+            $statusResolver
         );
     }
 }
