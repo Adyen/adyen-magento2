@@ -12,11 +12,13 @@
 
 namespace Adyen\Payment\Helper;
 
-use JetBrains\PhpStorm\ArrayShape;
-use Magento\Payment\Model\InfoInterface;
-use Magento\Quote\Api\CartRepositoryInterface;
+use Adyen\Payment\Model\AdyenAmountCurrency;
 use Magento\Catalog\Helper\Image;
+use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Invoice;
+use Magento\Sales\Model\Order\Payment;
+use Magento\Sales\Model\Order\Invoice\Item;
 
 class OpenInvoice
 {
@@ -38,7 +40,7 @@ class OpenInvoice
     /**
      * @var Config
      */
-    protected  $configHelper;
+    protected $configHelper;
 
     /**
      * @var Image
@@ -46,12 +48,13 @@ class OpenInvoice
     protected $imageHelper;
 
     public function __construct(
-        Data $adyenHelper,
+        Data                    $adyenHelper,
         CartRepositoryInterface $cartRepository,
-        ChargedCurrency $chargedCurrency,
-        Config $configHelper,
-        Image $imageHelper
-    ) {
+        ChargedCurrency         $chargedCurrency,
+        Config                  $configHelper,
+        Image                   $imageHelper
+    )
+    {
         $this->adyenHelper = $adyenHelper;
         $this->cartRepository = $cartRepository;
         $this->chargedCurrency = $chargedCurrency;
@@ -59,10 +62,9 @@ class OpenInvoice
         $this->imageHelper = $imageHelper;
     }
 
-    public function getOpenInvoiceDataFromPayment($payment): array
+    public function getOpenInvoiceDataFromPayment(Payment $payment): array
     {
         $formFields = [];
-        $count = 0;
         $order = $payment->getOrder();
         $invoices = $order->getInvoiceCollection();
 
@@ -71,54 +73,39 @@ class OpenInvoice
             ->getCurrencyCode();
 
         // The latest invoice will contain only the selected items(and quantities) for the (partial) capture
+        /** @var Invoice $latestInvoice */
         $latestInvoice = $invoices->getLastItem();
+        $discountAmount = 0;
 
-        /* @var \Magento\Sales\Model\Order\Invoice\Item $invoiceItem */
+        /* @var Item $invoiceItem */
         foreach ($latestInvoice->getItems() as $invoiceItem) {
             $numberOfItems = (int)$invoiceItem->getQty();
-
-            if ($invoiceItem->getOrderItem()->getParentItem() || $numberOfItems <= 0) {
+            $orderItem = $invoiceItem->getOrderItem();
+            if ($orderItem->getParentItem() || $numberOfItems <= 0) {
                 continue;
             }
-
-            ++$count;
+            $product = $orderItem->getProduct();
             $itemAmountCurrency = $this->chargedCurrency->getInvoiceItemAmountCurrency($invoiceItem);
+            $discountAmount += $itemAmountCurrency->getDiscountAmount();
+            $formFields['lineItems'][] = $this->formatInoviceItem($itemAmountCurrency, $orderItem, $currency, $product, $numberOfItems);
+        }
 
-            $formFields = $this->adyenHelper->createOpenInvoiceLineItem(
-                $formFields,
-                $count,
-                $invoiceItem->getName(),
-                $itemAmountCurrency->getAmount(),
-                $currency,
-                $itemAmountCurrency->getTaxAmount(),
-                $itemAmountCurrency->getAmount() + $itemAmountCurrency->getTaxAmount(),
-                $invoiceItem->getOrderItem()->getTaxPercent(),
-                $numberOfItems,
-                $payment,
-                $invoiceItem->getId()
+        // Discount cost
+        if ($discountAmount != 0) {
+            $formFields['lineItems'][] = $this->formatInvoiceDiscount(
+                $discountAmount,
+                $latestInvoice->getShippingAddress()->getShippingDiscountAmount(),
+                $itemAmountCurrency
             );
         }
 
-        // Shipping cost
-        if ($latestInvoice->getShippingAmount() > 0) {
-            ++$count;
+        if ($latestInvoice->getShippingAmount() > 0 || $latestInvoice->getShippingTaxAmount() > 0) {
             $adyenInvoiceShippingAmount = $this->chargedCurrency->getInvoiceShippingAmountCurrency($latestInvoice);
-            $formFields = $this->adyenHelper->createOpenInvoiceLineShipping(
-                $formFields,
-                $count,
-                $order,
-                $adyenInvoiceShippingAmount->getAmount(),
-                $adyenInvoiceShippingAmount->getTaxAmount(),
-                $adyenInvoiceShippingAmount->getCurrencyCode(),
-                $payment
-            );
+            $formFields['lineItems'][] = $this->formatInvoiceShippingItem($adyenInvoiceShippingAmount, $order->getShippingDescription());
         }
-
-        $formFields['openinvoicedata.numberOfLines'] = $count;
 
         return $formFields;
     }
-
 
     public function getOpenInvoiceDataFromOrder(Order $order): array
     {
@@ -133,98 +120,27 @@ class OpenInvoice
         $discountAmount = 0;
 
         foreach ($cart->getAllVisibleItems() as $item) {
-            $numberOfItems = (int)$item->getQty();
-
             $itemAmountCurrency = $this->chargedCurrency->getQuoteItemAmountCurrency($item);
-
+            $numberOfItems = (int)$item->getQty();
+            $product = $item->getProduct();
             // Summarize the discount amount item by item
             $discountAmount += $itemAmountCurrency->getDiscountAmount();
-
-            $formattedPriceExcludingTax = $this->adyenHelper->formatAmount(
-                $itemAmountCurrency->getAmount(),
-                $itemAmountCurrency->getCurrencyCode()
-            );
-
-            $formattedPriceIncludingTax = $this->adyenHelper->formatAmount(
-                $itemAmountCurrency->getAmountIncludingTax(),
-                $itemAmountCurrency->getCurrencyCode()
-            );
-
-            $formattedTaxAmount = $this->adyenHelper->formatAmount(
-                $itemAmountCurrency->getTaxAmount(),
-                $itemAmountCurrency->getCurrencyCode()
-            );
-
-            $formattedTaxPercentage = $this->adyenHelper->formatAmount($item->getTaxPercent(), $currency);
-
-            $formFields['lineItems'][] = [
-                'id' => $item->getProduct()->getId(),
-                'amountExcludingTax' => $formattedPriceExcludingTax,
-                'amountIncludingTax' => $formattedPriceIncludingTax,
-                'taxAmount' => $formattedTaxAmount,
-                'description' => $item->getName(),
-                'quantity' => $numberOfItems,
-                'taxPercentage' => $formattedTaxPercentage,
-                'productUrl' => $item->getProduct()->getUrlModel()->getUrl($item->getProduct()),
-                'imageUrl' => $this->getImageUrl($item)
-            ];
+            $formFields['lineItems'][] = $this->formatInoviceItem($itemAmountCurrency, $item, $currency, $product, $numberOfItems);
         }
 
         // Discount cost
         if ($discountAmount != 0) {
-            $description = __('Discount');
-            $itemAmount = -$this->adyenHelper->formatAmount(
-                $discountAmount + $cart->getShippingAddress()->getShippingDiscountAmount(),
-                $itemAmountCurrency->getCurrencyCode()
+            $formFields['lineItems'][] = $this->formatInvoiceDiscount(
+                $discountAmount,
+                $cart->getShippingAddress()->getShippingDiscountAmount(),
+                $itemAmountCurrency
             );
-            $itemVatAmount = "0";
-            $itemVatPercentage = "0";
-            $numberOfItems = 1;
-
-            $formFields['lineItems'][] = [
-                'id' => 'Discount',
-                'amountExcludingTax' => $itemAmount,
-                'amountIncludingTax' => $itemAmount,
-                'taxAmount' => $itemVatAmount,
-                'description' => $description,
-                'quantity' => $numberOfItems,
-                'taxPercentage' => $itemVatPercentage
-            ];
         }
 
         // Shipping cost
-        if ($cart->getShippingAddress()->getShippingAmount() > 0 ||
-            $cart->getShippingAddress()->getShippingTaxAmount() > 0
-        ) {
+        if ($cart->getShippingAddress()->getShippingAmount() > 0 || $cart->getShippingAddress()->getShippingTaxAmount() > 0) {
             $shippingAmountCurrency = $this->chargedCurrency->getQuoteShippingAmountCurrency($cart);
-
-            $formattedPriceExcludingTax = $this->adyenHelper->formatAmount(
-                $shippingAmountCurrency->getAmount(),
-                $currency
-            );
-
-
-            $formattedPriceIncludingTax = $this->adyenHelper->formatAmount(
-                $shippingAmountCurrency->getAmountIncludingTax(),
-                $currency
-            );
-
-
-            $formattedTaxAmount = $this->adyenHelper->formatAmount(
-                $shippingAmountCurrency->getTaxAmount(),
-                $currency
-            );
-
-
-            $formFields['lineItems'][] = [
-                'id' => 'shippingCost',
-                'amountExcludingTax' => $formattedPriceExcludingTax,
-                'amountIncludingTax' => $formattedPriceIncludingTax,
-                'taxAmount' => $formattedTaxAmount,
-                'description' => $order->getShippingDescription(),
-                'quantity' => 1,
-                'taxPercentage' => (int) round(($formattedTaxAmount / $formattedPriceExcludingTax) * 100 * 100)
-            ];
+            $formFields['lineItems'][] = $this->formatInvoiceShippingItem($shippingAmountCurrency, $order->getShippingDescription());
         }
 
         return $formFields;
@@ -246,5 +162,72 @@ class OpenInvoice
         }
 
         return $imageUrl;
+    }
+
+    protected function formatInvoiceShippingItem(AdyenAmountCurrency $shippingAmount, string $shippingDescription): array
+    {
+        $currency = $shippingAmount->getCurrencyCode();
+        $formattedPriceExcludingTax = $this->adyenHelper->formatAmount($shippingAmount->getAmount(), $currency);
+        $formattedPriceIncludingTax = $this->adyenHelper->formatAmount($shippingAmount->getAmountIncludingTax(), $currency);
+        $formattedTaxAmount = $this->adyenHelper->formatAmount($shippingAmount->getTaxAmount(), $currency);
+
+        return [
+            'id' => 'shippingCost',
+            'amountExcludingTax' => $formattedPriceExcludingTax,
+            'amountIncludingTax' => $formattedPriceIncludingTax,
+            'taxAmount' => $formattedTaxAmount,
+            'description' => $shippingDescription,
+            'quantity' => 1,
+            'taxPercentage' => (int)round(($formattedTaxAmount / $formattedPriceExcludingTax) * 100 * 100)
+        ];
+    }
+
+    public function formatInoviceItem(AdyenAmountCurrency $itemAmountCurrency, $item, $currency, $product, int $numberOfItems): array
+    {
+        $formattedPriceExcludingTax = $this->adyenHelper->formatAmount(
+            $itemAmountCurrency->getAmount(),
+            $itemAmountCurrency->getCurrencyCode()
+        );
+
+        $formattedPriceIncludingTax = $this->adyenHelper->formatAmount(
+            $itemAmountCurrency->getAmountIncludingTax(),
+            $itemAmountCurrency->getCurrencyCode()
+        );
+
+        $formattedTaxAmount = $this->adyenHelper->formatAmount(
+            $itemAmountCurrency->getTaxAmount(),
+            $itemAmountCurrency->getCurrencyCode()
+        );
+
+        $formattedTaxPercentage = $this->adyenHelper->formatAmount($item->getTaxPercent(), $currency);
+
+        $output = [
+            'id' => $product->getId(),
+            'amountExcludingTax' => $formattedPriceExcludingTax,
+            'amountIncludingTax' => $formattedPriceIncludingTax,
+            'taxAmount' => $formattedTaxAmount,
+            'description' => $item->getName(),
+            'quantity' => $numberOfItems,
+            'taxPercentage' => $formattedTaxPercentage,
+            'productUrl' => $product->getUrlModel()->getUrl($product),
+            'imageUrl' => $this->getImageUrl($item)
+        ];
+        return $output;
+    }
+
+    public function formatInvoiceDiscount(mixed $discountAmount, $shippingDiscountAmount, AdyenAmountCurrency $itemAmountCurrency): array
+    {
+        $description = __('Discount');
+        $itemAmount = -$this->adyenHelper->formatAmount($discountAmount + $shippingDiscountAmount, $itemAmountCurrency->getCurrencyCode());
+
+        return [
+            'id' => 'Discount',
+            'amountExcludingTax' => $itemAmount,
+            'amountIncludingTax' => $itemAmount,
+            'taxAmount' => 0,
+            'description' => $description,
+            'quantity' => 1,
+            'taxPercentage' => 0
+        ];
     }
 }
