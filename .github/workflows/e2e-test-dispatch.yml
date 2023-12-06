@@ -11,7 +11,7 @@ on:
       expressBranch:
         description: "Express Checkout Repository Pipeline"
         required: true
-        default: "rc-v2"
+        default: "develop"
 
 jobs:
   build:
@@ -71,9 +71,11 @@ jobs:
         run: docker exec -u www-data magento2-container make dev-module
 
       - name: Install Express module
+        if: ${{inputs.expressBranch != 'disable'}}
         run: docker exec -u www-data magento2-container composer require adyen/adyen-magento2-expresscheckout:dev-${{inputs.expressBranch}}
 
       - name: Enable Express module
+        if: ${{inputs.expressBranch != 'disable'}}
         run: docker exec -u www-data magento2-container make enable-express
 
       - name: Switch to production mode
