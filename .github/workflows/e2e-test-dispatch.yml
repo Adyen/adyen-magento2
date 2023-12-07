@@ -37,6 +37,8 @@ jobs:
           ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
           ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
           ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
+          WEBHOOK_USERNAME: ${{secrets.WEBHOOK_USERNAME}}
+          WEBHOOK_PASSWORD: ${{secrets.WEBHOOK_PASSWORD}}
 
       - name: Setup permissions
         run: docker exec magento2-container make fs
