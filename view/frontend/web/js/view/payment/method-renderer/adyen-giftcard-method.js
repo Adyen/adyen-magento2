@@ -205,16 +205,21 @@ define(
 
             handleBalanceResult: function (balanceResponse, stateData, resolve) {
                 let self = this;
+
+                let consumableBalance = balanceResponse.transactionLimit ?
+                    balanceResponse.transactionLimit :
+                    balanceResponse.balance;
+
                 let orderAmount = currencyHelper.formatAmount(
                     quote.totals().grand_total,
                     window.checkoutConfig.payment.adyen.giftcard.currency
                 );
 
-                if(this.totalGiftcardBalance() === 0 && balanceResponse.balance.value >= orderAmount) {
+                if(this.totalGiftcardBalance() === 0 && consumableBalance.value >= orderAmount) {
                     resolve(balanceResponse);
                 } else if (orderAmount > this.totalGiftcardBalance()) {
                     stateData.giftcard = {
-                        balance: balanceResponse.balance,
+                        balance: consumableBalance,
                         title: this.selectedGiftcard().key
                     }
                     adyenPaymentService.saveStateData(stateData).done(function () {
