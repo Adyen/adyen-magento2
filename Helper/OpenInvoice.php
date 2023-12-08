@@ -16,6 +16,7 @@ use Adyen\Payment\Model\AdyenAmountCurrency;
 use Magento\Catalog\Helper\Image;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Creditmemo;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\Order\Invoice\Item;
@@ -62,7 +63,7 @@ class OpenInvoice
         $this->imageHelper = $imageHelper;
     }
 
-    public function getOpenInvoiceDataFromPayment(Payment $payment): array
+    public function getOpenInvoiceDataFromPayment(Payment $payment, Invoice $invoice = null): array
     {
         $formFields = [];
         $order = $payment->getOrder();
@@ -73,12 +74,12 @@ class OpenInvoice
             ->getCurrencyCode();
 
         // The latest invoice will contain only the selected items(and quantities) for the (partial) capture
-        /** @var Invoice $latestInvoice */
-        $latestInvoice = $invoices->getLastItem();
+        /** @var Invoice $invoice */
+        $invoice = $invoice ?: $invoices->getLastItem();
         $discountAmount = 0;
 
         /* @var Item $invoiceItem */
-        foreach ($latestInvoice->getItems() as $invoiceItem) {
+        foreach ($invoice->getItems() as $invoiceItem) {
             $numberOfItems = (int)$invoiceItem->getQty();
             $orderItem = $invoiceItem->getOrderItem();
             if ($orderItem->getParentItem() || $numberOfItems <= 0) {
@@ -94,13 +95,13 @@ class OpenInvoice
         if ($discountAmount != 0) {
             $formFields['lineItems'][] = $this->formatInvoiceDiscount(
                 $discountAmount,
-                $latestInvoice->getShippingAddress()->getShippingDiscountAmount(),
+                $invoice->getShippingAddress()->getShippingDiscountAmount(),
                 $itemAmountCurrency
             );
         }
 
-        if ($latestInvoice->getShippingAmount() > 0 || $latestInvoice->getShippingTaxAmount() > 0) {
-            $adyenInvoiceShippingAmount = $this->chargedCurrency->getInvoiceShippingAmountCurrency($latestInvoice);
+        if ($invoice->getShippingAmount() > 0 || $invoice->getShippingTaxAmount() > 0) {
+            $adyenInvoiceShippingAmount = $this->chargedCurrency->getInvoiceShippingAmountCurrency($invoice);
             $formFields['lineItems'][] = $this->formatInvoiceShippingItem($adyenInvoiceShippingAmount, $order->getShippingDescription());
         }
 
