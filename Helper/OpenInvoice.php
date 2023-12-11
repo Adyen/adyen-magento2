@@ -13,14 +13,10 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Model\AdyenAmountCurrency;
-use Adyen\Payment\Model\Invoice as AdyenInvoice;
 use Magento\Catalog\Helper\Image;
 use Magento\Catalog\Model\Product;
 use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Quote\Api\Data\CartItemInterface;
-use Magento\Sales\Api\Data\OrderItemInterface;
 use Magento\Sales\Model\Order;
-use Magento\Sales\Model\Order\Creditmemo;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\Order\Invoice\Item;
@@ -76,9 +72,7 @@ class OpenInvoice
         /** @var Invoice $invoice */
         $invoice = $invoices->getLastItem();
         $discountAmount = 0;
-        $currency = $this->chargedCurrency
-            ->getOrderAmountCurrency($payment->getOrder(), false)
-            ->getCurrencyCode();
+        $currency = $this->chargedCurrency->getOrderAmountCurrency($payment->getOrder(), false);
 
         /* @var Item $invoiceItem */
         foreach ($invoice->getItems() as $invoiceItem) {
@@ -90,7 +84,9 @@ class OpenInvoice
             $product = $orderItem->getProduct();
             $itemAmountCurrency = $this->chargedCurrency->getInvoiceItemAmountCurrency($invoiceItem);
             $discountAmount += $itemAmountCurrency->getDiscountAmount();
-            $formFields['lineItems'][] = $this->formatInoviceItem($itemAmountCurrency, $orderItem, $product, $numberOfItems);
+            $formFields['lineItems'][] = $this->formatInoviceItem(
+                $itemAmountCurrency, $orderItem, $product, $numberOfItems
+            );
         }
 
         // Discount cost
@@ -98,13 +94,16 @@ class OpenInvoice
             $formFields['lineItems'][] = $this->formatInvoiceDiscount(
                 $discountAmount,
                 $invoice->getShippingAddress()->getShippingDiscountAmount(),
-                $itemAmountCurrency
+                $currency
             );
         }
 
         if ($invoice->getShippingAmount() > 0 || $invoice->getShippingTaxAmount() > 0) {
             $adyenInvoiceShippingAmount = $this->chargedCurrency->getInvoiceShippingAmountCurrency($invoice);
-            $formFields['lineItems'][] = $this->formatInvoiceShippingItem($adyenInvoiceShippingAmount, $order->getShippingDescription());
+            $formFields['lineItems'][] = $this->formatInvoiceShippingItem(
+                $adyenInvoiceShippingAmount,
+                $order->getShippingDescription()
+            );
         }
 
         return $formFields;
@@ -116,7 +115,6 @@ class OpenInvoice
         /** @var \Magento\Quote\Model\Quote $cart */
         $cart = $this->cartRepository->get($order->getQuoteId());
         $amountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order);
-        $currency = $amountCurrency->getCurrencyCode();
         $discountAmount = 0;
 
         foreach ($cart->getAllVisibleItems() as $item) {
@@ -133,14 +131,19 @@ class OpenInvoice
             $formFields['lineItems'][] = $this->formatInvoiceDiscount(
                 $discountAmount,
                 $cart->getShippingAddress()->getShippingDiscountAmount(),
-                $itemAmountCurrency
+                $amountCurrency
             );
         }
 
         // Shipping cost
-        if ($cart->getShippingAddress()->getShippingAmount() > 0 || $cart->getShippingAddress()->getShippingTaxAmount() > 0) {
+        if (
+            $cart->getShippingAddress()->getShippingAmount() > 0 ||
+            $cart->getShippingAddress()->getShippingTaxAmount() > 0
+        ) {
             $shippingAmountCurrency = $this->chargedCurrency->getQuoteShippingAmountCurrency($cart);
-            $formFields['lineItems'][] = $this->formatInvoiceShippingItem($shippingAmountCurrency, $order->getShippingDescription());
+            $formFields['lineItems'][] = $this->formatInvoiceShippingItem(
+                $shippingAmountCurrency, $order->getShippingDescription()
+            );
         }
 
         return $formFields;
@@ -163,13 +166,17 @@ class OpenInvoice
             $orderItem = $refundItem->getOrderItem();
             $product = $orderItem->getProduct();
 
-            $formFields['lineItems'][] = $this->formatInoviceItem($itemAmountCurrency, $orderItem, $product, $numberOfItems);
+            $formFields['lineItems'][] = $this->formatInoviceItem(
+                $itemAmountCurrency, $orderItem, $product, $numberOfItems
+            );
         }
 
         // Shipping cost
         $shippingAmountCurrency = $this->chargedCurrency->getCreditMemoShippingAmountCurrency($creditMemo);
         if ($shippingAmountCurrency->getAmount() > 0) {
-            $formFields['lineItems'][] = $this->formatInvoiceShippingItem($shippingAmountCurrency, $payment->getOrder()->getShippingDescription());
+            $formFields['lineItems'][] = $this->formatInvoiceShippingItem(
+                $shippingAmountCurrency, $payment->getOrder()->getShippingDescription()
+            );
         }
 
         return $formFields;
@@ -189,11 +196,16 @@ class OpenInvoice
         return $imageUrl;
     }
 
-    protected function formatInvoiceShippingItem(AdyenAmountCurrency $shippingAmount, string $shippingDescription): array
+    protected function formatInvoiceShippingItem(
+        AdyenAmountCurrency $shippingAmount, string $shippingDescription
+    ): array
     {
         $currency = $shippingAmount->getCurrencyCode();
         $formattedPriceExcludingTax = $this->adyenHelper->formatAmount($shippingAmount->getAmount(), $currency);
-        $formattedPriceIncludingTax = $this->adyenHelper->formatAmount($shippingAmount->getAmountIncludingTax(), $currency);
+        $formattedPriceIncludingTax = $this->adyenHelper->formatAmount(
+            $shippingAmount->getAmountIncludingTax(),
+            $currency
+        );
         $formattedTaxAmount = $this->adyenHelper->formatAmount($shippingAmount->getTaxAmount(), $currency);
 
         return [
@@ -214,11 +226,15 @@ class OpenInvoice
      * @param int $numberOfItems
      * @return array
      */
-    protected function formatInoviceItem(AdyenAmountCurrency $itemAmountCurrency, $item, Product $product, int $numberOfItems): array
+    protected function formatInoviceItem(
+        AdyenAmountCurrency $itemAmountCurrency, $item, Product $product, int $numberOfItems
+    ): array
     {
         $currency = $itemAmountCurrency->getCurrencyCode();
         $formattedPriceExcludingTax = $this->adyenHelper->formatAmount($itemAmountCurrency->getAmount(), $currency);
-        $formattedPriceIncludingTax = $this->adyenHelper->formatAmount($itemAmountCurrency->getAmountIncludingTax(), $currency);
+        $formattedPriceIncludingTax = $this->adyenHelper->formatAmount(
+            $itemAmountCurrency->getAmountIncludingTax(), $currency
+        );
         $formattedTaxAmount = $this->adyenHelper->formatAmount($itemAmountCurrency->getTaxAmount(), $currency);
         $formattedTaxPercentage = $this->adyenHelper->formatAmount($item->getTaxPercent(), $currency);
 
@@ -237,10 +253,14 @@ class OpenInvoice
         return $output;
     }
 
-    public function formatInvoiceDiscount(mixed $discountAmount, $shippingDiscountAmount, AdyenAmountCurrency $itemAmountCurrency): array
+    public function formatInvoiceDiscount(
+        mixed $discountAmount, $shippingDiscountAmount, AdyenAmountCurrency $itemAmountCurrency
+    ): array
     {
         $description = __('Discount');
-        $itemAmount = -$this->adyenHelper->formatAmount($discountAmount + $shippingDiscountAmount, $itemAmountCurrency->getCurrencyCode());
+        $itemAmount = -$this->adyenHelper->formatAmount(
+            $discountAmount + $shippingDiscountAmount, $itemAmountCurrency->getCurrencyCode()
+        );
 
         return [
             'id' => 'Discount',

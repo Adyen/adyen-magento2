@@ -22,7 +22,8 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
     private $orderItemMock;
     private $invoiceItemMock;
     private $amountCurrencyMock;
-
+    private $creditmemoMock;
+    private $creditmemoItemMock;
 
     protected function setUp(): void
     {
@@ -59,6 +60,9 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
         $this->invoiceMock = $this->createMock(\Magento\Sales\Model\Order\Invoice::class);
         $this->orderItemMock = $this->createMock(\Magento\Sales\Model\Order\Item::class);
         $this->invoiceItemMock = $this->createMock(\Magento\Sales\Model\Order\Invoice\Item::class);
+        $this->creditmemoMock = $this->createMock(\Magento\Sales\Model\Order\Creditmemo::class);
+        $this->creditmemoItemMock = $this->createMock(\Magento\Sales\Model\Order\Creditmemo\Item::class);
+
         $this->amountCurrencyMock = $this->createMock(\Adyen\Payment\Model\AdyenAmountCurrency::class);
         $this->amountCurrencyMock->method('getCurrencyCode')->willReturn('EUR');
         $this->chargedCurrencyMock->method('getOrderAmountCurrency')->willReturn($this->amountCurrencyMock);
@@ -219,20 +223,20 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
     public function testGetOpenInvoiceDataForCreditMemo(): void
     {
         $this->paymentMock->method('getOrder')->willReturn($this->orderMock);
-        $this->orderMock->method('getInvoiceCollection')->willReturn($this->invoiceCollectionMock);
-        $this->orderMock->method('getShippingDescription')->willReturn('Flat Rate - Fixed');
-        $this->invoiceCollectionMock->method('getLastItem')->willReturn($this->invoiceMock);
-        $this->invoiceMock->method('getItems')->willReturn([$this->invoiceItemMock]);
-        $this->invoiceItemMock->method('getOrderItem')->willReturn($this->orderItemMock);
-        $this->invoiceItemMock->method('getQty')->willReturn(1);
-        $this->invoiceMock->method('getShippingAmount')->willReturn(100);
+        $this->paymentMock->method('getCreditMemo')->willReturn($this->creditmemoMock);
+        $this->creditmemoMock->method('getItems')->willReturn([$this->creditmemoItemMock]);
+        $this->creditmemoItemMock->method('getOrderItem')->willReturn($this->orderItemMock);
+        $this->creditmemoItemMock->method('getQty')->willReturn(1);
         $this->orderItemMock->method('getProduct')->willReturn($this->productMock);
-        $this->productMock->method('getId')->willReturn('14');
         $itemAmountCurrencyMock = $this->createMock(\Adyen\Payment\Model\AdyenAmountCurrency::class);
-        $this->chargedCurrencyMock->method('getInvoiceItemAmountCurrency')->willReturn($itemAmountCurrencyMock);
+
         $itemAmountCurrencyMock->method('getAmount')->willReturn(4500);
         $itemAmountCurrencyMock->method('getAmountIncludingTax')->willReturn(4500);
         $itemAmountCurrencyMock->method('getDiscountAmount')->willReturn(0);
+        $this->chargedCurrencyMock->method('getCreditMemoItemAmountCurrency')->willReturn($itemAmountCurrencyMock);
+        $this->chargedCurrencyMock->method('getCreditMemoShippingAmountCurrency')->willReturn($itemAmountCurrencyMock);
+        $this->orderMock->method('getShippingDescription')->willReturn('Flat Rate - Fixed');
+        $this->productMock->method('getId')->willReturn('14');
         $this->orderItemMock->method('getName')->willReturn('Push It Messenger Bag');
         $this->productMock->method('getUrlModel')->willReturn(new class {
             public function getUrl()
@@ -240,7 +244,6 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
                 return 'https://localhost.store/index.php/push-it-messenger-bag.html';
             }
         });
-
         // Arrange: Set up the object with the mocks
         $openInvoice = new OpenInvoice($this->adyenHelperMock, $this->cartRepositoryMock, $this->chargedCurrencyMock, $this->configHelperMock, $this->imageHelperMock);
 
@@ -259,8 +262,8 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
                 ],
                 [
                     'id' => 'shippingCost',
-                    'amountExcludingTax' => 500,
-                    'amountIncludingTax' => 500,
+                    'amountExcludingTax' => 4500,
+                    'amountIncludingTax' => 4500,
                     'taxAmount' => 0,
                     'description' => 'Flat Rate - Fixed',
                     'quantity' => 1,
