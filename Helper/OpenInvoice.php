@@ -154,6 +154,7 @@ class OpenInvoice
         $formFields = ['lineItems' => []];
         $discountAmount = 0;
         $creditMemo = $payment->getCreditMemo();
+        $currency = $this->chargedCurrency->getOrderAmountCurrency($payment->getOrder(), false);
 
         foreach ($creditMemo->getItems() as $refundItem) {
             $numberOfItems = (int)$refundItem->getQty();
@@ -168,6 +169,15 @@ class OpenInvoice
 
             $formFields['lineItems'][] = $this->formatInoviceItem(
                 $itemAmountCurrency, $orderItem, $product, $numberOfItems
+            );
+        }
+
+        // Discount cost
+        if ($discountAmount != 0) {
+            $formFields['lineItems'][] = $this->formatInvoiceDiscount(
+                $discountAmount,
+                $payment->getOrder()->getShippingAddress()->getShippingDiscountAmount(),
+                $currency
             );
         }
 
@@ -238,7 +248,7 @@ class OpenInvoice
         $formattedTaxAmount = $this->adyenHelper->formatAmount($itemAmountCurrency->getTaxAmount(), $currency);
         $formattedTaxPercentage = $this->adyenHelper->formatAmount($item->getTaxPercent(), $currency);
 
-        $output = [
+        return [
             'id' => $product->getId(),
             'amountExcludingTax' => $formattedPriceExcludingTax,
             'amountIncludingTax' => $formattedPriceIncludingTax,
@@ -249,8 +259,6 @@ class OpenInvoice
             'productUrl' => $product->getUrlModel()->getUrl($product),
             'imageUrl' => $this->getImageUrl($item)
         ];
-
-        return $output;
     }
 
     public function formatInvoiceDiscount(
