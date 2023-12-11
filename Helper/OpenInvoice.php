@@ -146,7 +146,7 @@ class OpenInvoice
         return $formFields;
     }
 
-    public function getOpenInvoiceDataForCreditMemo(Payment $payment, AdyenInvoice $adyenInvoice = null)
+    public function getOpenInvoiceDataForCreditMemo(Payment $payment)
     {
         $formFields = ['lineItems' => []];
         $discountAmount = 0;
@@ -154,12 +154,11 @@ class OpenInvoice
 
         foreach ($creditMemo->getItems() as $refundItem) {
             $numberOfItems = (int)$refundItem->getQty();
-            $itemAmountCurrency = $this->chargedCurrency->getCreditMemoItemAmountCurrency($refundItem);
-
-            if ($numberOfItems <= 0 || $itemAmountCurrency->getAmount() <= 0) {
+            if ($numberOfItems <= 0) {
                 continue;
             }
 
+            $itemAmountCurrency = $this->chargedCurrency->getCreditMemoItemAmountCurrency($refundItem);
             $discountAmount += $itemAmountCurrency->getDiscountAmount();
             $orderItem = $refundItem->getOrderItem();
             $product = $orderItem->getProduct();

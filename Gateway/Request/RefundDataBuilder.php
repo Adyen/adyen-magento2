@@ -18,11 +18,8 @@ use Adyen\Payment\Helper\OpenInvoice;
 use Adyen\Payment\Model\ResourceModel\Invoice\CollectionFactory;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as PaymentCollectionFactory;
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
-use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
-use Magento\Payment\Model\InfoInterface;
-use Magento\Sales\Model\Order\Creditmemo;
 use Magento\Sales\Model\Order\Payment;
 
 /**
@@ -37,20 +34,17 @@ class RefundDataBuilder implements BuilderInterface
     private Data $adyenHelper;
     private Config $configHelper;
     private PaymentCollectionFactory $orderPaymentCollectionFactory;
-    protected CollectionFactory $adyenInvoiceCollectionFactory;
     private ChargedCurrency $chargedCurrency;
 
     public function __construct(
         Data $adyenHelper,
         PaymentCollectionFactory   $orderPaymentCollectionFactory,
-        CollectionFactory          $adyenInvoiceCollectionFactory,
         ChargedCurrency            $chargedCurrency,
         Config                     $configHelper,
         OpenInvoice                $openInvoiceHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->orderPaymentCollectionFactory = $orderPaymentCollectionFactory;
-        $this->adyenInvoiceCollectionFactory = $adyenInvoiceCollectionFactory;
         $this->chargedCurrency = $chargedCurrency;
         $this->configHelper = $configHelper;
         $this->openInvoiceHelper = $openInvoiceHelper;
@@ -170,7 +164,6 @@ class RefundDataBuilder implements BuilderInterface
             );
 
             if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) {
-                $adyenInvoices = $this->adyenInvoiceCollectionFactory->create()->addFieldToFilter('invoice_id', $creditMemo->getInvoice()->getId());
                 $openInvoiceFieldsCreditMemo = $this->openInvoiceHelper->getOpenInvoiceDataForCreditMemo($payment);
                 //There is only one payment, so we add the fields to the first(and only) result
                 $requestBody[0] =  array_merge($requestBody[0], $openInvoiceFieldsCreditMemo);
