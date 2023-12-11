@@ -63,7 +63,7 @@ class OpenInvoice
         $this->imageHelper = $imageHelper;
     }
 
-    public function getOpenInvoiceDataFromPayment(Payment $payment, Invoice $invoice = null): array
+    public function getOpenInvoiceDataForLastInvoice(Payment $payment): array
     {
         $formFields = [];
         $order = $payment->getOrder();
@@ -108,7 +108,7 @@ class OpenInvoice
         return $formFields;
     }
 
-    public function getOpenInvoiceDataFromOrder(Order $order): array
+    public function getOpenInvoiceDataForOrder(Order $order): array
     {
         $formFields = [
             'lineItems' => []
@@ -142,6 +142,90 @@ class OpenInvoice
         if ($cart->getShippingAddress()->getShippingAmount() > 0 || $cart->getShippingAddress()->getShippingTaxAmount() > 0) {
             $shippingAmountCurrency = $this->chargedCurrency->getQuoteShippingAmountCurrency($cart);
             $formFields['lineItems'][] = $this->formatInvoiceShippingItem($shippingAmountCurrency, $order->getShippingDescription());
+        }
+
+        return $formFields;
+    }
+
+    public function getOpenInvoiceDataForCreditMemo(Payment $payment)
+    {
+        $formFields = [];
+        $count = 0;
+
+        // Construct AdyenAmountCurrency from creditmemo
+        /**
+         * @var Creditmemo $creditMemo
+         */
+        $creditMemo = $payment->getCreditMemo();
+
+        foreach ($creditMemo->getItems() as $refundItem) {
+            $numberOfItems = (int)$refundItem->getQty();
+            if ($numberOfItems == 0) {
+                continue;
+            }
+
+            ++$count;
+            $itemAmountCurrency = $this->chargedCurrency->getCreditMemoItemAmountCurrency($refundItem);
+
+            $formFields = $this->adyenHelper->createOpenInvoiceLineItem(
+                $formFields,
+                $count,
+                $refundItem->getName(),
+                $itemAmountCurrency->getAmount(),
+                $itemAmountCurrency->getCurrencyCode(),
+                $itemAmountCurrency->getTaxAmount(),
+                $itemAmountCurrency->getAmount() + $itemAmountCurrency->getTaxAmount(),
+                $refundItem->getOrderItem()->getTaxPercent(),
+                $numberOfItems,
+                $payment,
+                $refundItem->getId()
+            );
+        }
+
+        // Shipping cost
+        $shippingAmountCurrency = $this->chargedCurrency->getCreditMemoShippingAmountCurrency($creditMemo);
+        if ($shippingAmountCurrency->getAmount() > 0) {
+            ++$count;
+            $formFields = $this->adyenHelper->createOpenInvoiceLineShipping(
+                $formFields,
+                $count,
+                $payment->getOrder(),
+                $shippingAmountCurrency->getAmount(),
+                $shippingAmountCurrency->getTaxAmount(),
+                $shippingAmountCurrency->getCurrencyCode(),
+                $payment
+            );
+        }
+
+        // Adjustment
+        $adjustmentAmountCurrency = $this->chargedCurrency->getCreditMemoAdjustmentAmountCurrency($creditMemo);
+        if ($adjustmentAmountCurrency->getAmount() != 0) {
+            $positive = $adjustmentAmountCurrency->getAmount() > 0 ? 'Positive' : '';
+            $negative = $adjustmentAmountCurrency->getAmount() < 0 ? 'Negative' : '';
+            $description = "Adjustment - " . implode(' | ', array_filter([$positive, $negative]));
+
+            ++$count;
+            $formFields = $this->adyenHelper->createOpenInvoiceLineAdjustment(
+                $formFields,
+                $count,
+                $description,
+                $adjustmentAmountCurrency->getAmount(),
+                $adjustmentAmountCurrency->getCurrencyCode(),
+                $payment
+            );
+        }
+
+        $formFields['openinvoicedata.numberOfLines'] = $count;
+
+        //Retrieve acquirerReference from the adyen_invoice
+        $invoiceId = $creditMemo->getInvoice()->getId();
+        $invoices = $this->adyenInvoiceCollectionFactory->create()
+            ->addFieldToFilter('invoice_id', $invoiceId);
+
+        $invoice = $invoices->getFirstItem();
+
+        if ($invoice) {
+            $formFields['acquirerReference'] = $invoice->getAcquirerReference();
         }
 
         return $formFields;

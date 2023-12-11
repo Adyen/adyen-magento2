@@ -153,7 +153,7 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
         ];
 
         // Act: Call the method with the mocked parameters
-        $result = $openInvoice->getOpenInvoiceDataFromOrder($this->orderMock);
+        $result = $openInvoice->getOpenInvoiceDataForOrder($this->orderMock);
 
         // Assert: Verify that the output matches your expectations
         $this->assertEquals($expectedResult, $result);
@@ -214,7 +214,7 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
             ]
         ];
 
-        $result = $openInvoice->getOpenInvoiceDataFromPayment($this->paymentMock);
+        $result = $openInvoice->getOpenInvoiceDataForLastInvoice($this->paymentMock);
         $this->assertEquals($expectedResult, $result);
     }
 }
