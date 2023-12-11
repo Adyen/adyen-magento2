@@ -13,8 +13,12 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Model\AdyenAmountCurrency;
+use Adyen\Payment\Model\Invoice as AdyenInvoice;
 use Magento\Catalog\Helper\Image;
+use Magento\Catalog\Model\Product;
 use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Api\Data\CartItemInterface;
+use Magento\Sales\Api\Data\OrderItemInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Creditmemo;
 use Magento\Sales\Model\Order\Invoice;
@@ -65,18 +69,16 @@ class OpenInvoice
 
     public function getOpenInvoiceDataForLastInvoice(Payment $payment): array
     {
-        $formFields = [];
+        $formFields = ['lineItems' => []];
         $order = $payment->getOrder();
         $invoices = $order->getInvoiceCollection();
-
+        // The latest invoice will contain only the selected items(and quantities) for the (partial) capture
+        /** @var Invoice $invoice */
+        $invoice = $invoices->getLastItem();
+        $discountAmount = 0;
         $currency = $this->chargedCurrency
             ->getOrderAmountCurrency($payment->getOrder(), false)
             ->getCurrencyCode();
-
-        // The latest invoice will contain only the selected items(and quantities) for the (partial) capture
-        /** @var Invoice $invoice */
-        $invoice = $invoice ?: $invoices->getLastItem();
-        $discountAmount = 0;
 
         /* @var Item $invoiceItem */
         foreach ($invoice->getItems() as $invoiceItem) {
@@ -88,7 +90,7 @@ class OpenInvoice
             $product = $orderItem->getProduct();
             $itemAmountCurrency = $this->chargedCurrency->getInvoiceItemAmountCurrency($invoiceItem);
             $discountAmount += $itemAmountCurrency->getDiscountAmount();
-            $formFields['lineItems'][] = $this->formatInoviceItem($itemAmountCurrency, $orderItem, $currency, $product, $numberOfItems);
+            $formFields['lineItems'][] = $this->formatInoviceItem($itemAmountCurrency, $orderItem, $product, $numberOfItems);
         }
 
         // Discount cost
@@ -110,10 +112,7 @@ class OpenInvoice
 
     public function getOpenInvoiceDataForOrder(Order $order): array
     {
-        $formFields = [
-            'lineItems' => []
-        ];
-
+        $formFields = ['lineItems' => []];
         /** @var \Magento\Quote\Model\Quote $cart */
         $cart = $this->cartRepository->get($order->getQuoteId());
         $amountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order);
@@ -126,7 +125,7 @@ class OpenInvoice
             $product = $item->getProduct();
             // Summarize the discount amount item by item
             $discountAmount += $itemAmountCurrency->getDiscountAmount();
-            $formFields['lineItems'][] = $this->formatInoviceItem($itemAmountCurrency, $item, $currency, $product, $numberOfItems);
+            $formFields['lineItems'][] = $this->formatInoviceItem($itemAmountCurrency, $item, $product, $numberOfItems);
         }
 
         // Discount cost
@@ -147,94 +146,36 @@ class OpenInvoice
         return $formFields;
     }
 
-    public function getOpenInvoiceDataForCreditMemo(Payment $payment)
+    public function getOpenInvoiceDataForCreditMemo(Payment $payment, AdyenInvoice $adyenInvoice = null)
     {
-        $formFields = [];
-        $count = 0;
-
-        // Construct AdyenAmountCurrency from creditmemo
-        /**
-         * @var Creditmemo $creditMemo
-         */
+        $formFields = ['lineItems' => []];
+        $discountAmount = 0;
         $creditMemo = $payment->getCreditMemo();
 
         foreach ($creditMemo->getItems() as $refundItem) {
             $numberOfItems = (int)$refundItem->getQty();
-            if ($numberOfItems == 0) {
+            $itemAmountCurrency = $this->chargedCurrency->getCreditMemoItemAmountCurrency($refundItem);
+
+            if ($numberOfItems <= 0 || $itemAmountCurrency->getAmount() <= 0) {
                 continue;
             }
 
-            ++$count;
-            $itemAmountCurrency = $this->chargedCurrency->getCreditMemoItemAmountCurrency($refundItem);
+            $discountAmount += $itemAmountCurrency->getDiscountAmount();
+            $orderItem = $refundItem->getOrderItem();
+            $product = $orderItem->getProduct();
 
-            $formFields = $this->adyenHelper->createOpenInvoiceLineItem(
-                $formFields,
-                $count,
-                $refundItem->getName(),
-                $itemAmountCurrency->getAmount(),
-                $itemAmountCurrency->getCurrencyCode(),
-                $itemAmountCurrency->getTaxAmount(),
-                $itemAmountCurrency->getAmount() + $itemAmountCurrency->getTaxAmount(),
-                $refundItem->getOrderItem()->getTaxPercent(),
-                $numberOfItems,
-                $payment,
-                $refundItem->getId()
-            );
+            $formFields['lineItems'][] = $this->formatInoviceItem($itemAmountCurrency, $orderItem, $product, $numberOfItems);
         }
 
         // Shipping cost
         $shippingAmountCurrency = $this->chargedCurrency->getCreditMemoShippingAmountCurrency($creditMemo);
         if ($shippingAmountCurrency->getAmount() > 0) {
-            ++$count;
-            $formFields = $this->adyenHelper->createOpenInvoiceLineShipping(
-                $formFields,
-                $count,
-                $payment->getOrder(),
-                $shippingAmountCurrency->getAmount(),
-                $shippingAmountCurrency->getTaxAmount(),
-                $shippingAmountCurrency->getCurrencyCode(),
-                $payment
-            );
-        }
-
-        // Adjustment
-        $adjustmentAmountCurrency = $this->chargedCurrency->getCreditMemoAdjustmentAmountCurrency($creditMemo);
-        if ($adjustmentAmountCurrency->getAmount() != 0) {
-            $positive = $adjustmentAmountCurrency->getAmount() > 0 ? 'Positive' : '';
-            $negative = $adjustmentAmountCurrency->getAmount() < 0 ? 'Negative' : '';
-            $description = "Adjustment - " . implode(' | ', array_filter([$positive, $negative]));
-
-            ++$count;
-            $formFields = $this->adyenHelper->createOpenInvoiceLineAdjustment(
-                $formFields,
-                $count,
-                $description,
-                $adjustmentAmountCurrency->getAmount(),
-                $adjustmentAmountCurrency->getCurrencyCode(),
-                $payment
-            );
-        }
-
-        $formFields['openinvoicedata.numberOfLines'] = $count;
-
-        //Retrieve acquirerReference from the adyen_invoice
-        $invoiceId = $creditMemo->getInvoice()->getId();
-        $invoices = $this->adyenInvoiceCollectionFactory->create()
-            ->addFieldToFilter('invoice_id', $invoiceId);
-
-        $invoice = $invoices->getFirstItem();
-
-        if ($invoice) {
-            $formFields['acquirerReference'] = $invoice->getAcquirerReference();
+            $formFields['lineItems'][] = $this->formatInvoiceShippingItem($shippingAmountCurrency, $payment->getOrder()->getShippingDescription());
         }
 
         return $formFields;
     }
 
-    /**
-     * @param string $item
-     * @return string
-     */
     protected function getImageUrl($item): string
     {
         $product = $item->getProduct();
@@ -267,23 +208,19 @@ class OpenInvoice
         ];
     }
 
-    public function formatInoviceItem(AdyenAmountCurrency $itemAmountCurrency, $item, $currency, $product, int $numberOfItems): array
+    /**
+     * @param AdyenAmountCurrency $itemAmountCurrency
+     * @param $item
+     * @param Product $product
+     * @param int $numberOfItems
+     * @return array
+     */
+    protected function formatInoviceItem(AdyenAmountCurrency $itemAmountCurrency, $item, Product $product, int $numberOfItems): array
     {
-        $formattedPriceExcludingTax = $this->adyenHelper->formatAmount(
-            $itemAmountCurrency->getAmount(),
-            $itemAmountCurrency->getCurrencyCode()
-        );
-
-        $formattedPriceIncludingTax = $this->adyenHelper->formatAmount(
-            $itemAmountCurrency->getAmountIncludingTax(),
-            $itemAmountCurrency->getCurrencyCode()
-        );
-
-        $formattedTaxAmount = $this->adyenHelper->formatAmount(
-            $itemAmountCurrency->getTaxAmount(),
-            $itemAmountCurrency->getCurrencyCode()
-        );
-
+        $currency = $itemAmountCurrency->getCurrencyCode();
+        $formattedPriceExcludingTax = $this->adyenHelper->formatAmount($itemAmountCurrency->getAmount(), $currency);
+        $formattedPriceIncludingTax = $this->adyenHelper->formatAmount($itemAmountCurrency->getAmountIncludingTax(), $currency);
+        $formattedTaxAmount = $this->adyenHelper->formatAmount($itemAmountCurrency->getTaxAmount(), $currency);
         $formattedTaxPercentage = $this->adyenHelper->formatAmount($item->getTaxPercent(), $currency);
 
         $output = [
@@ -297,6 +234,7 @@ class OpenInvoice
             'productUrl' => $product->getUrlModel()->getUrl($product),
             'imageUrl' => $this->getImageUrl($item)
         ];
+
         return $output;
     }
 
