@@ -46,6 +46,8 @@ services:
       ADYEN_CLIENT_KEY:
       PHP_VERSION:
       MAGENTO_VERSION:
+      WEBHOOK_PASSWORD:
+      WEBHOOK_USERNAME:
     depends_on:
       - db
       - elastic
