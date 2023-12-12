@@ -13,7 +13,7 @@ on:
         required: true
         default: "develop"
       testGroup:
-        description: "Test group all | express-checkout | webhook"
+        description: "Test group all|express-checkout|backoffice"
         required: true
         default: "all"
 
