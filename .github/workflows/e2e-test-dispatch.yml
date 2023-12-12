@@ -13,9 +13,14 @@ on:
         required: true
         default: "develop"
       testGroup:
-        description: "Test group all|express-checkout|backoffice"
+        description: "Test group"
         required: true
         default: "all"
+        type: choice
+        options:
+        - all
+        - standard
+        - express-checkout
 
 jobs:
   build:
