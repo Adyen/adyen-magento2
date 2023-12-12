@@ -23,6 +23,8 @@ jobs:
 
     - name: Test plugin installation
       run: |
+        mkdir -p app/etc/
+        echo "<?php return './vendor';" > app/etc/vendor_path.php
         echo "{\"http-basic\":{\"repo.magento.com\":{\"username\":\"${MAGENTO_USERNAME}\",\"password\":\"${MAGENTO_PASSWORD}\"}}}" > auth.json
         composer install --prefer-dist
       env:

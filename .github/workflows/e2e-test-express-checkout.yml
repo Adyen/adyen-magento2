@@ -4,7 +4,7 @@ run-name: Adyen Magento 2 Express Checkout Plugin E2E tests
 on:
   workflow_dispatch:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize]
     branches: [main]
 
 jobs:
@@ -47,7 +47,7 @@ jobs:
         run: docker exec -u www-data magento2-container make plugin
 
       - name: Install Express module
-        run: docker exec -u www-data magento2-container composer require adyen/adyen-magento2-expresscheckout:dev-rc-v2
+        run: docker exec -u www-data magento2-container composer require adyen/adyen-magento2-expresscheckout:dev-develop
 
       - name: Enable Express module
         run: docker exec -u www-data magento2-container make enable-express
@@ -59,7 +59,7 @@ jobs:
         run: docker exec magento2-container make fs
 
       - name: Run E2E tests
-        run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm playwright /e2e-all.sh express
+        run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm playwright /e2e.sh express-checkout
         env:
           INTEGRATION_TESTS_BRANCH: develop
           MAGENTO_ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
