@@ -46,8 +46,8 @@ configure: n98-magerun2.phar
 	bin/magento config:set payment/adyen_abstract/recurring_configuration '{"adyen_cc":{"name":"Credit Card","enabled":"1","recurringProcessingModel":"CardOnFile"}}'
 	bin/magento config:set payment/adyen_cc_vault/require_cvc 1
 	bin/magento config:set payment/adyen_abstract/client_key_test "${ADYEN_CLIENT_KEY}"
-	bin/magento config:set payment/adyen_abstract/notification_username "${ADYEN_WEBHOOK_USERNAME}"
-	./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/notification_password "${ADYEN_WEBHOOK_PASSWORD}"  > /dev/null
+	bin/magento config:set payment/adyen_abstract/notification_username 'admin'
+	./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/notification_password '1234'  > /dev/null
 	./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/api_key_test "${ADYEN_API_KEY}" > /dev/null
 
 # Clear cache
