@@ -21,6 +21,10 @@ case $option in
         echo "Running Express Checkout E2E Tests."
         npm run test:ci:magento:express-checkout
         ;;
+    "webhook")
+        echo "Running Express Checkout E2E Tests."
+        npm run test:ci:magento:webhook
+        ;;
     "all")
         echo "Running All Magento E2E Tests"
         npm run test:ci:magento:all
