@@ -1,0 +1,28 @@
+name: Plugin release to Adobe Marketplace
+run-name: Plugin release V${{inputs.releaseTag}} to Adobe Marketplace
+
+on:
+  workflow_dispatch:
+    inputs:
+      releaseTag:
+        description: "Release tag"
+        required: true
+        default: "develop"
+
+jobs:
+  build:
+    runs-on:
+      runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download release files
+        run: |
+          cd .github/workflows/templates/
+          wget https://github.com/Adyen/adyen-magento2/archive/refs/tags/${{inputs.releaseTag}}.zip
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+      - name: npm install, lint and test
+        run: |
+          npm install -g newman
+          newman run --env-var "TAG=${{inputs.releaseTag}}.zip" --env-var "EQP_API_KEY=${{secrets.EQP_API_KEY}}" .github/workflows/templates/postman_release_collection.json
