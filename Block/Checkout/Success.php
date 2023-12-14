@@ -172,9 +172,9 @@ class Success extends Template
     /**
      * @throws NoSuchEntityException
      */
-    public function getMaskedQuoteId(int $quoteId): ?string
+    public function getMaskedQuoteId(): ?string
     {
-        return $this->quoteIdToMaskedQuoteId->execute($quoteId);
+        return $this->quoteIdToMaskedQuoteId->execute($this->getOrder()->getQuoteId());
     }
 
     public function getIsCustomerLoggedIn(): bool

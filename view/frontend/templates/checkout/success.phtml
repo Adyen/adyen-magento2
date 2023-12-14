@@ -64,7 +64,7 @@
 
                 const orderId = <?= $block->getOrder()->getId() ?>;
                 const isLoggedIn = Boolean(<?= $block->getIsCustomerLoggedIn() ?>);
-                const maskedQuoteId = "<?= $block->getMaskedQuoteId($block->getOrder()->getQuoteId()) ?>";
+                const maskedQuoteId = "<?= $block->getMaskedQuoteId() ?>";
 
                 adyenPaymentService.donate(payload, isLoggedIn, orderId, maskedQuoteId)
                     .done(function (response) {
