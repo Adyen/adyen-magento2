@@ -32,7 +32,7 @@ class EnablePaymentMethodsCommand extends Command
     /**
      * @throws \Exception
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): void
     {
         $output->writeln('Starting enabling payment methods.');
         $availablePaymentMethods = $this->paymentMethods->getAdyenPaymentMethods();
@@ -45,6 +45,5 @@ class EnablePaymentMethodsCommand extends Command
         }
 
         $output->writeln('Completed enabling payment methods.');
-        return Command::SUCCESS;
     }
 }
