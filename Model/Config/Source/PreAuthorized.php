@@ -18,10 +18,13 @@ use Magento\Sales\Model\Order;
  */
 class PreAuthorized extends \Magento\Sales\Model\Config\Source\Order\Status
 {
+    const STATE_ADYEN_AUTHORIZED = 'adyen_authorized';
+
     /**
      * @var string[]
      */
     protected $_stateStatuses = [
-        Order::STATE_NEW
+        Order::STATE_NEW,
+        self::STATE_ADYEN_AUTHORIZED
     ];
 }

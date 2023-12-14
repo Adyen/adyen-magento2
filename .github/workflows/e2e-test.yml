@@ -3,7 +3,7 @@ run-name: Adyen Magento 2 Payment Plugin E2E tests
 
 on: 
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize]
 
 jobs:
   build:
@@ -87,8 +87,8 @@ jobs:
           ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
           ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
           ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
-          WEBHOOK_USERNAME: ${{secrets.WEBHOOK_USERNAME}}
-          WEBHOOK_PASSWORD: ${{secrets.WEBHOOK_PASSWORD}}
+          WEBHOOK_USERNAME: admin
+          WEBHOOK_PASSWORD: 1234
 
       - name: Archive test result artifacts
         if: always()

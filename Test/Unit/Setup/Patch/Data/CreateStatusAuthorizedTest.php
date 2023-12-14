@@ -18,6 +18,10 @@ use Magento\Framework\App\Config\ReinitableConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
+use Magento\Sales\Model\Order\Status;
+use Magento\Sales\Model\Order\StatusFactory;
+use Magento\Sales\Model\ResourceModel\Order\Status as StatusResource;
+use Magento\Sales\Model\ResourceModel\Order\StatusFactory as StatusResourceFactory;
 
 class CreateStatusAuthorizedTest extends AbstractAdyenTestCase
 {
@@ -66,12 +70,19 @@ class CreateStatusAuthorizedTest extends AbstractAdyenTestCase
         $dataPatchHelperMock = $this->createConfiguredMock(DataPatch::class, [
             'findConfig' => null
         ]);
+        $statusFactoryMock = $this->createGeneratedMock(StatusFactory::class, ['create']);
+        $statusFactoryMock->method('create')->willReturn($this->createMock(Status::class));
+        $statusResourceFactoryMock = $this->createGeneratedMock(StatusResourceFactory::class, ['create']);
+        $statusResourceFactoryMock->method('create')
+            ->willReturn($this->createMock(StatusResource::class));
 
         return new CreateStatusAuthorized(
             $moduleDataSetupMock,
             $configWriteMock,
             $reinitableConfigMock,
-            $dataPatchHelperMock
+            $dataPatchHelperMock,
+            $statusFactoryMock,
+            $statusResourceFactoryMock
         );
     }
 }

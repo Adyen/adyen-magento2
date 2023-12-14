@@ -13,14 +13,11 @@
 namespace Adyen\Payment\Gateway\Http\Client;
 
 use Adyen\AdyenException;
-use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Client;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
-use Adyen\Payment\Helper\PointOfSale;
 use Adyen\Payment\Logger\AdyenLogger;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Http\ClientInterface;
-use Magento\Checkout\Model\Session;
 use Magento\Payment\Gateway\Http\TransferInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
@@ -28,35 +25,22 @@ class TransactionPosCloudSync implements ClientInterface
 {
     protected int $storeId;
     protected mixed $timeout;
-
-    /** @var \Adyen\Client  */
-    protected \Adyen\Client $client;
+    protected Client $client;
     protected Data $adyenHelper;
     protected AdyenLogger $adyenLogger;
     protected Config $configHelper;
-    private Session $session;
-    private ChargedCurrency $chargedCurrency;
-    private PointOfSale $pointOfSale;
 
     public function __construct(
         Data $adyenHelper,
         AdyenLogger $adyenLogger,
         StoreManagerInterface $storeManager,
-        Session $session,
-        ChargedCurrency $chargedCurrency,
-        PointOfSale $pointOfSale,
-        Config $configHelper,
-        array $data = []
+        Config $configHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenLogger = $adyenLogger;
-        $this->session = $session;
-        $this->pointOfSale = $pointOfSale;
-        $this->chargedCurrency = $chargedCurrency;
         $this->configHelper = $configHelper;
 
         $this->storeId = $storeManager->getStore()->getId();
-
         $apiKey = $this->adyenHelper->getPosApiKey($this->storeId);
 
         // initialize client
