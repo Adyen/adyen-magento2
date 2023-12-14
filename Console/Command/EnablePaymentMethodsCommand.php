@@ -4,6 +4,7 @@ namespace Adyen\Payment\Console\Command;
 
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\Config;
+use Magento\Framework\Console\Cli;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -45,6 +46,6 @@ class EnablePaymentMethodsCommand extends Command
         }
 
         $output->writeln('Completed enabling payment methods.');
-        return Command::SUCCESS;
+        return Cli::RETURN_SUCCESS;
     }
 }
