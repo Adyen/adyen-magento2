@@ -32,7 +32,12 @@ class WebhookProcessorCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $output->writeln('Starting webhook processor.');
-        $this->webhookProcessor->execute();
+        try {
+            $this->webhookProcessor->execute();
+        } catch (\Exception $e) {
+            return Command::FAILURE;
+        }
         $output->writeln('Completed webhook processor execution.');
+        return Command::SUCCESS;
     }
 }
