@@ -46,6 +46,8 @@ services:
       ADYEN_CLIENT_KEY:
       PHP_VERSION:
       MAGENTO_VERSION:
+      WEBHOOK_PASSWORD:
+      WEBHOOK_USERNAME:
     depends_on:
       - db
       - elastic
@@ -54,6 +56,7 @@ services:
       - composer:/usr/local/bin
       - magento:/var/www/html
       - ../../Makefile:/var/www/html/Makefile
+      # - ../../../magento-logs:/var/www/html/var/log
     networks:
       backend:
         aliases:
