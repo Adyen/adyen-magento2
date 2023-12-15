@@ -26,7 +26,7 @@ class GuestAdyenDonationsTest extends AbstractAdyenTestCase
     {
         $this->expectException(AdyenException::class);
 
-        $quoteIdMaskMock = $this->createPartialMock(QuoteIdMask::class, ['load', 'getQuoteId']);
+        $quoteIdMaskMock = $this->createGeneratedMock(QuoteIdMask::class, ['load', 'getQuoteId']);
         $quoteIdMaskMock->method('load')
             ->willReturn($quoteIdMaskMock);
         $quoteIdMaskMock->method('getQuoteId')
@@ -51,7 +51,7 @@ class GuestAdyenDonationsTest extends AbstractAdyenTestCase
 
     public function testSuccessfulDonation()
     {
-        $quoteIdMaskMock = $this->createPartialMock(QuoteIdMask::class, ['load', 'getQuoteId']);
+        $quoteIdMaskMock = $this->createGeneratedMock(QuoteIdMask::class, ['load', 'getQuoteId']);
         $quoteIdMaskMock->method('load')
             ->willReturn($quoteIdMaskMock);
         $quoteIdMaskMock->method('getQuoteId')
