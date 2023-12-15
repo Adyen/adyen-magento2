@@ -12,53 +12,59 @@
 namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Payment\Helper\StateData;
-use Adyen\Payment\Helper\Util\CheckoutStateDataValidator;
-use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\ResourceModel\StateData as StateDataResourceModel;
 use Adyen\Payment\Model\ResourceModel\StateData\Collection as StateDataCollection;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
-use Adyen\Payment\Model\StateDataFactory;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 
 class StateDataTest extends AbstractAdyenTestCase
 {
-    public function testRemoveStateData($stateDataId = 1, $quoteId = 1)
-    {
+    private $stateDataHelper;
+    private $stateDataCollectionMock;
+    private $stateDataResourceModelMock;
 
+    protected function setUp(): void
+    {
+        $this->objectManager = new ObjectManager($this);
+        $this->stateDataCollectionMock = $this->createMock(StateDataCollection::class);
+        $this->stateDataResourceModelMock = $this->createMock(StateDataResourceModel::class);
+
+        $this->stateDataHelper = $this->objectManager->getObject(StateData::class, [
+            'stateDataCollection' => $this->stateDataCollectionMock,
+            'stateDataResourceModel' => $this->stateDataResourceModelMock
+        ]);
     }
 
-    protected function buildStateDataHelper(
-        $stateDataCollectionMock = null,
-        $stateDataFactoryMock = null,
-        $stateDataResourceModelMock = null,
-        $checkoutStateDataValidatorMock = null,
-        $adyenLoggerMock = null
-    ) {
-        if (is_null($stateDataCollectionMock)) {
-            $stateDataCollectionMock = $this->createMock(StateDataCollection::class);
-        }
+    public function testRemoveStateDataSuccessful()
+    {
+        $stateDataId = 1;
+        $quoteId = 1;
 
-        if (is_null($stateDataFactoryMock)) {
-            $stateDataFactoryMock = $this->createGeneratedMock(StateDataFactory::class);
-        }
+        $stateDataMock = $this->createConfiguredMock(\Adyen\Payment\Model\StateData::class, [
+            'getData' => ['entity_id' => 1, 'quote_id' => 1]
+        ]);
 
-        if (is_null($stateDataResourceModelMock)) {
-            $stateDataResourceModelMock = $this->createMock(StateDataResourceModel::class);
-        }
+        $this->stateDataCollectionMock->method('addFieldToFilter')->willReturnSelf();
+        $this->stateDataCollectionMock->method('getFirstItem')->willReturn($stateDataMock);
 
-        if (is_null($checkoutStateDataValidatorMock)) {
-            $checkoutStateDataValidatorMock = $this->createMock(CheckoutStateDataValidator::class);
-        }
+        $this->assertTrue($this->stateDataHelper->removeStateData($stateDataId, $quoteId));
+    }
 
-        if (is_null($adyenLoggerMock)) {
-            $adyenLoggerMock = $this->createMock(AdyenLogger::class);
-        }
+    public function testRemoveStateDataException()
+    {
+        $this->expectException(NoSuchEntityException::class);
 
-        return new StateData(
-            $stateDataCollectionMock,
-            $stateDataFactoryMock,
-            $stateDataResourceModelMock,
-            $checkoutStateDataValidatorMock,
-            $adyenLoggerMock
-        );
+        $stateDataId = 1;
+        $quoteId = 1;
+
+        $stateDataMock = $this->createConfiguredMock(\Adyen\Payment\Model\StateData::class, [
+            'getData' => null
+        ]);
+
+        $this->stateDataCollectionMock->method('addFieldToFilter')->willReturnSelf();
+        $this->stateDataCollectionMock->method('getFirstItem')->willReturn($stateDataMock);
+
+        $this->stateDataHelper->removeStateData($stateDataId, $quoteId);
     }
 }
