@@ -17,11 +17,13 @@ use Adyen\Payment\Model\ResourceModel\StateData\Collection as StateDataCollectio
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
+use Adyen\Payment\Model\StateDataFactory;
 
 class StateDataTest extends AbstractAdyenTestCase
 {
     private $stateDataHelper;
     private $stateDataCollectionMock;
+    private $stateDataFactoryMock;
     private $stateDataResourceModelMock;
 
     protected function setUp(): void
@@ -30,10 +32,32 @@ class StateDataTest extends AbstractAdyenTestCase
         $this->stateDataCollectionMock = $this->createMock(StateDataCollection::class);
         $this->stateDataResourceModelMock = $this->createMock(StateDataResourceModel::class);
 
+        $stateDataMock = $this->createMock(\Adyen\Payment\Model\StateData::class);
+
+        $this->stateDataFactoryMock = $this->createGeneratedMock(StateDataFactory::class, ['create']);
+        $this->stateDataFactoryMock->method('create')->willReturn($stateDataMock);
+
         $this->stateDataHelper = $this->objectManager->getObject(StateData::class, [
             'stateDataCollection' => $this->stateDataCollectionMock,
-            'stateDataResourceModel' => $this->stateDataResourceModelMock
+            'stateDataResourceModel' => $this->stateDataResourceModelMock,
+            'stateDataFactory' => $this->stateDataFactoryMock
         ]);
+    }
+
+    public function testSaveStateDataSuccessful()
+    {
+        $stateData = '{"stateData":"dummyData"}';
+        $quoteId = 1;
+
+        $stateDataMock = $this->createConfiguredMock(\Adyen\Payment\Model\StateData::class, [
+            'getData' => ['entity_id' => 1, 'quote_id' => 1]
+        ]);
+
+        $this->stateDataCollectionMock->method('addFieldToFilter')->willReturnSelf();
+        $this->stateDataCollectionMock->method('getFirstItem')->willReturn($stateDataMock);
+        $this->stateDataResourceModelMock->expects($this->once())->method('save');
+
+        $this->stateDataHelper->saveStateData($stateData, $quoteId);
     }
 
     public function testRemoveStateDataSuccessful()
