@@ -41,7 +41,7 @@ class SuccessTest extends AbstractAdyenTestCase
             CustomerSession::class,
             ['isLoggedIn']
         );
-        $this->orderFactoryMock = $this->createMock(OrderFactory::class);
+        $this->orderFactoryMock = $this->createGeneratedMock(OrderFactory::class, ['create']);
         $this->orderMock = $this->createMock(Order::class);
         $this->quoteIdToMaskedQuoteIdMock = $this->createMock(QuoteIdToMaskedQuoteId::class);
 
