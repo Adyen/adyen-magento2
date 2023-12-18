@@ -126,7 +126,7 @@ class ChargedCurrency
         $amountIncludingTax = $item->getRowTotalInclTax()/$item->getQtyOrdered();
         return new AdyenAmountCurrency(
             $amount,
-            $item->getOrder()->getQuoteCurrencyCode(),
+            $item->getOrder()->getOrderCurrencyCode(),
             $item->getDiscountAmount(),
             $amountIncludingTax - $amount,
             null,

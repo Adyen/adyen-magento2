@@ -61,6 +61,7 @@ class OpenInvoice
 
         /** @var MagentoOrder\Item $item */
         foreach ($order->getAllVisibleItems() as $item) {
+            $item->setOrder($order);
             $numberOfItems = (int)$item->getQtyOrdered();
 
             $itemAmountCurrency = $this->chargedCurrency->getOrderItemAmountCurrency($item);
