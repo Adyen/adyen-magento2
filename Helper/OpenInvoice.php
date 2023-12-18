@@ -12,8 +12,8 @@
 
 namespace Adyen\Payment\Helper;
 
-use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Catalog\Helper\Image;
+use Magento\Sales\Model\Order as MagentoOrder;
 
 class OpenInvoice
 {
@@ -21,11 +21,6 @@ class OpenInvoice
      * @var AbstractHelper
      */
     protected $adyenHelper;
-
-    /**
-     * @var CartRepositoryInterface
-     */
-    protected $cartRepository;
 
     /**
      * @var ChargedCurrency
@@ -44,34 +39,31 @@ class OpenInvoice
 
     public function __construct(
         Data $adyenHelper,
-        CartRepositoryInterface $cartRepository,
         ChargedCurrency $chargedCurrency,
         Config $configHelper,
         Image $imageHelper
     ) {
         $this->adyenHelper = $adyenHelper;
-        $this->cartRepository = $cartRepository;
         $this->chargedCurrency = $chargedCurrency;
         $this->configHelper = $configHelper;
         $this->imageHelper = $imageHelper;
     }
 
-    public function getOpenInvoiceData($order): array
+    public function getOpenInvoiceData(MagentoOrder $order): array
     {
         $formFields = [
             'lineItems' => []
         ];
 
-        /** @var \Magento\Quote\Model\Quote $cart */
-        $cart = $this->cartRepository->get($order->getQuoteId());
         $amountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order);
         $currency = $amountCurrency->getCurrencyCode();
         $discountAmount = 0;
 
-        foreach ($cart->getAllVisibleItems() as $item) {
-            $numberOfItems = (int)$item->getQty();
+        /** @var MagentoOrder\Item $item */
+        foreach ($order->getAllVisibleItems() as $item) {
+            $numberOfItems = (int)$item->getQtyOrdered();
 
-            $itemAmountCurrency = $this->chargedCurrency->getQuoteItemAmountCurrency($item);
+            $itemAmountCurrency = $this->chargedCurrency->getOrderItemAmountCurrency($item);
 
             // Summarize the discount amount item by item
             $discountAmount += $itemAmountCurrency->getDiscountAmount();
@@ -94,14 +86,14 @@ class OpenInvoice
             $formattedTaxPercentage = $this->adyenHelper->formatAmount($item->getTaxPercent(), $currency);
 
             $formFields['lineItems'][] = [
-                'id' => $item->getProduct()->getId(),
+                'id' => (string) $item->getProductId(),
                 'amountExcludingTax' => $formattedPriceExcludingTax,
                 'amountIncludingTax' => $formattedPriceIncludingTax,
                 'taxAmount' => $formattedTaxAmount,
                 'description' => $item->getName(),
                 'quantity' => $numberOfItems,
                 'taxPercentage' => $formattedTaxPercentage,
-                'productUrl' => $item->getProduct()->getUrlModel()->getUrl($item->getProduct()),
+                'productUrl' => $this->getProductUrl($item),
                 'imageUrl' => $this->getImageUrl($item)
             ];
         }
@@ -110,7 +102,7 @@ class OpenInvoice
         if ($discountAmount != 0) {
             $description = __('Discount');
             $itemAmount = -$this->adyenHelper->formatAmount(
-                $discountAmount + $cart->getShippingAddress()->getShippingDiscountAmount(),
+                $discountAmount + $order->getShippingDiscountAmount(),
                 $itemAmountCurrency->getCurrencyCode()
             );
             $itemVatAmount = "0";
@@ -129,10 +121,10 @@ class OpenInvoice
         }
 
         // Shipping cost
-        if ($cart->getShippingAddress()->getShippingAmount() > 0 ||
-            $cart->getShippingAddress()->getShippingTaxAmount() > 0
+        if ($order->getShippingAmount() > 0 ||
+            $order->getShippingTaxAmount() > 0
         ) {
-            $shippingAmountCurrency = $this->chargedCurrency->getQuoteShippingAmountCurrency($cart);
+            $shippingAmountCurrency = $this->chargedCurrency->getOrderShippingAmountCurrency($order);
 
             $formattedPriceExcludingTax = $this->adyenHelper->formatAmount(
                 $shippingAmountCurrency->getAmount(),
@@ -166,14 +158,13 @@ class OpenInvoice
         return $formFields;
     }
 
-    /**
-     * @param string $item
-     * @return string
-     */
-    protected function getImageUrl($item): string
+    protected function getImageUrl(MagentoOrder\Item $item): string
     {
-        $product = $item->getProduct();
         $imageUrl = "";
+        $product = $item->getProduct();
+        if ($product === null) {
+            return $imageUrl;
+        }
 
         if ($image = $product->getSmallImage()) {
             $imageUrl = $this->imageHelper->init($product, 'product_page_image_small')
@@ -182,5 +173,15 @@ class OpenInvoice
         }
 
         return $imageUrl;
+    }
+
+    protected function getProductUrl(MagentoOrder\Item $item): string
+    {
+        $product = $item->getProduct();
+        if ($product === null) {
+            return '';
+        }
+
+        return $product->getUrlModel()->getUrl($item->getProduct());
     }
 }

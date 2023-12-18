@@ -109,6 +109,32 @@ class ChargedCurrency
         );
     }
 
+    public function getOrderItemAmountCurrency(\Magento\Sales\Model\Order\Item $item)
+    {
+        $chargedCurrency = $this->config->getChargedCurrency($item->getStoreId());
+        if ($chargedCurrency == self::BASE) {
+            return new AdyenAmountCurrency(
+                $item->getBasePrice(),
+                $item->getOrder()->getBaseCurrencyCode(),
+                $item->getBaseDiscountAmount(),
+                $item->getBasePriceInclTax() - $item->getBasePrice(),
+                null,
+                $item->getBasePriceInclTax()
+            );
+        }
+        $amount = $item->getRowTotal()/$item->getQtyOrdered();
+        $amountIncludingTax = $item->getRowTotalInclTax()/$item->getQtyOrdered();
+        return new AdyenAmountCurrency(
+            $amount,
+            $item->getOrder()->getQuoteCurrencyCode(),
+            $item->getDiscountAmount(),
+            $amountIncludingTax - $amount,
+            null,
+            $amountIncludingTax
+        );
+    }
+
+
     /**
      * @param Invoice\Item $item
      * @return AdyenAmountCurrency
@@ -246,6 +272,29 @@ class ChargedCurrency
             $quote->getShippingAddress()->getShippingTaxAmount(),
             null,
             $quote->getShippingAddress()->getShippingInclTax()
+        );
+    }
+
+    public function getOrderShippingAmountCurrency(Order $order): AdyenAmountCurrency
+    {
+        $chargedCurrency = $this->config->getChargedCurrency($order->getStoreId());
+        if ($chargedCurrency == self::BASE) {
+            return new AdyenAmountCurrency(
+                $order->getBaseShippingAmount(),
+                $order->getBaseCurrencyCode(),
+                $order->getBaseShippingDiscountAmount(),
+                $order->getBaseShippingTaxAmount(),
+                null,
+                $order->getBaseShippingInclTax()
+            );
+        }
+        return new AdyenAmountCurrency(
+            $order->getShippingAmount(),
+            $order->getOrderCurrencyCode(),
+            $order->getShippingDiscountAmount(),
+            $order->getShippingTaxAmount(),
+            null,
+            $order->getShippingInclTax()
         );
     }
 
