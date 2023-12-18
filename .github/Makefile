@@ -103,6 +103,13 @@ graphql:
 	@cd ${MAGENTO_ROOT}/dev/tests/api-functional && \
 		${MAGENTO_ROOT}/vendor/bin/phpunit --prepend ${GRAPHQL_PHP} --configuration ${GRAPHQL_XML} ${GRAPHQL_SUITE}
 
+# REST API tests
+restapi:
+	@cd ${MAGENTO_ROOT}/dev/tests/api-functional && \
+        ${MAGENTO_ROOT}/vendor/bin/phpunit --prepend /data/extensions/workdir/Test/phpunit_rest.php \
+        --configuration ${MAGENTO_ROOT}/dev/tests/api-functional/phpunit_rest.xml.dist \
+        ${MAGENTO_ROOT}/vendor/adyen/module-payment/Test/api-functional/Webapi
+
 # Destroy services
 clean:
 	docker-compose -f workflows/templates/docker-compose.yml down --volumes --rmi local
