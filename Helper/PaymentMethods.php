@@ -632,7 +632,7 @@ class PaymentMethods extends AbstractHelper
         $notificationPaymentMethod = $notification->getPaymentMethod();
 
         // Returns if the payment method is wallet like wechatpayWeb, amazonpay, applepay, paywithgoogle
-        $isWalletPaymentMethod = $this->isWalletTxVariant($orderPaymentMethod);
+        $isWalletPaymentMethod = $this->isWalletTxVariant((string) $orderPaymentMethod);
         $isCardPaymentMethod = $order->getPayment()->getMethod() === 'adyen_cc' || $order->getPayment()->getMethod() === 'adyen_oneclick';
 
         // If it is a wallet method OR a card OR the methods match exactly, return true
