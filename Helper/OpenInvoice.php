@@ -261,7 +261,7 @@ class OpenInvoice
         ];
     }
 
-    public function formatInvoiceDiscount(
+    protected function formatInvoiceDiscount(
         mixed $discountAmount, $shippingDiscountAmount, AdyenAmountCurrency $itemAmountCurrency
     ): array
     {

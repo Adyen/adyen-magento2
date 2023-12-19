@@ -232,9 +232,12 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
 
         $itemAmountCurrencyMock->method('getAmount')->willReturn(4500);
         $itemAmountCurrencyMock->method('getAmountIncludingTax')->willReturn(4500);
-        $itemAmountCurrencyMock->method('getDiscountAmount')->willReturn(0);
+        $itemAmountCurrencyMock->method('getDiscountAmount')->willReturn(10);
         $this->chargedCurrencyMock->method('getCreditMemoItemAmountCurrency')->willReturn($itemAmountCurrencyMock);
         $this->chargedCurrencyMock->method('getCreditMemoShippingAmountCurrency')->willReturn($itemAmountCurrencyMock);
+        $shippingAddressMock = $this->createMock(\Magento\Quote\Model\Quote\Address::class);
+        $shippingAddressMock->method('__call')->willReturnMap([['getShippingDiscountAmount', [], 10.0],]);
+        $this->orderMock->method('getShippingAddress')->willReturn($shippingAddressMock);
         $this->orderMock->method('getShippingDescription')->willReturn('Flat Rate - Fixed');
         $this->productMock->method('getId')->willReturn('14');
         $this->orderItemMock->method('getName')->willReturn('Push It Messenger Bag');
@@ -259,6 +262,15 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
                     'taxPercentage' => 0,
                     'productUrl' => 'https://localhost.store/index.php/push-it-messenger-bag.html',
                     'imageUrl' => ''
+                ],
+                [
+                    'id' => 'Discount',
+                    'amountExcludingTax' => -20,
+                    'amountIncludingTax' => -20,
+                    'taxAmount' => 0,
+                    'description' =>  __('Discount'),
+                    'quantity' => 1,
+                    'taxPercentage' => 0
                 ],
                 [
                     'id' => 'shippingCost',
