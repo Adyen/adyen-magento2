@@ -1,0 +1,37 @@
+name: Release management
+
+on:
+  workflow_dispatch:
+    inputs:
+      pre-release:
+        required: false
+        type: boolean
+        default: false
+        description: "This release will be labeled as non-production ready"
+      github-release:
+        required: false
+        type: boolean
+        default: false
+        description: "Publish Github release for the current version"
+  pull_request:
+    types:
+      - closed
+    branches:
+      - develop
+
+jobs:
+  release:
+    permissions:
+      contents: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Preparing the next release
+        uses: michaelpaul/adyen-release-automation-action@v1.2.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          develop-branch: develop
+          version-files: composer.json etc/module.xml
+          pre-release: ${{ inputs.pre-release || false }}
+          github-release: ${{ inputs.github-release || false }}
+          release-title: Adyen Payment
