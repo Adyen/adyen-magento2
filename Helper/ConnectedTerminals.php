@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
+use Adyen\Client;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Checkout\Model\Session;
 
@@ -53,6 +54,7 @@ class ConnectedTerminals
         }
 
         try {
+            $this->adyenHelper->logRequest($requestParams, '', '/connectedTerminals');
             $responseData = $service->getConnectedTerminals($requestParams);
         } catch (AdyenException $e) {
             $this->adyenLogger->error(
@@ -61,6 +63,7 @@ class ConnectedTerminals
             // return empty result
             return [];
         }
+        $this->adyenHelper->logResponse($responseData);
 
         return $responseData;
     }
