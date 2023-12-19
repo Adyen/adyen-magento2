@@ -12,7 +12,6 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
-use Adyen\Client;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Checkout\Model\Session;
 
