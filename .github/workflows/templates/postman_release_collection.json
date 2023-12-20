@@ -1,1 +1,204 @@
-{}
+{
+	"info": {
+		"_postman_id": "d8f3f818-6357-496b-b188-29366ce55c46",
+		"name": "postman_adope_maketplace_release_collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create session token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"",
+							"pm.test(\"create session token succesfully\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    var jsonData = pm.response.json();",
+							"    pm.collectionVariables.set(\"TOKEN\", jsonData.ust);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "{{APP_ID}}",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "{{APP_KEY}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"grant_type\": \"session\",\n    \"expires_in\": 900\n}\n"
+				},
+				"url": {
+					"raw": "{{API_URL}}/rest/v1/app/session/token",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"rest",
+						"v1",
+						"app",
+						"session",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Upload release zip file",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Upload release file\", function () {",
+							"    pm.expect(pm.response.code).to.be.eq(200);",
+							"    var jsonData = pm.response.json();",
+							"    ",
+							"    pm.collectionVariables.set(\"FILE_UPLOAD_ID\", jsonData[0].file_upload_id);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file[]",
+							"type": "file",
+							"src": "package.zip"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{API_URL}}/rest/v1/files/uploads",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"rest",
+						"v1",
+						"files",
+						"uploads"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Submit package",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\n    {\n        \"action\": {\n            \"technical\": \"submit\",\n            \"marketing\": \"submit\"\n        },\n        \"type\": \"extension\",\n        \"platform\": \"M2\",\n        \"version_compatibility\": [\n            {\n                \"edition\": \"CE\",\n                \"versions\": [\n                    \"2.4\"\n                ]\n            },\n            {\n                \"edition\": \"EE\",\n                \"versions\": [\n                    \"2.4\"\n                ]\n            },\n            {\n                \"edition\": \"ECE\",\n                \"versions\": [\n                    \"2.4\"\n                ]\n            }\n        ],\n        \"sku\": \"{{PACKAGE_SKU}}\",\n        \"name\": \"Adyen Dummy Plugin\",\n        \"long_description\": \"<Long description here>\",\n        \"version\": \"{{PACKAGE_VERSION}}\",\n        \"release_notes\": \"{{RELEASE_NOTES}}\",\n        \"artifact\": {\n            \"file_upload_id\": \"{{FILE_UPLOAD_ID}}\"\n        },\n        \"documentation_artifacts\": {\n            \"user\": {\n                \"file_upload_id\": \"657c5ac160b2b2.30735560.0\"\n            },\n            \"installation\": {\n                \"file_upload_id\": \"657c5b310760b1.63927735.0\"\n            },\n            \"reference\": {\n                \"file_upload_id\": \"657c5aee226c01.99700834.0\"\n            }\n        },\n        \"media_artifacts\": {\n            \"icon_image\": [],\n            \"gallery_images\": [],\n            \"video_urls\": []\n        },\n        \"pricing_model\": {\n            \"pricing_type\": \"one-time\",\n            \"payment_period\": 1\n        },\n        \"prices\": [],\n        \"license_type\": \"mit\"\n    }\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{API_URL}}/rest/v1/products/packages",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"rest",
+						"v1",
+						"products",
+						"packages"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "TOKEN",
+			"value": "",
+			"type": "default"
+		},
+		{
+			"key": "FILE_UPLOAD_ID",
+			"value": "",
+			"type": "default"
+		}
+	]
+}

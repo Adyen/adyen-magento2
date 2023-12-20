@@ -14,13 +14,17 @@ on:
         description: "Release tag"
         required: true
         default: "develop"
+      packageName:
+        description: "Adyen package name"
+        required: true
+        default: "adyen/dummy-module"
 
 jobs:
   build:
     runs-on:
       runs-on: ubuntu-latest
     steps:
-i      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
       - name: Download release files
         run: |
           wget \
@@ -35,8 +39,8 @@ i      - uses: actions/checkout@v3
           newman run \
           --env-var "APP_KEY=${{secrets.EQP_API_KEY}}" \
           --env-var "APP_ID=${{secrets.EQP_API_USER}}" \
-          --env-var "API_URL=${{secrets.EQP_API_KEY}}" \
-          --env-var "PACKAGE_SKU=${{inputs.releaseTag}}" \
+          --env-var "API_URL=https://commercedeveloper-api.adobe.com" \
+          --env-var "PACKAGE_SKU=${{inputs.packageName}}" \
           --env-var "PACKAGE_VERSION=${{inputs.releaseTag}}" \
           --env-var "PACKAGE_FILE=package.zip \
-          .github/workflows/templates/postman_adope_maketplace_release_collection.json
+          .github/workflows/templates/postman_release_collection.json.json
