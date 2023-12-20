@@ -17,9 +17,9 @@ interface GuestAdyenDonationsInterface
     /**
      * Build and send donation payment request for guest shoppers
      *
+     * @param string $cartId
      * @param string $payload
-     * @param string $orderId
      * @return void
      */
-    public function donate(string $payload, string $orderId): void;
+    public function donate(string $cartId, string $payload): void;
 }
