@@ -110,7 +110,7 @@
         </resources>
     </route>
   
-    <route url="/V1/adyen/orders/guest-carts/:orderId/donations" method="POST">
+    <route url="/V1/adyen/orders/guest-carts/:cartId/donations" method="POST">
         <service class="Adyen\Payment\Api\GuestAdyenDonationsInterface" method="donate"/>
         <resources>
             <resource ref="anonymous"/>

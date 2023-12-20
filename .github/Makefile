@@ -41,13 +41,15 @@ configure: n98-magerun2.phar
 	bin/magento config:set payment/adyen_abstract/notifications_ip_check 0
 	bin/magento config:set payment/adyen_abstract/payment_authorized 'processing'
 	bin/magento config:set payment/adyen_abstract/payment_pre_authorized 'pending_payment'
-	bin/magento config:set payment/adyen_abstract/capture_mode 'auto'
+	bin/magento config:set payment/adyen_abstract/capture_mode 'manual'
 	bin/magento config:set payment/adyen_abstract/paypal_capture_mode 0
 	bin/magento config:set payment/adyen_abstract/recurring_configuration '{"adyen_cc":{"name":"Credit Card","enabled":"1","recurringProcessingModel":"CardOnFile"}}'
 	bin/magento config:set payment/adyen_cc_vault/require_cvc 1
-
-	./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/api_key_test "${ADYEN_API_KEY}" > /dev/null
 	bin/magento config:set payment/adyen_abstract/client_key_test "${ADYEN_CLIENT_KEY}"
+	bin/magento config:set payment/adyen_abstract/notification_username 'admin'
+	bin/magento config:set payment/adyen_abstract/payment_methods_active 1
+	./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/notification_password '1234'  > /dev/null
+	./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/api_key_test "${ADYEN_API_KEY}" > /dev/null
 
 # Clear cache
 flush:
@@ -101,6 +103,13 @@ GRAPHQL_SUITE=${MAGENTO_ROOT}/vendor/adyen/module-payment/Test/api-functional/Gr
 graphql:
 	@cd ${MAGENTO_ROOT}/dev/tests/api-functional && \
 		${MAGENTO_ROOT}/vendor/bin/phpunit --prepend ${GRAPHQL_PHP} --configuration ${GRAPHQL_XML} ${GRAPHQL_SUITE}
+
+# REST API tests
+restapi:
+	@cd ${MAGENTO_ROOT}/dev/tests/api-functional && \
+        ${MAGENTO_ROOT}/vendor/bin/phpunit --prepend /data/extensions/workdir/Test/phpunit_rest.php \
+        --configuration ${MAGENTO_ROOT}/dev/tests/api-functional/phpunit_rest.xml.dist \
+        ${MAGENTO_ROOT}/vendor/adyen/module-payment/Test/api-functional/Webapi
 
 # Destroy services
 clean:
