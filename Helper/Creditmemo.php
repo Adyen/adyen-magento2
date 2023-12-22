@@ -144,6 +144,7 @@ class Creditmemo extends AbstractHelper
                 if ($currAdyenCreditmemo->getAmount() == $magentoCreditmemo->getGrandTotal()) {
                     $currAdyenCreditmemo->setCreditmemoId($magentoCreditmemo->getEntityId());
                     $this->adyenCreditmemoResourceModel->save($currAdyenCreditmemo);
+                    break;
                 }
 
             }
