@@ -53,6 +53,7 @@ class ConnectedTerminals
         }
 
         try {
+            $this->adyenHelper->logRequest($requestParams, '', '/connectedTerminals');
             $responseData = $service->getConnectedTerminals($requestParams);
         } catch (AdyenException $e) {
             $this->adyenLogger->error(
@@ -61,6 +62,7 @@ class ConnectedTerminals
             // return empty result
             return [];
         }
+        $this->adyenHelper->logResponse($responseData);
 
         return $responseData;
     }
