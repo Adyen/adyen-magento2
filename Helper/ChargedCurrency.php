@@ -80,32 +80,30 @@ class ChargedCurrency
         return new AdyenAmountCurrency($quote->getGrandTotal(), $quote->getQuoteCurrencyCode());
     }
 
-    /**
-     * @param Quote\Item $item
-     * @return AdyenAmountCurrency
-     */
-    public function getQuoteItemAmountCurrency(Quote\Item $item)
+    public function getQuoteItemAmountCurrency(Quote\Item $item): AdyenAmountCurrency
     {
         $chargedCurrency = $this->config->getChargedCurrency($item->getStoreId());
+
         if ($chargedCurrency == self::BASE) {
             return new AdyenAmountCurrency(
-                $item->getBasePrice(),
+                $item->getBaseRowTotal() / $item->getQty(),
                 $item->getQuote()->getBaseCurrencyCode(),
-                $item->getBaseDiscountAmount(),
-                $item->getBasePriceInclTax() - $item->getBasePrice(),
                 null,
-                $item->getBasePriceInclTax()
+                $item->getBaseTaxAmount() / $item->getQty(),
+                null,
+                $item->getBaseRowTotalInclTax() / $item->getQty(),
+                $item->getBaseDiscountTaxCompensationAmount() / $item->getQty()
             );
         }
-        $amount = $item->getRowTotal()/$item->getQty();
-        $amountIncludingTax = $item->getRowTotalInclTax()/$item->getQty();
+
         return new AdyenAmountCurrency(
-            $amount,
+            $item->getRowTotal() / $item->getQty(),
             $item->getQuote()->getQuoteCurrencyCode(),
-            $item->getDiscountAmount(),
-            $amountIncludingTax - $amount,
+            $item->getDiscountAmount() / $item->getQty(),
+            $item->getTaxAmount() / $item->getQty(),
             null,
-            $amountIncludingTax
+            $item->getRowTotalInclTax() / $item->getQty(),
+            $item->getDiscountTaxCompensationAmount() / $item->getQty()
         );
     }
 
@@ -221,31 +219,29 @@ class ChargedCurrency
         );
     }
 
-
-    /**
-     * @param Quote $quote
-     * @return AdyenAmountCurrency
-     */
-    public function getQuoteShippingAmountCurrency(Quote $quote)
+    public function getQuoteShippingAmountCurrency(Quote $quote): AdyenAmountCurrency
     {
         $chargedCurrency = $this->config->getChargedCurrency($quote->getStoreId());
+
         if ($chargedCurrency == self::BASE) {
             return new AdyenAmountCurrency(
                 $quote->getShippingAddress()->getBaseShippingAmount(),
                 $quote->getBaseCurrencyCode(),
-                $quote->getShippingAddress()->getBaseShippingDiscountAmount(),
+                null,
                 $quote->getShippingAddress()->getBaseShippingTaxAmount(),
                 null,
                 $quote->getShippingAddress()->getBaseShippingInclTax()
             );
         }
+
         return new AdyenAmountCurrency(
             $quote->getShippingAddress()->getShippingAmount(),
             $quote->getQuoteCurrencyCode(),
             $quote->getShippingAddress()->getShippingDiscountAmount(),
             $quote->getShippingAddress()->getShippingTaxAmount(),
             null,
-            $quote->getShippingAddress()->getShippingInclTax()
+            $quote->getShippingAddress()->getShippingInclTax(),
+            $quote->getShippingAddress()->getShippingDiscountTaxCompensationAmount()
         );
     }
 
