@@ -18,11 +18,9 @@ use Adyen\Payment\Helper\OpenInvoice;
 use Adyen\Payment\Model\ResourceModel\Invoice\CollectionFactory;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as PaymentCollectionFactory;
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
-use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
-use Magento\Payment\Model\InfoInterface;
-use Magento\Sales\Model\Order\Creditmemo;
+use Magento\Sales\Model\Order\Payment;
 
 /**
  * Class CustomerDataBuilder
@@ -36,20 +34,17 @@ class RefundDataBuilder implements BuilderInterface
     private Data $adyenHelper;
     private Config $configHelper;
     private PaymentCollectionFactory $orderPaymentCollectionFactory;
-    protected CollectionFactory $adyenInvoiceCollectionFactory;
     private ChargedCurrency $chargedCurrency;
 
     public function __construct(
         Data $adyenHelper,
         PaymentCollectionFactory   $orderPaymentCollectionFactory,
-        CollectionFactory          $adyenInvoiceCollectionFactory,
         ChargedCurrency            $chargedCurrency,
         Config                     $configHelper,
         OpenInvoice                $openInvoiceHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->orderPaymentCollectionFactory = $orderPaymentCollectionFactory;
-        $this->adyenInvoiceCollectionFactory = $adyenInvoiceCollectionFactory;
         $this->chargedCurrency = $chargedCurrency;
         $this->configHelper = $configHelper;
         $this->openInvoiceHelper = $openInvoiceHelper;
@@ -60,6 +55,7 @@ class RefundDataBuilder implements BuilderInterface
         $paymentDataObject = SubjectReader::readPayment($buildSubject);
 
         $order = $paymentDataObject->getOrder();
+        /** @var  Payment $payment */
         $payment = $paymentDataObject->getPayment();
         $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($payment->getOrder(), false);
 
@@ -168,11 +164,12 @@ class RefundDataBuilder implements BuilderInterface
             );
 
             if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) {
-                $openInvoiceFieldsCreditMemo = $this->openInvoiceHelper->getOpenInvoiceData($creditMemo->getOrder());
+                $openInvoiceFieldsCreditMemo = $this->openInvoiceHelper->getOpenInvoiceDataForCreditMemo($payment);
                 //There is only one payment, so we add the fields to the first(and only) result
                 $requestBody[0] =  array_merge($requestBody[0], $openInvoiceFieldsCreditMemo);
             }
         }
+
         $request['clientConfig'] = ["storeId" => $payment->getOrder()->getStoreId()];
         $request['body'] = $requestBody;
 

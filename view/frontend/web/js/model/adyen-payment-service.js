@@ -120,15 +120,20 @@ define(
                 );
             },
 
-            donate: function (data, orderId) {
+            donate: function (data, isLoggedIn, orderId, maskedQuoteId) {
                 let serviceUrl;
                 let request = {
                     payload: JSON.stringify(data)
                 };
 
-                serviceUrl = customer.isLoggedIn()
-                    ? urlBuilder.createUrl('/adyen/orders/carts/mine/donations', {})
-                    : urlBuilder.createUrl('/adyen/orders/guest-carts/:orderId/donations', {orderId});
+                if (isLoggedIn) {
+                    serviceUrl =  urlBuilder.createUrl('/adyen/orders/carts/mine/donations', {});
+                    request.orderId = orderId;
+                } else {
+                    serviceUrl =  urlBuilder.createUrl('/adyen/orders/guest-carts/:cartId/donations', {
+                        cartId: maskedQuoteId
+                    });
+                }
 
                 return storage.post(
                     serviceUrl,

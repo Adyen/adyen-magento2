@@ -87,7 +87,7 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
             $order->getStoreId()
         );
 
-        if (strcmp((string) $openInvoiceCapture, self::ONSHIPMENT_CAPTURE_OPENINVOICE) === 0)
+        if (strcmp((string) $openInvoiceCapture, self::ONSHIPMENT_CAPTURE_OPENINVOICE) !== 0)
         {
             $this->logger->info(
                 "Capture on shipment not configured for order id {$order->getId()}",

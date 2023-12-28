@@ -17,8 +17,9 @@ interface AdyenDonationsInterface
     /**
      * Build and send donation payment request
      *
+     * @param int $orderId
      * @param string $payload
      * @return void
      */
-    public function donate(string $payload): void;
+    public function donate(int $orderId, string $payload): void;
 }
