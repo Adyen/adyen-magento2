@@ -148,8 +148,10 @@ input AdyenAdditionalDataOneclick {
 }
 
 input AdyenAdditionalDataPosCloud {
+    terminal_id: String! @doc(description: "Terminal ID of selected terminal.")
     number_of_installments: Int @doc(description: "Number of installments for the payment.")
-    terminal_id: String @doc(description: "Terminal ID of selected terminal.")
+    chain_calls: Boolean @doc(description: "Indicates the chained call.")
+    funding_source: String @doc(description: "Funding source to be used for combo cards.")
 }
 
 type StoreConfig @doc(description: "The type contains information about a store config") {
