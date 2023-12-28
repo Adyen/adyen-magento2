@@ -22,6 +22,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Checkout\Model\Session;
 use Magento\Payment\Gateway\Http\TransferInterface;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
@@ -106,16 +107,18 @@ class TransactionPosCloudSync implements ClientInterface
         $newServiceID = date("dHis");
         $statusDate = date("U");
         $terminalId = $request['terminalID'];
+        $order = $request['order'];
 
         if (array_key_exists('chainCalls', $request)) {
-            $quote = $this->initiatePosPayment(
+            $order = $this->initiatePosPayment(
+                $order,
                 $terminalId,
                 $request['fundingSource'],
                 $request['numberOfInstallments']
             );
-            $quoteInfoInstance = $quote->getPayment()->getMethodInstance()->getInfoInstance();
-            $timeDiff = (int)$statusDate - (int)$quoteInfoInstance->getAdditionalInformation('initiateDate');
-            $serviceId = $quoteInfoInstance->getAdditionalInformation('serviceID');
+            $payment = $order->getPayment();
+            $timeDiff = (int)$statusDate - (int)$payment->getAdditionalInformation('initiateDate');
+            $serviceId = $payment->getAdditionalInformation('serviceID');
         } else {
             $timeDiff = (int)$statusDate - (int)$request['initiateDate'];
             $serviceId = $request['serviceID'];
@@ -182,19 +185,20 @@ class TransactionPosCloudSync implements ClientInterface
     /**
      * Initiate a POS payment by sending a /sync call to Adyen
      *
+     * @param OrderInterface $order
      * @param string $terminalId
      * @param string $fundingSource
      * @param string|null $numberOfInstallments
-     * @return CartInterface
+     * @return OrderInterface
      * @throws AdyenException
      * @throws LocalizedException
-     * @throws NoSuchEntityException
      */
     public function initiatePosPayment(
+        OrderInterface $order,
         string $terminalId,
         string $fundingSource,
         ?string $numberOfInstallments
-    ): CartInterface {
+    ): OrderInterface {
         // Validate JSON that has just been parsed if it was in a valid format
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new LocalizedException(
@@ -203,13 +207,10 @@ class TransactionPosCloudSync implements ClientInterface
         }
 
         $poiId = $terminalId;
-
-        /** @var CartInterface $quote */
-        $quote = $this->session->getQuote();
-        $payment = $quote->getPayment();
-        $adyenAmountCurrency = $this->chargedCurrency->getQuoteAmountCurrency($quote);
+        $payment = $order->getPayment();
+        $adyenAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order);
         $payment->setMethod(AdyenPosCloudConfigProvider::CODE);
-        $reference = $quote->reserveOrderId()->getReservedOrderId();
+        $reference = $order->getIncrementId();
 
         $service = $this->adyenHelper->createAdyenPosPaymentService($this->client);
         $transactionType = \Adyen\TransactionType::NORMAL;
@@ -285,15 +286,14 @@ class TransactionPosCloudSync implements ClientInterface
             ];
         }
 
-        $request = $this->pointOfSale->addSaleToAcquirerData($request, $quote);
-        $paymentInfoInstance = $quote->getPayment()->getMethodInstance()->getInfoInstance();
+        $request = $this->pointOfSale->addSaleToAcquirerData($request, null, $order);
 
-        $paymentInfoInstance->setAdditionalInformation(
+        $payment->setAdditionalInformation(
             'serviceID',
             $serviceID
         );
 
-        $paymentInfoInstance->setAdditionalInformation(
+        $payment->setAdditionalInformation(
             'initiateDate',
             $initiateDate
         );
@@ -306,21 +306,22 @@ class TransactionPosCloudSync implements ClientInterface
             $this->adyenLogger->addAdyenDebug($response['error'] = $e->getMessage());
         } catch (\Exception $e) {
             //Probably timeout
-            $paymentInfoInstance->setAdditionalInformation(
+            $payment->setAdditionalInformation(
                 'terminalResponse',
                 null
             );
-            $quote->save();
+
             $response['error'] = $e->getMessage();
             throw $e;
         }
         $this->adyenHelper->logResponse($response);
-        $paymentInfoInstance->setAdditionalInformation(
+        $payment->setAdditionalInformation(
             'terminalResponse',
             $response
         );
 
-        $quote->save();
-        return $quote;
+        $order->save();
+
+        return $order;
     }
 }

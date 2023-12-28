@@ -12,6 +12,7 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Adyen\Payment\Helper\PaymentMethods;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
@@ -36,7 +37,8 @@ class PosCloudBuilder implements BuilderInterface
                 'terminalID' => $payment->getAdditionalInformation('terminal_id'),
                 'numberOfInstallments' => $payment->getAdditionalInformation('number_of_installments'),
                 'chainCalls' => $payment->getAdditionalInformation('chain_calls'),
-                'fundingSource' => $payment->getAdditionalInformation('funding_source')
+                'fundingSource' => $payment->getAdditionalInformation('funding_source') ?? PaymentMethods::FUNDING_SOURCE_CREDIT,
+                'order' => $payment->getOrder()
             ];
         } else {
             $body = [
