@@ -45,6 +45,9 @@ class PaymentPosCloudHandler implements HandlerInterface
         // do not send order confirmation mail
         $payment->getOrder()->setCanSendNewEmailFlag(false);
 
+        if (!empty($paymentResponse) && isset($paymentResponse['Response']['Result'])) {
+            $payment->setAdditionalInformation('resultCode', $paymentResponse['Response']['Result']);
+        }
 
         if (!empty($paymentResponse['Response']['AdditionalResponse']))
         {

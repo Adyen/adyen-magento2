@@ -33,6 +33,7 @@ class PaymentResponseHandler
     const CANCELLED = 'Cancelled';
     const ADYEN_TOKENIZATION = 'Adyen Tokenization';
     const VAULT = 'Magento Vault';
+    const POS_SUCCESS = 'Success';
 
     /**
      * @var AdyenLogger
@@ -89,6 +90,7 @@ class PaymentResponseHandler
             case self::AUTHORISED:
             case self::REFUSED:
             case self::ERROR:
+            case self::POS_SUCCESS:
                 return [
                     "isFinal" => true,
                     "resultCode" => $resultCode
