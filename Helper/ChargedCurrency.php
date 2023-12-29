@@ -88,7 +88,7 @@ class ChargedCurrency
             return new AdyenAmountCurrency(
                 $item->getBaseRowTotal() / $item->getQty(),
                 $item->getQuote()->getBaseCurrencyCode(),
-                null,
+                $item->getBaseDiscountAmount() / $item->getQty(),
                 $item->getBaseTaxAmount() / $item->getQty(),
                 null,
                 $item->getBaseRowTotalInclTax() / $item->getQty(),
