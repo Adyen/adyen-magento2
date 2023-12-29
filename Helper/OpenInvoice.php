@@ -111,43 +111,28 @@ class OpenInvoice
         return $formFields;
     }
 
-    public function getOpenInvoiceDataForCreditMemo(Payment $payment)
+    public function getOpenInvoiceDataForCreditMemo(Order\Creditmemo $creditMemo)
     {
         $formFields = ['lineItems' => []];
-        $discountAmount = 0;
-        $creditMemo = $payment->getCreditMemo();
-        $currency = $this->chargedCurrency->getOrderAmountCurrency($payment->getOrder(), false);
 
-        foreach ($creditMemo->getItems() as $refundItem) {
-            $numberOfItems = (int)$refundItem->getQty();
-            if ($numberOfItems <= 0) {
+        foreach ($creditMemo->getItems() as $creditmemoItem) {
+            if ($creditmemoItem->getQty() <= 0) {
                 continue;
             }
 
-            $itemAmountCurrency = $this->chargedCurrency->getCreditMemoItemAmountCurrency($refundItem);
-            $discountAmount += $itemAmountCurrency->getDiscountAmount();
-            $orderItem = $refundItem->getOrderItem();
-            $product = $orderItem->getProduct();
-
+            $itemAmountCurrency = $this->chargedCurrency->getCreditMemoItemAmountCurrency($creditmemoItem);
             $formFields['lineItems'][] = $this->formatLineItem(
-                $itemAmountCurrency, $orderItem, $product, $numberOfItems
+                $itemAmountCurrency,
+                $creditmemoItem->getOrderItem(),
+                $creditmemoItem->getQty()
             );
         }
 
-        // Discount cost
-        if ($discountAmount != 0) {
-            $formFields['lineItems'][] = $this->formatInvoiceDiscount(
-                $discountAmount,
-                $payment->getOrder()->getShippingAddress()->getShippingDiscountAmount(),
-                $currency
-            );
-        }
-
-        // Shipping cost
-        $shippingAmountCurrency = $this->chargedCurrency->getCreditMemoShippingAmountCurrency($creditMemo);
-        if ($shippingAmountCurrency->getAmount() > 0) {
+        if ($creditMemo->getShippingAmount() > 0) {
+            $shippingAmountCurrency = $this->chargedCurrency->getCreditMemoShippingAmountCurrency($creditMemo);
             $formFields['lineItems'][] = $this->formatShippingLineItem(
-                $shippingAmountCurrency, $payment->getOrder()->getShippingDescription()
+                $shippingAmountCurrency,
+                $creditMemo->getOrder()->getShippingDescription()
             );
         }
 
@@ -200,7 +185,7 @@ class OpenInvoice
         ];
     }
 
-    protected function formatLineItem(AdyenAmountCurrency $itemAmountCurrency, $item): array
+    protected function formatLineItem(AdyenAmountCurrency $itemAmountCurrency, $item, $qty = null): array
     {
         $currency = $itemAmountCurrency->getCurrencyCode();
 
@@ -224,7 +209,7 @@ class OpenInvoice
             'amountIncludingTax' => $formattedPriceIncludingTax,
             'taxAmount' => $formattedTaxAmount,
             'description' => $item->getName(),
-            'quantity' => (int) $item->getQty(),
+            'quantity' => (int) ($qty ?? $item->getQty()),
             'taxPercentage' => $formattedTaxPercentage,
             'productUrl' => $product->getUrlModel()->getUrl($product),
             'imageUrl' => $this->getImageUrl($item)

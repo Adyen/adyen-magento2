@@ -173,49 +173,55 @@ class ChargedCurrency
         );
     }
 
-    /**
-     * @param CreditmemoInterface $creditMemo
-     * @return AdyenAmountCurrency
-     */
-    public function getCreditMemoShippingAmountCurrency(CreditmemoInterface $creditMemo)
+    public function getCreditMemoShippingAmountCurrency(CreditmemoInterface $creditMemo): AdyenAmountCurrency
     {
         $chargedCurrency = $creditMemo->getOrder()->getAdyenChargedCurrency();
+
         if ($chargedCurrency == self::BASE) {
             return new AdyenAmountCurrency(
                 $creditMemo->getBaseShippingAmount(),
                 $creditMemo->getBaseCurrencyCode(),
                 null,
-                $creditMemo->getBaseShippingTaxAmount()
+                $creditMemo->getBaseShippingTaxAmount(),
+                null,
+                $creditMemo->getBaseShippingInclTax(),
+                $creditMemo->getBaseShippingDiscountTaxCompensationAmnt()
             );
         }
         return new AdyenAmountCurrency(
             $creditMemo->getShippingAmount(),
             $creditMemo->getOrderCurrencyCode(),
             null,
-            $creditMemo->getShippingTaxAmount()
+            $creditMemo->getShippingTaxAmount(),
+            null,
+            $creditMemo->getShippingInclTax(),
+            $creditMemo->getShippingDiscountTaxCompensationAmount()
         );
     }
 
-    /**
-     * @param CreditmemoItemInterface $item
-     * @return AdyenAmountCurrency
-     */
-    public function getCreditMemoItemAmountCurrency(CreditmemoItemInterface $item)
+    public function getCreditMemoItemAmountCurrency(CreditmemoItemInterface $item): AdyenAmountCurrency
     {
         $chargedCurrency = $item->getCreditMemo()->getOrder()->getAdyenChargedCurrency();
+
         if ($chargedCurrency == self::BASE) {
             return new AdyenAmountCurrency(
-                $item->getBasePrice(),
+                $item->getBaseRowTotal() / $item->getQty(),
                 $item->getCreditMemo()->getBaseCurrencyCode(),
+                $item->getBaseDiscountAmount() / $item->getQty(),
+                $item->getBaseTaxAmount() / $item->getQty(),
                 null,
-                $item->getBaseTaxAmount() / $item->getQty()
+                $item->getBaseRowTotalInclTax() / $item->getQty(),
+                $item->getBaseDiscountTaxCompensationAmount() / $item->getQty()
             );
         }
         return new AdyenAmountCurrency(
-            $item->getPrice(),
+            $item->getRowTotal() / $item->getQty(),
             $item->getCreditMemo()->getOrderCurrencyCode(),
+            $item->getDiscountAmount() / $item->getQty(),
+            $item->getTaxAmount() / $item->getQty(),
             null,
-            $item->getTaxAmount() / $item->getQty()
+            $item->getRowTotalInclTax() / $item->getQty(),
+            $item->getDiscountTaxCompensationAmount() / $item->getQty()
         );
     }
 
