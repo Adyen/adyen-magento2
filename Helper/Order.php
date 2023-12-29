@@ -304,7 +304,7 @@ class Order extends AbstractHelper
              * Otherwise, capture-cancel-refund is not possible.
              */
             if ($order->getState() === MagentoOrder::STATE_PAYMENT_REVIEW) {
-                $this->setPrePaymentAuthorized($order);
+                $order = $this->setPrePaymentAuthorized($order);
             }
         }
 
