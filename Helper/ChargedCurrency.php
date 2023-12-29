@@ -227,10 +227,11 @@ class ChargedCurrency
             return new AdyenAmountCurrency(
                 $quote->getShippingAddress()->getBaseShippingAmount(),
                 $quote->getBaseCurrencyCode(),
-                null,
+                $quote->getShippingAddress()->getBaseShippingDiscountAmount(),
                 $quote->getShippingAddress()->getBaseShippingTaxAmount(),
                 null,
-                $quote->getShippingAddress()->getBaseShippingInclTax()
+                $quote->getShippingAddress()->getBaseShippingInclTax(),
+                $quote->getShippingAddress()->getBaseShippingDiscountTaxCompensationAmnt()
             );
         }
 
