@@ -31,8 +31,9 @@ class CancelDataBuilder implements BuilderInterface
 
     public function __construct(
         Payment $adyenPaymentResourceModel,
-        Data $adyenHelper
-    ){
+        Data    $adyenHelper
+    )
+    {
         $this->adyenPaymentResourceModel = $adyenPaymentResourceModel;
         $this->adyenHelper = $adyenHelper;
     }
@@ -50,7 +51,7 @@ class CancelDataBuilder implements BuilderInterface
         $order = $paymentDataObject->getOrder();
         $payment = $paymentDataObject->getPayment();
 
-        $storeId = $order ->getStoreId();
+        $storeId = $order->getStoreId();
         $method = $payment->getMethod();
 
         if (isset($method) && $method === AdyenMotoConfigProvider::CODE) {
@@ -59,14 +60,14 @@ class CancelDataBuilder implements BuilderInterface
             $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($method, $storeId);
         }
 
-        $pspReferences = $this->adyenPaymentResourceModel->getLinkedAdyenOrderPayments(
-            $payment->getEntityId()
-        );
-
+        $linkedPayments = $this->adyenPaymentResourceModel->getLinkedAdyenOrderPayments($payment->getEntityId());
+        $pspReferences = array_column($linkedPayments, 'pspreference');
+        $pspReferences[] = $payment->getCcTransId();
         $requests['body'] = [];
-        foreach ($pspReferences as $pspReference) {
+
+        foreach (array_unique($pspReferences) as $pspReference) {
             $request = [
-                "paymentPspReference" => $pspReference['pspreference'],
+                "paymentPspReference" => $pspReference,
                 "reference" => $order->getOrderIncrementId(),
                 "merchantAccount" => $merchantAccount
             ];
