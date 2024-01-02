@@ -216,7 +216,7 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
             ]
         ];
 
-        $result = $openInvoice->getOpenInvoiceDataForLastInvoice($this->paymentMock);
+        $result = $openInvoice->getOpenInvoiceDataForInvoice($this->paymentMock);
         $this->assertEquals($expectedResult, $result);
     }
 

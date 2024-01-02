@@ -107,26 +107,30 @@ class ChargedCurrency
         );
     }
 
-    /**
-     * @param Invoice\Item $item
-     * @return AdyenAmountCurrency
-     */
-    public function getInvoiceItemAmountCurrency(Invoice\Item $item)
+    public function getInvoiceItemAmountCurrency(Invoice\Item $item): AdyenAmountCurrency
     {
         $chargedCurrency = $item->getInvoice()->getOrder()->getAdyenChargedCurrency();
+
         if ($chargedCurrency == self::BASE) {
             return new AdyenAmountCurrency(
-                $item->getBasePrice(),
+                $item->getBaseRowTotal() / $item->getQty(),
                 $item->getInvoice()->getBaseCurrencyCode(),
+                $item->getBaseDiscountAmount() / $item->getQty(),
+                $item->getBaseTaxAmount() / $item->getQty(),
                 null,
-                $item->getBaseTaxAmount() / $item->getQty()
+                $item->getBaseRowTotalInclTax() / $item->getQty(),
+                $item->getBaseDiscountTaxCompensationAmount() / $item->getQty()
             );
         }
+
         return new AdyenAmountCurrency(
-            $item->getPrice(),
+            $item->getRowTotal() / $item->getQty(),
             $item->getInvoice()->getOrderCurrencyCode(),
+            $item->getDiscountAmount() / $item->getQty(),
+            $item->getTaxAmount() / $item->getQty(),
             null,
-            ($item->getQty() > 0) ? $item->getTaxAmount() / $item->getQty() : 0
+            $item->getRowTotalInclTax() / $item->getQty(),
+            $item->getDiscountTaxCompensationAmount() / $item->getQty()
         );
     }
 
@@ -252,26 +256,30 @@ class ChargedCurrency
         );
     }
 
-    /**
-     * @param Invoice $invoice
-     * @return AdyenAmountCurrency
-     */
-    public function getInvoiceShippingAmountCurrency(Invoice $invoice)
+    public function getInvoiceShippingAmountCurrency(Invoice $invoice): AdyenAmountCurrency
     {
         $chargedCurrency = $invoice->getOrder()->getAdyenChargedCurrency();
+
         if ($chargedCurrency == self::BASE) {
             return new AdyenAmountCurrency(
                 $invoice->getBaseShippingAmount(),
                 $invoice->getBaseCurrencyCode(),
                 null,
-                $invoice->getBaseShippingTaxAmount()
+                $invoice->getBaseShippingTaxAmount(),
+                null,
+                $invoice->getBaseShippingInclTax(),
+                $invoice->getBaseShippingDiscountTaxCompensationAmnt()
             );
         }
+
         return new AdyenAmountCurrency(
             $invoice->getShippingAmount(),
             $invoice->getOrderCurrencyCode(),
             null,
-            $invoice->getShippingTaxAmount()
+            $invoice->getShippingTaxAmount(),
+            null,
+            $invoice->getShippingInclTax(),
+            $invoice->getShippingDiscountTaxCompensationAmount()
         );
     }
 
