@@ -1,5 +1,7 @@
 <?php
 
+namespace Adyen\Payment\Test\Gateway\Request;
+
 use Adyen\Payment\Gateway\Request\AddressDataBuilder;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Payment\Helper\Requests;
