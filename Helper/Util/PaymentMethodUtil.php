@@ -68,7 +68,9 @@ class PaymentMethodUtil
         'discover_amazonpay',
         'maestro_amazonpay',
         'elo_amazonpay',
-        'jcb_amazonpay'
+        'jcb_amazonpay',
+        'bcmc',
+        'bcmc_mobile'
     ];
 
     const OPEN_INVOICE_PAYMENT_METHODS = [
