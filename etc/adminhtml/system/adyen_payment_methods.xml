@@ -17,8 +17,8 @@
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <comment> <![CDATA[<p>By enabling your payment methods here, we can automatically retrieve the payment preferences already defined in your Customer Area.</p>]]>
         </comment>
-        <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1"
-               showInStore="1">
+        <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="0"
+               showInStore="0">
             <label>Payment methods enabled</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <backend_model>Adyen\Payment\Model\Config\Backend\PaymentMethodsStatus</backend_model>
