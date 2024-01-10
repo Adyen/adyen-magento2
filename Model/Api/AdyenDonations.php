@@ -17,53 +17,63 @@ use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentMethods;
+use Adyen\Payment\Model\Sales\OrderRepository;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Util\Uuid;
-use Magento\Checkout\Model\Session;
+use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order;
-use Magento\Sales\Model\OrderFactory;
 
 class AdyenDonations implements AdyenDonationsInterface
 {
     private CommandPoolInterface $commandPool;
-    private Session $checkoutSession;
-    private OrderFactory $orderFactory;
     private Json $jsonSerializer;
     protected Data $dataHelper;
     private ChargedCurrency $chargedCurrency;
     private Config $config;
     private PaymentMethods $paymentMethodsHelper;
+    private OrderRepository $orderRepository;
 
     private $donationTryCount;
 
     public function __construct(
         CommandPoolInterface $commandPool,
-        OrderFactory $orderFactory,
-        Session $checkoutSession,
         Json $jsonSerializer,
         Data $dataHelper,
         ChargedCurrency $chargedCurrency,
         Config $config,
-        PaymentMethods $paymentMethodsHelper
+        PaymentMethods $paymentMethodsHelper,
+        OrderRepository $orderRepository
     ) {
         $this->commandPool = $commandPool;
-        $this->orderFactory = $orderFactory;
-        $this->checkoutSession = $checkoutSession;
         $this->jsonSerializer = $jsonSerializer;
         $this->dataHelper = $dataHelper;
         $this->chargedCurrency = $chargedCurrency;
         $this->config = $config;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
+        $this->orderRepository = $orderRepository;
     }
 
-    public function donate(string $payload): void
+    /**
+     * @throws NoSuchEntityException
+     * @throws LocalizedException
+     * @throws InputException
+     */
+    public function donate(int $orderId, string $payload): void
+    {
+        $order = $this->orderRepository->get($orderId);
+
+        $this->makeDonation($payload, $order);
+    }
+
+    public function makeDonation(string $payload, OrderInterface $order): void
     {
         $payload = $this->jsonSerializer->unserialize($payload);
-        /** @var Order */
-        $order = $this->orderFactory->create()->load($this->checkoutSession->getLastOrderId());
+
         $paymentMethodInstance = $order->getPayment()->getMethodInstance();
         $donationToken = $order->getPayment()->getAdditionalInformation('donationToken');
 

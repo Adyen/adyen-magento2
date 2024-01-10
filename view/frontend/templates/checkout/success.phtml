@@ -59,16 +59,14 @@
     (async function () { // RequireJS does not support async callback
         function handleOnDonate(state, component) {
             if (state.isValid) {
-                let previousStateData;
-                try {
-                    previousStateData = JSON.parse(window.sessionStorage.getItem('adyen.stateData'));
-                } catch {
-                    previousStateData = {};
-                }
-                let payload = { ...previousStateData, ...state.data };
+                let payload = state.data;
                 payload.returnUrl = window.location.href;
-                const orderId = <?=$block->getOrder()->getId()?>;
-                adyenPaymentService.donate(payload, orderId)
+
+                const orderId = <?= $block->getOrder()->getId() ?>;
+                const isLoggedIn = Boolean(<?= $block->getIsCustomerLoggedIn() ?>);
+                const maskedQuoteId = "<?= $block->getMaskedQuoteId() ?>";
+
+                adyenPaymentService.donate(payload, isLoggedIn, orderId, maskedQuoteId)
                     .done(function (response) {
                         component.setStatus("success");
                     })
