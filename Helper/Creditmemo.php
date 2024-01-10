@@ -136,8 +136,17 @@ class Creditmemo extends AbstractHelper
                     $adyenCreditmemo[CreditmemoInterface::ENTITY_ID],
                     CreditmemoInterface::ENTITY_ID
                 );
-                $currAdyenCreditmemo->setCreditmemoId($magentoCreditmemo->getEntityId());
-                $this->adyenCreditmemoResourceModel->save($currAdyenCreditmemo);
+
+                if ($currAdyenCreditmemo->getCreditmemoId() !== null) {
+                    continue;
+                }
+
+                if ($currAdyenCreditmemo->getAmount() == $magentoCreditmemo->getGrandTotal()) {
+                    $currAdyenCreditmemo->setCreditmemoId($magentoCreditmemo->getEntityId());
+                    $this->adyenCreditmemoResourceModel->save($currAdyenCreditmemo);
+                    break;
+                }
+
             }
         }
     }
