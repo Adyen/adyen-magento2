@@ -4,6 +4,7 @@ namespace Adyen\Payment\Console\Command;
 
 use Adyen\Payment\Helper\PaymentMethodsFactory;
 use Adyen\Payment\Helper\ConfigFactory;
+use Magento\Framework\Console\Cli;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -32,7 +33,7 @@ class EnablePaymentMethodsCommand extends Command
     /**
      * @throws \Exception
      */
-    protected function execute(InputInterface $input, OutputInterface $output): void
+    protected function execute(InputInterface $input, OutputInterface $output)
     {
         $output->writeln('Starting enabling payment methods.');
         $paymentMethods = $this->paymentMethodsFactory->create();
@@ -47,5 +48,6 @@ class EnablePaymentMethodsCommand extends Command
         }
 
         $output->writeln('Completed enabling payment methods.');
+        return Cli::RETURN_SUCCESS;
     }
 }

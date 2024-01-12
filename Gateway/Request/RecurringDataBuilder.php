@@ -51,8 +51,6 @@ class RecurringDataBuilder implements BuilderInterface
             $body = $this->adyenRequestsHelper->buildCardRecurringData($storeId, $payment);
         } elseif ($this->paymentMethodsHelper->isAlternativePaymentMethod($method)) {
             $body = $this->vaultHelper->buildPaymentMethodRecurringData($payment, $storeId);
-        } elseif ($method === PaymentMethods::ADYEN_ONE_CLICK) {
-            $body = $this->adyenRequestsHelper->buildAdyenTokenizedPaymentRecurringData($storeId, $payment);
         } elseif ($method !== PaymentMethods::ADYEN_PAY_BY_LINK) {
             $this->adyenLogger->addAdyenWarning(
                 sprintf('Unknown payment method: %s', $payment->getMethod()),
