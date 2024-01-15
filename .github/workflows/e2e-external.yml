@@ -1,5 +1,5 @@
-name: Magento 2 E2E Pipeline
-run-name: Adyen Magento 2 Payment Plugin E2E tests
+name: Magento 2 External Contributor E2E Pipeline
+run-name: Adyen Magento 2 Payment Plugin External Contributor E2E tests
 
 on: 
   workflow_dispatch:
