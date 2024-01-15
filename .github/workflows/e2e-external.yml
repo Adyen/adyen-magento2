@@ -2,6 +2,7 @@ name: Magento 2 E2E Pipeline
 run-name: Adyen Magento 2 Payment Plugin E2E tests
 
 on: 
+  workflow_dispatch:
   pull_request_target:
 
 jobs:
