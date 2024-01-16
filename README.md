@@ -1,6 +1,6 @@
 # Adyen Payment plugin for Magento 2
 Use Adyen's plugin for Magento 2 to offer frictionless payments online, in-app, and in-store.
-
+THIS IS A CHANGE
 ## Integration
 The plugin integrates card component (Secured Fields) using Adyen Checkout for all card payments. For Point Of Sale (POS) payments we use Terminal API using Cloud-based communication.
 
