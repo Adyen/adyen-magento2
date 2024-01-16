@@ -31,7 +31,8 @@ class GiftcardDataBuilder implements BuilderInterface
     {
         /** @var PaymentDataObject $paymentDataObject */
         $paymentDataObject = SubjectReader::readPayment($buildSubject);
-        $order = $paymentDataObject->getOrder();
+        $payment = $paymentDataObject->getPayment();
+        $order = $payment->getOrder();
 
         $request = [];
 
