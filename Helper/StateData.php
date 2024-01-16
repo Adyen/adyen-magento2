@@ -125,4 +125,9 @@ class StateData
             return true;
         }
     }
+
+    public function getStoredPaymentMethodIdFromStateData(array $stateData): ?string
+    {
+        return $stateData['paymentMethod']['storedPaymentMethodId'] ?? null;
+    }
 }

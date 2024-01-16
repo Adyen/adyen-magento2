@@ -91,4 +91,47 @@ class StateDataTest extends AbstractAdyenTestCase
 
         $this->stateDataHelper->removeStateData($stateDataId, $quoteId);
     }
+
+    /**
+     * @dataProvider storedPaymentMethodIdProvider
+     */
+    public function testGetStoredPaymentMethodId($stateData, $expectedResult)
+    {
+        $this->assertEquals(
+            $expectedResult,
+            $this->stateDataHelper->getStoredPaymentMethodIdFromStateData($stateData)
+        );
+    }
+
+    public static function storedPaymentMethodIdProvider(): array
+    {
+        $mockStoredPaymentMethodId = hash('md5', time());
+
+        return [
+            [
+                'stateData' => [
+                    'paymentMethod' => [
+                        'storedPaymentMethodId' => $mockStoredPaymentMethodId
+                    ]
+                ],
+                'expectedResult' => $mockStoredPaymentMethodId
+            ],
+            [
+                'stateData' => [
+                    'paymentMethod' => [
+                        'storedPaymentMethodId' => null
+                    ]
+                ],
+                'expectedResult' => null
+            ],
+            [
+                'stateData' => [
+                    'paymentMethod' => [
+                        'type' => 'scheme'
+                    ]
+                ],
+                'expectedResult' => null
+            ]
+        ];
+    }
 }
