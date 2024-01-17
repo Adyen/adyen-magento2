@@ -12,6 +12,9 @@ jobs:
     environment: ${{ (github.event_name == 'pull_request_target' &&
       github.event.pull_request.head.repo.full_name != github.repository) && 'external' }}
     runs-on: ubuntu-latest
+    steps:
+      - name: Authorizing
+        run: echo "Authorization completed"
   build:
     needs: authorize
     runs-on:
