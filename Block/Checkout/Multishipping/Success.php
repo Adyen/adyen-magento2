@@ -28,12 +28,12 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 
 class Success extends \Magento\Multishipping\Block\Checkout\Success
 {
-    const FINAL_RESULT_CODES = array(
-        PaymentResponseHandler::AUTHORISED,
-        PaymentResponseHandler::PENDING,
-        PaymentResponseHandler::REFUSED,
-        PaymentResponseHandler::PRESENT_TO_SHOPPER
-    );
+    const ACTION_REQUIRED_STATUSES = [
+        PaymentResponseHandler::REDIRECT_SHOPPER,
+        PaymentResponseHandler::IDENTIFY_SHOPPER,
+        PaymentResponseHandler::CHALLENGE_SHOPPER,
+        PaymentResponseHandler::PENDING
+    ];
 
     /**
      * @var bool
@@ -122,7 +122,7 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
     public function renderAction()
     {
         foreach ($this->paymentResponseEntities as $paymentResponseEntity) {
-            if (!in_array($paymentResponseEntity['result_code'], self::FINAL_RESULT_CODES)) {
+            if (in_array($paymentResponseEntity['result_code'], self::ACTION_REQUIRED_STATUSES)) {
                 return true;
             }
         }
@@ -189,7 +189,7 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
     public function getIsPaymentCompleted(int $orderId)
     {
         // TODO check for all completed responses, not only Authorised, Refused, Pending or PresentToShopper
-        return in_array($this->ordersInfo[$orderId]['resultCode'], self::FINAL_RESULT_CODES);
+        return !in_array($this->ordersInfo[$orderId]['resultCode'], self::ACTION_REQUIRED_STATUSES);
     }
 
     public function getPaymentButtonLabel(int $orderId)
