@@ -1,4 +1,13 @@
 <?php
+/**
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2024 Adyen N.V. (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
 
 namespace Adyen\Payment\Test\Unit\Gateway\Http\Client;
 
@@ -33,7 +42,6 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
         $objectManager = new ObjectManager($this);
 
         $this->adyenHelperMock = $this->createMock(Data::class);
-        $this->paymentResponseFactoryMock = $this->createGeneratedMock(PaymentResponseFactory::class, ['create']);
         $this->paymentResponseResourceModelMock = $this->createMock(PaymentResponseResourceModel::class);
         $this->idempotencyHelperMock = $this->createMock(Idempotency::class);
         $this->orderApiHelperMock = $this->createMock(OrdersApi::class);
@@ -44,8 +52,6 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
         $paymentResponseMock->method('setResponse')->willReturn($paymentResponseInterfaceMock);
         $paymentResponseMock->method('setResultCode')->willReturn($paymentResponseInterfaceMock);
         $paymentResponseMock->method('setMerchantReference')->willReturn($paymentResponseInterfaceMock);
-
-        // Configure PaymentResponseFactory mock to return the PaymentResponse mock
         $this->paymentResponseFactoryMock = $this->createGeneratedMock(PaymentResponseFactory::class, ['create']);
         $this->paymentResponseFactoryMock->method('create')->willReturn($paymentResponseMock);
 

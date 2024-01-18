@@ -3,11 +3,12 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
+ * Copyright (c) 2024 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
+namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Payment\Helper\PaymentsDetails;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
@@ -17,9 +18,7 @@ use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Helper\Idempotency;
-use Adyen\AdyenException;
 use Magento\Checkout\Model\Session;
-use Magento\Framework\Exception\ValidatorException;
 use Adyen\Service\Checkout;
 use Adyen\Client;
 
