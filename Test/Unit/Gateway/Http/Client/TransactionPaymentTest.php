@@ -112,6 +112,49 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
 
         $this->adyenHelperMock->method('createAdyenCheckoutService')->willReturn($serviceMock);
 
-        $this->transactionPayment->placeRequest($transferObjectMock);
+        $response = $this->transactionPayment->placeRequest($transferObjectMock);
+
+        $this->assertArrayHasKey('resultCode', $response);
+        $this->assertEquals('Authorised', $response['resultCode']);
+    }
+
+    public function testRequestHeadersAreAddedToPaymentsCall()
+    {
+        $requestBody = ['reference' => 'ABC12345', 'amount' => ['value' => 1000]];
+        $expectedHeaders = ['header1' => 'value1', 'header2' => 'value2'];
+
+        $transferObjectMock = $this->createConfiguredMock(TransferInterface::class, [
+            'getBody' => ['reference' => 'ABC12345', 'amount' => ['value' => 1000]],
+            'getHeaders' => ['header1' => 'value1', 'header2' => 'value2'],
+            'getClientConfig' => []
+        ]);
+
+        $this->adyenHelperMock->expects($this->once())
+            ->method('buildRequestHeaders')
+            ->willReturn($expectedHeaders);
+
+        $mockedPaymentResponse = [
+            'reference' => 'ABC12345',
+            'amount' => ['value' => 100],
+            'resultCode' => 'Authorised'
+        ];
+
+        $serviceMock = $this->createMock(Checkout::class);
+        $serviceMock->expects($this->once())
+            ->method('payments')
+            ->with(
+                $this->equalTo($requestBody),
+                $this->callback(function ($requestOptions) use ($expectedHeaders) {
+                    return isset($requestOptions['headers']) && $requestOptions['headers'] === $expectedHeaders;
+                })
+            )
+            ->willReturn($mockedPaymentResponse);
+
+        $this->adyenHelperMock->method('createAdyenCheckoutService')->willReturn($serviceMock);
+
+        $response = $this->transactionPayment->placeRequest($transferObjectMock);
+
+        $this->assertArrayHasKey('resultCode', $response);
+        $this->assertEquals('Authorised', $response['resultCode']);
     }
 }
