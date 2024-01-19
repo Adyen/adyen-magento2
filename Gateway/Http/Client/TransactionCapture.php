@@ -57,7 +57,7 @@ class TransactionCapture implements ClientInterface
         );
 
         $requestOptions['idempotencyKey'] = $idempotencyKey;
-        $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();;
+        $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
 
         if (array_key_exists(self::MULTIPLE_AUTHORIZATIONS, $request)) {
             return $this->placeMultipleCaptureRequests($service, $request, $requestOptions);
