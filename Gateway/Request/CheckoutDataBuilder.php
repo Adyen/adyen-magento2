@@ -210,11 +210,6 @@ class CheckoutDataBuilder implements BuilderInterface
 
         $requestBody['additionalData']['allow3DS2'] = true;
 
-        // @todo cleanup, this variable was became obsolete in https://github.com/Adyen/adyen-magento2/pull/2246
-        if (isset($requestBodyPaymentMethod)) {
-            $requestBody['paymentMethod'] = $requestBodyPaymentMethod;
-        }
-
         return [
             'body' => $requestBody
         ];
