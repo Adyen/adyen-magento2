@@ -62,7 +62,7 @@ class WebhookCredentials extends Value
             $username = $this->getValue();
             $password = $this->getFieldsetDataValue('notification_password');
 
-            $webhookUrl = $this->url->getBaseUrl() . 'adyen/process/json';
+            $webhookUrl = $this->url->getBaseUrl() . 'adyen/webhook';
             $isDemoMode = (int)$this->getFieldsetDataValue('demo_mode');
             $environment = $isDemoMode ? 'test' : 'live';
 
