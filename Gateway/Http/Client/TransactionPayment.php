@@ -13,9 +13,8 @@ namespace Adyen\Payment\Gateway\Http\Client;
 
 use Adyen\AdyenException;
 use Adyen\Client;
-use Adyen\Model\Checkout\Amount;
-use Adyen\Model\Checkout\CheckoutPaymentMethod;
 use Adyen\Model\Checkout\PaymentRequest;
+use Adyen\Model\Checkout\PaymentResponse as CheckoutPaymentResponse;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\GiftcardPayment;
 use Adyen\Payment\Helper\Idempotency;
@@ -23,7 +22,7 @@ use Adyen\Payment\Helper\OrdersApi;
 use Adyen\Payment\Model\PaymentResponse;
 use Adyen\Payment\Model\PaymentResponseFactory;
 use Adyen\Payment\Model\ResourceModel\PaymentResponse as PaymentResponseResourceModel;
-use Adyen\Service\Checkout;
+use Adyen\Service\Checkout\PaymentsApi;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 use Magento\Store\Model\StoreManagerInterface;
@@ -75,14 +74,12 @@ class TransactionPayment implements ClientInterface
 
         $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
         $service = $this->adyenHelper->createAdyenPaymentsApiService($client);
-        $oldService = $this->adyenHelper->createAdyenCheckoutService($client);
         $paymentRequest = new PaymentRequest($requestData);
-        $responseArray = [];
 
         try {
-            list($requestData, $giftcardResponse) = $this->processGiftcards($requestData, $oldService);
+            list($requestData, $giftcardResponse) = $this->processGiftcards($requestData, $service);
             if (isset($giftcardResponse) && $this->remainingOrderAmount === 0) {
-                return $giftcardResponse;
+                return json_decode((string)$giftcardResponse, true);
             }
 
             $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
@@ -97,30 +94,24 @@ class TransactionPayment implements ClientInterface
             // Store the /payments response in the database in case it is needed in order to finish the payment
             /** @var PaymentResponse $paymentResponse */
             $paymentResponse = $this->paymentResponseFactory->create();
-            $jsonResponse = json_encode($response);
-            $paymentResponse->setResponse($jsonResponse);
-            $responseArray = json_decode($jsonResponse, true);
-            $paymentResponse->setResultCode($responseArray['resultCode']);
+            $paymentResponse->setResponse((string)$response);
+            $paymentResponse->setResultCode($response->getResultCode());
             $paymentResponse->setMerchantReference($requestData["reference"]);
-
             $this->paymentResponseResourceModel->save($paymentResponse);
+            $this->adyenHelper->logPaymentResponse($response);
         } catch (AdyenException $e) {
-            $responseArray['error'] = $e->getMessage();
-            $responseArray['errorCode'] = $e->getAdyenErrorCode();
+            $this->adyenHelper->logAdyenException($e);
         }
-        $this->adyenHelper->logResponse($responseArray);
 
-        return $responseArray;
+        return json_decode((string)$response, true);
     }
 
     private function handleGiftcardPayments(
         array $request,
-        Checkout $service,
+        PaymentsApi $service,
         array $redeemedGiftcards,
         array $ordersResponse
-    ): array {
-        $response = [];
-
+    ): CheckoutPaymentResponse {
         foreach ($redeemedGiftcards as $giftcard) {
             $stateData = json_decode($giftcard['state_data'], true);
 
@@ -147,9 +138,8 @@ class TransactionPayment implements ClientInterface
                 '/payments'
             );
 
-            $response = $service->payments($giftcardPaymentRequest);
-
-            $this->adyenHelper->logResponse($response);
+            $response = $service->payments(new PaymentRequest($giftcardPaymentRequest));
+            $this->adyenHelper->logPaymentResponse($response);
 
             /** @var PaymentResponse $paymentResponse */
             $paymentResponse = $this->paymentResponseFactory->create();
@@ -165,7 +155,7 @@ class TransactionPayment implements ClientInterface
         return $response;
     }
 
-    public function processGiftcards(array $request, Checkout $service): array
+    public function processGiftcards(array $request, PaymentsApi $service): array
     {
         if (isset($request['giftcardRequestParameters'])) {
             $redeemedGiftcards = $request['giftcardRequestParameters'];
@@ -188,6 +178,7 @@ class TransactionPayment implements ClientInterface
         } else {
             $giftcardResponse = null;
         }
+
         return array($request, $giftcardResponse);
     }
 }

@@ -14,15 +14,16 @@ namespace Adyen\Payment\Helper;
 use Adyen\AdyenException;
 use Adyen\Client;
 use Adyen\Environment;
-use Adyen\Service\Checkout;
-use Adyen\Service\Checkout\PaymentsApi;
+use Adyen\Model\Checkout\PaymentResponse;
+use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Config\Source\RenderMode;
 use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
-use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
+use Adyen\Service\Checkout;
 use Adyen\Service\CheckoutUtility;
+use Adyen\Service\Checkout\PaymentsApi;
 use Adyen\Service\PosPayment;
 use Adyen\Service\Recurring;
 use DateTime;
@@ -30,9 +31,9 @@ use Exception;
 use Magento\Backend\Helper\Data as BackendHelper;
 use Magento\Directory\Model\Config\Source\Country;
 use Magento\Framework\App\CacheInterface;
+use Magento\Framework\App\Cache\Type\Config as ConfigCache;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
-use Magento\Framework\App\Cache\Type\Config as ConfigCache;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ProductMetadataInterface;
@@ -1498,6 +1499,20 @@ class Data extends AbstractHelper
         }
 
         $this->adyenLogger->info('Response from Adyen API', $context);
+    }
+
+    public function logPaymentResponse(PaymentResponse $response)
+    {
+        $jsonResponse = json_decode(json_encode($response), true);
+        $this->logResponse($jsonResponse);
+    }
+
+    public function logAdyenException(AdyenException $e)
+    {
+        $responseArray = [];
+        $responseArray['error'] = $e->getMessage();
+        $responseArray['errorCode'] = $e->getAdyenErrorCode();
+        $this->logResponse($responseArray);
     }
 
     private function filterReferences(array $data): array
