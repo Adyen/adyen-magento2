@@ -13,12 +13,10 @@ namespace Adyen\Payment\Gateway\Http\Client;
 
 use Adyen\AdyenException;
 use Adyen\Client;
-use Adyen\Model\Checkout\StandalonePaymentCancelRequest;
-use Adyen\Model\Payments\CancelRequest;
+use Adyen\Model\Checkout\PaymentCancelRequest;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
 use Adyen\Service\Checkout\ModificationsApi;
-use Adyen\Service\Checkout\PaymentsApi;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 
@@ -44,17 +42,21 @@ class TransactionCancel implements ClientInterface
         $service = new ModificationsApi($client);
         $responseData = [];
 
-        foreach ($requests as $requestData) {
+        foreach ($requests as $request) {
             $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
-                $requestData,
+                $request,
                 $headers['idempotencyExtraData'] ?? null
             );
             $requestOptions['idempotencyKey'] = $idempotencyKey;
-            $this->adyenHelper->logRequest($requests, Client::API_CHECKOUT_VERSION, '/cancels');
-            $paymentRequest = new StandalonePaymentCancelRequest($requestData);
+            $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/cancels');
+            $paymentCancelRequest = new PaymentCancelRequest($request);
 
             try {
-                $response = $service->cancelAuthorisedPayment($paymentRequest, $requestOptions);
+                $response = $service->cancelAuthorisedPaymentByPspReference(
+                    $request['paymentPspReference'],
+                    $paymentCancelRequest,
+                    $requestOptions
+                );
                 $responseData = (array) $response->jsonSerialize();
                 $this->adyenHelper->logResponse($responseData);
             } catch (AdyenException $e) {
