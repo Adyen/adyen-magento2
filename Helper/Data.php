@@ -15,6 +15,7 @@ use Adyen\AdyenException;
 use Adyen\Client;
 use Adyen\Environment;
 use Adyen\Service\Checkout;
+use Adyen\Service\Checkout\PaymentsApi;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Config\Source\RenderMode;
 use Adyen\Payment\Model\RecurringType;
@@ -1353,6 +1354,7 @@ class Data extends AbstractHelper
      * @return Checkout
      * @throws AdyenException
      * @throws NoSuchEntityException
+     * @deprecared use createAdyenPaymentsApiService() instead
      */
     public function createAdyenCheckoutService(Client $client = null): Checkout
     {
@@ -1361,6 +1363,11 @@ class Data extends AbstractHelper
         }
 
         return new Checkout($client);
+    }
+
+    public function createAdyenPaymentsApiService(Client $client = null): PaymentsApi
+    {
+        return new PaymentsApi($client ?? $this->initializeAdyenClient());
     }
 
     /**

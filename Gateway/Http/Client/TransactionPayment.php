@@ -13,6 +13,9 @@ namespace Adyen\Payment\Gateway\Http\Client;
 
 use Adyen\AdyenException;
 use Adyen\Client;
+use Adyen\Model\Checkout\Amount;
+use Adyen\Model\Checkout\CheckoutPaymentMethod;
+use Adyen\Model\Checkout\PaymentRequest;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\GiftcardPayment;
 use Adyen\Payment\Helper\Idempotency;
@@ -59,50 +62,55 @@ class TransactionPayment implements ClientInterface
 
     public function placeRequest(TransferInterface $transferObject): array
     {
-        $request = $transferObject->getBody();
+        $requestData = $transferObject->getBody();
         $headers = $transferObject->getHeaders();
         $clientConfig = $transferObject->getClientConfig();
-        $this->remainingOrderAmount = $request['amount']['value'];
+        $this->remainingOrderAmount = $requestData['amount']['value'];
 
         // If the payments call is already done return the request
-        if (!empty($request['resultCode'])) {
+        if (!empty($requestData['resultCode'])) {
             //Initiate has already a response
-            return $request;
+            return $requestData;
         }
 
         $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
-        $service = $this->adyenHelper->createAdyenCheckoutService($client);
+        $service = $this->adyenHelper->createAdyenPaymentsApiService($client);
+        $oldService = $this->adyenHelper->createAdyenCheckoutService($client);
+        $paymentRequest = new PaymentRequest($requestData);
+        $responseArray = [];
 
         try {
-            list($request, $giftcardResponse) = $this->processGiftcards($request, $service);
+            list($requestData, $giftcardResponse) = $this->processGiftcards($requestData, $oldService);
             if (isset($giftcardResponse) && $this->remainingOrderAmount === 0) {
                 return $giftcardResponse;
             }
 
             $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
-                $request,
+                $requestData,
                 $headers['idempotencyExtraData'] ?? null
             );
             $requestOptions['idempotencyKey'] = $idempotencyKey;
 
-            $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/payments');
-            $response = $service->payments($request, $requestOptions);
+            $this->adyenHelper->logRequest($requestData, Client::API_CHECKOUT_VERSION, '/payments');
+            $response = $service->payments($paymentRequest, $requestOptions);
 
             // Store the /payments response in the database in case it is needed in order to finish the payment
             /** @var PaymentResponse $paymentResponse */
             $paymentResponse = $this->paymentResponseFactory->create();
-            $paymentResponse->setResponse(json_encode($response));
-            $paymentResponse->setResultCode($response['resultCode']);
-            $paymentResponse->setMerchantReference($request["reference"]);
+            $jsonResponse = json_encode($response);
+            $paymentResponse->setResponse($jsonResponse);
+            $responseArray = json_decode($jsonResponse, true);
+            $paymentResponse->setResultCode($responseArray['resultCode']);
+            $paymentResponse->setMerchantReference($requestData["reference"]);
 
             $this->paymentResponseResourceModel->save($paymentResponse);
         } catch (AdyenException $e) {
-            $response['error'] = $e->getMessage();
-            $response['errorCode'] = $e->getAdyenErrorCode();
+            $responseArray['error'] = $e->getMessage();
+            $responseArray['errorCode'] = $e->getAdyenErrorCode();
         }
-        $this->adyenHelper->logResponse($response);
+        $this->adyenHelper->logResponse($responseArray);
 
-        return $response;
+        return $responseArray;
     }
 
     private function handleGiftcardPayments(
