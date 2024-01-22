@@ -268,7 +268,8 @@ class PaymentMethods extends AbstractHelper
 
     protected function getCurrentShopperReference(): ?string
     {
-        return $this->getQuote()->getCustomerId();
+        $customerId = $this->getQuote()->getCustomerId();
+        return $customerId ? (string)$customerId : null;
     }
 
     protected function getPaymentMethodsRequest(
