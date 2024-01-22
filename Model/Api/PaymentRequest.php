@@ -12,7 +12,7 @@
 namespace Adyen\Payment\Model\Api;
 
 use Adyen\AdyenException;
-use Adyen\Config;
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\RecurringType;
@@ -101,8 +101,8 @@ class PaymentRequest extends DataObject
         ];
 
         try {
-            $client = $this->configHelper->initializeAdyenClient($storeId);
-            $service = $this->configHelper->createAdyenCheckoutService($client);
+            $client = $this->adyenHelper->initializeAdyenClient($storeId);
+            $service = $this->adyenHelper->createAdyenCheckoutService($client);
             $result = $service->paymentsDetails($request);
         } catch (AdyenException $e) {
             throw new LocalizedException(__('3D secure failed'));
@@ -173,13 +173,13 @@ class PaymentRequest extends DataObject
         $contract = ['contract' => $recurringType];
         $request = [
             "merchantAccount" => $this->configHelper->getAdyenAbstractConfigData('merchant_account', $storeId),
-            "shopperReference" => $this->configHelper->padShopperReference($shopperReference),
+            "shopperReference" => $this->adyenHelper->padShopperReference($shopperReference),
             "recurring" => $contract,
         ];
 
         // call lib
-        $client = $this->configHelper->initializeAdyenClient($storeId);
-        $service = $this->configHelper->createAdyenRecurringService($client);
+        $client = $this->adyenHelper->initializeAdyenClient($storeId);
+        $service = $this->adyenHelper->createAdyenRecurringService($client);
         $result = $service->listRecurringDetails($request);
 
         return $result;
@@ -200,7 +200,7 @@ class PaymentRequest extends DataObject
         int $storeId
     ): bool {
         $merchantAccount = $this->configHelper->getAdyenAbstractConfigData("merchant_account", $storeId);
-        $shopperReference = $this->configHelper->padShopperReference($shopperReference);
+        $shopperReference = $this->adyenHelper->padShopperReference($shopperReference);
         $request = [
             "merchantAccount" => $merchantAccount,
             "shopperReference" => $shopperReference,
@@ -208,8 +208,8 @@ class PaymentRequest extends DataObject
         ];
 
         // call lib
-        $client = $this->configHelper->initializeAdyenClient($storeId);
-        $service = $this->configHelper->createAdyenRecurringService($client);
+        $client = $this->adyenHelper->initializeAdyenClient($storeId);
+        $service = $this->adyenHelper->createAdyenRecurringService($client);
 
         try {
             $result = $service->disable($request);
