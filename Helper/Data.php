@@ -1366,11 +1366,6 @@ class Data extends AbstractHelper
         return new Checkout($client);
     }
 
-    public function createAdyenPaymentsApiService(Client $client = null): PaymentsApi
-    {
-        return new PaymentsApi($client ?? $this->initializeAdyenClient());
-    }
-
     /**
      * @param $client
      * @return Recurring
@@ -1499,12 +1494,6 @@ class Data extends AbstractHelper
         }
 
         $this->adyenLogger->info('Response from Adyen API', $context);
-    }
-
-    public function logPaymentResponse(PaymentResponse $response)
-    {
-        $jsonResponse = json_decode(json_encode($response), true);
-        $this->logResponse($jsonResponse);
     }
 
     public function logAdyenException(AdyenException $e)

@@ -71,7 +71,7 @@ class CancelDataBuilder implements BuilderInterface
 
         foreach ($pspReferences as $pspReference) {
             $request = [
-                "paymentPspReference" => $pspReference['pspreference'],
+                "paymentReference" => $pspReference['pspreference'],
                 "reference" => $order->getOrderIncrementId(),
                 "merchantAccount" => $merchantAccount
             ];
