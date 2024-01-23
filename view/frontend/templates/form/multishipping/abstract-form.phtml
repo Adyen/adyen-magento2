@@ -24,7 +24,7 @@ $code = $block->getMethod()->getCode();
         'jquery'
     ], function (layout, $) {
         $(function () {
-            const paymentMethodCode = "<?= $code ?>";
+            const paymentMethodCode = "<?= $block->escapeJs($code) ?>";
             const customMethodRenderers = window.checkoutConfig.payment.adyen.customMethodRenderers;
             const paymentMethodData = {
                 method: paymentMethodCode
@@ -42,7 +42,7 @@ $code = $block->getMethod()->getCode();
             layout([
                 {
                     component: multishippingFrontendComponent,
-                    name: 'payment_method_' + '<?= $code ?>',
+                    name: 'payment_method_' + '<?= $block->escapeJs($code) ?>',
                     method: paymentMethodData.method,
                     item: paymentMethodData
                 }
