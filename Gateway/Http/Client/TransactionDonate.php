@@ -14,9 +14,10 @@ namespace Adyen\Payment\Gateway\Http\Client;
 
 use Adyen\AdyenException;
 use Adyen\Client;
+use Adyen\Model\Checkout\DonationPaymentRequest;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
-use Adyen\Service\Checkout;
+use Adyen\Service\Checkout\DonationsApi;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 
@@ -45,7 +46,7 @@ class TransactionDonate implements ClientInterface
         $request = $transferObject->getBody();
         $headers = $transferObject->getHeaders();
 
-        $service = new Checkout($this->client);
+        $service = new DonationsApi($this->client);
 
         $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
             $request,
@@ -56,7 +57,8 @@ class TransactionDonate implements ClientInterface
 
         $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, 'donations');
         try {
-            $response = $service->donations($request, $requestOptions);
+            $responseObj = $service->donations(new DonationPaymentRequest($request), $requestOptions);
+            $response = (array)$responseObj->jsonSerialize();
         } catch (AdyenException $e) {
             $response = ['error' => $e->getMessage()];
         }
