@@ -18,6 +18,7 @@ namespace Adyen\Payment\Helper;
 use Adyen\AdyenException;
 use Adyen\ConnectionException;
 use Adyen\Service\Management;
+use Magento\Customer\Model\AccountManagementApi;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Store\Model\StoreManager;
@@ -272,11 +273,11 @@ class ManagementHelper
     /**
      * @param string $apiKey
      * @param bool $demoMode
-     * @return Management
+     * @return AccountManagementApi
      * @throws AdyenException
      * @throws NoSuchEntityException
      */
-    public function getManagementApiService(string $apiKey, bool $demoMode): Management
+    public function getManagementApiService(string $apiKey, bool $demoMode): AccountManagementApi
     {
         $environment = $demoMode ? 'test' : 'live';
         $storeId = $this->storeManager->getStore()->getId();
@@ -288,6 +289,7 @@ class ManagementHelper
 
         $client = $this->dataHelper->initializeAdyenClient($storeId, $apiKey, null, $environment === 'test');
 
-        return new Management($client);
+        //@todo apply model based also here
+        return new AccountManagementApi($client);
     }
 }

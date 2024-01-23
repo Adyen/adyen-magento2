@@ -13,11 +13,14 @@ namespace Adyen\Payment\Model\Api;
 
 use Adyen\AdyenException;
 use Adyen\Model\Checkout\PaymentDetailsRequest;
+use Adyen\Model\Recurring\DisableRequest;
+use Adyen\Model\Recurring\RecurringDetailsRequest;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\RecurringType;
 use Adyen\Service\Checkout\PaymentsApi;
+use Adyen\Service\RecurringApi;
 use Exception;
 use Magento\Framework\App\State;
 use Magento\Framework\DataObject;
@@ -181,10 +184,10 @@ class PaymentRequest extends DataObject
 
         // call lib
         $client = $this->adyenHelper->initializeAdyenClient($storeId);
-        $service = $this->adyenHelper->createAdyenRecurringService($client);
-        $result = $service->listRecurringDetails($request);
+        $service = new RecurringApi($client);
+        $response = $service->listRecurringDetails(new RecurringDetailsRequest($request));
 
-        return $result;
+        return (array)$response->jsonSerialize();
     }
 
     /**
@@ -211,10 +214,11 @@ class PaymentRequest extends DataObject
 
         // call lib
         $client = $this->adyenHelper->initializeAdyenClient($storeId);
-        $service = $this->adyenHelper->createAdyenRecurringService($client);
+        $service = new RecurringApi($client);
 
         try {
-            $result = $service->disable($request);
+            $response = $service->disable(new DisableRequest($request));
+            $result = (array) $response->jsonSerialize();
         } catch (Exception $e) {
             $this->adyenLogger->info($e->getMessage());
         }

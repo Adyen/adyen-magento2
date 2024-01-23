@@ -12,10 +12,12 @@
 namespace Adyen\Payment\Plugin;
 
 use Adyen\AdyenException;
+use Adyen\Model\Recurring\DisableRequest;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Requests;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Service\RecurringApi;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
@@ -58,8 +60,8 @@ class PaymentVaultDeleteToken
 
             try {
                 $client = $this->dataHelper->initializeAdyenClient($storeId);
-                $recurringService = $this->dataHelper->createAdyenRecurringService($client);
-                $recurringService->disable($request);
+                $service = new RecurringApi($client);
+                $service->disable(new DisableRequest($request));
             } catch (AdyenException $e) {
                 $this->adyenLogger->error(sprintf(
                     'Error while attempting to disable token with id %s: %s',

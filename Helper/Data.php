@@ -22,9 +22,7 @@ use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Adyen\Service\Checkout\UtilityApi;
-use Adyen\Service\CheckoutUtility;
 use Adyen\Service\PosPayment;
-use Adyen\Service\Recurring;
 use DateTime;
 use Exception;
 use Magento\Backend\Helper\Data as BackendHelper;
@@ -1338,16 +1336,6 @@ class Data extends AbstractHelper
     public function isHppVaultEnabled($storeId = null)
     {
         return $this->configHelper->getAdyenHppVaultConfigDataFlag('active', $storeId);
-    }
-
-    /**
-     * @param $client
-     * @return Recurring
-     * @throws AdyenException
-     */
-    public function createAdyenRecurringService($client)
-    {
-        return new Recurring($client);
     }
 
     /**
