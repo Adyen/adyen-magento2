@@ -12,7 +12,9 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
+use Adyen\Model\Checkout\PaymentDetailsRequest;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Service\Checkout\PaymentsApi;
 use Adyen\Service\Validator\DataArrayValidator;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Exception\ValidatorException;
@@ -62,11 +64,21 @@ class PaymentsDetails
         // Send the request
         try {
             $client = $this->adyenHelper->initializeAdyenClient($order->getStoreId());
-            $service = $this->adyenHelper->createAdyenCheckoutService($client);
+            $service = new PaymentsApi($client);
 
             $requestOptions['idempotencyKey'] = $this->idempotencyHelper->generateIdempotencyKey($apiPayload);
 
-            $paymentDetails = $service->paymentsDetails($apiPayload, $requestOptions);
+            $paymentDetailsObj = $service->paymentsDetails(new PaymentDetailsRequest($apiPayload), $requestOptions);
+            $paymentDetails = (array) $paymentDetailsObj->jsonSerialize();
+
+            /**
+             * Since casting $paymentDetailsObj->jsonSerialize() to an array not casting the nested array elements,
+             * we ended up with $paymentDetails['action'] as stdclass, sp we had to convert it to an array
+             */
+            $action = $paymentDetailsObj->getAction();
+            if ($action) {
+                $paymentDetails['action'] = (array)$action->jsonSerialize();
+            }
         } catch (AdyenException $e) {
             $this->adyenLogger->error("Payment details call failed: " . $e->getMessage());
             $this->checkoutSession->restoreQuote();
