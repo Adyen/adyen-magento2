@@ -17,6 +17,7 @@ use Adyen\Payment\Api\AdyenPaymentMethodsBalanceInterface;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Service\Checkout\OrdersApi;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Store\Model\StoreManager;
 
@@ -53,9 +54,9 @@ class AdyenPaymentMethodsBalance implements AdyenPaymentMethodsBalanceInterface
 
         try {
             $client = $this->adyenHelper->initializeAdyenClient($storeId);
-            $service = $this->adyenHelper->createAdyenCheckoutService($client);
-
-            $response = $service->paymentMethodsBalance($payload);
+            $service = new OrdersApi($client);
+            $responseObj = $service->getBalanceOfGiftCard($payload);
+            $response = (array)$responseObj->jsonSerialize();
 
             if ($response['resultCode'] === self::FAILED_RESULT_CODE) {
                 // Balance endpoint doesn't send HTTP status 422 for invalid PIN, manual handling required.

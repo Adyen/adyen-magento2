@@ -14,16 +14,13 @@ namespace Adyen\Payment\Helper;
 use Adyen\AdyenException;
 use Adyen\Client;
 use Adyen\Environment;
-use Adyen\Model\Checkout\PaymentResponse;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Config\Source\RenderMode;
 use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
-use Adyen\Service\Checkout;
 use Adyen\Service\CheckoutUtility;
-use Adyen\Service\Checkout\PaymentsApi;
 use Adyen\Service\PosPayment;
 use Adyen\Service\Recurring;
 use DateTime;
@@ -1348,22 +1345,6 @@ class Data extends AbstractHelper
     public function isHppVaultEnabled($storeId = null)
     {
         return $this->configHelper->getAdyenHppVaultConfigDataFlag('active', $storeId);
-    }
-
-    /**
-     * @param $client
-     * @return Checkout
-     * @throws AdyenException
-     * @throws NoSuchEntityException
-     * @deprecared use createAdyenPaymentsApiService() instead
-     */
-    public function createAdyenCheckoutService(Client $client = null): Checkout
-    {
-        if (!$client) {
-            $client = $this->initializeAdyenClient();
-        }
-
-        return new Checkout($client);
     }
 
     /**

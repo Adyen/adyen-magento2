@@ -13,8 +13,10 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
 use Adyen\Client;
+use Adyen\Model\Checkout\PaymentMethodsRequest;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
+use Adyen\Service\Checkout\PaymentsApi;
 use Adyen\Util\ManualCapture;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
@@ -233,11 +235,12 @@ class PaymentMethods extends AbstractHelper
         $client = $this->adyenHelper->initializeAdyenClient($store->getId());
 
         // initialize service
-        $service = $this->adyenHelper->createAdyenCheckoutService($client);
+        $service = new PaymentsApi($client);
 
         try {
             $this->adyenHelper->logRequest($requestParams, Client::API_CHECKOUT_VERSION, '/paymentMethods');
-            $responseData = $service->paymentMethods($requestParams);
+            $response = $service->paymentMethods(new PaymentMethodsRequest($requestParams));
+            $responseData = (array)$response->jsonSerialize();
         } catch (AdyenException $e) {
             $this->adyenLogger->error(
                 "The Payment methods response is empty check your Adyen configuration in Magento."
