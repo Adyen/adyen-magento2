@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Controller\Return;
 
 use Adyen\AdyenException;
+use Adyen\Model\Checkout\PaymentDetailsRequest;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
 use Adyen\Payment\Helper\Quote;
@@ -21,6 +22,7 @@ use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Service\Validator\DataArrayValidator;
+use Adyen\Service\Checkout\PaymentsApi;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
@@ -363,7 +365,7 @@ class Index extends Action
     protected function validatePayloadAndReturnResponse(array $result): array
     {
         $client = $this->adyenDataHelper->initializeAdyenClient($this->storeManager->getStore()->getId());
-        $service = $this->adyenDataHelper->createAdyenCheckoutService($client);
+        $service = new PaymentsApi($client);
 
         $order = $this->getOrder(
             !empty($result['merchantReference']) ? $result['merchantReference'] : null
@@ -396,7 +398,8 @@ class Index extends Action
         $requestOptions['idempotencyKey'] = $this->idempotencyHelper->generateIdempotencyKey($request);
 
         try {
-            $response = $service->paymentsDetails($request, $requestOptions);
+            $responseObj = $service->paymentsDetails(new PaymentDetailsRequest($request), $requestOptions);
+            $response = (array) $responseObj->jsonSerialize();
             $responseMerchantReference = !empty($response['merchantReference']) ? $response['merchantReference'] : null;
             $resultMerchantReference = !empty($result['merchantReference']) ? $result['merchantReference'] : null;
             $merchantReference = $responseMerchantReference ?: $resultMerchantReference;
