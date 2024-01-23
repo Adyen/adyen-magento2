@@ -50,7 +50,7 @@
     $scriptString = __('window.checkoutConfig = %1;', $checkoutConfig);
 ?>
 <script>
-    <?= $block->escapeHtml($scriptString) ?>
+    <?= /* @noEscape */ $scriptString ?>
     require([
         'jquery',
         'Adyen_Payment/js/adyen',

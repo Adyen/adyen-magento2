@@ -92,7 +92,7 @@ $paymentResponseEntities = $block->getPaymentResponseEntities();
     $scriptString = __('window.checkoutConfig = %1;', $checkoutConfig);
     ?>
     <script type="text/javascript">
-        <?= $block->escapeJs($scriptString) ?>
+        <?= /* @noEscape */ $scriptString ?>
 
         require([
             'jquery',
