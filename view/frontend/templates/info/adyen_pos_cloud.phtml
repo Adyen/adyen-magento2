@@ -34,5 +34,5 @@
             padding-bottom: 5px;
         }
     </style>
-    <?= $block->escapeHtml($block->getMethod()->getInfoInstance()->getAdditionalInformation('receipt')); ?>
+    <?= /* @noEscape */ $block->getMethod()->getInfoInstance()->getAdditionalInformation('receipt'); ?>
 </dl>
