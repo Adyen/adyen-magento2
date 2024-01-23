@@ -14,12 +14,14 @@ namespace Adyen\Payment\Helper;
 use Adyen\AdyenException;
 use Adyen\Client;
 use Adyen\Environment;
+use Adyen\Model\Checkout\UtilityRequest;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Config\Source\RenderMode;
 use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
+use Adyen\Service\Checkout\UtilityApi;
 use Adyen\Service\CheckoutUtility;
 use Adyen\Service\PosPayment;
 use Adyen\Service\Recurring;
@@ -1257,8 +1259,9 @@ class Data extends AbstractHelper
         $client = $this->initializeAdyenClient($storeId);
 
         try {
-            $service = $this->createAdyenCheckoutUtilityService($client);
-            $response = $service->originKeys($params);
+            $service = new UtilityApi($client);
+            $responseObj = $service->originKeys(new UtilityRequest($params));
+            $response = (array)$responseObj->jsonSerialize();
         } catch (Exception $e) {
             $this->adyenLogger->error($e->getMessage());
         }
@@ -1292,16 +1295,6 @@ class Data extends AbstractHelper
             default:
                 return self::LIVE;
         }
-    }
-
-    /**
-     * @param Client $client
-     * @return CheckoutUtility
-     * @throws AdyenException
-     */
-    private function createAdyenCheckoutUtilityService($client)
-    {
-        return new CheckoutUtility($client);
     }
 
     /**
