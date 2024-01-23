@@ -101,6 +101,16 @@ class TransactionPayment implements ClientInterface
             $paymentResponse->setMerchantReference($requestData["reference"]);
             $this->paymentResponseResourceModel->save($paymentResponse);
             $responseData = (array)$response->jsonSerialize();
+
+            /**
+             * Since casting $response->jsonSerialize() to an array not casting the nested array elements,
+             * we ended up with $responseData['action'] as stdclass, sp we had to convert it to an array
+             */
+            $action = $response->getAction();
+            if ($action) {
+                $responseData['action'] = (array)$action->jsonSerialize();
+            }
+
             $this->adyenHelper->logResponse($responseData);
         } catch (AdyenException $e) {
             $this->adyenHelper->logAdyenException($e);

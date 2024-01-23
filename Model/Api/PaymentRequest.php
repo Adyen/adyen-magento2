@@ -12,10 +12,12 @@
 namespace Adyen\Payment\Model\Api;
 
 use Adyen\AdyenException;
+use Adyen\Model\Checkout\PaymentDetailsRequest;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\RecurringType;
+use Adyen\Service\Checkout\PaymentsApi;
 use Exception;
 use Magento\Framework\App\State;
 use Magento\Framework\DataObject;
@@ -70,7 +72,7 @@ class PaymentRequest extends DataObject
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function authorise3d(Payment $payment): mixed
+    public function authorise3d(Payment $payment): array
     {
         $order = $payment->getOrder();
         $storeId = $order->getStoreId();
@@ -102,13 +104,13 @@ class PaymentRequest extends DataObject
 
         try {
             $client = $this->adyenHelper->initializeAdyenClient($storeId);
-            $service = $this->adyenHelper->createAdyenCheckoutService($client);
-            $result = $service->paymentsDetails($request);
+            $service = new PaymentsApi($client);
+            $response = $service->paymentsDetails(new PaymentDetailsRequest($request));
         } catch (AdyenException $e) {
             throw new LocalizedException(__('3D secure failed'));
         }
 
-        return $result;
+        return (array) $response->jsonSerialize();
     }
 
     /**
