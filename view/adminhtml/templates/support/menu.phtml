@@ -11,7 +11,7 @@
             role="tab"
             aria-controls="support_form_tabs_config_section_content"
             aria-labelledby="support_form_tabs_config_section">
-            <a href="<?=$block->configurationSettingsUrl();?>" id="support_form_tabs_config_section" name="config_section" title="Configuration settings" class="admin__page-nav-link tab-item-link ui-tabs-anchor" data-tab-type="" data-ui-id="support-form-tabs-tab-link-config-section" role="presentation" tabindex="-1">
+            <a href="<?= $block->escapeUrl($block->configurationSettingsUrl()); ?>" id="support_form_tabs_config_section" name="config_section" title="Configuration settings" class="admin__page-nav-link tab-item-link ui-tabs-anchor" data-tab-type="" data-ui-id="support-form-tabs-tab-link-config-section" role="presentation" tabindex="-1">
                 <span>Configuration Settings</span>
             </a>
         </li>
@@ -21,7 +21,7 @@
             role="tab"
             aria-controls="support_form_tabs_order_section_content"
             aria-labelledby="support_form_tabs_order_section">
-            <a href="<?=$block->orderProcessingUrl();?>" id="support_form_tabs_order_section" name="order_section" title="Order processing" class="admin__page-nav-link tab-item-link ui-tabs-anchor" data-tab-type="" data-ui-id="support-form-tabs-tab-link-order-section" role="presentation" tabindex="-1">
+            <a href="<?= $block->escapeUrl($block->orderProcessingUrl());?>" id="support_form_tabs_order_section" name="order_section" title="Order processing" class="admin__page-nav-link tab-item-link ui-tabs-anchor" data-tab-type="" data-ui-id="support-form-tabs-tab-link-order-section" role="presentation" tabindex="-1">
                 <span>Order Processing</span>
             </a>
         </li>
@@ -31,7 +31,7 @@
             role="tab"
             aria-controls="support_form_tabs_other_section_content"
             aria-labelledby="support_form_tabs_other_section">
-            <a href="<?=$block->otherTopicsFormUrl();?>" id="support_form_tabs_other_section" name="other_section" title="Other topics" class="admin__page-nav-link tab-item-link ui-tabs-anchor" data-tab-type="" data-ui-id="support-form-tabs-tab-link-other-section" role="presentation" tabindex="-1">
+            <a href="<?= $block->escapeUrl($block->otherTopicsFormUrl()); ?>" id="support_form_tabs_other_section" name="other_section" title="Other topics" class="admin__page-nav-link tab-item-link ui-tabs-anchor" data-tab-type="" data-ui-id="support-form-tabs-tab-link-other-section" role="presentation" tabindex="-1">
                 <span>Other Topics</span>
             </a>
         </li>
