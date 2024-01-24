@@ -30,9 +30,9 @@
         (async function () { // RequireJS does not support async callback
             var action = JSON.parse('<?= /* @noEscape */ $block->getAction(); ?>');
             var checkoutComponent = await AdyenCheckout({
-                locale: '<?= $block->escapeHtml($block->getLocale()); ?>',
-                environment: '<?= $block->escapeHtml($block->getEnvironment()); ?>',
-                clientKey: '<?= $block->escapeHtml($block->getClientKey()); ?>'
+                locale: '<?= $block->escapeJs($block->getLocale()); ?>',
+                environment: '<?= $block->escapeJs($block->getEnvironment()); ?>',
+                clientKey: '<?= $block->escapeJs($block->getClientKey()); ?>'
             });
             try {
                 checkoutComponent.createFromAction(action).mount('#ActionContainer');
@@ -50,7 +50,7 @@
     $scriptString = __('window.checkoutConfig = %1;', $checkoutConfig);
 ?>
 <script>
-    <?=$scriptString?>
+    <?= /* @noEscape */ $scriptString ?>
     require([
         'jquery',
         'Adyen_Payment/js/adyen',
@@ -62,9 +62,9 @@
                 let payload = state.data;
                 payload.returnUrl = window.location.href;
 
-                const orderId = <?= $block->getOrder()->getId() ?>;
-                const isLoggedIn = Boolean(<?= $block->getIsCustomerLoggedIn() ?>);
-                const maskedQuoteId = "<?= $block->getMaskedQuoteId() ?>";
+                const orderId = <?= $block->escapeJs($block->getOrder()->getId()) ?>;
+                const isLoggedIn = Boolean(<?= $block->escapeJs($block->getIsCustomerLoggedIn()) ?>);
+                const maskedQuoteId = "<?= $block->escapeJs($block->getMaskedQuoteId()) ?>";
 
                 adyenPaymentService.donate(payload, isLoggedIn, orderId, maskedQuoteId)
                     .done(function (response) {
@@ -84,22 +84,22 @@
         }
         const donationConfig = {
             amounts: {
-                currency: "<?=$block->getOrder()->getOrderCurrencyCode()?>",
-                values: [<?=$block->getDonationComponentConfiguration()['donationAmounts'];?>]
+                currency: "<?= $block->escapeJs($block->getOrder()->getOrderCurrencyCode()) ?>",
+                values: [<?= $block->escapeJs($block->getDonationComponentConfiguration()['donationAmounts']); ?>]
             },
-            backgroundUrl: "<?=$block->getDonationComponentConfiguration()['backgroundUrl'];?>",
-            description: "<?=$block->getDonationComponentConfiguration()['description'];?>",
-            logoUrl: "<?=$block->getDonationComponentConfiguration()['logoUrl'];?>",
-            name: "<?=$block->getDonationComponentConfiguration()['name'];?>",
-            url: "<?=$block->getDonationComponentConfiguration()['website'];?>",
+            backgroundUrl: "<?= $block->escapeJs($block->getDonationComponentConfiguration()['backgroundUrl']); ?>",
+            description: "<?= $block->escapeJs($block->getDonationComponentConfiguration()['description']); ?>",
+            logoUrl: "<?= $block->escapeJs($block->getDonationComponentConfiguration()['logoUrl']); ?>",
+            name: "<?= $block->escapeJs($block->getDonationComponentConfiguration()['name']); ?>",
+            url: "<?= $block->escapeJs($block->getDonationComponentConfiguration()['website']); ?>",
             showCancelButton: true,
             onDonate: handleOnDonate,
             onCancel: handleOnCancel
         };
         var checkoutComponent = await AdyenCheckout({
-            locale: '<?= $block->escapeHtml($block->getLocale()); ?>',
-            environment: '<?= $block->escapeHtml($block->getEnvironment()); ?>',
-            clientKey: '<?= $block->escapeHtml($block->getClientKey()); ?>'
+            locale: '<?= $block->escapeJs($block->getLocale()); ?>',
+            environment: '<?= $block->escapeJs($block->getEnvironment()); ?>',
+            clientKey: '<?= $block->escapeJs($block->getClientKey()); ?>'
         });
         try {
             const donation = checkoutComponent.create('donation', donationConfig).mount('#donation-container');

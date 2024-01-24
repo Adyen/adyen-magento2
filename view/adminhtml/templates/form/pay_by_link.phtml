@@ -30,7 +30,7 @@ if (!isset($escaper)) {
                 dateFormat: 'dd-mm-yy',
                 minDate: new Date(<?=$escaper->escapeHtml($block->getMinExpiryTimestamp())?>),
                 maxDate: new Date(<?=$escaper->escapeHtml($block->getMaxExpiryTimestamp())?>)
-            }).val('<?= $block->getDefaultExpiryDate() ?>');
+            }).val('<?= $block->escapeJs($block->getDefaultExpiryDate()) ?>');
 
         });
 </script>

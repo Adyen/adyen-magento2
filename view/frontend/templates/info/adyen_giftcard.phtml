@@ -25,12 +25,12 @@ use Adyen\Payment\Block\Info\Giftcard;
         <dt class="title"><b><?= $block->escapeHtml(__("Partial Payments")) ?></b></dt>
         <?php foreach ($block->getPartialPayments() as $payment): ?>
             <dt class="title">
-                <?= sprintf("%s - %s", $block->escapeHtml(ucwords($payment->getPaymentMethod())), $block->escapeHtml($payment->getFormattedAmountWithCurrency())) ?>
+                <?= $block->escapeHtml(sprintf("%s - %s", ucwords($payment->getPaymentMethod()), $payment->getFormattedAmountWithCurrency())) ?>
             </dt>
         <?php endforeach; ?>
     <?php else: ?>
         <dt class="title">
-            <?= sprintf("%s: %s", $block->escapeHtml($_info->getMethodInstance()->getTitle()), $block->escapeHtml(ucwords($_info->getAdditionalInformation('brand_code')))); ?>
+            <?= $block->escapeHtml(sprintf("%s: %s", $_info->getMethodInstance()->getTitle(), ucwords($_info->getAdditionalInformation('brand_code')))); ?>
         </dt>
     <?php endif; ?>
 </dl>
