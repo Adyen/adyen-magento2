@@ -3,13 +3,13 @@
 use Adyen\Payment\Block\Adminhtml\Support\SupportTabInterface; ?>
 <fieldset class="fieldset&#x20;admin__fieldset&#x20;" id="base_fieldset">
     <legend class="admin__legend legend">
-        <span><?= $block->getPageTitle() ?></span>
+        <span><?= $block->escapeHtml($block->getPageTitle()) ?></span>
     </legend>
 </fieldset>
 
 
 <div class="adyen_support-main">
-    <form action="<?= $block->supportFormUrl(); ?>" method="GET">
+    <form action="<?= $block->escapeUrl($block->supportFormUrl()); ?>" method="GET">
         <table class="adyen_support-content" aria-describedby="Support Form Content">
             <tr>
                 <td class="adyen_support-label">Topic</td>
@@ -18,7 +18,7 @@ use Adyen\Payment\Block\Adminhtml\Support\SupportTabInterface; ?>
                         <select name="topic" id="support_topic_value">
                             <option value="">Please select a topic</option>
                             <?php foreach ($block->getSupportTopics() as $key => $topic): ?>
-                                <option value="<?= $key; ?>"><?= $topic; ?></option>
+                                <option value="<?= $block->escapeHtmlAttr($key); ?>"><?= $block->escapeHtml($topic); ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
