@@ -72,14 +72,18 @@ define(
                 this.connectedTerminals(connectedTerminals);
             },
 
-            getOrderPaymentStatus: function(orderId) {
+            getOrderPaymentStatus: function(orderId, quoteId = null) {
                 let serviceUrl;
 
                 if (customer.isLoggedIn()) {
                     serviceUrl = urlBuilder.createUrl('/adyen/orders/carts/mine/payment-status', {});
-                } else {
+                }
+                else {
+                    if (quoteId == null){
+                        quoteId = quote.getQuoteId()
+                    }
                     serviceUrl = urlBuilder.createUrl('/adyen/orders/guest-carts/:cartId/payment-status', {
-                        cartId: quote.getQuoteId()
+                        cartId: quoteId
                     });
                 }
 
