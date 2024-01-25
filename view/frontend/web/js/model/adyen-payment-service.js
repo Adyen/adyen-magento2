@@ -77,13 +77,9 @@ define(
 
                 if (customer.isLoggedIn()) {
                     serviceUrl = urlBuilder.createUrl('/adyen/orders/carts/mine/payment-status', {});
-                }
-                else {
-                    if (quoteId == null){
-                        quoteId = quote.getQuoteId()
-                    }
+                } else {
                     serviceUrl = urlBuilder.createUrl('/adyen/orders/guest-carts/:cartId/payment-status', {
-                        cartId: quoteId
+                        cartId: quoteId ?? quote.getQuoteId()
                     });
                 }
 
