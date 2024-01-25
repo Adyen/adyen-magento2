@@ -93,11 +93,7 @@ class ManagementHelper
     /**
      * @throws AdyenException | ConnectionException | NoSuchEntityException
      */
-<<<<<<< Updated upstream
     public function getMerchantAccountsAndClientKey(AccountMerchantLevelApi $accountMerchantLevelApi, MyAPICredentialApi $myAPICredentialApi): array
-=======
-    public function getMerchantAccountsAndClientKey(AccountManagementApi $managementApiService): array
->>>>>>> Stashed changes
     {
         $merchantAccounts = [];
         $page = 1;
