@@ -67,6 +67,7 @@ class PaymentsDetails
             $service = new PaymentsApi($client);
 
             $requestOptions['idempotencyKey'] = $this->idempotencyHelper->generateIdempotencyKey($apiPayload);
+            $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
 
             $paymentDetailsObj = $service->paymentsDetails(new PaymentDetailsRequest($apiPayload), $requestOptions);
             $paymentDetails = (array) $paymentDetailsObj->jsonSerialize();
