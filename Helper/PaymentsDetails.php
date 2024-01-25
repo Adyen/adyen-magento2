@@ -64,22 +64,13 @@ class PaymentsDetails
         // Send the request
         try {
             $client = $this->adyenHelper->initializeAdyenClient($order->getStoreId());
-            $service = new PaymentsApi($client);
+            $service = $this->adyenHelper->initializePaymentsApi($client);
 
             $requestOptions['idempotencyKey'] = $this->idempotencyHelper->generateIdempotencyKey($apiPayload);
             $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
 
             $paymentDetailsObj = $service->paymentsDetails(new PaymentDetailsRequest($apiPayload), $requestOptions);
-            $paymentDetails = (array) $paymentDetailsObj->jsonSerialize();
-
-            /**
-             * Since casting $paymentDetailsObj->jsonSerialize() to an array not casting the nested array elements,
-             * we ended up with $paymentDetails['action'] as stdclass, sp we had to convert it to an array
-             */
-            $action = $paymentDetailsObj->getAction();
-            if ($action) {
-                $paymentDetails['action'] = (array)$action->jsonSerialize();
-            }
+            $paymentDetails = json_decode(json_encode($paymentDetailsObj->jsonSerialize()), true);
         } catch (AdyenException $e) {
             $this->adyenLogger->error("Payment details call failed: " . $e->getMessage());
             $this->checkoutSession->restoreQuote();

@@ -73,7 +73,7 @@ class TransactionPayment implements ClientInterface
         }
 
         $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
-        $service = new PaymentsApi($client);
+        $service = $this->adyenHelper->initializePaymentsApi($client);
         $paymentRequest = new PaymentRequest($requestData);
         $responseData = [];
 

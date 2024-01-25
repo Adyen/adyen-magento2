@@ -11,10 +11,11 @@
 
 namespace Adyen\Payment\Test\Unit\Gateway\Http\Client;
 
+use Adyen\Model\Checkout\PaymentRequest;
 use Adyen\Payment\Api\Data\PaymentResponseInterface;
 use Adyen\Payment\Model\PaymentResponse;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
-use Adyen\Service\Checkout;
+use Adyen\Service\Checkout\PaymentsApi;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Model\PaymentResponseFactory;
@@ -98,12 +99,12 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
             )
             ->willReturn($expectedIdempotencyKey);
 
-        $mockedPaymentResponse = [
+        $paymentResponse = new \Adyen\Model\Checkout\PaymentResponse([
             'reference' => 'ABC12345',
             'amount' => ['value' => 100],
             'resultCode' => 'Authorised'
-        ];
-        $serviceMock = $this->createMock(Checkout::class);
+        ]);
+        $serviceMock = $this->createMock(PaymentsApi::class);
         $serviceMock->expects($this->once())
             ->method('payments')
             ->with(
@@ -113,9 +114,9 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
                         $requestOptions['idempotencyKey'] === $expectedIdempotencyKey;
                 })
             )
-            ->willReturn($mockedPaymentResponse);
+            ->willReturn($paymentResponse);
 
-        $this->adyenHelperMock->method('createAdyenCheckoutService')->willReturn($serviceMock);
+        $this->adyenHelperMock->method('initializePaymentsApi')->willReturn($serviceMock);
 
         $response = $this->transactionPayment->placeRequest($transferObjectMock);
 
@@ -125,7 +126,7 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
 
     public function testRequestHeadersAreAddedToPaymentsCall()
     {
-        $requestBody = ['reference' => 'ABC12345', 'amount' => ['value' => 1000]];
+        $requestBody = new PaymentRequest(['reference' => 'ABC12345', 'amount' => ['value' => 1000]]);
         $expectedHeaders = ['header1' => 'value1', 'header2' => 'value2'];
 
         $transferObjectMock = $this->createConfiguredMock(TransferInterface::class, [
@@ -138,13 +139,13 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
             ->method('buildRequestHeaders')
             ->willReturn($expectedHeaders);
 
-        $mockedPaymentResponse = [
+        $paymentResponse = new \Adyen\Model\Checkout\PaymentResponse([
             'reference' => 'ABC12345',
             'amount' => ['value' => 100],
             'resultCode' => 'Authorised'
-        ];
+        ]);
 
-        $serviceMock = $this->createMock(Checkout::class);
+        $serviceMock = $this->createMock(PaymentsApi::class);
         $serviceMock->expects($this->once())
             ->method('payments')
             ->with(
@@ -153,9 +154,9 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
                     return isset($requestOptions['headers']) && $requestOptions['headers'] === $expectedHeaders;
                 })
             )
-            ->willReturn($mockedPaymentResponse);
+            ->willReturn($paymentResponse);
 
-        $this->adyenHelperMock->method('createAdyenCheckoutService')->willReturn($serviceMock);
+        $this->adyenHelperMock->method('initializePaymentsApi')->willReturn($serviceMock);
 
         $response = $this->transactionPayment->placeRequest($transferObjectMock);
 

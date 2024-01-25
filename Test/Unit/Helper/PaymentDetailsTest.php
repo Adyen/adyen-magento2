@@ -10,6 +10,8 @@
  */
 namespace Adyen\Payment\Test\Unit\Helper;
 
+use Adyen\Model\Checkout\PaymentDetailsRequest;
+use Adyen\Model\Checkout\PaymentDetailsResponse;
 use Adyen\Payment\Helper\PaymentsDetails;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Sales\Api\Data\OrderInterface;
@@ -19,7 +21,7 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Helper\Idempotency;
 use Magento\Checkout\Model\Session;
-use Adyen\Service\Checkout;
+use Adyen\Service\Checkout\PaymentsApi;
 use Adyen\Client;
 
 class PaymentDetailsTest extends AbstractAdyenTestCase
@@ -52,7 +54,7 @@ class PaymentDetailsTest extends AbstractAdyenTestCase
     {
         $orderMock = $this->createMock(OrderInterface::class);
         $paymentMock = $this->createMock(Payment::class);
-        $checkoutServiceMock = $this->createMock(Checkout::class);
+        $serviceMock = $this->createMock(PaymentsApi::class);
         $adyenClientMock = $this->createMock(Client::class);
         $storeId = 1;
         $payload = json_encode([
@@ -71,21 +73,21 @@ class PaymentDetailsTest extends AbstractAdyenTestCase
         $paymentMock->method('getOrder')->willReturn($orderMock);
 
         $this->adyenHelperMock->method('initializeAdyenClient')->willReturn($adyenClientMock);
-        $this->adyenHelperMock->method('createAdyenCheckoutService')->willReturn($checkoutServiceMock);
+        $this->adyenHelperMock->method('initializePaymentsApi')->willReturn($serviceMock);
         $this->adyenHelperMock->method('buildRequestHeaders')->willReturn($requestOptions['headers']);
         $this->idempotencyHelperMock->method('generateIdempotencyKey')->willReturn($requestOptions['idempotencyKey']);
 
-        $checkoutServiceMock->expects($this->once())
+        $serviceMock->expects($this->once())
             ->method('paymentsDetails')
             ->with(
-                $this->equalTo([
-                    'details' => 'some_details',
-                    'paymentData' => 'some_payment_data',
-                    'threeDSAuthenticationOnly' => true
-                ]),
+                $this->callback(function(PaymentDetailsRequest $detailsRequest) {
+                    $this->assertEquals(true,  $detailsRequest->getThreeDSAuthenticationOnly());
+                    $this->assertEquals('some_payment_data',  $detailsRequest->getPaymentData());
+                    return true;
+                }),
                 $this->equalTo($requestOptions)
             )
-            ->willReturn($paymentDetailsResult);
+            ->willReturn(new PaymentDetailsResponse($paymentDetailsResult));
 
         $this->paymentResponseHandlerMock->method('handlePaymentResponse')->willReturn(true);
         $this->paymentResponseHandlerMock->method('formatPaymentResponse')->willReturn($paymentDetailsResult);

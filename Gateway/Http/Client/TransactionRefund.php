@@ -41,7 +41,7 @@ class TransactionRefund implements TransactionRefundInterface
         $headers = $transferObject->getHeaders();
         $clientConfig = $transferObject->getClientConfig();
         $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
-        $service = new ModificationsApi($client);
+        $service = $this->adyenHelper->initializeModificationsApi($client);
         $responses = [];
 
         foreach ($requests as $request) {

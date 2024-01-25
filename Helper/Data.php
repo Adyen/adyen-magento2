@@ -21,6 +21,8 @@ use Adyen\Payment\Model\Config\Source\RenderMode;
 use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
+use Adyen\Service\Checkout\ModificationsApi;
+use Adyen\Service\Checkout\PaymentsApi;
 use Adyen\Service\Checkout\UtilityApi;
 use Adyen\Service\PosPayment;
 use DateTime;
@@ -1192,6 +1194,16 @@ class Data extends AbstractHelper
         }
 
         return $this->initializeAdyenClient($storeId, null, $motoMerchantAccount);
+    }
+
+    public function initializePaymentsApi(Client $client):PaymentsApi
+    {
+        return new PaymentsApi($client);
+    }
+
+    public function initializeModificationsApi(Client $client):ModificationsApi
+    {
+        return new ModificationsApi($client);
     }
 
     /**
