@@ -240,7 +240,8 @@ class PaymentMethods extends AbstractHelper
         try {
             $this->adyenHelper->logRequest($requestParams, Client::API_CHECKOUT_VERSION, '/paymentMethods');
             $response = $service->paymentMethods(new PaymentMethodsRequest($requestParams));
-            $responseData = (array)$response->jsonSerialize();
+            //@todo when supported, use $response->toArray()
+            $responseData = json_decode(json_encode($response->jsonSerialize()), true);
         } catch (AdyenException $e) {
             $this->adyenLogger->error(
                 "The Payment methods response is empty check your Adyen configuration in Magento."

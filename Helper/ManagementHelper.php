@@ -99,7 +99,8 @@ class ManagementHelper
         $page = 1;
         $pageSize = 100;
         $responseMerchantsObj = $accountMerchantLevelApi->listMerchantAccounts(["pageSize" => $pageSize]);
-        $responseMerchants = (array)$responseMerchantsObj->jsonSerialize();
+        //@todo when supported, use $responseMerchantsObj->toArray()
+        $responseMerchants = json_decode(json_encode($responseMerchantsObj->jsonSerialize()), true);
         while (count($merchantAccounts) < $responseMerchants['itemsTotal']) {
             foreach ($responseMerchants['data'] as $merchantAccount) {
                 $defaultDC = array_filter($merchantAccount['dataCenters'], function ($dc) {
@@ -116,12 +117,14 @@ class ManagementHelper
                 $responseMerchantsObj = $accountMerchantLevelApi->listMerchantAccounts(
                     ["pageSize" => $pageSize, "pageNumber" => $page]
                 );
-                $responseMerchants = (array)$responseMerchantsObj->jsonSerialize();
+                //@todo when supported, use $responseMerchantsObj->toArray()
+                $responseMerchants = json_decode(json_encode($responseMerchantsObj->jsonSerialize()), true);
             }
         }
 
         $responseMeObj = $myAPICredentialApi->getApiCredentialDetails();
-        $responseMe = (array) $responseMeObj->jsonSerialize();
+        //@todo when supported, use $responseObj->toArray()
+        $responseMe = json_decode(json_encode($responseMeObj->jsonSerialize()), true);
 
         $currentMerchantAccount = $this->configHelper->getMerchantAccount($this->storeManager->getStore()->getId());
 
@@ -227,7 +230,8 @@ class ManagementHelper
     public function getAllowedOrigins(MyAPICredentialApi $service): array
     {
         $responseObj = $service->getAllowedOrigins();
-        $response = (array)$responseObj->jsonSerialize();
+        //@todo when supported, use $responseObj->toArray()
+        $response = json_decode(json_encode($responseObj->jsonSerialize()), true);
 
         return !empty($response) ? array_column($response['data'], 'domain') : [];
     }

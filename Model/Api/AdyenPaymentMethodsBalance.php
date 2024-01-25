@@ -56,7 +56,8 @@ class AdyenPaymentMethodsBalance implements AdyenPaymentMethodsBalanceInterface
             $client = $this->adyenHelper->initializeAdyenClient($storeId);
             $service = new OrdersApi($client);
             $responseObj = $service->getBalanceOfGiftCard($payload);
-            $response = (array)$responseObj->jsonSerialize();
+            //@todo when supported, use $responseObj->toArray()
+            $response = json_decode(json_encode($responseObj->jsonSerialize()), true);
 
             if ($response['resultCode'] === self::FAILED_RESULT_CODE) {
                 // Balance endpoint doesn't send HTTP status 422 for invalid PIN, manual handling required.

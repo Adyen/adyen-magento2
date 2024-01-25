@@ -400,7 +400,8 @@ class Index extends Action
 
         try {
             $responseObj = $service->paymentsDetails(new PaymentDetailsRequest($request), $requestOptions);
-            $response = (array) $responseObj->jsonSerialize();
+            //@todo when supported, use $responseObj->toArray()
+            $response = json_decode(json_encode($responseObj->jsonSerialize()), true);
             $responseMerchantReference = !empty($response['merchantReference']) ? $response['merchantReference'] : null;
             $resultMerchantReference = !empty($result['merchantReference']) ? $result['merchantReference'] : null;
             $merchantReference = $responseMerchantReference ?: $resultMerchantReference;

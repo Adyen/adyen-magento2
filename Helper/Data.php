@@ -1292,7 +1292,8 @@ class Data extends AbstractHelper
         try {
             $service = new UtilityApi($client);
             $responseObj = $service->originKeys(new UtilityRequest($params));
-            $response = (array)$responseObj->jsonSerialize();
+            //@todo when supported, use $responseObj->toArray()
+            $response = json_decode(json_encode($responseObj->jsonSerialize()), true);
         } catch (Exception $e) {
             $this->adyenLogger->error($e->getMessage());
         }

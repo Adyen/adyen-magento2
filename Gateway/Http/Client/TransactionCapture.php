@@ -75,7 +75,9 @@ class TransactionCapture implements ClientInterface
                 $paymentCaptureRequest,
                 $requestOptions
             );
-            $responseData = (array)$response->jsonSerialize();
+
+            //@todo when supported, use $response->toArray()
+            $responseData = json_decode(json_encode($response->jsonSerialize()), true);
             $responseData = $this->copyParamsToResponse($responseData, $request);
             $this->adyenHelper->logResponse($responseData);
         } catch (AdyenException $e) {
@@ -102,7 +104,9 @@ class TransactionCapture implements ClientInterface
                     $paymentCaptureRequest,
                     $requestOptions
                 );
-                $singleResponse = (array)$singleResponseObj->jsonSerialize();
+
+                //@todo when supported, use $singleResponseObj->toArray()
+                $singleResponse = json_decode(json_encode($singleResponseObj->jsonSerialize()), true);
                 $singleResponse[self::FORMATTED_CAPTURE_AMOUNT] = $request['amount']['currency'] . ' ' .
                 $this->adyenHelper->originalAmount(
                     $request['amount']['value'],

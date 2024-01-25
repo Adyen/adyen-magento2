@@ -81,7 +81,8 @@ class TransactionPayment implements ClientInterface
             list($requestData, $giftcardResponse) = $this->processGiftcards($requestData, $service);
 
             if (isset($giftcardResponse) && $this->remainingOrderAmount === 0) {
-                return (array)$giftcardResponse->jsonSerialize();
+                //@todo when supported, use $giftcardResponse->toArray()
+                return json_decode(json_encode($giftcardResponse->jsonSerialize()), true);
             }
 
             $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
@@ -101,16 +102,8 @@ class TransactionPayment implements ClientInterface
             $paymentResponse->setResultCode($response->getResultCode());
             $paymentResponse->setMerchantReference($requestData["reference"]);
             $this->paymentResponseResourceModel->save($paymentResponse);
-            $responseData = (array)$response->jsonSerialize();
-
-            /**
-             * Since casting $response->jsonSerialize() to an array not casting the nested array elements,
-             * we ended up with $responseData['action'] as stdclass, sp we had to convert it to an array
-             */
-            $action = $response->getAction();
-            if ($action) {
-                $responseData['action'] = (array)$action->jsonSerialize();
-            }
+            //@todo when supported, use $response->toArray()
+            $responseData = json_decode(json_encode($response->jsonSerialize()), true);
 
             $this->adyenHelper->logResponse($responseData);
         } catch (AdyenException $e) {

@@ -113,7 +113,8 @@ class PaymentRequest extends DataObject
             throw new LocalizedException(__('3D secure failed'));
         }
 
-        return (array) $response->jsonSerialize();
+        //@todo when supported, use $response->toArray()
+        return json_decode(json_encode($response->jsonSerialize()), true);
     }
 
     /**

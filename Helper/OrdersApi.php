@@ -55,7 +55,8 @@ class OrdersApi
         try {
             $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/orders');
             $responseObj = $checkoutService->orders(new CreateOrderRequest($request));
-            $response = (array) $responseObj->jsonSerialize();
+            //@todo when supported, use $responseObj->toArray()
+            $response = json_decode(json_encode($responseObj->jsonSerialize()), true);
         } catch (ConnectionException $e) {
             $this->adyenLogger->error(
                 "Connection to the endpoint failed. Check the Adyen Live endpoint prefix configuration."
