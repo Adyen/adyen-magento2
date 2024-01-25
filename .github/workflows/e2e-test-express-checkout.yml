@@ -1,5 +1,5 @@
 name: Magento 2 V8 Release E2E Pipeline
-run-name: --V8-- E2E tests against Test Repository with Express Checkout
+run-name: --V8-- Express Checkout E2E tests
 
 on:
   pull_request:
