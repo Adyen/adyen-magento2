@@ -13,6 +13,7 @@ namespace Adyen\Payment\Model\Config\Backend;
 
 use Adyen\Payment\Helper\BaseUrlHelper;
 use Adyen\Payment\Helper\ManagementHelper;
+use Adyen\Service\Management\MyAPICredentialApi;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Value;
@@ -63,7 +64,8 @@ class AutoConfiguration extends Value
 
             $apiKey = $this->getFieldsetDataValue('api_key_' . $environment);
             $client = $this->managementApiHelper->getAdyenApiClient($apiKey, $demoMode);
-            $configuredOrigins = $this->managementApiHelper->getAllowedOrigins($client);
+            $service = new MyAPICredentialApi($client);
+            $configuredOrigins = $this->managementApiHelper->getAllowedOrigins($service);
 
             $domain = $this->baseUrlHelper->getDomainFromUrl($this->url->getBaseUrl());
             if (!in_array($domain, $configuredOrigins)) {

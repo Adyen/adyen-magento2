@@ -93,14 +93,12 @@ class ManagementHelper
     /**
      * @throws AdyenException | ConnectionException | NoSuchEntityException
      */
-    public function getMerchantAccountsAndClientKey(Client $client): array
+    public function getMerchantAccountsAndClientKey(AccountMerchantLevelApi $accountMerchantLevelApi, MyAPICredentialApi $myAPICredentialApi): array
     {
         $merchantAccounts = [];
         $page = 1;
         $pageSize = 100;
-        //get the merchant accounts using get /merchants.
-        $service = new AccountMerchantLevelApi($client);
-        $responseMerchantsObj = $service->listMerchantAccounts(["pageSize" => $pageSize]);
+        $responseMerchantsObj = $accountMerchantLevelApi->listMerchantAccounts(["pageSize" => $pageSize]);
         $responseMerchants = (array)$responseMerchantsObj->jsonSerialize();
         while (count($merchantAccounts) < $responseMerchants['itemsTotal']) {
             foreach ($responseMerchants['data'] as $merchantAccount) {
@@ -115,14 +113,14 @@ class ManagementHelper
             }
             ++$page;
             if (isset($responseMerchants['_links']['next'])) {
-                $responseMerchantsObj = $service->listMerchantAccounts(
+                $responseMerchantsObj = $accountMerchantLevelApi->listMerchantAccounts(
                     ["pageSize" => $pageSize, "pageNumber" => $page]
                 );
                 $responseMerchants = (array)$responseMerchantsObj->jsonSerialize();
             }
         }
-        $myApiService = new MyAPICredentialApi($client);
-        $responseMeObj = $myApiService->getApiCredentialDetails();
+
+        $responseMeObj = $myAPICredentialApi->getApiCredentialDetails();
         $responseMe = (array) $responseMeObj->jsonSerialize();
 
         $currentMerchantAccount = $this->configHelper->getMerchantAccount($this->storeManager->getStore()->getId());
@@ -135,26 +133,17 @@ class ManagementHelper
     }
 
     /**
-     * @param string $merchantId
-     * @param string $username
-     * @param string $password
-     * @param string $url
-     * @param bool $demoMode
-     * @param Client $client
-     * @return string|null
-     * @throws AdyenException
-     * @throws NoSuchEntityException
+     * @throws AdyenException | NoSuchEntityException
      */
     public function setupWebhookCredentials(
-        string               $merchantId,
-        string               $username,
-        string               $password,
-        string               $url,
-        bool                 $demoMode,
-        Client               $client
+        string                   $merchantId,
+        string                   $username,
+        string                   $password,
+        string                   $url,
+        bool                     $demoMode,
+        WebhooksMerchantLevelApi $service
     ): ?string
     {
-        $service = new WebhooksMerchantLevelApi($client);
         $params = [
             'url' => $url,
             'username' => $username,
@@ -235,10 +224,8 @@ class ManagementHelper
     /**
      * @throws AdyenException
      */
-    public function getAllowedOrigins(Client $client): array
+    public function getAllowedOrigins(MyAPICredentialApi $service): array
     {
-        $service = new MyAPICredentialApi($client);
-
         $responseObj = $service->getAllowedOrigins();
         $response = (array)$responseObj->jsonSerialize();
 
@@ -254,9 +241,8 @@ class ManagementHelper
         $service->addAllowedOrigin(new CreateAllowedOriginRequest(['domain' => $domain]));
     }
 
-    public function webhookTest(string $merchantId, string $webhookId, Client $client): ?TestWebhookResponse
+    public function webhookTest(string $merchantId, string $webhookId, WebhooksMerchantLevelApi $service): ?TestWebhookResponse
     {
-        $service = new WebhooksMerchantLevelApi($client);
         $testWebhookRequest = new TestWebhookRequest(['types' => ['AUTHORISATION']]);
         $response = null;
         try {
