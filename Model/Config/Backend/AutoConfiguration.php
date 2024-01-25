@@ -62,14 +62,12 @@ class AutoConfiguration extends Value
             $environment = $demoMode ? 'test' : 'live';
 
             $apiKey = $this->getFieldsetDataValue('api_key_' . $environment);
-
-            $managementApiService = $this->managementApiHelper->getManagementApiService($apiKey, $demoMode);
-            $configuredOrigins = $this->managementApiHelper->getAllowedOrigins($managementApiService);
+            $client = $this->managementApiHelper->getAdyenApiClient($apiKey, $demoMode);
+            $configuredOrigins = $this->managementApiHelper->getAllowedOrigins($client);
 
             $domain = $this->baseUrlHelper->getDomainFromUrl($this->url->getBaseUrl());
             if (!in_array($domain, $configuredOrigins)) {
-                $managementApiService = $this->managementApiHelper->getManagementApiService($apiKey, $demoMode);
-                $this->managementApiHelper->saveAllowedOrigin($managementApiService, $domain);
+                $this->managementApiHelper->saveAllowedOrigin($client, $domain);
             }
         }
         return parent::beforeSave();

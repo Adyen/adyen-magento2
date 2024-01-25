@@ -73,14 +73,13 @@ class WebhookCredentials extends Value
             }
             $merchantAccount = $this->getFieldsetDataValue('merchant_account_auto');
 
-            $managementApiService = $this->managementApiHelper->getManagementApiService($apiKey, $isDemoMode);
             $this->managementApiHelper->setupWebhookCredentials(
                 $merchantAccount,
                 $username,
                 $password,
                 $webhookUrl,
                 $isDemoMode,
-                $managementApiService
+                $this->managementApiHelper->getAdyenApiClient($apiKey, $isDemoMode)
             );
         }
 

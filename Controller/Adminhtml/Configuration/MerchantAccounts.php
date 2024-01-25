@@ -67,8 +67,8 @@ class MerchantAccounts extends Action
                 $apiKey = '';
             }
 
-            $managementApiService = $this->managementHelper->getManagementApiService($apiKey, $demoMode);
-            $response = $this->managementHelper->getMerchantAccountsAndClientKey($managementApiService);
+            $client = $this->managementHelper->getAdyenApiClient($apiKey, $demoMode);
+            $response = $this->managementHelper->getMerchantAccountsAndClientKey($client);
 
             $resultJson->setData($response);
             return $resultJson;
