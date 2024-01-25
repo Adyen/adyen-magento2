@@ -1,5 +1,5 @@
-name: Magento 2 V8 Release E2E Pipeline
-run-name: --V8-- Express Checkout E2E tests
+name: Magento 2 V8 Express Checkout E2E Pipeline
+run-name: --V8-- Adyen Magento 2 Express Checkout Plugin E2E tests
 
 on:
   pull_request:
@@ -54,7 +54,7 @@ jobs:
         run: docker exec magento2-container make fs
 
       - name: Run E2E tests
-        run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm playwright /e2e-all.sh
+        run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm playwright /e2e.sh express-checkout
         env:
           INTEGRATION_TESTS_BRANCH: develop-8
           MAGENTO_ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
