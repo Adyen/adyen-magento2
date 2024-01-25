@@ -1,8 +1,8 @@
 <?php /** @var \Adyen\Payment\Model\Config\Adminhtml\ConfigurationWizard $block */ ?>
 <?php echo $block->getNextButtonHtml() ?>
 <span class="adyen-required-settings-config-admin" id="progress" style="display: none">
-    <img class="processing" hidden="hidden" alt="Configuring" style="margin:0 5px" src="<?php echo $block->getViewFileUrl('images/process_spinner.gif') ?>"/>
-    <img class="configured" hidden="hidden" alt="Configured" style="margin:-3px 5px" src="<?php echo $block->getViewFileUrl('images/rule_component_apply.gif') ?>"/>
+    <img class="processing" hidden="hidden" alt="Configuring" style="margin:0 5px" src="<?= $block->escapeUrl($block->getViewFileUrl('images/process_spinner.gif')) ?>"/>
+    <img class="configured" hidden="hidden" alt="Configured" style="margin:-3px 5px" src="<?= $block->escapeUrl($block->getViewFileUrl('images/rule_component_apply.gif')) ?>"/>
 <script>
     require(['jquery'], function ($) {
         $(window).on('load', function () {
@@ -90,7 +90,7 @@
                 let apiKey = parseInt(demoMode)
                     ? $(testApiKeySelector).val()
                     : $(liveApiKeySelector).val();
-                $.ajax('<?php echo $block->getMerchantAccountsUrl() ?>', {
+                $.ajax('<?= $block->escapeJs($block->getMerchantAccountsUrl()) ?>', {
                     data: {apiKey, demoMode},
                     method: "POST"
                 }).done(function (response) {
@@ -171,7 +171,7 @@
 
                 convertActionButtonToFinished();
 
-                progressUpdate('success', 'You completed the configuration. Now, you can click "<?= __('Save Config') ?>" to save it');
+                progressUpdate('success', 'You completed the configuration. Now, you can click "<?= $block->escapeJs(__('Save Config')) ?>" to save it');
 
                 $(createNewWebhookSelector).on('change', function () {
                     let createNewWebhook = parseInt(this.value);
