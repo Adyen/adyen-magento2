@@ -20,6 +20,7 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\RequestInterface;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\View\Asset\Repository;
@@ -29,7 +30,6 @@ use Magento\Framework\View\DesignInterface;
 use Magento\Payment\Helper\Data as MagentoDataHelper;
 use Magento\Payment\Model\MethodInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Quote\Api\Data\PaymentMethodInterface;
 use Magento\Sales\Model\Order;
 use Adyen\Payment\Helper\Data as AdyenDataHelper;
 use Magento\Store\Model\ScopeInterface;
@@ -381,21 +381,6 @@ class PaymentMethods extends AbstractHelper
         return $paymentMethodsExtraDetails;
     }
 
-    public function isWalletTxVariant(string $notificationPaymentMethod): bool
-    {
-        $walletPaymentMethods = [
-            'googlepay',
-            'paywithgoogle',
-            'wechatpayWeb',
-            'amazonpay',
-            'applepay',
-            'wechatpayQR',
-            'alipay',
-            'alipay_hk'
-        ];
-        return in_array($notificationPaymentMethod, $walletPaymentMethods);
-    }
-
     public function isWalletPaymentMethod(MethodInterface $paymentMethodInstance): bool
     {
         return boolval($paymentMethodInstance->getConfigData('is_wallet'));
@@ -628,12 +613,18 @@ class PaymentMethods extends AbstractHelper
 
     public function compareOrderAndWebhookPaymentMethods(Order $order, Notification $notification): bool
     {
-        // For cards, it can be 'VI', 'MI',... For alternatives, it can be 'ideal', 'directEbanking',...
-        $orderPaymentMethod = $order->getPayment()->getCcType();
+        $paymentMethodInstance = $order->getPayment()->getMethodInstance();
+
+        if ($this->isAlternativePaymentMethod($paymentMethodInstance)) {
+            $orderPaymentMethod = $this->getAlternativePaymentMethodTxVariant($paymentMethodInstance);
+        } else {
+            $orderPaymentMethod = $order->getPayment()->getCcType();
+        }
+
         $notificationPaymentMethod = $notification->getPaymentMethod();
 
         // Returns if the payment method is wallet like wechatpayWeb, amazonpay, applepay, paywithgoogle
-        $isWalletPaymentMethod = $this->isWalletTxVariant($orderPaymentMethod);
+        $isWalletPaymentMethod = $this->isWalletPaymentMethod($paymentMethodInstance);
         $isCardPaymentMethod = $order->getPayment()->getMethod() === 'adyen_cc' || $order->getPayment()->getMethod() === 'adyen_oneclick';
 
         // If it is a wallet method OR a card OR the methods match exactly, return true
