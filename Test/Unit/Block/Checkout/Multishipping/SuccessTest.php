@@ -12,8 +12,6 @@
 namespace Adyen\Payment\Test\Unit\Block\Checkout\Multishipping;
 
 use Adyen\Payment\Block\Checkout\Multishipping\Success;
-use Adyen\Payment\Model\ResourceModel\PaymentResponse\Collection as PaymentResponseCollection;
-use Adyen\Payment\Model\Sales\OrderRepository;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SearchCriteriaInterface;
