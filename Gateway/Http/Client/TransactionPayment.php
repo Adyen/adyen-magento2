@@ -81,7 +81,6 @@ class TransactionPayment implements ClientInterface
             list($requestData, $giftcardResponse) = $this->processGiftcards($requestData, $service);
 
             if (isset($giftcardResponse) && $this->remainingOrderAmount === 0) {
-                //@todo when supported, use $giftcardResponse->toArray()
                 return json_decode(json_encode($giftcardResponse->jsonSerialize()), true);
             }
 
@@ -102,7 +101,6 @@ class TransactionPayment implements ClientInterface
             $paymentResponse->setResultCode($response->getResultCode());
             $paymentResponse->setMerchantReference($requestData["reference"]);
             $this->paymentResponseResourceModel->save($paymentResponse);
-            //@todo when supported, use $response->toArray()
             $responseData = json_decode(json_encode($response->jsonSerialize()), true);
 
             $this->adyenHelper->logResponse($responseData);

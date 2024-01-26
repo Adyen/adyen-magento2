@@ -59,7 +59,6 @@ class TransactionPaymentLinks implements ClientInterface
         $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/paymentLinks');
         try {
             $responseObj = $service->paymentLinks(new PaymentLinkRequest($request), $requestOptions);
-            //@todo when supported, use $responseObj->toArray()
             $response = json_decode(json_encode($responseObj->jsonSerialize()), true);
         } catch (AdyenException $e) {
             $response['error'] = $e->getMessage();

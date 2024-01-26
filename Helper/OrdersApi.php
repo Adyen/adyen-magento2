@@ -16,7 +16,7 @@ use Adyen\Model\Checkout\CreateOrderRequest;
 use Adyen\Client;
 use Adyen\ConnectionException;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Service\Checkout\OrdersApi As CheckoutOrdersApi;
+use Adyen\Service\Checkout\OrdersApi as CheckoutOrdersApi;
 use Magento\Framework\Exception\NoSuchEntityException;
 
 class OrdersApi
@@ -55,7 +55,6 @@ class OrdersApi
         try {
             $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/orders');
             $responseObj = $checkoutService->orders(new CreateOrderRequest($request));
-            //@todo when supported, use $responseObj->toArray()
             $response = json_decode(json_encode($responseObj->jsonSerialize()), true);
         } catch (ConnectionException $e) {
             $this->adyenLogger->error(

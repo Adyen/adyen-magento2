@@ -58,7 +58,6 @@ class TransactionCancel implements ClientInterface
                     $paymentCancelRequest,
                     $requestOptions
                 );
-                //@todo when supported, use $response->toArray()
                 $responseData = json_decode(json_encode($response->jsonSerialize()), true);
                 $this->adyenHelper->logResponse($responseData);
             } catch (AdyenException $e) {

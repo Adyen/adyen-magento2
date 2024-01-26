@@ -93,7 +93,10 @@ class ManagementHelper
     /**
      * @throws AdyenException | ConnectionException | NoSuchEntityException
      */
-    public function getMerchantAccountsAndClientKey(AccountMerchantLevelApi $accountMerchantLevelApi, MyAPICredentialApi $myAPICredentialApi): array
+    public function getMerchantAccountsAndClientKey(
+        AccountMerchantLevelApi $accountMerchantLevelApi,
+        MyAPICredentialApi $myAPICredentialApi
+    ): array
     {
         $merchantAccounts = [];
         $page = 1;
@@ -101,7 +104,6 @@ class ManagementHelper
         $responseMerchantsObj = $accountMerchantLevelApi->listMerchantAccounts(
             ['queryParams' => ['pageSize' => $pageSize]]
         );
-        //@todo when supported, use $responseMerchantsObj->toArray()
         $responseMerchants = json_decode(json_encode($responseMerchantsObj->jsonSerialize()), true);
         while (count($merchantAccounts) < $responseMerchants['itemsTotal']) {
             foreach ($responseMerchants['data'] as $merchantAccount) {
@@ -119,13 +121,11 @@ class ManagementHelper
                 $responseMerchantsObj = $accountMerchantLevelApi->listMerchantAccounts(
                     ['queryParams' => ["pageSize" => $pageSize, "pageNumber" => $page]]
                 );
-                //@todo when supported, use $responseMerchantsObj->toArray()
                 $responseMerchants = json_decode(json_encode($responseMerchantsObj->jsonSerialize()), true);
             }
         }
 
         $responseMeObj = $myAPICredentialApi->getApiCredentialDetails();
-        //@todo when supported, use $responseObj->toArray()
         $responseMe = json_decode(json_encode($responseMeObj->jsonSerialize()), true);
 
         $currentMerchantAccount = $this->configHelper->getMerchantAccount($this->storeManager->getStore()->getId());
@@ -232,7 +232,6 @@ class ManagementHelper
     public function getAllowedOrigins(MyAPICredentialApi $service): array
     {
         $responseObj = $service->getAllowedOrigins();
-        //@todo when supported, use $responseObj->toArray()
         $response = json_decode(json_encode($responseObj->jsonSerialize()), true);
 
         return !empty($response) ? array_column($response['data'], 'domain') : [];
@@ -247,7 +246,11 @@ class ManagementHelper
         $service->addAllowedOrigin(new CreateAllowedOriginRequest(['domain' => $domain]));
     }
 
-    public function webhookTest(string $merchantId, string $webhookId, WebhooksMerchantLevelApi $service): ?TestWebhookResponse
+    public function webhookTest(
+        string                   $merchantId,
+        string                   $webhookId,
+        WebhooksMerchantLevelApi $service
+    ): ?TestWebhookResponse
     {
         $testWebhookRequest = new TestWebhookRequest(['types' => ['AUTHORISATION']]);
         $response = null;
@@ -278,8 +281,10 @@ class ManagementHelper
             $apiKey = $this->configHelper->getApiKey($environment);
         }
 
-        $client = $this->dataHelper->initializeAdyenClient($storeId, $apiKey, null, $environment === 'test');
-
-        return $client;
+        return $this->dataHelper->initializeAdyenClient(
+            $storeId, $apiKey,
+            null,
+            $environment === 'test'
+        );
     }
 }

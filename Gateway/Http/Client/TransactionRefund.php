@@ -61,7 +61,6 @@ class TransactionRefund implements TransactionRefundInterface
                     $paymentRefundRequest,
                     $requestOptions
                 );
-                //@todo when supported, use $response->toArray()
                 $responseData = json_decode(json_encode($response->jsonSerialize()), true);
                 // Add amount original reference and amount information to response
                 $responseData[self::REFUND_AMOUNT] = $request['amount']['value'];

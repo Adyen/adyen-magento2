@@ -59,7 +59,6 @@ class TransactionDonate implements ClientInterface
         $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, 'donations');
         try {
             $responseObj = $service->donations(new DonationPaymentRequest($request), $requestOptions);
-            //@todo when supported, use $responseObj->toArray()
             $response = json_decode(json_encode($responseObj->jsonSerialize()), true);
         } catch (AdyenException $e) {
             $response = ['error' => $e->getMessage()];

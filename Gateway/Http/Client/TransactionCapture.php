@@ -76,7 +76,6 @@ class TransactionCapture implements ClientInterface
                 $requestOptions
             );
 
-            //@todo when supported, use $response->toArray()
             $responseData = json_decode(json_encode($response->jsonSerialize()), true);
             $responseData = $this->copyParamsToResponse($responseData, $request);
             $this->adyenHelper->logResponse($responseData);
@@ -105,7 +104,6 @@ class TransactionCapture implements ClientInterface
                     $requestOptions
                 );
 
-                //@todo when supported, use $singleResponseObj->toArray()
                 $singleResponse = json_decode(json_encode($singleResponseObj->jsonSerialize()), true);
                 $singleResponse[self::FORMATTED_CAPTURE_AMOUNT] = $request['amount']['currency'] . ' ' .
                 $this->adyenHelper->originalAmount(
