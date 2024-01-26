@@ -69,7 +69,7 @@ class AutoConfiguration extends Value
 
             $domain = $this->baseUrlHelper->getDomainFromUrl($this->url->getBaseUrl());
             if (!in_array($domain, $configuredOrigins)) {
-                $this->managementApiHelper->saveAllowedOrigin($client, $domain);
+                $this->managementApiHelper->saveAllowedOrigin($service, $domain);
             }
         }
         return parent::beforeSave();

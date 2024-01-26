@@ -240,9 +240,8 @@ class ManagementHelper
     /**
      * @throws AdyenException
      */
-    public function saveAllowedOrigin(Client $client, string $domain): void
+    public function saveAllowedOrigin(MyAPICredentialApi $service, string $domain): void
     {
-        $service = new MyAPICredentialApi($client);
         $service->addAllowedOrigin(new CreateAllowedOriginRequest(['domain' => $domain]));
     }
 
