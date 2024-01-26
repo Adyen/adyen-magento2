@@ -1146,9 +1146,9 @@ class Data extends AbstractHelper
             $client->setRegion($checkoutFrontendRegion);
         }
 
-        $moduleVersion = $this->getModuleVersion();
-        $client->setMerchantApplication($this->getModuleName(), $moduleVersion);
-        $client->setExternalPlatform($this->productMetadata->getName(), $this->productMetadata->getVersion(), 'Adyen');
+        $client->setMerchantApplication($this->getModuleName(), $this->getModuleVersion());
+        $platformData = $this->getMagentoDetails();
+        $client->setExternalPlatform($platformData['name'], $platformData['version'], 'Adyen');
         if ($isDemo) {
             $client->setEnvironment(Environment::TEST);
         } else {
@@ -1156,6 +1156,27 @@ class Data extends AbstractHelper
         }
 
         return $client;
+    }
+
+    public function getMagentoDetails()
+    {
+        return [
+            'name' => $this->productMetadata->getName(),
+            'version' => $this->productMetadata->getVersion(),
+            'edition' => $this->productMetadata->getEdition(),
+        ];
+    }
+
+    public function buildRequestHeaders()
+    {
+        $magentoDetails = $this->getMagentoDetails();
+        return [
+            'external-platform-name' => $this->getModuleName(),
+            'external-platform-version' => $this->getModuleVersion(),
+            'merchant-application-name' => $magentoDetails['name'],
+            'merchant-application-version' => $magentoDetails['version'],
+            'merchant-application-edition' => $magentoDetails['edition'],
+        ];
     }
 
     /**

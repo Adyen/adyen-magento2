@@ -211,7 +211,7 @@
     ], function(
         adyenPaymentService
     ) {
-        let adyenPaymentMethods = '<?= $block->getAdyenPaymentMethodsResponse() ?>';
+        let adyenPaymentMethods = '<?= $block->escapeJs($block->getAdyenPaymentMethodsResponse()) ?>';
         let paymentMethods = JSON.parse(adyenPaymentMethods);
 
         adyenPaymentService.setPaymentMethods(paymentMethods);

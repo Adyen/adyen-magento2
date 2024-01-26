@@ -15,7 +15,7 @@ use Magento\Vault\Block\CardRendererInterface;
              width="<?= /* @noEscape */ $block->getIconWidth() ?>"
              height="<?= /* @noEscape */ $block->getIconHeight() ?>"
         >
-        <span><?= $block->getText() ?></span>
+        <span><?= $block->escapeHtml($block->getText()) ?></span>
     </td>
     <td data-th="<?= $block->escapeHtml(__('Actions')) ?>" class="col actions">
         <form class="form" action="<?= $block->escapeUrl($block->getUrl('vault/cards/deleteaction')) ?>" method="post">

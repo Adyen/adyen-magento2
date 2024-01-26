@@ -92,7 +92,7 @@ $paymentResponseEntities = $block->getPaymentResponseEntities();
     $scriptString = __('window.checkoutConfig = %1;', $checkoutConfig);
     ?>
     <script type="text/javascript">
-        <?=$scriptString?>
+        <?= /* @noEscape */ $scriptString ?>
 
         require([
             'jquery',
@@ -187,9 +187,7 @@ $paymentResponseEntities = $block->getPaymentResponseEntities();
                 try {
                     let response = $(this).data('adyen-response');
 
-                    // Only show the modal for some result codes
-                    const modalResponseCodes = ['IdentifyShopper'];
-                    if (modalResponseCodes.includes(response.resultCode)) {
+                    if (response.resultCode !== 'RedirectShopper') {
                         showModal();
                     }
 

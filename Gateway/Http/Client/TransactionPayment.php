@@ -84,6 +84,7 @@ class TransactionPayment implements ClientInterface
                 $headers['idempotencyExtraData'] ?? null
             );
             $requestOptions['idempotencyKey'] = $idempotencyKey;
+            $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
 
             $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/payments');
             $response = $service->payments($request, $requestOptions);
