@@ -22,6 +22,7 @@ use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Adyen\Service\Checkout\ModificationsApi;
+use Adyen\Service\Checkout\OrdersApi;
 use Adyen\Service\Checkout\PaymentsApi;
 use Adyen\Service\Checkout\UtilityApi;
 use Adyen\Service\PosPayment;
@@ -1210,6 +1211,11 @@ class Data extends AbstractHelper
     public function initializeRecurringApi(Client $client):RecurringApi
     {
         return new RecurringApi($client);
+    }
+
+    public function initializeOrdersApi(Client $client): OrdersApi
+    {
+        return new OrdersApi($client);
     }
 
     /**
