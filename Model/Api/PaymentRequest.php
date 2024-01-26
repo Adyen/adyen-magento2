@@ -107,7 +107,7 @@ class PaymentRequest extends DataObject
 
         try {
             $client = $this->adyenHelper->initializeAdyenClient($storeId);
-            $service = new PaymentsApi($client);
+            $service = $this->adyenHelper->initializePaymentsApi($client);
             $response = $service->paymentsDetails(new PaymentDetailsRequest($request));
         } catch (AdyenException $e) {
             throw new LocalizedException(__('3D secure failed'));
@@ -185,7 +185,7 @@ class PaymentRequest extends DataObject
 
         // call lib
         $client = $this->adyenHelper->initializeAdyenClient($storeId);
-        $service = new RecurringApi($client);
+        $service = $this->adyenHelper->initializeRecurringApi($client);
         $response = $service->listRecurringDetails(new RecurringDetailsRequest($request));
 
         return (array)$response->jsonSerialize();
@@ -215,7 +215,7 @@ class PaymentRequest extends DataObject
 
         // call lib
         $client = $this->adyenHelper->initializeAdyenClient($storeId);
-        $service = new RecurringApi($client);
+        $service = $this->adyenHelper->initializeRecurringApi($client);
 
         try {
             $response = $service->disable(new DisableRequest($request));

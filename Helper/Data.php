@@ -25,6 +25,7 @@ use Adyen\Service\Checkout\ModificationsApi;
 use Adyen\Service\Checkout\PaymentsApi;
 use Adyen\Service\Checkout\UtilityApi;
 use Adyen\Service\PosPayment;
+use Adyen\Service\RecurringApi;
 use DateTime;
 use Exception;
 use Magento\Backend\Helper\Data as BackendHelper;
@@ -1204,6 +1205,11 @@ class Data extends AbstractHelper
     public function initializeModificationsApi(Client $client):ModificationsApi
     {
         return new ModificationsApi($client);
+    }
+
+    public function initializeRecurringApi(Client $client):RecurringApi
+    {
+        return new RecurringApi($client);
     }
 
     /**
