@@ -5,9 +5,12 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Model\Api\PaymentRequest;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Adyen\Service\Checkout;
 use Adyen\Service\Recurring;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
+use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Payment;
 
 class PaymentRequestTest extends AbstractAdyenTestCase
 {
@@ -31,6 +34,27 @@ class PaymentRequestTest extends AbstractAdyenTestCase
             'configHelper' => $this->configHelper,
             'adyenHelper' => $this->adyenHelper
         ]);
+    }
+
+    public function testAuthorise3d()
+    {
+        $orderMock = $this->createMock(Order::class);
+        $orderMock->method('getStoreId')->willReturn(1);
+
+        $paymentMock = $this->createMock(Payment::class);
+        $paymentMock->method('getOrder')->willReturn($orderMock);
+
+        $checkoutServiceMock = $this->createMock(Checkout::class);
+        $checkoutServiceMock->method('paymentsDetails')->willReturn([]);
+
+        $this->adyenHelper
+            ->method('initializeAdyenClient')
+            ->willReturn($this->createMock(Client::class));
+
+        $this->adyenHelper->method('createAdyenCheckoutService')->willReturn($checkoutServiceMock);
+
+        $result = $this->paymentRequest->authorise3d($paymentMock);
+        $this->assertIsArray($result);
     }
 
     public function testListRecurringContractByType()
