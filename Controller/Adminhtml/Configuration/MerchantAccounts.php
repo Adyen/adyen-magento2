@@ -27,8 +27,6 @@ namespace Adyen\Payment\Controller\Adminhtml\Configuration;
 use Adyen\AdyenException;
 use Adyen\ConnectionException;
 use Adyen\Payment\Helper\ManagementHelper;
-use Adyen\Service\Management\AccountMerchantLevelApi;
-use Adyen\Service\Management\MyAPICredentialApi;
 use Magento\Backend\App\Action;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Backend\App\Action\Context;
@@ -70,9 +68,8 @@ class MerchantAccounts extends Action
             }
 
             $client = $this->managementHelper->getAdyenApiClient($apiKey, $demoMode);
-            $accountMerchantLevelApi = new AccountMerchantLevelApi($client);
-            $myAPICredentialApi = new MyAPICredentialApi($client);
-
+            $accountMerchantLevelApi = $this->managementHelper->getAccountMerchantLevelApi($client);
+            $myAPICredentialApi = $this->managementHelper->getMyAPICredentialApi($client);
             $response = $this->managementHelper->getMerchantAccountsAndClientKey(
                 $accountMerchantLevelApi,
                 $myAPICredentialApi

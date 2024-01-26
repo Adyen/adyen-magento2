@@ -287,4 +287,14 @@ class ManagementHelper
             $environment === 'test'
         );
     }
+
+    public function getAccountMerchantLevelApi(Client $client): AccountMerchantLevelApi
+    {
+        return new AccountMerchantLevelApi($client);
+    }
+
+    public function getMyAPICredentialApi(Client $client): MyAPICredentialApi
+    {
+        return new MyAPICredentialApi($client);
+    }
 }
