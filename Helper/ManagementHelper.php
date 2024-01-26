@@ -98,7 +98,9 @@ class ManagementHelper
         $merchantAccounts = [];
         $page = 1;
         $pageSize = 100;
-        $responseMerchantsObj = $accountMerchantLevelApi->listMerchantAccounts(["pageSize" => $pageSize]);
+        $responseMerchantsObj = $accountMerchantLevelApi->listMerchantAccounts(
+            ['queryParams' => ['pageSize' => $pageSize]]
+        );
         //@todo when supported, use $responseMerchantsObj->toArray()
         $responseMerchants = json_decode(json_encode($responseMerchantsObj->jsonSerialize()), true);
         while (count($merchantAccounts) < $responseMerchants['itemsTotal']) {
@@ -115,7 +117,7 @@ class ManagementHelper
             ++$page;
             if (isset($responseMerchants['_links']['next'])) {
                 $responseMerchantsObj = $accountMerchantLevelApi->listMerchantAccounts(
-                    ["pageSize" => $pageSize, "pageNumber" => $page]
+                    ['queryParams' => ["pageSize" => $pageSize, "pageNumber" => $page]]
                 );
                 //@todo when supported, use $responseMerchantsObj->toArray()
                 $responseMerchants = json_decode(json_encode($responseMerchantsObj->jsonSerialize()), true);
