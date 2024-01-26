@@ -13,6 +13,7 @@
 namespace Adyen\Payment\Model\Api;
 
 use Adyen\AdyenException;
+use Adyen\Model\Checkout\BalanceCheckRequest;
 use Adyen\Payment\Api\AdyenPaymentMethodsBalanceInterface;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
@@ -55,7 +56,7 @@ class AdyenPaymentMethodsBalance implements AdyenPaymentMethodsBalanceInterface
         try {
             $client = $this->adyenHelper->initializeAdyenClient($storeId);
             $service = new OrdersApi($client);
-            $responseObj = $service->getBalanceOfGiftCard($payload);
+            $responseObj = $service->getBalanceOfGiftCard(new BalanceCheckRequest($payload));
             //@todo when supported, use $responseObj->toArray()
             $response = json_decode(json_encode($responseObj->jsonSerialize()), true);
 
