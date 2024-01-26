@@ -15,6 +15,7 @@ use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Locale;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Backend\Helper\Data as BackendHelper;
@@ -216,5 +217,27 @@ class DataTest extends AbstractAdyenTestCase
 
         $headers = $this->dataHelper->buildRequestHeaders();
         $this->assertEquals($expectedHeaders, $headers);
+    }
+
+    /**
+     * @test
+     */
+    public function getRecurringTypesShouldReturnAnArrayOfRecurringTypes()
+    {
+        $this->assertEquals([
+            RecurringType::ONECLICK => 'ONECLICK',
+            RecurringType::ONECLICK_RECURRING => 'ONECLICK,RECURRING',
+            RecurringType::RECURRING => 'RECURRING'
+        ], $this->dataHelper->getRecurringTypes());
+    }
+
+    public function getCheckoutFrontendRegionsShouldReturnAnArray()
+    {
+        $this->assertEquals([
+            'eu' => 'Default (EU - Europe)',
+            'au' => 'AU - Australasia',
+            'us' => 'US - United States',
+            'in' => 'IN - India'
+        ], $this->dataHelper->getRecurringTypes());
     }
 }
