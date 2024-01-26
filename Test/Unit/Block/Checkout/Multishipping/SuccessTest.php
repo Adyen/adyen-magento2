@@ -24,7 +24,6 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 class SuccessTest extends AbstractAdyenTestCase
 {
     private $successBlock;
-    private $paymentResponseEntities;
     private $contextMock;
     private $sessionMock;
     private $orderRepositoryMock;
