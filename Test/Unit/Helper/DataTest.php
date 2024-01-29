@@ -11,6 +11,7 @@
 namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Client;
+use Adyen\Model\Checkout\PaymentDetailsRequest;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Locale;
@@ -50,10 +51,19 @@ class DataTest extends AbstractAdyenTestCase
             'getMotoMerchantAccountProperties' => [
                 'apikey' => 'wellProtectedEncryptedApiKey',
                 'demo_mode' => '1'
-            ]
+            ],
+            'getAdyenAbstractConfigDataFlag' => '1'
         ]);
+        $configHelper->method('getAdyenAbstractConfigData')
+            ->willReturnCallback(function ($config) {
+                return $config . '_1';
+            });
         $context = $this->createMock(Context::class);
         $encryptor = $this->createMock(EncryptorInterface::class);
+        $encryptor->method('decrypt')
+            ->willReturnCallback(function ($data) {
+                return $data;
+            });
         $dataStorage = $this->createMock(DataInterface::class);
         $country = $this->createMock(Country::class);
         $moduleList = $this->createMock(ModuleListInterface::class);
@@ -239,5 +249,22 @@ class DataTest extends AbstractAdyenTestCase
             'us' => 'US - United States',
             'in' => 'IN - India'
         ], $this->dataHelper->getRecurringTypes());
+    }
+
+    public function testGetClientKey()
+    {
+        $key = $this->dataHelper->getClientKey(1);
+        $this->assertEquals('client_key_test_1',$key);
+    }
+
+    public function testGetApiKey()
+    {
+        $key = $this->dataHelper->getAPIKey(1);
+        $this->assertEquals('api_key_test_1',$key);
+    }
+
+    public function testIsDemoMode()
+    {
+        $this->assertEquals('1', $this->dataHelper->isDemoMode(1));
     }
 }
