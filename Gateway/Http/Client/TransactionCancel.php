@@ -16,7 +16,6 @@ use Adyen\Client;
 use Adyen\Model\Checkout\PaymentCancelRequest;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
-use Adyen\Service\Checkout\ModificationsApi;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 
@@ -39,7 +38,7 @@ class TransactionCancel implements ClientInterface
         $headers = $transferObject->getHeaders();
         $clientConfig = $transferObject->getClientConfig();
         $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
-        $service = new ModificationsApi($client);
+        $service = $this->adyenHelper->initializeModificationsApi($client);
         $responseData = [];
 
         foreach ($requests as $request) {
