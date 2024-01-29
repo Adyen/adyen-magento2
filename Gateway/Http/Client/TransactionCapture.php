@@ -51,7 +51,7 @@ class TransactionCapture implements ClientInterface
         $headers = $transferObject->getHeaders();
         $clientConfig = $transferObject->getClientConfig();
         $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
-        $service = new ModificationsApi($client);
+        $service = $this->adyenHelper->initializeModificationsApi($client);
 
         $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
             $request,
