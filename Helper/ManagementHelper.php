@@ -296,4 +296,9 @@ class ManagementHelper
     {
         return new MyAPICredentialApi($client);
     }
+
+    public function getWebhooksMerchantLevelApi(Client $client): WebhooksMerchantLevelApi
+    {
+        return new WebhooksMerchantLevelApi($client);
+    }
 }

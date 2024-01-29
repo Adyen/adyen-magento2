@@ -52,7 +52,8 @@ class DataTest extends AbstractAdyenTestCase
                 'apikey' => 'wellProtectedEncryptedApiKey',
                 'demo_mode' => '1'
             ],
-            'getAdyenAbstractConfigDataFlag' => '1'
+            'getAdyenAbstractConfigDataFlag' => '1',
+            'getAdyenHppConfigData' => 'hmac'
         ]);
         $configHelper->method('getAdyenAbstractConfigData')
             ->willReturnCallback(function ($config) {
@@ -266,5 +267,11 @@ class DataTest extends AbstractAdyenTestCase
     public function testIsDemoMode()
     {
         $this->assertEquals('1', $this->dataHelper->isDemoMode(1));
+    }
+
+    public function testGetHmac()
+    {
+        $hmac = $this->dataHelper->getHmac(1);
+        $this->assertEquals('hmac', $hmac);
     }
 }

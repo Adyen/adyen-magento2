@@ -89,7 +89,7 @@ class WebhookTest extends Action
         $apiKey = $this->configHelper->getApiKey($environment, $storeId);
 
         $client = $this->managementApiHelper->getAdyenApiClient($apiKey, $isDemoMode);
-        $service = new WebhooksMerchantLevelApi($client);
+        $service =$this->managementApiHelper->getWebhooksMerchantLevelApi($client);
         $response = $this->managementApiHelper->webhookTest($merchantAccount, $webhookId, $service);
         $success = isset($response) &&
             in_array('success', array_column($response->getData(), 'status'), true);
