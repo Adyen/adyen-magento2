@@ -10,11 +10,11 @@
 
 namespace Adyen\Payment\Test\Unit\Helper;
 
+use Adyen\Client;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Locale;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory as BillingAgreementCollectionFactory;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Backend\Helper\Data as BackendHelper;
@@ -28,7 +28,6 @@ use Magento\Framework\Config\DataInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Module\ModuleListInterface;
-use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\View\Asset\Repository;
 use Magento\Framework\View\Asset\Source;
 use Magento\Sales\Api\OrderManagementInterface;
@@ -36,7 +35,6 @@ use Magento\Sales\Model\Order\Status\HistoryFactory;
 use Magento\Store\Model\StoreManager;
 use Magento\Tax\Model\Calculation;
 use Magento\Tax\Model\Config;
-use PHPUnit\Framework\TestCase;
 
 class DataTest extends AbstractAdyenTestCase
 {
@@ -47,7 +45,12 @@ class DataTest extends AbstractAdyenTestCase
 
     public function setUp(): void
     {
-        $configHelper = $this->createMock(ConfigHelper::class);
+        $configHelper = $this->createConfiguredMock(ConfigHelper::class, [
+            'getMotoMerchantAccountProperties' => [
+                'apikey' => 'wellProtectedEncryptedApiKey',
+                'demo_mode' => '1'
+            ]
+        ]);
         $context = $this->createMock(Context::class);
         $encryptor = $this->createMock(EncryptorInterface::class);
         $dataStorage = $this->createMock(DataInterface::class);
@@ -59,42 +62,55 @@ class DataTest extends AbstractAdyenTestCase
         $taxConfig = $this->createMock(Config::class);
         $taxCalculation = $this->createMock(Calculation::class);
         $backendHelper = $this->createMock(BackendHelper::class);
-        $productMetadata = $this->createMock(ProductMetadata::class);
+        $productMetadata = $this->createConfiguredMock(ProductMetadata::class, [
+            'getName' => 'magento',
+            'getVersion' => '2.x.x',
+            'getEdition' => 'Community'
+        ]);
         $adyenLogger = $this->createMock(AdyenLogger::class);
         $storeManager = $this->createMock(StoreManager::class);
         $cache = $this->createMock(CacheInterface::class);
         $localeResolver = $this->createMock(ResolverInterface::class);
         $config = $this->createMock(ScopeConfigInterface::class);
-        $componentRegistrar = $this->createMock(ComponentRegistrarInterface::class);
+        $componentRegistrar = $this->createConfiguredMock(ComponentRegistrarInterface::class, [
+            'getPath' => 'vendor/adyen/module-payment'
+        ]);
         $localeHelper = $this->createMock(Locale::class);
         $orderManagement = $this->createMock(OrderManagementInterface::class);
         $orderStatusHistoryFactory = $this->createGeneratedMock(HistoryFactory::class);
 
+        // Partial mock builder is being used for mocking the methods in the class being tested.
+        $this->dataHelper = $this->getMockBuilder(Data::class)
+            ->setMethods(['getModuleVersion'])
+            ->setConstructorArgs([
+                $context,
+                $encryptor,
+                $dataStorage,
+                $country,
+                $moduleList,
+                $assetRepo,
+                $assetSource,
+                $notificationFactory,
+                $taxConfig,
+                $taxCalculation,
+                $backendHelper,
+                $productMetadata,
+                $adyenLogger,
+                $storeManager,
+                $cache,
+                $localeResolver,
+                $config,
+                $componentRegistrar,
+                $localeHelper,
+                $orderManagement,
+                $orderStatusHistoryFactory,
+                $configHelper
+            ])
+            ->getMock();
 
-        $this->dataHelper = new Data(
-            $context,
-            $encryptor,
-            $dataStorage,
-            $country,
-            $moduleList,
-            $assetRepo,
-            $assetSource,
-            $notificationFactory,
-            $taxConfig,
-            $taxCalculation,
-            $backendHelper,
-            $productMetadata,
-            $adyenLogger,
-            $storeManager,
-            $cache,
-            $localeResolver,
-            $config,
-            $componentRegistrar,
-            $localeHelper,
-            $orderManagement,
-            $orderStatusHistoryFactory,
-            $configHelper
-        );
+        $this->dataHelper->expects($this->any())
+            ->method('getModuleVersion')
+            ->willReturn('1.2.3');
     }
 
     public function testFormatAmount()
@@ -142,5 +158,63 @@ class DataTest extends AbstractAdyenTestCase
                 'true'
             ]
         ];
+    }
+
+    /*
+     * Provider for testInitializeAdyenClientWithClientConfig test case
+     */
+    public static function clientConfigProvider(): array
+    {
+        return [
+            [
+                '$clientConfig' => [
+                    'storeId' => 1
+                ]
+            ],
+            [
+                '$clientConfig' => [
+                    'storeId' => 1,
+                    'isMotoTransaction' => true,
+                    'motoMerchantAccount' => 'TESTMERCHANTACCOUNT'
+                ]
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider clientConfigProvider
+     */
+    public function testInitializeAdyenClientWithClientConfig($clientConfig)
+    {
+        $this->assertInstanceOf(
+            Client::class,
+            $this->dataHelper->initializeAdyenClientWithClientConfig($clientConfig)
+        );
+    }
+
+    public function testGetMagentoDetails()
+    {
+        $expectedDetails = [
+            'name' => 'magento',
+            'version' => '2.x.x',
+            'edition' => 'Community'
+        ];
+
+        $actualDetails = $this->dataHelper->getMagentoDetails();
+        $this->assertEquals($expectedDetails, $actualDetails);
+    }
+
+    public function testBuildRequestHeaders()
+    {
+        $expectedHeaders = [
+            'external-platform-name' => 'adyen-magento2',
+            'external-platform-version' => '1.2.3',
+            'merchant-application-name' => 'magento',
+            'merchant-application-version' => '2.x.x',
+            'merchant-application-edition' => 'Community'
+        ];
+
+        $headers = $this->dataHelper->buildRequestHeaders();
+        $this->assertEquals($expectedHeaders, $headers);
     }
 }

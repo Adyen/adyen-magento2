@@ -20,6 +20,7 @@ define(
         'Adyen_Payment/js/model/adyen-configuration',
         'Adyen_Payment/js/adyen',
         'Magento_Customer/js/customer-data',
+        'Magento_Checkout/js/model/error-processor',
         'mage/translate'
     ],
     function(
@@ -34,6 +35,7 @@ define(
         adyenConfiguration,
         adyenCheckout,
         customerData,
+        errorProcessor,
         $t
     ) {
         'use strict';
@@ -192,6 +194,11 @@ define(
                 adyenPaymentService.removeStateData(data.stateDataId).done(function () {
                     self.fetchRedeemedGiftcards();
                     fullScreenLoader.stopLoader();
+                }).fail(function(response) {
+                    fullScreenLoader.stopLoader();
+                    self.fetchRedeemedGiftcards();
+
+                    errorProcessor.process(response, this.currentMessageContainer);
                 });
             },
 
@@ -205,16 +212,21 @@ define(
 
             handleBalanceResult: function (balanceResponse, stateData, resolve) {
                 let self = this;
+
+                let consumableBalance = balanceResponse.transactionLimit ?
+                    balanceResponse.transactionLimit :
+                    balanceResponse.balance;
+
                 let orderAmount = currencyHelper.formatAmount(
                     quote.totals().grand_total,
                     window.checkoutConfig.payment.adyen.giftcard.currency
                 );
 
-                if(this.totalGiftcardBalance() === 0 && balanceResponse.balance.value >= orderAmount) {
+                if(this.totalGiftcardBalance() === 0 && consumableBalance.value >= orderAmount) {
                     resolve(balanceResponse);
                 } else if (orderAmount > this.totalGiftcardBalance()) {
                     stateData.giftcard = {
-                        balance: balanceResponse.balance,
+                        balance: consumableBalance,
                         title: this.selectedGiftcard().key
                     }
                     adyenPaymentService.saveStateData(stateData).done(function () {

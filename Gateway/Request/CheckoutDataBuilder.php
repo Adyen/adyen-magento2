@@ -131,7 +131,7 @@ class CheckoutDataBuilder implements BuilderInterface
             $payment->getMethod() === AdyenPayByLinkConfigProvider::CODE
         ) {
 
-            $openInvoiceFields = $this->openInvoiceHelper->getOpenInvoiceData($order);
+            $openInvoiceFields = $this->openInvoiceHelper->getOpenInvoiceDataForOrder($order);
             $requestBody = array_merge($requestBody, $openInvoiceFields);
 
             if (isset($brandCode) &&
@@ -209,10 +209,6 @@ class CheckoutDataBuilder implements BuilderInterface
         }
 
         $requestBody['additionalData']['allow3DS2'] = true;
-
-        if (isset($requestBodyPaymentMethod)) {
-            $requestBody['paymentMethod'] = $requestBodyPaymentMethod;
-        }
 
         return [
             'body' => $requestBody

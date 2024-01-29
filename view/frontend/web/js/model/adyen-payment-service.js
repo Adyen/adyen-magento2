@@ -72,14 +72,14 @@ define(
                 this.connectedTerminals(connectedTerminals);
             },
 
-            getOrderPaymentStatus: function(orderId) {
+            getOrderPaymentStatus: function(orderId, quoteId = null) {
                 let serviceUrl;
 
                 if (customer.isLoggedIn()) {
                     serviceUrl = urlBuilder.createUrl('/adyen/orders/carts/mine/payment-status', {});
                 } else {
                     serviceUrl = urlBuilder.createUrl('/adyen/orders/guest-carts/:cartId/payment-status', {
-                        cartId: quote.getQuoteId()
+                        cartId: quoteId ?? quote.getQuoteId()
                     });
                 }
 
@@ -120,15 +120,20 @@ define(
                 );
             },
 
-            donate: function (data, orderId) {
+            donate: function (data, isLoggedIn, orderId, maskedQuoteId) {
                 let serviceUrl;
                 let request = {
                     payload: JSON.stringify(data)
                 };
 
-                serviceUrl = customer.isLoggedIn()
-                    ? urlBuilder.createUrl('/adyen/orders/carts/mine/donations', {})
-                    : urlBuilder.createUrl('/adyen/orders/guest-carts/:orderId/donations', {orderId});
+                if (isLoggedIn) {
+                    serviceUrl =  urlBuilder.createUrl('/adyen/orders/carts/mine/donations', {});
+                    request.orderId = orderId;
+                } else {
+                    serviceUrl =  urlBuilder.createUrl('/adyen/orders/guest-carts/:cartId/donations', {
+                        cartId: maskedQuoteId
+                    });
+                }
 
                 return storage.post(
                     serviceUrl,

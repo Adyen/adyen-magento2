@@ -272,7 +272,7 @@ class Notification extends AbstractModel implements NotificationInterface
 
     public function getUpdatedAt(): ?string
     {
-        $updatedAt = $this->getData(self::CREATED_AT);
+        $updatedAt = $this->getData(self::UPDATED_AT);
 
         if ($updatedAt instanceOf Datetime) {
             return $updatedAt->format('Y-m-d H:i:s');

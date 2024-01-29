@@ -18,8 +18,6 @@ use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
 use Adyen\Payment\Helper\Requests;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Service\Checkout\ModificationsApi;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 
@@ -50,27 +48,16 @@ class TransactionCapture implements ClientInterface
         $request = $transferObject->getBody();
         $headers = $transferObject->getHeaders();
         $clientConfig = $transferObject->getClientConfig();
-
-
-        if(isset($clientConfig['isMotoTransaction']) && $clientConfig['isMotoTransaction'] === true) {
-            $client = $this->adyenHelper->initializeAdyenClient(
-                $clientConfig['storeId'],
-                null,
-                $clientConfig['motoMerchantAccount']
-            );
-        }
-        else {
-            $client = $this->adyenHelper->initializeAdyenClient($transferObject->getClientConfig()['storeId']);
-        }
-
+        $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
         $service = $this->adyenHelper->createAdyenCheckoutService($client);
 
         $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
             $request,
-                $headers['idempotencyExtraData'] ?? null
+            $headers['idempotencyExtraData'] ?? null
         );
 
         $requestOptions['idempotencyKey'] = $idempotencyKey;
+        $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
 
         if (array_key_exists(self::MULTIPLE_AUTHORIZATIONS, $request)) {
             return $this->placeMultipleCaptureRequests($service, $request, $requestOptions);

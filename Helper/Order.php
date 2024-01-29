@@ -298,6 +298,14 @@ class Order extends AbstractHelper
                     'merchantReference' => $notification->getMerchantReference()
                 ]);
             }
+        } else {
+            /*
+             * Set order status back to pre_payment_authorized if the order state is payment_review.
+             * Otherwise, capture-cancel-refund is not possible.
+             */
+            if ($order->getState() === MagentoOrder::STATE_PAYMENT_REVIEW) {
+                $order = $this->setPrePaymentAuthorized($order);
+            }
         }
 
         return $order;

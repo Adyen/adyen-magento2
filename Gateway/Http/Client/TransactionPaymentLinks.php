@@ -15,27 +15,14 @@ use Adyen\AdyenException;
 use Adyen\Client;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 
 class TransactionPaymentLinks implements ClientInterface
 {
+    private Data $adyenHelper;
+    private Idempotency $idempotencyHelper;
 
-    /**
-     * @var Data
-     */
-    private $adyenHelper;
-
-    /**
-     * @var Idempotency
-     */
-    private $idempotencyHelper;
-
-    /**
-     * @param Data $adyenHelper
-     * @param Idempotency $idempotencyHelper
-     */
     public function __construct(
         Data $adyenHelper,
         Idempotency $idempotencyHelper
@@ -44,16 +31,14 @@ class TransactionPaymentLinks implements ClientInterface
         $this->idempotencyHelper = $idempotencyHelper;
     }
 
-    /**
-     * @param TransferInterface $transferObject
-     * @return array|mixed|string
-     * @throws AdyenException
-     * @throws NoSuchEntityException
-     */
     public function placeRequest(TransferInterface $transferObject): array
     {
         $request = $transferObject->getBody();
         $headers = $transferObject->getHeaders();
+        $clientConfig = $transferObject->getClientConfig();
+
+        $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
+        $service = $this->adyenHelper->createAdyenCheckoutService($client);
 
         // If the payment links call is already done return the request
         if (!empty($request['resultCode'])) {
@@ -61,14 +46,13 @@ class TransactionPaymentLinks implements ClientInterface
             return $request;
         }
 
-        $service = $this->adyenHelper->createAdyenCheckoutService();
-
         $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
             $request,
             $headers['idempotencyExtraData'] ?? null
         );
 
         $requestOptions['idempotencyKey'] = $idempotencyKey;
+        $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
 
         $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/paymentLinks');
         try {

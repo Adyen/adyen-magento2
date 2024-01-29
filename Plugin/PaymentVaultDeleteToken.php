@@ -53,29 +53,29 @@ class PaymentVaultDeleteToken
         $paymentMethodCode = $paymentToken->getPaymentMethodCode();
         $storeId = $this->storeManager->getStore()->getStoreId();
 
-        if (is_null($paymentMethodCode) || !$this->vaultHelper->isAdyenPaymentCode($paymentMethodCode)) {
-            return [$paymentToken];
+        if (!is_null($paymentMethodCode) && $this->vaultHelper->isAdyenPaymentCode($paymentMethodCode)) {
+            $request = $this->createDisableTokenRequest($paymentToken);
+
+            try {
+                $client = $this->dataHelper->initializeAdyenClient($storeId);
+                $recurringService = $this->dataHelper->createAdyenRecurringService($client);
+                $recurringService->disable($request);
+            } catch (AdyenException $e) {
+                $this->adyenLogger->error(sprintf(
+                    'Error while attempting to disable token with id %s: %s',
+                    $paymentToken->getEntityId(),
+                    $e->getMessage()
+                ));
+            } catch (NoSuchEntityException $e) {
+                $this->adyenLogger->error(sprintf(
+                    'No such entity while attempting to disable token with id %s: %s',
+                    $paymentToken->getEntityId(),
+                    $e->getMessage()
+                ));
+            }
         }
 
-        $request = $this->createDisableTokenRequest($paymentToken);
-
-        try {
-            $client = $this->dataHelper->initializeAdyenClient($storeId);
-            $recurringService = $this->dataHelper->createAdyenRecurringService($client);
-            $recurringService->disable($request);
-        } catch (AdyenException $e) {
-            $this->adyenLogger->error(sprintf(
-                'Error while attempting to disable token with id %s: %s',
-                $paymentToken->getEntityId(),
-                $e->getMessage()
-            ));
-        } catch (NoSuchEntityException $e) {
-            $this->adyenLogger->error(sprintf(
-                'No such entity while attempting to disable token with id %s: %s',
-                $paymentToken->getEntityId(),
-                $e->getMessage()
-            ));
-        }
+        return [$paymentToken];
     }
 
     private function createDisableTokenRequest(PaymentTokenInterface $paymentToken): array

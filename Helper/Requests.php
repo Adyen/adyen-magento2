@@ -27,6 +27,7 @@ class Requests extends AbstractHelper
         'storedPaymentMethods' => 'scheme',
         'googlepay' => 'scheme',
         'paywithgoogle' => 'scheme',
+        'applepay' => 'scheme'
     ];
     const SHOPPER_INTERACTION_CONTAUTH = 'ContAuth';
 
@@ -337,7 +338,9 @@ class Requests extends AbstractHelper
             $request['storePaymentMethod'] = $storePaymentMethod;
         }
 
-        if ($storePaymentMethod) {
+        $storedPaymentMethodId = $this->stateData->getStoredPaymentMethodIdFromStateData($stateData);
+
+        if ($storePaymentMethod || isset($storedPaymentMethodId)) {
             $recurringProcessingModel = $payment->getAdditionalInformation('recurringProcessingModel');
 
             if (isset($recurringProcessingModel)) {

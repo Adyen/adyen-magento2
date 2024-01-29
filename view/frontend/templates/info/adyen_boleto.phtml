@@ -25,7 +25,7 @@ $_info = $block->getInfo();
         <dt class="title"><b><?= $block->escapeHtml(__("Partial Payments")) ?></b></dt>
         <?php foreach ($block->getPartialPayments() as $payment): ?>
             <dt class="title">
-                <?= sprintf("%s - %s", $block->escapeHtml(ucwords($payment->getPaymentMethod())), $block->escapeHtml($payment->getFormattedAmountWithCurrency())) ?>
+                <?= $block->escapeHtml(sprintf("%s - %s", ucwords($payment->getPaymentMethod()), $payment->getFormattedAmountWithCurrency())) ?>
             </dt>
         <?php endforeach; ?>
     <?php endif; ?>

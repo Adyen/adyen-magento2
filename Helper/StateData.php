@@ -18,6 +18,7 @@ use Adyen\Payment\Model\ResourceModel\StateData as StateDataResourceModel;
 use Adyen\Payment\Model\ResourceModel\StateData\Collection as StateDataCollection;
 use Adyen\Payment\Model\StateDataFactory;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 
 class StateData
 {
@@ -97,22 +98,36 @@ class StateData
         $this->stateDataResourceModel->save($stateDataObj);
     }
 
+    /**
+     * @throws NoSuchEntityException
+     */
     public function removeStateData(int $stateDataId, ?int $quoteId = null): bool
     {
-        $stateDataObj = $this->stateDataFactory->create();
-        $stateDataObj->setEntityId($stateDataId);
+        $stateDataCollection = $this->stateDataCollection->addFieldToFilter('entity_id', $stateDataId);
 
         if (isset($quoteId)) {
-            $stateDataObj->setQuoteId($quoteId);
+            $stateDataCollection->addFieldToFilter('quote_id', $quoteId);
         }
 
-        try {
-            $this->stateDataResourceModel->delete($stateDataObj);
-        } catch (\Exception $e) {
-            $this->adyenLogger->error('An error occurred while deleting state data: ' . $e->getMessage());
-            return false;
-        }
+        $stateDataCollection->getSelect();
+        $stateDataObj = $stateDataCollection->getFirstItem();
 
-        return true;
+        if (empty($stateDataObj->getData())) {
+            throw new NoSuchEntityException();
+        } else {
+            try {
+                $this->stateDataResourceModel->delete($stateDataObj);
+            } catch (\Exception $e) {
+                $this->adyenLogger->error('An error occurred while deleting state data: ' . $e->getMessage());
+                return false;
+            }
+
+            return true;
+        }
+    }
+
+    public function getStoredPaymentMethodIdFromStateData(array $stateData): ?string
+    {
+        return $stateData['paymentMethod']['storedPaymentMethodId'] ?? null;
     }
 }

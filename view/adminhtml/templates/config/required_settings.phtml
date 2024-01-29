@@ -21,8 +21,8 @@ echo $block->getButtonHtml() ?>
                     xapi_key = document.querySelector(
                         "div.adyen_required_config_settings input[name*='api_key_live']").value;
                 }
-                const storeId = '<?=$block->getStoreId()?>';
-                new Ajax.Request('<?php echo $block->getAjaxUrl() ?>', {
+                const storeId = '<?= $block->escapeJs($block->getStoreId()) ?>';
+                new Ajax.Request('<?= $block->escapeJs($block->getAjaxUrl()) ?>', {
                     parameters: {xapikey: xapi_key, demoMode: demo_mode, storeId},
                     type: "POST",
                     loaderArea:     false,
@@ -97,6 +97,6 @@ echo $block->getButtonHtml() ?>
 </span>-->
 <!--if we want to add a note under the button-->
 <p class="note">
-    <span><?php echo __('Retrieves the associated merchant accounts, client key and the allowed origin.'); ?></span>
+    <span><?= $block->escapeHtml(__('Retrieves the associated merchant accounts, client key and the allowed origin.')); ?></span>
 </p>
 <hr>
