@@ -274,4 +274,58 @@ class DataTest extends AbstractAdyenTestCase
         $hmac = $this->dataHelper->getHmac(1);
         $this->assertEquals('hmac', $hmac);
     }
+
+    public function testGetCheckoutFrontendRegions()
+    {
+        $regions = $this->dataHelper->getCheckoutFrontendRegions();
+        $expected =  [
+            'eu' => 'Default (EU - Europe)',
+            'au' => 'AU - Australasia',
+            'us' => 'US - United States',
+            'in' => 'IN - India'
+        ];
+        $this->assertSame($expected, $regions);
+    }
+
+    public function testCaptureModes()
+    {
+        $this->assertSame(
+            [
+                'auto' => 'Immediate',
+                'manual' => 'Manual'
+            ],
+            $this->dataHelper->getCaptureModes()
+        );
+    }
+
+    public function testGetOpenInvoiceCaptureModes()
+    {
+        $this->assertSame(
+            [
+                'auto' => 'Immediate',
+                'manual' => 'Manual',
+                'onshipment' => 'On shipment'
+            ],
+            $this->dataHelper->getOpenInvoiceCaptureModes()
+        );
+    }
+
+    public function testGetPaymentRoutines()
+    {
+        $this->assertSame(
+            [
+                'single' => 'Single Page Payment Routine',
+                'multi' => 'Multi-page Payment Routine'
+            ],
+            $this->dataHelper->getPaymentRoutines()
+        );
+    }
+
+    public function testGetMinorUnitTaxPercent()
+    {
+        $this->assertSame(
+            1000,
+            $this->dataHelper->getMinorUnitTaxPercent(10)
+        );
+    }
 }

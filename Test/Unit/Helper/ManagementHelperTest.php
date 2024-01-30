@@ -37,6 +37,16 @@ use Magento\Store\Model\StoreManager;
 
 class ManagementHelperTest extends AbstractAdyenTestCase
 {
+    private Client $clientMock;
+
+    public function setUp(): void
+    {
+        $this->clientMock = $this->createMock(Client::class);
+        $this->clientMock->expects($this->any())
+            ->method('getConfig')
+            ->willReturn(new \Adyen\Config(['environment' => 'test']));
+    }
+
     public function testGetMerchantAccountsAndClientKey()
     {
         $merchantAccountListResponseJson = <<<JSON
@@ -639,5 +649,23 @@ class ManagementHelperTest extends AbstractAdyenTestCase
             ->method('initializeAdyenClient')
         ->with($storeId, $apiKey);
         $helper->getAdyenApiClient($apiKey, false);
+    }
+
+    public function testGetAccountMerchantLevelApi()
+    {
+        $service = $this->createManagementHelper()->getAccountMerchantLevelApi($this->clientMock);
+        $this->assertInstanceOf(AccountMerchantLevelApi::class, $service);
+    }
+
+    public function testGetMyAPICredentialApi()
+    {
+        $service = $this->createManagementHelper()->getMyAPICredentialApi($this->clientMock);
+        $this->assertInstanceOf(MyAPICredentialApi::class, $service);
+    }
+
+    public function testWebhooksMerchantLevelApi()
+    {
+        $service = $this->createManagementHelper()->getWebhooksMerchantLevelApi($this->clientMock);
+        $this->assertInstanceOf(WebhooksMerchantLevelApi::class, $service);
     }
 }
