@@ -10,8 +10,9 @@
 
 namespace Adyen\Payment\Test\Unit\Helper;
 
+use Adyen\AdyenException;
 use Adyen\Client;
-use Adyen\Model\Checkout\PaymentDetailsRequest;
+use Adyen\Config as AdyenConfig;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Locale;
@@ -19,6 +20,10 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Adyen\Service\Checkout\ModificationsApi;
+use Adyen\Service\Checkout\OrdersApi;
+use Adyen\Service\Checkout\PaymentsApi;
+use Adyen\Service\RecurringApi;
 use Magento\Backend\Helper\Data as BackendHelper;
 use Magento\Directory\Model\Config\Source\Country;
 use Magento\Framework\App\CacheInterface;
@@ -34,6 +39,7 @@ use Magento\Framework\View\Asset\Repository;
 use Magento\Framework\View\Asset\Source;
 use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Model\Order\Status\HistoryFactory;
+use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManager;
 use Magento\Tax\Model\Calculation;
 use Magento\Tax\Model\Config;
@@ -45,8 +51,16 @@ class DataTest extends AbstractAdyenTestCase
      */
     private $dataHelper;
 
+    private Client $clientMock;
+
+    private AdyenLogger $adyenLoggerMock;
+
     public function setUp(): void
     {
+        $this->clientMock = $this->createConfiguredMock(Client::class, [
+                'getConfig' => new AdyenConfig(['environment' => 'test'])
+            ]
+        );
         $configHelper = $this->createConfiguredMock(ConfigHelper::class, [
             'getMotoMerchantAccountProperties' => [
                 'apikey' => 'wellProtectedEncryptedApiKey',
@@ -79,8 +93,13 @@ class DataTest extends AbstractAdyenTestCase
             'getVersion' => '2.x.x',
             'getEdition' => 'Community'
         ]);
-        $adyenLogger = $this->createMock(AdyenLogger::class);
-        $storeManager = $this->createMock(StoreManager::class);
+        $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
+        $storeManager = $this->createConfiguredMock(StoreManager::class, [
+            'getStore' => $this->createConfiguredMock(Store::class, [
+                'getId' => 1
+            ])
+        ]);
+
         $cache = $this->createMock(CacheInterface::class);
         $localeResolver = $this->createMock(ResolverInterface::class);
         $config = $this->createMock(ScopeConfigInterface::class);
@@ -107,7 +126,7 @@ class DataTest extends AbstractAdyenTestCase
                 $taxCalculation,
                 $backendHelper,
                 $productMetadata,
-                $adyenLogger,
+                $this->adyenLoggerMock,
                 $storeManager,
                 $cache,
                 $localeResolver,
@@ -327,5 +346,35 @@ class DataTest extends AbstractAdyenTestCase
             1000,
             $this->dataHelper->getMinorUnitTaxPercent(10)
         );
+    }
+
+    public function testInitializePaymentsApi()
+    {
+        $service = $this->dataHelper->initializePaymentsApi($this->clientMock);
+        $this->assertInstanceOf(PaymentsApi::class, $service);
+    }
+
+    public function testInitializeModificationsApi()
+    {
+        $service = $this->dataHelper->initializeModificationsApi($this->clientMock);
+        $this->assertInstanceOf(ModificationsApi::class, $service);
+    }
+
+    public function testInitializeRecurringApi()
+    {
+        $service = $this->dataHelper->initializeRecurringApi($this->clientMock);
+        $this->assertInstanceOf(RecurringApi::class, $service);
+    }
+
+    public function testInitializeOrdersApi()
+    {
+        $service = $this->dataHelper->initializeOrdersApi($this->clientMock);
+        $this->assertInstanceOf(OrdersApi::class, $service);
+    }
+
+    public function testLogAdyenException()
+    {
+        $this->adyenLoggerMock->expects($this->once())->method('info');
+        $this->dataHelper->logAdyenException(new AdyenException('error message', 123));
     }
 }
