@@ -213,25 +213,11 @@ interface NotificationInterface
      */
     public function setErrorMessage(string $errorMessage): NotificationInterface;
 
-    /**
-     * @return string|null
-     */
     public function getCreatedAt(): ?string;
 
-    /**
-     * @param DateTime $createdAt
-     * @return NotificationInterface
-     */
-    public function setCreatedAt(DateTime $createdAt): NotificationInterface;
+    public function setCreatedAt(string $createdAt): NotificationInterface;
 
-    /**
-     * @return string|null
-     */
     public function getUpdatedAt(): ?string;
 
-    /**
-     * @param DateTime $timestamp
-     * @return NotificationInterface
-     */
-    public function setUpdatedAt(DateTime $timestamp): NotificationInterface;
+    public function setUpdatedAt(string $timestamp): NotificationInterface;
 }

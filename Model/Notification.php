@@ -265,7 +265,7 @@ class Notification extends AbstractModel implements NotificationInterface
         return $createdAt;
     }
 
-    public function setCreatedAt(DateTime $createdAt): NotificationInterface
+    public function setCreatedAt(string $createdAt): NotificationInterface
     {
         return $this->setData(self::CREATED_AT, $createdAt);
     }
@@ -281,7 +281,7 @@ class Notification extends AbstractModel implements NotificationInterface
         return $updatedAt;
     }
 
-    public function setUpdatedAt(DateTime $timestamp): NotificationInterface
+    public function setUpdatedAt(string $timestamp): NotificationInterface
     {
         return $this->setData(self::UPDATED_AT, $timestamp);
     }
