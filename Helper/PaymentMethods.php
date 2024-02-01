@@ -144,6 +144,21 @@ class PaymentMethods extends AbstractHelper
         return array_keys($filtered);
     }
 
+    public function enablePaymentMethods(): array
+    {
+        $enabledPaymentMethods = [];
+        $configHelper = $this->configHelperFactory->create();
+
+        foreach ($this->getAdyenPaymentMethods() as $paymentMethod) {
+            $value = '1';
+            $field = 'active';
+            $configHelper->setConfigData($value, $field, $paymentMethod);
+            $enabledPaymentMethods[] = $paymentMethod;
+        }
+
+        return $enabledPaymentMethods;
+    }
+
     protected function fetchPaymentMethods(?string $country = null, ?string $shopperLocale = null): string
     {
         $quote = $this->getQuote();
