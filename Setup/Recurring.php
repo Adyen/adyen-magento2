@@ -24,7 +24,7 @@ class Recurring implements InstallSchemaInterface
         $setup->startSetup();
         $paymentMethods = $this->paymentMethodsFactory->create();
         /** @var PaymentMethods $paymentMethods */
-        $paymentMethods->togglePaymentMethodsActivation(true);
+        $paymentMethods->togglePaymentMethodsActivation();
         $setup->endSetup();
     }
 }

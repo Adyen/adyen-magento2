@@ -144,9 +144,13 @@ class PaymentMethods extends AbstractHelper
         return array_keys($filtered);
     }
 
-    public function togglePaymentMethodsActivation(bool $isActive): array
+    public function togglePaymentMethodsActivation(?bool $isActive =null): array
     {
         $enabledPaymentMethods = [];
+
+        if (is_null($isActive)) {
+            $isActive = $this->configHelper->getIsPaymentMethodsActive();
+        }
 
         foreach ($this->getAdyenPaymentMethods() as $paymentMethod) {
             $value = $isActive ? '1': '0';
