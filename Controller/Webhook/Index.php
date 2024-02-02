@@ -329,10 +329,9 @@ class Index extends Action
         }
 
         // do this to set both fields in the correct timezone
-        $date = new DateTime();
-        $formatedDate = $date->format('Y-m-d H:i:s');
-        $notification->setCreatedAt($formatedDate);
-        $notification->setUpdatedAt($formatedDate);
+        $formattedDate = date('Y-m-d H:i:s');
+        $notification->setCreatedAt($formattedDate);
+        $notification->setUpdatedAt($formattedDate);
     }
 
     /**

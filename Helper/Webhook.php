@@ -282,8 +282,7 @@ class Webhook
             $notification->setDone(true);
         }
         $notification->setProcessing($processing);
-        $time = new DateTime();
-        $notification->setUpdatedAt($time->format('Y-m-d H:i:s'));
+        $notification->setUpdatedAt(date('Y-m-d H:i:s'));
         $notification->save();
     }
 
