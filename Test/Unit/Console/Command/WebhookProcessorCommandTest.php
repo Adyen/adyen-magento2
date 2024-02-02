@@ -25,16 +25,16 @@ class WebhookProcessorCommandTest extends TestCase
         $webhookProcessorMock->expects($this->once())
             ->method('execute');
 
-        // Expect the output to have the correct start and completion messages
-        $outputMock->expects($this->once())
-            ->method('writeln')
-            ->with('Completed webhook processor execution.');
-
         // Create the command instance
         $command = new WebhookProcessorCommand($webhookProcessorMock);
 
         // Execute the command
         $result = $command->run($inputMock, $outputMock);
+
+        // Expect the output to have the correct start and completion messages
+        $outputMock->expects($this->once())
+            ->method('writeln')
+            ->with('Completed webhook processor execution.');
 
         // Assert the expected success return code
         $this->assertEquals(Cli::RETURN_SUCCESS, $result);
