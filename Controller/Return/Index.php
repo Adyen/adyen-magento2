@@ -394,6 +394,7 @@ class Index extends Action
 
         $request["details"] = $details;
         $requestOptions['idempotencyKey'] = $this->idempotencyHelper->generateIdempotencyKey($request);
+        $requestOptions['headers'] = $this->adyenDataHelper->buildRequestHeaders();
 
         try {
             $response = $service->paymentsDetails($request, $requestOptions);

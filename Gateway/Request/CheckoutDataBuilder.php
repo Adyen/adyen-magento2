@@ -210,10 +210,6 @@ class CheckoutDataBuilder implements BuilderInterface
 
         $requestBody['additionalData']['allow3DS2'] = true;
 
-        if (isset($requestBodyPaymentMethod)) {
-            $requestBody['paymentMethod'] = $requestBodyPaymentMethod;
-        }
-
         return [
             'body' => $requestBody
         ];

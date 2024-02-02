@@ -53,6 +53,7 @@ class TransactionDonate implements ClientInterface
         );
 
         $requestOptions['idempotencyKey'] = $idempotencyKey;
+        $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
 
         $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, 'donations');
         try {
