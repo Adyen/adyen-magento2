@@ -26,10 +26,10 @@ class WebhookProcessorCommandTest extends TestCase
             ->method('execute');
 
         // Expect the output to have the correct start and completion messages
-        $outputMock->expects($this->at(0))
+        $outputMock->expects($this->once())
             ->method('writeln')
             ->with('Starting webhook processor.');
-        $outputMock->expects($this->at(1))
+        $outputMock->expects($this->once())
             ->method('writeln')
             ->with('Completed webhook processor execution.');
 
