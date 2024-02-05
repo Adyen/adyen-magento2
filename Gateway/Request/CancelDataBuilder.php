@@ -67,6 +67,13 @@ class CancelDataBuilder implements BuilderInterface
             $payment->getEntityId()
         );
 
+        //Handle the case when we cancel an open offer
+        if (empty($pspReferences)) {
+            $pspReferences = [
+                ['pspreference' => $payment->getCcTransId()]
+            ];
+        }
+
         $requests['body'] = [];
 
         foreach ($pspReferences as $pspReference) {
@@ -75,7 +82,6 @@ class CancelDataBuilder implements BuilderInterface
                 "reference" => $order->getOrderIncrementId(),
                 "merchantAccount" => $merchantAccount
             ];
-
             $requests['body'][] = $request;
         }
         $requests['clientConfig'] = ["storeId" => $order->getStoreId()];
