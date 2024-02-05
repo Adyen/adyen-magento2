@@ -11,10 +11,11 @@
 
 namespace Adyen\Payment\Gateway\Data\Order;
 
-use Magento\Payment\Gateway\Data\Order\AddressAdapterFactory;
+use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Model\Order;
+use PayPal\Braintree\Gateway\Data\Order\AddressAdapterFactory;
 
-class OrderAdapter extends \Magento\Payment\Gateway\Data\Order\OrderAdapter
+class OrderAdapter extends \PayPal\Braintree\Gateway\Data\Order\OrderAdapter
 {
     /**
      * @var Order
@@ -23,14 +24,16 @@ class OrderAdapter extends \Magento\Payment\Gateway\Data\Order\OrderAdapter
 
     /**
      * @param Order $order
+     * @param CartRepositoryInterface $quoteRepository
      * @param AddressAdapterFactory $addressAdapterFactory
      */
     public function __construct(
         Order $order,
+        CartRepositoryInterface $quoteRepository,
         AddressAdapterFactory $addressAdapterFactory
     ) {
         $this->order = $order;
-        parent::__construct($order, $addressAdapterFactory);
+        parent::__construct($order, $quoteRepository, $addressAdapterFactory);
     }
 
     public function getQuoteId()
