@@ -62,7 +62,6 @@ class AdditionalDataLevel23DataBuilderTest extends AbstractAdyenTestCase
         $this->chargedCurrencyMock->method('getOrderAmountCurrency')->willReturn(new AdyenAmountCurrency(null, $currencyCode));
         $this->adyenHelperMock->method('formatAmount')->willReturn($formattedTaxAmount);
         $this->adyenRequestHelperMock->method('getShopperReference')->with($customerId, $orderIncrementId)->willReturn($shopperReference);
-
         $itemMock1 = $this->createMock(Item::class);
         $itemMock2 = $this->createMock(Item::class);
 
@@ -166,7 +165,6 @@ class AdditionalDataLevel23DataBuilderTest extends AbstractAdyenTestCase
         $orderAdapterMock = $this->createMock(OrderAdapterInterface::class);
         $paymentMock = $this->createMock(Payment::class);
         $paymentMock->method('getOrder')->willReturn($orderMock);
-
         $paymentDataObject = new PaymentDataObject($orderAdapterMock, $paymentMock);
         $buildSubject = ['payment' => $paymentDataObject, 'order' => $orderMock];
         $result = $this->additionalDataBuilder->build($buildSubject);
@@ -196,13 +194,11 @@ class AdditionalDataLevel23DataBuilderTest extends AbstractAdyenTestCase
         $postalCode = '12345';
         $countryId = 'US';
 
-        // Configure mocks
         $this->storeMock->method('getId')->willReturn($storeId);
         $this->configMock->method('sendLevel23AdditionalData')->with($storeId)->willReturn(true);
         $this->chargedCurrencyMock->method('getOrderAmountCurrency')->willReturn(new AdyenAmountCurrency(null, $currencyCode));
         $this->adyenHelperMock->method('formatAmount')->willReturn($formattedAmount);
         $this->adyenRequestHelperMock->method('getShopperReference')->with($customerId, $orderIncrementId)->willReturn($shopperReference);
-
         $shippingAddressMock = $this->createMock(Address::class);
         $shippingAddressMock->method('getPostcode')->willReturn($postalCode);
         $shippingAddressMock->method('getCountryId')->willReturn($countryId);
@@ -220,7 +216,6 @@ class AdditionalDataLevel23DataBuilderTest extends AbstractAdyenTestCase
         $orderAdapterMock = $this->createMock(OrderAdapterInterface::class);
         $paymentMock = $this->createMock(Payment::class);
         $paymentMock->method('getOrder')->willReturn($orderMock);
-
         $paymentDataObject = new PaymentDataObject($orderAdapterMock, $paymentMock);
         $buildSubject = ['payment' => $paymentDataObject, 'order' => $orderMock];
         $result = $this->additionalDataBuilder->build($buildSubject);
@@ -311,7 +306,6 @@ class AdditionalDataLevel23DataBuilderTest extends AbstractAdyenTestCase
                 ]
             ]
         ];
-
 
         $this->assertEquals($expectedResult, $result);
     }
