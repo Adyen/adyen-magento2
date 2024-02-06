@@ -1,17 +1,16 @@
 name: Magento 2 E2E Pipeline
 run-name: Adyen Magento 2 Payment Plugin E2E tests
 
-on: 
+on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, ready_for_review]
+  pull_request_target:
+    types: [opened, synchronize, ready_for_review]
 
 jobs:
   build:
-    if: |
-      ${{ 
-      github.event.pull_request.draft == false &&
-      (github.actor != 'renovate[bot]' || github.actor != 'lgtm-com[bot]')
-      }}
+    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository)
+    environment: ${{ (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) && 'external' || 'internal' }}
     runs-on:
       group: larger-runners
       labels: ubuntu-latest-8-cores
@@ -43,7 +42,7 @@ jobs:
 
       - name: Install plugin
         run: docker exec -u www-data magento2-container make plugin
-      
+
       - name: Kill Cron Jobs
         run: docker exec magento2-container /etc/init.d/cron stop
 
@@ -51,7 +50,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: Adyen/adyen-magento2-dev
-          ref: 'main'
+          ref: "main"
           token: ${{ secrets.ADYEN_AUTOMATION_BOT_TEST_ACCESS_TOKEN }}
           path: Developer
 

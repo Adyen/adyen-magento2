@@ -64,6 +64,8 @@ class PaymentsDetails
             $service = $this->adyenHelper->createAdyenCheckoutService($client);
 
             $requestOptions['idempotencyKey'] = $this->idempotencyHelper->generateIdempotencyKey($request);
+            $requestOptions['idempotencyKey'] = $this->idempotencyHelper->generateIdempotencyKey($apiPayload);
+            $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
 
             $response = $service->paymentsDetails($request, $requestOptions);
         } catch (AdyenException $e) {
