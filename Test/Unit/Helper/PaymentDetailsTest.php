@@ -27,7 +27,6 @@ class PaymentDetailsTest extends AbstractAdyenTestCase
     private $checkoutSessionMock;
     private $adyenHelperMock;
     private $adyenLoggerMock;
-    private $paymentResponseHandlerMock;
     private $idempotencyHelperMock;
     private $paymentDetails;
 
@@ -36,16 +35,14 @@ class PaymentDetailsTest extends AbstractAdyenTestCase
         $this->checkoutSessionMock = $this->createMock(Session::class);
         $this->adyenHelperMock = $this->createMock(Data::class);
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
-        $this->paymentResponseHandlerMock = $this->createMock(PaymentResponseHandler::class);
         $this->idempotencyHelperMock = $this->createMock(Idempotency::class);
 
         $this->paymentDetails = new PaymentsDetails(
             $this->checkoutSessionMock,
             $this->adyenHelperMock,
             $this->adyenLoggerMock,
-            $this->paymentResponseHandlerMock,
             $this->idempotencyHelperMock
-            );
+        );
     }
 
     public function testRequestHeadersAreAddedToRequest()
@@ -55,11 +52,13 @@ class PaymentDetailsTest extends AbstractAdyenTestCase
         $checkoutServiceMock = $this->createMock(Checkout::class);
         $adyenClientMock = $this->createMock(Client::class);
         $storeId = 1;
-        $payload = json_encode([
-            'details' => 'some_details',
+        $payload = [
+            'details' => [
+                'detail_key1' => 'some-details'
+            ],
             'paymentData' => 'some_payment_data',
             'threeDSAuthenticationOnly' => true
-        ]);
+        ];
         $requestOptions = [
         'idempotencyKey' => 'some_idempotency_key',
         'headers' => ['headerKey' => 'headerValue']
@@ -78,21 +77,14 @@ class PaymentDetailsTest extends AbstractAdyenTestCase
         $checkoutServiceMock->expects($this->once())
             ->method('paymentsDetails')
             ->with(
-                $this->equalTo([
-                    'details' => 'some_details',
-                    'paymentData' => 'some_payment_data',
-                    'threeDSAuthenticationOnly' => true
-                ]),
+                $this->equalTo($payload),
                 $this->equalTo($requestOptions)
             )
             ->willReturn($paymentDetailsResult);
 
-        $this->paymentResponseHandlerMock->method('handlePaymentResponse')->willReturn(true);
-        $this->paymentResponseHandlerMock->method('formatPaymentResponse')->willReturn($paymentDetailsResult);
-
         $result = $this->paymentDetails->initiatePaymentDetails($orderMock, $payload);
 
-        $this->assertJson($result);
-        $this->assertEquals(json_encode($paymentDetailsResult), $result);
+        $this->assertIsArray($result);
+        $this->assertEquals($paymentDetailsResult, $result);
     }
 }
