@@ -25,7 +25,7 @@ class RecurringTest extends AbstractAdyenTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->paymentMethodsFactoryMock = $this->createMock(PaymentMethodsFactory::class);
+        $this->paymentMethodsFactoryMock = $this->createGeneratedMock(PaymentMethodsFactory::class, ['create']);
         $this->recurring = new Recurring($this->paymentMethodsFactoryMock);
     }
 
