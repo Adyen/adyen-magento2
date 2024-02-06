@@ -3,6 +3,7 @@
 namespace Adyen\Payment\Console\Command;
 
 use Adyen\Payment\Cron\WebhookProcessor;
+use Exception;
 use Magento\Framework\Console\Cli;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -35,7 +36,7 @@ class WebhookProcessorCommand extends Command
         $output->writeln('Starting webhook processor.');
         try {
             $this->webhookProcessor->execute();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return Cli::RETURN_FAILURE;
         }
         $output->writeln('Completed webhook processor execution.');
