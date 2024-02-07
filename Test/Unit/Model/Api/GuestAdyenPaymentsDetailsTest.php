@@ -11,12 +11,10 @@
 
 namespace Adyen\Payment\Test\Unit\Model\Api;
 
-use Adyen\Payment\Helper\PaymentResponseHandler;
-use Adyen\Payment\Helper\PaymentsDetails;
+use Adyen\Payment\Model\Api\AdyenPaymentsDetails;
 use Adyen\Payment\Model\Api\GuestAdyenPaymentsDetails;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Exception\NotFoundException;
-use Magento\Framework\Exception\ValidatorException;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Quote\Model\QuoteIdMask;
 use Magento\Quote\Model\QuoteIdMaskFactory;
@@ -28,17 +26,12 @@ class GuestAdyenPaymentsDetailsTest extends AbstractAdyenTestCase
     private $guestAdyenPaymentsDetails;
     private $orderRepositoryMock;
     private $quoteIdMaskFactoryMask;
-    private $paymentsDetailsHelperMock;
-    private $paymentResponseHandlerHelperMock;
+    private $adyenPaymentsDetailsMock;
 
     protected function setUp(): void
     {
         $this->orderRepositoryMock = $this->createMock(OrderRepositoryInterface::class);
-        $this->paymentsDetailsHelperMock = $this->createMock(PaymentsDetails::class);
-        $this->paymentResponseHandlerHelperMock = $this->createPartialMock(
-            PaymentResponseHandler::class,
-            ['handlePaymentsDetailsResponse']
-        );
+        $this->adyenPaymentsDetailsMock = $this->createMock(AdyenPaymentsDetails::class);
         $this->quoteIdMaskFactoryMask = $this->createGeneratedMock(QuoteIdMaskFactory::class, [
             'create'
         ]);
@@ -46,8 +39,7 @@ class GuestAdyenPaymentsDetailsTest extends AbstractAdyenTestCase
         $objectManager = new ObjectManager($this);
         $this->guestAdyenPaymentsDetails = $objectManager->getObject(GuestAdyenPaymentsDetails::class, [
             'orderRepository' => $this->orderRepositoryMock,
-            'paymentsDetails' => $this->paymentsDetailsHelperMock,
-            'paymentResponseHandler' => $this->paymentResponseHandlerHelperMock,
+            'adyenPaymentsDetails' => $this->adyenPaymentsDetailsMock,
             'quoteIdMaskFactory' => $this->quoteIdMaskFactoryMask
         ]);
     }
@@ -55,7 +47,7 @@ class GuestAdyenPaymentsDetailsTest extends AbstractAdyenTestCase
     public function testSuccessfulCall()
     {
         $payload = '{"someData":"someValue"}';
-        $result = ['resultCode' => 'Authorised'];
+        $result = '{"resultCode": "Authorised", "isFinal": "true"}';
         $orderId = 1;
         $maskedCartId = 'abcdef123456';
         $cartId = 99;
@@ -77,46 +69,14 @@ class GuestAdyenPaymentsDetailsTest extends AbstractAdyenTestCase
         $this->orderRepositoryMock->method('get')
             ->willReturn($orderMock);
 
-        $this->paymentsDetailsHelperMock->method('initiatePaymentDetails')
+        $this->adyenPaymentsDetailsMock->method('initiate')
             ->willReturn($result);
-
-        $this->paymentResponseHandlerHelperMock->method('handlePaymentsDetailsResponse')
-            ->willReturn(true);
 
         $response = $this->guestAdyenPaymentsDetails->initiate($payload, $orderId, $maskedCartId);
 
         $this->assertJson($response);
         $this->assertArrayHasKey('isFinal', json_decode($response, true));
         $this->assertArrayHasKey('resultCode', json_decode($response, true));
-    }
-
-    public function testFailingJson()
-    {
-        $this->expectException(ValidatorException::class);
-
-        $payload = '{"someData":"someValue"}';
-        $orderId = 1;
-        $maskedCartId = 'abcdef123456';
-        $cartId = 99;
-        $orderQuoteId = 99;
-
-        $quoteIdMaskMock = $this->createGeneratedMock(QuoteIdMask::class, [
-            'load',
-            'getQuoteId'
-        ]);
-        $quoteIdMaskMock->method('load')->willReturn($quoteIdMaskMock);
-        $quoteIdMaskMock->method('getQuoteId')->willReturn($cartId);
-
-        $this->quoteIdMaskFactoryMask->method('create')
-            ->willReturn($quoteIdMaskMock);
-
-        $orderMock = $this->createMock(OrderInterface::class);
-        $orderMock->method('getQuoteId')->willReturn($orderQuoteId);
-
-        $this->orderRepositoryMock->method('get')
-            ->willReturn($orderMock);
-
-        $this->guestAdyenPaymentsDetails->initiate($payload, $orderId, $maskedCartId);
     }
 
     public function testWrongCartId()
@@ -144,42 +104,6 @@ class GuestAdyenPaymentsDetailsTest extends AbstractAdyenTestCase
 
         $this->orderRepositoryMock->method('get')
             ->willReturn($orderMock);
-
-        $this->guestAdyenPaymentsDetails->initiate($payload, $orderId, $maskedCartId);
-    }
-
-    public function testInvalidDetailsCall()
-    {
-        $this->expectException(ValidatorException::class);
-
-        $payload = '{"someData":"someValue"}';
-        $result = ['resultCode' => 'Authorised'];
-        $orderId = 1;
-        $maskedCartId = 'abcdef123456';
-        $cartId = 99;
-        $orderQuoteId = 99;
-
-        $quoteIdMaskMock = $this->createGeneratedMock(QuoteIdMask::class, [
-            'load',
-            'getQuoteId'
-        ]);
-        $quoteIdMaskMock->method('load')->willReturn($quoteIdMaskMock);
-        $quoteIdMaskMock->method('getQuoteId')->willReturn($cartId);
-
-        $this->quoteIdMaskFactoryMask->method('create')
-            ->willReturn($quoteIdMaskMock);
-
-        $orderMock = $this->createMock(OrderInterface::class);
-        $orderMock->method('getQuoteId')->willReturn($orderQuoteId);
-
-        $this->orderRepositoryMock->method('get')
-            ->willReturn($orderMock);
-
-        $this->paymentsDetailsHelperMock->method('initiatePaymentDetails')
-            ->willReturn($result);
-
-        $this->paymentResponseHandlerHelperMock->method('handlePaymentsDetailsResponse')
-            ->willReturn(false);
 
         $this->guestAdyenPaymentsDetails->initiate($payload, $orderId, $maskedCartId);
     }
