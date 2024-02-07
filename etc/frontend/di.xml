@@ -100,6 +100,7 @@
                 <item name="adyen_touchngo" xsi:type="string">touchngo</item>
                 <item name="adyen_boleto" xsi:type="string">boletobancario</item>
                 <item name="adyen_bcmc" xsi:type="string">bcmc</item>
+                <item name="adyen_cashapp" xsi:type="string">cashapp</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
@@ -141,6 +142,7 @@
                 <item name="adyen_momo_wallet" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
                 <item name="adyen_applepay" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
                 <item name="adyen_bcmc" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
+                <item name="adyen_cashapp" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
             </argument>
         </arguments>
     </type>

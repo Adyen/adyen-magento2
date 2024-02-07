@@ -122,6 +122,7 @@ define(
                     let additionalData = {};
                     let stateData = component.data;
                     additionalData.stateData = JSON.stringify(stateData);
+                    console.log(`statedata`,stateData);
                     data.additional_data = additionalData;
 
                     await this.placeRedirectOrder(data, component);
@@ -211,7 +212,15 @@ define(
                             self.isPlaceOrderAllowed(state.isValid);
                         },
                     });
-                return configuration
+
+                console.log('khushboo', paymentMethodsExtraInfo[paymentMethod.type].configuration.clientId);
+                console.log('clientId', configuration.configuration.clientId );
+
+
+
+                configuration = Object.assign(configuration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
+
+                return configuration;
             },
 
             getTxVariant: function () {
@@ -287,6 +296,8 @@ define(
                     }
 
                     additionalData.stateData = JSON.stringify(stateData);
+                    console.log('statedata', stateData);
+                    debugger;
                     data.additional_data = additionalData;
 
                     this.placeRedirectOrder(data, this.paymentComponent);
