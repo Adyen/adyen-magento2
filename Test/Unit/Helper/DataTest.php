@@ -208,10 +208,10 @@ class DataTest extends AbstractAdyenTestCase
     {
         $expectedHeaders = [
             'external-platform-name' => 'magento',
-            'external-platform-version' => '2.4.6',
+            'external-platform-version' => '2.x.x',
             'external-platform-edition' => 'Community',
             'merchant-application-name' => 'adyen-magento2',
-            'merchant-application-version' => '9.0.5'
+            'merchant-application-version' => '1.2.3'
         ];
 
         $headers = $this->dataHelper->buildRequestHeaders();
