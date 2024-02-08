@@ -1171,9 +1171,9 @@ class Data extends AbstractHelper
     {
         $magentoDetails = $this->getMagentoDetails();
         return [
-            'external-platform-name' => $this->getModuleName(),
+            'external-platform-name' => $magentoDetails['name'],
             'external-platform-version' => $this->getModuleVersion(),
-            'merchant-application-name' => $magentoDetails['name'],
+            'merchant-application-name' => $this->getModuleName(),
             'merchant-application-version' => $magentoDetails['version'],
             'merchant-application-edition' => $magentoDetails['edition'],
         ];
