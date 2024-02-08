@@ -31,7 +31,7 @@ class NotificationTest extends AbstractAdyenTestCase
 
     public function testSetCreatedAt()
     {
-        $dateTime = new \DateTime();
+        $dateTime = date('Y-m-d H:i:s');
         $this->notification->expects($this->once())
             ->method('setData')
             ->with(Notification::CREATED_AT, $dateTime)
@@ -49,7 +49,7 @@ class NotificationTest extends AbstractAdyenTestCase
 
     public function testSetUpdatedAt()
     {
-        $dateTime = new \DateTime();
+        $dateTime = date('Y-m-d H:i:s');
         $this->notification->expects($this->once())
             ->method('setData')
             ->with(Notification::UPDATED_AT, $dateTime)
