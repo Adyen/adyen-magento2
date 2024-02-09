@@ -61,6 +61,16 @@ class PaymentMethodUtil
         'walley_b2b',
         'mc_clicktopay',
         'visa_clicktopay',
+        'ach',
+        'visa_amazonpay',
+        'mc_amazonpay',
+        'amex_amazonpay',
+        'discover_amazonpay',
+        'maestro_amazonpay',
+        'elo_amazonpay',
+        'jcb_amazonpay',
+        'bcmc',
+        'bcmc_mobile'
     ];
 
     const OPEN_INVOICE_PAYMENT_METHODS = [
@@ -97,7 +107,9 @@ class PaymentMethodUtil
         'klarna_paynow',
         'klarna_account',
         'ratepay',
-        'ratepay_directdebit'
+        'ratepay_directdebit',
+        'walley',
+        'walley_b2b'
     ];
 
     public static function isManualCaptureSupported($paymentMethod): bool

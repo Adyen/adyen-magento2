@@ -12,29 +12,26 @@
 namespace Adyen\Payment\Block\Info;
 
 use Adyen\AdyenException;
+use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory;
 use Magento\Framework\View\Element\Template;
 
 class Moto extends AbstractInfo
 {
-    /**
-     * @var string
-     */
     protected $_template = 'Adyen_Payment::info/adyen_moto.phtml';
-
-    /**
-     * @var \Adyen\Payment\Helper\Config
-     */
-    private $adyenConfigHelper;
+    private Data $adyenHelper;
 
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory,
+        Data $adyenHelper,
+        CollectionFactory $adyenOrderPaymentCollectionFactory,
         Template\Context $context,
-        \Adyen\Payment\Helper\Config $adyenConfigHelper,
+        Config $adyenConfigHelper,
         array $data = []
     ) {
-        parent::__construct($adyenHelper, $adyenOrderPaymentCollectionFactory, $context, $data);
-        $this->adyenConfigHelper = $adyenConfigHelper;
+        parent::__construct($adyenConfigHelper, $adyenOrderPaymentCollectionFactory, $context, $data);
+
+        $this->adyenHelper = $adyenHelper;
     }
 
     /**
@@ -45,7 +42,7 @@ class Moto extends AbstractInfo
      */
     public function getCcTypeName()
     {
-        $types = $this->_adyenHelper->getAdyenCcTypes();
+        $types = $this->adyenHelper->getAdyenCcTypes();
         $ccType = $this->getInfo()->getCcType();
 
         if (isset($types[$ccType])) {
@@ -64,9 +61,11 @@ class Moto extends AbstractInfo
 
         if (!empty($pspReference) && !empty($motoMerchantAccount)) {
             try {
-                $motoMerchantAccountProperties = $this->adyenConfigHelper->getMotoMerchantAccountProperties($motoMerchantAccount, $storeId);
-
-                if ($this->_adyenHelper->isMotoDemoMode($motoMerchantAccountProperties)) {
+                $motoMerchantAccountProperties = $this->configHelper->getMotoMerchantAccountProperties(
+                    $motoMerchantAccount,
+                    $storeId
+                );
+                if ($this->adyenHelper->isMotoDemoMode($motoMerchantAccountProperties)) {
                     $url = 'https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=';
                 }
                 else {

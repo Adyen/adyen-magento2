@@ -12,7 +12,7 @@
 namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Client;
-use Adyen\ConfigInterface;
+use Adyen\Config as HttpClientConfig;
 use Adyen\Environment;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
@@ -162,7 +162,7 @@ class ManagementHelperTest extends AbstractAdyenTestCase
 
         $dataHelperMock = $this->createConfiguredMock(Data::class, [
             'initializeAdyenClient' => $this->createConfiguredMock(Client::class, [
-                'getConfig' => $this->createConfiguredMock(ConfigInterface::class, [
+                'getConfig' => $this->createConfiguredMock(HttpClientConfig::class, [
                     'get' => Environment::TEST
                 ])
             ])
@@ -207,7 +207,7 @@ class ManagementHelperTest extends AbstractAdyenTestCase
 
         $dataHelperMock = $this->createConfiguredMock(Data::class, [
             'initializeAdyenClient' => $this->createConfiguredMock(Client::class, [
-                'getConfig' => $this->createConfiguredMock(ConfigInterface::class, [
+                'getConfig' => $this->createConfiguredMock(HttpClientConfig::class, [
                     'get' => Environment::TEST
                 ])
             ])
@@ -247,10 +247,8 @@ class ManagementHelperTest extends AbstractAdyenTestCase
         $this->assertEquals('WH-0123456789', $result);
     }
 
-    public function testSetupWebhookCredentialsFailLive()
+    public function testSetupWebhookCredentialsFailLive(): void
     {
-        $this->expectException(\Exception::class);
-
         $merchantId = 'TestMerchantAccount';
         $username = 'USERNAME';
         $password = 'PASSWORD';
@@ -270,7 +268,7 @@ class ManagementHelperTest extends AbstractAdyenTestCase
 
         $dataHelperMock = $this->createConfiguredMock(Data::class, [
             'initializeAdyenClient' => $this->createConfiguredMock(Client::class, [
-                'getConfig' => $this->createConfiguredMock(ConfigInterface::class, [
+                'getConfig' => $this->createConfiguredMock(HttpClientConfig::class, [
                     'get' => Environment::TEST
                 ])
             ])
@@ -296,7 +294,7 @@ class ManagementHelperTest extends AbstractAdyenTestCase
             'create' => $this->throwException(new \Exception('Mock Service Exception'))
         ]);
 
-        $managementHelper->setupWebhookCredentials(
+        $resultWebhookId = $managementHelper->setupWebhookCredentials(
             $merchantId,
             $username,
             $password,
@@ -304,6 +302,8 @@ class ManagementHelperTest extends AbstractAdyenTestCase
             $isDemoMode,
             $managementApiService
         );
+
+        $this->assertEquals($webhookId, $resultWebhookId);
     }
 
     public function testGetAllowedOrigins()
@@ -341,7 +341,7 @@ class ManagementHelperTest extends AbstractAdyenTestCase
 
         $dataHelperMock = $this->createConfiguredMock(Data::class, [
             'initializeAdyenClient' => $this->createConfiguredMock(Client::class, [
-                'getConfig' => $this->createConfiguredMock(ConfigInterface::class, [
+                'getConfig' => $this->createConfiguredMock(HttpClientConfig::class, [
                     'get' => Environment::TEST
                 ])
             ])
@@ -396,7 +396,7 @@ class ManagementHelperTest extends AbstractAdyenTestCase
 
         $dataHelperMock = $this->createConfiguredMock(Data::class, [
             'initializeAdyenClient' => $this->createConfiguredMock(Client::class, [
-                'getConfig' => $this->createConfiguredMock(ConfigInterface::class, [
+                'getConfig' => $this->createConfiguredMock(HttpClientConfig::class, [
                     'get' => Environment::TEST
                 ])
             ])

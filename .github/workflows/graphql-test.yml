@@ -1,21 +1,21 @@
 name: GraphQL Tests
-on: [pull_request]
+on: [pull_request, pull_request_target]
 
 jobs:
   build:
+    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository)
+    environment: ${{ (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) && 'external' || 'internal' }}
     strategy:
       matrix:
         php-version: ["8.1"]
-        magento-version: ["2.4.4", "2.4.5"]
-        include:
-          - php-version: "7.4"
-            magento-version: "2.4.3"
+        magento-version: ["2.4.5"]
     runs-on: ubuntu-latest
     env:
       PHP_VERSION: ${{ matrix.php-version }}
       MAGENTO_VERSION: ${{ matrix.magento-version }}
       ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
       ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
+
     steps:
       - uses: actions/checkout@v3
 

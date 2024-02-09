@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -14,25 +14,12 @@ namespace Adyen\Payment\Helper;
 use Adyen\AdyenException;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Checkout\Model\Session;
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NoSuchEntityException;
 
 class ConnectedTerminals
 {
-    /**
-     * @var Session
-     */
-    protected $session;
-
-    /**
-     * @var Data
-     */
-    protected $adyenHelper;
-
-    /**
-     * @var AdyenLogger
-     */
-    private $adyenLogger;
+    protected Session $session;
+    protected Data $adyenHelper;
+    private AdyenLogger $adyenLogger;
 
     public function __construct(
         Data $adyenHelper,
@@ -44,15 +31,11 @@ class ConnectedTerminals
         $this->adyenLogger = $adyenLogger;
     }
 
-    /**
-     * @return array|mixed
-     * @throws AdyenException
-     * @throws LocalizedException
-     * @throws NoSuchEntityException
-     */
-    public function getConnectedTerminals()
+    public function getConnectedTerminals(int $storeId = null): array
     {
-        $storeId = $this->session->getQuote()->getStoreId();
+        if (!isset($storeId)) {
+            $storeId = $this->session->getQuote()->getStoreId();
+        }
 
         // initialize the adyen client
         $client = $this->adyenHelper->initializeAdyenClient($storeId, $this->adyenHelper->getPosApiKey($storeId));
@@ -70,6 +53,7 @@ class ConnectedTerminals
         }
 
         try {
+            $this->adyenHelper->logRequest($requestParams, '', '/connectedTerminals');
             $responseData = $service->getConnectedTerminals($requestParams);
         } catch (AdyenException $e) {
             $this->adyenLogger->error(
@@ -78,6 +62,7 @@ class ConnectedTerminals
             // return empty result
             return [];
         }
+        $this->adyenHelper->logResponse($responseData);
 
         return $responseData;
     }

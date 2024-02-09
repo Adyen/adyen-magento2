@@ -13,6 +13,7 @@
 namespace Adyen\Payment\Block\Checkout\Multishipping;
 
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Model\PaymentResponse;
@@ -27,12 +28,12 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 
 class Success extends \Magento\Multishipping\Block\Checkout\Success
 {
-    const FINAL_RESULT_CODES = array(
-        PaymentResponseHandler::AUTHORISED,
-        PaymentResponseHandler::PENDING,
-        PaymentResponseHandler::REFUSED,
-        PaymentResponseHandler::PRESENT_TO_SHOPPER
-    );
+    const ACTION_REQUIRED_STATUSES = [
+        PaymentResponseHandler::REDIRECT_SHOPPER,
+        PaymentResponseHandler::IDENTIFY_SHOPPER,
+        PaymentResponseHandler::CHALLENGE_SHOPPER,
+        PaymentResponseHandler::PENDING
+    ];
 
     /**
      * @var bool
@@ -74,6 +75,9 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
      */
     private $searchCriteriaBuilder;
 
+
+    private $configHelper;
+
     /**
      * @var []
      */
@@ -90,6 +94,7 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
         Multishipping $multishipping,
         OrderRepositoryInterface $orderRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
+        Config $configHelper,
         array $data = []
     ) {
         $this->adyenHelper = $adyenHelper;
@@ -99,6 +104,7 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
         $this->configProvider = $configProvider;
         $this->orderRepository = $orderRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->configHelper = $configHelper;
         parent::__construct($context, $multishipping, $data);
 
         $orderIds = $this->getOrderIds();
@@ -116,7 +122,7 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
     public function renderAction()
     {
         foreach ($this->paymentResponseEntities as $paymentResponseEntity) {
-            if (!in_array($paymentResponseEntity['result_code'], self::FINAL_RESULT_CODES)) {
+            if (in_array($paymentResponseEntity['result_code'], self::ACTION_REQUIRED_STATUSES)) {
                 return true;
             }
         }
@@ -137,7 +143,8 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
 
     public function getClientKey()
     {
-        return $this->adyenHelper->getClientKey();
+        $environment = $this->configHelper->isDemoMode() ? 'test' : 'live';
+        return $this->configHelper->getClientKey($environment);
     }
 
     public function getEnvironment()
@@ -182,7 +189,7 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
     public function getIsPaymentCompleted(int $orderId)
     {
         // TODO check for all completed responses, not only Authorised, Refused, Pending or PresentToShopper
-        return in_array($this->ordersInfo[$orderId]['resultCode'], self::FINAL_RESULT_CODES);
+        return !in_array($this->ordersInfo[$orderId]['resultCode'], self::ACTION_REQUIRED_STATUSES);
     }
 
     public function getPaymentButtonLabel(int $orderId)

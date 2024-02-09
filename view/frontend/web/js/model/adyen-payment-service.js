@@ -26,29 +26,28 @@ define(
     ) {
         'use strict';
         return {
-            paymentMethods: ko.observable({}),
+            paymentMethods: ko.observable(null),
+            connectedTerminals: ko.observable(null),
 
             /**
              * Retrieve the list of available payment methods from Adyen
              */
             retrievePaymentMethods: function() {
                 // url for guest users
-                var serviceUrl = urlBuilder.createUrl(
-                    '/internal/guest-carts/:cartId/retrieve-adyen-payment-methods', {
-                        cartId: quote.getQuoteId(),
+                let serviceUrl = urlBuilder.createUrl(
+                    '/guest-carts/:cartId/retrieve-adyen-payment-methods', {
+                        cartId: quote.getQuoteId()
                     });
 
                 // url for logged in users
                 if (customer.isLoggedIn()) {
-                    serviceUrl = urlBuilder.createUrl(
-                        '/internal/carts/mine/retrieve-adyen-payment-methods', {});
+                    serviceUrl = urlBuilder.createUrl('/carts/mine/retrieve-adyen-payment-methods', {});
                 }
 
                 // Construct payload for the retrieve payment methods request
-                var payload = {
+                let payload = {
                     cartId: quote.getQuoteId(),
-                    shippingAddress: quote.shippingAddress(),
-                    form_key: $.mage.cookies.get('form_key')
+                    country: quote.billingAddress().countryId
                 };
 
                 return storage.post(
@@ -56,17 +55,36 @@ define(
                     JSON.stringify(payload)
                 );
             },
+
             getPaymentMethods: function() {
                 return this.paymentMethods;
             },
+
             setPaymentMethods: function(paymentMethods) {
                 this.paymentMethods(paymentMethods);
             },
-            getOrderPaymentStatus: function(orderId) {
-                var serviceUrl = urlBuilder.createUrl('/internal/adyen/orders/payment-status', {});
-                var payload = {
-                    orderId: orderId,
-                    form_key: $.mage.cookies.get('form_key')
+
+            getConnectedTerminals: function() {
+                return this.connectedTerminals;
+            },
+
+            setConnectedTerminals: function(connectedTerminals) {
+                this.connectedTerminals(connectedTerminals);
+            },
+
+            getOrderPaymentStatus: function(orderId, quoteId = null) {
+                let serviceUrl;
+
+                if (customer.isLoggedIn()) {
+                    serviceUrl = urlBuilder.createUrl('/adyen/orders/carts/mine/payment-status', {});
+                } else {
+                    serviceUrl = urlBuilder.createUrl('/adyen/orders/guest-carts/:cartId/payment-status', {
+                        cartId: quoteId ?? quote.getQuoteId()
+                    });
+                }
+
+                let payload = {
+                    orderId: orderId
                 }
                 return storage.post(
                     serviceUrl,
@@ -74,19 +92,26 @@ define(
                     true
                 );
             },
-            /**
-             * The results that the components returns in the onComplete callback needs to be sent to the
-             * backend to the /adyen/paymentDetails endpoint and based on the response render a new
-             * component or place the order (validateThreeDS2OrPlaceOrder)
-             */
-            paymentDetails: function(data) {
-                var payload = {
+
+            paymentDetails: function(data, orderId, isMultishipping = false) {
+                let serviceUrl;
+                let payload = {
                     'payload': JSON.stringify(data),
-                    form_key: $.mage.cookies.get('form_key')
+                    'orderId': orderId
                 };
 
-                var serviceUrl = urlBuilder.createUrl('/internal/adyen/paymentDetails',
-                    {});
+                if (customer.isLoggedIn() || isMultishipping) {
+                    serviceUrl = urlBuilder.createUrl(
+                        '/adyen/carts/mine/payments-details',
+                        {}
+                    );
+                } else {
+                    serviceUrl = urlBuilder.createUrl(
+                        '/adyen/guest-carts/:cartId/payments-details', {
+                            cartId: quote.getQuoteId(),
+                        }
+                    );
+                }
 
                 return storage.post(
                     serviceUrl,
@@ -95,18 +120,98 @@ define(
                 );
             },
 
-            donate: function (data) {
+            donate: function (data, isLoggedIn, orderId, maskedQuoteId) {
+                let serviceUrl;
                 let request = {
-                    payload: JSON.stringify(data),
-                    formKey: $.mage.cookies.get('form_key')
+                    payload: JSON.stringify(data)
                 };
 
-                const serviceUrl = urlBuilder.createUrl('/internal/adyen/donations', {});
- 
+                if (isLoggedIn) {
+                    serviceUrl =  urlBuilder.createUrl('/adyen/orders/carts/mine/donations', {});
+                    request.orderId = orderId;
+                } else {
+                    serviceUrl =  urlBuilder.createUrl('/adyen/orders/guest-carts/:cartId/donations', {
+                        cartId: maskedQuoteId
+                    });
+                }
+
                 return storage.post(
                     serviceUrl,
                     JSON.stringify(request),
                     true
+                );
+            },
+
+            getPaymentMethodFromResponse: function (txVariant, paymentMethodResponse) {
+                return paymentMethodResponse.find((paymentMethod) => {
+                    return txVariant === paymentMethod.type
+                });
+            },
+
+            paymentMethodsBalance: function (payload) {
+                let serviceUrl = urlBuilder.createUrl('/adyen/payment-methods/balance', {});
+
+                let request = {
+                    payload: JSON.stringify(payload)
+                };
+
+                return storage.post(
+                    serviceUrl,
+                    JSON.stringify(request),
+                );
+            },
+
+            saveStateData: function (stateData) {
+                let urlPath = '/adyen/guest-carts/:cartId/state-data';
+                let urlParams = {cartId: quote.getQuoteId()};
+                
+                if (customer.isLoggedIn()) {
+                    urlPath = '/adyen/carts/mine/state-data';
+                    urlParams = {};
+                } 
+                
+                let serviceUrl = urlBuilder.createUrl(urlPath, urlParams);
+                let request = {
+                    stateData: JSON.stringify(stateData)
+                };
+
+                return storage.post(
+                    serviceUrl,
+                    JSON.stringify(request),
+                );
+            },
+
+            removeStateData: function (stateDataId) {
+                let urlPath = '/adyen/guest-carts/:cartId/state-data/:stateDataId';
+                let urlParams = {cartId: quote.getQuoteId(), stateDataId: stateDataId};
+
+                if (customer.isLoggedIn()) {
+                    urlPath = '/adyen/carts/mine/state-data/:stateDataId';
+                    urlParams = {stateDataId: stateDataId};
+                }
+
+                let serviceUrl = urlBuilder.createUrl(urlPath, urlParams);
+
+                return storage.delete(
+                    serviceUrl,
+                    JSON.stringify({}),
+                );
+            },
+
+            fetchRedeemedGiftcards: function () {
+                let urlPath = '/adyen/giftcards/guest-carts/:cartId';
+                let urlParams = {cartId: quote.getQuoteId()};
+
+                if (customer.isLoggedIn()) {
+                    urlPath = '/adyen/giftcards/mine';
+                    urlParams = {};
+                }
+
+                let serviceUrl = urlBuilder.createUrl(urlPath, urlParams);
+
+                return storage.get(
+                    serviceUrl,
+                    JSON.stringify({}),
                 );
             }
         };

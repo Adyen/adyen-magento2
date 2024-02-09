@@ -132,7 +132,7 @@ $fundingSourceOptions = $block->getFundingSourceOptions();
                 },
 
                 hasInstallment: function () {
-                    return Boolean(<?= $block->hasInstallment() ?>) && this.fundingSourceOption !== 'debit';
+                    return Boolean(<?= $block->escapeJs($block->hasInstallment()) ?>) && this.fundingSourceOption !== 'debit';
                 },
 
                 setFundingSourceOption: function (option) {
@@ -148,7 +148,7 @@ $fundingSourceOptions = $block->getFundingSourceOptions();
             'adyenPosCloudComponent',
         ],
         function ($, adyenPosCloudComponent) {
-            let hasFundingSource = Boolean(<?= $block->hasFundingSource() ?>);
+            let hasFundingSource = Boolean(<?= $block->escapeJs($block->hasFundingSource()) ?>);
             adyenPosCloudComponent.init(hasFundingSource);
 
             if (hasFundingSource) {

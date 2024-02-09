@@ -25,6 +25,7 @@
 namespace Adyen\Payment\Controller\Adminhtml\Configuration;
 
 use Adyen\AdyenException;
+use Adyen\ConnectionException;
 use Adyen\Payment\Helper\ManagementHelper;
 use Magento\Backend\App\Action;
 use Magento\Framework\Controller\Result\JsonFactory;
@@ -62,7 +63,7 @@ class MerchantAccounts extends Action
             $apiKey = $this->getRequest()->getParam('apiKey', '');
             $demoMode = (int) $this->getRequest()->getParam('demoMode');
             //Use the stored xapi key if the return value is encrypted chars only or it is empty,
-            if (!empty($apiKey) && preg_match('/^\*+$/', $apiKey)) {
+            if (!empty($apiKey) && preg_match('/^\*+$/', (string) $apiKey)) {
                 $apiKey = '';
             }
 
@@ -73,12 +74,12 @@ class MerchantAccounts extends Action
             return $resultJson;
         } catch (AdyenException $e) {
             $resultJson->setHttpResponseCode(400);
-            $resultJson->setData(
-                [
-                    'error' => $e->getMessage(),
-                ]
-            );
+            $resultJson->setData(['error' => $e->getMessage(),]);
+        } catch (ConnectionException $e) {
+            $resultJson->setHttpResponseCode(500);
+            $resultJson->setData(['error' => $e->getMessage(),]);
         }
+
         return $resultJson;
     }
 }

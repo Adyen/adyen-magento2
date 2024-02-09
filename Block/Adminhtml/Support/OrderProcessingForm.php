@@ -57,7 +57,7 @@ class OrderProcessingForm extends Generic
 
         $fieldset->addType(
             'textarea',
-            'Adyen\Payment\Block\Adminhtml\Support\Form\Element\CustomTextareaElement'
+            \Adyen\Payment\Block\Adminhtml\Support\Form\Element\CustomTextareaElement::class
         );
 
         $fieldset->addField(
@@ -200,7 +200,7 @@ class OrderProcessingForm extends Generic
        To find this information, go to Customer Area under Point of sale > Terminals.
             </div>
        </div>');
-        $fieldset->addType('file', 'Adyen\Payment\Block\Adminhtml\Support\Form\Element\MultipleFileElement');
+        $fieldset->addType('file', \Adyen\Payment\Block\Adminhtml\Support\Form\Element\MultipleFileElement::class);
         $fieldset->addField(
             'attachments',
             'file',

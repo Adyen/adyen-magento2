@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2018 Adyen B.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -13,52 +13,28 @@
 namespace Adyen\Payment\Gateway\Response;
 
 use Adyen\AdyenException;
-use Adyen\Payment\Helper\Data;
-use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Order\Payment;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 
 class PaymentPosCloudHandler implements HandlerInterface
 {
-    /**
-     * @var Data
-     */
-    private $adyenHelper;
-
-    /**
-     * @var AdyenLogger
-     */
-    private $adyenLogger;
-
-    /**
-     * @var Recurring
-     */
-    private $recurringHelper;
-
-    /**
-     * @var Vault
-     */
-    private $vaultHelper;
+    private AdyenLogger $adyenLogger;
+    private Vault $vaultHelper;
 
     public function __construct(
         AdyenLogger $adyenLogger,
-        Data $adyenHelper,
-        Recurring $recurringHelper,
         Vault $vaultHelper
     ) {
         $this->adyenLogger = $adyenLogger;
-        $this->adyenHelper = $adyenHelper;
-        $this->recurringHelper = $recurringHelper;
         $this->vaultHelper = $vaultHelper;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function handle(array $handlingSubject, array $paymentResponse)
+    public function handle(array $handlingSubject, array $response)
     {
+        $paymentResponse = $response['SaleToPOIResponse']['PaymentResponse'];
         $paymentDataObject = SubjectReader::readPayment($handlingSubject);
 
         $payment = $paymentDataObject->getPayment();
@@ -69,45 +45,28 @@ class PaymentPosCloudHandler implements HandlerInterface
         // do not send order confirmation mail
         $payment->getOrder()->setCanSendNewEmailFlag(false);
 
-        if (!empty($paymentResponse['Response']['AdditionalResponse'])
-        ) {
-            $pairs = \explode('&', $paymentResponse['Response']['AdditionalResponse']);
-
-            foreach ($pairs as $pair) {
-                $nv = \explode('=', $pair);
-
-                if ($nv[0] == 'recurring.recurringDetailReference') {
-                    $recurringDetailReference = $nv[1];
-                    break;
-                }
-            }
-
-            if (!empty($recurringDetailReference) &&
-                !empty($paymentResponse['PaymentResult']['PaymentInstrumentData']['CardData'])
-            ) {
-                $maskedPan = $paymentResponse['PaymentResult']['PaymentInstrumentData']['CardData']['MaskedPan'];
-                $expiryDate = $paymentResponse['PaymentResult']['PaymentInstrumentData']['CardData']
-                ['SensitiveCardData']['ExpiryDate']; // 1225
-                $expiryDate = \substr($expiryDate, 0, 2) . '/' . \substr($expiryDate, 2, 2);
-                $brand = $paymentResponse['PaymentResult']['PaymentInstrumentData']['CardData']['PaymentBrand'];
-
-                // create additionalData so we can use the helper
-                $additionalData = [];
-                $additionalData['recurring.recurringDetailReference'] = $recurringDetailReference;
-                $additionalData['cardBin'] = $recurringDetailReference;
-                $additionalData['cardHolderName'] = '';
-                $additionalData['cardSummary'] = \substr($maskedPan, -4);
-                $additionalData['expiryDate'] = $expiryDate;
-                $additionalData['paymentMethod'] = $brand;
-                $additionalData['recurring.recurringDetailReference'] = $recurringDetailReference;
-                $additionalData['pos_payment'] = true;
-
-                if (!$this->vaultHelper->isCardVaultEnabled()) {
-                    $this->recurringHelper->createAdyenBillingAgreement($payment->getOrder(), $additionalData);
-                }
-            }
+        if (!empty($paymentResponse) && isset($paymentResponse['Response']['Result'])) {
+            $payment->setAdditionalInformation('resultCode', $paymentResponse['Response']['Result']);
         }
 
+        if (!empty($paymentResponse['Response']['AdditionalResponse']))
+        {
+            $paymentResponseDecoded = json_decode(
+                base64_decode($paymentResponse['Response']['AdditionalResponse']),
+                true
+            );
+            $payment->setAdditionalInformation('additionalData', $paymentResponseDecoded['additionalData']);
+
+            if (isset($paymentResponseDecoded['additionalData']['pspReference'])) {
+                $payment->setAdditionalInformation('pspReference', $paymentResponseDecoded['additionalData']['pspReference']);
+            }
+
+            $this->vaultHelper->handlePaymentResponseRecurringDetails(
+                $payment->getOrder()->getPayment(),
+                $paymentResponseDecoded
+            );
+
+        }
         // set transaction(status)
         if (!empty($paymentResponse['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID']))
         {

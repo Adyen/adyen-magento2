@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2021 Adyen N.V.
+ * Copyright (c) 2023 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -17,86 +17,46 @@ interface PaymentResponseInterface
     /**
      * Constants for keys of data array. Identical to the name of the getter in snake case.
      */
-
-    /*
-     * Entity ID.
-     */
     const ENTITY_ID = 'entity_id';
-
-    /*
-     * Merchant reference ID.
-     */
     const MERCHANT_REFERENCE = 'merchant_reference';
-
-    /*
-     * Payment Response Result Code.
-     */
     const RESULT_CODE = 'result_code';
-
-    /*
-     * Payment Response.
-     */
     const RESPONSE = 'response';
 
-    /**
-     * Gets the ID for the state data.
-     *
-     * @return int|null Entity ID.
-     */
     public function getEntityId();
 
-    /**
-     * Sets entity ID.
-     *
-     * @param int $entityId
-     * @return $this
-     */
     public function setEntityId($entityId);
 
-
     /**
-     * Gets the merchant reference for the payment response
-     *
-     * @return string|null Merchant Reference.
+     * @return string|null
      */
-    public function getMerchantReference();
+    public function getMerchantReference(): ?string;
 
     /**
-     * Sets merchant reference.
-     *
      * @param string $merchantReference
-     * @return $this
+     * @return PaymentResponseInterface
      */
-    public function setMerchantReference($merchantReference);
+    public function setMerchantReference(string $merchantReference): PaymentResponseInterface;
 
     /**
-     * Gets the result code.
-     *
-     * @return string|null Result Code.
+     * @return string|null
      */
-    public function getResultCode();
+    public function getResultCode(): ?string;
 
     /**
-     * Sets result code.
-     *
      * @param string $resultCode
-     * @return $this
+     * @return PaymentResponseInterface
      */
-    public function setResultCode($resultCode);
+    public function setResultCode(string $resultCode): PaymentResponseInterface;
 
     /**
-     * Gets the payment response.
-     *
-     * @return string|null Payment Response.
+     * @return string|null
      */
-    public function getResponse();
+    public function getResponse(): ?string;
 
     /**
-     * Sets payment response.
-     *
      * @param string $response
-     * @return $this
+     * @return PaymentResponseInterface
      */
-    public function setResponse($response);
+    public function setResponse(string $response): PaymentResponseInterface;
 
 }

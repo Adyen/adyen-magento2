@@ -12,10 +12,13 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Helper\Util\CheckoutStateDataValidator;
+use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\ResourceModel\StateData as StateDataResourceModel;
 use Adyen\Payment\Model\ResourceModel\StateData\Collection as StateDataCollection;
-use Adyen\Payment\Model\StateData as StateDataModel;
 use Adyen\Payment\Model\StateDataFactory;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 
 class StateData
 {
@@ -23,62 +26,42 @@ class StateData
         "Authorised"
     );
 
-    /**
-     * @var array Temporary (per request) storage of state data
-     */
-    private $stateData = [];
+    private StateDataCollection $stateDataCollection;
+    private StateDataFactory $stateDataFactory;
+    private StateDataResourceModel $stateDataResourceModel;
+    private CheckoutStateDataValidator $checkoutStateDataValidator;
+    private AdyenLogger $adyenLogger;
 
     /**
-     * @var StateDataCollection
+     * Temporary (per request) storage of state data
      */
-    private $stateDataCollection;
-
-    /**
-     * @var StateDataFactory
-     */
-    private $stateDataFactory;
-
-    /**
-     * @var StateDataResourceModel
-     */
-    private $stateDataResourceModel;
+    private array $stateData = [];
 
     public function __construct(
         StateDataCollection $stateDataCollection,
         StateDataFactory $stateDataFactory,
-        StateDataResourceModel $stateDataResourceModel
+        StateDataResourceModel $stateDataResourceModel,
+        CheckoutStateDataValidator $checkoutStateDataValidator,
+        AdyenLogger $adyenLogger
     ) {
         $this->stateDataCollection = $stateDataCollection;
         $this->stateDataFactory = $stateDataFactory;
         $this->stateDataResourceModel = $stateDataResourceModel;
+        $this->checkoutStateDataValidator = $checkoutStateDataValidator;
+        $this->adyenLogger = $adyenLogger;
     }
 
-    /**
-     * @param \Magento\Quote\Model\Quote $quote
-     * @param $resultCode
-     * @throws \Exception
-     */
-    public function CleanQuoteStateData($quoteId, $resultCode)
+    public function cleanQuoteStateData(int $quoteId, string $resultCode): void
     {
         if (in_array($resultCode, self::CLEANUP_RESULT_CODES)) {
             $rows = $this->stateDataCollection->getStateDataRowsWithQuoteId($quoteId)->getItems();
             foreach ($rows as $row) {
-                $this->deleteStateData($row->getData('entity_id'));
+                $this->removeStateData($row->getData('entity_id'));
             }
         }
     }
 
-    /**
-     * @throws \Exception
-     */
-    private function deleteStateData($entityId)
-    {
-        /** @var StateDataModel $stateData */
-        $stateData = $this->stateDataFactory->create()->load($entityId);
-        $this->stateDataResourceModel->delete($stateData);
-    }
-
-    public function setStateData(array $stateData, int $quoteId)
+    public function setStateData(array $stateData, int $quoteId): void
     {
         $this->stateData[$quoteId] = $stateData;
     }
@@ -90,12 +73,61 @@ class StateData
 
     /**
      * Returns the payment method type from state data
-     * @param int $quoteId
-     * @return string
      */
     public function getPaymentMethodVariant(int $quoteId): string
     {
         $stateDataByQuoteId = $this->stateData[$quoteId];
         return $stateDataByQuoteId['paymentMethod']['type'];
+    }
+
+    public function saveStateData(string $stateData, int $quoteId): void
+    {
+        // Decode payload from frontend
+        $stateData = json_decode($stateData, true);
+
+        // Validate JSON that has just been parsed if it was in a valid format
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new LocalizedException(__('State data call failed because the request was not a valid JSON'));
+        }
+
+        $stateData = json_encode($this->checkoutStateDataValidator->getValidatedAdditionalData($stateData));
+
+        /** @var \Adyen\Payment\Model\StateData $stateDataObj */
+        $stateDataObj = $this->stateDataFactory->create();
+        $stateDataObj->setQuoteId($quoteId)->setStateData((string)$stateData);
+        $this->stateDataResourceModel->save($stateDataObj);
+    }
+
+    /**
+     * @throws NoSuchEntityException
+     */
+    public function removeStateData(int $stateDataId, ?int $quoteId = null): bool
+    {
+        $stateDataCollection = $this->stateDataCollection->addFieldToFilter('entity_id', $stateDataId);
+
+        if (isset($quoteId)) {
+            $stateDataCollection->addFieldToFilter('quote_id', $quoteId);
+        }
+
+        $stateDataCollection->getSelect();
+        $stateDataObj = $stateDataCollection->getFirstItem();
+
+        if (empty($stateDataObj->getData())) {
+            throw new NoSuchEntityException();
+        } else {
+            try {
+                $this->stateDataResourceModel->delete($stateDataObj);
+            } catch (\Exception $e) {
+                $this->adyenLogger->error('An error occurred while deleting state data: ' . $e->getMessage());
+                return false;
+            }
+
+            return true;
+        }
+    }
+
+    public function getStoredPaymentMethodIdFromStateData(array $stateData): ?string
+    {
+        return $stateData['paymentMethod']['storedPaymentMethodId'] ?? null;
     }
 }

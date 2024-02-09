@@ -34,22 +34,18 @@ class AdyenOrderPaymentTest extends AbstractAdyenTestCase
         $merchantReference = 'TestMerchant';
         $pspReference = 'ABCD1234GHJK5678';
         $amount = 10;
+        $paymentMethod = 'ideal';
         $payment = $this->createConfiguredMock(Order\Payment::class, [
             'getId' => $paymentId
         ]);
         $order = $this->createConfiguredMock(Order::class, [
             'getPayment' => $payment
         ]);
-        $adyenOrderPayment = $this->createConfiguredMock(AdyenPaymentModel::class, [
-            'setPspreference' => $pspReference,
-            'setMerchantReference' => $merchantReference,
-            'setPaymentId' => $paymentId,
-            'setCaptureStatus' => AdyenPaymentModel::CAPTURE_STATUS_AUTO_CAPTURE,
-            'setAmount' => $amount
-        ]);
+        $adyenOrderPayment = $this->createMock(AdyenPaymentModel::class);
         $notification = $this->createConfiguredMock(Notification::class, [
             'getPspreference' => $pspReference,
-            'getMerchantReference' => $merchantReference
+            'getMerchantReference' => $merchantReference,
+            'getPaymentMethod' => $paymentMethod
         ]);
 
         $mockAdyenDataHelper = $this->createGeneratedMock(Data::class, ['originalAmount']);

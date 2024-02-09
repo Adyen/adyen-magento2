@@ -12,8 +12,9 @@
 
 /**
  * @extends Magento_Multishipping::checkout/billing.phtml
- * @var \Magento\Multishipping\Block\Checkout\Billing $block
+ * @var Adyen\Payment\Block\Checkout\Multishipping\Billing $block
  */
+
 ?>
 <div id="checkout-loader" data-role="checkout-loader" class="loading-mask" data-mage-init='{"billingLoader": {}}'>
     <div class="loader">
@@ -85,7 +86,6 @@
                             $methods = $block->getMethods();
                             $methodsCount = count($methods);
                             $methodsForms = $block->hasFormTemplates() ? $block->getFormTemplates(): [];
-                            $hppPaymentMethod = null;
 
                             foreach ($methods as $_method):
                                 $code = $_method->getCode();
@@ -94,31 +94,35 @@
                                 if (isset($methodsForms[$code])) {
                                     $block->setMethodFormTemplate($code, $methodsForms[$code]);
                                 }
-
-                                /** Adyen plugin customization */
-                                /* Skip adyen HPP methods and use custom display from template */
-                                if (\Adyen\Payment\Model\Ui\AdyenHppConfigProvider::CODE == $code) {
-                                    $hppPaymentMethod = $_method;
-                                    continue;
-                                }
-                                /** End: Adyen plugin customization */
                                 ?>
                                 <div data-bind="scope: 'payment_method_<?= $block->escapeHtml($code);?>'">
-                                    <dt class="item-title">
-                                        <input type="radio"
-                                               id="p_method_<?= $block->escapeHtml($code); ?>"
-                                               value="<?= $block->escapeHtml($code); ?>"
-                                               name="payment[method]"
-                                               title="<?= $block->escapeHtml($_method->getTitle()) ?>"
-                                               data-bind="
-                                                   value: getCode(),
-                                                   checked: isChecked,
-                                                   click: selectPaymentMethod,
-                                                   visible: isRadioButtonVisible()"
+                                    <dt class="item-title" data-bind="<?= str_starts_with($code, 'adyen_') ? 'visible: paymentMethodReady' : '' ?>">
+                                        <?php if ($methodsCount > 1): ?>
+                                            <input type="radio"
+                                                   id="p_method_<?= $block->escapeHtml($code); ?>"
+                                                   value="<?= $block->escapeHtml($code); ?>"
+                                                   name="payment[method]"
+                                                   title="<?= $block->escapeHtml($_method->getTitle()) ?>"
+                                                   data-bind="
+                                                       value: getCode(),
+                                                       checked: isChecked,
+                                                       click: selectPaymentMethod,
+                                                       visible: isRadioButtonVisible()"
                                                 <?php if ($checked): ?>
-                                                checked="checked"
+                                                    checked="checked"
                                                 <?php endif; ?>
-                                               class="radio <?php if ($methodsCount == 1): ?> solo method <?php endif; ?>"/>
+                                                   class="radio"/>
+                                        <?php else: ?>
+                                            <input type="radio"
+                                                   id="p_method_<?= $block->escapeHtml($code); ?>"
+                                                   value="<?= $block->escapeHtml($code); ?>"
+                                                   name="payment[method]"
+                                                   data-bind="
+                                                       value: getCode(),
+                                                       afterRender: selectPaymentMethod"
+                                                   checked="checked"
+                                                   class="radio solo method" />
+                                        <?php endif; ?>
                                         <label for="p_method_<?= $block->escapeHtml($code); ?>">
                                             <?= $block->escapeHtml($_method->getTitle()) ?>
                                         </label>
@@ -130,17 +134,6 @@
                                     <?php endif; ?>
                                 </div>
                             <?php endforeach; ?>
-
-                            <!-- Adyen plugin customization -->
-                            <!-- Replace HPP block with list of payment methods -->
-                            <?php if ($hppPaymentMethod):?>
-                            <div data-bind="scope: 'payment_method_adyen_hpp'">
-                                <?php if ($html = $block->getChildHtml('payment.method.adyen_hpp', false)): ?>
-                                    <?= /* @noEscape */ $html; ?>
-                                <?php endif; ?>
-                            </div>
-                            <?php endif; ?>
-                            <!-- End: Adyen plugin customization -->
 
                         </dl>
                         <?= $block->getChildHtml('payment_methods_after') ?>
@@ -211,4 +204,17 @@
         });
     //]]>
 </script>
+<!-- Adyen plugin customization -->
+<script>
+    require([
+        'Adyen_Payment/js/model/adyen-payment-service'
+    ], function(
+        adyenPaymentService
+    ) {
+        let adyenPaymentMethods = '<?= $block->escapeJs($block->getAdyenPaymentMethodsResponse()) ?>';
+        let paymentMethods = JSON.parse(adyenPaymentMethods);
 
+        adyenPaymentService.setPaymentMethods(paymentMethods);
+    });
+</script>
+<!-- End: Adyen plugin customization -->

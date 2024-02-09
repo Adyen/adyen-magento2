@@ -15,7 +15,10 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Model\Ui\AdyenCheckoutSuccessConfigProvider;
-use Magento\Checkout\Model\Session;
+use Magento\Checkout\Model\Session as CheckoutSession;
+use Magento\Customer\Model\Session as CustomerSession;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Quote\Model\QuoteIdToMaskedQuoteId;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\View\Element\Template;
 use Magento\Framework\View\Element\Template\Context;
@@ -25,62 +28,22 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class Success extends Template
 {
-
-    /**
-     * @var Order $order
-     */
     protected $order;
+    protected CheckoutSession $checkoutSession;
+    protected CustomerSession $customerSession;
+    protected OrderFactory $orderFactory;
+    protected Data $adyenHelper;
+    protected StoreManagerInterface $storeManager;
+    private Config $configHelper;
+    private SerializerInterface $serializerInterface;
+    private AdyenCheckoutSuccessConfigProvider $configProvider;
+    private QuoteIdToMaskedQuoteId $quoteIdToMaskedQuoteId;
 
-    /**
-     * @var Session
-     */
-    protected $checkoutSession;
-
-    /**
-     * @var OrderFactory
-     */
-    protected $orderFactory;
-
-
-    /**
-     * @var Data
-     */
-    protected $adyenHelper;
-
-    /**
-     * @var StoreManagerInterface
-     */
-    protected $storeManager;
-
-    /**
-     * @var Config
-     */
-    private $configHelper;
-
-    /**
-     * @var SerializerInterface
-     */
-    private $serializerInterface;
-
-    /**
-     * @var AdyenCheckoutSuccessConfigProvider
-     */
-    private $configProvider;
-
-    /**
-     * Success constructor.
-     *
-     * @param Context $context
-     * @param Session $checkoutSession
-     * @param OrderFactory $orderFactory
-     * @param Data $adyenHelper
-     * @param Config $configHelper
-     * @param StoreManagerInterface $storeManager
-     * @param array $data
-     */
     public function __construct(
         Context $context,
-        Session $checkoutSession,
+        CheckoutSession $checkoutSession,
+        CustomerSession $customerSession,
+        QuoteIdToMaskedQuoteId $quoteIdToMaskedQuoteId,
         OrderFactory $orderFactory,
         Data $adyenHelper,
         Config $configHelper,
@@ -90,6 +53,8 @@ class Success extends Template
         array $data = []
     ) {
         $this->checkoutSession = $checkoutSession;
+        $this->customerSession = $customerSession;
+        $this->quoteIdToMaskedQuoteId = $quoteIdToMaskedQuoteId;
         $this->orderFactory = $orderFactory;
         $this->adyenHelper = $adyenHelper;
         $this->configHelper = $configHelper;
@@ -153,7 +118,7 @@ class Success extends Template
     {
         $storeId = $this->storeManager->getStore()->getId();
         $imageBaseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA).'adyen/';
-        $donationAmounts = explode(',', $this->configHelper->getAdyenGivingDonationAmounts($storeId));
+        $donationAmounts = explode(',', (string) $this->configHelper->getAdyenGivingDonationAmounts($storeId));
         $donationAmounts = array_map(function ($amount) {
             return $this->adyenHelper->formatAmount($amount, $this->getOrder()->getOrderCurrencyCode());
         }, $donationAmounts);
@@ -182,7 +147,8 @@ class Success extends Template
 
     public function getClientKey()
     {
-        return $this->adyenHelper->getClientKey();
+        $environment = $this->configHelper->isDemoMode() ? 'test' : 'live';
+        return $this->configHelper->getClientKey($environment);
     }
 
     public function getEnvironment()
@@ -203,4 +169,16 @@ class Success extends Template
         return $this->order;
     }
 
+    /**
+     * @throws NoSuchEntityException
+     */
+    public function getMaskedQuoteId(): ?string
+    {
+        return $this->quoteIdToMaskedQuoteId->execute($this->getOrder()->getQuoteId());
+    }
+
+    public function getIsCustomerLoggedIn(): bool
+    {
+        return $this->customerSession->isLoggedIn();
+    }
 }

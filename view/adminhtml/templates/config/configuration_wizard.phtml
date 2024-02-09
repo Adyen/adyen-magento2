@@ -1,8 +1,8 @@
 <?php /** @var \Adyen\Payment\Model\Config\Adminhtml\ConfigurationWizard $block */ ?>
 <?php echo $block->getNextButtonHtml() ?>
 <span class="adyen-required-settings-config-admin" id="progress" style="display: none">
-    <img class="processing" hidden="hidden" alt="Configuring" style="margin:0 5px" src="<?php echo $block->getViewFileUrl('images/process_spinner.gif') ?>"/>
-    <img class="configured" hidden="hidden" alt="Configured" style="margin:-3px 5px" src="<?php echo $block->getViewFileUrl('images/rule_component_apply.gif') ?>"/>
+    <img class="processing" hidden="hidden" alt="Configuring" style="margin:0 5px" src="<?= $block->escapeUrl($block->getViewFileUrl('images/process_spinner.gif')) ?>"/>
+    <img class="configured" hidden="hidden" alt="Configured" style="margin:-3px 5px" src="<?= $block->escapeUrl($block->getViewFileUrl('images/rule_component_apply.gif')) ?>"/>
 <script>
     require(['jquery'], function ($) {
         $(window).on('load', function () {
@@ -16,21 +16,31 @@
             const liveClientKeySelector = "div.adyen_required_config_settings input[name*='client_key_live']";
             const webhookUsernameSelector = "div.adyen_required_config_settings input[name*='notification_username']";
             const webhookPasswordSelector = "div.adyen_required_config_settings input[name*='notification_password']";
+            const createNewWebhookSelector = "div.adyen_required_config_settings input[name*='create_new_webhook']";
             const actionButton = $("#adyen_configuration_action");
             const resetButton = $("#adyen_configuration_action_reset");
-            resetButton.hide();
 
+            let merchantAccounts = [];
             let configured;
-            if (parseInt($(demoModeSelector).val())) {
-                configured = <?=$block->testConfigured() ? 'true' : 'false';?>;
-            } else {
-                configured = <?=$block->liveConfigured() ? 'true' : 'false';?>;
-            }
-            resetButton.on('click', function () {
-                if (window.confirm("Are you sure you want to reconfigure Required Settings?")) {
-                    resetAutoConfiguration();
-                    renderAutoConfiguration();
+
+            $(document).ready(function() {
+                resetButton.hide();
+
+                if (parseInt($(demoModeSelector).val())) {
+                    configured = <?=$block->testConfigured() ? 'true' : 'false';?>;
+                } else {
+                    configured = <?=$block->liveConfigured() ? 'true' : 'false';?>;
                 }
+                resetButton.on('click', function () {
+                    if (window.confirm("Are you sure you want to reconfigure Required Settings?")) {
+                        resetAutoConfiguration();
+                        renderAutoConfiguration();
+                    }
+                });
+
+                configMode.on('change', renderAutoConfiguration.bind(configMode));
+
+                renderAutoConfiguration();
             });
 
             function renderAutoConfiguration() {
@@ -39,6 +49,7 @@
                 }
                 if (configured) {
                     let demoMode = $(demoModeSelector).val();
+
                     if (parseInt(demoMode)) {
                         showConfigField($(testClientKeySelector), false);
                     } else {
@@ -48,6 +59,7 @@
                     showConfigField($(merchantAccountSelector), false);
                     showConfigField($(webhookUsernameSelector), false);
                     showConfigField($(webhookPasswordSelector), false);
+
                     actionButton.hide();
                     resetButton.show();
                 } else {
@@ -72,19 +84,13 @@
                 resetButton.hide();
             }
 
-            renderAutoConfiguration();
-
-            configMode.on('change', renderAutoConfiguration.bind(configMode));
-
-            let merchantAccounts = [];
-
             function loadMerchantAccountsAndClientKey() {
                 progressUpdate('start');
                 let demoMode = $(demoModeSelector).val();
                 let apiKey = parseInt(demoMode)
                     ? $(testApiKeySelector).val()
                     : $(liveApiKeySelector).val();
-                $.ajax('<?php echo $block->getMerchantAccountsUrl() ?>', {
+                $.ajax('<?= $block->escapeJs($block->getMerchantAccountsUrl()) ?>', {
                     data: {apiKey, demoMode},
                     method: "POST"
                 }).done(function (response) {
@@ -119,7 +125,7 @@
 
                     // update action button listener to perform next action
                     actionButton.off();
-                    actionButton.on('click', generateWebhookCredentials);
+                    actionButton.on('click', consentNewWebhookCreation);
                     progressUpdate('success', 'Click Next to generate notification username and password.');
                 }).fail(function(response) {
                     progressUpdate('error', 'Unable to load merchant accounts: ' + response.responseJSON.error);
@@ -155,20 +161,36 @@
                 showConfigField(livePrefixUrlField);
             }
 
+            function consentNewWebhookCreation() {
+                showConfigField($(createNewWebhookSelector));
+                showConfigField($(webhookUsernameSelector));
+                showConfigField($(webhookPasswordSelector));
+
+
+                $('*[id*=create_new_webhook0]').prop('checked', true);
+
+                convertActionButtonToFinished();
+
+                progressUpdate('success', 'You completed the configuration. Now, you can click "<?= $block->escapeJs(__('Save Config')) ?>" to save it');
+
+                $(createNewWebhookSelector).on('change', function () {
+                    let createNewWebhook = parseInt(this.value);
+
+                    if (createNewWebhook) {
+                        generateWebhookCredentials();
+                    } else {
+                        $(webhookUsernameSelector).val('');
+                        $(webhookPasswordSelector).val('');
+                    }
+                });
+            }
+
             function generateWebhookCredentials() {
-                progressUpdate('start');
-                let username = 'webuser';
+                let username = 'webhookuser';
                 let password = generateRandomPassword();
 
-                let usernameField = $(webhookUsernameSelector);
-                let passwordField = $(webhookPasswordSelector);
-                usernameField.val(username);
-                passwordField.val(password);
-
-                showConfigField(usernameField);
-                showConfigField(passwordField);
-                convertActionButtonToFinished();
-                progressUpdate('success', 'You completed the configuration. Now, you can click Save config to save');
+                $(webhookUsernameSelector).val(username);
+                $(webhookPasswordSelector).val(password);
             }
 
             function progressUpdate(action, message='') {
@@ -208,8 +230,8 @@
 
             function hideConfigField(field) {
                 field.parents('tr')[0].hide();
-                field.hide();
                 field.prop('disabled', true);
+                field.hide();
             }
 
             function generateRandomPassword() {

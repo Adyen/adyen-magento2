@@ -115,7 +115,7 @@ class Moto extends \Magento\Payment\Block\Form\Cc
     {
         $types = [];
         $ccTypes = $this->adyenHelper->getAdyenCcTypes();
-        $availableTypes = explode(',', $this->adyenHelper->getAdyenCcConfigData('cctypes'));
+        $availableTypes = explode(',', (string) $this->configHelper->getAdyenCcConfigData('cctypes'));
 
         foreach ($ccTypes as $code => $ccType) {
             if (in_array($code, $availableTypes)) {
@@ -136,7 +136,7 @@ class Moto extends \Magento\Payment\Block\Form\Cc
             $amount = $quoteData['grand_total'];
 
             return $this->installmentsHelper->formatInstallmentsConfig(
-                $this->adyenHelper->getAdyenCcConfigData('installments',
+                $this->configHelper->getAdyenCcConfigData('installments',
                     $this->_storeManager->getStore()->getId()
                 ),
                 $this->adyenHelper->getAdyenCcTypes(),
