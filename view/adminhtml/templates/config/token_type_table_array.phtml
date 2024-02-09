@@ -90,7 +90,7 @@ $_colspan = $block->isAddAfter() ? 2 : 1;
 
             // add existing rows
             <?php foreach ($block->getArrayRows() as $_rowId => $_row): ?>
-                arrayRow<?= $block->escapeJs($_htmlId) ?>.add(<?= $_row->toJson() ?>);
+                arrayRow<?= $block->escapeJs($_htmlId) ?>.add(<?= /* @noEscape */ $_row->toJson() ?>);
             <?php endforeach; ?>
 
             <?php if ($block->getElement()->getDisabled()): ?>

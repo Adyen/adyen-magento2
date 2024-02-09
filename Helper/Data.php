@@ -1105,8 +1105,12 @@ class Data extends AbstractHelper
      * @throws AdyenException
      * @throws NoSuchEntityException
      */
-    public function initializeAdyenClient($storeId = null, $apiKey = null, $motoMerchantAccount = null, ?bool $demoMode = null): Client
-    {
+    public function initializeAdyenClient(
+        $storeId = null,
+        $apiKey = null,
+        $motoMerchantAccount = null,
+        ?bool $demoMode = null
+    ): Client {
         if ($storeId === null) {
             $storeId = $this->storeManager->getStore()->getId();
         }
@@ -1119,9 +1123,11 @@ class Data extends AbstractHelper
 
         if (!is_null($motoMerchantAccount)) {
             try {
-                $motoMerchantAccountProperties = $this->configHelper->getMotoMerchantAccountProperties($motoMerchantAccount, $storeId);
-            }
-            catch (AdyenException $e) {
+                $motoMerchantAccountProperties = $this->configHelper->getMotoMerchantAccountProperties(
+                    $motoMerchantAccount,
+                    $storeId
+                );
+            } catch (AdyenException $e) {
                 $this->adyenLogger->addAdyenDebug($e->getMessage());
                 throw $e;
             }
@@ -1140,9 +1146,9 @@ class Data extends AbstractHelper
             $client->setRegion($checkoutFrontendRegion);
         }
 
-        $moduleVersion = $this->getModuleVersion();
-        $client->setMerchantApplication($this->getModuleName(), $moduleVersion);
-        $client->setExternalPlatform($this->productMetadata->getName(), $this->productMetadata->getVersion(), 'Adyen');
+        $client->setMerchantApplication($this->getModuleName(), $this->getModuleVersion());
+        $platformData = $this->getMagentoDetails();
+        $client->setExternalPlatform($platformData['name'], $platformData['version'], 'Adyen');
         if ($isDemo) {
             $client->setEnvironment(Environment::TEST);
         } else {
@@ -1150,6 +1156,43 @@ class Data extends AbstractHelper
         }
 
         return $client;
+    }
+
+    public function getMagentoDetails()
+    {
+        return [
+            'name' => $this->productMetadata->getName(),
+            'version' => $this->productMetadata->getVersion(),
+            'edition' => $this->productMetadata->getEdition(),
+        ];
+    }
+
+    public function buildRequestHeaders()
+    {
+        $magentoDetails = $this->getMagentoDetails();
+        return [
+            'external-platform-name' => $magentoDetails['name'],
+            'external-platform-version' => $magentoDetails['version'],
+            'external-platform-edition' => $magentoDetails['edition'],
+            'merchant-application-name' => $this->getModuleName(),
+            'merchant-application-version' => $this->getModuleVersion()
+        ];
+    }
+
+    /**
+     * @throws AdyenException
+     * @throws NoSuchEntityException
+     */
+    public function initializeAdyenClientWithClientConfig(array $clientConfig): Client
+    {
+        $storeId = $clientConfig['storeId'];
+        $motoMerchantAccount = null;
+
+        if (isset($clientConfig['isMotoTransaction']) && $clientConfig['isMotoTransaction'] === true) {
+            $motoMerchantAccount = $clientConfig['motoMerchantAccount'];
+        }
+
+        return $this->initializeAdyenClient($storeId, null, $motoMerchantAccount);
     }
 
     /**

@@ -14,7 +14,6 @@ namespace Adyen\Payment\Gateway\Request;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
@@ -22,10 +21,14 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
 class RecurringVaultDataBuilder implements BuilderInterface
 {
     private StateData $stateData;
+    private Vault $vaultHelper;
 
-    public function __construct(StateData $stateData)
-    {
+    public function __construct(
+        StateData $stateData,
+        Vault $vaultHelper
+    ) {
         $this->stateData = $stateData;
+        $this->vaultHelper = $vaultHelper;
     }
 
     public function build(array $buildSubject): array
@@ -45,6 +48,12 @@ class RecurringVaultDataBuilder implements BuilderInterface
         // For now this will only be used by tokens created trough adyen_hpp payment methods
         if (array_key_exists(Vault::TOKEN_TYPE, $details)) {
             $requestBody['recurringProcessingModel'] = $details[Vault::TOKEN_TYPE];
+        } else {
+            // If recurringProcessingModel doesn't exist in the token details, use the default value from config.
+            $requestBody['recurringProcessingModel'] = $this->vaultHelper->getPaymentMethodRecurringProcessingModel(
+                $paymentMethod->getProviderCode(),
+                $order->getStoreId()
+            );
         }
 
         /*
