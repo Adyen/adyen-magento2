@@ -91,22 +91,29 @@ define(
             },
             placeOrderPos: function () {
                 let self = this;
+                const onFail = (response) => {
+                    if (response.responseText.indexOf("In Progress") > -1) {
+                        window.setTimeout(function () {
+                            self.placeOrderPos()},5000);
+                        return;
+                    }
+                    errorProcessor.process(response);
+                    fullScreenLoader.stopLoader();
+                    self.isPlaceOrderActionAllowed(true);
+                }
                 return $.when(
                     placeOrderAction(self.getData(), new Messages())
                 ).fail(
-                    function (response) {
-                        if (response.responseText.indexOf("In Progress") > -1) {
-                            window.setTimeout(function () {
-                                self.placeOrderPos()},5000);
-                            return;
-                        }
-                        errorProcessor.process(response);
-                        fullScreenLoader.stopLoader();
-                        self.isPlaceOrderActionAllowed(true);
-                    }
+                    onFail()
                 ).done(
-                    function () {
-                        self.posComplete();
+                    function (orderId) {
+                        $.when(
+                            adyenPaymentService.posPayment(self.getData(), orderId)
+                        ).fail(
+                            onFail()
+                        ).done(
+                            self.posComplete()
+                        )
                     }
                 )
             },

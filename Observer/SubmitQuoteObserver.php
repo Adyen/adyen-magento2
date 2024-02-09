@@ -28,7 +28,7 @@ class SubmitQuoteObserver implements ObserverInterface
         //TODO: Once we have a config in the magento backoffice, get all the methods directly from this config
         if (in_array(
             $payment->getMethod(),
-            ['adyen_hpp', 'adyen_cc', 'adyen_oneclick', 'adyen_paypal', 'adyen_ideal'],
+            ['adyen_hpp', 'adyen_cc', 'adyen_oneclick', 'adyen_paypal', 'adyen_ideal', 'adyen_pos_cloud'],
             true
         )) {
             /** @var Quote $quote */
