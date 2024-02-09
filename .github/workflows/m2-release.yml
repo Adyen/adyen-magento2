@@ -1,0 +1,46 @@
+name: Plugin release to Adobe Marketplace
+run-name: Plugin release V${{inputs.releaseTag}} to Adobe Marketplace
+
+on:
+#
+#  @todo later when we have more confidence, we can uncomment the below lines to enable trigger this flow after rlease
+#
+#  pull_request:
+#    branches:
+#      - 'releases/**'
+  workflow_dispatch:
+    inputs:
+      releaseTag:
+        description: "Release tag"
+        required: true
+        default: "develop"
+      packageName:
+        description: "Adyen package name"
+        required: true
+        default: "adyen/dummy-module"
+
+jobs:
+  build:
+    runs-on:
+      runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download release files
+        run: |
+          wget \
+          -O .github/workflows/templates/package.zip \
+          https://github.com/Adyen/adyen-magento2/archive/refs/tags/${{inputs.releaseTag}}.zip
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+      - name: npm install
+        run: |
+          npm install -g newman
+          newman run \
+          --env-var "APP_KEY=${{secrets.EQP_API_KEY}}" \
+          --env-var "APP_ID=${{secrets.EQP_API_USER}}" \
+          --env-var "API_URL=https://commercedeveloper-api.adobe.com" \
+          --env-var "PACKAGE_SKU=${{inputs.packageName}}" \
+          --env-var "PACKAGE_VERSION=${{inputs.releaseTag}}" \
+          --env-var "PACKAGE_FILE=package.zip \
+          .github/workflows/templates/postman_release_collection.json.json
