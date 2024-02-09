@@ -11,8 +11,6 @@
 
 namespace Adyen\Payment\Api\Data;
 
-use DateTime;
-
 interface NotificationInterface
 {
     /**
@@ -219,10 +217,10 @@ interface NotificationInterface
     public function getCreatedAt(): ?string;
 
     /**
-     * @param DateTime $createdAt
+     * @param string $createdAt
      * @return NotificationInterface
      */
-    public function setCreatedAt(DateTime $createdAt): NotificationInterface;
+    public function setCreatedAt(string $createdAt): NotificationInterface;
 
     /**
      * @return string|null
@@ -230,8 +228,8 @@ interface NotificationInterface
     public function getUpdatedAt(): ?string;
 
     /**
-     * @param DateTime $timestamp
+     * @param string $timestamp
      * @return NotificationInterface
      */
-    public function setUpdatedAt(DateTime $timestamp): NotificationInterface;
+    public function setUpdatedAt(string $timestamp): NotificationInterface;
 }
