@@ -104,13 +104,13 @@ define(
                 return $.when(
                     placeOrderAction(self.getData(), new Messages())
                 ).fail(
-                    onFail()
+                    onFail
                 ).done(
                     function (orderId) {
                         $.when(
                             adyenPaymentService.posPayment(self.getData(), orderId)
                         ).fail(
-                            onFail()
+                            onFail
                         ).done(
                             self.posComplete()
                         )

@@ -150,7 +150,7 @@ define(
                 };
 
                 return storage.post(
-                    urlBuilder.createUrl(path),
+                    urlBuilder.createUrl(urlPath),
                     JSON.stringify(request),
                     true
                 );
