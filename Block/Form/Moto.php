@@ -164,7 +164,6 @@ class Moto extends \Magento\Payment\Block\Form\Cc
             $amount = array("value" => $value, "currency" => $currenyCode);
 
             return json_encode($amount);
-
         } catch (\Throwable $e) {
             $this->adyenLogger->error(
                 'There was an error fetching the amount for checkout component config: ' . $e->getMessage()

@@ -284,7 +284,7 @@
                                                                         <item name="adyen_cashapp" xsi:type="array">
                                                                             <item name="isBillingAddressRequired" xsi:type="boolean">true</item>
                                                                         </item>
-                                                                        <item name="adyen_cashapp" xsi:type="array">
+                                                                        <item name="adyen_klarna_b2b" xsi:type="array">
                                                                             <item name="isBillingAddressRequired" xsi:type="boolean">true</item>
                                                                         </item>
                                                                     </item>

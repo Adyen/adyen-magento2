@@ -14,6 +14,7 @@ namespace Adyen\Payment\Gateway\Response;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\ResourceModel\StateData;
 use Adyen\Payment\Model\ResourceModel\StateData\Collection;
+use Exception;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 
@@ -36,14 +37,14 @@ class StateDataHandler implements HandlerInterface
     public function handle(array $handlingSubject, array $response): self
     {
         $readPayment = SubjectReader::readPayment($handlingSubject);
-        $quoteId = $readPayment->getOrder()->getQuoteId();
+        $quoteId = $readPayment->getPayment()->getOrder()->getQuoteId();
 
         $stateDataCollection = $this->adyenStateData->getStateDataRowsWithQuoteId($quoteId);
 
         foreach ($stateDataCollection->getIterator() as $stateDataItem) {
             try {
                 $this->stateDataResourceModel->delete($stateDataItem);
-            } catch (\Exception $exception) {
+            } catch (Exception $exception) {
                 $this->adyenLogger->error(__("State data was not cleaned-up: %s", $exception->getMessage()));
             }
         }
