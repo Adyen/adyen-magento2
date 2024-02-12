@@ -131,17 +131,10 @@
         </resources>
     </route>
 
-    <route url="/V1/adyen/orders/guest-carts/pos-payment" method="POST">
-        <service class="Adyen\Payment\Api\GuestAdyenPOSCloudInterface" method="pay"/>
-        <resources>
-            <resource ref="anonymous"/>
-        </resources>
-    </route>
-
-    <route url="/V1/adyen/orders/carts/mine/pos-payment" method="POST">
+    <route url="/V1/adyen/orders/pos-payment" method="POST">
         <service class="Adyen\Payment\Api\AdyenPOSCloudInterface" method="pay"/>
         <resources>
-            <resource ref="self"/>
+            <resource ref="anonymous"/>
         </resources>
     </route>
 </routes>

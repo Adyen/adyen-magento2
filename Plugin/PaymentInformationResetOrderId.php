@@ -54,9 +54,7 @@ class PaymentInformationResetOrderId
     ) {
         try {
             $quote = $this->quoteRepository->get($cartId);
-            if (preg_match('/^adyen_(?!pos_cloud$)/', strval($quote->getPayment()->getMethod()))) {
-                $quote->setReservedOrderId(null);
-            }
+            $quote->setReservedOrderId(null);
         } catch (Exception $e) {
             $this->adyenLogger->error("Failed to reset reservedOrderId " . $e->getMessage());
         }

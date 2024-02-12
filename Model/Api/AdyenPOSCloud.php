@@ -12,22 +12,44 @@
 namespace Adyen\Payment\Model\Api;
 
 use Adyen\Payment\Api\AdyenPOSCloudInterface;
+use Adyen\Payment\Logger\AdyenLogger;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
-use Magento\Payment\Gateway\CommandInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
 
 class AdyenPOSCloud implements AdyenPOSCloudInterface
 {
     private CommandPoolInterface $commandPool;
+    private Json $jsonSerializer;
+    protected AdyenLogger $adyenLogger;
+    protected OrderRepositoryInterface $orderRepository;
 
     public function __construct(
-        CommandPoolInterface $commandPool
-    ) {
+        OrderRepositoryInterface $orderRepository,
+        CommandPoolInterface     $commandPool,
+        Json                     $jsonSerializer,
+        AdyenLogger              $adyenLogger
+    )
+    {
         $this->commandPool = $commandPool;
+        $this->jsonSerializer = $jsonSerializer;
+        $this->adyenLogger = $adyenLogger;
     }
 
-    public function pay(int $orderId, string $payload): void
+    public function pay(string $payload): void
     {
-        $donationsCaptureCommand = $this->commandPool->get('authorize');
-        $donationsCaptureCommand->execute(['payment' => $payload]);
+        $payload = $this->jsonSerializer->unserialize($payload);
+        $orderId = $payload['oderId'];
+
+        try {
+            $posCommand = $this->commandPool->get('authorize');
+            $posCommand->execute(['orderId' => $orderId]);
+        } catch (NoSuchEntityException $exception) {
+            $errorMessage = sprintf("Order for ID %s not found!", $orderId);
+            $this->adyenLogger->error($errorMessage);
+
+            throw $exception;
+        }
     }
 }

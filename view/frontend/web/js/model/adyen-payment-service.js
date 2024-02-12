@@ -142,16 +142,11 @@ define(
                 );
             },
 
-            posPayment: function (data, orderId) {
+            posPayment: function (orderId) {
                 const urlPath = customer.isLoggedIn() ? '/adyen/orders/carts/mine/pos-payment' : '/adyen/orders/guest-carts/pos-payment'
-                const request = {
-                    payload: JSON.stringify(data),
-                    orderId: orderId
-                };
-
                 return storage.post(
-                    urlBuilder.createUrl(urlPath),
-                    JSON.stringify(request),
+                    urlBuilder.createUrl(urlPath, {}),
+                    JSON.stringify({orderId}),
                     true
                 );
             },

@@ -20,5 +20,5 @@ interface AdyenPOSCloudInterface
      * @param string $payload
      * @return void
      */
-    public function pay(int $orderId, string $payload): void;
+    public function pay(string $payload): void;
 }
