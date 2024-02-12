@@ -9,12 +9,10 @@
  */
 define(
     [
-        'Magento_Checkout/js/model/quote',
         'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-method',
         'Magento_Checkout/js/model/full-screen-loader',
     ],
     function(
-        quote,
         adyenPaymentMethod,
         fullScreenLoader
     ) {
@@ -27,8 +25,7 @@ define(
                 let baseComponentConfiguration = this._super();
                 let cashAppConfiguration = Object.assign(baseComponentConfiguration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
                 cashAppConfiguration.showPayButton = true;
-                debugger;
-
+                cashAppConfiguration.enableStoreDetails = true;
                 return cashAppConfiguration
             },
             renderActionComponent: function(resultCode, action, component) {

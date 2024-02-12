@@ -1923,9 +1923,13 @@
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
                 <supports_auto_capture>1</supports_auto_capture>
-                <is_wallet>1</is_wallet>
+                <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_cashapp>
+            <adyen_cashapp_vault>
+                <title>Stored Cash App Pay</title>
+                <model>AdyenPaymentCashappVaultFacade</model>
+            </adyen_cashapp_vault>
             <adyen_klarna_b2b>
                 <active>0</active>
                 <model>AdyenPaymentKlarnaB2bFacade</model>

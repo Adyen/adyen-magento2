@@ -212,9 +212,6 @@ define(
                         },
                     });
 
-
-                configuration = Object.assign(configuration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
-
                 return configuration;
             },
 

@@ -812,6 +812,7 @@
                 <item name="adyen_klarna" xsi:type="string">AdyenPaymentCommandManager</item>
                 <item name="adyen_googlepay" xsi:type="string">AdyenPaymentCommandManager</item>
                 <item name="adyen_sepadirectdebit" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_cashapp" xsi:type="string">AdyenPaymentCommandManager</item>
                 <item name="adyen_boleto" xsi:type="string">AdyenPaymentCommandManager</item>
             </argument>
         </arguments>
