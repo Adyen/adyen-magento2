@@ -27,7 +27,6 @@ define(
                 let baseComponentConfiguration = this._super();
                 let cashAppConfiguration = Object.assign(baseComponentConfiguration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
                 cashAppConfiguration.showPayButton = true;
-                debugger;
 
                 return cashAppConfiguration
             },
