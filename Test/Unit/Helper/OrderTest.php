@@ -32,7 +32,6 @@ use Magento\Framework\DB\TransactionFactory;
 use Magento\Framework\Notification\NotifierPool;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
-use Magento\Sales\Model\Order\Payment\Transaction;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderStatusCollectionFactory;
@@ -379,6 +378,104 @@ class OrderTest extends AbstractAdyenTestCase
         $result = $orderHelper->updatePaymentDetails($orderMock, $notificationMock);
 
         $this->assertEquals($transactionMock, $result);
+    }
+
+    public function testAddWebhookStatusHistoryComment()
+    {
+        $eventCode = 'AUTHORISATION';
+        $amountCurrency = 'EUR';
+        $amountValue = 1000;
+        $expectedComment = 'AUTHORISATION webhook notification w/amount EUR 10.00 was processed';
+        $dataHelperMock = $this->createMock(Data::class);
+        $orderMock = $this->createMock(MagentoOrder::class);
+        $notificationMock = $this->createMock(Notification::class);
+
+        $notificationMock->method('getEventCode')->willReturn($eventCode);
+        $notificationMock->method('getAmountCurrency')->willReturn($amountCurrency);
+        $notificationMock->method('getAmountValue')->willReturn($amountValue);
+
+        $dataHelperMock->method('originalAmount')->with($amountValue, $amountCurrency)->willReturn('10.00');
+
+        $orderMock->expects($this->once())
+            ->method('addStatusHistoryComment')
+            ->with($this->equalTo($expectedComment), $this->equalTo(false))
+            ->willReturnSelf();
+
+        $orderHelper = $this->createOrderHelper(
+            null,
+            null,
+            null,
+            null,
+            $dataHelperMock,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+
+        $result = $orderHelper->addWebhookStatusHistoryComment($orderMock, $notificationMock);
+
+        $this->assertEquals($orderMock, $result);
+    }
+
+    public function testSendOrderMailSuccess()
+    {
+        $orderMock = $this->createMock(MagentoOrder::class);
+        $adyenLoggerMock = $this->createMock(AdyenLogger::class);
+        $orderSenderMock = $this->createMock(OrderSender::class);
+        $paymentMock = $this->getMockBuilder(\Magento\Sales\Model\Order\Payment::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $paymentMock->expects($this->exactly(2))
+            ->method('getData')
+            ->willReturnMap([
+                ['adyen_psp_reference', null, 'test_psp_reference'],
+                ['entity_id', null, 'test_entity_id']
+            ]);
+
+        $orderMock->expects($this->exactly(2))
+            ->method('getPayment')
+            ->willReturn($paymentMock);
+
+        $orderSenderMock->expects($this->once())
+            ->method('send')
+            ->with($orderMock);
+
+        $adyenLoggerMock->expects($this->once())
+            ->method('addAdyenNotification')
+            ->with(
+                'Send order confirmation email to shopper',
+                ['pspReference' => 'test_psp_reference', 'merchantReference' => 'test_entity_id']
+            );
+
+        $orderHelper = $this->createOrderHelper(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $adyenLoggerMock,
+            $orderSenderMock,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+
+        $orderHelper->sendOrderMail($orderMock);
     }
 
 
