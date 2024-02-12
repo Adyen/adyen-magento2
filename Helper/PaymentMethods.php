@@ -154,7 +154,7 @@ class PaymentMethods extends AbstractHelper
         }
 
         foreach ($this->getAdyenPaymentMethods() as $paymentMethod) {
-            if (in_array($paymentMethod, PaymentMethodsStatus::EXCLUDED_PAYMENT_METHODS) {
+            if (in_array($paymentMethod, PaymentMethodsStatus::EXCLUDED_PAYMENT_METHODS)) {
                 continue;
             }
 
