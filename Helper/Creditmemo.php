@@ -146,7 +146,6 @@ class Creditmemo extends AbstractHelper
                     $this->adyenCreditmemoResourceModel->save($currAdyenCreditmemo);
                     break;
                 }
-
             }
         }
     }

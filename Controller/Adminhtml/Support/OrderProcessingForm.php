@@ -73,7 +73,6 @@ class OrderProcessingForm extends Action
                 ];
                 $this->supportFormHelper->handleSubmit($formData, self::ORDER_PROCESSING);
                 return $this->_redirect('*/*/success');
-
             } catch (\Exception $e) {
                 $this->messageManager->addErrorMessage(__('Unable to send support message. '
                     . $e->getMessage()));
