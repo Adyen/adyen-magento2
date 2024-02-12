@@ -16,6 +16,7 @@ use Adyen\Client;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Util\ManualCapture;
+use Adyen\Payment\Model\Config\Backend\PaymentMethodsStatus;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
@@ -153,8 +154,7 @@ class PaymentMethods extends AbstractHelper
         }
 
         foreach ($this->getAdyenPaymentMethods() as $paymentMethod) {
-            //skip POS from toggling as this config is visual via Admin panel
-            if ($paymentMethod == Config::XML_ADYEN_POS_CLOUD) {
+            if (in_array($paymentMethod, PaymentMethodsStatus::EXCLUDED_PAYMENT_METHODS) {
                 continue;
             }
 
