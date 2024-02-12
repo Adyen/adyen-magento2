@@ -100,6 +100,7 @@
                 <item name="adyen_touchngo" xsi:type="string">touchngo</item>
                 <item name="adyen_boleto" xsi:type="string">boletobancario</item>
                 <item name="adyen_bcmc" xsi:type="string">bcmc</item>
+                <item name="adyen_klarna_b2b" xsi:type="string">klarna_b2b</item>
                 <item name="adyen_vipps" xsi:type="string">vipps</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
