@@ -256,32 +256,20 @@ class Notification extends AbstractModel implements NotificationInterface
 
     public function getCreatedAt(): ?string
     {
-        $createdAt = $this->getData(self::CREATED_AT);
-
-        if ($createdAt instanceOf Datetime) {
-            return $createdAt->format('Y-m-d H:i:s');
-        }
-
-        return $createdAt;
+        return $this->getData(self::CREATED_AT);
     }
 
-    public function setCreatedAt(DateTime $createdAt): NotificationInterface
+    public function setCreatedAt(string $createdAt): NotificationInterface
     {
         return $this->setData(self::CREATED_AT, $createdAt);
     }
 
     public function getUpdatedAt(): ?string
     {
-        $updatedAt = $this->getData(self::UPDATED_AT);
-
-        if ($updatedAt instanceOf Datetime) {
-            return $updatedAt->format('Y-m-d H:i:s');
-        }
-
-        return $updatedAt;
+        return  $this->getData(self::UPDATED_AT);
     }
 
-    public function setUpdatedAt(DateTime $timestamp): NotificationInterface
+    public function setUpdatedAt(string $timestamp): NotificationInterface
     {
         return $this->setData(self::UPDATED_AT, $timestamp);
     }

@@ -9,6 +9,7 @@
  * Author: Adyen <magento@adyen.com>
  */
 
+// phpcs:ignore
 namespace Adyen\Payment\Controller\Return;
 
 use Adyen\AdyenException;
