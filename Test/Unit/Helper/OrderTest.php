@@ -32,9 +32,11 @@ use Magento\Framework\DB\TransactionFactory;
 use Magento\Framework\Notification\NotifierPool;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
+use Magento\Sales\Model\Order\Payment\Transaction;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderStatusCollectionFactory;
+use Magento\Sales\Api\Data\TransactionInterface;
 
 class OrderTest extends AbstractAdyenTestCase
 {
@@ -256,6 +258,129 @@ class OrderTest extends AbstractAdyenTestCase
 
         $orderHelper->addRefundFailedNotice($order, $notification);
     }
+
+    public function testUpdatePaymentDetailsWithOrderInitiallyInStatePaymentReview()
+    {
+        $pspReference = '123456ABCDEF';
+        $notificationMock = $this->createMock(Notification::class);
+        $notificationMock->method('getPspreference')->willReturn($pspReference);
+
+        $paymentMock = $this->createMock(MagentoOrder\Payment::class);
+        $paymentMock->expects($this->once())->method('setCcTransId')->with($pspReference);
+        $paymentMock->expects($this->once())->method('setLastTransId')->with($pspReference);
+        $paymentMock->expects($this->once())->method('setTransactionId')->with($pspReference);
+
+        $orderMock = $this->createConfiguredMock(MagentoOrder::class, [
+            'getPayment' => $paymentMock,
+            'getState' => \Magento\Sales\Model\Order::STATE_PAYMENT_REVIEW,
+            'setState' => \Magento\Sales\Model\Order::STATE_NEW
+        ]);
+
+        $transactionMock = $this->createMock(\Magento\Sales\Model\Order\Payment\Transaction::class);
+        $transactionMock->expects($this->once())->method('setIsClosed')->with(false);
+        $transactionMock->expects($this->once())->method('save');
+
+        $transactionBuilderMock = $this->createMock(Builder::class);
+        $transactionBuilderMock->method('setPayment')->willReturnSelf();
+        $transactionBuilderMock->method('setOrder')->willReturnSelf();
+        $transactionBuilderMock->method('setTransactionId')->willReturnSelf();
+        $transactionBuilderMock->method('build')->willReturn($transactionMock);
+
+        $orderHelper = $this->createOrderHelper(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $transactionBuilderMock,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+
+        $result = $orderHelper->updatePaymentDetails($orderMock, $notificationMock);
+
+        $this->assertInstanceOf(\Magento\Sales\Model\Order\Payment\Transaction::class, $result);
+    }
+
+    public function testUpdatePaymentDetailsWithOrderNotInStatePaymentReview()
+    {
+        $pspReference = '123456789';
+        $paymentMock = $this->createConfiguredMock(MagentoOrder\Payment::class, [
+            'setCcTransId' => $pspReference,
+            'setLastTransId' => $pspReference,
+            'setTransactionId' => $pspReference
+        ]);
+        $orderMock = $this->createConfiguredMock(MagentoOrder::class, [
+            'getPayment' => $paymentMock,
+            'getState' => \Magento\Sales\Model\Order::STATE_PAYMENT_REVIEW,
+            'setState' => \Magento\Sales\Model\Order::STATE_NEW
+        ]);
+
+        $notificationMock = $this->createConfiguredMock(Notification::class, [
+            'getPspReference' => $pspReference
+        ]);
+
+        $transactionBuilderMock = $this->createGeneratedMock(Builder::class);
+        $transactionMock = $this->createMock(\Magento\Sales\Model\Order\Payment\Transaction::class);
+        $transactionBuilderMock->expects($this->once())
+            ->method('setPayment')
+            ->with($paymentMock)
+            ->willReturnSelf();
+
+        $transactionBuilderMock->expects($this->once())
+            ->method('setOrder')
+            ->with($orderMock)
+            ->willReturnSelf();
+
+        $transactionBuilderMock->expects($this->once())
+            ->method('setTransactionId')
+            ->with($pspReference)
+            ->willReturnSelf();
+
+        $transactionBuilderMock->expects($this->once())
+            ->method('build')
+            ->with(TransactionInterface::TYPE_AUTH)
+            ->willReturn($transactionMock);
+
+        $transactionMock->expects($this->once())
+            ->method('setIsClosed')
+            ->with(false);
+
+        $transactionMock->expects($this->once())
+            ->method('save');
+
+        $orderHelper = $this->createOrderHelper(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $transactionBuilderMock,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+
+        $result = $orderHelper->updatePaymentDetails($orderMock, $notificationMock);
+
+        $this->assertEquals($transactionMock, $result);
+    }
+
 
     protected function createOrderHelper(
         $orderStatusCollectionFactory = null,
