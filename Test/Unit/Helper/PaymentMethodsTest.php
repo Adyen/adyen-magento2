@@ -170,7 +170,8 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
                 [
                     'adyen_cc' => [],
                     'adyen_oneclick' => [],
-                    'adyen_cc_vault' => []
+                    'adyen_cc_vault' => [],
+                    'adyen_pos_cloud' => [],
                 ]);
 
         $this->configHelperMock

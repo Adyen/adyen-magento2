@@ -153,6 +153,11 @@ class PaymentMethods extends AbstractHelper
         }
 
         foreach ($this->getAdyenPaymentMethods() as $paymentMethod) {
+            //skip POS from toggling as this config is visual via Admin panel
+            if ($paymentMethod == Config::XML_ADYEN_POS_CLOUD) {
+                continue;
+            }
+
             $value = $isActive ? '1': '0';
             $field = 'active';
             $this->configHelper->setConfigData($value, $field, $paymentMethod);
