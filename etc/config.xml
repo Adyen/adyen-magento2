@@ -1926,6 +1926,10 @@
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_vipps>
+            <adyen_vipps_vault>
+                <title>Stored Vipps</title>
+                <model>AdyenPaymentVippsVaultFacade</model>
+            </adyen_vipps_vault>
         </payment>
     </default>
 </config>
