@@ -112,6 +112,7 @@
                 <item name="adyen_paypal" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-paypal-method</item>
                 <item name="adyen_giftcard" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-giftcard-method</item>
                 <item name="adyen_affirm" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-affirm-method</item>
+                <item name="adyen_cashapp" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cashapp-method</item>
                 <item name="adyen_ratepay" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-ratepay-method</item>
                 <item name="adyen_ratepay_directdebit" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-ratepay-directdebit-method</item>
                 <item name="adyen_pos_cloud" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-pos-cloud-method</item>
