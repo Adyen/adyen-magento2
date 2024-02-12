@@ -327,7 +327,7 @@ class OrderTest extends AbstractAdyenTestCase
             'getPspReference' => $pspReference
         ]);
 
-        $transactionBuilderMock = $this->createGeneratedMock(Builder::class);
+        $transactionBuilderMock = $this->createMock(Builder::class);
         $transactionMock = $this->createMock(\Magento\Sales\Model\Order\Payment\Transaction::class);
         $transactionBuilderMock->expects($this->once())
             ->method('setPayment')
@@ -363,16 +363,7 @@ class OrderTest extends AbstractAdyenTestCase
             null,
             null,
             null,
-            $transactionBuilderMock,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
+            $transactionBuilderMock
         );
 
         $result = $orderHelper->updatePaymentDetails($orderMock, $notificationMock);
@@ -406,18 +397,7 @@ class OrderTest extends AbstractAdyenTestCase
             null,
             null,
             null,
-            $dataHelperMock,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
+            $dataHelperMock
         );
 
         $result = $orderHelper->addWebhookStatusHistoryComment($orderMock, $notificationMock);
@@ -465,17 +445,74 @@ class OrderTest extends AbstractAdyenTestCase
             null,
             null,
             $adyenLoggerMock,
-            $orderSenderMock,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
+            $orderSenderMock
         );
 
         $orderHelper->sendOrderMail($orderMock);
+    }
+
+    public function testCreateShipmentSuccess()
+    {
+        $adyenLoggerMock = $this->createMock(AdyenLogger::class);
+        $orderMock = $this->createMock(MagentoOrder::class);
+        $shipmentMock = $this->createPartialMock(\Magento\Sales\Model\Order\Shipment::class, ['register', 'getOrder', 'addComment']);
+        $shipmentMock->method('getOrder')->willReturn($orderMock);
+        $transactionBuilderMock = $this->createMock(Builder::class);
+
+        $orderMock->method('canShip')->willReturn(true);
+
+        $orderHelper = $this->createOrderHelper(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $transactionBuilderMock,
+            $adyenLoggerMock
+        );
+
+        $result = $orderHelper->createShipment($orderMock);
+
+        $this->assertEquals($orderMock, $result);
+    }
+
+
+    public function testCreateShipmentCannotShip()
+    {
+        $adyenLoggerMock = $this->createMock(AdyenLogger::class);
+        $orderMock = $this->createMock(MagentoOrder::class);
+        $transactionBuilderMock = $this->createMock(Builder::class);
+        $paymentMock = $this->createMock(\Magento\Sales\Model\Order\Payment::class);
+        $paymentMock->method('getData')
+            ->willReturnMap([
+                ['adyen_psp_reference', null, 'test_psp_reference'],
+                ['entity_id', null, 'test_entity_id']
+            ]);
+        $orderMock->method('canShip')->willReturn(false);
+        $orderMock->method('getPayment')->willReturn($paymentMock);
+
+        $adyenLoggerMock->expects($this->once())
+            ->method('addAdyenNotification')
+            ->with(
+                'Order can\'t be shipped',
+                $this->anything()
+            );
+
+        $orderHelper = $this->createOrderHelper(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $transactionBuilderMock,
+            $adyenLoggerMock
+        );
+
+        $result = $orderHelper->createShipment($orderMock);
+
+        $this->assertEquals($orderMock, $result);
     }
 
 
