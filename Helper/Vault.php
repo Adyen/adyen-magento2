@@ -227,7 +227,7 @@ class Vault
             $details = [
                 'type' => $payment->getCcType(),
                 self::TOKEN_LABEL => sprintf(
-                    "%s %s %s",
+                    "%s % %",
                     $paymentMethodInstance->getTitle(),
                     __("token created on"),
                     $today->format('Y-m-d')

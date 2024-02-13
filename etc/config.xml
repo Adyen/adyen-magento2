@@ -1942,16 +1942,12 @@
                 <can_refund>1</can_refund>
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
-                <supports_recurring>1</supports_recurring>
+                <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
                 <supports_auto_capture>1</supports_auto_capture>
-                <is_wallet>0</is_wallet>
+                <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_vipps>
-            <adyen_vipps_vault>
-                <title>Stored Vipps</title>
-                <model>AdyenPaymentVippsVaultFacade</model>
-            </adyen_vipps_vault>
         </payment>
     </default>
 </config>
