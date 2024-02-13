@@ -145,9 +145,10 @@ define(
             posPayment: function (orderId) {
                 // const urlPath = customer.isLoggedIn() ? '/adyen/orders/carts/mine/pos-payment' : '/adyen/orders/guest-carts/pos-payment'
                 const urlPath = '/adyen/orders/pos-payment'
+                const payload = {'payload': JSON.stringify({orderId})}
                 return storage.post(
                     urlBuilder.createUrl(urlPath, {}),
-                    JSON.stringify({orderId}),
+                    JSON.stringify(payload),
                     true
                 );
             },

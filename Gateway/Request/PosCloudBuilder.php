@@ -15,46 +15,29 @@ namespace Adyen\Payment\Gateway\Request;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\PointOfSale;
-use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
-use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 
 class PosCloudBuilder implements BuilderInterface
 {
     private ChargedCurrency $chargedCurrency;
     private PointOfSale $pointOfSale;
-    protected AdyenLogger $adyenLogger;
-    protected OrderRepositoryInterface $orderRepository;
 
-    public function __construct(
-        ChargedCurrency $chargedCurrency,
-        PointOfSale $pointOfSale,
-        OrderRepositoryInterface $orderRepository,
-        AdyenLogger              $adyenLogger
-    )
+    public function __construct(ChargedCurrency $chargedCurrency, PointOfSale $pointOfSale)
     {
         $this->chargedCurrency = $chargedCurrency;
         $this->pointOfSale = $pointOfSale;
-        $this->orderRepository = $orderRepository;
-        $this->adyenLogger = $adyenLogger;
     }
 
     public function build(array $buildSubject): array
     {
-        $orderId = $buildSubject['orderId'];
-        try {
-            $order = $this->orderRepository->get($orderId);
-        } catch (NoSuchEntityException $exception) {
-            $errorMessage = sprintf("Order for ID %s not found!", $orderId);
-            $this->adyenLogger->error($errorMessage);
+        $paymentDataObject = SubjectReader::readPayment($buildSubject);
 
-            throw $exception;
-        }
-        $payment = $order->getPayment();
+        $payment = $paymentDataObject->getPayment();
+        $order = $payment->getOrder();
+
         $request['body'] = $this->buildPosRequest(
             $order,
             $payment->getAdditionalInformation('terminal_id'),

@@ -1628,7 +1628,7 @@
             <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
         </arguments>
     </type>
-    <type name="Adyen\Payment\Model\Api\AdyenPOSCloud">
+    <type name="Adyen\Payment\Model\Api\AdyenPosCloud">
         <arguments>
             <argument name="commandPool" xsi:type="object">AdyenPaymentPosCloudCommandPool</argument>
         </arguments>
