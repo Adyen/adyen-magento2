@@ -181,7 +181,7 @@ define(
             },
 
             renderCheckoutComponent: function() {
-                this.isPlaceOrderAllowed(false);
+                this.isPlaceOrderAllowed(quote.billingAddress() != null);
                 let configuration = this.buildComponentConfiguration(this.paymentMethod(), this.paymentMethodsExtraInfo());
 
                 this.mountPaymentMethodComponent(this.paymentMethod(), configuration);
