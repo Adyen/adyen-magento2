@@ -336,16 +336,7 @@ class OrderTest extends AbstractAdyenTestCase
             null,
             null,
             null,
-            $transactionBuilderMock,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
+            $transactionBuilderMock
         );
 
         $result = $orderHelper->updatePaymentDetails($orderMock, $notificationMock);
