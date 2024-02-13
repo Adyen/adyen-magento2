@@ -16,6 +16,8 @@ use Adyen\AdyenException;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Order\Payment;
+use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\StatusResolver;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 
@@ -23,13 +25,16 @@ class PaymentPosCloudHandler implements HandlerInterface
 {
     private AdyenLogger $adyenLogger;
     private Vault $vaultHelper;
+    private StatusResolver $statusResolver;
 
     public function __construct(
         AdyenLogger $adyenLogger,
-        Vault $vaultHelper
+        Vault $vaultHelper,
+        StatusResolver $statusResolver
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->vaultHelper = $vaultHelper;
+        $this->statusResolver = $statusResolver;
     }
 
     public function handle(array $handlingSubject, array $response)
@@ -44,9 +49,11 @@ class PaymentPosCloudHandler implements HandlerInterface
 
         // do not send order confirmation mail
         $payment->getOrder()->setCanSendNewEmailFlag(false);
+        $resultCode = null;
 
         if (!empty($paymentResponse) && isset($paymentResponse['Response']['Result'])) {
-            $payment->setAdditionalInformation('resultCode', $paymentResponse['Response']['Result']);
+            $resultCode = $paymentResponse['Response']['Result'];
+            $payment->setAdditionalInformation('resultCode', $resultCode);
         }
 
         if (!empty($paymentResponse['Response']['AdditionalResponse']))
@@ -82,5 +89,18 @@ class PaymentPosCloudHandler implements HandlerInterface
         // do not close transaction so you can do a cancel() and void
         $payment->setIsTransactionClosed(false);
         $payment->setShouldCloseParentTransaction(false);
+
+        if ($resultCode === 'Authorised') {
+            $order = $payment->getOrder();
+            $status = $this->statusResolver->getOrderStatusByState(
+                $payment->getOrder(),
+                Order::STATE_PROCESSING
+            );
+            $order->setState(Order::STATE_PENDING_PAYMENT);
+            $order->setStatus($status);
+            $message = __("Pos payment initiated and waiting for payment");
+            $order->addCommentToStatusHistory($message, $status);
+            $order->save();
+        }
     }
 }

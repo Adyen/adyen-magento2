@@ -11,7 +11,7 @@
 
 namespace Adyen\Payment\Api;
 
-interface AdyenPOSCloudInterface
+interface AdyenPosCloudInterface
 {
     /**
      * Build and send donation payment request

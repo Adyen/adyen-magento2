@@ -132,7 +132,7 @@
     </route>
 
     <route url="/V1/adyen/orders/pos-payment" method="POST">
-        <service class="Adyen\Payment\Api\AdyenPOSCloudInterface" method="pay"/>
+        <service class="Adyen\Payment\Api\AdyenPosCloudInterface" method="pay"/>
         <resources>
             <resource ref="anonymous"/>
         </resources>
