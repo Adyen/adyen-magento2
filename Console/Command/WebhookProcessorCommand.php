@@ -2,7 +2,7 @@
 
 namespace Adyen\Payment\Console\Command;
 
-use Adyen\Payment\Cron\WebhookProcessor;
+use Adyen\Payment\Cron\WebhookProcessorFactory;
 use Exception;
 use Magento\Framework\Console\Cli;
 use Symfony\Component\Console\Command\Command;
@@ -12,13 +12,13 @@ use Symfony\Component\Console\Output\OutputInterface;
 class WebhookProcessorCommand extends Command
 {
     /**
-     * @var WebhookProcessor
+     * @var WebhookProcessorFactory
      */
-    private $webhookProcessor;
+    private $webhookProcessorFactory;
 
-    public function __construct(WebhookProcessor $webhookProcessor)
+    public function __construct(WebhookProcessorFactory $webhookProcessorFactory)
     {
-        $this->webhookProcessor = $webhookProcessor;
+        $this->webhookProcessorFactory = $webhookProcessorFactory;
         parent::__construct();
     }
 
@@ -35,7 +35,7 @@ class WebhookProcessorCommand extends Command
     {
         $output->writeln('Starting webhook processor.');
         try {
-            $this->webhookProcessor->execute();
+            $this->webhookProcessorFactory->create()->execute();
         } catch (Exception $e) {
             return Cli::RETURN_FAILURE;
         }
