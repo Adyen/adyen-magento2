@@ -36,6 +36,6 @@ class PaymentMethodsStatusTest extends AbstractAdyenTestCase
 
         $result = $paymentMethodsStatus->afterSave();
 
-        $this->assertIsArray($result);
+        $this->assertInstanceOf(PaymentMethodsStatus::class, $result);
     }
 }
