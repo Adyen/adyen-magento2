@@ -17,18 +17,18 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
-use Magento\Sales\Api\OrderRepositoryInterface;
+use Adyen\Payment\Model\Sales\OrderRepository;
 
 class AdyenPosCloud implements AdyenPosCloudInterface
 {
     private CommandPoolInterface $commandPool;
     private Json $jsonSerializer;
     protected AdyenLogger $adyenLogger;
-    protected OrderRepositoryInterface $orderRepository;
+    protected OrderRepository $orderRepository;
 
     public function __construct(
         CommandPoolInterface     $commandPool,
-        OrderRepositoryInterface $orderRepository,
+        OrderRepository $orderRepository,
         Json                     $jsonSerializer,
         AdyenLogger              $adyenLogger
     )
