@@ -150,9 +150,7 @@ define(
                         {cartId: quote.getQuoteId()}
                     )
                 }
-                //@todo check if we need orderId
-                //const payload = {}
-                const payload = JSON.stringify({'payload': JSON.stringify({orderId})})
+                const payload = JSON.stringify({'payload': {}, orderId})
 
                 return storage.post(url, payload, true)
             },
