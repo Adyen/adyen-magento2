@@ -1,5 +1,4 @@
 <?php
-
 /**
  *
  * Adyen Payment Module
@@ -23,7 +22,8 @@ interface TokenDeactivateInterface
      *
      * @param string $paymentToken
      * @param string $paymentMethodCode
-     * @return string
+     * @param int $customerId
+     * @return bool
      */
-    public function deactivateToken(string $paymentToken, string $paymentMethodCode): string;
+    public function deactivateToken(string $paymentToken, string $paymentMethodCode, int $customerId): bool;
 }

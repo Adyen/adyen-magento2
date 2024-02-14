@@ -1,46 +1,81 @@
 <?php
+/**
+ *
+ * Adyen Payment Module
+ *
+ * Copyright (c) 2024 Adyen N.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+
 namespace Adyen\Payment\Model\Api;
 
-use Adyen\Client;
 use Adyen\Payment\Api\TokenDeactivateInterface;
-use Adyen\Service\ResourceModel\Checkout\Recurring;
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Vault\Api\Data\PaymentTokenInterface;
+use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Vault\Model\PaymentTokenManagement;
+use Exception;
 
 class TokenDeactivate implements TokenDeactivateInterface
 {
-    protected $paymentTokenRepository;
-    protected $recurringService;
-    protected $paymentTokenManagement;
+    /**
+     * @var PaymentTokenRepositoryInterface
+     */
+    protected PaymentTokenRepositoryInterface $paymentTokenRepository;
 
+    /**
+     * @var PaymentTokenManagement
+     */
+    protected PaymentTokenManagement $paymentTokenManagement;
+
+    /**
+     * @var AdyenLogger
+     */
+    protected AdyenLogger $adyenLogger;
+
+    /**
+     * @param PaymentTokenRepositoryInterface $paymentTokenRepository
+     * @param PaymentTokenManagement $paymentTokenManagement
+     * @param AdyenLogger $adyenLogger
+     */
     public function __construct(
         PaymentTokenRepositoryInterface $paymentTokenRepository,
-        Recurring $recurringService,
-        PaymentTokenManagement $paymentTokenManagement
+        PaymentTokenManagement $paymentTokenManagement,
+        AdyenLogger $adyenLogger
     ) {
         $this->paymentTokenRepository = $paymentTokenRepository;
-        $this->recurringService = $recurringService;
         $this->paymentTokenManagement = $paymentTokenManagement;
+        $this->adyenLogger = $adyenLogger;
     }
 
-    public function deactivateToken(string $paymentToken, string $paymentMethodCode): string
+    /**
+     * @param string $paymentToken
+     * @param string $paymentMethodCode
+     * @param int $customerId
+     * @return bool
+     */
+    public function deactivateToken(string $paymentToken, string $paymentMethodCode, int $customerId): bool
     {
-        try {
-            $paymentToken = $this->paymentTokenManagement->getByGatewayToken($paymentToken, $paymentMethodCode, 5);
+        $paymentToken = $this->paymentTokenManagement->getByGatewayToken(
+            $paymentToken,
+            $paymentMethodCode,
+            $customerId
+        );
 
-            if (!$paymentToken instanceof PaymentTokenInterface) {
-                throw new LocalizedException(__('Invalid token.'));
+        if (isset($paymentToken)) {
+            try {
+                return $this->paymentTokenRepository->delete($paymentToken);
+            } catch (Exception $e) {
+                $this->adyenLogger->error(sprintf(
+                    'Error while attempting to deactivate token with id %s: %s',
+                    $paymentToken->getEntityId(),
+                    $e->getMessage()
+                ));
             }
-
-            $paymentTokenId = $paymentToken->getEntityId();
-            $paymentTokenRepository = $this->paymentTokenRepository->getById($paymentTokenId);
-            $paymentTokenRepository->delete($paymentToken);
-
-            return 'true';
-        } catch (\Exception $e) {
-            throw new LocalizedException(__('Error deactivating token: ' . $e->getMessage()));
         }
+
+        return false;
     }
 }
