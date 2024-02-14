@@ -10,11 +10,12 @@
  */
 
 namespace Adyen\Payment\Api;
-interface AdyenPosCloudInterface
+
+interface GuestAdyenPosCloudInterface
 {
     /**
-     * @param int $orderId
+     * @param string $cartId
      * @return void
      */
-    public function pay(int $orderId): void;
+    public function payByCart(string $cartId): void;
 }

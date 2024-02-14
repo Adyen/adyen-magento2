@@ -143,14 +143,18 @@ define(
             },
 
             posPayment: function (orderId) {
-                // const urlPath = customer.isLoggedIn() ? '/adyen/orders/carts/mine/pos-payment' : '/adyen/orders/guest-carts/pos-payment'
-                const urlPath = '/adyen/orders/pos-payment'
-                const payload = {'payload': JSON.stringify({orderId})}
-                return storage.post(
-                    urlBuilder.createUrl(urlPath, {}),
-                    JSON.stringify(payload),
-                    true
-                );
+                let url = urlBuilder.createUrl('/adyen/orders/carts/mine/pos-payment', {})
+                if (!customer.isLoggedIn()) {
+                    url = urlBuilder.createUrl(
+                        '/adyen/orders/guest-carts/:cartId/pos-payment',
+                        {cartId: quote.getQuoteId()}
+                    )
+                }
+                //@todo check if we need orderId
+                //const payload = {}
+                const payload = JSON.stringify({'payload': JSON.stringify({orderId})})
+
+                return storage.post(url, payload, true)
             },
 
             getPaymentMethodFromResponse: function (txVariant, paymentMethodResponse) {

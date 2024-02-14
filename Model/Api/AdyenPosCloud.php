@@ -13,11 +13,14 @@ namespace Adyen\Payment\Model\Api;
 
 use Adyen\Payment\Api\AdyenPosCloudInterface;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Sales\OrderRepository;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
-use Adyen\Payment\Model\Sales\OrderRepository;
+use Magento\Payment\Model\InfoInterface;
+use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Payment\Gateway\Data\PaymentDataObjectFactoryInterface;
 
 class AdyenPosCloud implements AdyenPosCloudInterface
 {
@@ -25,42 +28,34 @@ class AdyenPosCloud implements AdyenPosCloudInterface
     private Json $jsonSerializer;
     protected AdyenLogger $adyenLogger;
     protected OrderRepository $orderRepository;
+    protected PaymentDataObjectFactoryInterface $paymentDataObjectFactory;
 
     public function __construct(
-        CommandPoolInterface     $commandPool,
-        OrderRepository $orderRepository,
-        Json                     $jsonSerializer,
-        AdyenLogger              $adyenLogger
+        CommandPoolInterface $commandPool,
+        OrderRepository      $orderRepository,
+        PaymentDataObjectFactoryInterface $paymentDataObjectFactory,
+        Json                 $jsonSerializer,
+        AdyenLogger          $adyenLogger
     )
     {
         $this->commandPool = $commandPool;
         $this->orderRepository = $orderRepository;
+        $this->paymentDataObjectFactory = $paymentDataObjectFactory;
         $this->jsonSerializer = $jsonSerializer;
         $this->adyenLogger = $adyenLogger;
     }
 
-    public function pay(string $payload): void
+    public function pay(int $orderId): void
     {
-        $payload = $this->jsonSerializer->unserialize($payload);
-        $orderId = $payload['orderId'];
-        try {
-            $order = $this->orderRepository->get($orderId);
-        } catch (NoSuchEntityException $exception) {
-            $errorMessage = sprintf("Order for ID %s not found!", $orderId);
-            $this->adyenLogger->error($errorMessage);
+        $order = $this->orderRepository->get($orderId);
+        $this->execute($order);
+    }
 
-            throw $exception;
-        }
-        $paymentDataObject = new PaymentDataObject($order, $order->getPayment());
-
-        try {
-            $posCommand = $this->commandPool->get('authorize');
-            $posCommand->execute(['payment' => $paymentDataObject]);
-        } catch (NoSuchEntityException $exception) {
-            $errorMessage = sprintf("Order for ID %s not found!", $orderId);
-            $this->adyenLogger->error($errorMessage);
-
-            throw $exception;
-        }
+    protected function execute(OrderInterface $order): void
+    {
+        $payment = $order->getPayment();
+        $paymentDataObject = $this->paymentDataObjectFactory->create($payment);
+        $posCommand = $this->commandPool->get('authorize');
+        $posCommand->execute(['payment' => $paymentDataObject]);
     }
 }
