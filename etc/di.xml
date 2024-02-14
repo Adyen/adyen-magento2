@@ -1655,6 +1655,7 @@
     <preference for="Adyen\Payment\Api\GuestAdyenDonationsInterface" type="Adyen\Payment\Model\Api\GuestAdyenDonations" />
     <preference for="Adyen\Payment\Api\Data\NotificationInterface" type="Adyen\Payment\Model\Notification" />
     <preference for="Adyen\Payment\Api\AdyenPaymentMethodsBalanceInterface" type="Adyen\Payment\Model\Api\AdyenPaymentMethodsBalance" />
+    <preference for="Adyen\Payment\Api\TokenDeactivateInterface" type="Adyen\Payment\Model\Api\TokenDeactivate" />
     <type name="Magento\Vault\Api\PaymentTokenRepositoryInterface">
         <plugin name="AdyenPaymentVaultDeleteToken" type="Adyen\Payment\Plugin\PaymentVaultDeleteToken" sortOrder="10" />
     </type>
