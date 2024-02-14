@@ -266,6 +266,9 @@
     <event name="payment_method_assign_data_adyen_bcmc">
         <observer name="adyen_bcmc_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_cashapp">
+        <observer name="adyen_cashapp_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
     <event name="payment_method_assign_data_adyen_klarna_b2b">
         <observer name="adyen_klarna_b2b_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>

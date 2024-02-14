@@ -812,6 +812,7 @@
                 <item name="adyen_klarna" xsi:type="string">AdyenPaymentCommandManager</item>
                 <item name="adyen_googlepay" xsi:type="string">AdyenPaymentCommandManager</item>
                 <item name="adyen_sepadirectdebit" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_cashapp" xsi:type="string">AdyenPaymentCommandManager</item>
                 <item name="adyen_boleto" xsi:type="string">AdyenPaymentCommandManager</item>
             </argument>
         </arguments>
@@ -3833,6 +3834,59 @@
     <virtualType name="AdyenPaymentBcmcVaultConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
             <argument name="methodCode" xsi:type="string">adyen_bcmc_vault</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentCashappFacade" type="Adyen\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="string">adyen_cashapp</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\PaymentMethodInfo</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentCashappValueHandlerPool</argument>
+            <argument name="validatorPool" xsi:type="object">AdyenPaymentValidatorPool</argument>
+            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentCashappValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AdyenPaymentCashappConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentCashappConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AdyenPaymentCashappConfig</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentCashappConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="string">adyen_cashapp</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentCashappVaultFacade" type="Adyen\Payment\Model\Method\PaymentMethodVault">
+        <arguments>
+            <argument name="code" xsi:type="string">adyen_cashapp_vault</argument>
+            <argument name="config" xsi:type="object">AdyenPaymentCashappVaultConfig</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentCashappVaultValueHandlerPool</argument>
+            <argument name="vaultProvider" xsi:type="object">AdyenPaymentCashappFacade</argument>
+            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentCashappVaultValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AdyenPaymentCashappVaultConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentCashappVaultConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AdyenPaymentCashappVaultConfig</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentCashappVaultConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="string">adyen_cashapp_vault</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentKlarnaB2bFacade" type="Adyen\Payment\Model\Method\Adapter">
