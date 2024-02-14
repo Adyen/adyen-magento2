@@ -211,7 +211,8 @@ define(
                             self.isPlaceOrderAllowed(state.isValid);
                         },
                     });
-                return configuration
+
+                return configuration;
             },
 
             getTxVariant: function () {
