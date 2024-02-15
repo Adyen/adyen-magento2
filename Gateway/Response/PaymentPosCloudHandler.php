@@ -96,9 +96,9 @@ class PaymentPosCloudHandler implements HandlerInterface
             $order = $payment->getOrder();
             $status = $this->statusResolver->getOrderStatusByState(
                 $payment->getOrder(),
-                Order::STATE_PENDING_PAYMENT
+                Order::STATE_NEW
             );
-            $order->setState(Order::STATE_PENDING_PAYMENT);
+            $order->setState(Order::STATE_NEW);
             $order->setStatus($status);
             $message = __("Pos payment authorized");
             $order->addCommentToStatusHistory($message, $status);

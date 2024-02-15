@@ -49,9 +49,9 @@ class SetOrderStateAfterPaymentObserver implements ObserverInterface
         $order = $payment->getOrder();
         $status = $this->statusResolver->getOrderStatusByState(
             $payment->getOrder(),
-            Order::STATE_PAYMENT_REVIEW
+            Order::STATE_PENDING_PAYMENT
         );
-        $order->setState(Order::STATE_PAYMENT_REVIEW);
+        $order->setState(Order::STATE_PENDING_PAYMENT);
         $order->setStatus($status);
         $message = __("Pos payment initiated and waiting for payment");
         $order->addCommentToStatusHistory($message, $status);
