@@ -34,16 +34,14 @@ class SubmitQuoteObserver implements ObserverInterface
         $order = $observer->getEvent()->getOrder();
         /** @var Order\Payment $payment */
         $payment = $order->getPayment();
+        $isAdyenPaymentMethod = $this->paymentMethodsHelper->isAdyenPayment($payment->getMethod());
+        $isActionRequired = in_array(
+            $payment->getAdditionalInformation('resultCode'),
+            PaymentResponseHandler::ACTION_REQUIRED_STATUSES
+        );
+        $isPosPayment = $payment->getMethod() === 'adyen_pos_cloud';
 
-        if ($this->paymentMethodsHelper->isAdyenPayment($payment->getMethod()) &&
-            (
-              in_array(
-                $payment->getAdditionalInformation('resultCode'),
-                PaymentResponseHandler::ACTION_REQUIRED_STATUSES
-              ) 
-              OR $payment->getMethod() === 'adyen_pos_cloud'
-            )
-           ) {
+        if ($isPosPayment || ($isAdyenPaymentMethod && $isActionRequired)) {
             // Further shopper action required (e.g. redirect or 3DS authentication)
             /** @var Quote $quote */
             $quote = $observer->getEvent()->getQuote();
