@@ -93,11 +93,17 @@ define(
                 let self = this;
                 fullScreenLoader.startLoader();
                 placeOrderAction(self.getData(), new Messages())
-                    .fail(self.handleFaildResponse)
+                    .fail(function (response) {
+                        self.handleFaildResponse(response)
+                    })
                     .done(function (orderId) {
                         adyenPaymentService.posPayment(orderId)
-                            .fail(self.handleFaildResponse)
-                            .done(self.posComplete)
+                            .fail(function (response) {
+                                self.handleFaildResponse(response)
+                            })
+                            .done(function () {
+                                self.posComplete()
+                            })
                     })
             },
             handleFaildResponse: function (response) {
