@@ -13,6 +13,7 @@
 namespace Adyen\Payment\Gateway\Response;
 
 use Adyen\AdyenException;
+use Adyen\Payment\Helper\Quote;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Order\Payment;
@@ -26,15 +27,18 @@ class PaymentPosCloudHandler implements HandlerInterface
     private AdyenLogger $adyenLogger;
     private Vault $vaultHelper;
     private StatusResolver $statusResolver;
+    private Quote $quoteHelper;
 
     public function __construct(
         AdyenLogger $adyenLogger,
         Vault $vaultHelper,
-        StatusResolver $statusResolver
+        StatusResolver $statusResolver,
+        Quote $quoteHelper
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->vaultHelper = $vaultHelper;
         $this->statusResolver = $statusResolver;
+        $this->quoteHelper = $quoteHelper;
     }
 
     public function handle(array $handlingSubject, array $response)
@@ -89,17 +93,18 @@ class PaymentPosCloudHandler implements HandlerInterface
         $payment->setIsTransactionClosed(false);
         $payment->setShouldCloseParentTransaction(false);
 
-        if ($resultCode === 'Authorised') {
+        if (in_array($resultCode, ['Authorised', 'Success'])) {
             $order = $payment->getOrder();
             $status = $this->statusResolver->getOrderStatusByState(
                 $payment->getOrder(),
-                Order::STATE_PROCESSING
+                Order::STATE_PENDING_PAYMENT
             );
             $order->setState(Order::STATE_PENDING_PAYMENT);
             $order->setStatus($status);
             $message = __("Pos payment authorized");
             $order->addCommentToStatusHistory($message, $status);
             $order->save();
+            $this->quoteHelper->disableQuote($order->getQuoteId());
         }
     }
 }

@@ -91,35 +91,30 @@ define(
             },
             placeOrderPos: function () {
                 let self = this;
-                return $.when(placeOrderAction(self.getData(), new Messages()))
-                    .fail((response) => {
-                        console.log(response)
-                        if (response.responseText.indexOf("In Progress") > -1) {
-                            window.setTimeout(function () {
-                                self.placeOrderPos()},5000);
-                            return;
-                        }
-                        errorProcessor.process(response);
-                        fullScreenLoader.stopLoader();
-                        self.isPlaceOrderActionAllowed(true);
-                    })
-                    .done(
-                        function (orderId) {
-                            adyenPaymentService.posPayment(orderId)
-                            .done(self.posComplete())
-                            .fail((response) => {
-                                console.log(response)
-                                if (response.responseText.indexOf("In Progress") > -1) {
-                                    window.setTimeout(function () {
-                                        self.placeOrderPos()},5000);
-                                    return;
-                                }
-                                errorProcessor.process(response);
-                                fullScreenLoader.stopLoader();
-                                self.isPlaceOrderActionAllowed(true);
-                            })
-                        }
-                    )
+                fullScreenLoader.startLoader();
+                placeOrderAction(self.getData(), new Messages())
+                    .fail(response => {
+                        self.handleFaildResponse(response)
+                    }
+                ).done(orderId => {
+                    adyenPaymentService.posPayment(orderId)
+                        .fail(response => {
+                            self.handleFaildResponse(response)
+                        })
+                        .done(() => self.posComplete())
+                })
+            },
+            handleFaildResponse: function (response) {
+                let self = this;
+                if (response.responseText.indexOf("In Progress") > -1) {
+                    window.setTimeout(function () {
+                        this.placeOrderPos()
+                    }, 5000);
+                    return;
+                }
+                errorProcessor.process(response);
+                fullScreenLoader.stopLoader();
+                self.isPlaceOrderActionAllowed(true);
             },
             getConnectedTerminals: function () {
                 let connectedTerminals = [];

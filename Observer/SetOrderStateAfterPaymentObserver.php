@@ -12,6 +12,7 @@
 
 namespace Adyen\Payment\Observer;
 
+use Adyen\Payment\Helper\Quote;
 use Exception;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
@@ -24,9 +25,7 @@ class SetOrderStateAfterPaymentObserver implements ObserverInterface
 {
     private StatusResolver $statusResolver;
 
-    public function __construct(
-        StatusResolver $statusResolver
-    )
+    public function __construct(StatusResolver $statusResolver)
     {
         $this->statusResolver = $statusResolver;
     }
@@ -42,16 +41,21 @@ class SetOrderStateAfterPaymentObserver implements ObserverInterface
         $paymentMethod = $payment->getMethod();
 
         if ($paymentMethod === 'adyen_pos_cloud') {
-            $order = $payment->getOrder();
-            $status = $this->statusResolver->getOrderStatusByState(
-                $payment->getOrder(),
-                Order::STATE_PENDING_PAYMENT
-            );
-            $order->setState(Order::STATE_PENDING_PAYMENT);
-            $order->setStatus($status);
-            $message = __("Pos payment initiated and waiting for payment");
-            $order->addCommentToStatusHistory($message, $status);
-            $order->save();
+            $this->handlePosPayment($payment);
         }
+    }
+
+    private function handlePosPayment(Payment $payment)
+    {
+        $order = $payment->getOrder();
+        $status = $this->statusResolver->getOrderStatusByState(
+            $payment->getOrder(),
+            Order::STATE_PAYMENT_REVIEW
+        );
+        $order->setState(Order::STATE_PAYMENT_REVIEW);
+        $order->setStatus($status);
+        $message = __("Pos payment initiated and waiting for payment");
+        $order->addCommentToStatusHistory($message, $status);
+        $order->save();
     }
 }

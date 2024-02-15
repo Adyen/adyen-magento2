@@ -150,7 +150,7 @@ define(
                         {cartId: quote.getQuoteId()}
                     )
                 }
-                const payload = JSON.stringify({'payload': {}, orderId})
+                const payload = JSON.stringify({'payload': '{}', orderId})
 
                 return storage.post(url, payload, true)
             },
