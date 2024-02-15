@@ -16,7 +16,6 @@ use Adyen\AdyenException;
 use Adyen\Payment\Helper\Quote;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\Order\Payment;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\StatusResolver;
 use Magento\Payment\Gateway\Helper\SubjectReader;

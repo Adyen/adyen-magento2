@@ -22,8 +22,6 @@ use Magento\Quote\Model\QuoteIdMaskFactory;
 
 class GuestAdyenPosCloud extends AdyenPosCloud implements GuestAdyenPosCloudInterface
 {
-    private CommandPoolInterface $commandPool;
-    private Json $jsonSerializer;
     protected AdyenLogger $adyenLogger;
     protected OrderRepository $orderRepository;
     protected PaymentDataObjectFactoryInterface $paymentDataObjectFactory;
@@ -33,7 +31,6 @@ class GuestAdyenPosCloud extends AdyenPosCloud implements GuestAdyenPosCloudInte
         CommandPoolInterface              $commandPool,
         OrderRepository                   $orderRepository,
         PaymentDataObjectFactoryInterface $paymentDataObjectFactory,
-        Json                              $jsonSerializer,
         AdyenLogger                       $adyenLogger,
         QuoteIdMaskFactory                $quoteIdMaskFactory
     )
@@ -42,7 +39,6 @@ class GuestAdyenPosCloud extends AdyenPosCloud implements GuestAdyenPosCloudInte
             $commandPool,
             $orderRepository,
             $paymentDataObjectFactory,
-            $jsonSerializer,
             $adyenLogger
         );
         $this->quoteIdMaskFactory = $quoteIdMaskFactory;

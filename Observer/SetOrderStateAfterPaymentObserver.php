@@ -12,7 +12,6 @@
 
 namespace Adyen\Payment\Observer;
 
-use Adyen\Payment\Helper\Quote;
 use Exception;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;

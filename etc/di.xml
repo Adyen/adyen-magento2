@@ -1634,6 +1634,11 @@
             <argument name="commandPool" xsi:type="object">AdyenPaymentPosCloudCommandPool</argument>
         </arguments>
     </type>
+    <type name="Adyen\Payment\Model\Api\GuestAdyenPosCloud">
+        <arguments>
+            <argument name="commandPool" xsi:type="object">AdyenPaymentPosCloudCommandPool</argument>
+        </arguments>
+    </type>
     <type name="Adyen\Payment\Console\Command\WebhookProcessorCommand">
         <arguments>
             <argument name="webhookProcessor" xsi:type="object">Adyen\Payment\Cron\WebhookProcessor\Proxy</argument>
