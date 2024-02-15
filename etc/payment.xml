@@ -233,5 +233,8 @@
         <method name="adyen_klarna_b2b">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="adyen_mobilepay">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>

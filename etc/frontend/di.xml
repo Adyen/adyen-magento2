@@ -101,6 +101,7 @@
                 <item name="adyen_boleto" xsi:type="string">boletobancario</item>
                 <item name="adyen_bcmc" xsi:type="string">bcmc</item>
                 <item name="adyen_klarna_b2b" xsi:type="string">klarna_b2b</item>
+                <item name="adyen_mobilepay" xsi:type="string">mobilepay</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>

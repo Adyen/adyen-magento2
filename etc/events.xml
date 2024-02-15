@@ -269,4 +269,7 @@
     <event name="payment_method_assign_data_adyen_klarna_b2b">
         <observer name="adyen_klarna_b2b_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_mobilepay">
+        <observer name="adyen_mobilepay_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
 </config>
