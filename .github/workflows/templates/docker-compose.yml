@@ -23,11 +23,12 @@ services:
     networks:
       - backend
   web:
-    build: 
-      context: ../../
-      args:
-        - PHP_VERSION=${PHP_VERSION}
-        - MAGENTO_VERSION=${MAGENTO_VERSION}
+    image: raoulritter/magento:2.4.6-p3
+#    build:
+#      context: ../../
+#      args:
+#        - PHP_VERSION=${PHP_VERSION}
+#        - MAGENTO_VERSION=${MAGENTO_VERSION}
     container_name: magento2-container
     extra_hosts:
       - "magento2.test.com:127.0.0.1"
