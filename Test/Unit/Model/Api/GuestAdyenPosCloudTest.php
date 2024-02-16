@@ -27,8 +27,7 @@ class GuestAdyenPosCloudTest extends AbstractAdyenTestCase
         $this->orderRepositoryMock = $this->createMock(OrderRepository::class);
         $this->paymentDataObjectFactoryMock = $this->createMock(PaymentDataObjectFactoryInterface::class);
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
-        $this->quoteIdMaskFactoryMock = $this->createMock(QuoteIdMaskFactory::class);
-
+        $this->quoteIdMaskFactoryMock = $this->createGeneratedMock(QuoteIdMaskFactory::class, ['create']);
         $this->guestAdyenPosCloud = $this->getMockBuilder(GuestAdyenPosCloud::class)
             ->setConstructorArgs([
                 $this->commandPoolMock,
@@ -50,7 +49,7 @@ class GuestAdyenPosCloudTest extends AbstractAdyenTestCase
         $quoteIdMaskMock->method('getQuoteId')->willReturn($quoteId);
         $this->quoteIdMaskFactoryMock->method('create')->willReturn($quoteIdMaskMock);
         $orderMock = $this->createMock(OrderInterface::class);
-        $this->orderRepositoryMock->method('getOrderByQuoteId')->with($quoteId)->willReturn($orderMock);
+        $this->orderRepositoryMock->expects($this->once())->method('getOrderByQuoteId')->with($quoteId)->willReturn($orderMock);
         $this->guestAdyenPosCloud->payByCart($catId);
     }
 }

@@ -46,7 +46,7 @@ class AdyenPosCloudTest extends AbstractAdyenTestCase
         $this->paymentDataObjectFactoryMock->method('create')
             ->with($paymentMock)->willReturn($paymentDataObject);
         $command = $this->createMock(CommandInterface::class);
-        $command->method('execute')->with(['payment' => $paymentDataObject]);
+        $command->expects($this->once())->method('execute')->with(['payment' => $paymentDataObject]);
         $this->commandPoolMock->method('get')->with('authorize')->willReturn($command);
 
         $this->adyenPosCloud->pay($orderId, '{}');
