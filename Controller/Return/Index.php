@@ -24,7 +24,6 @@ use Magento\Framework\App\Action\Context;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Model\Order;
-use Magento\Sales\Model\Order\Status\HistoryFactory;
 use Magento\Sales\Model\OrderFactory;
 use Magento\Store\Model\StoreManagerInterface;
 
@@ -54,7 +53,6 @@ class Index extends Action
     protected OrderFactory $orderFactory;
     protected Config $configHelper;
     protected Order $order;
-    protected HistoryFactory $orderHistoryFactory;
     protected Session $session;
     protected AdyenLogger $adyenLogger;
     protected StoreManagerInterface $storeManager;
@@ -66,7 +64,6 @@ class Index extends Action
     public function __construct(
         Context                  $context,
         OrderFactory             $orderFactory,
-        HistoryFactory           $orderHistoryFactory,
         Session                  $session,
         AdyenLogger              $adyenLogger,
         StoreManagerInterface    $storeManager,
@@ -78,7 +75,6 @@ class Index extends Action
         parent::__construct($context);
 
         $this->orderFactory = $orderFactory;
-        $this->orderHistoryFactory = $orderHistoryFactory;
         $this->session = $session;
         $this->adyenLogger = $adyenLogger;
         $this->storeManager = $storeManager;

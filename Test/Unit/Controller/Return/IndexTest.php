@@ -45,7 +45,6 @@ class IndexTest extends AbstractAdyenTestCase
 
     private $contextMock;
     private $orderFactoryMock;
-    private $orderHistoryFactoryMock;
     private $sessionMock;
     private $adyenLoggerMock;
     private $storeManagerMock;
@@ -59,7 +58,6 @@ class IndexTest extends AbstractAdyenTestCase
         // Constructor argument mocks
         $this->contextMock = $this->createMock(Context::class);
         $this->orderFactoryMock = $this->createGeneratedMock(OrderFactory::class, ['create']);
-        $this->orderHistoryFactoryMock = $this->createMock(HistoryFactory::class);
         $this->sessionMock = $this->createMock(Session::class);
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
         $this->storeManagerMock = $this->createMock(StoreManagerInterface::class);
@@ -103,7 +101,6 @@ class IndexTest extends AbstractAdyenTestCase
         $this->indexControllerMock = new Index(
             $this->contextMock,
             $this->orderFactoryMock,
-            $this->orderHistoryFactoryMock,
             $this->sessionMock,
             $this->adyenLoggerMock,
             $this->storeManagerMock,
