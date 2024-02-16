@@ -109,33 +109,32 @@ class Index extends Action
                 $failPath = $this->configHelper->getAdyenAbstractConfigData('return_path');
                 $setQuoteAsActive = false;
             }
+
+            if ($result) {
+                $this->session->getQuote()->setIsActive($setQuoteAsActive)->save();
+
+                // Add OrderIncrementId to redirect parameters for headless support.
+                $redirectParams = $this->configHelper->getAdyenAbstractConfigData('custom_success_redirect_path')
+                    ? ['_query' => ['utm_nooverride' => '1', 'order_increment_id' => $this->order->getIncrementId()]]
+                    : ['_query' => ['utm_nooverride' => '1']];
+                $this->_redirect($successPath, $redirectParams);
+            } else {
+                $this->adyenLogger->addAdyenResult(
+                    sprintf(
+                        'Payment for order %s was unsuccessful, ' .
+                        'it will be cancelled when the OFFER_CLOSED notification has been processed.',
+                        isset($this->order) ? $this->order->getIncrementId() :
+                            ($redirectResponse['merchantReference'] ?? null)
+                    )
+                );
+
+                $this->session->restoreQuote();
+                $this->messageManager->addError(__('Your payment failed, Please try again later'));
+
+                $this->_redirect($failPath, ['_query' => ['utm_nooverride' => '1']]);
+            }
         } else {
-            $result = false;
             $this->_redirect($this->configHelper->getAdyenAbstractConfigData('return_path'));
-        }
-
-        if ($result) {
-            $this->session->getQuote()->setIsActive($setQuoteAsActive)->save();
-
-            // Add OrderIncrementId to redirect parameters for headless support.
-            $redirectParams = $this->configHelper->getAdyenAbstractConfigData('custom_success_redirect_path')
-                ? ['_query' => ['utm_nooverride' => '1', 'order_increment_id' => $this->order->getIncrementId()]]
-                : ['_query' => ['utm_nooverride' => '1']];
-            $this->_redirect($successPath, $redirectParams);
-        } else {
-            $this->adyenLogger->addAdyenResult(
-                sprintf(
-                    'Payment for order %s was unsuccessful, ' .
-                    'it will be cancelled when the OFFER_CLOSED notification has been processed.',
-                    isset($this->order) ? $this->order->getIncrementId() :
-                        ($redirectResponse['merchantReference'] ?? null)
-                )
-            );
-
-            $this->session->restoreQuote();
-            $this->messageManager->addError(__('Your payment failed, Please try again later'));
-
-            $this->_redirect($failPath, ['_query' => ['utm_nooverride' => '1']]);
         }
     }
 

@@ -207,6 +207,17 @@ class IndexTest extends AbstractAdyenTestCase
                 'returnPath' => '/checkout/cart',
                 'orderId' => PHP_INT_MIN,
                 'expectedException' => null
+            ],
+            [
+                'redirectResponse' => null,
+                'paymentsDetailsResponse' => [
+                    'merchantReference' => null,
+                    'resultCode' => null
+                ],
+                'responseHandlerResult' =>  false,
+                'returnPath' => '/checkout/cart',
+                'orderId' => PHP_INT_MIN,
+                'expectedException' => null
             ]
         ];
     }
@@ -229,7 +240,7 @@ class IndexTest extends AbstractAdyenTestCase
             $this->redirectMock->expects($this->once())->method('redirect')->with(
                 $this->contextResponseMock,
                 $returnPath,
-                ['_query' => ['utm_nooverride' => '1']]
+                $redirectResponse ? ['_query' => ['utm_nooverride' => '1']] : []
             );
         }
 
