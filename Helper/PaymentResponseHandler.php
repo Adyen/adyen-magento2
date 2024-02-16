@@ -35,6 +35,13 @@ class PaymentResponseHandler
     const VAULT = 'Magento Vault';
     const POS_SUCCESS = 'Success';
 
+    public const ACTION_REQUIRED_STATUSES = [
+        self::REDIRECT_SHOPPER,
+        self::IDENTIFY_SHOPPER,
+        self::CHALLENGE_SHOPPER,
+        self::PENDING
+    ];
+
     /**
      * @var AdyenLogger
      */
