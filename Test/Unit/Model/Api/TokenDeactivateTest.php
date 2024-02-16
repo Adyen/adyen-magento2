@@ -96,4 +96,33 @@ class TokenDeactivateTest extends AbstractAdyenTestCase
 
         $this->assertFalse($result, "Expected the result to be false when deactivating a token with an invalid customer ID.");
     }
+
+    public function testExceptionThrownDuringTokenDeletion()
+    {
+        $paymentToken = 'token123';
+        $paymentMethodCode = 'adyen_cc';
+        $customerId = 1;
+        $exceptionMessage = 'Error during deletion';
+
+        $paymentTokenMock = $this->createMock(\Magento\Vault\Api\Data\PaymentTokenInterface::class);
+        $paymentTokenMock->method('getEntityId')->willReturn('123');
+
+        $this->paymentTokenManagementMock->expects($this->once())
+            ->method('getByGatewayToken')
+            ->with($paymentToken, $paymentMethodCode, $customerId)
+            ->willReturn($paymentTokenMock);
+
+        $this->paymentTokenRepositoryMock->expects($this->once())
+            ->method('delete')
+            ->with($paymentTokenMock)
+            ->willThrowException(new \Exception($exceptionMessage));
+
+        $this->adyenLoggerMock->expects($this->once())
+            ->method('error')
+            ->with($this->stringContains('Error while attempting to deactivate token with id 123'));
+
+        $result = $this->tokenDeactivate->deactivateToken($paymentToken, $paymentMethodCode, $customerId);
+
+        $this->assertFalse($result);
+    }
 }
