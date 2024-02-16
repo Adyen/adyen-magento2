@@ -14,7 +14,6 @@ namespace Adyen\Payment\Model\Api;
 use Adyen\Payment\Api\AdyenPosCloudInterface;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Sales\OrderRepository;
-use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObjectFactoryInterface;
