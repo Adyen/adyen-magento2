@@ -20,6 +20,7 @@ use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Adyen\Service\Recurring;
+use Adyen\AdyenException;
 use Adyen\Client;
 
 class PaymentVaultDeleteTokenTest extends AbstractAdyenTestCase
@@ -68,6 +69,43 @@ class PaymentVaultDeleteTokenTest extends AbstractAdyenTestCase
         $this->dataHelperMock->method('createAdyenRecurringService')->willReturn($recurringServiceMock);
 
         $recurringServiceMock->expects($this->once())->method('disable')->willReturn(['response' => 'success']);
+
+        $this->paymentVaultDeleteToken = new PaymentVaultDeleteToken(
+            $storeManagerMock,
+            $this->dataHelperMock,
+            $this->adyenLoggerMock,
+            $this->requestsHelperMock,
+            $this->vaultHelperMock
+        );
+
+        $result = $this->paymentVaultDeleteToken->beforeDelete($this->createMock(PaymentTokenRepositoryInterface::class), $paymentTokenMock);
+
+        $this->assertIsArray($result);
+        $this->assertCount(1, $result);
+        $this->assertSame([$paymentTokenMock], $result);
+    }
+
+    public function testHandleExceptionDuringAdyenApiCall()
+    {
+        $paymentTokenMock = $this->createMock(PaymentTokenInterface::class);
+        $paymentTokenMock->method('getPaymentMethodCode')->willReturn('adyen_cc');
+        $paymentTokenMock->method('getEntityId')->willReturn('123');
+
+        $storeMock = $this->createGeneratedMock(\Magento\Store\Model\Store::class, ['getStoreId']);
+        $storeMock->method('getStoreId')->willReturn(1);
+
+        $storeManagerMock = $this->createMock(\Magento\Store\Model\StoreManagerInterface::class);
+        $storeManagerMock->method('getStore')->willReturn($storeMock);
+
+        $this->vaultHelperMock->method('isAdyenPaymentCode')->willReturn(true);
+
+        $this->dataHelperMock->expects($this->once())
+            ->method('initializeAdyenClient')
+            ->willThrowException(new AdyenException('API Error'));
+
+        $this->adyenLoggerMock->expects($this->once())
+            ->method('error')
+            ->with($this->stringContains('Error while attempting to disable token with id 123: API Error'));
 
         $this->paymentVaultDeleteToken = new PaymentVaultDeleteToken(
             $storeManagerMock,
