@@ -35,6 +35,7 @@ class RefundDataBuilder implements BuilderInterface
     private Config $configHelper;
     private PaymentCollectionFactory $orderPaymentCollectionFactory;
     private ChargedCurrency $chargedCurrency;
+    private OpenInvoice $openInvoiceHelper;
 
     public function __construct(
         Data $adyenHelper,
