@@ -68,7 +68,6 @@ class TokenDeactivateTest extends AbstractAdyenTestCase
         $paymentMethodCode = 'adyen_cc';
         $customerId = 1;
 
-        // Setup expectations
         $this->paymentTokenManagementMock->expects($this->once())
             ->method('getByGatewayToken')
             ->with($this->equalTo('non_existent_token'), $this->equalTo($paymentMethodCode), $this->equalTo($customerId))
