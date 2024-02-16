@@ -131,10 +131,14 @@ class Index extends Action
                 sprintf(
                     'Payment for order %s was unsuccessful, ' .
                     'it will be cancelled when the OFFER_CLOSED notification has been processed.',
-                    $this->order->getIncrementId()
+                    isset($this->order) ? $this->order->getIncrementId() :
+                        ($redirectResponse['merchantReference'] ?? null)
                 )
             );
-            $this->replaceCart($redirectResponse);
+
+            $this->session->restoreQuote();
+            $this->messageManager->addError(__('Your payment failed, Please try again later'));
+
             $this->_redirect($failPath, ['_query' => ['utm_nooverride' => '1']]);
         }
     }
@@ -198,17 +202,6 @@ class Index extends Action
         }
 
         return $order;
-    }
-
-    private function replaceCart(array $response): void
-    {
-        $this->session->restoreQuote();
-
-        if (isset($response['authResult']) && $response['authResult'] == \Adyen\Payment\Model\Notification::CANCELLED) {
-            $this->messageManager->addError(__('You have cancelled the order. Please try again'));
-        } else {
-            $this->messageManager->addError(__('Your payment failed, Please try again later'));
-        }
     }
 
     /**
