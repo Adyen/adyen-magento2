@@ -45,6 +45,9 @@ class PaymentResponseHandler
         self::PENDING
     ];
 
+    /**
+     * @var AdyenLogger
+     */
     private AdyenLogger $adyenLogger;
     private Vault $vaultHelper;
     private Order $orderResourceModel;

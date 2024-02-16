@@ -25,6 +25,7 @@ class Config
     const XML_ADYEN_ABSTRACT_PREFIX = "adyen_abstract";
     const XML_ADYEN_GIVING_PREFIX = "adyen_giving";
     const XML_MERCHANT_ACCOUNT = "merchant_account";
+    const XML_PAYMENT_METHODS_ACTIVE= "payment_methods_active";
     const XML_NOTIFICATIONS_USERNAME = "notification_username";
     const XML_NOTIFICATIONS_PASSWORD = "notification_password";
     const XML_WEBHOOK_URL = "webhook_url";
@@ -91,6 +92,15 @@ class Config
     public function getClientKey($mode, $storeId = null): ?string
     {
         return $this->getConfigData('client_key_' . $mode, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
+    }
+
+    public function getIsPaymentMethodsActive($storeId = null): bool
+    {
+        return $this->getConfigData(
+            self::XML_PAYMENT_METHODS_ACTIVE,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId
+            ) === '1';
     }
 
     /**

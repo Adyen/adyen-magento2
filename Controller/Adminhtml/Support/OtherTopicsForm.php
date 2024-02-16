@@ -74,7 +74,6 @@ class OtherTopicsForm extends Action
                 $this->supportFormHelper->handleSubmit($formData, self::OTHER_TOPICS);
 
                 return $this->_redirect('*/*/success');
-
             } catch (\Exception $e) {
                 $this->messageManager->addErrorMessage(__('Unable to send support message. '
                     . $e->getMessage()));
