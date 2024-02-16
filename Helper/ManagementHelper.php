@@ -183,10 +183,8 @@ class ManagementHelper
         // Try to reuse saved webhookId if merchant account is the same.
         if (!empty($webhookId) && $merchantId === $savedMerchantAccount) {
             try {
-
                 $updateRequest = new UpdateMerchantWebhookRequest($params);
                 $response = $service->updateWebhook($merchantId, $webhookId, $updateRequest);
-
             } catch (AdyenException $exception) {
                 $this->adyenLogger->error($exception->getMessage());
             }
