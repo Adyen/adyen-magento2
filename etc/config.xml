@@ -223,10 +223,6 @@
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_bcmc_mobile>
-<!--            <adyen_bcmc_vault>-->
-<!--                <title>Stored Bancontact Mobile</title>-->
-<!--                <model>AdyenPaymentBcmcVaultFacade</model>-->
-<!--            </adyen_bcmc_vault>-->
             <adyen_dotpay>
                 <active>1</active>
                 <model>AdyenPaymentDotpayFacade</model>
