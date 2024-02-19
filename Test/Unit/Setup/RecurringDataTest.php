@@ -11,7 +11,7 @@
 
 namespace Adyen\Payment\Test\Unit\Setup;
 
-use Adyen\Payment\Setup\Recurring;
+use Adyen\Payment\Setup\RecurringData;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\SchemaSetupInterface;
@@ -26,7 +26,7 @@ class RecurringTest extends AbstractAdyenTestCase
     {
         parent::setUp();
         $this->paymentMethodsFactoryMock = $this->createGeneratedMock(PaymentMethodsFactory::class, ['create']);
-        $this->recurring = new Recurring($this->paymentMethodsFactoryMock);
+        $this->recurring = new RecurringData($this->paymentMethodsFactoryMock);
     }
 
     public function testInstall()
