@@ -1656,6 +1656,7 @@
     <preference for="Adyen\Payment\Api\GuestAdyenDonationsInterface" type="Adyen\Payment\Model\Api\GuestAdyenDonations" />
     <preference for="Adyen\Payment\Api\Data\NotificationInterface" type="Adyen\Payment\Model\Notification" />
     <preference for="Adyen\Payment\Api\AdyenPaymentMethodsBalanceInterface" type="Adyen\Payment\Model\Api\AdyenPaymentMethodsBalance" />
+    <preference for="Adyen\Payment\Api\TokenDeactivateInterface" type="Adyen\Payment\Model\Api\TokenDeactivate" />
     <type name="Magento\Vault\Api\PaymentTokenRepositoryInterface">
         <plugin name="AdyenPaymentVaultDeleteToken" type="Adyen\Payment\Plugin\PaymentVaultDeleteToken" sortOrder="10" />
     </type>
@@ -3909,6 +3910,16 @@
             <argument name="methodCode" xsi:type="string">adyen_klarna_b2b</argument>
         </arguments>
     </virtualType>
+    <virtualType name="AdyenPaymentMobilepayFacade" type="Adyen\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="string">adyen_mobilepay</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\PaymentMethodInfo</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentMobilepayValueHandlerPool</argument>
+            <argument name="validatorPool" xsi:type="object">AdyenPaymentValidatorPool</argument>
+            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
+       </arguments>
+    </virtualType>   
     <virtualType name="AdyenPaymentVippsFacade" type="Adyen\Payment\Model\Method\Adapter">
         <arguments>
             <argument name="code" xsi:type="string">adyen_vipps</argument>
@@ -3917,6 +3928,23 @@
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentVippsValueHandlerPool</argument>
             <argument name="validatorPool" xsi:type="object">AdyenPaymentValidatorPool</argument>
             <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentMobilepayValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AdyenPaymentMobilepayConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentMobilepayConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AdyenPaymentMobilepayConfig</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentMobilepayConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="string">adyen_mobilepay</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentVippsValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
@@ -3937,3 +3965,4 @@
         </arguments>
     </virtualType>
 </config>
+
