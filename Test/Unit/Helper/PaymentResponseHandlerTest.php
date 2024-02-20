@@ -240,6 +240,9 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
             'donationToken' => 'XYZ123456789'
         ];
 
+        $this->quoteHelperMock->method('disableQuote')->willThrowException(new Exception());
+        $this->adyenLoggerMock->expects($this->atLeastOnce())->method('error');
+
         $result = $this->paymentResponseHandler->handlePaymentsDetailsResponse(
             $paymentsDetailsResponse,
             $this->orderMock
@@ -272,7 +275,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         $this->adyenLoggerMock->expects($this->atLeastOnce())->method('error');
 
         $paymentsDetailsResponse = [
-            'resultCode' => PaymentResponseHandler::AUTHORISED,
+            'resultCode' => PaymentResponseHandler::PENDING,
             'pspReference' => 'ABC123456789',
             'paymentMethod' => [
                 'brand' => $paymentMethodCode
