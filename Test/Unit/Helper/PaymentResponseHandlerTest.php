@@ -18,14 +18,22 @@ use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Quote;
 use Adyen\Payment\Helper\Order as OrderHelper;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Exception;
+use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\Exception\InputException;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Sales\Model\Order\Payment;
+use Magento\Sales\Model\Order\Status\History;
 use Magento\Sales\Model\ResourceModel\Order;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\Order\Status\HistoryFactory;
 use Adyen\Payment\Helper\StateData;
-use PHPUnit\Framework\TestCase;
 
-class PaymentResponseHandlerTest extends TestCase
+class PaymentResponseHandlerTest extends AbstractAdyenTestCase
 {
+    private $paymentMock;
+    private $orderMock;
     private $adyenLoggerMock;
     private $vaultHelperMock;
     private $orderResourceModelMock;
@@ -40,6 +48,8 @@ class PaymentResponseHandlerTest extends TestCase
 
     protected function setUp(): void
     {
+        $this->paymentMock  = $this->createMock(Payment::class);
+        $this->orderMock = $this->createMock(\Magento\Sales\Model\Order::class);
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
         $this->vaultHelperMock = $this->createMock(Vault::class);
         $this->orderResourceModelMock = $this->createMock(Order::class);
@@ -47,8 +57,23 @@ class PaymentResponseHandlerTest extends TestCase
         $this->quoteHelperMock = $this->createMock(Quote::class);
         $this->orderHelperMock = $this->createMock(OrderHelper::class);
         $this->orderRepositoryMock = $this->createMock(OrderRepository::class);
-        $this->orderHistoryFactoryMock = $this->createMock(HistoryFactory::class);
+        $this->orderHistoryFactoryMock = $this->createGeneratedMock(HistoryFactory::class, [
+            'create'
+        ]);
         $this->stateDataHelperMock = $this->createMock(StateData::class);
+
+        $orderHistory = $this->createMock(History::class);
+        $orderHistory->method('setStatus')->willReturnSelf();
+        $orderHistory->method('setComment')->willReturnSelf();
+        $orderHistory->method('setEntityName')->willReturnSelf();
+        $orderHistory->method('setOrder')->willReturnSelf();
+
+        $this->orderHistoryFactoryMock->method('create')->willReturn($orderHistory);
+        $this->orderMock->method('getQuoteId')->willReturn(1);
+        $this->orderMock->method('getPayment')->willReturn($this->paymentMock);
+        $this->orderMock->method('getStatus')->willReturn('pending');
+
+        $this->orderHelperMock->method('setStatusOrderCreation')->willReturn( $this->orderMock);
 
         $this->paymentResponseHandler = new PaymentResponseHandler(
             $this->adyenLoggerMock,
@@ -184,5 +209,223 @@ class PaymentResponseHandlerTest extends TestCase
         $this->assertEquals($expectedResult, $result);
     }
 
+    public function testHandlePaymentsDetailsResponseWithNullResultCode()
+    {
+        $orderMock = $this->createMock(\Magento\Sales\Model\Order::class);
 
+        $paymentsDetailsResponse = [];
+
+        $result = $this->paymentResponseHandler->handlePaymentsDetailsResponse(
+            $paymentsDetailsResponse,
+            $orderMock
+        );
+
+        $this->assertFalse($result);
+    }
+
+    // TODO test empty response
+
+    public function testHandlePaymentsDetailsResponseAuthorised()
+    {
+        $paymentsDetailsResponse = [
+            'resultCode' => PaymentResponseHandler::AUTHORISED,
+            'pspReference' => 'ABC123456789',
+            'paymentMethod' => [
+                'brand' => 'ideal'
+            ],
+            'additionalData' => [
+                'someData' => 'someValue'
+            ],
+            'details' => [
+                'someData' => 'someValue'
+            ],
+            'donationToken' => 'XYZ123456789'
+        ];
+
+        $result = $this->paymentResponseHandler->handlePaymentsDetailsResponse(
+            $paymentsDetailsResponse,
+            $this->orderMock
+        );
+
+        $this->assertTrue($result);
+    }
+
+
+    private static function handlePaymentsDetailsPendingProvider(): array
+    {
+        return [
+            ['paymentMethodCode' => 'bankTransfer'],
+            ['paymentMethodCode' => 'sepadirectdebit'],
+            ['paymentMethodCode' => 'multibanco'],
+        ];
+    }
+
+    /**
+     * @return void
+     * @throws AlreadyExistsException
+     * @throws InputException
+     * @throws NoSuchEntityException
+     * @dataProvider handlePaymentsDetailsPendingProvider
+     */
+    public function testHandlePaymentsDetailsResponsePending($paymentMethodCode)
+    {
+        $this->stateDataHelperMock->method('cleanQuoteStateData')
+            ->willThrowException(new Exception);
+        $this->adyenLoggerMock->expects($this->atLeastOnce())->method('error');
+
+        $paymentsDetailsResponse = [
+            'resultCode' => PaymentResponseHandler::AUTHORISED,
+            'pspReference' => 'ABC123456789',
+            'paymentMethod' => [
+                'brand' => $paymentMethodCode
+            ]
+        ];
+
+        $result = $this->paymentResponseHandler->handlePaymentsDetailsResponse(
+            $paymentsDetailsResponse,
+            $this->orderMock
+        );
+
+        $this->assertTrue($result);
+    }
+
+    private static function handlePaymentsDetailsPendingReceived(): array
+    {
+        return [
+            ['paymentMethodCode' => 'alipay_hk', 'expectedResult' => false],
+            ['paymentMethodCode' => 'multibanco', 'expectedResult' => true]
+        ];
+    }
+
+    /**
+     * @return void
+     * @throws AlreadyExistsException
+     * @throws InputException
+     * @throws NoSuchEntityException
+     * @dataProvider handlePaymentsDetailsPendingReceived
+     */
+    public function testHandlePaymentsDetailsResponseReceived($paymentMethodCode, $expectedResult)
+    {
+        $paymentsDetailsResponse = [
+            'resultCode' => PaymentResponseHandler::RECEIVED,
+            'pspReference' => 'ABC123456789',
+            'paymentMethod' => [
+                'brand' => $paymentMethodCode
+            ]
+        ];
+
+        $result = $this->paymentResponseHandler->handlePaymentsDetailsResponse(
+            $paymentsDetailsResponse,
+            $this->orderMock
+        );
+
+        $this->assertEquals($expectedResult, $result);
+    }
+
+    private static function handlePaymentsDetailsActionRequiredProvider(): array
+    {
+        return [
+            ['resultCode' => PaymentResponseHandler::PRESENT_TO_SHOPPER],
+            ['resultCode' => PaymentResponseHandler::IDENTIFY_SHOPPER],
+            ['resultCode' => PaymentResponseHandler::CHALLENGE_SHOPPER],
+            ['resultCode' => PaymentResponseHandler::REDIRECT_SHOPPER]
+        ];
+    }
+
+    /**
+     * @return void
+     * @throws AlreadyExistsException
+     * @throws InputException
+     * @throws NoSuchEntityException
+     * @dataProvider handlePaymentsDetailsActionRequiredProvider
+     */
+    public function testHandlePaymentsDetailsResponseActionRequired($resultCode)
+    {
+        $paymentsDetailsResponse = [
+            'resultCode' => $resultCode,
+            'pspReference' => 'ABC123456789',
+            'paymentMethod' => [
+                'brand' => 'ideal'
+            ],
+            'action' => [
+                'actionData' => 'actionValue'
+            ]
+        ];
+
+        $this->adyenLoggerMock->expects($this->atLeastOnce())->method('addAdyenResult');
+
+        $result = $this->paymentResponseHandler->handlePaymentsDetailsResponse(
+            $paymentsDetailsResponse,
+            $this->orderMock
+        );
+
+        $this->assertTrue($result);
+    }
+
+    private static function handlePaymentsDetailsActionCancelledOrRefusedProvider(): array
+    {
+        return [
+            ['resultCode' => PaymentResponseHandler::REFUSED],
+            ['resultCode' => PaymentResponseHandler::CANCELLED]
+        ];
+    }
+
+    /**
+     * @return void
+     * @throws AlreadyExistsException
+     * @throws InputException
+     * @throws NoSuchEntityException
+     * @dataProvider handlePaymentsDetailsActionCancelledOrRefusedProvider
+     */
+    public function testHandlePaymentsDetailsResponseCancelOrRefused($resultCode)
+    {
+        $paymentsDetailsResponse = [
+            'resultCode' => $resultCode,
+            'pspReference' => 'ABC123456789',
+            'paymentMethod' => [
+                'brand' => 'ideal'
+            ],
+            'action' => [
+                'actionData' => 'actionValue'
+            ]
+        ];
+
+        $this->adyenLoggerMock->expects($this->atLeastOnce())->method('addAdyenResult');
+
+        $result = $this->paymentResponseHandler->handlePaymentsDetailsResponse(
+            $paymentsDetailsResponse,
+            $this->orderMock
+        );
+
+        $this->assertFalse($result);
+    }
+
+    public function testHandlePaymentsDetailsResponseInvalid()
+    {
+        $paymentsDetailsResponse = [
+            'resultCode' => 'UNRECOGNISED_RESULT_CODE'
+        ];
+
+        $this->adyenLoggerMock->expects($this->atLeastOnce())->method('error');
+
+        $result = $this->paymentResponseHandler->handlePaymentsDetailsResponse(
+            $paymentsDetailsResponse,
+            $this->orderMock
+        );
+
+        $this->assertFalse($result);
+    }
+
+    public function testHandlePaymentsDetailsEmptyResponse()
+    {
+        $paymentsDetailsResponse = [];
+        $this->adyenLoggerMock->expects($this->atLeastOnce())->method('error');
+
+        $result = $this->paymentResponseHandler->handlePaymentsDetailsResponse(
+            $paymentsDetailsResponse,
+            $this->orderMock
+        );
+
+        $this->assertFalse($result);
+    }
 }
