@@ -12,7 +12,6 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\Notification;
 use Exception;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\InputException;
@@ -229,7 +228,7 @@ class PaymentResponseHandler
 
                 $result = true;
                 break;
-            case Notification::PENDING:
+            case self::PENDING:
                 /* Change order state from pending_payment to new and expect authorisation webhook
                  * if no additional action is required according to /paymentDetails response. */
                 $order = $this->orderHelper->setStatusOrderCreation($order);
