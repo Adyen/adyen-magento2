@@ -134,6 +134,11 @@ class PaymentResponseHandler
         array $paymentsDetailsResponse,
         OrderInterface $order
     ): bool {
+        if (empty($paymentsDetailsResponse)) {
+            $this->adyenLogger->error("Payment details call failed, paymentsResponse is empty");
+            return false;
+        }
+
         $this->adyenLogger->addAdyenResult('Updating the order');
         $payment = $order->getPayment();
 
@@ -156,11 +161,6 @@ class PaymentResponseHandler
             $pspReference,
             $paymentMethod
         );
-
-        if (empty($paymentsDetailsResponse)) {
-            $this->adyenLogger->error("Payment details call failed, paymentsResponse is empty");
-            return false;
-        }
 
         if (!empty($paymentsDetailsResponse['resultCode'])) {
             $payment->setAdditionalInformation('resultCode', $paymentsDetailsResponse['resultCode']);
