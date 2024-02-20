@@ -223,8 +223,6 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         $this->assertFalse($result);
     }
 
-    // TODO test empty response
-
     public function testHandlePaymentsDetailsResponseAuthorised()
     {
         $paymentsDetailsResponse = [
