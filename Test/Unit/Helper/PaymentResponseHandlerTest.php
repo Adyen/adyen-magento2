@@ -213,7 +213,9 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
     {
         $orderMock = $this->createMock(\Magento\Sales\Model\Order::class);
 
-        $paymentsDetailsResponse = [];
+        $paymentsDetailsResponse = [
+            'randomData' => 'someRandomValue'
+        ];
 
         $result = $this->paymentResponseHandler->handlePaymentsDetailsResponse(
             $paymentsDetailsResponse,
