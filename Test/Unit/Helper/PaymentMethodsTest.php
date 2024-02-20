@@ -34,6 +34,10 @@ use Magento\Payment\Helper\Data as MagentoDataHelper;
 use Magento\Payment\Model\MethodInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Model\Order;
+use Magento\Quote\Model\Quote;
+use Magento\Store\Model\StoreManagerInterface;
+use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\Store;
 
 class PaymentMethodsTest extends AbstractAdyenTestCase
 {
@@ -60,7 +64,10 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
     {
         $this->contextMock = $this->createMock(Context::class);
         $this->quoteRepositoryMock = $this->createMock(CartRepositoryInterface::class);
-        $this->configMock = $this->createMock(ScopeConfigInterface::class);
+        //$this->configMock = $this->createMock(ScopeConfigInterface::class);
+        $this->configMock = $this->getMockBuilder(ScopeConfigInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
         $this->adyenHelperMock = $this->createMock(Data::class);
         $this->localeResolverMock = $this->createMock(ResolverInterface::class);
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
@@ -75,6 +82,12 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $this->manualCaptureMock = $this->createMock(ManualCapture::class);
         $this->serializerMock = $this->createMock(SerializerInterface::class);
         $this->adyenDataHelperMock = $this->createMock(AdyenDataHelper::class);
+        $this->storeMock = $this->getMockBuilder(Store::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $this->quoteMock = $this->getMockBuilder(Quote::class)
+            ->disableOriginalConstructor()
+            ->getMock();
 
         // Instantiate the PaymentMethods helper class with the mocked dependencies
         $this->paymentMethodsHelper = new PaymentMethods(
@@ -187,5 +200,151 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             ['adyen_cc', 'adyen_oneclick', 'adyen_cc_vault'],
             $paymentMethods
         );
+    }
+
+//    public function testIsAdyenPayment()
+//    {
+//        // Test with valid Adyen payment method code
+//        $this->assertTrue($this->paymentMethodsHelper->isAdyenPayment('adyen_cc'));
+//
+//        // Test with invalid payment method code
+//        $this->assertFalse($this->paymentMethodsHelper->isAdyenPayment('invalid_payment_method'));
+//    }
+
+    //Successfully retrieve payment methods for a valid quote ID.
+    public function testSuccessfullyRetrievePaymentMethodsForValidQuoteId()
+    {
+        $quoteId = 123; // Example valid quote ID
+        $country = 'US'; // Example country
+        $shopperLocale = 'en_US'; // Example shopper locale
+        $storeId = 1;
+
+        $quoteMock = $this->getMockBuilder(Quote::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        // Create a mock for the Store object
+        $storeMock = $this->getMockBuilder(Store::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $storeMock->expects($this->any())
+            ->method('getId')
+            ->willReturn($storeId);
+
+        // Mock the getId method of the quote to return the quoteId
+        $quoteMock->expects($this->any())
+            ->method('getStore')
+            ->willReturn($storeMock);
+
+        // Mock the quote repository to return the quote mock
+        $this->quoteRepositoryMock->expects($this->once())
+            ->method('getActive')
+            ->with($quoteId)
+            ->willReturn($quoteMock);
+
+        // Perform the test
+        $result = $this->paymentMethodsHelper->getPaymentMethods($quoteId, $country, $shopperLocale);
+
+        $this->assertNotEmpty($result);
+    }
+
+    public function testRetrievePaymentMethodsWithInvalidQuoteId()
+    {
+        $invalidQuoteId = 999; // Example invalid quote ID
+        $country = 'US'; // Example country
+        $shopperLocale = 'en_US'; // Example shopper locale
+
+        // Mock the quote repository to return null for an invalid quote ID
+        $this->quoteRepositoryMock->expects($this->once())
+            ->method('getActive')
+            ->with($invalidQuoteId)
+            ->willReturn(null);
+
+        // Perform the test
+        $result = $this->paymentMethodsHelper->getPaymentMethods($invalidQuoteId, $country, $shopperLocale);
+
+        // Assert that the result is an array
+        $this->assertEmpty($result);
+    }
+
+    public function testGetAdyenPaymentMethods()
+    {
+        // Mock the Data helper class
+        $dataHelperMock = $this->getMockBuilder(MagentoDataHelper::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        // Define the list of payment methods to be returned by the mock
+        $paymentMethods = [
+            'adyen_cc' => [],
+            'adyen_oneclick' => [],
+            'paypal' => [], // Non-Adyen payment method
+            'adyen_sepa' => [],
+        ];
+
+        // Set up the expected filtered Adyen payment methods
+        $expectedAdyenPaymentMethods = [
+            'adyen_cc',
+            'adyen_oneclick',
+            'adyen_sepa',
+        ];
+
+        // Set up the mock to return the predefined list of payment methods
+        $dataHelperMock->expects($this->once())
+            ->method('getPaymentMethodList')
+            ->willReturn($paymentMethods);
+
+        // Instantiate the PaymentMethods class with the mocked Data helper
+        //$paymentMethods = new PaymentMethods($dataHelperMock);
+        $paymentMethods = new PaymentMethods(
+            $this->contextMock,
+            $this->quoteRepositoryMock,
+            $this->configMock,
+            $this->adyenHelperMock,
+            $this->localeResolverMock,
+            $this->adyenLoggerMock,
+            $this->assetRepoMock,
+            $this->requestMock,
+            $this->assetSourceMock,
+            $this->designMock,
+            $this->themeProviderMock,
+            $this->chargedCurrencyMock,
+            $this->configHelperMock,
+            $dataHelperMock,
+            $this->manualCaptureMock,
+            $this->serializerMock,
+            $this->adyenDataHelperMock
+            );
+        // Call the getAdyenPaymentMethods() method
+        $actualAdyenPaymentMethods = $paymentMethods->getAdyenPaymentMethods();
+
+        // Assert that the returned array contains only the expected Adyen payment methods
+        $this->assertEquals($expectedAdyenPaymentMethods, $actualAdyenPaymentMethods);
+    }
+
+    public function testIsAdyenPayment()
+    {
+        // Define the list of Adyen payment methods
+        $adyenPaymentMethods = ['adyen_cc', 'adyen_oneclick', 'adyen_sepa'];
+
+        // Mock the Data helper class
+        $dataHelperMock = $this->getMockBuilder(Data::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        // Set up the mock to return the predefined list of Adyen payment methods
+        $dataHelperMock->expects($this->once())
+            ->method('getPaymentMethodList')
+            ->willReturn($adyenPaymentMethods);
+
+        // Instantiate the PaymentMethods class with the mocked Data helper
+        $paymentMethods = new PaymentMethods($dataHelperMock);
+
+        // Test for an Adyen payment method code
+        $this->assertTrue($paymentMethods->isAdyenPayment('adyen_cc'));
+
+        // Test for a non-Adyen payment method code
+        $this->assertFalse($paymentMethods->isAdyenPayment('paypal'));
     }
 }
