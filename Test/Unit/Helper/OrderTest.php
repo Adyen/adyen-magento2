@@ -30,6 +30,7 @@ use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\DB\TransactionFactory;
 use Magento\Framework\Notification\NotifierPool;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder;
@@ -638,6 +639,50 @@ class OrderTest extends AbstractAdyenTestCase
         $this->assertEquals('new', $result->getState());
     }
 
+    public function testSetStatusOrderCreation()
+    {
+        $paymentMethodCode = 'adyen_cc';
+        $storeId = 1;
+        $assignedStatusForStateNew = 'pending';
+
+        $paymentMock = $this->createMock(MagentoOrder\Payment::class);
+        $paymentMock->method('getMethod')->willReturn($paymentMethodCode);
+
+        $orderMock = $this->createMock(OrderInterface::class);
+        $orderMock->method('getPayment')->willReturn($paymentMock);
+        $orderMock->method('getStoreId')->willReturn($storeId);
+
+        $configHelper = $this->createMock(Config::class);
+        $configHelper->method('getConfigData')->with('order_status', $paymentMethodCode, $storeId)
+            ->willReturn(\Magento\Sales\Model\Order::STATE_NEW);
+
+        $statusResolverMock = $this->createMock(MagentoOrder\StatusResolver::class);
+        $statusResolverMock->method('getOrderStatusByState')->willReturn($assignedStatusForStateNew);
+
+        $dataHelper = $this->createOrderHelper(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $statusResolverMock
+        );
+
+        $result = $dataHelper->setStatusOrderCreation($orderMock);
+
+        $this->assertInstanceOf(OrderInterface::class, $result);
+    }
 
     protected function createOrderHelper(
         $orderStatusCollectionFactory = null,
