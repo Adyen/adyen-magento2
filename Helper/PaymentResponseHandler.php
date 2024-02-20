@@ -145,13 +145,20 @@ class PaymentResponseHandler
         $authResult = $paymentsDetailsResponse['authResult'] ?? $paymentsDetailsResponse['resultCode'] ?? null;
         if (is_null($authResult)) {
             // In case the result is unknown we log the request and don't update the history
-            $this->adyenLogger->error("Unexpected result query parameter. Response: " . json_encode($paymentsDetailsResponse));
+            $this->adyenLogger->error(
+                "Unexpected result query parameter. Response: " . json_encode($paymentsDetailsResponse)
+            );
 
             return false;
         }
 
-        $paymentMethod = $paymentsDetailsResponse['paymentMethod']['brand'] ?? $paymentsDetailsResponse['paymentMethod']['type'] ?? '';
-        $pspReference = isset($paymentsDetailsResponse['pspReference']) ? trim((string) $paymentsDetailsResponse['pspReference']) : '';
+        $paymentMethod = $paymentsDetailsResponse['paymentMethod']['brand'] ??
+            $paymentsDetailsResponse['paymentMethod']['type'] ??
+            '';
+
+        $pspReference = isset($paymentsDetailsResponse['pspReference']) ?
+            trim((string) $paymentsDetailsResponse['pspReference']) :
+            '';
 
         $type = 'Adyen paymentsDetails response:';
         $comment = __(
@@ -278,7 +285,8 @@ class PaymentResponseHandler
                 break;
             default:
                 $this->adyenLogger->error(
-                    sprintf("Payment details call failed for action, resultCode is %s Raw API responds: %s. Cancel or Hold the order on OFFER_CLOSED notification.",
+                    sprintf("Payment details call failed for action, resultCode is %s Raw API responds: %s. 
+                    Cancel or Hold the order on OFFER_CLOSED notification.",
                         $paymentsDetailsResponse['resultCode'],
                         json_encode($paymentsDetailsResponse)
                     ));
