@@ -814,6 +814,19 @@
                 <item name="adyen_sepadirectdebit" xsi:type="string">AdyenPaymentCommandManager</item>
                 <item name="adyen_cashapp" xsi:type="string">AdyenPaymentCommandManager</item>
                 <item name="adyen_boleto" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_bcmc" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_momo" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_carnet" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_gcash" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_twint" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_paybybank" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_klarna_paynow" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_klarna_account_vault" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_kakaopay" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_giropay" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_eps" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_directEbanking" xsi:type="string">AdyenPaymentCommandManager</item>
+
             </argument>
         </arguments>
     </type>
