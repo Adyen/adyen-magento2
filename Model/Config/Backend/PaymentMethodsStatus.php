@@ -41,7 +41,7 @@ class PaymentMethodsStatus extends Value
 
     public function afterSave(): PaymentMethodsStatus
     {
-        $this->paymentMethodsHelper->togglePaymentMethodsActivation($this->getValue());
+        $this->paymentMethodsHelper->togglePaymentMethodsActivation((bool) $this->getValue());
 
         return $this;
     }
