@@ -70,7 +70,10 @@ class PaymentVaultDeleteToken
                 );
 
                 $response = $recurringService->disable(new DisableRequest($request));
-                $this->dataHelper->logResponse($response);
+                
+                $responseData = json_decode(json_encode($response->jsonSerialize()), true);
+                $this->dataHelper->logResponse($responseData);
+
             } catch (AdyenException $e) {
                 $this->adyenLogger->error(sprintf(
                     'Error while attempting to disable token with id %s: %s',

@@ -87,7 +87,7 @@ class TransactionCancelTest extends AbstractAdyenTestCase
         $result = $this->transactionCancel->placeRequest($this->transferObjectMock);
 
         // Assert
-        $this->assertSame($result, []);
+        $this->assertSame($result, ['error' => 'API exception']);
     }
 
     public function testCancellationWithMultipleRequests()

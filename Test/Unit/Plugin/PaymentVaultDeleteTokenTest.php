@@ -11,11 +11,13 @@
 
 namespace Adyen\Payment\Test\Plugin;
 
+use Adyen\Model\Recurring\DisableResult;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Plugin\PaymentVaultDeleteToken;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Payment\Helper\Requests;
+use Adyen\Service\RecurringApi;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Store\Model\StoreManagerInterface;
@@ -64,11 +66,13 @@ class PaymentVaultDeleteTokenTest extends AbstractAdyenTestCase
         $this->vaultHelperMock->method('isAdyenPaymentCode')->willReturn(true);
 
         $clientMock = $this->createMock(Client::class);
-        $recurringServiceMock = $this->createMock(Recurring::class);
+        $recurringServiceMock = $this->createMock(RecurringApi::class);
         $this->dataHelperMock->method('initializeAdyenClient')->willReturn($clientMock);
-        $this->dataHelperMock->method('createAdyenRecurringService')->willReturn($recurringServiceMock);
+        $this->dataHelperMock->method('initializeRecurringApi')->willReturn($recurringServiceMock);
 
-        $recurringServiceMock->expects($this->once())->method('disable')->willReturn(['response' => 'success']);
+        $recurringServiceMock->expects($this->once())
+            ->method('disable')
+            ->willReturn(new DisableResult(['response' => 'success']));
 
         $this->paymentVaultDeleteToken = new PaymentVaultDeleteToken(
             $storeManagerMock,
