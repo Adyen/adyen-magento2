@@ -253,7 +253,7 @@ class PaymentMethods extends AbstractHelper
         $client = $this->adyenHelper->initializeAdyenClient($store->getId());
 
         // initialize service
-        $service = new PaymentsApi($client);
+        $service =$this->adyenHelper->initializePaymentsApi($client);
 
         try {
             $this->adyenHelper->logRequest($requestParams, Client::API_CHECKOUT_VERSION, '/paymentMethods');

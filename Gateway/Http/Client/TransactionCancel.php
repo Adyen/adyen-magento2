@@ -60,6 +60,7 @@ class TransactionCancel implements ClientInterface
                 $responseData = json_decode(json_encode($response->jsonSerialize()), true);
                 $this->adyenHelper->logResponse($responseData);
             } catch (AdyenException $e) {
+                $responseData['error'] = $e->getMessage();
                 $this->adyenHelper->logAdyenException($e);
             }
         }
