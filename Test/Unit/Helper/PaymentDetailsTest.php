@@ -15,6 +15,7 @@ use Adyen\Model\Checkout\PaymentDetailsResponse;
 use Adyen\AdyenException;
 use Adyen\Payment\Helper\PaymentsDetails;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Adyen\Service\Checkout;
 use Magento\Framework\Exception\ValidatorException;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order\Payment;
@@ -67,24 +68,23 @@ class PaymentDetailsTest extends AbstractAdyenTestCase
 
     public function testInitiatePaymentDetailsSuccessfully()
     {
-        $orderMock = $this->createMock(OrderInterface::class);
-        $paymentMock = $this->createMock(Payment::class);
         $serviceMock = $this->createMock(PaymentsApi::class);
         $adyenClientMock = $this->createMock(Client::class);
-        $storeId = 1;
-        $payload = json_encode([
-            'details' => 'some_details',
-             'merchantReference' => '00000000001'
+        $payload = [
+            'details' => [
+                'some_value' => 'some_details',
+                'merchantReference' => '00000000001'
+            ],
             'paymentData' => 'some_payment_data',
             'threeDSAuthenticationOnly' => true,
-        ]);
+        ];
 
         $requestOptions = [
             'idempotencyKey' => 'some_idempotency_key',
             'headers' => ['headerKey' => 'headerValue']
         ];
 
-        $paymentDetailsResult = ['resultCode' => 'Authorised', 'action' => null, 'additionalData' => null];
+        $paymentDetailsResult = ['resultCode' => 'Authorised'];
         $this->adyenHelperMock->method('initializeAdyenClient')->willReturn($adyenClientMock);
         $this->adyenHelperMock->method('initializePaymentsApi')->willReturn($serviceMock);
         $this->adyenHelperMock->method('buildRequestHeaders')->willReturn($requestOptions['headers']);
