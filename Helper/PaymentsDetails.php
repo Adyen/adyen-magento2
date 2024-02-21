@@ -67,9 +67,6 @@ class PaymentsDetails
             $requestOptions['idempotencyKey'] = $this->idempotencyHelper->generateIdempotencyKey($request);
             $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
 
-            $requestOptions['idempotencyKey'] = $this->idempotencyHelper->generateIdempotencyKey($request);
-            $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
-
             $paymentDetailsObj = $service->paymentsDetails(new PaymentDetailsRequest($request), $requestOptions);
             $response = json_decode(json_encode($paymentDetailsObj->jsonSerialize()), true);
         } catch (AdyenException $e) {
