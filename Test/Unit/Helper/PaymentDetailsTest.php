@@ -77,7 +77,7 @@ class PaymentDetailsTest extends AbstractAdyenTestCase
              'merchantReference' => '00000000001'
             'paymentData' => 'some_payment_data',
             'threeDSAuthenticationOnly' => true,
-        ];
+        ]);
 
         $requestOptions = [
             'idempotencyKey' => 'some_idempotency_key',
