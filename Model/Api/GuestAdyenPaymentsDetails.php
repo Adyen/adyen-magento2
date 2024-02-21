@@ -12,7 +12,6 @@
 namespace Adyen\Payment\Model\Api;
 
 use Adyen\Payment\Api\GuestAdyenPaymentsDetailsInterface;
-use Adyen\Payment\Helper\PaymentsDetails;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -23,19 +22,17 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 class GuestAdyenPaymentsDetails implements GuestAdyenPaymentsDetailsInterface
 {
     private OrderRepositoryInterface $orderRepository;
-
     private QuoteIdMaskFactory $quoteIdMaskFactory;
-
-    private PaymentsDetails $paymentsDetails;
+    private AdyenPaymentsDetails $adyenPaymentsDetails;
 
     public function __construct(
         OrderRepositoryInterface $orderRepository,
         QuoteIdMaskFactory $quoteIdMaskFactory,
-        PaymentsDetails $paymentsDetails
+        AdyenPaymentsDetails $adyenPaymentsDetails
     ) {
         $this->orderRepository = $orderRepository;
         $this->quoteIdMaskFactory = $quoteIdMaskFactory;
-        $this->paymentsDetails = $paymentsDetails;
+        $this->adyenPaymentsDetails = $adyenPaymentsDetails;
     }
 
     /**
@@ -61,6 +58,6 @@ class GuestAdyenPaymentsDetails implements GuestAdyenPaymentsDetailsInterface
             );
         }
 
-        return $this->paymentsDetails->initiatePaymentDetails($order, $payload);
+        return $this->adyenPaymentsDetails->initiate($payload, $orderId);
     }
 }
