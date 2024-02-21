@@ -62,9 +62,10 @@ class PaymentsDetails
 
         try {
             $client = $this->adyenHelper->initializeAdyenClient($order->getStoreId());
-            $service = $this->adyenHelper->initialize
-              
-              ($client);
+            $service = $this->adyenHelper->initializePaymentsApi($client);
+
+            $requestOptions['idempotencyKey'] = $this->idempotencyHelper->generateIdempotencyKey($request);
+            $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
 
             $requestOptions['idempotencyKey'] = $this->idempotencyHelper->generateIdempotencyKey($request);
             $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
