@@ -15,7 +15,6 @@ use Adyen\Model\Checkout\PaymentDetailsResponse;
 use Adyen\AdyenException;
 use Adyen\Payment\Helper\PaymentsDetails;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
-use Adyen\Service\Checkout;
 use Magento\Framework\Exception\ValidatorException;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order\Payment;
@@ -48,7 +47,7 @@ class PaymentDetailsTest extends AbstractAdyenTestCase
 
         $this->orderMock = $this->createMock(OrderInterface::class);
         $this->paymentMock = $this->createMock(Payment::class);
-        $this->checkoutServiceMock = $this->createMock(Checkout::class);
+        $this->checkoutServiceMock = $this->createMock(PaymentsApi::class);
         $this->adyenClientMock = $this->createMock(Client::class);
 
         $this->orderMock->method('getPayment')->willReturn($this->paymentMock);
@@ -56,7 +55,7 @@ class PaymentDetailsTest extends AbstractAdyenTestCase
         $this->paymentMock->method('getOrder')->willReturn($this->orderMock);
 
         $this->adyenHelperMock->method('initializeAdyenClient')->willReturn($this->adyenClientMock);
-        $this->adyenHelperMock->method('createAdyenCheckoutService')->willReturn($this->checkoutServiceMock);
+        $this->adyenHelperMock->method('initializePaymentsApi')->willReturn($this->checkoutServiceMock);
 
         $this->paymentDetails = new PaymentsDetails(
             $this->checkoutSessionMock,
@@ -90,7 +89,7 @@ class PaymentDetailsTest extends AbstractAdyenTestCase
         $this->adyenHelperMock->method('buildRequestHeaders')->willReturn($requestOptions['headers']);
         $this->idempotencyHelperMock->method('generateIdempotencyKey')->willReturn($requestOptions['idempotencyKey']);
 
-        $serviceMock->expects($this->once())
+        $this->checkoutServiceMock->expects($this->once())
             ->method('paymentsDetails')
             ->with(
                 $this->callback(function(PaymentDetailsRequest $detailsRequest) {
