@@ -118,7 +118,7 @@
                 <title>Stored Payment Methods (Adyen)</title>
             </adyen_hpp_vault>
             <adyen_ideal>
-                <active>1</active>
+                <active>0</active>
                 <model>AdyenPaymentIdealFacade</model>
                 <order_status>pending</order_status>
                 <title>iDeal</title>
@@ -142,7 +142,7 @@
                 <group>adyen-alternative-payment-method</group>
             </adyen_ideal>
             <adyen_klarna>
-                <active>1</active>
+                <active>0</active>
                 <model>AdyenPaymentKlarnaFacade</model>
                 <order_status>pending</order_status>
                 <title>Klarna</title>
@@ -171,7 +171,7 @@
                 <model>AdyenPaymentKlarnaVaultFacade</model>
             </adyen_klarna_vault>
             <adyen_paypal>
-                <active>1</active>
+                <active>0</active>
                 <model>AdyenPaymentPaypalFacade</model>
                 <order_status>pending</order_status>
                 <title>PayPal</title>
@@ -200,7 +200,7 @@
                 <model>AdyenPaymentPaypalVaultFacade</model>
             </adyen_paypal_vault>
             <adyen_bcmc_mobile>
-                <active>1</active>
+                <active>0</active>
                 <model>AdyenPaymentBcmcMobileFacade</model>
                 <order_status>pending</order_status>
                 <title>Bancontact Mobile</title>
@@ -224,7 +224,7 @@
                 <group>adyen-alternative-payment-method</group>
             </adyen_bcmc_mobile>
             <adyen_dotpay>
-                <active>1</active>
+                <active>0</active>
                 <model>AdyenPaymentDotpayFacade</model>
                 <order_status>pending</order_status>
                 <title>DotPay</title>
@@ -248,7 +248,7 @@
                 <group>adyen-alternative-payment-method</group>
             </adyen_dotpay>
             <adyen_amazonpay>
-                <active>1</active>
+                <active>0</active>
                 <model>AdyenPaymentAmazonPayFacade</model>
                 <order_status>pending</order_status>
                 <title>Amazon Pay</title>
@@ -276,7 +276,7 @@
                 <model>AdyenPaymentAmazonpayVaultFacade</model>
             </adyen_amazonpay_vault>
             <adyen_googlepay>
-                <active>1</active>
+                <active>0</active>
                 <model>AdyenPaymentGooglepayFacade</model>
                 <order_status>pending</order_status>
                 <title>Google Pay</title>
@@ -305,7 +305,7 @@
                 <model>AdyenPaymentGooglepayVaultFacade</model>
             </adyen_googlepay_vault>
             <adyen_multibanco>
-                <active>1</active>
+                <active>0</active>
                 <model>AdyenPaymentMultibancoFacade</model>
                 <order_status>pending</order_status>
                 <title>Multibanco</title>
@@ -329,7 +329,7 @@
                 <group>adyen-alternative-payment-method</group>
             </adyen_multibanco>
             <adyen_facilypay_3x>
-                <active>1</active>
+                <active>0</active>
                 <model>AdyenPaymentFacilypay3xFacade</model>
                 <order_status>pending</order_status>
                 <title>FacilyPay 3x</title>
@@ -353,7 +353,7 @@
                 <group>adyen-alternative-payment-method</group>
             </adyen_facilypay_3x>
             <adyen_sepadirectdebit>
-                <active>1</active>
+                <active>0</active>
                 <model>AdyenPaymentSepadirectdebitFacade</model>
                 <order_status>pending</order_status>
                 <title>SEPA Direct Debit</title>
@@ -472,7 +472,7 @@
                 <group>adyen</group>
             </adyen_moto>
             <adyen_applepay>
-                <active>1</active>
+                <active>0</active>
                 <model>AdyenPaymentApplePayFacade</model>
                 <title>Apple Pay</title>
                 <allowspecific>0</allowspecific>
@@ -498,7 +498,7 @@
                 <model>AdyenPaymentApplePayVaultFacade</model>
             </adyen_applepay_vault>
             <adyen_giftcard>
-                <active>1</active>
+                <active>0</active>
                 <model>AdyenPaymentGiftcardFacade</model>
                 <order_status>pending</order_status>
                 <title>Giftcard</title>
@@ -1957,7 +1957,7 @@
                 <model>AdyenPaymentBcmcVaultFacade</model>
             </adyen_bcmc_vault>
             <adyen_cashapp>
-                <active>1</active>
+                <active>0</active>
                 <model>AdyenPaymentCashappFacade</model>
                 <title>Cash App Pay</title>
                 <allowspecific>0</allowspecific>
