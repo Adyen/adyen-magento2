@@ -135,7 +135,6 @@ class PaymentMethods extends AbstractHelper
     public function getAdyenPaymentMethods() : array
     {
         $paymentMethods = $this->dataHelper->getPaymentMethodList();
-
         $filtered = array_filter(
             $paymentMethods,
             function ($key) {
@@ -143,7 +142,6 @@ class PaymentMethods extends AbstractHelper
             },
             ARRAY_FILTER_USE_KEY
         );
-
         return array_keys($filtered);
     }
 
