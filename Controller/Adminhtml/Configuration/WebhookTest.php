@@ -14,6 +14,7 @@ namespace Adyen\Payment\Controller\Adminhtml\Configuration;
 use Adyen\AdyenException;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\ManagementHelper;
+use Adyen\Service\Management\WebhooksMerchantLevelApi;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\ResponseInterface;
@@ -87,11 +88,11 @@ class WebhookTest extends Action
         $environment = $isDemoMode ? 'test' : 'live';
         $apiKey = $this->configHelper->getApiKey($environment, $storeId);
 
-        $managementApiService = $this->managementApiHelper->getManagementApiService($apiKey, $isDemoMode);
-        $response = $this->managementApiHelper->webhookTest($merchantAccount, $webhookId, $managementApiService);
-
-        $success = isset($response['data']) &&
-            in_array('success', array_column($response['data'], 'status'), true);
+        $client = $this->managementApiHelper->getAdyenApiClient($apiKey, $isDemoMode);
+        $service =$this->managementApiHelper->getWebhooksMerchantLevelApi($client);
+        $response = $this->managementApiHelper->webhookTest($merchantAccount, $webhookId, $service);
+        $success = isset($response) &&
+            in_array('success', array_column($response->getData(), 'status'), true);
 
         $resultJson = $this->resultJsonFactory->create();
         $resultJson->setData([

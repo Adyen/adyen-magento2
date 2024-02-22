@@ -12,6 +12,7 @@ namespace Adyen\Payment\Model\Config\Backend;
 
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\ManagementHelper;
+use Adyen\Service\Management\WebhooksMerchantLevelApi;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Value;
@@ -72,15 +73,16 @@ class WebhookCredentials extends Value
                 $apiKey = $this->configHelper->getApiKey($environment);
             }
             $merchantAccount = $this->getFieldsetDataValue('merchant_account_auto');
+            $client = $this->managementApiHelper->getAdyenApiClient($apiKey, $isDemoMode);
+            $service = new WebhooksMerchantLevelApi($client);
 
-            $managementApiService = $this->managementApiHelper->getManagementApiService($apiKey, $isDemoMode);
             $this->managementApiHelper->setupWebhookCredentials(
                 $merchantAccount,
                 $username,
                 $password,
                 $webhookUrl,
                 $isDemoMode,
-                $managementApiService
+                $service
             );
         }
 

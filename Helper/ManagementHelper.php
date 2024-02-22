@@ -16,8 +16,16 @@ namespace Adyen\Payment\Helper;
  */
 
 use Adyen\AdyenException;
+use Adyen\Client;
 use Adyen\ConnectionException;
-use Adyen\Service\Management;
+use Adyen\Model\Management\CreateAllowedOriginRequest;
+use Adyen\Model\Management\CreateMerchantWebhookRequest;
+use Adyen\Model\Management\TestWebhookRequest;
+use Adyen\Model\Management\TestWebhookResponse;
+use Adyen\Model\Management\UpdateMerchantWebhookRequest;
+use Adyen\Service\Management\AccountMerchantLevelApi;
+use Adyen\Service\Management\MyAPICredentialApi;
+use Adyen\Service\Management\WebhooksMerchantLevelApi;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Store\Model\StoreManager;
@@ -66,13 +74,14 @@ class ManagementHelper
      * @param ManagerInterface $messageManager
      */
     public function __construct(
-        StoreManager $storeManager,
+        StoreManager       $storeManager,
         EncryptorInterface $encryptor,
-        Data $dataHelper,
-        Config $configHelper,
-        AdyenLogger $adyenLogger,
-        ManagerInterface $messageManager
-    ) {
+        Data               $dataHelper,
+        Config             $configHelper,
+        AdyenLogger        $adyenLogger,
+        ManagerInterface   $messageManager
+    )
+    {
         $this->dataHelper = $dataHelper;
         $this->storeManager = $storeManager;
         $this->encryptor = $encryptor;
@@ -82,18 +91,20 @@ class ManagementHelper
     }
 
     /**
-     * @param Management $managementApiService
-     * @return array
-     * @throws AdyenException | ConnectionException
-     * @throws NoSuchEntityException
+     * @throws AdyenException | ConnectionException | NoSuchEntityException
      */
-    public function getMerchantAccountsAndClientKey(Management $managementApiService): array
+    public function getMerchantAccountsAndClientKey(
+        AccountMerchantLevelApi $accountMerchantLevelApi,
+        MyAPICredentialApi $myAPICredentialApi
+    ): array
     {
         $merchantAccounts = [];
         $page = 1;
         $pageSize = 100;
-        //get the merchant accounts using get /merchants.
-        $responseMerchants = $managementApiService->merchantAccount->list(["pageSize" => $pageSize]);
+        $responseMerchantsObj = $accountMerchantLevelApi->listMerchantAccounts(
+            ['queryParams' => ['pageSize' => $pageSize]]
+        );
+        $responseMerchants = json_decode(json_encode($responseMerchantsObj->jsonSerialize()), true);
         while (count($merchantAccounts) < $responseMerchants['itemsTotal']) {
             foreach ($responseMerchants['data'] as $merchantAccount) {
                 $defaultDC = array_filter($merchantAccount['dataCenters'], function ($dc) {
@@ -107,12 +118,15 @@ class ManagementHelper
             }
             ++$page;
             if (isset($responseMerchants['_links']['next'])) {
-                $responseMerchants = $managementApiService->merchantAccount->list(
-                    ["pageSize" => $pageSize, "pageNumber" => $page]
+                $responseMerchantsObj = $accountMerchantLevelApi->listMerchantAccounts(
+                    ['queryParams' => ["pageSize" => $pageSize, "pageNumber" => $page]]
                 );
+                $responseMerchants = json_decode(json_encode($responseMerchantsObj->jsonSerialize()), true);
             }
         }
-        $responseMe = $managementApiService->me->retrieve();
+
+        $responseMeObj = $myAPICredentialApi->getApiCredentialDetails();
+        $responseMe = json_decode(json_encode($responseMeObj->jsonSerialize()), true);
 
         $currentMerchantAccount = $this->configHelper->getMerchantAccount($this->storeManager->getStore()->getId());
 
@@ -124,24 +138,17 @@ class ManagementHelper
     }
 
     /**
-     * @param string $merchantId
-     * @param string $username
-     * @param string $password
-     * @param string $url
-     * @param bool $demoMode
-     * @param Management $managementApiService
-     * @return string|null
-     * @throws AdyenException
-     * @throws NoSuchEntityException
+     * @throws AdyenException | NoSuchEntityException
      */
     public function setupWebhookCredentials(
-        string $merchantId,
-        string $username,
-        string $password,
-        string $url,
-        bool $demoMode,
-        Management $managementApiService
-    ): ?string {
+        string                   $merchantId,
+        string                   $username,
+        string                   $password,
+        string                   $url,
+        bool                     $demoMode,
+        WebhooksMerchantLevelApi $service
+    ): ?string
+    {
         $params = [
             'url' => $url,
             'username' => $username,
@@ -176,8 +183,9 @@ class ManagementHelper
         // Try to reuse saved webhookId if merchant account is the same.
         if (!empty($webhookId) && $merchantId === $savedMerchantAccount) {
             try {
-                $response = $managementApiService->merchantWebhooks->update($merchantId, $webhookId, $params);
-            } catch (AdyenException $exception){
+                $updateRequest = new UpdateMerchantWebhookRequest($params);
+                $response = $service->updateWebhook($merchantId, $webhookId, $updateRequest);
+            } catch (AdyenException $exception) {
                 $this->adyenLogger->error($exception->getMessage());
             }
         }
@@ -186,9 +194,9 @@ class ManagementHelper
         if (!isset($response) || empty($webhookId)) {
             try {
                 $params['type'] = 'standard';
-                $response = $managementApiService->merchantWebhooks->create($merchantId, $params);
+                $response = $service->setUpWebhook($merchantId, new CreateMerchantWebhookRequest($params));
                 // save webhook_id to configuration
-                $webhookId = $response['id'];
+                $webhookId = $response->getId();
                 $this->configHelper->setConfigData($webhookId, 'webhook_id', Config::XML_ADYEN_ABSTRACT_PREFIX);
             } catch (\Exception $exception) {
                 $this->adyenLogger->error($exception->getMessage());
@@ -198,8 +206,8 @@ class ManagementHelper
         if (!empty($webhookId)) {
             try {
                 // generate hmac key and save
-                $response = $managementApiService->merchantWebhooks->generateHmac($merchantId, $webhookId);
-                $hmacKey = $response['hmacKey'];
+                $response = $service->generateHmacKey($merchantId, $webhookId);
+                $hmacKey = $response->getHmacKey();
                 $hmac = $this->encryptor->encrypt($hmacKey);
                 $mode = $demoMode ? 'test' : 'live';
                 $this->configHelper->setConfigData($hmac, 'notification_hmac_key_' . $mode, Config::XML_ADYEN_ABSTRACT_PREFIX);
@@ -217,66 +225,50 @@ class ManagementHelper
     }
 
     /**
-     * @param Management $managementApiService
-     * @return array
      * @throws AdyenException
      */
-    public function getAllowedOrigins(Management $managementApiService): array
+    public function getAllowedOrigins(MyAPICredentialApi $service): array
     {
-        $response = $managementApiService->allowedOrigins->list();
+        $responseObj = $service->getAllowedOrigins();
+        $response = json_decode(json_encode($responseObj->jsonSerialize()), true);
 
         return !empty($response) ? array_column($response['data'], 'domain') : [];
     }
 
     /**
-     * @param Management $managementApiService
-     * @param string $domain
-     * @return void
      * @throws AdyenException
      */
-    public function saveAllowedOrigin(Management $managementApiService, string $domain): void
+    public function saveAllowedOrigin(MyAPICredentialApi $service, string $domain): void
     {
-        $managementApiService->allowedOrigins->create(['domain' => $domain]);
+        $service->addAllowedOrigin(new CreateAllowedOriginRequest(['domain' => $domain]));
     }
 
-    /**
-     * @param string $merchantId
-     * @param string $webhookId
-     * @param Management $managementApiService
-     * @return mixed|string
-     */
-    public function webhookTest(string $merchantId, string $webhookId, Management $managementApiService)
+    public function webhookTest(
+        string                   $merchantId,
+        string                   $webhookId,
+        WebhooksMerchantLevelApi $service
+    ): ?TestWebhookResponse
     {
-        $params = [
-            'types' => [
-                'AUTHORISATION'
-            ]
-        ];
-
+        $testWebhookRequest = new TestWebhookRequest(['types' => ['AUTHORISATION']]);
+        $response = null;
         try {
-            $response = $managementApiService->merchantWebhooks->test($merchantId, $webhookId, $params);
-
-            $this->adyenLogger->info(
-                sprintf( 'response from webhook test %s',
-                    json_encode($response))
-            );
-
-            return $response;
+            $response = $service->testWebhook($merchantId, $webhookId, $testWebhookRequest);
+            $this->adyenLogger->info(sprintf('response from webhook test %s', $response));
         } catch (AdyenException $exception) {
             $this->adyenLogger->error($exception->getMessage());
-
-            return $exception->getMessage();
         }
+
+        return $response;
     }
 
     /**
      * @param string $apiKey
      * @param bool $demoMode
-     * @return Management
+     * @return Client
      * @throws AdyenException
      * @throws NoSuchEntityException
      */
-    public function getManagementApiService(string $apiKey, bool $demoMode): Management
+    public function getAdyenApiClient(string $apiKey, bool $demoMode): Client
     {
         $environment = $demoMode ? 'test' : 'live';
         $storeId = $this->storeManager->getStore()->getId();
@@ -286,8 +278,25 @@ class ManagementHelper
             $apiKey = $this->configHelper->getApiKey($environment);
         }
 
-        $client = $this->dataHelper->initializeAdyenClient($storeId, $apiKey, null, $environment === 'test');
+        return $this->dataHelper->initializeAdyenClient(
+            $storeId, $apiKey,
+            null,
+            $environment === 'test'
+        );
+    }
 
-        return new Management($client);
+    public function getAccountMerchantLevelApi(Client $client): AccountMerchantLevelApi
+    {
+        return new AccountMerchantLevelApi($client);
+    }
+
+    public function getMyAPICredentialApi(Client $client): MyAPICredentialApi
+    {
+        return new MyAPICredentialApi($client);
+    }
+
+    public function getWebhooksMerchantLevelApi(Client $client): WebhooksMerchantLevelApi
+    {
+        return new WebhooksMerchantLevelApi($client);
     }
 }

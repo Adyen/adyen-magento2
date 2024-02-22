@@ -14,24 +14,29 @@ namespace Adyen\Payment\Helper;
 use Adyen\AdyenException;
 use Adyen\Client;
 use Adyen\Environment;
-use Adyen\Service\Checkout;
+use Adyen\Model\Checkout\UtilityRequest;
+use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Config\Source\RenderMode;
 use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
-use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
-use Adyen\Service\CheckoutUtility;
+use Adyen\Service\Checkout;
+use Adyen\Service\Checkout\ModificationsApi;
+use Adyen\Service\Checkout\OrdersApi;
+use Adyen\Service\Checkout\PaymentsApi;
+use Adyen\Service\Checkout\UtilityApi;
 use Adyen\Service\PosPayment;
 use Adyen\Service\Recurring;
+use Adyen\Service\RecurringApi;
 use DateTime;
 use Exception;
 use Magento\Backend\Helper\Data as BackendHelper;
 use Magento\Directory\Model\Config\Source\Country;
 use Magento\Framework\App\CacheInterface;
+use Magento\Framework\App\Cache\Type\Config as ConfigCache;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
-use Magento\Framework\App\Cache\Type\Config as ConfigCache;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ProductMetadataInterface;
@@ -1195,6 +1200,26 @@ class Data extends AbstractHelper
         return $this->initializeAdyenClient($storeId, null, $motoMerchantAccount);
     }
 
+    public function initializePaymentsApi(Client $client):PaymentsApi
+    {
+        return new PaymentsApi($client);
+    }
+
+    public function initializeModificationsApi(Client $client):ModificationsApi
+    {
+        return new ModificationsApi($client);
+    }
+
+    public function initializeRecurringApi(Client $client):RecurringApi
+    {
+        return new RecurringApi($client);
+    }
+
+    public function initializeOrdersApi(Client $client): OrdersApi
+    {
+        return new OrdersApi($client);
+    }
+
     /**
      * @param Client $client
      * @return PosPayment
@@ -1279,8 +1304,9 @@ class Data extends AbstractHelper
         $client = $this->initializeAdyenClient($storeId);
 
         try {
-            $service = $this->createAdyenCheckoutUtilityService($client);
-            $response = $service->originKeys($params);
+            $service = new UtilityApi($client);
+            $responseObj = $service->originKeys(new UtilityRequest($params));
+            $response = json_decode(json_encode($responseObj->jsonSerialize()), true);
         } catch (Exception $e) {
             $this->adyenLogger->error($e->getMessage());
         }
@@ -1314,16 +1340,6 @@ class Data extends AbstractHelper
             default:
                 return self::LIVE;
         }
-    }
-
-    /**
-     * @param Client $client
-     * @return CheckoutUtility
-     * @throws AdyenException
-     */
-    private function createAdyenCheckoutUtilityService($client)
-    {
-        return new CheckoutUtility($client);
     }
 
     /**
@@ -1374,6 +1390,7 @@ class Data extends AbstractHelper
      * @return Checkout
      * @throws AdyenException
      * @throws NoSuchEntityException
+     * @deprecared use `initializePaymentsApi`, or `initializeModificationsApi` based on your case
      */
     public function createAdyenCheckoutService(Client $client = null): Checkout
     {
@@ -1388,6 +1405,7 @@ class Data extends AbstractHelper
      * @param $client
      * @return Recurring
      * @throws AdyenException
+     * @deprecared use `initializeRecurringApi()`
      */
     public function createAdyenRecurringService($client)
     {
@@ -1512,6 +1530,14 @@ class Data extends AbstractHelper
         }
 
         $this->adyenLogger->info('Response from Adyen API', $context);
+    }
+
+    public function logAdyenException(AdyenException $e)
+    {
+        $responseArray = [];
+        $responseArray['error'] = $e->getMessage();
+        $responseArray['errorCode'] = $e->getAdyenErrorCode();
+        $this->logResponse($responseArray);
     }
 
     private function filterReferences(array $data): array

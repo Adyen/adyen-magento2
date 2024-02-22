@@ -13,11 +13,13 @@ namespace Adyen\Payment\Gateway\Http\Client;
 
 use Adyen\AdyenException;
 use Adyen\Client;
+use Adyen\Model\Checkout\PaymentCaptureRequest;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
 use Adyen\Payment\Helper\Requests;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Service\Checkout\ModificationsApi;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 
@@ -49,7 +51,7 @@ class TransactionCapture implements ClientInterface
         $headers = $transferObject->getHeaders();
         $clientConfig = $transferObject->getClientConfig();
         $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
-        $service = $this->adyenHelper->createAdyenCheckoutService($client);
+        $service = $this->adyenHelper->initializeModificationsApi($client);
 
         $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
             $request,
@@ -64,26 +66,45 @@ class TransactionCapture implements ClientInterface
         }
 
         $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/captures');
+        $paymentCaptureRequest = new PaymentCaptureRequest($request);
+        $responseData = [];
 
         try {
-            $response = $service->captures($request, $requestOptions);
-            $response = $this->copyParamsToResponse($response, $request);
-        } catch (AdyenException $e) {
-            $response['error'] = $e->getMessage();
-        }
-        $this->adyenHelper->logResponse($response);
+            $response = $service->captureAuthorisedPayment(
+                $request['paymentPspReference'],
+                $paymentCaptureRequest,
+                $requestOptions
+            );
 
-        return $response;
+            $responseData = json_decode(json_encode($response->jsonSerialize()), true);
+            $responseData = $this->copyParamsToResponse($responseData, $request);
+            $this->adyenHelper->logResponse($responseData);
+        } catch (AdyenException $e) {
+            $this->adyenHelper->logAdyenException($e);
+        }
+
+        return $responseData;
     }
 
-    private function placeMultipleCaptureRequests($service, $requestContainer, $requestOptions): array
+    private function placeMultipleCaptureRequests(
+        ModificationsApi $service,
+        array            $requestContainer,
+        array            $requestOptions
+    ): array
     {
         $response = [];
         foreach ($requestContainer[self::MULTIPLE_AUTHORIZATIONS] as $request) {
             try {
                 // Copy merchant account from parent array to every request array
                 $request[Requests::MERCHANT_ACCOUNT] = $requestContainer[Requests::MERCHANT_ACCOUNT];
-                $singleResponse = $service->captures($request, $requestOptions);
+                $paymentCaptureRequest = new PaymentCaptureRequest($request);
+                $singleResponseObj = $service->captureAuthorisedPayment(
+                    $request['paymentPspReference'],
+                    $paymentCaptureRequest,
+                    $requestOptions
+                );
+
+                $singleResponse = json_decode(json_encode($singleResponseObj->jsonSerialize()), true);
                 $singleResponse[self::FORMATTED_CAPTURE_AMOUNT] = $request['amount']['currency'] . ' ' .
                 $this->adyenHelper->originalAmount(
                     $request['amount']['value'],

@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
+ * Copyright (c) 2024 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Plugin;
 
 use Adyen\AdyenException;
+use Adyen\Model\Recurring\DisableRequest;
 use Adyen\Client;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Requests;
@@ -60,15 +61,18 @@ class PaymentVaultDeleteToken
 
             try {
                 $client = $this->dataHelper->initializeAdyenClient($storeId);
-                $recurringService = $this->dataHelper->createAdyenRecurringService($client);
+                $recurringService = $this->dataHelper->initializeRecurringApi($client);
 
                 $this->dataHelper->logRequest(
                     $request,
                     Client::API_RECURRING_VERSION,
                     sprintf("/pal/servlet/Recurring/%s/disable", Client::API_RECURRING_VERSION)
                 );
-                $response = $recurringService->disable($request);
-                $this->dataHelper->logResponse($response);
+
+                $response = $recurringService->disable(new DisableRequest($request));
+
+                $responseData = json_decode(json_encode($response->jsonSerialize()), true);
+                $this->dataHelper->logResponse($responseData);
             } catch (AdyenException $e) {
                 $this->adyenLogger->error(sprintf(
                     'Error while attempting to disable token with id %s: %s',

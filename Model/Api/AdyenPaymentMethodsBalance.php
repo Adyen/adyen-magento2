@@ -13,10 +13,12 @@
 namespace Adyen\Payment\Model\Api;
 
 use Adyen\AdyenException;
+use Adyen\Model\Checkout\BalanceCheckRequest;
 use Adyen\Payment\Api\AdyenPaymentMethodsBalanceInterface;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Service\Checkout\OrdersApi;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Store\Model\StoreManager;
 
@@ -53,17 +55,16 @@ class AdyenPaymentMethodsBalance implements AdyenPaymentMethodsBalanceInterface
 
         try {
             $client = $this->adyenHelper->initializeAdyenClient($storeId);
-            $service = $this->adyenHelper->createAdyenCheckoutService($client);
+            $service = $this->adyenHelper->initializeOrdersApi($client);
+            $response = $service->getBalanceOfGiftCard(new BalanceCheckRequest($payload));
 
-            $response = $service->paymentMethodsBalance($payload);
-
-            if ($response['resultCode'] === self::FAILED_RESULT_CODE) {
+            if ($response->getResultCode() === self::FAILED_RESULT_CODE) {
                 // Balance endpoint doesn't send HTTP status 422 for invalid PIN, manual handling required.
                 $errorMessage = $response['additionalData']['acquirerResponseCode'] ?? 'Unknown error!';
                 throw new AdyenException($errorMessage);
             }
 
-            return json_encode($response);
+            return (string) $response;
         } catch (AdyenException $e) {
             $this->adyenLogger->error(
                 sprintf("An error occurred during balance check! %s", $e->getMessage())

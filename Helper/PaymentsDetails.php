@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
+use Adyen\Model\Checkout\PaymentDetailsRequest;
 use Adyen\Payment\Helper\Util\DataArrayValidator;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Checkout\Model\Session;
@@ -58,15 +59,15 @@ class PaymentsDetails
     public function initiatePaymentDetails(OrderInterface $order, array $payload): array
     {
         $request = $this->cleanUpPaymentDetailsPayload($payload);
-
         try {
             $client = $this->adyenHelper->initializeAdyenClient($order->getStoreId());
-            $service = $this->adyenHelper->createAdyenCheckoutService($client);
+            $service = $this->adyenHelper->initializePaymentsApi($client);
 
             $requestOptions['idempotencyKey'] = $this->idempotencyHelper->generateIdempotencyKey($request);
             $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
 
-            $response = $service->paymentsDetails($request, $requestOptions);
+            $paymentDetailsObj = $service->paymentsDetails(new PaymentDetailsRequest($request), $requestOptions);
+            $response = json_decode(json_encode($paymentDetailsObj->jsonSerialize()), true);
         } catch (AdyenException $e) {
             $this->adyenLogger->error("Payment details call failed: " . $e->getMessage());
             $this->checkoutSession->restoreQuote();
