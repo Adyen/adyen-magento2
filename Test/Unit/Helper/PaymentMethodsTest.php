@@ -206,7 +206,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         );
     }
 
-    //Successfully retrieve payment methods for a valid quote ID.
+    //Successfully retrieve payment methods for a valid quote ID. getPaymentMethods
     public function testSuccessfullyRetrievePaymentMethodsForValidQuoteId()
     {
         $quoteId = 123; // Example valid quote ID
@@ -413,6 +413,12 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $this->assertEquals(json_encode([]), $result);
     }
 
+
+
+
+
+
+
     public function testFetchPaymentMethodsSuccessfulRetrieval()
     {
         // Setup test scenario
@@ -432,17 +438,6 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $this->adyenHelperMock->method('logResponse');
 
         $storeId = 1;
-
-
-// Define the return value for the paymentMethods method
-        $responseData = ['paymentMethods' => ['adyen_cc', 'ideal']]; // Define the expected response data
-
-        $this->paymentMethodsHelper->setService(new class {
-            public function paymentMethods($requestParams) {
-                return ['paymentMethods' => ['adyen_cc', 'ideal']];
-            }
-        });
-
 
         $quoteMock = $this->getMockBuilder(Quote::class)
             ->disableOriginalConstructor()
@@ -499,6 +494,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $fetchPaymentMethodsMethod->setAccessible(true);
 
         // Execute method of the tested class
+        $result = $fetchPaymentMethodsMethod->invoke($paymentMethodsHelper, $country, $shopperLocale);
         $result = $fetchPaymentMethodsMethod->invoke($paymentMethodsHelper, $country, $shopperLocale);
 
         // Assert conditions
