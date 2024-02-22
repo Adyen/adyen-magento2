@@ -38,7 +38,7 @@ class AdyenPosCloud implements AdyenPosCloudInterface
         $this->adyenLogger = $adyenLogger;
     }
 
-    public function pay(int $orderId, string $payload): void
+    public function pay(int $orderId): void
     {
         $order = $this->orderRepository->get($orderId);
         $this->execute($order);
