@@ -94,19 +94,19 @@ define(
                 fullScreenLoader.startLoader();
                 placeOrderAction(self.getData(), new Messages())
                     .fail(function (response) {
-                        self.handleFaildResponse(response)
+                        self.handleFailedResponse(response)
                     })
                     .done(function (orderId) {
                         adyenPaymentService.posPayment(orderId)
                             .fail(function (response) {
-                                self.handleFaildResponse(response)
+                                self.handleFailedResponse(response)
                             })
                             .done(function () {
                                 self.posComplete()
                             })
                     })
             },
-            handleFaildResponse: function (response) {
+            handleFailedResponse: function (response) {
                 let self = this;
                 if (response.responseText.indexOf("In Progress") > -1) {
                     window.setTimeout(function () {
