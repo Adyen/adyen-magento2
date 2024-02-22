@@ -30,11 +30,13 @@ use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\DB\TransactionFactory;
 use Magento\Framework\Notification\NotifierPool;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderStatusCollectionFactory;
+use Magento\Sales\Api\Data\TransactionInterface;
 
 class OrderTest extends AbstractAdyenTestCase
 {
@@ -152,6 +154,50 @@ class OrderTest extends AbstractAdyenTestCase
         $orderHelper->holdCancelOrder($order, false);
     }
 
+    public function testHoldCancelOrderNotConfigurableToCancel()
+    {
+        $storeId = 1;
+        $configHelper = $this->createMock(Config::class);
+        $configHelper->method('getNotificationsCanCancel')
+            ->with($storeId)
+            ->willReturn(false);
+
+        $adyenLoggerMock = $this->createMock(AdyenLogger::class);
+        $adyenLoggerMock->expects($this->once())
+            ->method('addAdyenNotification')
+            ->with(
+                $this->stringContains('Order cannot be cancelled based on the plugin configuration'),
+                $this->arrayHasKey('pspReference')
+            );
+
+        $paymentMock = $this->createMock(\Magento\Sales\Model\Order\Payment::class);
+        $paymentMock->method('getData')->willReturnMap([
+            ['adyen_psp_reference', null, 'test_psp_reference'],
+            ['entity_id', null, 'test_entity_id']
+        ]);
+
+        $orderMock = $this->createMock(MagentoOrder::class);
+        $orderMock->method('getStoreId')->willReturn($storeId);
+        $orderMock->method('getPayment')->willReturn($paymentMock);
+        $orderMock->expects($this->never())->method('cancel');
+        $orderMock->expects($this->never())->method('hold');
+
+        $orderHelper = $this->createOrderHelper(
+            null,
+            $configHelper,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $adyenLoggerMock
+        );
+
+        $result = $orderHelper->holdCancelOrder($orderMock, false);
+
+        $this->assertSame($orderMock, $result);
+    }
+
     public function testRefundOrderSuccessful()
     {
         $dataHelper = $this->createPartialMock(Data::class, []);
@@ -257,6 +303,387 @@ class OrderTest extends AbstractAdyenTestCase
         $orderHelper->addRefundFailedNotice($order, $notification);
     }
 
+    public function testUpdatePaymentDetailsWithOrderInitiallyInStatePaymentReview()
+    {
+        $pspReference = '123456ABCDEF';
+        $notificationMock = $this->createMock(Notification::class);
+        $notificationMock->method('getPspreference')->willReturn($pspReference);
+
+        $paymentMock = $this->createMock(MagentoOrder\Payment::class);
+        $paymentMock->expects($this->once())->method('setCcTransId')->with($pspReference);
+        $paymentMock->expects($this->once())->method('setLastTransId')->with($pspReference);
+        $paymentMock->expects($this->once())->method('setTransactionId')->with($pspReference);
+
+        $orderMock = $this->createConfiguredMock(MagentoOrder::class, [
+            'getPayment' => $paymentMock,
+            'getState' => \Magento\Sales\Model\Order::STATE_PAYMENT_REVIEW,
+            'setState' => \Magento\Sales\Model\Order::STATE_NEW
+        ]);
+
+        $transactionMock = $this->createMock(\Magento\Sales\Model\Order\Payment\Transaction::class);
+        $transactionMock->expects($this->once())->method('setIsClosed')->with(false);
+        $transactionMock->expects($this->once())->method('save');
+
+        $transactionBuilderMock = $this->createMock(Builder::class);
+        $transactionBuilderMock->method('setPayment')->willReturnSelf();
+        $transactionBuilderMock->method('setOrder')->willReturnSelf();
+        $transactionBuilderMock->method('setTransactionId')->willReturnSelf();
+        $transactionBuilderMock->method('build')->willReturn($transactionMock);
+
+        $orderHelper = $this->createOrderHelper(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $transactionBuilderMock
+        );
+
+        $result = $orderHelper->updatePaymentDetails($orderMock, $notificationMock);
+
+        $this->assertInstanceOf(\Magento\Sales\Model\Order\Payment\Transaction::class, $result);
+    }
+
+    public function testUpdatePaymentDetailsWithOrderNotInStatePaymentReview()
+    {
+        $pspReference = '123456789';
+        $paymentMock = $this->createConfiguredMock(MagentoOrder\Payment::class, [
+            'setCcTransId' => $pspReference,
+            'setLastTransId' => $pspReference,
+            'setTransactionId' => $pspReference
+        ]);
+        $orderMock = $this->createConfiguredMock(MagentoOrder::class, [
+            'getPayment' => $paymentMock,
+            'getState' => \Magento\Sales\Model\Order::STATE_PAYMENT_REVIEW,
+            'setState' => \Magento\Sales\Model\Order::STATE_NEW
+        ]);
+
+        $notificationMock = $this->createConfiguredMock(Notification::class, [
+            'getPspReference' => $pspReference
+        ]);
+
+        $transactionBuilderMock = $this->createMock(Builder::class);
+        $transactionMock = $this->createMock(\Magento\Sales\Model\Order\Payment\Transaction::class);
+        $transactionBuilderMock->expects($this->once())
+            ->method('setPayment')
+            ->with($paymentMock)
+            ->willReturnSelf();
+
+        $transactionBuilderMock->expects($this->once())
+            ->method('setOrder')
+            ->with($orderMock)
+            ->willReturnSelf();
+
+        $transactionBuilderMock->expects($this->once())
+            ->method('setTransactionId')
+            ->with($pspReference)
+            ->willReturnSelf();
+
+        $transactionBuilderMock->expects($this->once())
+            ->method('build')
+            ->with(TransactionInterface::TYPE_AUTH)
+            ->willReturn($transactionMock);
+
+        $transactionMock->expects($this->once())
+            ->method('setIsClosed')
+            ->with(false);
+
+        $transactionMock->expects($this->once())
+            ->method('save');
+
+        $orderHelper = $this->createOrderHelper(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $transactionBuilderMock
+        );
+
+        $result = $orderHelper->updatePaymentDetails($orderMock, $notificationMock);
+
+        $this->assertEquals($transactionMock, $result);
+    }
+
+    public function testAddWebhookStatusHistoryComment()
+    {
+        $eventCode = 'AUTHORISATION';
+        $amountCurrency = 'EUR';
+        $amountValue = 1000;
+        $expectedComment = 'AUTHORISATION webhook notification w/amount EUR 10.00 was processed';
+        $dataHelperMock = $this->createMock(Data::class);
+        $orderMock = $this->createMock(MagentoOrder::class);
+        $notificationMock = $this->createMock(Notification::class);
+
+        $notificationMock->method('getEventCode')->willReturn($eventCode);
+        $notificationMock->method('getAmountCurrency')->willReturn($amountCurrency);
+        $notificationMock->method('getAmountValue')->willReturn($amountValue);
+
+        $dataHelperMock->method('originalAmount')->with($amountValue, $amountCurrency)->willReturn('10.00');
+
+        $orderMock->expects($this->once())
+            ->method('addStatusHistoryComment')
+            ->with($this->equalTo($expectedComment), $this->equalTo(false))
+            ->willReturnSelf();
+
+        $orderHelper = $this->createOrderHelper(
+            null,
+            null,
+            null,
+            null,
+            $dataHelperMock
+        );
+
+        $result = $orderHelper->addWebhookStatusHistoryComment($orderMock, $notificationMock);
+
+        $this->assertEquals($orderMock, $result);
+    }
+
+    public function testSendOrderMailSuccess()
+    {
+        $orderMock = $this->createMock(MagentoOrder::class);
+        $adyenLoggerMock = $this->createMock(AdyenLogger::class);
+        $orderSenderMock = $this->createMock(OrderSender::class);
+        $paymentMock = $this->getMockBuilder(\Magento\Sales\Model\Order\Payment::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $paymentMock->expects($this->exactly(2))
+            ->method('getData')
+            ->willReturnMap([
+                ['adyen_psp_reference', null, 'test_psp_reference'],
+                ['entity_id', null, 'test_entity_id']
+            ]);
+
+        $orderMock->expects($this->exactly(2))
+            ->method('getPayment')
+            ->willReturn($paymentMock);
+
+        $orderSenderMock->expects($this->once())
+            ->method('send')
+            ->with($orderMock);
+
+        $adyenLoggerMock->expects($this->once())
+            ->method('addAdyenNotification')
+            ->with(
+                'Send order confirmation email to shopper',
+                ['pspReference' => 'test_psp_reference', 'merchantReference' => 'test_entity_id']
+            );
+
+        $orderHelper = $this->createOrderHelper(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $adyenLoggerMock,
+            $orderSenderMock
+        );
+
+        $orderHelper->sendOrderMail($orderMock);
+    }
+
+    public function testCreateShipmentSuccess()
+    {
+        $adyenLoggerMock = $this->createMock(AdyenLogger::class);
+        $orderMock = $this->createMock(MagentoOrder::class);
+        $shipmentMock = $this->createPartialMock(\Magento\Sales\Model\Order\Shipment::class, ['register', 'getOrder', 'addComment']);
+        $shipmentMock->method('getOrder')->willReturn($orderMock);
+        $transactionBuilderMock = $this->createMock(Builder::class);
+
+        $orderMock->method('canShip')->willReturn(true);
+
+        $orderHelper = $this->createOrderHelper(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $transactionBuilderMock,
+            $adyenLoggerMock
+        );
+
+        $result = $orderHelper->createShipment($orderMock);
+
+        $this->assertEquals($orderMock, $result);
+    }
+
+
+    public function testCreateShipmentCannotShip()
+    {
+        $adyenLoggerMock = $this->createMock(AdyenLogger::class);
+        $orderMock = $this->createMock(MagentoOrder::class);
+        $transactionBuilderMock = $this->createMock(Builder::class);
+        $paymentMock = $this->createMock(\Magento\Sales\Model\Order\Payment::class);
+        $paymentMock->method('getData')
+            ->willReturnMap([
+                ['adyen_psp_reference', null, 'test_psp_reference'],
+                ['entity_id', null, 'test_entity_id']
+            ]);
+        $orderMock->method('canShip')->willReturn(false);
+        $orderMock->method('getPayment')->willReturn($paymentMock);
+
+        $adyenLoggerMock->expects($this->once())
+            ->method('addAdyenNotification')
+            ->with(
+                'Order can\'t be shipped',
+                $this->anything()
+            );
+
+        $orderHelper = $this->createOrderHelper(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $transactionBuilderMock,
+            $adyenLoggerMock
+        );
+
+        $result = $orderHelper->createShipment($orderMock);
+
+        $this->assertEquals($orderMock, $result);
+    }
+
+    public function testSetPrePaymentAuthorized()
+    {
+        $storeId = 1;
+        $status = 'pre_authorized';
+        $adyenLoggerMock = $this->createMock(AdyenLogger::class);
+
+        $orderMock = $this->createMock(MagentoOrder::class);
+        $orderMock->method('getStoreId')->willReturn($storeId);
+        $orderMock->expects($this->once())->method('setStatus')->with($status);
+        $orderMock->expects($this->once())->method('getState')->willReturn('new');
+
+        $configHelperMock = $this->createConfiguredMock(Config::class, ['getConfigData' => $status]);
+        $adyenLoggerMock->expects($this->atLeastOnce())->method('addAdyenNotification')
+            ->withConsecutive(
+                [$this->stringContains('No new state assigned, status should be connected to one of the following states: ["new","adyen_authorized"]')],
+                [$this->stringContains('Order status is changed to Pre-authorised status')]
+            );
+
+        $paymentMock = $this->createMock(\Magento\Sales\Model\Order\Payment::class);
+        $paymentMock->method('getData')->willReturnMap([
+            ['adyen_psp_reference', null, 'test_psp_reference'],
+            ['entity_id', null, 'test_entity_id']
+        ]);
+        $orderMock->method('getPayment')->willReturn($paymentMock);
+        $orderStatusCollectionMock = $this->createOrderStatusCollection(MagentoOrder::STATE_PROCESSING);
+
+        $orderHelper = $this->createOrderHelper(
+            $orderStatusCollectionMock,
+            $configHelperMock,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $adyenLoggerMock
+        );
+
+        $result = $orderHelper->setPrePaymentAuthorized($orderMock);
+
+        $this->assertInstanceOf(MagentoOrder::class, $result);
+        $this->assertEquals('new', $result->getState());
+    }
+
+    public function testSetPrePaymentAuthorizedNoStatus()
+    {
+        $storeId = 1;
+        $eventLabel = "payment_pre_authorized";
+        $adyenLoggerMock = $this->createMock(AdyenLogger::class);
+
+        $orderMock = $this->createMock(MagentoOrder::class);
+        $orderMock->method('getStoreId')->willReturn($storeId);
+        $orderMock->method('getState')->willReturn('new');
+
+        $configHelperMock = $this->createMock(Config::class);
+        $configHelperMock->method('getConfigData')
+            ->with($eventLabel, 'adyen_abstract', $storeId)
+            ->willReturn('');
+
+        $adyenLoggerMock->expects($this->once())->method('addAdyenNotification')
+            ->with(
+                $this->stringContains('No pre-authorised status is used so ignore'),
+                $this->arrayHasKey('pspReference')
+            );
+
+        $paymentMock = $this->createMock(\Magento\Sales\Model\Order\Payment::class);
+        $paymentMock->method('getData')->willReturnMap([
+            ['adyen_psp_reference', null, 'test_psp_reference'],
+            ['entity_id', null, 'test_entity_id']
+        ]);
+        $orderMock->method('getPayment')->willReturn($paymentMock);
+
+        $orderHelper = $this->createOrderHelper(
+            null,
+            $configHelperMock,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $adyenLoggerMock
+        );
+
+        $result = $orderHelper->setPrePaymentAuthorized($orderMock);
+
+        $this->assertInstanceOf(MagentoOrder::class, $result);
+        $this->assertEquals('new', $result->getState());
+    }
+
+    public function testSetStatusOrderCreation()
+    {
+        $paymentMethodCode = 'adyen_cc';
+        $storeId = 1;
+        $assignedStatusForStateNew = 'pending';
+
+        $paymentMock = $this->createMock(MagentoOrder\Payment::class);
+        $paymentMock->method('getMethod')->willReturn($paymentMethodCode);
+
+        $orderMock = $this->createMock(OrderInterface::class);
+        $orderMock->method('getPayment')->willReturn($paymentMock);
+        $orderMock->method('getStoreId')->willReturn($storeId);
+
+        $configHelper = $this->createMock(Config::class);
+        $configHelper->method('getConfigData')->with('order_status', $paymentMethodCode, $storeId)
+            ->willReturn(\Magento\Sales\Model\Order::STATE_NEW);
+
+        $statusResolverMock = $this->createMock(MagentoOrder\StatusResolver::class);
+        $statusResolverMock->method('getOrderStatusByState')->willReturn($assignedStatusForStateNew);
+
+        $dataHelper = $this->createOrderHelper(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $statusResolverMock
+        );
+
+        $result = $dataHelper->setStatusOrderCreation($orderMock);
+
+        $this->assertInstanceOf(OrderInterface::class, $result);
+    }
+
     protected function createOrderHelper(
         $orderStatusCollectionFactory = null,
         $configHelper = null,
@@ -273,7 +700,8 @@ class OrderTest extends AbstractAdyenTestCase
         $notifierPool = null,
         $paymentMethodsHelper = null,
         $adyenCreditmemoResourceModel = null,
-        $adyenCreditmemoHelper = null
+        $adyenCreditmemoHelper = null,
+        $statusResolver = null
     ): Order
     {
         $context = $this->createMock(Context::class);
@@ -342,6 +770,10 @@ class OrderTest extends AbstractAdyenTestCase
             $adyenCreditmemoHelper = $this->createMock(AdyenCreditmemoHelper::class);
         }
 
+        if (is_null($statusResolver)) {
+            $statusResolver = $this->createMock(MagentoOrder\StatusResolver::class);
+        }
+
         return new Order(
             $context,
             $builder,
@@ -359,7 +791,8 @@ class OrderTest extends AbstractAdyenTestCase
             $orderPaymentCollectionFactory,
             $paymentMethodsHelper,
             $adyenCreditmemoResourceModel,
-            $adyenCreditmemoHelper
+            $adyenCreditmemoHelper,
+            $statusResolver
         );
     }
 }
