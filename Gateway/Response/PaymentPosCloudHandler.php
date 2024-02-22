@@ -13,6 +13,7 @@
 namespace Adyen\Payment\Gateway\Response;
 
 use Adyen\AdyenException;
+use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Helper\Quote;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
@@ -92,7 +93,7 @@ class PaymentPosCloudHandler implements HandlerInterface
         $payment->setIsTransactionClosed(false);
         $payment->setShouldCloseParentTransaction(false);
 
-        if (in_array($resultCode, ['Authorised', 'Success'])) {
+        if ($resultCode === PaymentResponseHandler::POS_SUCCESS) {
             $order = $payment->getOrder();
             $status = $this->statusResolver->getOrderStatusByState(
                 $payment->getOrder(),
