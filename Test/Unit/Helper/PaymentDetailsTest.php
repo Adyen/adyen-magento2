@@ -22,7 +22,7 @@ use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Helper\Idempotency;
 use Magento\Checkout\Model\Session;
-use Adyen\Service\Checkout;
+use Adyen\Service\Checkout\PaymentsApi;
 use Adyen\Client;
 
 class PaymentDetailsTest extends AbstractAdyenTestCase
@@ -47,7 +47,7 @@ class PaymentDetailsTest extends AbstractAdyenTestCase
 
         $this->orderMock = $this->createMock(OrderInterface::class);
         $this->paymentMock = $this->createMock(Payment::class);
-        $this->paymentsApiMock = $this->createMock(Checkout\PaymentsApi::class);
+        $this->paymentsApiMock = $this->createMock(PaymentsApi::class);
         $this->adyenClientMock = $this->createMock(Client::class);
 
         $this->orderMock->method('getPayment')->willReturn($this->paymentMock);
@@ -67,9 +67,11 @@ class PaymentDetailsTest extends AbstractAdyenTestCase
 
     public function testInitiatePaymentDetailsSuccessfully()
     {
+        $serviceMock = $this->createMock(PaymentsApi::class);
+        $adyenClientMock = $this->createMock(Client::class);
         $payload = [
             'details' => [
-                'detail_key1' => 'some-details',
+                'some_value' => 'some_details',
                 'merchantReference' => '00000000001'
             ],
             'paymentData' => 'some_payment_data',
