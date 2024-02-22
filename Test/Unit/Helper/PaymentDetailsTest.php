@@ -10,9 +10,9 @@
  */
 namespace Adyen\Payment\Test\Unit\Helper;
 
+use Adyen\AdyenException;
 use Adyen\Model\Checkout\PaymentDetailsRequest;
 use Adyen\Model\Checkout\PaymentDetailsResponse;
-use Adyen\AdyenException;
 use Adyen\Payment\Helper\PaymentsDetails;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Exception\ValidatorException;
@@ -22,7 +22,7 @@ use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Helper\Idempotency;
 use Magento\Checkout\Model\Session;
-use Adyen\Service\Checkout\PaymentsApi;
+use Adyen\Service\Checkout;
 use Adyen\Client;
 
 class PaymentDetailsTest extends AbstractAdyenTestCase
@@ -35,7 +35,7 @@ class PaymentDetailsTest extends AbstractAdyenTestCase
 
     private $orderMock;
     private $paymentMock;
-    private $checkoutServiceMock;
+    private $paymentsApiMock;
     private $adyenClientMock;
 
     protected function setUp(): void
@@ -47,7 +47,7 @@ class PaymentDetailsTest extends AbstractAdyenTestCase
 
         $this->orderMock = $this->createMock(OrderInterface::class);
         $this->paymentMock = $this->createMock(Payment::class);
-        $this->checkoutServiceMock = $this->createMock(Checkout::class);
+        $this->paymentsApiMock = $this->createMock(Checkout\PaymentsApi::class);
         $this->adyenClientMock = $this->createMock(Client::class);
 
         $this->orderMock->method('getPayment')->willReturn($this->paymentMock);
@@ -55,7 +55,7 @@ class PaymentDetailsTest extends AbstractAdyenTestCase
         $this->paymentMock->method('getOrder')->willReturn($this->orderMock);
 
         $this->adyenHelperMock->method('initializeAdyenClient')->willReturn($this->adyenClientMock);
-        $this->adyenHelperMock->method('createAdyenCheckoutService')->willReturn($this->checkoutServiceMock);
+        $this->adyenHelperMock->method('initializePaymentsApi')->willReturn($this->paymentsApiMock);
 
         $this->paymentDetails = new PaymentsDetails(
             $this->checkoutSessionMock,
@@ -67,39 +67,32 @@ class PaymentDetailsTest extends AbstractAdyenTestCase
 
     public function testInitiatePaymentDetailsSuccessfully()
     {
-        $orderMock = $this->createMock(OrderInterface::class);
-        $paymentMock = $this->createMock(Payment::class);
-        $serviceMock = $this->createMock(PaymentsApi::class);
-        $adyenClientMock = $this->createMock(Client::class);
-        $storeId = 1;
-        $payload = json_encode([
-            'details' => 'some_details',
-             'merchantReference' => '00000000001'
+        $payload = [
+            'details' => [
+                'detail_key1' => 'some-details',
+                'merchantReference' => '00000000001'
+            ],
             'paymentData' => 'some_payment_data',
             'threeDSAuthenticationOnly' => true,
-        ]);
+        ];
 
         $requestOptions = [
             'idempotencyKey' => 'some_idempotency_key',
             'headers' => ['headerKey' => 'headerValue']
         ];
 
-        $paymentDetailsResult = ['resultCode' => 'Authorised', 'action' => null, 'additionalData' => null];
-        $this->adyenHelperMock->method('initializeAdyenClient')->willReturn($adyenClientMock);
-        $this->adyenHelperMock->method('initializePaymentsApi')->willReturn($serviceMock);
+        $paymentDetailsResult = ['resultCode' => 'Authorised'];
+
         $this->adyenHelperMock->method('buildRequestHeaders')->willReturn($requestOptions['headers']);
         $this->idempotencyHelperMock->method('generateIdempotencyKey')->willReturn($requestOptions['idempotencyKey']);
 
-        $serviceMock->expects($this->once())
+        // testing cleanUpPaymentDetailsPayload() method
+        $apiPayload = $payload;
+        unset($apiPayload['details']['merchantReference']);
+
+        $this->paymentsApiMock->expects($this->once())
             ->method('paymentsDetails')
-            ->with(
-                $this->callback(function(PaymentDetailsRequest $detailsRequest) {
-                    $this->assertEquals(true,  $detailsRequest->getThreeDSAuthenticationOnly());
-                    $this->assertEquals('some_payment_data',  $detailsRequest->getPaymentData());
-                    return true;
-                }),
-                $this->equalTo($requestOptions)
-            )
+            ->with(new PaymentDetailsRequest($apiPayload), $requestOptions)
             ->willReturn(new PaymentDetailsResponse($paymentDetailsResult));
 
         $result = $this->paymentDetails->initiatePaymentDetails($this->orderMock, $payload);
@@ -121,7 +114,7 @@ class PaymentDetailsTest extends AbstractAdyenTestCase
             'threeDSAuthenticationOnly' => true,
         ];
 
-        $this->checkoutServiceMock->method('paymentsDetails')->willThrowException(new AdyenException());
+        $this->paymentsApiMock->method('paymentsDetails')->willThrowException(new AdyenException());
 
         $this->adyenLoggerMock->expects($this->atLeastOnce())->method('error');
         $this->checkoutSessionMock->expects($this->atLeastOnce())->method('restoreQuote');
