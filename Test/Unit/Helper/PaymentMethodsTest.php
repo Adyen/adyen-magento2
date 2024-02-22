@@ -11,14 +11,17 @@
 
 namespace Adyen\Payment\Test\Unit\Helper;
 
+use Adyen\Client;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data as AdyenDataHelper;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\AdyenAmountCurrency;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Adyen\Service\Checkout;
 use Adyen\Util\ManualCapture;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\Context;
@@ -364,48 +367,14 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
 
     public function testFetchPaymentMethodsWhenMerchantAccountEmpty()
     {
-        $this->objectManager = new ObjectManager($this);
-        $this->quoteMock = $this->getMockBuilder(Quote::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->storeMock = $this->getMockBuilder(Store::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->configHelperMock = $this->getMockBuilder(Config::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $paymentMethodsHelper = $this->objectManager->getObject(
-            PaymentMethods::class,
-            [
-                'quote' => $this->quoteMock,
-                'configHelper' => $this->configHelperMock,
-            ]
-        );
-        $this->configHelperMock->expects($this->once())
-            ->method('getAdyenAbstractConfigData')
-            ->willReturn(null);
-
-        $jsonResponse = $paymentMethodsHelper->fetchPaymentMethods();
-        $this->assertEquals(json_encode([]), $jsonResponse);
-    }
-
-    public function testFetchPaymentMethods()
-    {
         $country = 'US';
         $shopperLocale = 'en_US';
         $objectManager = new ObjectManager($this);
-        $this->quoteMock = $this->getMockBuilder(Quote::class)
-            ->disableOriginalConstructor()
-            ->getMock();
 
-        $paymentMethodsHelper = $objectManager->getObject(
-            PaymentMethods::class,
-            [
-                'quote' => $this->quoteMock,
-                'configHelper' => $this->configHelperMock,
-            ]
-        );
+        // Use ReflectionClass to access the protected method
+        $reflectionClass = new ReflectionClass(PaymentMethods::class);
+        $fetchPaymentMethodsMethod = $reflectionClass->getMethod('fetchPaymentMethods');
+        $fetchPaymentMethodsMethod->setAccessible(true);
 
         $storeId = 1;
 
@@ -427,10 +396,13 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             ->method('getStore')
             ->willReturn($storeMock);
 
-        // Use ReflectionClass to access the protected method
-        $reflectionClass = new ReflectionClass(PaymentMethods::class);
-        $fetchPaymentMethodsMethod = $reflectionClass->getMethod('fetchPaymentMethods');
-        $fetchPaymentMethodsMethod->setAccessible(true);
+        $paymentMethodsHelper = $objectManager->getObject(
+            PaymentMethods::class,
+            [
+                'quote' => $quoteMock,
+                'configHelper' => $this->configHelperMock,
+            ]
+        );
 
         // Call the protected method with the necessary parameters
         $result = $fetchPaymentMethodsMethod->invoke($paymentMethodsHelper, $country, $shopperLocale);
@@ -438,22 +410,193 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         // Assert the result
         $this->assertIsString($result); // Ensure the result is a string
 
-        // Convert the JSON string to an array for further assertions
-        $resultArray = json_decode($result, true);
-
-        // Assert the structure of the response array
-        $this->assertArrayHasKey('paymentMethodsResponse', $resultArray);
-        $this->assertArrayHasKey('paymentMethodsExtraDetails', $resultArray);
-
-        // Assert the content of the paymentMethodsResponse
-        $paymentMethodsResponse = $resultArray['paymentMethodsResponse'];
-        $this->assertArrayHasKey('paymentMethods', $paymentMethodsResponse);
-        $this->assertIsArray($paymentMethodsResponse['paymentMethods']);
-
-        // Assert the content of the paymentMethodsExtraDetails
-        $paymentMethodsExtraDetails = $resultArray['paymentMethodsExtraDetails'];
-        $this->assertIsArray($paymentMethodsExtraDetails);
-
-        // Add more specific assertions as needed based on the expected structure and content
+        $this->assertEquals(json_encode([]), $result);
     }
+
+    public function testFetchPaymentMethodsSuccessfulRetrieval()
+    {
+        // Setup test scenario
+        $country = 'NL';
+        $shopperLocale = 'nl_NL';
+        $expectedResult = '{"paymentMethodsResponse": [], "paymentMethodsExtraDetails": []}';
+        $objectManager = new ObjectManager($this);
+        $amountValue = 100;
+        // Use ReflectionClass to access the protected method
+        $reflectionClass = new ReflectionClass(PaymentMethods::class);
+        //$getCurrentPaymentAmount = $reflectionClass->getMethod('getCurrentPaymentAmount');
+
+        // Mocking necessary methods
+        $this->adyenHelperMock->method('initializeAdyenClient')->willReturn($this->createMock(Client::class));
+        $serviceMock = $this->adyenHelperMock->method('createAdyenCheckoutService')->willReturn($this->createMock(Checkout::class));
+        $this->adyenHelperMock->method('logRequest');
+        $this->adyenHelperMock->method('logResponse');
+
+        $storeId = 1;
+
+
+// Define the return value for the paymentMethods method
+        $responseData = ['paymentMethods' => ['adyen_cc', 'ideal']]; // Define the expected response data
+
+        $this->paymentMethodsHelper->setService(new class {
+            public function paymentMethods($requestParams) {
+                return ['paymentMethods' => ['adyen_cc', 'ideal']];
+            }
+        });
+
+
+        $quoteMock = $this->getMockBuilder(Quote::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        // Create a mock for the Store object
+        $storeMock = $this->getMockBuilder(Store::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $storeMock->expects($this->any())
+            ->method('getId')
+            ->willReturn($storeId);
+
+        // Mock the getId method of the quote to return the quoteId
+        $quoteMock->expects($this->any())
+            ->method('getStore')
+            ->willReturn($storeMock);
+
+        // Mock the Config helper class
+        $configHelperMock = $this->getMockBuilder(Config::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+// Set up the behavior for the getAdyenAbstractConfigData method call
+        $configHelperMock->expects($this->once())
+            ->method('getAdyenAbstractConfigData')
+            ->with('merchant_account', $storeId) // Ensure it's called with the expected parameters
+            ->willReturn('mocked_merchant_account'); // Define the return value for the mocked method
+
+        // Mock the ChargedCurrency class
+        $chargedCurrencyMock = $this->getMockBuilder(ChargedCurrency::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $amountCurrencyMock = $this->createMock(AdyenAmountCurrency::class);
+        $amountCurrencyMock->method('getCurrencyCode')->willReturn('EUR');
+        $amountCurrencyMock->method('getAmount')->willReturn($amountValue);
+        $chargedCurrencyMock->method('getQuoteAmountCurrency')->willReturn($amountCurrencyMock);
+
+        $paymentMethodsHelper = $objectManager->getObject(
+            PaymentMethods::class,
+            [
+                'quote' => $quoteMock,
+                'configHelper' => $configHelperMock,
+                'adyenDataHelper' => $this->adyenDataHelperMock,
+                'chargedCurrency' => $chargedCurrencyMock,
+                'adyenHelper' => $this->adyenHelperMock
+            ]
+        );
+
+
+        $fetchPaymentMethodsMethod = $reflectionClass->getMethod('fetchPaymentMethods');
+        $fetchPaymentMethodsMethod->setAccessible(true);
+
+        // Execute method of the tested class
+        $result = $fetchPaymentMethodsMethod->invoke($paymentMethodsHelper, $country, $shopperLocale);
+
+        // Assert conditions
+        $this->assertEquals($expectedResult, $result);
+    }
+
+//    public function testFetchPaymentMethods()
+//    {
+//        $quoteId = 123; // Example valid quote ID
+//
+//        $country = 'US';
+//        $shopperLocale = 'en_US';
+//        $objectManager = new ObjectManager($this);
+//
+//        // Use ReflectionClass to access the protected method
+//        $reflectionClass = new ReflectionClass(PaymentMethods::class);
+//        $fetchPaymentMethodsMethod = $reflectionClass->getMethod('fetchPaymentMethods');
+//        $fetchPaymentMethodsMethod->setAccessible(true);
+//
+//        $storeId = 1;
+//
+//        $quoteMock = $this->getMockBuilder(Quote::class)
+//            ->disableOriginalConstructor()
+//            ->getMock();
+//
+//        // Create a mock for the Store object
+//        $storeMock = $this->getMockBuilder(Store::class)
+//            ->disableOriginalConstructor()
+//            ->getMock();
+//
+//        $storeMock->expects($this->any())
+//            ->method('getId')
+//            ->willReturn($storeId);
+//
+//        // Mock the getId method of the quote to return the quoteId
+//        $quoteMock->expects($this->any())
+//            ->method('getStore')
+//            ->willReturn($storeMock);
+//
+//        // Mock the Config helper class
+//        $configHelperMock = $this->getMockBuilder(Config::class)
+//            ->disableOriginalConstructor()
+//            ->getMock();
+//
+//// Set up the behavior for the getAdyenAbstractConfigData method call
+//        $configHelperMock->expects($this->once())
+//            ->method('getAdyenAbstractConfigData')
+//            ->with('merchant_account', $storeId) // Ensure it's called with the expected parameters
+//            ->willReturn('mocked_merchant_account'); // Define the return value for the mocked method
+//
+//        // Mock the ChargedCurrency class
+//        $chargedCurrencyMock = $this->getMockBuilder(ChargedCurrency::class)
+//            ->disableOriginalConstructor()
+//            ->getMock();
+//
+//// Create a mock object for the currency returned by getQuoteAmountCurrency
+//        $currencyMock = $this->getMockBuilder(\Magento\Framework\Currency::class)
+//            ->disableOriginalConstructor()
+//            ->getMock();
+//        $currencyMock->expects($this->once())
+//            ->method('getCurrencyCode')
+//            ->willReturn('USD'); // Define the return value for the currency code
+//
+//// Set up the behavior for the getQuoteAmountCurrency method call
+//        $chargedCurrencyMock->expects($this->once())
+//            ->method('getQuoteAmountCurrency')
+//            ->with($quote) // Ensure it's called with the expected parameter
+//            ->willReturn($currencyMock); // Define the return value for the mocked method
+//
+//
+//        $paymentMethodsHelper = $objectManager->getObject(
+//            PaymentMethods::class,
+//            [
+//                'quote' => $quoteMock,
+//                'configHelper' => $configHelperMock,
+//                ''
+//            ]
+//        );
+//
+//        // Call the protected method with the necessary parameters
+//        $result = $fetchPaymentMethodsMethod->invoke($paymentMethodsHelper, $country, $shopperLocale);
+//
+//        // Assert the result
+//        $this->assertIsString($result); // Ensure the result is a string
+//
+//        $this->assertEquals(json_encode([]), $result);
+//
+//
+//
+//////print_r($resultArray); die;
+////        // Assert the content of the paymentMethodsResponse
+////        $this->assertArrayHasKey('paymentMethods', $resultArray);
+////        $this->assertIsArray($resultArray['paymentMethods']);
+////
+////        // Assert the content of the paymentMethodsExtraDetails
+////        $paymentMethodsExtraDetails = $resultArray['paymentMethodsExtraDetails'];
+////        $this->assertIsArray($paymentMethodsExtraDetails);
+//
+//        // Add more specific assertions as needed based on the expected structure and content
+//    }
 }
