@@ -65,7 +65,7 @@ class PaymentInformationResetOrderId
     ) {
         try {
             $quote = $this->quoteRepository->get($cartId);
-            $method = $quote->getPayment()->getMethod();
+            $method = strval($quote->getPayment()->getMethod());
 
             if ($this->paymentMethodsHelper->isAdyenPayment($method)) {
                 $quote->setReservedOrderId(null);
