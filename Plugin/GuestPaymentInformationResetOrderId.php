@@ -75,7 +75,7 @@ class GuestPaymentInformationResetOrderId
             $quoteIdMask = $this->quoteIdMaskFactory->create()->load($cartId, 'masked_id');
             $quoteId = $quoteIdMask->getQuoteId();
             $quote = $this->quoteRepository->get($quoteId);
-            $method = $quote->getPayment()->getMethod();
+            $method = strval($quote->getPayment()->getMethod());
 
             if ($this->paymentMethodsHelper->isAdyenPayment($method)) {
                 $quote->setReservedOrderId(null);
