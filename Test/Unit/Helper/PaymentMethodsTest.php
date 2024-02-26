@@ -314,12 +314,12 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
 
         // Assert that the returned array contains only the expected Adyen payment methods
         $this->assertEquals($expectedAdyenPaymentMethods, $actualAdyenPaymentMethods);
+
     }
 
     public function testIsAdyenPayment()
     {
         // Define the list of Adyen payment methods
-
         $adyenPaymentMethods = [
             'adyen_cc' => [],
             'adyen_oneclick' => [],
@@ -412,6 +412,69 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
 
         $this->assertEquals(json_encode([]), $result);
     }
+
+    /**
+     * @dataProvider autoCaptureDataProvider
+     */
+    public function testIsAutoCapture(
+        $manualCaptureSupported,
+        $captureMode,
+        $sepaFlow,
+        $paymentCode,
+        $autoCaptureOpenInvoice,
+        $manualCapturePayPal,
+        $expectedResult
+    ) {
+        $objectManager = new ObjectManager($this);
+
+        $orderMock = $this->getMockBuilder(Order::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $orderMock->expects($this->once())
+            ->method('getPayment')
+            ->willReturn((object)['getMethod' => function () use ($paymentCode) {
+                return $paymentCode;
+            }]);
+
+        $configHelperMock = $this->getMockBuilder(Config::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $configHelperMock->expects($this->any())
+            ->method('getAutoCaptureOpenInvoice')
+            ->willReturn($autoCaptureOpenInvoice);
+
+        $paymentMethodsHelper = $objectManager->getObject(PaymentMethods::class, [
+            'configHelper' => $configHelperMock,
+        ]);
+
+        $result = $paymentMethodsHelper->isAutoCapture($orderMock, $paymentCode);
+
+        $this->assertEquals($expectedResult, $result);
+    }
+
+    public function autoCaptureDataProvider()
+    {
+        return [
+            // Manual capture supported, capture mode manual, sepa flow authcap
+            [true, 'manual', 'authcap', 'sepadirectdebit', true, null, false],
+            // Manual capture supported, capture mode manual, sepa flow not authcap
+            [true, 'manual', 'notauthcap', 'sepadirectdebit', true, null, true],
+            // Manual capture supported, capture mode auto
+            [true, 'auto', '', 'sepadirectdebit', true, null, true],
+            // Manual capture supported, PayPal method, manual capture enabled
+            [true, 'auto', '', 'paypal', true, 'manual', false],
+            // Manual capture not supported
+            [false, '', '', 'sepadirectdebit', true, null, true],
+        ];
+    }
+
+
+
+
+
+
 
 
 
