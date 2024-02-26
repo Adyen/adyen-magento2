@@ -23,6 +23,6 @@ class Reader extends \Magento\Framework\Config\Reader\Filesystem
      * @var array
      */
     protected $_idAttributes = [
-        '/payment/adyen_credit_cards/type' => 'id'
+        '/payment/adyen_credit_cards/type' => 'txVariant'
     ];
 }

@@ -11,7 +11,7 @@
  */
 -->
 <xs:schema elementFormDefault="qualified"
-    xmlns:xs="http://www.w3.org/2001/XMLSchema">
+           xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
     <xs:element name="payment">
         <xs:annotation>
@@ -43,12 +43,11 @@
                 The definition of a credit card type.
             </xs:documentation>
         </xs:annotation>
-        <xs:all>
-            <xs:element name="label" type="xs:string" minOccurs="0" />
-            <xs:element name="code_alt" type="xs:string" minOccurs="0" />
-        </xs:all>
-        <xs:attribute name="id" type="xs:ID" use="required" />
-        <xs:attribute name="order" type="xs:integer" />
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="txVariant" type="xs:ID" use="required" />
+            </xs:extension>
+        </xs:simpleContent>
     </xs:complexType>
 
 </xs:schema>
