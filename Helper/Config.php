@@ -562,14 +562,12 @@ class Config
 
     public function getAllowMultistoreTokens(int $storeId = null): ?bool
     {
-        $result =  $this->getConfigData(
+        return $this->getConfigData(
             self::XML_ALLOW_MULTISTORE_TOKENS,
             self::XML_ADYEN_ABSTRACT_PREFIX,
             $storeId,
             true
         );
-
-        return $result;
     }
 
     public function getConfigData(string $field, string $xmlPrefix, ?int $storeId, bool $flag = false): mixed
