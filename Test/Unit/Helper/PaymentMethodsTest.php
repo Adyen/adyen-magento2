@@ -494,11 +494,34 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $reflectionClass = new ReflectionClass(PaymentMethods::class);
         //$getCurrentPaymentAmount = $reflectionClass->getMethod('getCurrentPaymentAmount');
 
+
+
+        $adyenClientMock = $this->createMock(Client::class);
+        $checkoutServiceMock = $this->createMock(Checkout::class);
+        $paymentDetailsResult = ['resultCode' => 'Authorised', 'action' => null, 'additionalData' => null];
+        $requestOptions = [
+            'idempotencyKey' => 'some_idempotency_key',
+            'headers' => ['headerKey' => 'headerValue']
+        ];
+        $this->adyenHelperMock->method('initializeAdyenClient')->willReturn($adyenClientMock);
+        $this->adyenHelperMock->method('createAdyenCheckoutService')->willReturn($checkoutServiceMock);
+        $this->adyenHelperMock->method('buildRequestHeaders')->willReturn($requestOptions['headers']);
+        $checkoutServiceMock->expects($this->once())
+            ->method('paymentsDetails')
+            ->with(
+                $this->equalTo([
+                    'details' => 'some_details',
+                    'paymentData' => 'some_payment_data',
+                    'threeDSAuthenticationOnly' => true
+                ]),
+                $this->equalTo($requestOptions)
+            )
+            ->willReturn($paymentDetailsResult);
+
+
         // Mocking necessary methods
-        $this->adyenHelperMock->method('initializeAdyenClient')->willReturn($this->createMock(Client::class));
-        $serviceMock = $this->adyenHelperMock->method('createAdyenCheckoutService')->willReturn($this->createMock(Checkout::class));
         $this->adyenHelperMock->method('logRequest');
-        $this->adyenHelperMock->method('logResponse');
+        $this->adyenHelperMock->method('logResponse')->with($paymentDetailsResult);
 
         $storeId = 1;
 
