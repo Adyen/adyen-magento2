@@ -33,9 +33,11 @@ use Magento\Framework\View\Design\Theme\ThemeProviderInterface;
 use Magento\Payment\Helper\Data as MagentoDataHelper;
 use Magento\Payment\Model\MethodInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Store\Model\Store;
 
 class PaymentMethodsTest extends AbstractAdyenTestCase
 {
@@ -196,4 +198,125 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             $paymentMethods
         );
     }
+
+    public function testFetchPaymentMethodsWithNoPaymentMethodsInResponse()
+    {
+        $country = 'NL';
+        $shopperLocale = 'nl_NL';
+        $expectedResult = '[]';
+
+        $storeMock = $this->createMock(Store::class);
+        $storeMock->method('getId')->willReturn(1);
+
+        $quoteMock = $this->getMockBuilder(Quote::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['getStore'])
+            ->getMock();
+
+        $quoteMock->method('getStore')->willReturn($storeMock);
+        $quoteMock->setCustomerId(123);
+
+        $reflectionClass = new \ReflectionClass(get_class($this->paymentMethodsHelper));
+        $quoteProperty = $reflectionClass->getProperty('quote');
+        $quoteProperty->setAccessible(true);
+        $quoteProperty->setValue($this->paymentMethodsHelper, $quoteMock);
+
+        $method = $reflectionClass->getMethod('fetchPaymentMethods');
+        $method->setAccessible(true);
+
+        $result = $method->invokeArgs($this->paymentMethodsHelper, [$country, $shopperLocale]);
+
+        $this->assertEquals($expectedResult, $result);
+    }
+
+    public function testFilterStoredPaymentMethods()
+    {
+        $allowMultistoreTokens = false;
+        $customerId = 1;
+        $responseData = [
+            'storedPaymentMethods' => [
+                ['id' => '123', 'name' => 'Visa'],
+                ['id' => '456', 'name' => 'Mastercard']
+            ]
+        ];
+        $expectedResult = [
+            'storedPaymentMethods' => [
+                ['id' => '123', 'name' => 'Visa']
+            ]
+        ];
+
+        $paymentTokenMock = $this->createMock(\Magento\Vault\Api\Data\PaymentTokenInterface::class);
+        $paymentTokenMock->method('getGatewayToken')->willReturn('123');
+
+        $searchCriteriaMock = $this->createMock(\Magento\Framework\Api\SearchCriteriaInterface::class);
+        $this->searchCriteriaBuilder->method('addFilter')->willReturnSelf();
+        $this->searchCriteriaBuilder->method('create')->willReturn($searchCriteriaMock);
+
+
+
+        $this->searchCriteriaBuilder->method('addFilter')->willReturnSelf();
+        $this->searchCriteriaBuilder->method('create')->willReturn('searchCriteria');
+        $this->paymentTokenRepository->method('getList')->willReturn(new \Magento\Framework\DataObject(['items' => [$paymentTokenMock]]));
+
+        $reflectionClass = new \ReflectionClass(get_class($this->paymentMethodsHelper));
+        $method = $reflectionClass->getMethod('filterStoredPaymentMethods');
+        $method->setAccessible(true);
+
+        $result = $method->invokeArgs($this->paymentMethodsHelper, [$allowMultistoreTokens, $responseData, $customerId]);
+
+        $this->assertEquals($expectedResult, $result);
+    }
+
+//    public function testFetchPaymentMethodsWithPaymentMethodsInResponse()
+//    {
+//        $country = 'NL';
+//        $shopperLocale = 'nl_NL';
+//
+//        // Prepare expected responses
+//        $merchantAccount = 'RokLedinski';
+//        $mockPaymentMethodsResponse = [
+//            'paymentMethods' => [
+//                ['type' => 'card', 'name' => 'Credit Card'],
+//                ['type' => 'paypal', 'name' => 'PayPal'],
+//            ]
+//        ];
+//        $expectedResult = json_encode([
+//            'paymentMethodsResponse' => $mockPaymentMethodsResponse,
+//            'paymentMethodsExtraDetails' => [] // Assume no extra details for simplicity
+//        ]);
+//
+//        // Mock Store and Quote
+//        $storeMock = $this->createMock(Store::class);
+//        $storeMock->method('getId')->willReturn(1);
+//
+//        $quoteMock = $this->getMockBuilder(Quote::class)
+//            ->disableOriginalConstructor()
+//            ->setMethods(['getStore'])
+//            ->getMock();
+//        $quoteMock->method('getStore')->willReturn($storeMock);
+//        $quoteMock->setCustomerId(123);
+//
+//        // Mock ConfigHelper to return a valid merchant account
+//        $configHelperMock = $this->createMock(Config::class);
+//        $configHelperMock->method('getAdyenAbstractConfigData')
+//            ->with('merchant_account', 1)
+//            ->willReturn($merchantAccount);
+//
+//        // Inject mocks into PaymentMethods helper
+//        $this->paymentMethodsHelper = new PaymentMethods($configHelperMock /*, other dependencies */);
+//
+//        // Inject quote mock into paymentMethodsHelper
+//        $reflectionClass = new \ReflectionClass(get_class($this->paymentMethodsHelper));
+//        $quoteProperty = $reflectionClass->getProperty('quote');
+//        $quoteProperty->setAccessible(true);
+//        $quoteProperty->setValue($this->paymentMethodsHelper, $quoteMock);
+//
+//        // Access and invoke the protected fetchPaymentMethods method
+//        $method = $reflectionClass->getMethod('fetchPaymentMethods');
+//        $method->setAccessible(true);
+//        $result = $method->invokeArgs($this->paymentMethodsHelper, [$country, $shopperLocale]);
+//
+//        // Assert that the result matches the expected non-empty response
+//        $this->assertEquals($expectedResult, $result);
+//    }
 }
