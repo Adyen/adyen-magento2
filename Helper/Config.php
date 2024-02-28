@@ -54,6 +54,7 @@ class Config
     const XML_WEBHOOK_NOTIFICATION_PROCESSOR = 'webhook_notification_processor';
     const AUTO_CAPTURE_OPENINVOICE = 'auto';
     const XML_RECURRING_CONFIGURATION = 'recurring_configuration';
+    const XML_ALLOW_MULTISTORE_TOKENS = 'allow_multistore_tokens';
 
     protected ScopeConfigInterface $scopeConfig;
     private EncryptorInterface $encryptor;
@@ -557,6 +558,18 @@ class Config
     public function getRatePayId(int $storeId = null)
     {
         return $this->getConfigData("ratepay_id", self::XML_ADYEN_RATEPAY, $storeId);
+    }
+
+    public function getAllowMultistoreTokens(int $storeId = null): ?bool
+    {
+        $result =  $this->getConfigData(
+            self::XML_ALLOW_MULTISTORE_TOKENS,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId,
+            true
+        );
+
+        return $result;
     }
 
     public function getConfigData(string $field, string $xmlPrefix, ?int $storeId, bool $flag = false): mixed
