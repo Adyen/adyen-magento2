@@ -189,26 +189,8 @@ class PaymentMethods extends AbstractHelper
         $paymentMethods = $responseData['paymentMethods'];
 
         $allowMultistoreTokens = $this->configHelper->getAllowMultistoreTokens($store->getId());
-
-        if (!$allowMultistoreTokens && isset($responseData['storedPaymentMethods'])) {
-            $customerId = $quote->getCustomerId();
-            $searchCriteria = $this->searchCriteriaBuilder
-                ->addFilter('customer_id', $customerId)
-                ->create();
-
-            $paymentTokens = $this->paymentTokenRepository->getList($searchCriteria)->getItems();
-
-            $gatewayTokens = array_map(function ($paymentToken) {
-                return $paymentToken->getGatewayToken();
-            }, $paymentTokens);
-
-            if (isset($responseData['storedPaymentMethods'])) {
-                $storedPaymentMethods = $responseData['storedPaymentMethods'];
-                $responseData['storedPaymentMethods'] = array_filter($storedPaymentMethods, function ($method) use ($gatewayTokens) {
-                    return in_array($method['id'], $gatewayTokens);
-                });
-            }
-        }
+        $customerId = $quote->getCustomerId();
+        $responseData = $this->filterStoredPaymentMethods($allowMultistoreTokens, $responseData, $customerId);
 
         $response['paymentMethodsResponse'] = $responseData;
 
@@ -223,6 +205,28 @@ class PaymentMethods extends AbstractHelper
 
         //TODO this should be the implemented with an interface
         return json_encode($response);
+    }
+
+    protected function filterStoredPaymentMethods($allowMultistoreTokens, $responseData, $customerId)
+    {
+        if (!$allowMultistoreTokens && isset($responseData['storedPaymentMethods'])) {
+            $searchCriteria = $this->searchCriteriaBuilder
+                ->addFilter('customer_id', $customerId)
+                ->create();
+
+            $paymentTokens = $this->paymentTokenRepository->getList($searchCriteria)->getItems();
+
+            $gatewayTokens = array_map(function ($paymentToken) {
+                return $paymentToken->getGatewayToken();
+            }, $paymentTokens);
+
+            $storedPaymentMethods = $responseData['storedPaymentMethods'];
+            $responseData['storedPaymentMethods'] = array_filter($storedPaymentMethods, function ($method) use ($gatewayTokens) {
+                return in_array($method['id'], $gatewayTokens);
+            });
+        }
+
+        return $responseData;
     }
 
     protected function getCurrentPaymentAmount(): float
