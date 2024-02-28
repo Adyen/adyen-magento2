@@ -251,9 +251,6 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $searchCriteriaMock = $this->createMock(\Magento\Framework\Api\SearchCriteriaInterface::class);
         $this->searchCriteriaBuilder->method('addFilter')->willReturnSelf();
         $this->searchCriteriaBuilder->method('create')->willReturn($searchCriteriaMock);
-
-
-
         $this->searchCriteriaBuilder->method('addFilter')->willReturnSelf();
         $this->searchCriteriaBuilder->method('create')->willReturn('searchCriteria');
         $this->paymentTokenRepository->method('getList')->willReturn(new \Magento\Framework\DataObject(['items' => [$paymentTokenMock]]));
