@@ -35,7 +35,6 @@ use Adyen\Payment\Helper\Data as AdyenDataHelper;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\Store;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
-use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 class PaymentMethods extends AbstractHelper
 {

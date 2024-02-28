@@ -34,6 +34,8 @@ use Magento\Payment\Helper\Data as MagentoDataHelper;
 use Magento\Payment\Model\MethodInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Model\Order;
+use Magento\Vault\Api\PaymentTokenRepositoryInterface;
+use Magento\Framework\Api\SearchCriteriaBuilder;
 
 class PaymentMethodsTest extends AbstractAdyenTestCase
 {
@@ -55,6 +57,8 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
     private ManualCapture $manualCaptureMock;
     private SerializerInterface $serializerMock;
     private AdyenDataHelper $adyenDataHelperMock;
+    private PaymentTokenRepositoryInterface $paymentTokenRepository;
+    private SearchCriteriaBuilder $searchCriteriaBuilder;
 
     protected function setUp(): void
     {
@@ -75,6 +79,8 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $this->manualCaptureMock = $this->createMock(ManualCapture::class);
         $this->serializerMock = $this->createMock(SerializerInterface::class);
         $this->adyenDataHelperMock = $this->createMock(AdyenDataHelper::class);
+        $this->paymentTokenRepository = $this->createMock(PaymentTokenRepositoryInterface::class);
+        $this->searchCriteriaBuilder = $this->createMock(SearchCriteriaBuilder::class);
 
         // Instantiate the PaymentMethods helper class with the mocked dependencies
         $this->paymentMethodsHelper = new PaymentMethods(
@@ -95,6 +101,8 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             $this->manualCaptureMock,
             $this->serializerMock,
             $this->adyenDataHelperMock,
+            $this->paymentTokenRepository,
+            $this->searchCriteriaBuilder
         );
     }
 
