@@ -220,7 +220,9 @@ class PaymentMethods extends AbstractHelper
             }, $paymentTokens);
 
             $storedPaymentMethods = $responseData['storedPaymentMethods'];
-            $responseData['storedPaymentMethods'] = array_filter($storedPaymentMethods, function ($method) use ($gatewayTokens) {
+            $responseData['storedPaymentMethods'] = array_filter(
+                $storedPaymentMethods,
+                function ($method) use ($gatewayTokens) {
                 return in_array($method['id'], $gatewayTokens);
             });
         }
