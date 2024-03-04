@@ -119,7 +119,7 @@ class PaymentMethods extends AbstractHelper
         $quote = $this->quoteRepository->getActive($quoteId);
         // If quote cannot be found early return the empty paymentMethods array
         if (empty($quote)) {
-            return '';
+            return [];
         }
 
         $this->setQuote($quote);
@@ -135,6 +135,7 @@ class PaymentMethods extends AbstractHelper
     public function getAdyenPaymentMethods() : array
     {
         $paymentMethods = $this->dataHelper->getPaymentMethodList();
+
         $filtered = array_filter(
             $paymentMethods,
             function ($key) {
@@ -142,6 +143,7 @@ class PaymentMethods extends AbstractHelper
             },
             ARRAY_FILTER_USE_KEY
         );
+
         return array_keys($filtered);
     }
 
@@ -675,8 +677,8 @@ class PaymentMethods extends AbstractHelper
             // check if paid amount is the same as orginal amount
             $originalAmount =
                 isset($boletobancario['originalAmount']) ?
-                trim((string) $boletobancario['originalAmount']) :
-                "";
+                    trim((string) $boletobancario['originalAmount']) :
+                    "";
             $paidAmount = isset($boletobancario['paidAmount']) ? trim((string) $boletobancario['paidAmount']) : "";
 
             if ($originalAmount != $paidAmount) {
