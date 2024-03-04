@@ -202,12 +202,12 @@ class PaymentMethods extends AbstractHelper
         $total = $this->chargedCurrency->getQuoteAmountCurrency($this->getQuote())->getAmount();
 
         if (!is_numeric($total)) {
-            throw new Exception(
+            $exceptionMessage =
                 sprintf(
                     'Cannot retrieve a valid grand total from quote ID: `%s`. Expected a numeric value.',
                     $this->getQuote()->getEntityId()
-                )
             );
+            throw new AdyenException($exceptionMessage);
         }
 
         $total = (float)$total;
@@ -215,14 +215,13 @@ class PaymentMethods extends AbstractHelper
         if ($total >= 0) {
             return $total;
         }
-
-        throw new Exception(
+        $exceptionMessage =
             sprintf(
                 'Cannot retrieve a valid grand total from quote ID: `%s`. Expected a float >= `0`, got `%f`.',
                 $this->getQuote()->getEntityId(),
                 $total
-            )
-        );
+            );
+        throw new AdyenException($exceptionMessage);
     }
 
     protected function getCurrentCountryCode(Store $store): string
