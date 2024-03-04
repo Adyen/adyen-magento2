@@ -119,7 +119,7 @@ class PaymentMethods extends AbstractHelper
         $quote = $this->quoteRepository->getActive($quoteId);
         // If quote cannot be found early return the empty paymentMethods array
         if (empty($quote)) {
-            return [];
+            return '';
         }
 
         $this->setQuote($quote);
