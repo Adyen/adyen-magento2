@@ -377,6 +377,64 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $this->assertEquals(json_encode([]), $result);
     }
 
+    public function testFetchPaymentMethodsWithEmptyResponseFromAdyenApi()
+    {
+        $quoteId = 1;
+        $storeId = 1;
+        $amountValue = 100;
+        $adyenClientMock = $this->createMock(Client::class);
+        $checkoutServiceMock = $this->createMock(Checkout::class);
+        // Setup test scenario
+        $this->storeMock->expects($this->any())
+            ->method('getId')
+            ->willReturn($quoteId);
+
+        // Mock the getId method of the quote to return the quoteId
+        $this->quoteMock->expects($this->any())
+            ->method('getStore')
+            ->willReturn($this->storeMock);
+        $this->configHelperMock->expects($this->once())
+            ->method('getAdyenAbstractConfigData')
+            ->with('merchant_account', $storeId) // Ensure it's called with the expected parameters
+            ->willReturn('mocked_merchant_account'); // Define the return value for the mocked method
+        $this->adyenHelperMock->method('initializeAdyenClient')->willReturn($adyenClientMock);
+        $this->adyenHelperMock->method('createAdyenCheckoutService')->willReturn($checkoutServiceMock);
+        $this->amountCurrencyMock->method('getCurrencyCode')->willReturn('EUR');
+        $this->amountCurrencyMock->method('getAmount')->willReturn($amountValue);
+        $this->chargedCurrencyMock->method('getQuoteAmountCurrency')->willReturn($this->amountCurrencyMock);
+        $this->billingAddressMock->expects($this->once())
+            ->method('getCountryId')
+            ->willReturn('NL');
+        $this->quoteMock
+            ->method('getBillingAddress')
+            ->willReturn($this->billingAddressMock);
+        // Simulate successful API call
+        $checkoutServiceMock->expects($this->once())
+            ->method('paymentMethods')
+            ->willThrowException(new AdyenException("The Payment methods response is empty check your Adyen configuration in Magento."));
+
+        $fetchPaymentMethodsMethod = $this->getPrivateMethod(
+            PaymentMethods::class,
+            'fetchPaymentMethods'
+        );
+
+        $paymentMethods = $this->objectManager->getObject(
+            PaymentMethods::class,
+            [
+                'quote' => $this->quoteMock,
+                'configHelper' => $this->configHelperMock,
+                'chargedCurrency' => $this->chargedCurrencyMock,
+                'adyenHelper' => $this->adyenHelperMock
+            ]
+        );
+
+        // Execute method of the tested class
+        $result = $fetchPaymentMethodsMethod->invoke($paymentMethods, null, null);
+
+        // Assert conditions
+        $this->assertEquals(json_encode([]), $result);
+    }
+
     public function testSuccessfulRetrievalOfPaymentMethods()
     {
         $expectedResult = [
@@ -981,5 +1039,47 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $pngAssetMock->expects($this->once())->method('getUrl')->willReturn($expectedUrl);
         $result = $this->paymentMethodsHelper->buildPaymentMethodIcon($paymentMethodCode, $params);
         $this->assertEquals(['url' => $expectedUrl, 'width' => 77, 'height' => 50], $result);
+    }
+
+    public function testGetPaymentMethodsRequest()
+    {
+        $merchantAccount = 'TestMerchant';
+        $shopperLocale = 'en_US';
+        $country = 'NL';
+        $amountValue = 100;
+        $currencyCode = 'EUR';
+        $this->amountCurrencyMock->method('getCurrencyCode')->willReturn('EUR');
+        $this->amountCurrencyMock->method('getAmount')->willReturn($amountValue);
+        $this->chargedCurrencyMock->method('getQuoteAmountCurrency')->willReturn($this->amountCurrencyMock);
+        $this->adyenHelperMock->method('getCurrentLocaleCode')->willReturn($shopperLocale);
+        $this->adyenDataHelperMock->method('padShopperReference')->willReturn('123456');
+        $this->amountCurrencyMock->method('getCurrencyCode')->willReturn('EUR');
+        $expectedResult = [
+            "channel" => "Web",
+            "merchantAccount" => $merchantAccount,
+            "countryCode" => $country,
+            "shopperLocale" => $shopperLocale,
+            "amount" => ["currency" => $currencyCode]
+        ];
+
+        $paymentMethods = $this->objectManager->getObject(
+            PaymentMethods::class,
+            [
+                'quote' => $this->quoteMock,
+                'configHelper' => $this->configHelperMock,
+                'chargedCurrency' => $this->chargedCurrencyMock,
+                'adyenHelper' => $this->adyenHelperMock,
+            ]
+        );
+
+
+        $getPaymentMethodsRequest = $this->getPrivateMethod(
+            PaymentMethods::class,
+            'getPaymentMethodsRequest'
+        );
+        $result = $getPaymentMethodsRequest->invoke($paymentMethods, $merchantAccount, $this->storeMock, $this->quoteMock, $shopperLocale, $country);
+
+
+        $this->assertEquals($expectedResult, $result);
     }
 }
