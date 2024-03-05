@@ -55,5 +55,6 @@ services:
     volumes:
       - ../:/data/extensions/workdir
       - ./Makefile:/var/www/html/Makefile
+      - ../app-logs:/var/www/html/var/log
 networks:
   backend:
