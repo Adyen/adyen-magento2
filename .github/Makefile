@@ -70,6 +70,7 @@ plugin: install configure flush
 fs:
 	find var generated vendor pub/static pub/media app/etc -type f -exec chmod g+w {} +
 	find var generated vendor pub/static pub/media app/etc -type d -exec chmod g+ws {} +
+	chmod 777 -R var
 	chown -R www-data:www-data .
 	chmod u+x bin/magento
 	echo "memory_limit = -1" > /usr/local/etc/php/conf.d/memory.ini
