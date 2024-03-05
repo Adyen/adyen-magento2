@@ -58,6 +58,11 @@ services:
     volumes:
       - ../:/data/extensions/workdir
       - ./Makefile:/var/www/html/Makefile
+      - composer:/usr/local/bin
+      - magento:/var/www/html
       - ../app-logs:/var/www/html/var/log
 networks:
   backend:
+volumes:
+  magento:
+  composer:
