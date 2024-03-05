@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Client;
+use Adyen\ConnectionException;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data as AdyenDataHelper;
@@ -921,11 +922,6 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $manualCapturePayPal,
         $expectedResult
     ) {
-        $manualCaptureMock = $this->getMockBuilder(ManualCapture::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $manualCaptureMock->expects($this->any())->method('isManualCaptureSupported')->willReturn($manualCaptureSupported);
-
         $this->configHelperMock->expects($this->any())
             ->method('getConfigData')
             ->with('capture_mode', 'adyen_abstract', '1')
@@ -971,7 +967,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
     {
         return [
             // Manual capture supported, capture mode manual, sepa flow not authcap
-            [true, 'manual', 'notauthcap', 'sepadirectdebit', true, null, true],
+            [true, 'manual', 'notauthcap', 'paypal', true, null, true],
             // Manual capture supported, capture mode auto
             [true, 'auto', '', 'sepadirectdebit', true, null, true],
             // Manual capture not supported
@@ -1082,4 +1078,111 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
 
         $this->assertEquals($expectedResult, $result);
     }
+
+    public function testConnectionExceptionHandling(): void
+    {
+        $requestParams = [
+            'area' => 'frontend',
+            '_secure' => '',
+            'theme' => 'Magento/blank'
+        ];
+        //$storeMock = $this->createMock(Store::class);
+        $storeId = 123; // Provide your store ID
+        $this->storeMock->method('getId')->willReturn($storeId);
+
+        $clientMock = $this->createMock(Client::class);
+        $checkoutServiceMock = $this->createMock(Checkout::class);
+
+        $this->adyenHelperMock->expects($this->once())
+            ->method('initializeAdyenClient')
+            ->with($storeId)
+            ->willReturn($clientMock);
+
+        $this->adyenHelperMock
+            ->method('createAdyenCheckoutService')
+            ->with($clientMock)
+            ->willReturn($checkoutServiceMock);
+
+
+        $this->adyenHelperMock->expects($this->once())
+            ->method('logRequest')
+            ->with($requestParams, Client::API_CHECKOUT_VERSION, '/paymentMethods');
+
+        $this->adyenHelperMock->expects($this->never())->method('logResponse');
+
+        $connectionException = new ConnectionException("Connection failed");
+        $checkoutServiceMock->expects($this->once())
+            ->method('paymentMethods')
+            ->willThrowException($connectionException);
+
+        $this->adyenLoggerMock->expects($this->once())
+            ->method('error')
+            ->with("Connection to the endpoint failed. Check the Adyen Live endpoint prefix configuration.");
+
+        $getPaymentMethodsResponse = $this->getPrivateMethod(
+            PaymentMethods::class,
+            'getPaymentMethodsResponse'
+        );
+
+        $paymentMethods = $this->objectManager->getObject(
+            PaymentMethods::class,
+            [
+                'quote' => $this->quoteMock,
+                'configHelper' => $this->configHelperMock,
+                'chargedCurrency' => $this->chargedCurrencyMock,
+                'adyenHelper' => $this->adyenHelperMock,
+                'adyenLogger' => $this->adyenLoggerMock
+            ]
+        );
+        $result = $getPaymentMethodsResponse->invoke($paymentMethods, $requestParams, $this->storeMock);
+
+        $this->assertEquals([], $result);
+    }
+
+    public function testManualCaptureAllowed(): void
+    {
+        $storeId = 123; // Provide your store ID
+        $this->orderMock->method('getStoreId')->willReturn($storeId);
+        $this->orderPaymentMock->method('getMethod')->willReturn('sepadirectdebit');
+        $this->orderMock->method('getPayment')->willReturn($this->orderPaymentMock);
+        $manualCaptureMock = $this->getMockBuilder(ManualCapture::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $manualCaptureMock->expects($this->any())->method('isManualCaptureSupported')->willReturn(true);
+
+        $notificationPaymentMethod = 'sepadirectdebit'; // Provide your notification payment method
+
+        $captureMode = 'auto'; // Assuming auto capture mode is set
+        $sepaFlow = 'authcap'; // Assuming authcap flow for SEPA
+        $manualCapturePayPal = 'manual'; // Assuming manual capture for PayPal
+
+        $this->configHelperMock->expects($this->exactly(3))
+            ->method('getConfigData')// Expecting 5 calls to getConfigData method
+            ->withConsecutive(
+                ['capture_mode', 'adyen_abstract', $storeId],
+                ['sepa_flow', 'adyen_abstract', $storeId],
+                ['paypal_capture_mode', 'adyen_abstract', $storeId],
+                ['capture_mode_pos', 'adyen_abstract', $storeId]
+            )
+            ->willReturnOnConsecutiveCalls($captureMode, $sepaFlow, '', 'auto', $manualCapturePayPal);
+
+        // Mock your other dependencies as needed for your test scenario
+
+        $paymentMethods = $this->objectManager->getObject(
+            PaymentMethods::class,
+            [
+                'quote' => $this->quoteMock,
+                'configHelper' => $this->configHelperMock,
+                'chargedCurrency' => $this->chargedCurrencyMock,
+                'adyenHelper' => $this->adyenHelperMock,
+                'adyenLogger' => $this->adyenLoggerMock,
+                'manualCapture' => $manualCaptureMock
+            ]
+        );
+
+        // Now, you can assert the return value of the method
+        $result = $paymentMethods->isAutoCapture($this->orderMock, $notificationPaymentMethod);
+        $this->assertFalse($result); // Assuming manual capture is allowed, so it should return false
+    }
+
 }
