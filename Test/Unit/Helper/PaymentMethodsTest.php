@@ -33,6 +33,7 @@ use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Framework\View\Asset\File;
 use Magento\Framework\View\Asset\Repository;
 use Magento\Framework\View\Asset\Source;
+use Magento\Framework\View\Design\ThemeInterface;
 use Magento\Framework\View\DesignInterface;
 use Magento\Framework\View\Design\Theme\ThemeProviderInterface;
 use Magento\Payment\Helper\Data as MagentoDataHelper;
@@ -1183,6 +1184,93 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         // Now, you can assert the return value of the method
         $result = $paymentMethods->isAutoCapture($this->orderMock, $notificationPaymentMethod);
         $this->assertFalse($result); // Assuming manual capture is allowed, so it should return false
+    }
+
+    public function testShowLogosPaymentMethods()
+    {
+        $themeId = 123; // Assuming a theme ID
+        $this->adyenHelperMock->expects($this->any())
+            ->method('showLogos')
+            ->willReturn(true); // Mock the method to return true for this test
+        $paymentMethods = [
+            ['type' => 'visa', 'brand' => 'visa']
+        ];
+        $paymentMethodsExtraDetails = [
+            'visa' => []
+        ];
+        $paymentMethodCode = 'visa';
+        $params = [
+            'area' => 'frontend',
+            '_secure' => '',
+            'theme' => 'Magento/blank'
+        ];
+
+        // Set up the mock for design->getConfigurationDesignTheme
+        $this->designMock->expects($this->any())
+            ->method('getConfigurationDesignTheme')
+            ->willReturn($themeId);
+
+        // Set up the mock for themeProvider->getThemeById
+        $themeMock = $this->createMock(ThemeInterface::class);
+
+        // Set up the getCode method of the theme object
+        $themeMock->expects($this->any())
+            ->method('getCode')
+            ->willReturn('Magento/blank');
+
+        $this->themeProviderMock->expects($this->any())
+            ->method('getThemeById')
+            ->with($themeId)
+            ->willReturn($themeMock);
+
+        $expectedSVGUrl = 'mocked_svg_url';
+        $expectedPNGUrl = 'mocked_png_url';
+        $svgAssetMock = $this->createMock(File::class);
+        $svgAssetMock->method('getUrl')->willReturn($expectedSVGUrl);
+        $pngAssetMock = $this->createMock(File::class);
+        $pngAssetMock->method('getUrl')->willReturn($expectedPNGUrl);
+
+        $this->assetRepoMock->method('createAsset')
+            ->withConsecutive(
+                ["Adyen_Payment::images/logos/{$paymentMethodCode}.svg", $params],
+                ["Adyen_Payment::images/logos/{$paymentMethodCode}.png", $params]
+            )
+            ->willReturnOnConsecutiveCalls($svgAssetMock, $pngAssetMock);
+
+        // Set up asset source mock for SVG asset
+        $this->assetSourceMock->method('findSource')
+            ->with($svgAssetMock)
+            ->willReturn(true);
+
+        // Set up asset source mock for PNG asset
+        $this->assetSourceMock->method('findSource')
+            ->with($pngAssetMock)
+            ->willReturn(false);
+
+        $paymentMethodsHelper = $this->objectManager->getObject(
+            PaymentMethods::class,
+            [
+                'adyenHelper' => $this->adyenHelperMock,
+                'design' => $this->designMock,
+                'themeProvider' => $this->themeProviderMock,
+                'assetRepo' => $this->assetRepoMock,
+                'assetSource' => $this->assetSourceMock
+            ]
+        );
+
+        $method = $this->getPrivateMethod(
+            PaymentMethods::class,
+            'showLogosPaymentMethods'
+        );
+
+        // Call the protected method
+        $result = $method->invokeArgs($paymentMethodsHelper, [$paymentMethods, $paymentMethodsExtraDetails]);
+
+        // Assert that the returned array has the expected structure
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('visa', $result);
+        $this->assertArrayHasKey('icon', $result['visa']);
+        $this->assertArrayHasKey('isOpenInvoice', $result['visa']);
     }
 
 }
