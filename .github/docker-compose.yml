@@ -41,17 +41,6 @@ services:
       MAGENTO_HOST: magento2.test.com
       VIRTUAL_HOST: magento2.test.com
       COMPOSER_MEMORY_LIMIT: -1
-      DEPLOY_SAMPLEDATA: 1
-      DONATION_ACCOUNT:
-      ADMIN_USERNAME:
-      ADMIN_PASSWORD:
-      ADYEN_MERCHANT:
-      ADYEN_API_KEY:
-      ADYEN_CLIENT_KEY:
-      PHP_VERSION:
-      MAGENTO_VERSION:
-      WEBHOOK_PASSWORD:
-      WEBHOOK_USERNAME:
     depends_on:
       - db
       - elastic

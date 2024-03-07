@@ -29,6 +29,7 @@ jobs:
           ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
           ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
           ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
+          DEPLOY_SAMPLEDATA: 1
 
       - name: Setup permissions
         run: docker exec magento2-container make fs
