@@ -15,6 +15,11 @@ jobs:
       MAGENTO_VERSION: ${{ matrix.magento-version }}
       ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
       ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
+      DONATION_ACCOUNT: ${{secrets.DONATION_ACCOUNT}}
+      ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
+      ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
+      ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
+      DEPLOY_SAMPLEDATA: 1
 
     steps:
       - uses: actions/checkout@v3
@@ -24,11 +29,6 @@ jobs:
 
       - name: Start web server in background
         run: docker-compose -f .github/docker-compose.yml up -d web
-        env:
-          DONATION_ACCOUNT: ${{secrets.DONATION_ACCOUNT}}
-          ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
-          ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
-          ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
 
       - name: Setup permissions
         run: docker exec magento2-container make fs
