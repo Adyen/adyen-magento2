@@ -15,6 +15,9 @@ use Adyen\AdyenException;
 use Adyen\Client;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
+use Adyen\Payment\Model\Ui\Adminhtml\AdyenMotoConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
 use Adyen\Util\ManualCapture;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
@@ -53,6 +56,15 @@ class PaymentMethods extends AbstractHelper
     const FUNDING_SOURCE_CREDIT = 'credit';
 
     const ADYEN_GROUP_ALTERNATIVE_PAYMENT_METHODS = 'adyen-alternative-payment-method';
+
+    /*
+     * Following payment methods should be enabled with their own configuration path.
+     */
+    const EXCLUDED_PAYMENT_METHODS = [
+        AdyenPayByLinkConfigProvider::CODE,
+        AdyenPosCloudConfigProvider::CODE,
+        AdyenMotoConfigProvider::CODE
+    ];
 
     protected CartRepositoryInterface $quoteRepository;
     protected ScopeConfigInterface $config;
@@ -153,6 +165,10 @@ class PaymentMethods extends AbstractHelper
         }
 
         foreach ($this->getAdyenPaymentMethods() as $paymentMethod) {
+            if (in_array($paymentMethod, self::EXCLUDED_PAYMENT_METHODS)) {
+                continue;
+            }
+
             $value = $isActive ? '1': '0';
             $field = 'active';
             $this->configHelper->setConfigData($value, $field, $paymentMethod);
