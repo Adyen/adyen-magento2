@@ -107,7 +107,7 @@ class Index extends Action
             } else {
                 $successPath = $this->configHelper->getAdyenAbstractConfigData('custom_success_redirect_path', $storeId) ??
                     'checkout/onepage/success';
-                $failPath = $this->configHelper->getAdyenAbstractConfigData('return_path');
+                $failPath = $this->configHelper->getAdyenAbstractConfigData('return_path', $storeId);
                 $setQuoteAsActive = false;
             }
 
@@ -135,7 +135,7 @@ class Index extends Action
                 $this->_redirect($failPath, ['_query' => ['utm_nooverride' => '1']]);
             }
         } else {
-            $this->_redirect($this->configHelper->getAdyenAbstractConfigData('return_path'));
+            $this->_redirect($this->configHelper->getAdyenAbstractConfigData('return_path', $storeId));
         }
     }
 
