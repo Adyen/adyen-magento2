@@ -103,8 +103,10 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
 
         $storeId = $this->storeManager->getStore()->getId();
         $cardRecurringEnabled = $this->vaultHelper->getPaymentMethodRecurringActive(self::CODE, $storeId);
+        $methodTitle = $this->configHelper->getConfigData('title', Config::XML_ADYEN_CC, $storeId);
 
         $config['payment']['adyenCc']['methodCode'] = self::CODE;
+        $config['payment']['adyenCc']['title'] = __($methodTitle);
         $config['payment']['adyenCc']['locale'] = $this->adyenHelper->getStoreLocale($storeId);
         $config['payment']['adyenCc']['isCardRecurringEnabled'] = $cardRecurringEnabled;
         $config['payment']['adyenCc']['icons'] = $this->getIcons();
