@@ -27,6 +27,7 @@ jobs:
           ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
           ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
           ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
+          ADMIN_URLEXT: admin
 
       # Temp solution to wait for install script to run
       - name: Sleep for 120 seconds
