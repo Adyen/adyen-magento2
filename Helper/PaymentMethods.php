@@ -13,12 +13,15 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
 use Adyen\Client;
+use Adyen\ConnectionException;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Ui\Adminhtml\AdyenMotoConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
 use Adyen\Util\ManualCapture;
+use Exception;
+use Magento\Framework\App\Area;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
@@ -128,7 +131,7 @@ class PaymentMethods extends AbstractHelper
         $quote = $this->quoteRepository->getActive($quoteId);
         // If quote cannot be found early return the empty paymentMethods array
         if (empty($quote)) {
-            return [];
+            return '';
         }
 
         $this->setQuote($quote);
@@ -215,12 +218,12 @@ class PaymentMethods extends AbstractHelper
         $total = $this->chargedCurrency->getQuoteAmountCurrency($this->getQuote())->getAmount();
 
         if (!is_numeric($total)) {
-            throw new \Exception(
+            $exceptionMessage =
                 sprintf(
                     'Cannot retrieve a valid grand total from quote ID: `%s`. Expected a numeric value.',
                     $this->getQuote()->getEntityId()
-                )
             );
+            throw new AdyenException($exceptionMessage);
         }
 
         $total = (float)$total;
@@ -228,14 +231,13 @@ class PaymentMethods extends AbstractHelper
         if ($total >= 0) {
             return $total;
         }
-
-        throw new \Exception(
+        $exceptionMessage =
             sprintf(
                 'Cannot retrieve a valid grand total from quote ID: `%s`. Expected a float >= `0`, got `%f`.',
                 $this->getQuote()->getEntityId(),
                 $total
-            )
-        );
+            );
+        throw new AdyenException($exceptionMessage);
     }
 
     protected function getCurrentCountryCode(Store $store): string
@@ -279,7 +281,7 @@ class PaymentMethods extends AbstractHelper
             // return empty result
             return [];
         }
-        catch (\Adyen\ConnectionException $e) {
+        catch (ConnectionException $e) {
             $this->adyenLogger->error(
                 "Connection to the endpoint failed. Check the Adyen Live endpoint prefix configuration."
             );
@@ -353,7 +355,7 @@ class PaymentMethods extends AbstractHelper
         // Explicitly setting theme
         $themeCode = "Magento/blank";
 
-        $themeId = $this->design->getConfigurationDesignTheme(\Magento\Framework\App\Area::AREA_FRONTEND);
+        $themeId = $this->design->getConfigurationDesignTheme(Area::AREA_FRONTEND);
         if (!empty($themeId)) {
             $theme = $this->themeProvider->getThemeById($themeId);
             if ($theme && !empty($theme->getCode())) {
@@ -364,7 +366,7 @@ class PaymentMethods extends AbstractHelper
         $params = [];
         $params = array_merge(
             [
-                'area' => \Magento\Framework\App\Area::AREA_FRONTEND,
+                'area' => Area::AREA_FRONTEND,
                 '_secure' => $this->request->isSecure(),
                 'theme' => $themeCode
             ],
@@ -690,8 +692,8 @@ class PaymentMethods extends AbstractHelper
             // check if paid amount is the same as orginal amount
             $originalAmount =
                 isset($boletobancario['originalAmount']) ?
-                trim((string) $boletobancario['originalAmount']) :
-                "";
+                    trim((string) $boletobancario['originalAmount']) :
+                    "";
             $paidAmount = isset($boletobancario['paidAmount']) ? trim((string) $boletobancario['paidAmount']) : "";
 
             if ($originalAmount != $paidAmount) {
