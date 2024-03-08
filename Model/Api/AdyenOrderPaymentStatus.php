@@ -17,7 +17,7 @@ use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Sales\Api\OrderRepositoryInterface;
-use \Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Exception\NoSuchEntityException;
 
 class AdyenOrderPaymentStatus implements AdyenOrderPaymentStatusInterface
 {
@@ -89,8 +89,7 @@ class AdyenOrderPaymentStatus implements AdyenOrderPaymentStatusInterface
         return json_encode($this->paymentResponseHandler->formatPaymentResponse(
             $additionalInformation['resultCode'],
             !empty($additionalInformation['action']) ? $additionalInformation['action'] : null,
-            !empty($additionalInformation['additionalData']) ? $additionalInformation['additionalData'] : null,
-            !empty($additionalInformation['donationToken']) ? $additionalInformation['donationToken'] : null
+            !empty($additionalInformation['additionalData']) ? $additionalInformation['additionalData'] : null
         ));
     }
 }

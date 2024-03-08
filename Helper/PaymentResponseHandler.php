@@ -20,6 +20,7 @@ use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 use Exception;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\ResourceModel\Order;
@@ -89,7 +90,7 @@ class PaymentResponseHandler
      *
      * @param AdyenLogger $adyenLogger
      * @param Data $adyenHelper
-     * @param \Adyen\Payment\Helper\Vault $vaultHelper
+     * @param Vault $vaultHelper
      */
     public function __construct(
         AdyenLogger $adyenLogger,
@@ -113,7 +114,7 @@ class PaymentResponseHandler
         $this->paymentMethodFactory = $paymentMethodFactory;
     }
 
-    public function formatPaymentResponse($resultCode, $action = null, $additionalData = null, $donationToken = null)
+    public function formatPaymentResponse($resultCode, $action = null, $additionalData = null)
     {
         switch ($resultCode) {
             case self::AUTHORISED:
@@ -122,8 +123,7 @@ class PaymentResponseHandler
             case self::POS_SUCCESS:
                 return [
                     "isFinal" => true,
-                    "resultCode" => $resultCode,
-                    "donationToken" => $donationToken
+                    "resultCode" => $resultCode
                 ];
             case self::REDIRECT_SHOPPER:
             case self::IDENTIFY_SHOPPER:
@@ -159,7 +159,7 @@ class PaymentResponseHandler
      * @param Payment $payment
      * @param OrderInterface|null $order
      * @return bool
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function handlePaymentResponse($paymentsResponse, $payment, $order = null)
     {
