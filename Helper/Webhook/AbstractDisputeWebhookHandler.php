@@ -74,11 +74,8 @@ abstract class AbstractDisputeWebhookHandler implements WebhookHandlerInterface
                 'pspReference' => $order->getPayment()->getData('adyen_psp_reference'),
                 'merchantReference' => $order->getPayment()->getData('entity_id')
             ]);
-
         }
         return $order;
     }
-
-
 
 }
