@@ -2,7 +2,6 @@
 namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Payment\Helper\Webhook;
-use Adyen\Payment\Helper\Webhook\AuthorisationWebhookHandler;
 use Adyen\Payment\Helper\Webhook\WebhookHandlerInterface;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
@@ -19,7 +18,6 @@ use Adyen\Payment\Helper\Order as OrderHelper;
 use Adyen\Payment\Helper\Webhook\WebhookHandlerFactory;
 use Adyen\Payment\Logger\AdyenLogger;
 use ReflectionMethod;
-use ReflectionClass;
 
 class WebhookTest extends AbstractAdyenTestCase
 {
@@ -190,6 +188,7 @@ class WebhookTest extends AbstractAdyenTestCase
         $orderMock = $this->getMockBuilder(Order::class)
             ->disableOriginalConstructor()
             ->getMock();
+        $orderMock->method('getData')->willReturnSelf();
 
         $paymentMock = $this->getMockBuilder(Payment::class)
             ->disableOriginalConstructor()
@@ -203,8 +202,21 @@ class WebhookTest extends AbstractAdyenTestCase
             ->disableOriginalConstructor()
             ->getMock();
 
+        $orderRepositoryMock = $this->createMock(OrderRepository::class);
+        $orderRepositoryMock->method('get')->willReturn($orderMock);
+
         // Create an instance of your class
-        $webhook = $this->createWebhook(null, $serializerMock, null, null, null, $loggerMock, null, null, null);
+        $webhook = $this->createWebhook(
+            null,
+            $serializerMock,
+            null,
+            null,
+            null,
+            $loggerMock,
+            null,
+            null,
+            $orderRepositoryMock
+        );
 
         // Set up expectations for the mocked objects
         $notificationMock->expects($this->once())
