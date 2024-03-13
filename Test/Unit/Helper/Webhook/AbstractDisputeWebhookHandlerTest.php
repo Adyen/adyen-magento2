@@ -72,4 +72,37 @@ class AbstractDisputeWebhookHandlerTest extends AbstractAdyenTestCase
 
         $this->assertInstanceOf(MagentoOrder::class, $result);
     }
+     public function testHandleWebhookWithRefundNotificationAndIgnoreDisputeNotificationsDisabled()
+    {
+        $storeId = 1;
+        $pspReference = 'test_psp_reference';
+        $entityId = 'test_entity_id';
+        $eventCode = 'REFUND';
+        $notificationId = 'test_notification_id';
+
+        $orderMock = $this->createMock(MagentoOrder::class);
+        $notificationMock = $this->createMock(Notification::class);
+        $paymentMock = $this->createMock(\Magento\Sales\Model\Order\Payment::class);
+
+        $orderMock->method('getStoreId')->willReturn($storeId);
+        $orderMock->method('getPayment')->willReturn($paymentMock);
+        $paymentMock->method('getData')->willReturnMap([
+            ['adyen_psp_reference', null, $pspReference],
+            ['entity_id', null, $entityId]
+        ]);
+
+        $notificationMock->method('getEventCode')->willReturn($eventCode);
+        $notificationMock->method('getId')->willReturn($notificationId);
+
+        $this->configHelperMock->method('getConfigData')->with('ignore_dispute_notification', 'adyen_abstract', $storeId)->willReturn(false);
+
+        $this->adyenLoggerMock->expects($this->once())->method('addAdyenNotification')->with(
+            $this->stringContains('There is a REFUND notification for the order'),
+            $this->equalTo(['pspReference' => $pspReference, 'merchantReference' => $entityId])
+        );
+
+        $result = $this->abstractDisputeWebhookHandler->handleWebhook($orderMock, $notificationMock, 'REFUND');
+
+        $this->assertEquals($orderMock, $result);
+    }
 }
