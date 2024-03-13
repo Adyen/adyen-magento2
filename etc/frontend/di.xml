@@ -104,6 +104,7 @@
                 <item name="adyen_klarna_b2b" xsi:type="string">klarna_b2b</item>
                 <item name="adyen_mobilepay" xsi:type="string">mobilepay</item>
                 <item name="adyen_vipps" xsi:type="string">vipps</item>
+                <item name="adyen_bizum" xsi:type="string">bizum</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
