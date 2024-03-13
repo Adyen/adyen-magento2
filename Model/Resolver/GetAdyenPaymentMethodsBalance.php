@@ -14,61 +14,55 @@ declare(strict_types=1);
 namespace Adyen\Payment\Model\Resolver;
 
 use Adyen\Payment\Exception\GraphQlAdyenException;
-use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Api\AdyenPaymentMethodsBalance;
 use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
-use Magento\Framework\GraphQl\Exception\GraphQlNoSuchEntityException;
-use Magento\Framework\GraphQl\Query\Resolver\ContextInterface;
-use Magento\Framework\GraphQl\Query\Resolver\Value;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use Magento\Framework\Serialize\Serializer\Json;
-use Magento\QuoteGraphQl\Model\Cart\GetCartForUser;
-use Magento\Sales\Model\Order;
-use Magento\GraphQl\Helper\Error\AggregateExceptionMessageFormatter;
-use Adyen\Payment\Helper\GiftcardPayment;
 
-class GetAdyenRedeemedGiftcards implements ResolverInterface
+class GetAdyenPaymentMethodsBalance implements ResolverInterface
 {
-    private GiftcardPayment $giftcardPayment;
-    private GetCartForUser $getCartForUser;
+    private AdyenPaymentMethodsBalance $balance;
+    private Json $jsonSerializer;
 
     public function __construct(
-        GiftcardPayment $giftcardPayment,
-        GetCartForUser $getCartForUser
-    ) {
-        $this->giftcardPayment = $giftcardPayment;
-        $this->getCartForUser = $getCartForUser;
+        AdyenPaymentMethodsBalance  $balance,
+        Json $jsonSerializer,
+    )
+    {
+        $this->balance = $balance;
+        $this->jsonSerializer = $jsonSerializer;
     }
 
     public function resolve(
-        Field $field,
-              $context,
+        Field       $field,
+                    $context,
         ResolveInfo $info,
-        array $value = null,
-        array $args = null
-    ) {
-        if (empty($args['cartId'])) {
-            throw new GraphQlInputException(__('Required parameter "cartId" is missing'));
+        array       $value = null,
+        array       $args = null
+    )
+    {
+        if (empty($args['payload'])) {
+            throw new GraphQlInputException(__('Required parameter "payload" is missing'));
         }
-        $cartId = (int) $args['cartId'];
-        $userId = $context->getUserId();
-        $storeId = (int) $context->getExtensionAttributes()->getStore()->getId();
 
-        // Fetch cart for validation and use it in helper if needed
-        $cart = $this->getCartForUser->execute($cartId, $userId, $storeId);
+        $payload = $args['payload'];
+        try {
+            $balanceResponse = $this->balance->getBalance($payload);
+        } catch (LocalizedException $e) {
+            throw new GraphQlAdyenException(__($e->getMessage()), $e);
+        } catch (Exception $e) {
+            throw new GraphQlAdyenException(__('An error occurred while fetching the payment method balance.'), $e);
+        }
 
-        $redeemedGiftcardsResponse = $this->giftcardPayment->fetchRedeemedGiftcards($cart->getId());
-
-        // Assuming fetchRedeemedGiftcards returns JSON, decode it for GraphQL response
-        $response = json_decode($redeemedGiftcardsResponse, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \Exception('Error decoding the redeemed giftcards response');
+            throw new \Exception('Error decoding the payment methods balance response');
         }
 
-        return $response;
+        return ['balance' => $balanceResponse];
     }
 }
 

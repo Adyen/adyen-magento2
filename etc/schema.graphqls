@@ -22,20 +22,18 @@ type Mutation {
     ) : AdyenPaymentStatus @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentDetails")
 
     adyenRedeemedGiftcards(
-        cartId: Int! @doc(description: "Cart ID for which to fetch redeemed gift cards.")
+        cartId: String! @doc(description: "Cart ID for which to fetch redeemed gift cards.")
     ): AdyenRedeemedGiftcardsResponse @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenRedeemedGiftcards")
 
     adyenSaveStateData(
         stateData: String! @doc(description: "JSON string of Adyen state data."),
-        cartId: Int! @doc(description: "Cart ID associated with the state data.")
+        cartId: String! @doc(description: "Cart ID associated with the state data.")
     ): AdyenStateDataResponse @resolver(class: "Adyen\\Payment\\Model\\Resolver\\SaveAdyenStateData")
 
     adyenRemoveStateData(
         stateDataId: Int! @doc(description: "ID of the state data to remove."),
-        cartId: Int! @doc(description: "Cart ID associated with the state data.")
+        cartId: String! @doc(description: "Cart ID associated with the state data.")
     ): AdyenStateDataResponse @resolver(class: "Adyen\\Payment\\Model\\Resolver\\RemoveAdyenStateData")
-}
-
 }
 
 type AdyenPaymentStatus {
