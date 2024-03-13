@@ -42,7 +42,7 @@ class WebhookTest extends AbstractAdyenTestCase
 
     public function testProcessNotificationWithOrderNotFound()
     {
-        $merchantReference = 'TestMerchant'; // Replace with a merchant reference that does not exist
+        $merchantReference = 'TestMerchant';
         $notification = $this->createMock(Notification::class);
         $notification->method('getMerchantReference')->willReturn($merchantReference);
 
@@ -55,7 +55,6 @@ class WebhookTest extends AbstractAdyenTestCase
 
         $result = $webhookHandler->processNotification($notification);
 
-        // Assertions for the unsuccessful processing
         $this->assertFalse($result);
     }
 
@@ -76,7 +75,6 @@ class WebhookTest extends AbstractAdyenTestCase
         $notification->method('getPspreference')->willReturn('ABCD1234GHJK5678');
         $notification->method('getPaymentMethod')->willReturn('ADYEN_CC');
 
-        // Mocking Order and other dependencies
         $payment = $this->createMock(Payment::class);
         $order = $this->createMock(Order::class);
         $order->method('getState')->willReturn(Order::STATE_NEW);
@@ -95,10 +93,8 @@ class WebhookTest extends AbstractAdyenTestCase
         $logger = $this->createMock(AdyenLogger::class);
         $logger->method('getOrderContext')->with($order);
 
-        // Mock the WebhookHandlerFactory and WebhookHandler
         $webhookHandlerFactory = $this->createMock(WebhookHandlerFactory::class);
 
-        // Partially mock the Webhook class
         $webhookHandler = $this->getMockBuilder(Webhook::class)
             ->setConstructorArgs([
                 $this->createMock(Data::class),
@@ -128,7 +124,6 @@ class WebhookTest extends AbstractAdyenTestCase
 
     public function testAddNotificationDetailsHistoryComment()
     {
-        // Mock necessary dependencies
         $orderMock = $this->getMockBuilder(Order::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -146,19 +141,15 @@ class WebhookTest extends AbstractAdyenTestCase
 
     public function testGetTransitionState()
     {
-        // Mock necessary dependencies
         $notificationMock = $this->getMockBuilder(Notification::class)
             ->disableOriginalConstructor()
             ->getMock();
 
-        // Create an instance of your class
         $webhook = $this->createWebhook(null, null, null, null, null, null, null, null, null);
 
-        // Use reflection to make the private method accessible
         $method = new ReflectionMethod(Webhook::class, 'getTransitionState');
         $method->setAccessible(true);
 
-        // Set up expectations for the mocked objects
         $notificationMock->expects($this->once())
             ->method('getEventCode')
             ->willReturn('AUTHORISATION');
@@ -169,10 +160,8 @@ class WebhookTest extends AbstractAdyenTestCase
 
         $orderState = Order::STATE_NEW;
 
-        // Call the private method
         $result = $method->invokeArgs($webhook, [$notificationMock, $orderState]);
 
-        // Assertions based on your logic
         $this->assertNotEquals(
             'STATE_NEW',
             $result,
@@ -207,7 +196,6 @@ class WebhookTest extends AbstractAdyenTestCase
         $orderRepositoryMock = $this->createMock(OrderRepository::class);
         $orderRepositoryMock->method('get')->willReturn($orderMock);
 
-        // Create an instance of your class
         $webhook = $this->createWebhook(
             null,
             $serializerMock,
@@ -220,7 +208,6 @@ class WebhookTest extends AbstractAdyenTestCase
             $orderRepositoryMock
         );
 
-        // Set up expectations for the mocked objects
         $notificationMock->expects($this->once())
             ->method('getEventCode')
             ->willReturn(Notification::AUTHORISATION);
@@ -266,7 +253,6 @@ class WebhookTest extends AbstractAdyenTestCase
         $orderHelper = $this->createMock(OrderHelper::class);
         $orderHelper->method('getOrderByIncrementId')->willReturn($order);
 
-        // Create a mock for the payment
         $payment = $this->createMock(Payment::class);
         $mockWebhookHandlerFactory = $this->createMock(WebhookHandlerFactory::class);
         $webhookHandlerInterface = $this->createMock(WebhookHandlerInterface::class);
@@ -421,7 +407,6 @@ class WebhookTest extends AbstractAdyenTestCase
 
     public function testAddNotificationDetailsHistoryCommentWithFullRefund()
     {
-        // Mock necessary dependencies
         $orderMock = $this->getMockBuilder(Order::class)
             ->disableOriginalConstructor()
             ->getMock();
