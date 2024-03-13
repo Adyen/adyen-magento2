@@ -28,137 +28,48 @@ use Magento\Framework\Serialize\Serializer\Json;
 use Magento\QuoteGraphQl\Model\Cart\GetCartForUser;
 use Magento\Sales\Model\Order;
 use Magento\GraphQl\Helper\Error\AggregateExceptionMessageFormatter;
+use Adyen\Payment\Helper\GiftcardPayment;
 
-class GetAdyenPaymentDetails implements ResolverInterface
+class GetAdyenRedeemedGiftcards implements ResolverInterface
 {
-    /**
-     * @var GetCartForUser
-     */
-    private $getCartForUser;
-    /**
-     * @var DataProvider\GetAdyenPaymentStatus
-     */
-    protected $getAdyenPaymentStatusDataProvider;
-    /**
-     * @var Order
-     */
-    protected $order;
-    /**
-     * @var Json
-     */
-    protected $jsonSerializer;
-    /**
-     * @var AdyenLogger
-     */
-    protected $adyenLogger;
+    private GiftcardPayment $giftcardPayment;
+    private GetCartForUser $getCartForUser;
 
-    /**
-     * @param GetCartForUser $getCartForUser
-     * @param DataProvider\GetAdyenPaymentStatus $getAdyenPaymentStatusDataProvider
-     * @param Order $order
-     * @param Json $jsonSerializer
-     * @param AdyenLogger $adyenLogger
-     */
     public function __construct(
-        GetCartForUser $getCartForUser,
-        DataProvider\GetAdyenPaymentStatus $getAdyenPaymentStatusDataProvider,
-        Order $order,
-        Json $jsonSerializer,
-        AdyenLogger $adyenLogger
+        GiftcardPayment $giftcardPayment,
+        GetCartForUser $getCartForUser
     ) {
+        $this->giftcardPayment = $giftcardPayment;
         $this->getCartForUser = $getCartForUser;
-        $this->getAdyenPaymentStatusDataProvider = $getAdyenPaymentStatusDataProvider;
-        $this->order = $order;
-        $this->jsonSerializer = $jsonSerializer;
-        $this->adyenLogger = $adyenLogger;
     }
 
-    /**
-     * @inheritdoc
-     *
-     * @param Field $field
-     * @param ContextInterface $context
-     * @param ResolveInfo $info
-     * @param array|null $value
-     * @param array|null $args
-     * @return array|Value|mixed
-     * @throws GraphQlAdyenException
-     * @throws GraphQlInputException
-     * @throws GraphQlNoSuchEntityException
-     */
     public function resolve(
         Field $field,
-        $context,
+              $context,
         ResolveInfo $info,
         array $value = null,
         array $args = null
     ) {
-        if (empty($args['payload'])) {
-            throw new GraphQlInputException(__('Required parameter "payload" is missing'));
+        if (empty($args['cartId'])) {
+            throw new GraphQlInputException(__('Required parameter "cartId" is missing'));
         }
-        if (empty($args['cart_id'])) {
-            throw new GraphQlInputException(__('Required parameter "cart_id" is missing'));
-        }
-        $payload = $this->jsonSerializer->unserialize($args['payload']);
-        if (!array_key_exists('orderId', $payload)) {
-            throw new GraphQlInputException(__('Missing "orderId" from payload'));
+        $cartId = (int) $args['cartId'];
+        $userId = $context->getUserId();
+        $storeId = (int) $context->getExtensionAttributes()->getStore()->getId();
+
+        // Fetch cart for validation and use it in helper if needed
+        $cart = $this->getCartForUser->execute($cartId, $userId, $storeId);
+
+        $redeemedGiftcardsResponse = $this->giftcardPayment->fetchRedeemedGiftcards($cart->getId());
+
+        // Assuming fetchRedeemedGiftcards returns JSON, decode it for GraphQL response
+        $response = json_decode($redeemedGiftcardsResponse, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new \Exception('Error decoding the redeemed giftcards response');
         }
 
-        $order = $this->order->loadByIncrementId($payload['orderId']);
-        $maskedCartId = $args['cart_id'];
-        $currentUserId = $context->getUserId();
-        $storeId = (int)$context->getExtensionAttributes()->getStore()->getId();
-        $cart = $this->getCartForUser->execute($maskedCartId, $currentUserId, $storeId);
-        if (is_null($order->getEntityId()) || $order->getQuoteId() !== $cart->getEntityId()) {
-            throw new GraphQlNoSuchEntityException(__('Order does not exist'));
-        }
-
-        // Set the orderId in the payload to the entity id, instead of the incrementId
-        $payload['orderId'] = $order->getId();
-
-        try {
-            return $this->getAdyenPaymentStatusDataProvider->getGetAdyenPaymentDetails(
-                $this->jsonSerializer->serialize($payload),
-                $order,
-                $cart
-            );
-        } catch (LocalizedException $e) {
-            throw $this->getFormattedException($e, $field, $context, $info);
-        } catch (Exception $exception) {
-            $this->adyenLogger->error(sprintf(
-                'GraphQl payment details call failed with error message: %s',
-                $exception->getMessage()
-            ));
-            // In the future, use the message and the code passed by the exception. Since currently the message and code are not
-            // being passed, use this generic message.
-            throw new GraphQlAdyenException(__('An unknown error has occurred'), null, 000);
-        }
-    }
-
-    /**
-     * @param $e
-     * @param Field $field
-     * @param ContextInterface $context
-     * @param ResolveInfo $info
-     * @return mixed
-     */
-    private function getFormattedException($e, Field $field, ContextInterface $context, ResolveInfo $info)
-    {
-        if (class_exists(\Magento\QuoteGraphQl\Helper\Error\PlaceOrderMessageFormatter::class)) {
-            $errorMessageFormatter = \Magento\Framework\App\ObjectManager::getInstance()
-                ->get(\Magento\QuoteGraphQl\Helper\Error\PlaceOrderMessageFormatter::class);
-            return $errorMessageFormatter->getFormatted(
-                $e,
-                __('Unable to place order: A server error stopped your order from being placed. ' .
-                    'Please try to place your order again'),
-                'Unable to place order',
-                $field,
-                $context,
-                $info
-            );
-        } else {
-            return new GraphQlAdyenException(__('Unable to place order: A server error stopped your order from being placed. ' .
-                'Please try to place your order again'));
-        }
+        return $response;
     }
 }
+
+
