@@ -20,6 +20,7 @@ use Adyen\Payment\Logger\AdyenLogger;
 use ReflectionMethod;
 use Adyen\Payment\Exception\AdyenWebhookException;
 
+
 class WebhookTest extends AbstractAdyenTestCase
 {
     public function testProcessNotificationWithInvalidMerchantReference()
@@ -189,6 +190,7 @@ class WebhookTest extends AbstractAdyenTestCase
         $orderMock = $this->getMockBuilder(Order::class)
             ->disableOriginalConstructor()
             ->getMock();
+        $orderMock->method('getData')->willReturnSelf();
 
         $paymentMock = $this->getMockBuilder(Payment::class)
             ->disableOriginalConstructor()
@@ -202,8 +204,21 @@ class WebhookTest extends AbstractAdyenTestCase
             ->disableOriginalConstructor()
             ->getMock();
 
+        $orderRepositoryMock = $this->createMock(OrderRepository::class);
+        $orderRepositoryMock->method('get')->willReturn($orderMock);
+
         // Create an instance of your class
-        $webhook = $this->createWebhook(null, $serializerMock, null, null, null, $loggerMock, null, null, null);
+        $webhook = $this->createWebhook(
+            null,
+            $serializerMock,
+            null,
+            null,
+            null,
+            $loggerMock,
+            null,
+            null,
+            $orderRepositoryMock
+        );
 
         // Set up expectations for the mocked objects
         $notificationMock->expects($this->once())
