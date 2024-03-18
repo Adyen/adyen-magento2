@@ -57,11 +57,14 @@ class PaymentPosCloudHandler implements HandlerInterface
             );
             $payment->setAdditionalInformation('additionalData', $paymentResponseDecoded['additionalData']);
 
+            if (isset($paymentResponseDecoded['additionalData']['pspReference'])) {
+                $payment->setAdditionalInformation('pspReference', $paymentResponseDecoded['additionalData']['pspReference']);
+            }
+
             $this->vaultHelper->handlePaymentResponseRecurringDetails(
                 $payment->getOrder()->getPayment(),
                 $paymentResponseDecoded
             );
-
         }
         // set transaction(status)
         if (!empty($paymentResponse['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID']))

@@ -64,7 +64,8 @@ class DataTest extends AbstractAdyenTestCase
         $backendHelper = $this->createMock(BackendHelper::class);
         $productMetadata = $this->createConfiguredMock(ProductMetadata::class, [
             'getName' => 'magento',
-            'getVersion' => '2.x.x'
+            'getVersion' => '2.x.x',
+            'getEdition' => 'Community'
         ]);
         $adyenLogger = $this->createMock(AdyenLogger::class);
         $storeManager = $this->createMock(StoreManager::class);
@@ -189,5 +190,31 @@ class DataTest extends AbstractAdyenTestCase
             Client::class,
             $this->dataHelper->initializeAdyenClientWithClientConfig($clientConfig)
         );
+    }
+
+    public function testGetMagentoDetails()
+    {
+        $expectedDetails = [
+            'name' => 'magento',
+            'version' => '2.x.x',
+            'edition' => 'Community'
+        ];
+
+        $actualDetails = $this->dataHelper->getMagentoDetails();
+        $this->assertEquals($expectedDetails, $actualDetails);
+    }
+
+    public function testBuildRequestHeaders()
+    {
+        $expectedHeaders = [
+            'external-platform-name' => 'magento',
+            'external-platform-version' => '2.x.x',
+            'external-platform-edition' => 'Community',
+            'merchant-application-name' => 'adyen-magento2',
+            'merchant-application-version' => '1.2.3'
+        ];
+
+        $headers = $this->dataHelper->buildRequestHeaders();
+        $this->assertEquals($expectedHeaders, $headers);
     }
 }

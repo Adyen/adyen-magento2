@@ -1,47 +1,54 @@
 name: Main CI workflow
 
-on: [pull_request]
+on:
+  pull_request:
+  pull_request_target:
+  workflow_dispatch:
+  push:
+    branches: [develop]
 
 jobs:
   build:
+    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) || (github.event_name == 'push') || (github.event_name == 'workflow_dispatch')
+    environment: ${{ (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) && 'external' || 'internal' }}
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
         php-version: [8.1]
-    
+
     steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-    - name: Use PHP ${{ matrix.php-version }}
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: ${{ matrix.php-version }}
-        tools: composer:v1
+      - name: Use PHP ${{ matrix.php-version }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          tools: composer:v1
 
-    - name: Test plugin installation
-      run: |
-        echo "{\"http-basic\":{\"repo.magento.com\":{\"username\":\"${MAGENTO_USERNAME}\",\"password\":\"${MAGENTO_PASSWORD}\"}}}" > auth.json
-        composer install --prefer-dist
-      env:
-        CI: true
-        MAGENTO_USERNAME: ${{ secrets.MAGENTO_USERNAME }}
-        MAGENTO_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
+      - name: Test plugin installation
+        run: |
+          echo "{\"http-basic\":{\"repo.magento.com\":{\"username\":\"${MAGENTO_USERNAME}\",\"password\":\"${MAGENTO_PASSWORD}\"}}}" > auth.json
+          composer install --prefer-dist
+        env:
+          CI: true
+          MAGENTO_USERNAME: ${{ secrets.MAGENTO_USERNAME }}
+          MAGENTO_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
 
-    - name: Code Sniffer
-      run: vendor/bin/phpcs --extensions=php,phtml --error-severity=10 --ignore-annotations
+      - name: Code Sniffer
+        run: vendor/bin/phpcs .
 
-    - name: Run PHPUnit
-      run: vendor/bin/phpunit --coverage-clover=build/clover.xml --log-junit=build/tests-log.xml -c Test/phpunit.xml Test/Unit
+      - name: Run PHPUnit
+        run: vendor/bin/phpunit --coverage-clover=build/clover.xml --log-junit=build/tests-log.xml -c Test/phpunit.xml Test/Unit
 
-    - name: Fix code coverage paths
-      run: sed -i "s;`pwd`/;;g" build/*.xml
+      - name: Fix code coverage paths
+        run: sed -i "s;`pwd`/;;g" build/*.xml
 
-    - name: SonarCloud Scan
-      if: ${{ env.SONAR_TOKEN }}
-      uses: SonarSource/sonarcloud-github-action@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: SonarCloud Scan
+        if: ${{ env.SONAR_TOKEN }}
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

@@ -1,12 +1,12 @@
 <?php /** @var \Adyen\Payment\Block\Adminhtml\Support\Success $block */ ?>
 
 <div>
-    <h1><?= $block->getSuccessTitle() ?></h1>
-    <p class="adyen_support-success_message"><?= $block->getSuccessMessage() ?></p>
+    <h1><?= $block->escapeHtml($block->getSuccessTitle()) ?></h1>
+    <p class="adyen_support-success_message"><?= $block->escapeHtml($block->getSuccessMessage()) ?></p>
 
-    <form action="<?= $block->getDashboardUrl(); ?>" method="GET" class="adyen_support-redirect_form">
+    <form action="<?= $block->escapeUrl($block->getDashboardUrl()); ?>" method="GET" class="adyen_support-redirect_form">
         <button class="adyen_support-form_link btn btn-large btn-prime">
-            <?= __("Return to Dashboard") ?>
+            <?= $block->escapeHtml(__("Return to Dashboard")) ?>
         </button>
     </form>
 </div>

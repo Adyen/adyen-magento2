@@ -1,39 +1,38 @@
 name: Magento 2 E2E Pipeline
 run-name: Adyen Magento 2 Payment Plugin E2E tests
 
-on: 
+on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, ready_for_review]
+  pull_request_target:
+    types: [opened, synchronize, ready_for_review]
 
 jobs:
   build:
-    if: |
-      ${{ 
-      github.event.pull_request.draft == false &&
-      (github.actor != 'renovate[bot]' || github.actor != 'lgtm-com[bot]')
-      }}
+    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository)
+    environment: ${{ (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) && 'external' || 'internal' }}
     runs-on:
       group: larger-runners
       labels: ubuntu-latest-8-cores
-    timeout-minutes: 20
+    timeout-minutes: 25
     env:
       PHP_VERSION: "8.1"
       MAGENTO_VERSION: "2.4.5"
+      ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
+      ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
+      ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
       ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
       ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
+      DONATION_ACCOUNT: ${{secrets.DONATION_ACCOUNT}}
+      DEPLOY_SAMPLEDATA: 1
     steps:
       - uses: actions/checkout@v3
 
       - name: Install Magento
-        run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm web make magento
+        run: docker-compose -f .github/docker-compose.yml run --rm web make magento
 
       - name: Start web server in background
-        run: docker-compose -f .github/workflows/templates/docker-compose.yml up -d web
-        env:
-          DONATION_ACCOUNT: ${{secrets.DONATION_ACCOUNT}}
-          ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
-          ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
-          ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
+        run: docker-compose -f .github/docker-compose.yml up -d web
 
       - name: Setup permissions
         run: docker exec magento2-container make fs
@@ -43,7 +42,7 @@ jobs:
 
       - name: Install plugin
         run: docker exec -u www-data magento2-container make plugin
-      
+
       - name: Kill Cron Jobs
         run: docker exec magento2-container /etc/init.d/cron stop
 
@@ -51,7 +50,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: Adyen/adyen-magento2-dev
-          ref: 'main'
+          ref: "main"
           token: ${{ secrets.ADYEN_AUTOMATION_BOT_TEST_ACCESS_TOKEN }}
           path: Developer
 
@@ -73,7 +72,7 @@ jobs:
         run: docker exec magento2-container make fs
 
       - name: Run E2E tests
-        run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm playwright /e2e.sh standard
+        run: docker-compose -f .github/docker-compose.e2e.yml run --rm playwright /e2e.sh standard
         env:
           INTEGRATION_TESTS_BRANCH: develop
           MAGENTO_ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
@@ -81,9 +80,6 @@ jobs:
           MAGENTO_BASE_URL: ${{secrets.MAGENTO_BASE_URL}}
           PAYPAL_USERNAME: ${{secrets.PLAYWRIGHT_PAYPAL_USERNAME}}
           PAYPAL_PASSWORD: ${{secrets.PLAYWRIGHT_PAYPAL_PASSWORD}}
-          ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
-          ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
-          ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
           WEBHOOK_USERNAME: admin
           WEBHOOK_PASSWORD: 1234
 

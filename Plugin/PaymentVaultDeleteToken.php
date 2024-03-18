@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Plugin;
 
 use Adyen\AdyenException;
+use Adyen\Client;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Requests;
 use Adyen\Payment\Helper\Vault;
@@ -49,33 +50,41 @@ class PaymentVaultDeleteToken
      * @return PaymentTokenInterface[]|void
      * @throws NoSuchEntityException
      */
-    public function beforeDelete(PaymentTokenRepositoryInterface $subject, PaymentTokenInterface $paymentToken): ?array {
+    public function beforeDelete(PaymentTokenRepositoryInterface $subject, PaymentTokenInterface $paymentToken): ?array
+    {
         $paymentMethodCode = $paymentToken->getPaymentMethodCode();
         $storeId = $this->storeManager->getStore()->getStoreId();
 
-        if (is_null($paymentMethodCode) || !$this->vaultHelper->isAdyenPaymentCode($paymentMethodCode)) {
-            return [$paymentToken];
+        if (!is_null($paymentMethodCode) && $this->vaultHelper->isAdyenPaymentCode($paymentMethodCode)) {
+            $request = $this->createDisableTokenRequest($paymentToken);
+
+            try {
+                $client = $this->dataHelper->initializeAdyenClient($storeId);
+                $recurringService = $this->dataHelper->createAdyenRecurringService($client);
+
+                $this->dataHelper->logRequest(
+                    $request,
+                    Client::API_RECURRING_VERSION,
+                    sprintf("/pal/servlet/Recurring/%s/disable", Client::API_RECURRING_VERSION)
+                );
+                $response = $recurringService->disable($request);
+                $this->dataHelper->logResponse($response);
+            } catch (AdyenException $e) {
+                $this->adyenLogger->error(sprintf(
+                    'Error while attempting to disable token with id %s: %s',
+                    $paymentToken->getEntityId(),
+                    $e->getMessage()
+                ));
+            } catch (NoSuchEntityException $e) {
+                $this->adyenLogger->error(sprintf(
+                    'No such entity while attempting to disable token with id %s: %s',
+                    $paymentToken->getEntityId(),
+                    $e->getMessage()
+                ));
+            }
         }
 
-        $request = $this->createDisableTokenRequest($paymentToken);
-
-        try {
-            $client = $this->dataHelper->initializeAdyenClient($storeId);
-            $recurringService = $this->dataHelper->createAdyenRecurringService($client);
-            $recurringService->disable($request);
-        } catch (AdyenException $e) {
-            $this->adyenLogger->error(sprintf(
-                'Error while attempting to disable token with id %s: %s',
-                $paymentToken->getEntityId(),
-                $e->getMessage()
-            ));
-        } catch (NoSuchEntityException $e) {
-            $this->adyenLogger->error(sprintf(
-                'No such entity while attempting to disable token with id %s: %s',
-                $paymentToken->getEntityId(),
-                $e->getMessage()
-            ));
-        }
+        return [$paymentToken];
     }
 
     private function createDisableTokenRequest(PaymentTokenInterface $paymentToken): array

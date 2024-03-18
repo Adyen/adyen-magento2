@@ -59,6 +59,7 @@ class Vault
     private PaymentTokenRepositoryInterface $paymentTokenRepository;
     private Config $config;
     private PaymentMethods $paymentMethodsHelper;
+    private StateData $stateData;
 
     public function __construct(
         AdyenLogger $adyenLogger,
@@ -66,7 +67,8 @@ class Vault
         PaymentTokenFactoryInterface $paymentTokenFactory,
         PaymentTokenRepositoryInterface $paymentTokenRepository,
         Config $config,
-        PaymentMethods $paymentMethodsHelper
+        PaymentMethods $paymentMethodsHelper,
+        StateData $stateData
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->paymentTokenManagement = $paymentTokenManagement;
@@ -74,6 +76,7 @@ class Vault
         $this->paymentTokenRepository = $paymentTokenRepository;
         $this->config = $config;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
+        $this->stateData = $stateData;
     }
 
     /**
@@ -144,11 +147,17 @@ class Vault
         $requestRpm = $payment->getAdditionalInformation('recurringProcessingModel');
         $configuredRpm = $this->getPaymentMethodRecurringProcessingModel($paymentMethod->getCode(), $storeId);
 
+        $stateData = $this->stateData->getStateData($payment->getOrder()->getQuoteId());
+        $storedPaymentMethodId = $this->stateData->getStoredPaymentMethodIdFromStateData($stateData);
+
         $recurringProcessingModel = $requestRpm ?? $configuredRpm;
 
         if (isset($recurringProcessingModel)) {
-            $request['storePaymentMethod'] = true;
             $request['recurringProcessingModel'] = $recurringProcessingModel;
+
+            if (is_null($storedPaymentMethodId)) {
+                $request['storePaymentMethod'] = true;
+            }
         }
 
         return $request;
@@ -218,7 +227,7 @@ class Vault
             $details = [
                 'type' => $payment->getCcType(),
                 self::TOKEN_LABEL => sprintf(
-                    "%s % %",
+                    "%s %s %s",
                     $paymentMethodInstance->getTitle(),
                     __("token created on"),
                     $today->format('Y-m-d')
