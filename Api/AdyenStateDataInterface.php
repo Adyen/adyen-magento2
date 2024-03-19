@@ -18,13 +18,15 @@ namespace Adyen\Payment\Api;
 interface AdyenStateDataInterface
 {
     /**
-     * Persist the Adyen state data for the quote so it can be used in the payment request
+     * Persist the Adyen state data for the quote and returns the stateDataId.
+     * So it can be used in the payment request.
+     *
      *
      * @param string $stateData
      * @param int $cartId
-     * @return void
+     * @return int
      */
-    public function save(string $stateData, int $cartId): void;
+    public function save(string $stateData, int $cartId): int;
 
     /**
      * Removes the Adyen state data with the given entity id

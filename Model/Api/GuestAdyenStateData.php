@@ -33,14 +33,18 @@ class GuestAdyenStateData implements GuestAdyenStateDataInterface
     }
 
     /**
+     * @param string $stateData
+     * @param string $cartId
+     * @return int
      * @throws InputException
      * @throws LocalizedException
      */
-    public function save(string $stateData, string $cartId): void
+    public function save(string $stateData, string $cartId): int
     {
         $quoteId = $this->getQuoteIdFromMaskedCartId($cartId);
+        $stateData = $this->stateDataHelper->saveStateData($stateData, $quoteId);
 
-        $this->stateDataHelper->saveStateData($stateData, $quoteId);
+        return $stateData->getEntityId();
     }
 
     /**
