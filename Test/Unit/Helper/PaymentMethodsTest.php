@@ -39,6 +39,8 @@ use Magento\Framework\View\Design\Theme\ThemeProviderInterface;
 use Magento\Payment\Helper\Data as MagentoDataHelper;
 use Magento\Payment\Model\MethodInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Vault\Api\PaymentTokenRepositoryInterface;
+use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Quote\Model\Quote\Address;
 use Magento\Sales\Model\Order;
 use Magento\Quote\Model\Quote;
@@ -68,6 +70,8 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
     private ManualCapture $manualCaptureMock;
     private SerializerInterface $serializerMock;
     private AdyenDataHelper $adyenDataHelperMock;
+    private PaymentTokenRepositoryInterface $paymentTokenRepository;
+    private SearchCriteriaBuilder $searchCriteriaBuilder;
 
     protected function setUp(): void
     {
@@ -93,6 +97,8 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $this->manualCaptureMock = $this->createMock(ManualCapture::class);
         $this->serializerMock = $this->createMock(SerializerInterface::class);
         $this->adyenDataHelperMock = $this->createMock(AdyenDataHelper::class);
+        $this->paymentTokenRepository = $this->createMock(PaymentTokenRepositoryInterface::class);
+        $this->searchCriteriaBuilder = $this->createMock(SearchCriteriaBuilder::class);
         $this->amountCurrencyMock = $this->createMock(AdyenAmountCurrency::class);
         $this->methodMock = $this->createMock(MethodInterface::class);
         $this->orderMock = $this->createMock(Order::class);
@@ -130,6 +136,8 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             $this->manualCaptureMock,
             $this->serializerMock,
             $this->adyenDataHelperMock,
+            $this->paymentTokenRepository,
+            $this->searchCriteriaBuilder
         );
     }
 
@@ -220,6 +228,70 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         );
     }
 
+    public function testFetchPaymentMethodsWithNoPaymentMethodsInResponse()
+    {
+        $country = 'NL';
+        $shopperLocale = 'nl_NL';
+        $expectedResult = '[]';
+
+        $storeMock = $this->createMock(Store::class);
+        $storeMock->method('getId')->willReturn(1);
+
+        $quoteMock = $this->getMockBuilder(Quote::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['getStore'])
+            ->getMock();
+
+        $quoteMock->method('getStore')->willReturn($storeMock);
+        $quoteMock->setCustomerId(123);
+
+        $reflectionClass = new \ReflectionClass(get_class($this->paymentMethodsHelper));
+        $quoteProperty = $reflectionClass->getProperty('quote');
+        $quoteProperty->setAccessible(true);
+        $quoteProperty->setValue($this->paymentMethodsHelper, $quoteMock);
+
+        $method = $reflectionClass->getMethod('fetchPaymentMethods');
+        $method->setAccessible(true);
+
+        $result = $method->invokeArgs($this->paymentMethodsHelper, [$country, $shopperLocale]);
+
+        $this->assertEquals($expectedResult, $result);
+    }
+
+    public function testFilterStoredPaymentMethods()
+    {
+        $allowMultistoreTokens = false;
+        $customerId = 1;
+        $responseData = [
+            'storedPaymentMethods' => [
+                ['id' => '123', 'name' => 'Visa'],
+                ['id' => '456', 'name' => 'Mastercard']
+            ]
+        ];
+        $expectedResult = [
+            'storedPaymentMethods' => [
+                ['id' => '123', 'name' => 'Visa']
+            ]
+        ];
+
+        $paymentTokenMock = $this->createMock(\Magento\Vault\Api\Data\PaymentTokenInterface::class);
+        $paymentTokenMock->method('getGatewayToken')->willReturn('123');
+
+        $searchCriteriaMock = $this->createMock(\Magento\Framework\Api\SearchCriteriaInterface::class);
+        $this->searchCriteriaBuilder->method('addFilter')->willReturnSelf();
+        $this->searchCriteriaBuilder->method('create')->willReturn($searchCriteriaMock);
+        $this->searchCriteriaBuilder->method('addFilter')->willReturnSelf();
+        $this->searchCriteriaBuilder->method('create')->willReturn('searchCriteria');
+        $this->paymentTokenRepository->method('getList')->willReturn(new \Magento\Framework\DataObject(['items' => [$paymentTokenMock]]));
+
+        $reflectionClass = new \ReflectionClass(get_class($this->paymentMethodsHelper));
+        $method = $reflectionClass->getMethod('filterStoredPaymentMethods');
+        $method->setAccessible(true);
+
+        $result = $method->invokeArgs($this->paymentMethodsHelper, [$allowMultistoreTokens, $responseData, $customerId]);
+
+        $this->assertEquals($expectedResult, $result);
+    }
     //Successfully retrieve payment methods for a valid quote ID. getPaymentMethods
     public function testSuccessfullyRetrievePaymentMethodsForValidQuoteId()
     {
@@ -1275,5 +1347,4 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $this->assertArrayHasKey('icon', $result['visa']);
         $this->assertArrayHasKey('isOpenInvoice', $result['visa']);
     }
-
 }
