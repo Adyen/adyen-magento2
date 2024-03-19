@@ -826,7 +826,6 @@
                 <item name="adyen_giropay" xsi:type="string">AdyenPaymentCommandManager</item>
                 <item name="adyen_eps" xsi:type="string">AdyenPaymentCommandManager</item>
                 <item name="adyen_directEbanking" xsi:type="string">AdyenPaymentCommandManager</item>
-
             </argument>
         </arguments>
     </type>
@@ -3943,8 +3942,8 @@
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentMobilepayValueHandlerPool</argument>
             <argument name="validatorPool" xsi:type="object">AdyenPaymentValidatorPool</argument>
             <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
-       </arguments>
-    </virtualType>   
+        </arguments>
+    </virtualType>
     <virtualType name="AdyenPaymentVippsFacade" type="Adyen\Payment\Model\Method\Adapter">
         <arguments>
             <argument name="code" xsi:type="string">adyen_vipps</argument>
@@ -3989,5 +3988,31 @@
             <argument name="methodCode" xsi:type="string">adyen_vipps</argument>
         </arguments>
     </virtualType>
+    <virtualType name="AdyenPaymentBizumFacade" type="Adyen\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="string">adyen_bizum</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\PaymentMethodInfo</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentBizumValueHandlerPool</argument>
+            <argument name="validatorPool" xsi:type="object">AdyenPaymentValidatorPool</argument>
+            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentBizumValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AdyenPaymentBizumConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentBizumConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AdyenPaymentBizumConfig</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentBizumConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="string">adyen_bizum</argument>
+        </arguments>
+    </virtualType>
 </config>
-

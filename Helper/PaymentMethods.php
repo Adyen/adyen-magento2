@@ -13,9 +13,15 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
 use Adyen\Client;
+use Adyen\ConnectionException;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
+use Adyen\Payment\Model\Ui\Adminhtml\AdyenMotoConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
 use Adyen\Util\ManualCapture;
+use Exception;
+use Magento\Framework\App\Area;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
@@ -34,7 +40,8 @@ use Magento\Sales\Model\Order;
 use Adyen\Payment\Helper\Data as AdyenDataHelper;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\Store;
-
+use Magento\Vault\Api\PaymentTokenRepositoryInterface;
+use Magento\Framework\Api\SearchCriteriaBuilder;
 class PaymentMethods extends AbstractHelper
 {
     const ADYEN_HPP = 'adyen_hpp';
@@ -54,6 +61,15 @@ class PaymentMethods extends AbstractHelper
 
     const ADYEN_GROUP_ALTERNATIVE_PAYMENT_METHODS = 'adyen-alternative-payment-method';
 
+    /*
+     * Following payment methods should be enabled with their own configuration path.
+     */
+    const EXCLUDED_PAYMENT_METHODS = [
+        AdyenPayByLinkConfigProvider::CODE,
+        AdyenPosCloudConfigProvider::CODE,
+        AdyenMotoConfigProvider::CODE
+    ];
+
     protected CartRepositoryInterface $quoteRepository;
     protected ScopeConfigInterface $config;
     protected Data $adyenHelper;
@@ -71,6 +87,8 @@ class PaymentMethods extends AbstractHelper
     private Config $configHelper;
     private ManualCapture $manualCapture;
     private SerializerInterface $serializer;
+    private PaymentTokenRepositoryInterface $paymentTokenRepository;
+    private SearchCriteriaBuilder $searchCriteriaBuilder;
 
     public function __construct(
         Context $context,
@@ -89,7 +107,9 @@ class PaymentMethods extends AbstractHelper
         MagentoDataHelper $dataHelper,
         ManualCapture $manualCapture,
         SerializerInterface $serializer,
-        AdyenDataHelper $adyenDataHelper
+        AdyenDataHelper $adyenDataHelper,
+        PaymentTokenRepositoryInterface $paymentTokenRepository,
+        SearchCriteriaBuilder $searchCriteriaBuilder
     ) {
         parent::__construct($context);
         $this->quoteRepository = $quoteRepository;
@@ -108,6 +128,8 @@ class PaymentMethods extends AbstractHelper
         $this->manualCapture = $manualCapture;
         $this->serializer = $serializer;
         $this->adyenDataHelper = $adyenDataHelper;
+        $this->paymentTokenRepository = $paymentTokenRepository;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
     }
 
     public function getPaymentMethods(int $quoteId, ?string $country = null, ?string $shopperLocale = null): string
@@ -116,7 +138,7 @@ class PaymentMethods extends AbstractHelper
         $quote = $this->quoteRepository->getActive($quoteId);
         // If quote cannot be found early return the empty paymentMethods array
         if (empty($quote)) {
-            return [];
+            return '';
         }
 
         $this->setQuote($quote);
@@ -153,6 +175,10 @@ class PaymentMethods extends AbstractHelper
         }
 
         foreach ($this->getAdyenPaymentMethods() as $paymentMethod) {
+            if (in_array($paymentMethod, self::EXCLUDED_PAYMENT_METHODS)) {
+                continue;
+            }
+
             $value = $isActive ? '1': '0';
             $field = 'active';
             $this->configHelper->setConfigData($value, $field, $paymentMethod);
@@ -179,6 +205,11 @@ class PaymentMethods extends AbstractHelper
         }
 
         $paymentMethods = $responseData['paymentMethods'];
+
+        $allowMultistoreTokens = $this->configHelper->getAllowMultistoreTokens($store->getId());
+        $customerId = $quote->getCustomerId();
+        $responseData = $this->filterStoredPaymentMethods($allowMultistoreTokens, $responseData, $customerId);
+
         $response['paymentMethodsResponse'] = $responseData;
 
         // Add extra details per payment method
@@ -194,17 +225,41 @@ class PaymentMethods extends AbstractHelper
         return json_encode($response);
     }
 
+    protected function filterStoredPaymentMethods($allowMultistoreTokens, $responseData, $customerId)
+    {
+        if (!$allowMultistoreTokens && isset($responseData['storedPaymentMethods'])) {
+            $searchCriteria = $this->searchCriteriaBuilder
+                ->addFilter('customer_id', $customerId)
+                ->create();
+
+            $paymentTokens = $this->paymentTokenRepository->getList($searchCriteria)->getItems();
+
+            $gatewayTokens = array_map(function ($paymentToken) {
+                return $paymentToken->getGatewayToken();
+            }, $paymentTokens);
+
+            $storedPaymentMethods = $responseData['storedPaymentMethods'];
+            $responseData['storedPaymentMethods'] = array_filter(
+                $storedPaymentMethods,
+                function ($method) use ($gatewayTokens) {
+                return in_array($method['id'], $gatewayTokens);
+            });
+        }
+
+        return $responseData;
+    }
+
     protected function getCurrentPaymentAmount(): float
     {
         $total = $this->chargedCurrency->getQuoteAmountCurrency($this->getQuote())->getAmount();
 
         if (!is_numeric($total)) {
-            throw new \Exception(
+            $exceptionMessage =
                 sprintf(
                     'Cannot retrieve a valid grand total from quote ID: `%s`. Expected a numeric value.',
                     $this->getQuote()->getEntityId()
-                )
             );
+            throw new AdyenException($exceptionMessage);
         }
 
         $total = (float)$total;
@@ -212,14 +267,13 @@ class PaymentMethods extends AbstractHelper
         if ($total >= 0) {
             return $total;
         }
-
-        throw new \Exception(
+        $exceptionMessage =
             sprintf(
                 'Cannot retrieve a valid grand total from quote ID: `%s`. Expected a float >= `0`, got `%f`.',
                 $this->getQuote()->getEntityId(),
                 $total
-            )
-        );
+            );
+        throw new AdyenException($exceptionMessage);
     }
 
     protected function getCurrentCountryCode(Store $store): string
@@ -263,7 +317,7 @@ class PaymentMethods extends AbstractHelper
             // return empty result
             return [];
         }
-        catch (\Adyen\ConnectionException $e) {
+        catch (ConnectionException $e) {
             $this->adyenLogger->error(
                 "Connection to the endpoint failed. Check the Adyen Live endpoint prefix configuration."
             );
@@ -337,7 +391,7 @@ class PaymentMethods extends AbstractHelper
         // Explicitly setting theme
         $themeCode = "Magento/blank";
 
-        $themeId = $this->design->getConfigurationDesignTheme(\Magento\Framework\App\Area::AREA_FRONTEND);
+        $themeId = $this->design->getConfigurationDesignTheme(Area::AREA_FRONTEND);
         if (!empty($themeId)) {
             $theme = $this->themeProvider->getThemeById($themeId);
             if ($theme && !empty($theme->getCode())) {
@@ -348,7 +402,7 @@ class PaymentMethods extends AbstractHelper
         $params = [];
         $params = array_merge(
             [
-                'area' => \Magento\Framework\App\Area::AREA_FRONTEND,
+                'area' => Area::AREA_FRONTEND,
                 '_secure' => $this->request->isSecure(),
                 'theme' => $themeCode
             ],
@@ -674,8 +728,8 @@ class PaymentMethods extends AbstractHelper
             // check if paid amount is the same as orginal amount
             $originalAmount =
                 isset($boletobancario['originalAmount']) ?
-                trim((string) $boletobancario['originalAmount']) :
-                "";
+                    trim((string) $boletobancario['originalAmount']) :
+                    "";
             $paidAmount = isset($boletobancario['paidAmount']) ? trim((string) $boletobancario['paidAmount']) : "";
 
             if ($originalAmount != $paidAmount) {
