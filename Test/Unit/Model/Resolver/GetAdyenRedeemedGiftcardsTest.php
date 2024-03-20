@@ -32,7 +32,7 @@ class GetAdyenRedeemedGiftcardsTest extends AbstractAdyenTestCase
     {
         $this->giftcardPaymentMock = $this->createMock(GiftcardPayment::class);
         $this->jsonSerializerMock = $this->createMock(Json::class);
-        $this->quoteIdMaskFactoryMock = $this->createMock(QuoteIdMaskFactory::class);
+        $this->quoteIdMaskFactoryMock = $this->createGeneratedMock(QuoteIdMaskFactory::class);
         $this->quoteIdMaskMock = $this->createMock(QuoteIdMask::class);
 
         $this->quoteIdMaskFactoryMock->method('create')->willReturn($this->quoteIdMaskMock);

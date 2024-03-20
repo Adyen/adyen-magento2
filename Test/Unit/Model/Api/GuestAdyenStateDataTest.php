@@ -14,7 +14,6 @@ namespace Adyen\Payment\Test\Unit\Model\Api;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Model\Api\GuestAdyenStateData;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
-use Magento\Framework\App\State;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Quote\Model\QuoteIdMask;
