@@ -14,6 +14,7 @@ namespace Adyen\Payment\Test\Unit\Model\Api;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Model\Api\GuestAdyenStateData;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Magento\Framework\App\State;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Quote\Model\QuoteIdMask;
@@ -51,10 +52,16 @@ class GuestAdyenStateDataTest extends AbstractAdyenTestCase
         $stateData = '{"stateData":"dummyData"}';
         $cartId = 'ABC123456789';
 
+        $stateDataMock = $this->createMock(\Adyen\Payment\Model\StateData::class);
+        $stateDataMock->method('getEntityId')->willReturn(1);
+
         $this->quoteIdMaskFactoryMock->method('create')->willReturn($this->quoteIdMaskMock);
-        $this->stateDataHelperMock->expects($this->once())->method('saveStateData');
+        $this->stateDataHelperMock->expects($this->once())->method('saveStateData')->willReturn($stateDataMock);
+        //should return int
+
 
         $this->guestAdyenStateDataModel->save($stateData, $cartId);
+//        $this->assertIsInt($result);
     }
 
     public function testRemoveSuccessful()
@@ -64,7 +71,6 @@ class GuestAdyenStateDataTest extends AbstractAdyenTestCase
 
         $this->quoteIdMaskFactoryMock->method('create')->willReturn($this->quoteIdMaskMock);
         $this->stateDataHelperMock->expects($this->once())->method('removeStateData');
-
         $this->guestAdyenStateDataModel->remove($stateDataId, $cartId);
     }
 
