@@ -192,12 +192,14 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
                 'getBasePrice',
                 'getBaseDiscountAmount',
                 'getBaseTaxAmount',
+                'getBaseRowTotal',
                 'getRowTotal',
                 'getDiscountAmount',
                 'getTaxAmount',
                 'getBasePriceInclTax',
                 'getPriceInclTax',
-                'getRowTotalInclTax'
+                'getRowTotalInclTax',
+                'getBaseRowTotalInclTax'
             ]
         );
 
@@ -208,13 +210,15 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
                 'getBaseDiscountAmount' => self::AMOUNT_CURRENCY['base']['discountAmount'],
                 'getBaseTaxAmount' => self::AMOUNT_CURRENCY['base']['taxAmount'],
                 'getRowTotal' => self::AMOUNT_CURRENCY['display']['amount'],
+                'getBaseRowTotal' => self::AMOUNT_CURRENCY['base']['amount'],
                 'getQty' => 1,
                 'getDiscountAmount' => self::AMOUNT_CURRENCY['display']['discountAmount'],
                 'getTaxAmount' => self::AMOUNT_CURRENCY['display']['taxAmount'],
                 'getQuote' => $this->quote,
                 'getBasePriceInclTax' => self::AMOUNT_CURRENCY['base']['amountIncludingTax'],
                 'getPriceInclTax' => self::AMOUNT_CURRENCY['display']['amountIncludingTax'],
-                'getRowTotalInclTax' => self::AMOUNT_CURRENCY['display']['amountIncludingTax']
+                'getRowTotalInclTax' => self::AMOUNT_CURRENCY['display']['amountIncludingTax'],
+                'getBaseRowTotalInclTax' => self::AMOUNT_CURRENCY['base']['amountIncludingTax'],
             ]
         );
 
@@ -231,7 +235,10 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
                 'getGrandTotal',
                 'getBaseGrandTotal'
             ],
-            []
+            [
+                'getBaseRowTotal',
+                'getRowTotal'
+            ]
         );
 
         $this->mockMethods($this->invoice,
@@ -244,7 +251,9 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
                 'getShippingAmount' => self::AMOUNT_CURRENCY['display']['amount'],
                 'getShippingTaxAmount' => self::AMOUNT_CURRENCY['display']['taxAmount'],
                 'getGrandTotal' => self::AMOUNT_CURRENCY['display']['amount'],
-                'getBaseGrandTotal' => self::AMOUNT_CURRENCY['base']['amount']
+                'getBaseGrandTotal' => self::AMOUNT_CURRENCY['base']['amount'],
+                'getBaseRowTotal' => self::AMOUNT_CURRENCY['base']['amount'],
+                'getRowTotal' => self::AMOUNT_CURRENCY['display']['amount'],
             ]
         );
 
@@ -256,7 +265,9 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
                 'getBaseTaxAmount',
                 'getPrice',
                 'getTaxAmount',
-                'getQty'
+                'getQty',
+                'getBaseRowTotal',
+                'getRowTotal'
             ],
             []
         );
@@ -267,7 +278,9 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
                 'getBaseTaxAmount' => self::AMOUNT_CURRENCY['base']['taxAmount'],
                 'getPrice' => self::AMOUNT_CURRENCY['display']['amount'],
                 'getTaxAmount' => self::AMOUNT_CURRENCY['display']['taxAmount'],
-                'getQty' => 1
+                'getQty' => 1,
+                'getBaseRowTotal' => self::AMOUNT_CURRENCY['base']['amount'],
+                'getRowTotal' => self::AMOUNT_CURRENCY['display']['amount']
             ]
         );
 
@@ -319,7 +332,9 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
                 'getCreditMemo',
                 'getBaseTaxAmount',
                 'getTaxAmount',
-                'getQty'
+                'getQty',
+                'getBaseRowTotal',
+                'getRowTotal'
             ],
             [
                 'getOrder'
@@ -333,7 +348,9 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
                 'getBaseTaxAmount' => self::AMOUNT_CURRENCY['base']['taxAmount'],
                 'getPrice' => self::AMOUNT_CURRENCY['display']['amount'],
                 'getTaxAmount' => self::AMOUNT_CURRENCY['display']['taxAmount'],
-                'getQty' => 1
+                'getQty' => 1,
+                'getBaseRowTotal' => self::AMOUNT_CURRENCY['base']['amount'],
+                'getRowTotal' => self::AMOUNT_CURRENCY['display']['amount']
             ]
         );
 
