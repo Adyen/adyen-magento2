@@ -82,8 +82,6 @@ class AdyenAmountCurrency
 
     public function getAmountIncludingTaxWithDiscount()
     {
-//        return $this->getAmountWithDiscount() * ($this->getTaxPercentage() / 100 + 1);
-
         if ($this->getDiscountTaxCompensationAmount() > 0) {
             return $this->getAmountIncludingTax() - $this->getDiscountAmount();
         } else {
