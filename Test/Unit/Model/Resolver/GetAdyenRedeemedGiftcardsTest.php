@@ -13,12 +13,12 @@ namespace Adyen\Payment\Test\Model\Resolver;
 use Adyen\Payment\Helper\GiftcardPayment;
 use Adyen\Payment\Model\Resolver\GetAdyenRedeemedGiftcards;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
-use PHPUnit\Framework\TestCase;
+use Magento\Framework\GraphQl\Config\Element\Field;
+use Magento\Framework\GraphQl\Query\Resolver\ContextInterface;
+use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Quote\Model\QuoteIdMask;
 use Magento\Quote\Model\QuoteIdMaskFactory;
-use Adyen\Payment\Test\Model\Resolver\Order;
-use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 
 class GetAdyenRedeemedGiftcardsTest extends AbstractAdyenTestCase
 {
@@ -32,9 +32,11 @@ class GetAdyenRedeemedGiftcardsTest extends AbstractAdyenTestCase
     {
         $this->giftcardPaymentMock = $this->createMock(GiftcardPayment::class);
         $this->jsonSerializerMock = $this->createMock(Json::class);
-        $this->quoteIdMaskFactoryMock = $this->createGeneratedMock(QuoteIdMaskFactory::class);
+        $this->quoteIdMaskFactoryMock = $this->createGeneratedMock(
+            QuoteIdMaskFactory::class,
+            ['create']
+        );
         $this->quoteIdMaskMock = $this->createMock(QuoteIdMask::class);
-
         $this->quoteIdMaskFactoryMock->method('create')->willReturn($this->quoteIdMaskMock);
 
         $this->getAdyenRedeemedGiftcards = new GetAdyenRedeemedGiftcards(
@@ -46,11 +48,9 @@ class GetAdyenRedeemedGiftcardsTest extends AbstractAdyenTestCase
 
     public function testSuccessfulRetrievalOfRedeemedGiftCardDetailsWithValidCartId()
     {
-
-        $fieldMock = $this->createMock(\Magento\Framework\GraphQl\Config\Element\Field::class);
-        $contextMock = $this->createMock(\Magento\Framework\GraphQl\Config\Element\Field::class);
-        $resolveInfoMock = $this->createMock(\Magento\Framework\GraphQl\Schema\Type\ResolveInfo::class);
-
+        $fieldMock = $this->createMock(Field::class);
+        $contextMock = $this->createMock(ContextInterface::class);
+        $resolveInfoMock = $this->createMock(ResolveInfo::class);
 
         $cartId = 'test_cart_id';
         $quoteId = 0;
@@ -77,10 +77,16 @@ class GetAdyenRedeemedGiftcardsTest extends AbstractAdyenTestCase
             ->with($redeemedGiftcardsJson)
             ->willReturn($redeemedGiftcardsData);
 
-
         $result = $this->getAdyenRedeemedGiftcards->resolve($fieldMock, $contextMock, $resolveInfoMock, [], $args);
 
-        $this->assertEquals(['redeemedGiftcards' => $redeemedGiftcardsData['redeemedGiftcards'], 'remainingAmount' => $redeemedGiftcardsData['remainingAmount'], 'totalDiscount' => $redeemedGiftcardsData['totalDiscount']], $result);
+        $this->assertEquals(
+            [
+                'redeemedGiftcards' => $redeemedGiftcardsData['redeemedGiftcards'],
+                'remainingAmount' => $redeemedGiftcardsData['remainingAmount'],
+                'totalDiscount' => $redeemedGiftcardsData['totalDiscount']
+            ],
+            $result
+        );
     }
 }
 
