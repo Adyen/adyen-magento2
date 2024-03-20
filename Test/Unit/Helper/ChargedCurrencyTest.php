@@ -34,7 +34,8 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
                 'discountAmount' => 67.89,
                 'taxAmount' => 12.34,
                 'amountDue' => 56.78,
-                'amountIncludingTax' => 135.79
+                'amountIncludingTax' => 135.79,
+                'discountTaxCompensationAmount' => 0.05
             ],
         'display' =>
             [
@@ -43,7 +44,8 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
                 'discountAmount' => 98.76,
                 'taxAmount' => 54.32,
                 'amountDue' => 10.98,
-                'amountIncludingTax' => 708.64
+                'amountIncludingTax' => 708.64,
+                'discountTaxCompensationAmount' => 0.02
             ]
     ];
 
@@ -199,7 +201,9 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
                 'getBasePriceInclTax',
                 'getPriceInclTax',
                 'getRowTotalInclTax',
-                'getBaseRowTotalInclTax'
+                'getBaseRowTotalInclTax',
+                'getDiscountTaxCompensationAmount',
+                'getBaseDiscountTaxCompensationAmount'
             ]
         );
 
@@ -219,6 +223,8 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
                 'getPriceInclTax' => self::AMOUNT_CURRENCY['display']['amountIncludingTax'],
                 'getRowTotalInclTax' => self::AMOUNT_CURRENCY['display']['amountIncludingTax'],
                 'getBaseRowTotalInclTax' => self::AMOUNT_CURRENCY['base']['amountIncludingTax'],
+                'getBaseDiscountTaxCompensationAmount' => self::AMOUNT_CURRENCY['base']['discountTaxCompensationAmount'],
+                'getDiscountTaxCompensationAmount' => self::AMOUNT_CURRENCY['display']['discountTaxCompensationAmount']
             ]
         );
 
@@ -440,14 +446,22 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
                     $expectedResult->getCurrencyCode(),
                     $expectedResult->getDiscountAmount(),
                     $expectedResult->getTaxAmount(),
-                    $expectedResult->getAmountIncludingTax()
+                    $expectedResult->getAmountIncludingTax(),
+                    $expectedResult->getDiscountTaxCompensationAmount(),
+                    $expectedResult->getAmountWithDiscount(),
+                    $expectedResult->getCalculatedTaxPercentage(),
+                    $expectedResult->getAmountIncludingTaxWithDiscount()
                 ],
                 [
                     $result->getAmount(),
                     $result->getCurrencyCode(),
                     $result->getDiscountAmount(),
                     number_format($result->getTaxAmount(), 2, '.', ','),
-                    $result->getAmountIncludingTax()
+                    $result->getAmountIncludingTax(),
+                    $result->getDiscountTaxCompensationAmount(),
+                    $result->getAmountWithDiscount(),
+                    $result->getCalculatedTaxPercentage(),
+                    $result->getAmountIncludingTaxWithDiscount()
                 ]
             );
         } else {
@@ -717,7 +731,8 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
             self::AMOUNT_CURRENCY['base']['discountAmount'],
             self::AMOUNT_CURRENCY['base']['taxAmount'],
             self::AMOUNT_CURRENCY['base']['amountDue'],
-            self::AMOUNT_CURRENCY['base']['amountIncludingTax']
+            self::AMOUNT_CURRENCY['base']['amountIncludingTax'],
+            self::AMOUNT_CURRENCY['base']['discountTaxCompensationAmount']
         );
 
         $adyenAmountCurrencyDisplay = new AdyenAmountCurrency(
@@ -726,7 +741,8 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
             self::AMOUNT_CURRENCY['display']['discountAmount'],
             self::AMOUNT_CURRENCY['display']['taxAmount'],
             self::AMOUNT_CURRENCY['display']['amountDue'],
-            self::AMOUNT_CURRENCY['display']['amountIncludingTax']
+            self::AMOUNT_CURRENCY['display']['amountIncludingTax'],
+            self::AMOUNT_CURRENCY['display']['discountTaxCompensationAmount']
         );
 
         return array(
