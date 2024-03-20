@@ -57,11 +57,8 @@ class GuestAdyenStateDataTest extends AbstractAdyenTestCase
 
         $this->quoteIdMaskFactoryMock->method('create')->willReturn($this->quoteIdMaskMock);
         $this->stateDataHelperMock->expects($this->once())->method('saveStateData')->willReturn($stateDataMock);
-        //should return int
-
 
         $this->guestAdyenStateDataModel->save($stateData, $cartId);
-//        $this->assertIsInt($result);
     }
 
     public function testRemoveSuccessful()

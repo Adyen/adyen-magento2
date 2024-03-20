@@ -71,28 +71,6 @@ class GetAdyenPaymentMethodsBalanceTest extends TestCase
 
         $this->assertEquals(['balanceResponse' => $expectedBalanceResponse], $result);
     }
-
-//    public function testWithAdyensAPIReturningAnError()
-//    {
-//        $payload = '{"some":"data"}';
-//        $args = ['payload' => $payload];
-//
-//        $this->balanceMock->expects($this->once())
-//            ->method('getBalance')
-//            ->with($payload)
-//            ->willThrowException(new Exception('API Error'));
-//
-//        $this->expectException(GraphQlAdyenException::class);
-//        $this->expectExceptionMessage('An error occurred while fetching the payment method balance.');
-//
-//        $fieldMock = $this->createMock(\Magento\Framework\GraphQl\Query\Fields::class);
-//        $contextMock = $this->createMock(\Magento\Framework\GraphQl\Config\Element\Field::class);
-//        $resolveInfoMock = $this->createMock(ResolveInfo::class);
-//
-//        $result = $this->getAdyenPaymentMethodsBalance->resolve($fieldMock, $contextMock, $resolveInfoMock, [], $args);
-//    }
-
-
 }
 
 
