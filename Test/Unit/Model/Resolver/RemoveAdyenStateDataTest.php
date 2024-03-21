@@ -10,11 +10,11 @@
  */
 namespace Adyen\Payment\Test\Model\Resolver;
 
-use _PHPStan_3a7a22dbd\Nette\Neon\Exception;
 use Adyen\Payment\Exception\GraphQlAdyenException;
 use Adyen\Payment\Model\Api\AdyenStateData;
 use Adyen\Payment\Model\Resolver\RemoveAdyenStateData;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Exception;
 use Magento\Catalog\Model\Layer\ContextInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\GraphQl\Config\Element\Field;
