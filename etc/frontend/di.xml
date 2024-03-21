@@ -105,6 +105,7 @@
                 <item name="adyen_mobilepay" xsi:type="string">mobilepay</item>
                 <item name="adyen_vipps" xsi:type="string">vipps</item>
                 <item name="adyen_bizum" xsi:type="string">bizum</item>
+                <item name="adyen_ach" xsi:type="string">ach</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
@@ -148,6 +149,7 @@
                 <item name="adyen_applepay" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
                 <item name="adyen_bcmc" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
                 <item name="adyen_cashapp" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
+                <item name="adyen_ach" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
             </argument>
         </arguments>
     </type>
