@@ -12,28 +12,28 @@ namespace Adyen\Payment\Test\Model\Resolver;
 
 use Adyen\Payment\Model\Api\AdyenPaymentMethodsBalance;
 use Adyen\Payment\Model\Resolver\GetAdyenPaymentMethodsBalance;
-//use GraphQL\Type\Definition\ResolveInfo;
+use Magento\Catalog\Model\Layer\ContextInterface;
+use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use PHPUnit\Framework\TestCase;
-use Magento\Framework\GraphQl\Query\Fields;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
-use Adyen\Payment\Api\AdyenPaymentMethodsBalanceInterface;
 use Adyen\Payment\Exception\GraphQlAdyenException;
-use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\GraphQl\Query;
-use PHPUnit\Framework\MockObject\MockObject;
-use Exception;
 
 class GetAdyenPaymentMethodsBalanceTest extends TestCase
 {
     private $balanceMock;
+    private $contextMock;
+    private $fieldMock;
+    private $infoMock;
     private $getAdyenPaymentMethodsBalance;
-
-
 
     protected function setUp(): void
     {
         $this->balanceMock = $this->createMock(AdyenPaymentMethodsBalance::class);
+        $this->contextMock = $this->createMock(ContextInterface::class);
+        $this->fieldMock = $this->createMock(Field::class);
+        $this->infoMock = $this->createMock(ResolveInfo::class);
 
         $this->getAdyenPaymentMethodsBalance = new GetAdyenPaymentMethodsBalance(
             $this->balanceMock
@@ -45,11 +45,7 @@ class GetAdyenPaymentMethodsBalanceTest extends TestCase
         $this->expectException(GraphQlInputException::class);
         $this->expectExceptionMessage('Required parameter "payload" is missing');
 
-        $fieldMock = $this->createMock(\Magento\Framework\GraphQl\Config\Element\Field::class);
-        $contextMock = $this->createMock(\Magento\Framework\GraphQl\Config\Element\Field::class);
-        $resolveInfoMock = $this->createMock(\Magento\Framework\GraphQl\Schema\Type\ResolveInfo::class);
-
-        $this->getAdyenPaymentMethodsBalance->resolve($fieldMock, $contextMock, $resolveInfoMock, [], []);
+        $this->getAdyenPaymentMethodsBalance->resolve($this->fieldMock, $this->contextMock, $this->infoMock, [], []);
     }
 
     public function testWithValidPayloadArgument()
@@ -58,18 +54,27 @@ class GetAdyenPaymentMethodsBalanceTest extends TestCase
         $args = ['payload' => $payload];
         $expectedBalanceResponse = '10';
 
-        $fieldMock = $this->createMock(\Magento\Framework\GraphQl\Config\Element\Field::class);
-        $contextMock = $this->createMock(\Magento\Framework\GraphQl\Config\Element\Field::class);
-        $resolveInfoMock = $this->createMock(ResolveInfo::class);
-
         $this->balanceMock->expects($this->once())
             ->method('getBalance')
             ->with($payload)
             ->willReturn($expectedBalanceResponse);
 
-        $result = $this->getAdyenPaymentMethodsBalance->resolve($fieldMock, $contextMock, $resolveInfoMock, [], $args);
+        $result = $this->getAdyenPaymentMethodsBalance->resolve($this->fieldMock, $this->contextMock, $this->infoMock, [], $args);
 
         $this->assertEquals(['balanceResponse' => $expectedBalanceResponse], $result);
+    }
+
+    public function testWithFailingApiCall()
+    {
+        $this->expectException(GraphQlAdyenException::class);
+
+        $args = [
+            'payload' => "{}"
+        ];
+
+        $this->balanceMock->method('getBalance')->willThrowException(new \Exception());
+
+        $this->getAdyenPaymentMethodsBalance->resolve($this->fieldMock, $this->contextMock, $this->infoMock, [], $args);
     }
 }
 
