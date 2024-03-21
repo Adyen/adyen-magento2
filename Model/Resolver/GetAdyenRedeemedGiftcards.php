@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Adyen\Payment\Model\Resolver;
 
+use Adyen\Payment\Exception\GraphQlAdyenException;
 use Adyen\Payment\Helper\GiftcardPayment;
 use Magento\Quote\Model\QuoteIdMaskFactory;
 use Magento\Framework\GraphQl\Config\Element\Field;
@@ -60,6 +61,7 @@ class GetAdyenRedeemedGiftcards implements ResolverInterface
      * @param array|null $value
      * @param array|null $args
      * @return array
+     * @throws GraphQlAdyenException
      * @throws GraphQlInputException
      */
     public function resolve(
@@ -81,7 +83,7 @@ class GetAdyenRedeemedGiftcards implements ResolverInterface
         try {
             $redeemedGiftcardsJson = $this->giftcardPayment->fetchRedeemedGiftcards($quoteId);
         } catch (\Exception $e) {
-            throw new GraphQlInputException(
+            throw new GraphQlAdyenException(
                 __('An error occurred while fetching redeemed gift cards: %1', $e->getMessage())
             );
         }
