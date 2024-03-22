@@ -25,13 +25,14 @@ class AdyenStateData implements AdyenStateDataInterface
         $this->stateDataHelper = $stateDataHelper;
     }
 
-    public function save(string $stateData, int $quoteId): void
+    public function save(string $stateData, int $cartId): int
     {
-        $this->stateDataHelper->saveStateData($stateData, $quoteId);
+        $stateData = $this->stateDataHelper->saveStateData($stateData, $cartId);
+        return $stateData->getEntityId();
     }
 
-    public function remove(int $stateDataId, int $quoteId): bool
+    public function remove(int $stateDataId, int $cartId): bool
     {
-        return $this->stateDataHelper->removeStateData($stateDataId, $quoteId);
+        return $this->stateDataHelper->removeStateData($stateDataId, $cartId);
     }
 }
