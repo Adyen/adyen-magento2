@@ -14,13 +14,12 @@ namespace Adyen\Payment\Helper;
 use Adyen\AdyenException;
 use Adyen\Client;
 use Adyen\ConnectionException;
+use Adyen\Payment\Helper\Util\PaymentMethodUtil;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Ui\Adminhtml\AdyenMotoConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
-use Adyen\Util\ManualCapture;
-use Exception;
 use Magento\Framework\App\Area;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
@@ -42,6 +41,7 @@ use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\Store;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
+
 class PaymentMethods extends AbstractHelper
 {
     const ADYEN_HPP = 'adyen_hpp';
@@ -85,7 +85,6 @@ class PaymentMethods extends AbstractHelper
     protected \Magento\Quote\Model\Quote $quote;
     private ChargedCurrency $chargedCurrency;
     private Config $configHelper;
-    private ManualCapture $manualCapture;
     private SerializerInterface $serializer;
     private PaymentTokenRepositoryInterface $paymentTokenRepository;
     private SearchCriteriaBuilder $searchCriteriaBuilder;
@@ -105,7 +104,6 @@ class PaymentMethods extends AbstractHelper
         ChargedCurrency $chargedCurrency,
         Config $configHelper,
         MagentoDataHelper $dataHelper,
-        ManualCapture $manualCapture,
         SerializerInterface $serializer,
         AdyenDataHelper $adyenDataHelper,
         PaymentTokenRepositoryInterface $paymentTokenRepository,
@@ -125,7 +123,6 @@ class PaymentMethods extends AbstractHelper
         $this->chargedCurrency = $chargedCurrency;
         $this->configHelper = $configHelper;
         $this->dataHelper = $dataHelper;
-        $this->manualCapture = $manualCapture;
         $this->serializer = $serializer;
         $this->adyenDataHelper = $adyenDataHelper;
         $this->paymentTokenRepository = $paymentTokenRepository;
@@ -519,7 +516,7 @@ class PaymentMethods extends AbstractHelper
     public function isAutoCapture(Order $order, string $notificationPaymentMethod): bool
     {
         // validate if payment methods allows manual capture
-        if ($this->manualCapture->isManualCaptureSupported($notificationPaymentMethod)) {
+        if (PaymentMethodUtil::isManualCaptureSupported($notificationPaymentMethod)) {
             $captureMode = trim(
                 (string) $this->configHelper->getConfigData(
                     'capture_mode',
