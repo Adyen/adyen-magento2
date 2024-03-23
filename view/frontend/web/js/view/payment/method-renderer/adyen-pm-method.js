@@ -210,6 +210,13 @@ define(
                         onChange: function (state) {
                             self.isPlaceOrderAllowed(state.isValid);
                         },
+                        onClick: function(resolve, reject) {
+                            if (self.validate()) {
+                                resolve();
+                            } else {
+                                reject();
+                            }
+                        },
                     });
 
                 return configuration;
