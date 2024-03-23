@@ -18,7 +18,7 @@ use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Adyen\Payment\Helper\PaymentMethodsFactory;
 use Adyen\Payment\Helper\PaymentMethods;
 
-class RecurringTest extends AbstractAdyenTestCase
+class RecurringDataTest extends AbstractAdyenTestCase
 {
     private RecurringData $recurringData;
 
