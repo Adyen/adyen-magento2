@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2023 Adyen N.V.
+ * Copyright (c) 2024 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -40,6 +40,33 @@ class SetOrderStateAfterPaymentObserver implements ObserverInterface
     {
         /** @var Payment $payment */
         $payment = $observer->getData('payment');
+
+        $paymentMethod = $payment->getMethod();
+
+        if ($paymentMethod === 'adyen_pos_cloud') {
+            $this->handlePosPayment($payment);
+        } else {
+            $this->handlePaymentWithAction($payment);
+        }
+    }
+
+    private function handlePosPayment(Payment $payment)
+    {
+        $order = $payment->getOrder();
+        $status = $this->statusResolver->getOrderStatusByState(
+            $payment->getOrder(),
+            Order::STATE_PENDING_PAYMENT
+        );
+        $order->setState(Order::STATE_PENDING_PAYMENT);
+        $order->setStatus($status);
+        $message = __("Pos payment initiated and waiting for payment");
+        $order->addCommentToStatusHistory($message, $status);
+        $order->save();
+    }
+
+  
+    private function handlePaymentWithAction(Payment $payment)
+    {
         $methodInstance = $payment->getMethodInstance();
 
         if ($methodInstance instanceof Adapter) {
