@@ -15,9 +15,8 @@ use Magento\Framework\App\Config\ReinitableConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
-use Magento\Framework\Setup\Patch\PatchVersionInterface;
 
-class RatepayIdConfiguration implements DataPatchInterface, PatchVersionInterface
+class RatepayIdConfiguration implements DataPatchInterface
 {
     private ModuleDataSetupInterface $moduleDataSetup;
     private WriterInterface $configWriter;
@@ -95,10 +94,5 @@ class RatepayIdConfiguration implements DataPatchInterface, PatchVersionInterfac
     public static function getDependencies(): array
     {
         return [];
-    }
-
-    public static function getVersion(): string
-    {
-        return '9.0.0';
     }
 }
