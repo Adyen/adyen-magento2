@@ -97,13 +97,18 @@ define(
                         self.handleFailedResponse(response)
                     })
                     .done(function (orderId) {
-                        adyenPaymentService.posPayment(orderId)
-                            .fail(function (response) {
-                                self.handleFailedResponse(response)
-                            })
-                            .done(function () {
-                                self.posComplete()
-                            })
+                        let posPaymentAction = window.checkoutConfig.payment.adyenPos.paymentAction;
+                        if (posPaymentAction === 'order') {
+                            adyenPaymentService.posPayment(orderId)
+                                .fail(function (response) {
+                                    self.handleFailedResponse(response)
+                                })
+                                .done(function () {
+                                    self.posComplete()
+                                });
+                        } else {
+                            self.posComplete();
+                        }
                     })
             },
             handleFailedResponse: function (response) {

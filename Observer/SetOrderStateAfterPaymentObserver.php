@@ -12,31 +12,46 @@
 
 namespace Adyen\Payment\Observer;
 
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Model\Method\Adapter;
 use Exception;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Payment\Model\MethodInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\Order\StatusResolver;
 
 class SetOrderStateAfterPaymentObserver implements ObserverInterface
 {
+    /**
+     * @var StatusResolver
+     */
     private StatusResolver $statusResolver;
 
+    /**
+     * @var Config
+     */
+    private Config $configHelper;
+
+    /**
+     * @param StatusResolver $statusResolver
+     * @param Config $configHelper
+     */
     public function __construct(
-        StatusResolver $statusResolver
+        StatusResolver $statusResolver,
+        Config $configHelper
     ) {
         $this->statusResolver = $statusResolver;
+        $this->configHelper = $configHelper;
     }
 
     /**
-     * @throws LocalizedException
      * @throws Exception
      */
-    public function execute(Observer $observer)
+    public function execute(Observer $observer): void
     {
         /** @var Payment $payment */
         $payment = $observer->getData('payment');
@@ -50,22 +65,36 @@ class SetOrderStateAfterPaymentObserver implements ObserverInterface
         }
     }
 
-    private function handlePosPayment(Payment $payment)
+    /**
+     * @param Payment $payment
+     * @return void
+     * @throws Exception
+     */
+    private function handlePosPayment(Payment $payment): void
     {
-        $order = $payment->getOrder();
-        $status = $this->statusResolver->getOrderStatusByState(
-            $payment->getOrder(),
-            Order::STATE_PENDING_PAYMENT
-        );
-        $order->setState(Order::STATE_PENDING_PAYMENT);
-        $order->setStatus($status);
-        $message = __("Pos payment initiated and waiting for payment");
-        $order->addCommentToStatusHistory($message, $status);
-        $order->save();
+        $storeId = $payment->getOrder()->getStoreId();
+        $posPaymentAction = $this->configHelper->getAdyenPosCloudPaymentAction($storeId);
+
+        if ($posPaymentAction === MethodInterface::ACTION_ORDER) {
+            $order = $payment->getOrder();
+            $status = $this->statusResolver->getOrderStatusByState(
+                $payment->getOrder(),
+                Order::STATE_PENDING_PAYMENT
+            );
+            $order->setState(Order::STATE_PENDING_PAYMENT);
+            $order->setStatus($status);
+            $message = __("Pos payment initiated and waiting for payment");
+            $order->addCommentToStatusHistory($message, $status);
+            $order->save();
+        }
     }
 
-  
-    private function handlePaymentWithAction(Payment $payment)
+    /**
+     * @param Payment $payment
+     * @return void
+     * @throws LocalizedException
+     */
+    private function handlePaymentWithAction(Payment $payment): void
     {
         $methodInstance = $payment->getMethodInstance();
 
