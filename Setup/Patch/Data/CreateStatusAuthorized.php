@@ -15,7 +15,6 @@ use Adyen\Payment\Helper\DataPatch;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
-use Magento\Framework\Setup\Patch\PatchVersionInterface;
 use Magento\Framework\App\Config\ReinitableConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Sales\Model\Order;
@@ -23,7 +22,7 @@ use Magento\Sales\Model\Order\StatusFactory;
 use Magento\Sales\Model\ResourceModel\Order\StatusFactory as StatusResourceFactory;
 use Magento\Sales\Model\ResourceModel\Order\Status as StatusResource;
 
-class CreateStatusAuthorized implements DataPatchInterface, PatchVersionInterface
+class CreateStatusAuthorized implements DataPatchInterface
 {
     private ModuleDataSetupInterface $moduleDataSetup;
     private WriterInterface $configWriter;
@@ -102,10 +101,5 @@ class CreateStatusAuthorized implements DataPatchInterface, PatchVersionInterfac
     public static function getDependencies(): array
     {
         return [];
-    }
-
-    public static function getVersion(): string
-    {
-        return '9.0.3';
     }
 }

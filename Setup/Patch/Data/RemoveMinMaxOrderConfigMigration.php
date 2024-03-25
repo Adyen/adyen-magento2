@@ -2,23 +2,18 @@
 
 namespace Adyen\Payment\Setup\Patch\Data;
 
-use Magento\Framework\App\Config\ReinitableConfigInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
-use Magento\Framework\Setup\Patch\PatchVersionInterface;
 
-class RemoveMinMaxOrderConfigMigration implements DataPatchInterface, PatchVersionInterface
+class RemoveMinMaxOrderConfigMigration implements DataPatchInterface
 {
     private ModuleDataSetupInterface $moduleDataSetup;
-    private ReinitableConfigInterface $reinitableConfig;
 
     public function __construct(
         ModuleDataSetupInterface  $moduleDataSetup,
-        ReinitableConfigInterface $reinitableConfig
     )
     {
         $this->moduleDataSetup = $moduleDataSetup;
-        $this->reinitableConfig = $reinitableConfig;
     }
 
     /**
@@ -66,13 +61,5 @@ class RemoveMinMaxOrderConfigMigration implements DataPatchInterface, PatchVersi
     public static function getDependencies()
     {
         return [];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public static function getVersion()
-    {
-        return '9.0.0';
     }
 }
