@@ -40,7 +40,8 @@ use Magento\Sales\Model\Order;
 use Adyen\Payment\Helper\Data as AdyenDataHelper;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\Store;
-
+use Magento\Vault\Api\PaymentTokenRepositoryInterface;
+use Magento\Framework\Api\SearchCriteriaBuilder;
 class PaymentMethods extends AbstractHelper
 {
     const ADYEN_HPP = 'adyen_hpp';
@@ -86,6 +87,8 @@ class PaymentMethods extends AbstractHelper
     private Config $configHelper;
     private ManualCapture $manualCapture;
     private SerializerInterface $serializer;
+    private PaymentTokenRepositoryInterface $paymentTokenRepository;
+    private SearchCriteriaBuilder $searchCriteriaBuilder;
 
     public function __construct(
         Context $context,
@@ -104,7 +107,9 @@ class PaymentMethods extends AbstractHelper
         MagentoDataHelper $dataHelper,
         ManualCapture $manualCapture,
         SerializerInterface $serializer,
-        AdyenDataHelper $adyenDataHelper
+        AdyenDataHelper $adyenDataHelper,
+        PaymentTokenRepositoryInterface $paymentTokenRepository,
+        SearchCriteriaBuilder $searchCriteriaBuilder
     ) {
         parent::__construct($context);
         $this->quoteRepository = $quoteRepository;
@@ -123,6 +128,8 @@ class PaymentMethods extends AbstractHelper
         $this->manualCapture = $manualCapture;
         $this->serializer = $serializer;
         $this->adyenDataHelper = $adyenDataHelper;
+        $this->paymentTokenRepository = $paymentTokenRepository;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
     }
 
     public function getPaymentMethods(int $quoteId, ?string $country = null, ?string $shopperLocale = null): string
@@ -198,6 +205,11 @@ class PaymentMethods extends AbstractHelper
         }
 
         $paymentMethods = $responseData['paymentMethods'];
+
+        $allowMultistoreTokens = $this->configHelper->getAllowMultistoreTokens($store->getId());
+        $customerId = $quote->getCustomerId();
+        $responseData = $this->filterStoredPaymentMethods($allowMultistoreTokens, $responseData, $customerId);
+
         $response['paymentMethodsResponse'] = $responseData;
 
         // Add extra details per payment method
@@ -211,6 +223,30 @@ class PaymentMethods extends AbstractHelper
 
         //TODO this should be the implemented with an interface
         return json_encode($response);
+    }
+
+    protected function filterStoredPaymentMethods($allowMultistoreTokens, $responseData, $customerId)
+    {
+        if (!$allowMultistoreTokens && isset($responseData['storedPaymentMethods'])) {
+            $searchCriteria = $this->searchCriteriaBuilder
+                ->addFilter('customer_id', $customerId)
+                ->create();
+
+            $paymentTokens = $this->paymentTokenRepository->getList($searchCriteria)->getItems();
+
+            $gatewayTokens = array_map(function ($paymentToken) {
+                return $paymentToken->getGatewayToken();
+            }, $paymentTokens);
+
+            $storedPaymentMethods = $responseData['storedPaymentMethods'];
+            $responseData['storedPaymentMethods'] = array_filter(
+                $storedPaymentMethods,
+                function ($method) use ($gatewayTokens) {
+                return in_array($method['id'], $gatewayTokens);
+            });
+        }
+
+        return $responseData;
     }
 
     protected function getCurrentPaymentAmount(): float
