@@ -131,6 +131,20 @@
         </resources>
     </route>
 
+    <route url="/V1/adyen/orders/guest-carts/:cartId/pos-payment" method="POST">
+        <service class="Adyen\Payment\Api\GuestAdyenPosCloudInterface" method="payByCart"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
+    <route url="/V1/adyen/orders/carts/mine/pos-payment" method="POST">
+        <service class="Adyen\Payment\Api\AdyenPosCloudInterface" method="pay"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+    </route>
+
     <route url="/V1/adyen/token/deactivate" method="POST">
         <service class="Adyen\Payment\Api\TokenDeactivateInterface" method="deactivateToken"/>
         <resources>
