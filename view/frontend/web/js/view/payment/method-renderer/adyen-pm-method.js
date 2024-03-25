@@ -182,9 +182,16 @@ define(
 
             renderCheckoutComponent: function() {
                 this.isPlaceOrderAllowed(false);
-                let configuration = this.buildComponentConfiguration(this.paymentMethod(), this.paymentMethodsExtraInfo());
-
-                this.mountPaymentMethodComponent(this.paymentMethod(), configuration);
+                const configuration = this.buildComponentConfiguration(
+                    this.paymentMethod(),
+                    this.paymentMethodsExtraInfo()
+                );
+                this.mountPaymentMethodComponent(this.paymentMethod(), configuration).then(
+                    function() {
+                        const hasBillingAddress =  quote.billingAddress() !== null
+                        this.isPlaceOrderAllowed(hasBillingAddress);
+                    }
+                );
             },
 
             buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo) {
@@ -223,14 +230,14 @@ define(
                 return this.item.method;
             },
 
-            mountPaymentMethodComponent(paymentMethod, configuration)
+            mountPaymentMethodComponent: async function(paymentMethod, configuration)
             {
                 let self = this;
 
                 try {
                     const containerId = '#' + paymentMethod.type + 'Container';
 
-                    this.paymentComponent = adyenCheckout.mountPaymentMethodComponent(
+                    this.paymentComponent = await adyenCheckout.mountPaymentMethodComponent(
                         self.checkoutComponent,
                         self.getTxVariant(),
                         configuration,
