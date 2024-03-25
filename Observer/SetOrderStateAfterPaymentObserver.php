@@ -19,7 +19,7 @@ use Exception;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Paypal\Model\AbstractConfig;
+use Magento\Payment\Model\MethodInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\Order\StatusResolver;
@@ -75,7 +75,7 @@ class SetOrderStateAfterPaymentObserver implements ObserverInterface
         $storeId = $payment->getOrder()->getStoreId();
         $posPaymentAction = $this->configHelper->getAdyenPosCloudPaymentAction($storeId);
 
-        if ($posPaymentAction === AbstractConfig::PAYMENT_ACTION_ORDER) {
+        if ($posPaymentAction === MethodInterface::ACTION_ORDER) {
             $order = $payment->getOrder();
             $status = $this->statusResolver->getOrderStatusByState(
                 $payment->getOrder(),

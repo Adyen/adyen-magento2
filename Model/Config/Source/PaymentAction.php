@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Model\Config\Source;
 
 use Magento\Framework\Data\OptionSourceInterface;
+use Magento\Payment\Model\MethodInterface;
 
 class PaymentAction implements OptionSourceInterface
 {
@@ -21,8 +22,8 @@ class PaymentAction implements OptionSourceInterface
     public function toOptionArray()
     {
         return [
-            ['value' => 'authorize', 'label' => 'Authorize'],
-            ['value' => 'order', 'label' => 'Order']
+            ['value' => MethodInterface::ACTION_AUTHORIZE, 'label' => MethodInterface::ACTION_AUTHORIZE],
+            ['value' => MethodInterface::ACTION_ORDER, 'label' => MethodInterface::ACTION_ORDER],
         ];
     }
 

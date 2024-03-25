@@ -16,7 +16,7 @@ use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
-use Magento\Paypal\Model\AbstractConfig;
+use Magento\Payment\Model\MethodInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
 
@@ -66,7 +66,7 @@ class SubmitQuoteObserver implements ObserverInterface
         $isPosPayment = $payment->getMethod() === 'adyen_pos_cloud';
         $posPaymentAction = $this->configHelper->getAdyenPosCloudPaymentAction($storeId);
 
-        if (($isPosPayment && $posPaymentAction === AbstractConfig::PAYMENT_ACTION_ORDER) ||
+        if (($isPosPayment && $posPaymentAction === MethodInterface::ACTION_ORDER) ||
             ($isAdyenPaymentMethod && $isActionRequired)) {
             // Further shopper action required (e.g. redirect or 3DS authentication)
             /** @var Quote $quote */
