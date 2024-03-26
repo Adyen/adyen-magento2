@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Plugin;
 
 use Adyen\AdyenException;
+use Adyen\Client;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Requests;
 use Adyen\Payment\Helper\Vault;
@@ -49,7 +50,8 @@ class PaymentVaultDeleteToken
      * @return PaymentTokenInterface[]|void
      * @throws NoSuchEntityException
      */
-    public function beforeDelete(PaymentTokenRepositoryInterface $subject, PaymentTokenInterface $paymentToken): ?array {
+    public function beforeDelete(PaymentTokenRepositoryInterface $subject, PaymentTokenInterface $paymentToken): ?array
+    {
         $paymentMethodCode = $paymentToken->getPaymentMethodCode();
         $storeId = $this->storeManager->getStore()->getStoreId();
 
@@ -59,7 +61,14 @@ class PaymentVaultDeleteToken
             try {
                 $client = $this->dataHelper->initializeAdyenClient($storeId);
                 $recurringService = $this->dataHelper->createAdyenRecurringService($client);
-                $recurringService->disable($request);
+
+                $this->dataHelper->logRequest(
+                    $request,
+                    Client::API_RECURRING_VERSION,
+                    sprintf("/pal/servlet/Recurring/%s/disable", Client::API_RECURRING_VERSION)
+                );
+                $response = $recurringService->disable($request);
+                $this->dataHelper->logResponse($response);
             } catch (AdyenException $e) {
                 $this->adyenLogger->error(sprintf(
                     'Error while attempting to disable token with id %s: %s',

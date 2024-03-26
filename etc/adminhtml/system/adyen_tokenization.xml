@@ -28,5 +28,12 @@
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_cc_vault/require_cvc</config_path>
         </field>
+        <field id="allow_mutistore_tokens" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1"
+            showInStore="1">
+            <label>Allow multistore tokens</label>
+            <tooltip>Set Yes to enable the usage of shopper tokens from a different store.</tooltip>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_abstract/allow_multistore_tokens</config_path>
+        </field>
     </group>
 </include>

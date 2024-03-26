@@ -88,7 +88,6 @@ class PayByLinkExpiredPaymentOrdersProvider implements OrdersProviderInterface
                     $expiredOrderIds[] = $orderPayment->getParentId();
                 }
             }
-
         }
         return $expiredOrderIds;
     }

@@ -100,6 +100,12 @@
                 <item name="adyen_touchngo" xsi:type="string">touchngo</item>
                 <item name="adyen_boleto" xsi:type="string">boletobancario</item>
                 <item name="adyen_bcmc" xsi:type="string">bcmc</item>
+                <item name="adyen_cashapp" xsi:type="string">cashapp</item>
+                <item name="adyen_klarna_b2b" xsi:type="string">klarna_b2b</item>
+                <item name="adyen_mobilepay" xsi:type="string">mobilepay</item>
+                <item name="adyen_vipps" xsi:type="string">vipps</item>
+                <item name="adyen_bizum" xsi:type="string">bizum</item>
+                <item name="adyen_ach" xsi:type="string">ach</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
@@ -111,6 +117,7 @@
                 <item name="adyen_paypal" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-paypal-method</item>
                 <item name="adyen_giftcard" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-giftcard-method</item>
                 <item name="adyen_affirm" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-affirm-method</item>
+                <item name="adyen_cashapp" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cashapp-method</item>
                 <item name="adyen_ratepay" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-ratepay-method</item>
                 <item name="adyen_ratepay_directdebit" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-ratepay-directdebit-method</item>
                 <item name="adyen_pos_cloud" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-pos-cloud-method</item>
@@ -141,6 +148,8 @@
                 <item name="adyen_momo_wallet" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
                 <item name="adyen_applepay" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
                 <item name="adyen_bcmc" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
+                <item name="adyen_cashapp" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
+                <item name="adyen_ach" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
             </argument>
         </arguments>
     </type>

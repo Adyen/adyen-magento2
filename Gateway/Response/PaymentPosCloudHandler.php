@@ -65,7 +65,6 @@ class PaymentPosCloudHandler implements HandlerInterface
                 $payment->getOrder()->getPayment(),
                 $paymentResponseDecoded
             );
-
         }
         // set transaction(status)
         if (!empty($paymentResponse['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID']))

@@ -83,6 +83,8 @@ class Order extends AbstractHelper
     /** @var AdyenCreditmemoHelper */
     private $adyenCreditmemoHelper;
 
+    private MagentoOrder\StatusResolver $statusResolver;
+
     public function __construct(
         Context $context,
         Builder $transactionBuilder,
@@ -100,7 +102,8 @@ class Order extends AbstractHelper
         OrderPaymentCollectionFactory $adyenOrderPaymentCollectionFactory,
         PaymentMethods $paymentMethodsHelper,
         AdyenCreditMemoResourceModel $adyenCreditmemoResourceModel,
-        AdyenCreditmemoHelper $adyenCreditmemoHelper
+        AdyenCreditmemoHelper $adyenCreditmemoHelper,
+        MagentoOrder\StatusResolver $statusResolver
     ) {
         parent::__construct($context);
         $this->transactionBuilder = $transactionBuilder;
@@ -119,6 +122,7 @@ class Order extends AbstractHelper
         $this->paymentMethodsHelper = $paymentMethodsHelper;
         $this->adyenCreditmemoResourceModel = $adyenCreditmemoResourceModel;
         $this->adyenCreditmemoHelper = $adyenCreditmemoHelper;
+        $this->statusResolver = $statusResolver;
     }
 
     /**
@@ -366,6 +370,28 @@ class Order extends AbstractHelper
                 ]
             );
         }
+
+        return $order;
+    }
+
+    public function setStatusOrderCreation(OrderInterface $order): OrderInterface
+    {
+        $paymentMethod = $order->getPayment()->getMethod();
+
+        // Fetch the default order status for order creation from the configuration.
+        $status = $this->configHelper->getConfigData(
+            'order_status',
+            $paymentMethod,
+            $order->getStoreId()
+        );
+
+        if (is_null($status)) {
+            // If the configuration doesn't exist, use the default status.
+            $status = $this->statusResolver->getOrderStatusByState($order, MagentoOrder::STATE_NEW);
+        }
+
+        $order->setStatus($status);
+        $order->setState(MagentoOrder::STATE_NEW);
 
         return $order;
     }

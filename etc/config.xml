@@ -33,6 +33,7 @@
                 <payment_authorized>processing</payment_authorized>
                 <payment_cancelled>canceled</payment_cancelled>
                 <capture_for_openinvoice>manual</capture_for_openinvoice>
+                <allow_multistore_tokens>1</allow_multistore_tokens>
             </adyen_abstract>
             <adyen_cc>
                 <active>0</active>
@@ -118,7 +119,7 @@
                 <title>Stored Payment Methods (Adyen)</title>
             </adyen_hpp_vault>
             <adyen_ideal>
-                <active>1</active>
+                <active>0</active>
                 <model>AdyenPaymentIdealFacade</model>
                 <order_status>pending</order_status>
                 <title>iDeal</title>
@@ -142,7 +143,7 @@
                 <group>adyen-alternative-payment-method</group>
             </adyen_ideal>
             <adyen_klarna>
-                <active>1</active>
+                <active>0</active>
                 <model>AdyenPaymentKlarnaFacade</model>
                 <order_status>pending</order_status>
                 <title>Klarna</title>
@@ -171,7 +172,7 @@
                 <model>AdyenPaymentKlarnaVaultFacade</model>
             </adyen_klarna_vault>
             <adyen_paypal>
-                <active>1</active>
+                <active>0</active>
                 <model>AdyenPaymentPaypalFacade</model>
                 <order_status>pending</order_status>
                 <title>PayPal</title>
@@ -200,7 +201,7 @@
                 <model>AdyenPaymentPaypalVaultFacade</model>
             </adyen_paypal_vault>
             <adyen_bcmc_mobile>
-                <active>1</active>
+                <active>0</active>
                 <model>AdyenPaymentBcmcMobileFacade</model>
                 <order_status>pending</order_status>
                 <title>Bancontact Mobile</title>
@@ -224,7 +225,7 @@
                 <group>adyen-alternative-payment-method</group>
             </adyen_bcmc_mobile>
             <adyen_dotpay>
-                <active>1</active>
+                <active>0</active>
                 <model>AdyenPaymentDotpayFacade</model>
                 <order_status>pending</order_status>
                 <title>DotPay</title>
@@ -248,7 +249,7 @@
                 <group>adyen-alternative-payment-method</group>
             </adyen_dotpay>
             <adyen_amazonpay>
-                <active>1</active>
+                <active>0</active>
                 <model>AdyenPaymentAmazonPayFacade</model>
                 <order_status>pending</order_status>
                 <title>Amazon Pay</title>
@@ -276,7 +277,7 @@
                 <model>AdyenPaymentAmazonpayVaultFacade</model>
             </adyen_amazonpay_vault>
             <adyen_googlepay>
-                <active>1</active>
+                <active>0</active>
                 <model>AdyenPaymentGooglepayFacade</model>
                 <order_status>pending</order_status>
                 <title>Google Pay</title>
@@ -305,7 +306,7 @@
                 <model>AdyenPaymentGooglepayVaultFacade</model>
             </adyen_googlepay_vault>
             <adyen_multibanco>
-                <active>1</active>
+                <active>0</active>
                 <model>AdyenPaymentMultibancoFacade</model>
                 <order_status>pending</order_status>
                 <title>Multibanco</title>
@@ -329,7 +330,7 @@
                 <group>adyen-alternative-payment-method</group>
             </adyen_multibanco>
             <adyen_facilypay_3x>
-                <active>1</active>
+                <active>0</active>
                 <model>AdyenPaymentFacilypay3xFacade</model>
                 <order_status>pending</order_status>
                 <title>FacilyPay 3x</title>
@@ -353,7 +354,7 @@
                 <group>adyen-alternative-payment-method</group>
             </adyen_facilypay_3x>
             <adyen_sepadirectdebit>
-                <active>1</active>
+                <active>0</active>
                 <model>AdyenPaymentSepadirectdebitFacade</model>
                 <order_status>pending</order_status>
                 <title>SEPA Direct Debit</title>
@@ -472,7 +473,7 @@
                 <group>adyen</group>
             </adyen_moto>
             <adyen_applepay>
-                <active>1</active>
+                <active>0</active>
                 <model>AdyenPaymentApplePayFacade</model>
                 <title>Apple Pay</title>
                 <allowspecific>0</allowspecific>
@@ -498,7 +499,7 @@
                 <model>AdyenPaymentApplePayVaultFacade</model>
             </adyen_applepay_vault>
             <adyen_giftcard>
-                <active>1</active>
+                <active>0</active>
                 <model>AdyenPaymentGiftcardFacade</model>
                 <order_status>pending</order_status>
                 <title>Giftcard</title>
@@ -891,6 +892,10 @@
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_directEbanking>
+            <adyen_directEbanking_vault>
+                <title>Stored Sofort</title>
+                <model>AdyenPaymentDirectEbankingVaultFacade</model>
+            </adyen_directEbanking_vault>
             <adyen_ebanking_FI>
                 <active>0</active>
                 <model>AdyenPaymentEbankingFIFacade</model>
@@ -1045,6 +1050,10 @@
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_eps>
+            <adyen_eps_vault>
+                <title>Stored EPS</title>
+                <model>AdyenPaymentEpsVaultFacade</model>
+            </adyen_eps_vault>
             <adyen_facilypay_4x>
                 <active>0</active>
                 <model>AdyenPaymentFacilypay4xFacade</model>
@@ -1155,6 +1164,10 @@
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_giropay>
+            <adyen_giropay_vault>
+                <title>Stored Giropay</title>
+                <model>AdyenPaymentGiropayVaultFacade</model>
+            </adyen_giropay_vault>
             <adyen_grabpay_MY>
                 <active>0</active>
                 <model>AdyenPaymentGrabpayMYFacade</model>
@@ -1243,6 +1256,10 @@
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_kakaopay>
+            <adyen_kakaopay_vault>
+                <title>Stored KakaoPay</title>
+                <model>AdyenPaymentKakaopayVaultFacade</model>
+            </adyen_kakaopay_vault>
             <adyen_klarna_account>
                 <active>0</active>
                 <model>AdyenPaymentKlarnaAccountFacade</model>
@@ -1265,6 +1282,10 @@
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_klarna_account>
+            <adyen_klarna_account_vault>
+                <title>Stored Klarna Pay over Time</title>
+                <model>AdyenPaymentKlarnaAccountVaultFacade</model>
+            </adyen_klarna_account_vault>
             <adyen_klarna_paynow>
                 <active>0</active>
                 <model>AdyenPaymentKlarnaPaynowFacade</model>
@@ -1287,6 +1308,10 @@
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_klarna_paynow>
+            <adyen_klarna_paynow_vault>
+                <title>Stored Klarna Pay Now</title>
+                <model>AdyenPaymentKlarnaPaynowVaultFacade</model>
+            </adyen_klarna_paynow_vault>
             <adyen_mbway>
                 <active>0</active>
                 <model>AdyenPaymentMbwayFacade</model>
@@ -1485,6 +1510,10 @@
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_paybybank>
+            <adyen_paybybank_vault>
+                <title>Stored Open banking</title>
+                <model>AdyenPaymentPaybybankVaultFacade</model>
+            </adyen_paybybank_vault>
             <adyen_pix>
                 <active>0</active>
                 <model>AdyenPaymentPixFacade</model>
@@ -1618,6 +1647,10 @@
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_twint>
+            <adyen_twint_vault>
+                <title>Stored TWINT</title>
+                <model>AdyenPaymentTwintVaultFacade</model>
+            </adyen_twint_vault>
             <adyen_walley>
                 <active>0</active>
                 <model>AdyenPaymentWalleyFacade</model>
@@ -1706,6 +1739,10 @@
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_zip>
+            <adyen_zip_vault>
+                <title>Stored Zip</title>
+                <model>AdyenPaymentZipVaultFacade</model>
+            </adyen_zip_vault>
             <adyen_gcash>
                 <active>0</active>
                 <model>AdyenPaymentGcashFacade</model>
@@ -1728,6 +1765,10 @@
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_gcash>
+            <adyen_gcash_vault>
+                <title>Stored GCash</title>
+                <model>AdyenPaymentGcashVaultFacade</model>
+            </adyen_gcash_vault>
             <adyen_oxxo>
                 <active>0</active>
                 <model>AdyenPaymentOxxoFacade</model>
@@ -1794,6 +1835,10 @@
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_carnet>
+            <adyen_carnet_vault>
+                <title>Stored Carnet</title>
+                <model>AdyenPaymentCarnetVaultFacade</model>
+            </adyen_carnet_vault>
             <adyen_walley_b2b>
                 <active>0</active>
                 <model>AdyenPaymentWalleyB2bFacade</model>
@@ -1860,6 +1905,10 @@
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_momo_wallet>
+            <adyen_momo_vault>
+                <title>Stored MoMo Wallet</title>
+                <model>AdyenPaymentMomoWalletVaultFacade</model>
+            </adyen_momo_vault>
             <adyen_touchngo>
                 <active>0</active>
                 <model>AdyenPaymentTouchngoFacade</model>
@@ -1904,6 +1953,146 @@
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_bcmc>
+            <adyen_bcmc_vault>
+                <title>Stored Bancontact</title>
+                <model>AdyenPaymentBcmcVaultFacade</model>
+            </adyen_bcmc_vault>
+            <adyen_cashapp>
+                <active>0</active>
+                <model>AdyenPaymentCashappFacade</model>
+                <title>Cash App Pay</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>0</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>1</supports_recurring>
+                <supports_manual_capture>1</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_cashapp>
+            <adyen_cashapp_vault>
+                <title>Stored Cash App Pay</title>
+                <model>AdyenPaymentCashappVaultFacade</model>
+            </adyen_cashapp_vault>
+            <adyen_klarna_b2b>
+                <active>0</active>
+                <model>AdyenPaymentKlarnaB2bFacade</model>
+                <title>Billie</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>1</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>1</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_klarna_b2b>
+            <adyen_mobilepay>
+                <active>0</active>
+                <model>AdyenPaymentMobilepayFacade</model>
+                <title>MobilePay</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>1</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>1</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>1</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_mobilepay>
+            <adyen_vipps>
+                <active>0</active>
+                <model>AdyenPaymentVippsFacade</model>
+                <title>Vipps</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>1</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>1</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>1</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_vipps>
+            <adyen_bizum>
+                <active>0</active>
+                <model>AdyenPaymentBizumFacade</model>
+                <title>Bizum</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>0</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_bizum>
+            <adyen_ach>
+                <active>0</active>
+                <model>AdyenPaymentAchFacade</model>
+                <title>ACH US Direct Debit</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>1</supports_recurring>
+                <supports_manual_capture>1</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_ach>
         </payment>
     </default>
 </config>

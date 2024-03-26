@@ -230,5 +230,23 @@
         <method name="adyen_bcmc">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="adyen_cashapp">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_klarna_b2b">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_mobilepay">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_vipps">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_bizum">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_ach">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>

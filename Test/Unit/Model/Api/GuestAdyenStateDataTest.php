@@ -51,8 +51,11 @@ class GuestAdyenStateDataTest extends AbstractAdyenTestCase
         $stateData = '{"stateData":"dummyData"}';
         $cartId = 'ABC123456789';
 
+        $stateDataMock = $this->createMock(\Adyen\Payment\Model\StateData::class);
+        $stateDataMock->method('getEntityId')->willReturn(1);
+
         $this->quoteIdMaskFactoryMock->method('create')->willReturn($this->quoteIdMaskMock);
-        $this->stateDataHelperMock->expects($this->once())->method('saveStateData');
+        $this->stateDataHelperMock->expects($this->once())->method('saveStateData')->willReturn($stateDataMock);
 
         $this->guestAdyenStateDataModel->save($stateData, $cartId);
     }
@@ -64,7 +67,6 @@ class GuestAdyenStateDataTest extends AbstractAdyenTestCase
 
         $this->quoteIdMaskFactoryMock->method('create')->willReturn($this->quoteIdMaskMock);
         $this->stateDataHelperMock->expects($this->once())->method('removeStateData');
-
         $this->guestAdyenStateDataModel->remove($stateDataId, $cartId);
     }
 

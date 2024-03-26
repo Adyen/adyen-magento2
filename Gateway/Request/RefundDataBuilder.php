@@ -35,6 +35,7 @@ class RefundDataBuilder implements BuilderInterface
     private Config $configHelper;
     private PaymentCollectionFactory $orderPaymentCollectionFactory;
     private ChargedCurrency $chargedCurrency;
+    private OpenInvoice $openInvoiceHelper;
 
     public function __construct(
         Data $adyenHelper,
@@ -164,7 +165,7 @@ class RefundDataBuilder implements BuilderInterface
             );
 
             if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) {
-                $openInvoiceFieldsCreditMemo = $this->openInvoiceHelper->getOpenInvoiceDataForCreditMemo($payment);
+                $openInvoiceFieldsCreditMemo = $this->openInvoiceHelper->getOpenInvoiceDataForCreditMemo($creditMemo);
                 //There is only one payment, so we add the fields to the first(and only) result
                 $requestBody[0] =  array_merge($requestBody[0], $openInvoiceFieldsCreditMemo);
             }

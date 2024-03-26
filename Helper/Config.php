@@ -25,6 +25,7 @@ class Config
     const XML_ADYEN_ABSTRACT_PREFIX = "adyen_abstract";
     const XML_ADYEN_GIVING_PREFIX = "adyen_giving";
     const XML_MERCHANT_ACCOUNT = "merchant_account";
+    const XML_PAYMENT_METHODS_ACTIVE= "payment_methods_active";
     const XML_NOTIFICATIONS_USERNAME = "notification_username";
     const XML_NOTIFICATIONS_PASSWORD = "notification_password";
     const XML_WEBHOOK_URL = "webhook_url";
@@ -53,6 +54,7 @@ class Config
     const XML_WEBHOOK_NOTIFICATION_PROCESSOR = 'webhook_notification_processor';
     const AUTO_CAPTURE_OPENINVOICE = 'auto';
     const XML_RECURRING_CONFIGURATION = 'recurring_configuration';
+    const XML_ALLOW_MULTISTORE_TOKENS = 'allow_multistore_tokens';
 
     protected ScopeConfigInterface $scopeConfig;
     private EncryptorInterface $encryptor;
@@ -91,6 +93,15 @@ class Config
     public function getClientKey($mode, $storeId = null): ?string
     {
         return $this->getConfigData('client_key_' . $mode, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
+    }
+
+    public function getIsPaymentMethodsActive($storeId = null): bool
+    {
+        return $this->getConfigData(
+            self::XML_PAYMENT_METHODS_ACTIVE,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId
+            ) === '1';
     }
 
     /**
@@ -547,6 +558,16 @@ class Config
     public function getRatePayId(int $storeId = null)
     {
         return $this->getConfigData("ratepay_id", self::XML_ADYEN_RATEPAY, $storeId);
+    }
+
+    public function getAllowMultistoreTokens(int $storeId = null): ?bool
+    {
+        return $this->getConfigData(
+            self::XML_ALLOW_MULTISTORE_TOKENS,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId,
+            true
+        );
     }
 
     public function getConfigData(string $field, string $xmlPrefix, ?int $storeId, bool $flag = false): mixed

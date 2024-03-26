@@ -282,7 +282,7 @@ class Webhook
             $notification->setDone(true);
         }
         $notification->setProcessing($processing);
-        $notification->setUpdatedAt(new DateTime());
+        $notification->setUpdatedAt(date('Y-m-d H:i:s'));
         $notification->save();
     }
 
@@ -421,7 +421,9 @@ class Webhook
              * the  previous notification was authorisation : true do not update pspreference
              */
             if (!$notification->isSuccessful()) {
-                $previousAdyenEventCode = $order->getData('adyen_notification_event_code');
+                $previousAdyenEventCode = $this->orderRepository
+                    ->get($order->getId())
+                    ->getData('adyen_notification_event_code');
                 if ($previousAdyenEventCode != "AUTHORISATION : TRUE") {
                     $this->updateOrderPaymentWithAdyenAttributes($order->getPayment(), $notification, $additionalData);
                 }
