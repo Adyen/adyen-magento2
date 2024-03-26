@@ -75,8 +75,7 @@ class PaymentMethods
 
             // return empty result
             return [];
-        }
-        catch (ConnectionException $e) {
+        } catch (ConnectionException $e) {
             $this->adyenLogger->error(
                 "Connection to the endpoint failed. Check the Adyen Live endpoint prefix configuration."
             );
