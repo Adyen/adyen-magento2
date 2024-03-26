@@ -153,7 +153,7 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
      *
      * Determine if the payment method is Adyen
      */
-    public function isPaymentMethodAdyen($order): bool
+    public function isPaymentMethodAdyen($order)
     {
         return strpos((string) $order->getPayment()->getMethod(), 'adyen') !== false;
     }
