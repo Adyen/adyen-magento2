@@ -23,6 +23,12 @@
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_abstract/ignore_refund_notification</config_path>
         </field>
+        <field id="ignore_dispute_notification" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Ignore dispute webhook</label>
+            <tooltip>Setting to Yes will not process any of the DISPUTE notifications received.</tooltip>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_abstract/ignore_dispute_notification</config_path>
+        </field>
         <field id="debug" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1"
                showInStore="0">
             <label>Debug logging</label>

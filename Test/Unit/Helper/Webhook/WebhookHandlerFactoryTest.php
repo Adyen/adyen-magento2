@@ -6,8 +6,11 @@ use Adyen\Payment\Helper\Webhook\AuthorisationWebhookHandler;
 use Adyen\Payment\Helper\Webhook\CancellationWebhookHandler;
 use Adyen\Payment\Helper\Webhook\CancelOrRefundWebhookHandler;
 use Adyen\Payment\Helper\Webhook\CaptureWebhookHandler;
+use Adyen\Payment\Helper\Webhook\ChargebackReversedWebhookHandler;
+use Adyen\Payment\Helper\Webhook\ChargebackWebhookHandler;
 use Adyen\Payment\Helper\Webhook\ManualReviewAcceptWebhookHandler;
 use Adyen\Payment\Helper\Webhook\ManualReviewRejectWebhookHandler;
+use Adyen\Payment\Helper\Webhook\NotificationOfChargebackWebhookHandler;
 use Adyen\Payment\Helper\Webhook\OfferClosedWebhookHandler;
 use Adyen\Payment\Helper\Webhook\OrderClosedWebhookHandler;
 use Adyen\Payment\Helper\Webhook\OrderOpenedWebhookHandler;
@@ -15,11 +18,14 @@ use Adyen\Payment\Helper\Webhook\PendingWebhookHandler;
 use Adyen\Payment\Helper\Webhook\RecurringContractWebhookHandler;
 use Adyen\Payment\Helper\Webhook\RefundFailedWebhookHandler;
 use Adyen\Payment\Helper\Webhook\RefundWebhookHandler;
+use Adyen\Payment\Helper\Webhook\RequestForInformationWebhookHandler;
+use Adyen\Payment\Helper\Webhook\SecondChargebackWebhookHandler;
 use Adyen\Payment\Helper\Webhook\WebhookHandlerFactory;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Order\Payment as AdyenPaymentModel;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Adyen\Webhook\Processor\RequestForInformationProcessor;
 use Magento\Sales\Model\Order;
 
 
@@ -40,7 +46,12 @@ class WebhookHandlerFactoryTest extends AbstractAdyenTestCase
             [Notification::PENDING, pendingWebhookHandler::class],
             [Notification::CANCELLATION, CancellationWebhookHandler::class],
             [Notification::CANCEL_OR_REFUND, CancelOrRefundWebhookHandler::class],
-            [Notification::ORDER_CLOSED, OrderClosedWebhookHandler::class]
+            [Notification::ORDER_CLOSED, OrderClosedWebhookHandler::class],
+            [Notification::NOTIFICATION_OF_CHARGEBACK, NotificationOfChargebackWebhookHandler::class],
+            [Notification::REQUEST_FOR_INFORMATION, RequestForInformationWebhookHandler::class],
+            [Notification::CHARGEBACK_REVERSED, ChargebackReversedWebhookHandler::class],
+            [Notification::CHARGEBACK, ChargebackWebhookHandler::class],
+            [Notification::SECOND_CHARGEBACK, SecondChargebackWebhookHandler::class]
         ];
     }
 
@@ -63,6 +74,11 @@ class WebhookHandlerFactoryTest extends AbstractAdyenTestCase
         $cancelOrRefundWebhookHandler = $this->createMock(CancelOrRefundWebhookHandler::class);
         $orderClosedWebhookHandler = $this->createMock(OrderClosedWebhookHandler::class);
         $orderOpenedWebhookHandler = $this->createMock(OrderOpenedWebhookHandler::class);
+        $chargebackWebhookHandler = $this->createMock(ChargebackWebhookHandler::class);
+        $requestForInformationWebhookHandler = $this->createMock(RequestForInformationWebhookHandler::class);
+        $chargebackReversedWebhookHandler = $this->createMock(ChargebackReversedWebhookHandler::class);
+        $secondChargebackWebhookHandler = $this->createMock(SecondChargebackWebhookHandler::class);
+        $notificationOfChargebackWebhookHandler = $this->createMock(NotificationOfChargebackWebhookHandler::class);
 
         $factory = new WebhookHandlerFactory(
             $adyenLogger,
@@ -78,7 +94,12 @@ class WebhookHandlerFactoryTest extends AbstractAdyenTestCase
             $cancellationWebhookHandler,
             $cancelOrRefundWebhookHandler,
             $orderClosedWebhookHandler,
-            $orderOpenedWebhookHandler
+            $orderOpenedWebhookHandler,
+            $chargebackWebhookHandler,
+            $requestForInformationWebhookHandler,
+            $chargebackReversedWebhookHandler,
+            $secondChargebackWebhookHandler,
+            $notificationOfChargebackWebhookHandler
         );
 
         $handler = $factory->create($notificationType);
