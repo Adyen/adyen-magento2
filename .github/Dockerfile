@@ -1,5 +1,5 @@
 ARG PHP_VERSION
-FROM php:${PHP_VERSION}-apache
+FROM php:8.1.25-apache
 LABEL maintainer="Adyen <magento@adyen.com>"
 
 ENV MAGENTO_HOST="<will be defined>" \
