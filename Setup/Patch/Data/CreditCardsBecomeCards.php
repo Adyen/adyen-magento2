@@ -6,7 +6,7 @@ use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
 use Magento\Framework\Setup\Patch\PatchVersionInterface;
 
-class CreditCardsBecomeCards implements DataPatchInterface, PatchVersionInterface
+class CreditCardsBecomeCards implements DataPatchInterface
 {
     private ModuleDataSetupInterface $moduleDataSetup;
 
@@ -64,13 +64,5 @@ class CreditCardsBecomeCards implements DataPatchInterface, PatchVersionInterfac
     public static function getDependencies()
     {
         return [];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public static function getVersion()
-    {
-        return '9.0.5';
     }
 }
