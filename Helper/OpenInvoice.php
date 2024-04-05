@@ -97,7 +97,9 @@ class OpenInvoice
         $formFields = ['lineItems' => []];
 
         foreach ($creditMemo->getItems() as $creditmemoItem) {
-            if ($creditmemoItem->getQty() <= 0) {
+            // Child items only identifies the variant data and doesn't contain line item information.
+            $isChildItem = $creditmemoItem->getOrderItem()->getParentItem() !== null;
+            if ($creditmemoItem->getQty() <= 0 || $isChildItem) {
                 continue;
             }
 
