@@ -23,7 +23,6 @@ use Adyen\Payment\Model\AdyenAmountCurrency;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Service\Checkout;
-use Adyen\Util\ManualCapture;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\RequestInterface;
@@ -67,7 +66,6 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
     private ChargedCurrency $chargedCurrencyMock;
     private Config $configHelperMock;
     private MagentoDataHelper $dataHelperMock;
-    private ManualCapture $manualCaptureMock;
     private SerializerInterface $serializerMock;
     private AdyenDataHelper $adyenDataHelperMock;
     private PaymentTokenRepositoryInterface $paymentTokenRepository;
@@ -94,7 +92,6 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $this->chargedCurrencyMock = $this->createMock(ChargedCurrency::class);
         $this->configHelperMock = $this->createMock(Config::class);
         $this->dataHelperMock = $this->createMock(MagentoDataHelper::class);
-        $this->manualCaptureMock = $this->createMock(ManualCapture::class);
         $this->serializerMock = $this->createMock(SerializerInterface::class);
         $this->adyenDataHelperMock = $this->createMock(AdyenDataHelper::class);
         $this->paymentTokenRepository = $this->createMock(PaymentTokenRepositoryInterface::class);
@@ -133,7 +130,6 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             $this->chargedCurrencyMock,
             $this->configHelperMock,
             $this->dataHelperMock,
-            $this->manualCaptureMock,
             $this->serializerMock,
             $this->adyenDataHelperMock,
             $this->paymentTokenRepository,
@@ -998,6 +994,11 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $manualCapturePayPal,
         $expectedResult
     ) {
+        // Reset Config mock to prevent interventions with other expects() assertions.
+        $this->configHelperMock = $this->createMock(Config::class);
+
+        $this->orderMock->method('getStoreId')->willReturn(1);
+
         $this->configHelperMock->expects($this->any())
             ->method('getConfigData')
             ->with('capture_mode', 'adyen_abstract', '1')
@@ -1023,7 +1024,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             ->willReturn($paymentCode);
 
         // Configure the order mock to return the payment mock
-        $this->orderMock->expects($this->once())
+        $this->orderMock->expects($this->any())
             ->method('getPayment')
             ->willReturn($this->orderPaymentMock);
 
@@ -1031,11 +1032,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             ->method('getAutoCaptureOpenInvoice')
             ->willReturn($autoCaptureOpenInvoice);
 
-        $paymentMethodsHelper = $this->objectManager->getObject(PaymentMethods::class, [
-            'configHelper' => $this->configHelperMock
-        ]);
-
-        $result = $paymentMethodsHelper->isAutoCapture($this->orderMock, $paymentCode);
+        $result = $this->paymentMethodsHelper->isAutoCapture($this->orderMock, $paymentCode);
 
         $this->assertEquals($expectedResult, $result);
     }
@@ -1221,10 +1218,6 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $this->orderMock->method('getStoreId')->willReturn($storeId);
         $this->orderPaymentMock->method('getMethod')->willReturn('sepadirectdebit');
         $this->orderMock->method('getPayment')->willReturn($this->orderPaymentMock);
-        $manualCaptureMock = $this->getMockBuilder(ManualCapture::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $manualCaptureMock->expects($this->any())->method('isManualCaptureSupported')->willReturn(true);
 
         $notificationPaymentMethod = 'sepadirectdebit'; // Provide your notification payment method
 
@@ -1251,8 +1244,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
                 'configHelper' => $this->configHelperMock,
                 'chargedCurrency' => $this->chargedCurrencyMock,
                 'adyenHelper' => $this->adyenHelperMock,
-                'adyenLogger' => $this->adyenLoggerMock,
-                'manualCapture' => $manualCaptureMock
+                'adyenLogger' => $this->adyenLoggerMock
             ]
         );
 
