@@ -26,5 +26,4 @@ class PaymentAction implements OptionSourceInterface
             ['value' => MethodInterface::ACTION_ORDER, 'label' => MethodInterface::ACTION_ORDER],
         ];
     }
-
 }
