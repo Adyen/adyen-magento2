@@ -89,10 +89,12 @@ class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
         } elseif (!empty($additionalData[self::CC_NUMBER])) {
             $stateData = json_decode((string) $additionalData[self::CC_NUMBER], true);
             $paymentInfo->setAdditionalInformation(self::BRAND_CODE, $stateData['paymentMethod']['type']);
+        } elseif($paymentInfo->getData('method') != 'adyen_giftcard') {
+            $stateData = $this->stateDataCollection->getStateDataArrayWithQuoteId($paymentInfo->getData('quote_id'));
         }
 
         // Get validated state data array
-        if (!empty($stateData)) {
+        if (!empty($stateData) && $stateData['paymentMethod']['type'] != 'giftcard') {
             $stateData = $this->checkoutStateDataValidator->getValidatedAdditionalData($stateData);
             // Set stateData in a service and remove from payment's additionalData
             $this->stateData->setStateData($stateData, $paymentInfo->getData('quote_id'));
