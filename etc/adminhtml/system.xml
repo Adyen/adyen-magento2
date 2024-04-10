@@ -4,7 +4,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -22,9 +22,11 @@
                 <fieldset_css>adyen-payments complex</fieldset_css>
                 <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\Fieldset</frontend_model>
                 <include path="Adyen_Payment::system/adyen_getting_started.xml"/>
-                <include path="Adyen_Payment::system/adyen_required_settings.xml"/>
-                <include path="Adyen_Payment::system/adyen_configure_payment_methods.xml"/>
-                <include path="Adyen_Payment::system/adyen_advanced_settings.xml"/>
+                <include path="Adyen_Payment::system/adyen_initial_setup.xml"/>
+                <include path="Adyen_Payment::system/adyen_accepting_payments.xml"/>
+                <include path="Adyen_Payment::system/adyen_order_management.xml"/>
+                <include path="Adyen_Payment::system/adyen_payment_optimization.xml"/>
+                <include path="Adyen_Payment::system/adyen_testing_performance.xml"/>
             </group>
         </section>
     </system>

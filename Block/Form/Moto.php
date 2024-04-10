@@ -115,7 +115,7 @@ class Moto extends \Magento\Payment\Block\Form\Cc
     {
         $types = [];
         $ccTypes = $this->adyenHelper->getAdyenCcTypes();
-        $availableTypes = explode(',', $this->adyenHelper->getAdyenCcConfigData('cctypes'));
+        $availableTypes = explode(',', (string) $this->configHelper->getAdyenCcConfigData('cctypes'));
 
         foreach ($ccTypes as $code => $ccType) {
             if (in_array($code, $availableTypes)) {
@@ -136,7 +136,7 @@ class Moto extends \Magento\Payment\Block\Form\Cc
             $amount = $quoteData['grand_total'];
 
             return $this->installmentsHelper->formatInstallmentsConfig(
-                $this->adyenHelper->getAdyenCcConfigData('installments',
+                $this->configHelper->getAdyenCcConfigData('installments',
                     $this->_storeManager->getStore()->getId()
                 ),
                 $this->adyenHelper->getAdyenCcTypes(),
@@ -164,7 +164,6 @@ class Moto extends \Magento\Payment\Block\Form\Cc
             $amount = array("value" => $value, "currency" => $currenyCode);
 
             return json_encode($amount);
-
         } catch (\Throwable $e) {
             $this->adyenLogger->error(
                 'There was an error fetching the amount for checkout component config: ' . $e->getMessage()

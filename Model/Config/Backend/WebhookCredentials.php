@@ -57,11 +57,12 @@ class WebhookCredentials extends Value
 
     public function beforeSave()
     {
-        if ($this->getFieldsetDataValue('configuration_mode') == 'auto') {
+        if ($this->getFieldsetDataValue('configuration_mode') === 'auto' &&
+            $this->getFieldsetDataValue('create_new_webhook') === '1') {
             $username = $this->getValue();
             $password = $this->getFieldsetDataValue('notification_password');
 
-            $webhookUrl = $this->url->getBaseUrl() . 'adyen/process/json';
+            $webhookUrl = $this->url->getBaseUrl() . 'adyen/webhook';
             $isDemoMode = (int)$this->getFieldsetDataValue('demo_mode');
             $environment = $isDemoMode ? 'test' : 'live';
 

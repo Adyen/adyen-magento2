@@ -11,26 +11,10 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
-use Adyen\Payment\Observer\AdyenOneclickDataAssignObserver;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
 class OneclickAuthorizationDataBuilder implements BuilderInterface
 {
-    /**
-     * @var \Adyen\Payment\Helper\Data
-     */
-    private $adyenHelper;
-
-    /**
-     * OneclickAuthorizationDataBuilder constructor.
-     *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     */
-    public function __construct(\Adyen\Payment\Helper\Data $adyenHelper)
-    {
-        $this->adyenHelper = $adyenHelper;
-    }
-
     /**
      * @param array $buildSubject
      * @return mixed
@@ -59,9 +43,9 @@ class OneclickAuthorizationDataBuilder implements BuilderInterface
         }
 
         // if installments is set add it into the request
-        if ($payment->getAdditionalInformation(AdyenOneclickDataAssignObserver::NUMBER_OF_INSTALLMENTS) > 0) {
+        if ($payment->getAdditionalInformation('number_of_installments') > 0) {
             $requestBody['installments']['value'] = $payment->getAdditionalInformation(
-                AdyenOneclickDataAssignObserver::NUMBER_OF_INSTALLMENTS
+                'number_of_installments'
             );
         }
 

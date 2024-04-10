@@ -108,8 +108,7 @@ class Creditmemo extends AbstractHelper
             $adyenOrderPayment[OrderPaymentInterface::ENTITY_ID]
         );
         $adyenCreditmemo->setAmount($refundAmount);
-
-        // Once needed, a status update for the creditmemo can be added here.
+        $adyenCreditmemo->setStatus(AdyenCreditmemoModel::WAITING_FOR_WEBHOOK_STATUS);
 
         $this->adyenCreditmemoResourceModel->save($adyenCreditmemo);
 
@@ -137,9 +136,33 @@ class Creditmemo extends AbstractHelper
                     $adyenCreditmemo[CreditmemoInterface::ENTITY_ID],
                     CreditmemoInterface::ENTITY_ID
                 );
-                $currAdyenCreditmemo->setCreditmemoId($magentoCreditmemo->getEntityId());
-                $this->adyenCreditmemoResourceModel->save($currAdyenCreditmemo);
+
+                if ($currAdyenCreditmemo->getCreditmemoId() !== null) {
+                    continue;
+                }
+
+                if ($currAdyenCreditmemo->getAmount() == $magentoCreditmemo->getGrandTotal()) {
+                    $currAdyenCreditmemo->setCreditmemoId($magentoCreditmemo->getEntityId());
+                    $this->adyenCreditmemoResourceModel->save($currAdyenCreditmemo);
+                    break;
+                }
             }
         }
+    }
+
+    public function updateAdyenCreditmemosStatus(AdyenCreditmemoModel $adyenCreditmemo, string $status)
+    {
+        $adyenCreditmemo->setStatus($status);
+        $this->adyenCreditmemoResourceModel->save($adyenCreditmemo);
+    }
+
+    public function getAdyenCreditmemoByPspreference(string $pspreference): ?AdyenCreditmemoModel {
+        $results = $this->adyenCreditmemoResourceModel->getAdyenCreditmemoByPspreference($pspreference);
+
+        if (is_null($results)) {
+            return null;
+        }
+
+        return $this->adyenCreditmemoFactory->create()->load($results['entity_id']);
     }
 }

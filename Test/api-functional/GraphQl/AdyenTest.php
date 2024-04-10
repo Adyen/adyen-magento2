@@ -85,14 +85,14 @@ QUERY;
      * @magentoApiDataFixture Magento/GraphQl/Quote/_files/set_new_billing_address.php
      * @magentoApiDataFixture Magento/GraphQl/Quote/_files/set_flatrate_shipping_method.php
      */
-    public function testAdyenPaymentStatus()
+    public function testAdyenPaymentStatus(): void
     {
-        $methodCode = "adyen_hpp";
+        $methodCode = "adyen_ideal";
         $maskedQuoteId = $this->getMaskedQuoteIdByReservedOrderId->execute('test_quote');
         $stateData = '{\"paymentMethod\":{\"type\":\"ideal\",\"issuer\":\"1154\"}}';
         $adyenAdditionalData = '
         ,
-        adyen_additional_data_hpp: {
+        adyen_additional_data: {
             brand_code: "ideal",
             stateData: "' . $stateData . '",
             returnUrl: "http://localhost/checkout/?id=:merchantReference&done=1"
@@ -132,14 +132,14 @@ QUERY;
      * @magentoApiDataFixture Magento/GraphQl/Quote/_files/add_simple_product.php
      * @magentoApiDataFixture Magento/GraphQl/Quote/_files/set_new_shipping_address.php
      */
-    public function testSetAdyenPaymentMethodOnCart()
+    public function testSetAdyenPaymentMethodOnCart(): void
     {
-        $methodCode = "adyen_hpp";
+        $methodCode = "adyen_ideal";
         $maskedQuoteId = $this->getMaskedQuoteIdByReservedOrderId->execute('test_quote');
         $stateData = '{\"paymentMethod\":{\"type\":\"ideal\",\"issuer\":\"1154\"}}';
         $adyenAdditionalData = '
         ,
-        adyen_additional_data_hpp: {
+        adyen_additional_data: {
             brand_code: "ideal",
             stateData: "' . $stateData . '"
         }';
@@ -229,14 +229,25 @@ JSON;
         "encryptedExpiryMonth": "test_03",
         "encryptedExpiryYear": "test_2030",
         "encryptedSecurityCode": "test_737"
-    }
+    },
+    "browserInfo": {
+        "acceptHeader": "*/*",
+        "colorDepth": 24,
+        "language": "en-US",
+        "javaEnabled": false,
+        "screenHeight": 1080,
+        "screenWidth": 1920,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36",
+        "timeZoneOffset": -120
+    },
+    "origin": "http://localhost",
+    "clientStateDataIndicator": true
 }
 JSON;
         $adyenAdditionalData = '
         adyen_additional_data_cc: {
             cc_type: "VI",
-            stateData: ' . json_encode($stateData) . ',
-            returnUrl: "my-app://your.package.name"
+            stateData: ' . json_encode($stateData) . '
         }';
         $query = $this->getPlaceOrderQuery($maskedQuoteId, "adyen_cc", $adyenAdditionalData);
 

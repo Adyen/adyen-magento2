@@ -7,7 +7,16 @@ type Query {
     adyenPaymentMethods (
         cart_id: String! @doc(description: "Cart ID.")
         shopper_locale: String @doc(description: "Language and country code combination separated by underscore (_), e.g. en_US")
+        country: String @doc(description: "Country code to be used in paymentMethods call, e.g. US")
     ) : AdyenPaymentMethods @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentMethods")
+
+    adyenPaymentMethodsBalance (
+        payload: String! @doc(description: "JSON encoded payload with giftcard state data and amount.")
+    ): AdyenPaymentMethodsBalanceResponse @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentMethodsBalance")
+
+    adyenRedeemedGiftcards (
+        cartId: String! @doc(description: "Cart ID for which to fetch redeemed gift cards.")
+    ): AdyenRedeemedGiftcardsResponse @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenRedeemedGiftcards")
 }
 
 type Mutation {
@@ -15,6 +24,16 @@ type Mutation {
         payload: String! @doc(description: "Payload JSON String with orderId, details, paymentData and threeDSAuthenticationOnly.")
         cart_id: String! @doc(description: "Cart ID.")
     ) : AdyenPaymentStatus @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentDetails")
+
+    adyenSaveStateData (
+        stateData: String! @doc(description: "JSON string of Adyen state data.")
+        cartId: String! @doc(description: "Cart ID associated with the state data.")
+    ): AdyenStateData @resolver(class: "Adyen\\Payment\\Model\\Resolver\\SaveAdyenStateData")
+
+    adyenRemoveStateData(
+        stateDataId: Int! @doc(description: "ID of the state data to remove.")
+        cartId: String! @doc(description: "Cart ID associated with the state data.")
+    ): AdyenStateData @resolver(class: "Adyen\\Payment\\Model\\Resolver\\RemoveAdyenStateData")
 }
 
 type AdyenPaymentStatus {
@@ -89,6 +108,33 @@ type AdyenPaymentMethodsDetailsItems {
     name: String @doc(description: "The display name.")
 }
 
+type AdyenPaymentMethodsBalanceResponse {
+    balanceResponse: String @doc(description: "Balance of the payment method.")
+}
+
+type AdyenRedeemedGiftcardsResponse {
+    redeemedGiftcards: [AdyenGiftcard] @doc(description: "List of redeemed gift cards.")
+    remainingAmount: String @doc(description: "Remaining order amount after giftcard discount.")
+    totalDiscount: String @doc(description: "Total giftcard discount applied to the cart.")
+}
+
+type PaymentMethodBalance {
+    currency: String @doc(description: "Cart currency")
+    value: String @doc(description: "Total cart amount")
+}
+
+type AdyenGiftcard {
+    stateDataId: String @doc(description: "Gift card identifier.")
+    brand: String @doc(description: "Gift card brand")
+    title: String @doc(description: "Gift card payment method title")
+    balance: PaymentMethodBalance @doc(description: "Remaining balance on the gift card.")
+    deductedAmount: String @doc(description: "Deducted balance from the gift card")
+}
+
+type AdyenStateData {
+    stateDataId: String @doc(description: "ID of the inserted stateData object.")
+}
+
 type AdyenPaymentMethodsExtraDetails {
     type: String @doc(description: "The unique payment method code.")
     icon: AdyenPaymentMethodIcon @doc(description: "Icon for the payment method.")
@@ -108,18 +154,9 @@ type AdyenPaymentMethodsExtraDetailsConfiguration {
 }
 
 input PaymentMethodInput {
-    adyen_additional_data_boleto: AdyenAdditionalDataBoleto @doc(description:"Required input for Adyen Boleto payments.")
     adyen_additional_data_cc: AdyenAdditionalDataCc @doc(description:"Required input for Adyen CC payments.")
-    adyen_additional_data_hpp: AdyenAdditionalDataHpp @doc(description:"Required input for Adyen HPP payments.")
-    adyen_additional_data_oneclick: AdyenAdditionalDataOneclick @doc(description:"Required input for Adyen Oneclick payments.")
+    adyen_additional_data: AdyenAdditionalData @doc(description:"Required input for Adyen alternative payment methods.")
     adyen_additional_data_pos_cloud: AdyenAdditionalDataPosCloud @doc(description:"Required input for Adyen POS Cloud payments.")
-}
-
-input AdyenAdditionalDataBoleto {
-    social_security_number: String @doc(description: "Social security number.")
-    boleto_type: String @doc(description: "Type of Boleto.")
-    firstname: String @doc(description: "Customer Firstname.")
-    lastname: String @doc(description: "Customer Lastname.")
 }
 
 input AdyenAdditionalDataCc {
@@ -132,19 +169,13 @@ input AdyenAdditionalDataCc {
     recurringProcessingModel: String @doc(description: "Recurring processing model to tokenize the payment method.")
 }
 
-input AdyenAdditionalDataHpp {
-    brand_code: String! @doc(description:"Type of HPP payment.")
+input AdyenAdditionalData {
+    brand_code: String! @doc(description:"Type of alternative payment method.")
     stateData: String! @doc(description:"JSON string of filled fields.")
     df_value: String @doc(description: "Ratepay device identification token.")
     guestEmail: String @doc(description: "Email address if customer is guest.")
     returnUrl: String @doc(description: "The URL to return to in case of a redirection. The format depends on the channel. This URL can have a maximum of 1024 characters. It can include a placeholder `:merchantReference` to identify the order e.g. `https://your-company.com/checkout?shopperOrder=:merchantReference`.")
     recurringProcessingModel: String @doc(description: "Recurring processing model to tokenize the payment method.")
-}
-
-input AdyenAdditionalDataOneclick {
-    stateData: String @doc(description: "JSON string of filled fields.")
-    number_of_installments: Int @doc(description: "Number of installments for the payment.")
-    returnUrl: String @doc(description: "The URL to return to in case of a redirection. The format depends on the channel. This URL can have a maximum of 1024 characters. It can include a placeholder `:merchantReference` to identify the order e.g. `https://your-company.com/checkout?shopperOrder=:merchantReference`.")
 }
 
 input AdyenAdditionalDataPosCloud {
@@ -160,6 +191,5 @@ type StoreConfig @doc(description: "The type contains information about a store 
     adyen_holder_name_required: Boolean @doc(description: "Adyen card holder's name is required.")
     adyen_title_renderer: String @doc(description: "Adyen Render Mode for Payment Method.")
     adyen_return_path_error: String @doc(description: "Adyen Return path in case of error")
-    adyen_oneclick_card_mode: String @doc(description: "Use Magento Vault (one-click CVC-less payments) or the more secure Adyen Tokens (one-click CVC required payments) functionality")
     adyen_checkout_frontend_region: String @doc(description: "Adyen front end resources region.")
 }

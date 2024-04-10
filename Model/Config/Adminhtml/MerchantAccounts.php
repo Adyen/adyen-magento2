@@ -43,7 +43,7 @@ class MerchantAccounts extends Field
     public function getButtonHtml()
     {
         $button = $this->getLayout()->createBlock(
-            'Magento\Backend\Block\Widget\Button'
+            \Magento\Backend\Block\Widget\Button::class
         )->setData(
             [
                 'id' => 'adyen_configure_merchants',

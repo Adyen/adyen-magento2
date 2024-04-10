@@ -17,33 +17,15 @@ use Adyen\Client;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
 use Adyen\Service\Checkout;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 
 class TransactionDonate implements ClientInterface
 {
-    /**
-     * @var Client
-     */
-    private $client;
+    private Client $client;
+    private Data $adyenHelper;
+    private Idempotency $idempotencyHelper;
 
-    /**
-     * @var Data
-     */
-    private $adyenHelper;
-
-    /**
-     * @var Idempotency
-     */
-    private $idempotencyHelper;
-
-    /**
-     * @param Data $adyenHelper
-     * @param Idempotency $idempotencyHelper
-     * @throws AdyenException
-     * @throws NoSuchEntityException
-     */
     public function __construct(
         Data $adyenHelper,
         Idempotency $idempotencyHelper
@@ -71,6 +53,7 @@ class TransactionDonate implements ClientInterface
         );
 
         $requestOptions['idempotencyKey'] = $idempotencyKey;
+        $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
 
         $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, 'donations');
         try {

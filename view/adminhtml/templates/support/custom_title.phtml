@@ -12,5 +12,5 @@ $titleClass = ($block->getTitleClass()) ? ' ' . $block->getTitleClass() : '';
 $title = $block->getPageTitle();
 ?>
 
-<img src="<?= $block->getViewFileUrl('Adyen_Payment::images/adyen/adyen-support.svg') ?>"
+<img src="<?= $block->escapeUrl($block->getViewFileUrl('Adyen_Payment::images/adyen/adyen-support.svg')) ?>"
      alt="Adyen Logo" class="adyen-support-logo" />

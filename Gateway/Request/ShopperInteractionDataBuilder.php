@@ -11,9 +11,8 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Model\Ui\Adminhtml\AdyenMotoConfigProvider;
-use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
-use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Magento\Framework\App\State;
 use Magento\Framework\Exception\LocalizedException;
@@ -27,14 +26,15 @@ class ShopperInteractionDataBuilder implements BuilderInterface
     const SHOPPER_INTERACTION_CONTAUTH = 'ContAuth';
     const SHOPPER_INTERACTION_ECOMMERCE = 'Ecommerce';
 
-    /**
-     * @var State
-     */
-    private $appState;
+    private State $appState;
+    private StateData $stateData;
 
-    public function __construct(Context $context)
-    {
+    public function __construct(
+        Context $context,
+        StateData $stateData
+    ) {
         $this->appState = $context->getAppState();
+        $this->stateData = $stateData;
     }
 
     /**
@@ -47,6 +47,7 @@ class ShopperInteractionDataBuilder implements BuilderInterface
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
+        $order = $payment->getOrder();
         $paymentMethod = $payment->getMethodInstance()->getCode();
 
         if ($paymentMethod == AdyenPayByLinkConfigProvider::CODE) {
@@ -57,13 +58,16 @@ class ShopperInteractionDataBuilder implements BuilderInterface
         // Ecommerce is the default shopperInteraction
         $shopperInteraction = self::SHOPPER_INTERACTION_ECOMMERCE;
 
+        // Check if it's a tokenised payment or not.
+        $stateData = $this->stateData->getStateData($order->getQuoteId());
+        $storedPaymentMethodId = $this->stateData->getStoredPaymentMethodIdFromStateData($stateData);
+
         if ($paymentMethod == AdyenMotoConfigProvider::CODE &&
             $this->appState->getAreaCode() == \Magento\Framework\App\Area::AREA_ADMINHTML) {
             // Backend CC orders are MOTO
             $shopperInteraction = self::SHOPPER_INTERACTION_MOTO;
-        } elseif ($paymentMethod == AdyenOneclickConfigProvider::CODE
-            || $paymentMethod == AdyenCcConfigProvider::CC_VAULT_CODE) {
-            // OneClick and Vault are ContAuth
+        } elseif (str_contains($paymentMethod, '_vault') || isset($storedPaymentMethodId)) {
+            // Vault is ContAuth
             $shopperInteraction = self::SHOPPER_INTERACTION_CONTAUTH;
         }
 

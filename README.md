@@ -2,7 +2,7 @@
 Use Adyen's plugin for Magento 2 to offer frictionless payments online, in-app, and in-store.
 
 ## Integration
-The plugin integrates card component (Secured Fields) using Adyen Checkout for all card payments. For Point Of Sale (POS) payments we use Terminal API using Cloud-based communication. Boleto and SEPA are a direct API integration into Adyen.
+The plugin integrates card component (Secured Fields) using Adyen Checkout for all card payments. For Point Of Sale (POS) payments we use Terminal API using Cloud-based communication.
 
 ### Support Vault and Instant Purchase ###
 Inside Adyen toggle the following settings on inside the API and Responses section (Settings -> API and Responses):
@@ -13,9 +13,7 @@ Inside Adyen toggle the following settings on inside the API and Responses secti
 * Variant
 
 ## Requirements
-This plugin supports Magento2 version
-* 2.3.7 and higher
-* 2.4 and higher
+This plugin supports Magento 2 version 2.4.4 and higher.
 
 ## Releases
 
@@ -27,7 +25,7 @@ This plugin supports Magento2 version
 ## Support & Maintenance
 
 We provide three levels of support:
-1. **Level 1 (12 months)**: full support (including new features) *Keep in mind that some new features are not possible on older versions, therefore this is not inclusive of ALL new features that are built.* 
+1. **Level 1 (12 months)**: full support (including new features) *Keep in mind that some new features are not possible on older versions, therefore this is not inclusive of ALL new features that are built.*
 2. **Level 2 (12 months - 18 months)**: high priority bugs / security only.
 3. **Level 3 (18 months - 24 months)**: security updates only (no support from support team).
 
@@ -35,12 +33,10 @@ We provide three levels of support:
 
 The schedule for the current maintained branches is:
 
-|  Plugin Major Version   |  Release Date  |  Level 1 Support ends   |  Level 2 Support ends   |  Level 3 Support ends  |
-|  :-----          |  :-----          |  :-----          |  :-----          |  :-----          |
-|  Version 6 |  March 2020  |  September 30 2021 |  March 31 2022 |  January 31 2023 |
-|  Version 7 |  April 2021 |  September 30 2022 |  March 31 2023 |  September 30 2023 |
-|  Version 8 |  November 2021 |  March 31 2023 |  September 2023 | March 2024 |
-|  Version 9 |  - |  12 months after release |  18 months after release |  24 months after release |
+|  Plugin Major Version   | Release Date  |  Level 1 Support ends   | Level 2 Support ends |  Level 3 Support ends  |
+|  :-----          |:--------------|  :-----          |:---------------------|  :-----          |
+|  Version 8 |  November 2021 | January 2024 |  May 2024 | January 2025 |
+|  Version 9 | October 2023  |  October 2024 | April 2025           |  October 2025 |
 
 Or, visualised as a calendar:
 
@@ -48,18 +44,14 @@ Or, visualised as a calendar:
 gantt
     title Currently Supported Versions
     dateFormat  YYYY-MM-DD   
-    section Version 6
-    Level 1   :l61, 2020-03-31, 2021-09-30
-    Level 2   :l62, after l61, 2022-03-31     
-    Level 3   :l63, after l62, 2023-01-31
-    section Version 7
-    Level 1   :l71, 2021-04-09, 2022-09-30
-    Level 2   :l72, after l71, 2023-03-31
-    Level 3   :l73, after l72, 2023-09-30
     section Version 8
-    Level 1   :l81, 2021-11-22, 2023-03-31
-    Level 2   :l82, after l81, 2023-09-30
-    Level 3   :l83, after l82, 2024-03-31
+    Level 1   :l81, 2021-11-22, 2024-01-31
+    Level 2   :l82, after l81, 2024-05-30
+    Level 3   :l83, after l82, 2025-01-31
+    section Version 9
+    Level 1   :l91, 2023-09-15, 2024-09-30
+    Level 2   :l92, after l91, 2025-03-31
+    Level 3   :l93, after l92, 2025-09-30
 ```
 
 ## Contributing
@@ -80,7 +72,7 @@ bin/magento setup:upgrade
 ```
 For more information see our [installation section](https://docs.adyen.com/developers/plugins/magento-2/set-up-the-plugin-in-magento?redirect#step1installtheplugin).
 
- ## Documentation
+## Documentation
 [Magento 2 documentation](https://docs.adyen.com/developers/plugins/magento-2)
 
 
@@ -102,40 +94,9 @@ The notification processing service queries the records that have been received 
 
 If you need to setup your cronjob in Magento <a href="http://devdocs.magento.com/guides/v2.0/config-guide/cli/config-cli-subcommands-cron.html" target="_blank">this is described here</a>.
 
-## Verified payment methods
+## Supported payment methods
 
- * Card payment methods
-    * Card payment method (non-3DS, 3DS1 and 3DS2)
-    * One click payment methods (using Billing agreements or Vault)
-    * Recurring payment methods (using Billing agreements or Vault) 
-   
-
-* Local payment methods
-   * Afterpay
-   * Apple Pay
-   * Bancontact
-   * Banktransfer IBAN
-   * Doku
-   * Google Pay
-   * iDeal
-   * Klarna
-   * Oney
-   * Zip
-   * Multibanco
-   * Konbini
-   * Swish
-   * MBway
-   * Twint
-   * Paypal
-   * SEPA Direct Debit
-   * PIX
-   * Ratepay
-   * Oxxo
-   * Econtexts
-   * PayBright
-   * Blik
-
-_This is not an extensive list of all the supported payment methods but only the ones that have been already verified. In case you would like to see other payment methods in the list as well please contact us to verify those too._
+See our [documentation](https://docs.adyen.com/plugins/adobe-commerce/supported-payment-methods/) for a full list of supported payment methods.
 
 ## Support
 If you have a feature request, or spotted a bug or a technical problem, create a GitHub issue. For other questions, contact our [support team](https://support.adyen.com/hc/en-us/requests/new?ticket_form_id=360000705420).

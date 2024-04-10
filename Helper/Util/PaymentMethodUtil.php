@@ -30,6 +30,7 @@ class PaymentMethodUtil
         'laser',
         'paypal',
         'sepadirectdebit',
+        'ach',
         'dankort',
         'elo',
         'hipercard',
@@ -42,6 +43,9 @@ class PaymentMethodUtil
         'paywithgoogle',
         'mc_googlepay',
         'visa_googlepay',
+        'amex_googlepay',
+        'discover_googlepay',
+        'maestro_googlepay',
         'svs',
         'givex',
         'valuelink',
@@ -61,7 +65,16 @@ class PaymentMethodUtil
         'walley_b2b',
         'mc_clicktopay',
         'visa_clicktopay',
-        'ach'
+        'ach',
+        'visa_amazonpay',
+        'mc_amazonpay',
+        'amex_amazonpay',
+        'discover_amazonpay',
+        'maestro_amazonpay',
+        'elo_amazonpay',
+        'jcb_amazonpay',
+        'bcmc',
+        'bcmc_mobile'
     ];
 
     const OPEN_INVOICE_PAYMENT_METHODS = [

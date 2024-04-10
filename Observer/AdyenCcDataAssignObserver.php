@@ -98,6 +98,9 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
         // Remove remaining brand_code information from the previous payment
         $paymentInfo->unsAdditionalInformation('brand_code');
 
+        // Remove cc_type information from the previous payment
+        $paymentInfo->unsAdditionalInformation('cc_type');
+
         // Get additional data array
         $additionalData = $data->getData(PaymentInterface::KEY_ADDITIONAL_DATA);
         if (!is_array($additionalData)) {
@@ -112,10 +115,9 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
 
         // JSON decode state data from the frontend or fetch it from the DB entity with the quote ID
         if (!empty($additionalData[self::STATE_DATA])) {
-            $stateData = json_decode($additionalData[self::STATE_DATA], true);
-        } else {
-            $stateData = $this->stateDataCollection->getStateDataArrayWithQuoteId($paymentInfo->getData('quote_id'));
+            $stateData = json_decode((string) $additionalData[self::STATE_DATA], true);
         }
+
         // Get validated state data array
         if (!empty($stateData)) {
             $stateData = $this->checkoutStateDataValidator->getValidatedAdditionalData($stateData);
