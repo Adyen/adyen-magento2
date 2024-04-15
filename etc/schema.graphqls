@@ -80,7 +80,6 @@ type AdyenPaymentMethodsArray {
     brand: String @doc(description: "Brand for the selected gift card. For example: plastix, hmclub.")
     brands: [String] @doc(description: "List of possible brands. For example: visa, mc.")
     configuration: AdyenPaymentMethodsConfiguration @doc(description: "The configuration of the payment method.")
-    details: [AdyenPaymentMethodsDetails] @doc(description: "All input details to be provided to complete the payment with this payment method.")
     issuers: [AdyenPaymentMethodsIssuers] @doc(description: "Payment method issuer list.")
 }
 
