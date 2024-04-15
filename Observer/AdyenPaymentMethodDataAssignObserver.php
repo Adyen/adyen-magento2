@@ -64,6 +64,7 @@ class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
     public function execute(Observer $observer)
     {
         $additionalDataToSave = [];
+        $stateData = null;
         // Get request fields
         $data = $this->readDataArgument($observer);
         $paymentInfo = $this->readPaymentModelArgument($observer);
@@ -92,7 +93,7 @@ class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
             $paymentInfo->setAdditionalInformation(self::BRAND_CODE, $stateData['paymentMethod']['type']);
         } elseif($paymentInfo->getData('method') != 'adyen_giftcard') {
             $stateData = $this->stateDataCollection->getStateDataArrayWithQuoteId($paymentInfo->getData('quote_id'));
-            if($stateData['paymentMethod']['type'] == 'giftcard')
+            if(!empty($stateData) && $stateData['paymentMethod']['type'] == 'giftcard')
             {
                 $stateData = null;
             }
