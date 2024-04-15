@@ -9,7 +9,7 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Test\Unit\Model;
+namespace Adyen\Payment\Test\Unit\Model\Sales;
 
 use Adyen\Payment\Model\Sales\OrderRepository;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
