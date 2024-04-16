@@ -163,7 +163,7 @@ class PaymentMethods extends AbstractHelper
         return array_keys($filtered);
     }
 
-    public function togglePaymentMethodsActivation(?bool $isActive =null): array
+    public function togglePaymentMethodsActivation(?bool $isActive =null, string $scope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT, int $scopeId = 0): array
     {
         $enabledPaymentMethods = [];
 
@@ -178,11 +178,29 @@ class PaymentMethods extends AbstractHelper
 
             $value = $isActive ? '1': '0';
             $field = 'active';
-            $this->configHelper->setConfigData($value, $field, $paymentMethod);
+            $this->configHelper->setConfigData($value, $field, $paymentMethod, $scope, $scopeId);
             $enabledPaymentMethods[] = $paymentMethod;
         }
 
         return $enabledPaymentMethods;
+    }
+
+    /**
+     * Remove activation config
+     * @param string $scope
+     * @param int $scopeId
+     * @return void
+     */
+    public function removePaymentMethodsActivation(string $scope, int $scopeId) : void
+    {
+        foreach ($this->getAdyenPaymentMethods() as $paymentMethod)
+        {
+            if (in_array($paymentMethod, self::EXCLUDED_PAYMENT_METHODS)) {
+                continue;
+            }
+
+            $this->configHelper->removeConfigData('active', $paymentMethod, $scope, $scopeId);
+        }
     }
 
     protected function fetchPaymentMethods(?string $country = null, ?string $shopperLocale = null): string
