@@ -273,7 +273,7 @@ class Webhook
             'additionalData' => !empty($notification->getAdditionalData())
                 ? $this->serializer->unserialize($notification->getAdditionalData()) : null,
         ]);
-        $processor = ProcessorFactory::create($webhookNotificationItem, $currentOrderState, $this->logger);
+        $processor = ProcessorFactory::create($webhookNotificationItem, $currentOrderState);
 
         return $processor->process();
     }
