@@ -13,8 +13,8 @@ class PaymentActionTest extends AbstractAdyenTestCase
         $paymentActionClass = new PaymentAction();
 
         $expected = [
-            ['value' => MethodInterface::ACTION_AUTHORIZE, 'label' => MethodInterface::ACTION_AUTHORIZE],
-            ['value' => MethodInterface::ACTION_ORDER, 'label' => MethodInterface::ACTION_ORDER],
+            ['value' => MethodInterface::ACTION_AUTHORIZE, 'label' => __('After payment')],
+            ['value' => MethodInterface::ACTION_ORDER, 'label' => __('Before payment')],
         ];
 
         $this->assertEquals($expected, $paymentActionClass->toOptionArray());
