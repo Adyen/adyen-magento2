@@ -22,8 +22,8 @@ class PaymentAction implements OptionSourceInterface
     public function toOptionArray()
     {
         return [
-            ['value' => MethodInterface::ACTION_AUTHORIZE, 'label' => MethodInterface::ACTION_AUTHORIZE],
-            ['value' => MethodInterface::ACTION_ORDER, 'label' => MethodInterface::ACTION_ORDER],
+            ['value' => MethodInterface::ACTION_AUTHORIZE, 'label' => __('After payment')],
+            ['value' => MethodInterface::ACTION_ORDER, 'label' => __('Before payment')],
         ];
     }
 }

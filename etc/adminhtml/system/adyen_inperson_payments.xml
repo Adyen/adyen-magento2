@@ -83,9 +83,13 @@
             <backend_model>Adyen\Payment\Model\Config\Backend\InstallmentsPosCloud</backend_model>
             <config_path>payment/adyen_pos_cloud/installments</config_path>
         </field>
-        <field id="payment_action" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="0">
-            <label>Payment Action</label>
-            <tooltip></tooltip>
+        <field id="payment_action" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Order Creation Time</label>
+            <tooltip>
+                <![CDATA[Defines the order creation time after <b>Place order</b> is selected.<br>
+                - Before payment: The plugin first creates an order, and then makes a payment authorization request.<br>
+                - After payment: The plugin first makes a payment authorization request, and then creates an order.]]>
+            </tooltip>
             <source_model>Adyen\Payment\Model\Config\Source\PaymentAction</source_model>
             <config_path>payment/adyen_pos_cloud/payment_action</config_path>
         </field>
