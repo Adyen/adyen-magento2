@@ -97,6 +97,10 @@ class AdyenAmountCurrency
 
     public function getCalculatedTaxPercentage()
     {
-        return $this->getTaxAmount() / ($this->getAmountWithDiscount()) * 100;
+        if ($this->getAmountWithDiscount() > 0) {
+            return ($this->getTaxAmount() / $this->getAmountWithDiscount()) * 100;
+        } else {
+            return 0;
+        }
     }
 }
