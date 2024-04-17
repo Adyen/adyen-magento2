@@ -275,9 +275,12 @@ class PaymentResponseHandler
             case self::CANCELLED:
                 // Cancel order in case result is refused
                 if (null !== $order) {
-                    // Set order to new so it can be cancelled
-                    $order->setState(\Magento\Sales\Model\Order::STATE_NEW);
-                    $order->save();
+                    // Check if the current state allows for changing to new for cancellation
+                    if ($order->getState() !== \Magento\Sales\Model\Order::STATE_CANCELED || \Magento\Sales\Model\Order::STATE_PENDING_PAYMENT ) {
+                        $order->setState(\Magento\Sales\Model\Order::STATE_NEW);
+                        $order->save();
+                    }
+                    // Proceed to set cancellation action flag and cancel the order
                     $order->setActionFlag(\Magento\Sales\Model\Order::ACTION_FLAG_CANCEL, true);
                     $this->dataHelper->cancelOrder($order);
                 }
@@ -285,7 +288,7 @@ class PaymentResponseHandler
                 break;
             default:
                 $this->adyenLogger->error(
-                    sprintf("Payment details call failed for action, resultCode is %s Raw API responds: %s. 
+                    sprintf("Payment details call failed for action, resultCode is %s Raw API responds: %s.
                     Cancel or Hold the order on OFFER_CLOSED notification.",
                         $paymentsDetailsResponse['resultCode'],
                         json_encode($paymentsDetailsResponse)
