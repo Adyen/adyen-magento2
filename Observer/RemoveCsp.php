@@ -21,7 +21,7 @@ class RemoveCsp implements ObserverInterface
         if (!$response || !$request) {
             return;
         }
-        if (strpos($request->getFullActionName(), 'adyen') === 0) {
+        if ('adyen_webhook_index' === $request->getFullActionName()) {
             $response->clearHeader('content-security-policy-report-only')
                 ->clearHeader('Content-Security-Policy-Report-Only')
                 ->clearHeader('Content-Security-Policy');
