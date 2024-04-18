@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Plugin;
 
+use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
 use Exception;
 use Magento\Checkout\Api\GuestPaymentInformationManagementInterface;
@@ -25,6 +26,13 @@ class GuestPaymentInformationResetOrderId
      * @var CartRepositoryInterface
      */
     protected $quoteRepository;
+
+    /**
+     * Payment methods helper
+     *
+     * @var PaymentMethods
+     */
+    protected $paymentMethodsHelper;
 
     /**
      * @var AdyenLogger
@@ -44,12 +52,14 @@ class GuestPaymentInformationResetOrderId
      */
     public function __construct(
         CartRepositoryInterface $quoteRepository,
-        AdyenLogger $adyenLogger,
-        QuoteIdMaskFactory $quoteIdMaskFactory
+        QuoteIdMaskFactory $quoteIdMaskFactory,
+        PaymentMethods $paymentMethodsHelper,
+        AdyenLogger $adyenLogger
     ) {
         $this->quoteRepository = $quoteRepository;
-        $this->adyenLogger = $adyenLogger;
         $this->quoteIdMaskFactory = $quoteIdMaskFactory;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
+        $this->adyenLogger = $adyenLogger;
     }
 
     /**
@@ -65,7 +75,9 @@ class GuestPaymentInformationResetOrderId
             $quoteIdMask = $this->quoteIdMaskFactory->create()->load($cartId, 'masked_id');
             $quoteId = $quoteIdMask->getQuoteId();
             $quote = $this->quoteRepository->get($quoteId);
-            if (preg_match('/^adyen_(?!pos_cloud$)/', strval($quote->getPayment()->getMethod()))) {
+            $method = strval($quote->getPayment()->getMethod());
+
+            if ($this->paymentMethodsHelper->isAdyenPayment($method)) {
                 $quote->setReservedOrderId(null);
             }
         } catch (Exception $e) {
