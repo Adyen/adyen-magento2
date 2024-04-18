@@ -676,8 +676,9 @@ class Order extends AbstractHelper
             );
         }
 
-        $order->addStatusHistoryComment(__('Refund Webhook successfully handled'), $order->getStatus());
-
+        $order->addStatusHistoryComment(__(sprintf(
+            '%s Webhook successfully handled',
+            $notification->getEventCode())), $order->getStatus());
         return $order;
     }
 
