@@ -55,20 +55,20 @@
             <config_path>payment/adyen_pos_cloud/api_key_live</config_path>
             <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding" />
         </field>
-        <field id="capture_mode_pos" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
+        <field id="capture_mode_pos" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Capture Delay</label>
             <tooltip>Please set your Capture Delay for POS transactions. Immediate is the default. Set to manual if you want to perform the capture of funds manually later. You need to change this setting as well in Adyen Customer Area => Settings => Merchant Settings => POS Capture Delay. If you have selected a capture delay of a couple of days in Adyen keep it here on immediate</tooltip>
             <source_model>Adyen\Payment\Model\Config\Source\CaptureMode</source_model>
             <config_path>payment/adyen_pos_cloud/capture_mode_pos</config_path>
         </field>
-        <field id="enable_installments" translate="label" type="select" sortOrder="219" showInDefault="1"
+        <field id="enable_installments" translate="label" type="select" sortOrder="90" showInDefault="1"
                showInWebsite="1" showInStore="1">
             <label>Enable Installments</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <tooltip>Enable installments for each credit card type.</tooltip>
             <config_path>payment/adyen_pos_cloud/enable_installments</config_path>
         </field>
-        <field id="installments" translate="label" sortOrder="220" showInDefault="1" showInWebsite="1"
+        <field id="installments" translate="label" sortOrder="100" showInDefault="1" showInWebsite="1"
                showInStore="1">
             <label>Installments</label>
             <depends>
@@ -83,7 +83,17 @@
             <backend_model>Adyen\Payment\Model\Config\Backend\InstallmentsPosCloud</backend_model>
             <config_path>payment/adyen_pos_cloud/installments</config_path>
         </field>
-        <group id="adyen_pos_country_specific" translate="label" showInDefault="1" showInWebsite="1" sortOrder="210">
+        <field id="payment_action" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Order Creation Time</label>
+            <tooltip>
+                <![CDATA[Defines the order creation time after <b>Place order</b> is selected.<br>
+                - Before payment: The plugin first creates an order, and then makes a payment authorization request.<br>
+                - After payment: The plugin first makes a payment authorization request, and then creates an order.]]>
+            </tooltip>
+            <source_model>Adyen\Payment\Model\Config\Source\PaymentAction</source_model>
+            <config_path>payment/adyen_pos_cloud/payment_action</config_path>
+        </field>
+        <group id="adyen_pos_country_specific" translate="label" showInDefault="1" showInWebsite="1" sortOrder="200">
             <label>Country Specific Settings</label>
             <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
             <field id="allowspecific" translate="label" type="allowspecific" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">

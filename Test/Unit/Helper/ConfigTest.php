@@ -16,6 +16,7 @@ use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Payment\Model\MethodInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 
@@ -81,6 +82,28 @@ class ConfigTest extends AbstractAdyenTestCase
             ->willReturn($expectedResult);
 
         $result = $this->configHelper->getAllowMultistoreTokens($storeId);
+
+        $this->assertEquals($expectedResult, $result);
+    }
+
+    public function testGetAdyenPosCloudPaymentAction()
+    {
+        $storeId = PHP_INT_MAX;
+
+        $expectedResult = MethodInterface::ACTION_ORDER;
+        $path = sprintf(
+            "%s/%s/%s",
+            Config::XML_PAYMENT_PREFIX,
+            Config::XML_ADYEN_POS_CLOUD,
+            Config::XML_PAYMENT_ACTION
+        );
+
+        $this->scopeConfigMock->expects($this->once())
+            ->method('getValue')
+            ->with($this->equalTo($path), $this->equalTo(ScopeInterface::SCOPE_STORE), $this->equalTo($storeId))
+            ->willReturn($expectedResult);
+
+        $result = $this->configHelper->getAdyenPosCloudPaymentAction($storeId);
 
         $this->assertEquals($expectedResult, $result);
     }
