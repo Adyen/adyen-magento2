@@ -27,6 +27,7 @@ use Magento\Sales\Api\Data\OrderExtensionFactory;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderSearchResultInterface;
 use Magento\Sales\Api\Data\OrderSearchResultInterfaceFactory as SearchResultFactory;
+use Magento\Sales\Model\Order\ShippingAssignmentBuilder;
 use Magento\Sales\Model\ResourceModel\Metadata;
 use Magento\Tax\Api\OrderTaxManagementInterface;
 
@@ -69,7 +70,8 @@ class OrderRepositoryTest extends AbstractAdyenTestCase
         $orderTaxManagementMock = null,
         $paymentAdditionalInfoFactoryMock = null,
         $serializerMock = null,
-        $extensionAttributesJoinProcessorMock = null
+        $extensionAttributesJoinProcessorMock = null,
+        $shippingAssignmentBuilderMock = null
     ): OrderRepository {
         if (is_null($searchCriteriaBuilderMock)) {
             $searchCriteriaBuilderMock = $this->createMock(SearchCriteriaBuilder::class);
@@ -115,6 +117,10 @@ class OrderRepositoryTest extends AbstractAdyenTestCase
             $extensionAttributesJoinProcessorMock = $this->createMock(JoinProcessorInterface::class);
         }
 
+        if (is_null($shippingAssignmentBuilderMock)) {
+            $shippingAssignmentBuilderMock = $this->createMock(ShippingAssignmentBuilder::class);
+        }
+
         $orderRepositoryPartialMock = $this->getMockBuilder(OrderRepository::class)
             ->setMethods(['getList'])
             ->setConstructorArgs([
@@ -128,7 +134,8 @@ class OrderRepositoryTest extends AbstractAdyenTestCase
                 $orderTaxManagementMock,
                 $paymentAdditionalInfoFactoryMock,
                 $serializerMock,
-                $extensionAttributesJoinProcessorMock
+                $extensionAttributesJoinProcessorMock,
+                $shippingAssignmentBuilderMock
             ])
             ->getMock();
 
