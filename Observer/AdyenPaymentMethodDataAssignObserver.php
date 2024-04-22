@@ -30,6 +30,7 @@ class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
     const RETURN_URL = 'returnUrl';
     const RECURRING_PROCESSING_MODEL = 'recurringProcessingModel';
     const CC_NUMBER = 'cc_number';
+    const FRONTEND_TYPE = 'frontendType';
 
     private static $approvedAdditionalDataKeys = [
         self::BRAND_CODE,
@@ -38,7 +39,9 @@ class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
         self::STATE_DATA,
         self::RETURN_URL,
         self::RECURRING_PROCESSING_MODEL,
-        self::CC_NUMBER
+        self::CC_NUMBER,
+        self::FRONTEND_TYPE
+        // add frontend_type validator
     ];
 
     protected CheckoutStateDataValidator $checkoutStateDataValidator;

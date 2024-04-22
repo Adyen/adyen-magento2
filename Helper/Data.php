@@ -1175,8 +1175,9 @@ class Data extends AbstractHelper
             'external-platform-version' => $magentoDetails['version'],
             'external-platform-edition' => $magentoDetails['edition'],
             'merchant-application-name' => $this->getModuleName(),
-            'merchant-application-version' => $this->getModuleVersion()
-        ];
+            'merchant-application-version' => $this->getModuleVersion(),
+//            'frontend-type' => null // should be updated from frontend.
+         ];
     }
 
     /**

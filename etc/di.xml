@@ -1196,6 +1196,7 @@
                 <item name="recurring" xsi:type="string">Adyen\Payment\Gateway\Request\RecurringDataBuilder</item>
                 <item name="shopperinteraction" xsi:type="string">Adyen\Payment\Gateway\Request\ShopperInteractionDataBuilder</item>
                 <item name="transaction" xsi:type="string">Adyen\Payment\Gateway\Request\CheckoutDataBuilder</item>
+                <item name="header" xsi:type="string">Adyen\Payment\Gateway\Request\HeaderDataBuilder</item>
                 <item name="returnurl" xsi:type="string">Adyen\Payment\Gateway\Request\ReturnUrlDataBuilder</item>
                 <item name="channel" xsi:type="string">Adyen\Payment\Gateway\Request\ChannelDataBuilder</item>
                 <item name="origin" xsi:type="string">Adyen\Payment\Gateway\Request\OriginDataBuilder</item>
