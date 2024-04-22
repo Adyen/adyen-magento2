@@ -21,7 +21,6 @@ use Magento\Payment\Api\Data\PaymentAdditionalInfoInterfaceFactory;
 use Magento\Sales\Api\Data\OrderExtensionFactory;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderSearchResultInterfaceFactory as SearchResultFactory;
-use Magento\Sales\Model\Order\ShippingAssignmentBuilder;
 use Magento\Sales\Model\OrderRepository as SalesOrderRepository;
 use Magento\Sales\Model\ResourceModel\Metadata;
 use Magento\Tax\Api\OrderTaxManagementInterface;
@@ -43,8 +42,7 @@ class OrderRepository extends SalesOrderRepository
         OrderTaxManagementInterface $orderTaxManagement = null,
         PaymentAdditionalInfoInterfaceFactory $paymentAdditionalInfoFactory = null,
         JsonSerializer $serializer = null,
-        JoinProcessorInterface $extensionAttributesJoinProcessor = null,
-        ShippingAssignmentBuilder $shippingAssignmentBuilder = null
+        JoinProcessorInterface $extensionAttributesJoinProcessor = null
     ) {
         parent::__construct(
             $metadata,
@@ -54,8 +52,7 @@ class OrderRepository extends SalesOrderRepository
             $orderTaxManagement,
             $paymentAdditionalInfoFactory,
             $serializer,
-            $extensionAttributesJoinProcessor,
-            $shippingAssignmentBuilder
+            $extensionAttributesJoinProcessor
         );
 
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
