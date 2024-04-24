@@ -288,7 +288,7 @@ class PaymentResponseHandler
                 break;
             default:
                 $this->adyenLogger->error(
-                    sprintf("Payment details call failed for action, resultCode is %s Raw API responds: %s.
+                    sprintf("Payment details call failed for action, resultCode is %s Raw API responds: %s. 
                     Cancel or Hold the order on OFFER_CLOSED notification.",
                         $paymentsDetailsResponse['resultCode'],
                         json_encode($paymentsDetailsResponse)
