@@ -14,6 +14,7 @@ namespace Adyen\Payment\Helper;
 use Adyen\AdyenException;
 use Adyen\Client;
 use Adyen\Environment;
+use Adyen\Payment\Gateway\Request\HeaderDataBuilder;
 use Adyen\Service\Checkout;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Config\Source\RenderMode;
@@ -1167,17 +1168,24 @@ class Data extends AbstractHelper
         ];
     }
 
-    public function buildRequestHeaders()
+    public function buildRequestHeaders(Order\Payment $payment = null)
     {
         $magentoDetails = $this->getMagentoDetails();
-        return [
+        $headers = [
             'external-platform-name' => $magentoDetails['name'],
             'external-platform-version' => $magentoDetails['version'],
             'external-platform-edition' => $magentoDetails['edition'],
             'merchant-application-name' => $this->getModuleName(),
             'merchant-application-version' => $this->getModuleVersion(),
-//            'frontend-type' => null // should be updated from frontend.
          ];
+
+        if(isset($payment)){
+            $headers[HeaderDataBuilder::FRONTENDTYPE] =
+                $payment->getAdditionalInformation(HeaderDataBuilder::FRONTENDTYPE) ??
+                HeaderDataBuilder::FRONTENDTYPE_HEADLESS;
+        }
+
+        return $headers;
     }
 
     /**

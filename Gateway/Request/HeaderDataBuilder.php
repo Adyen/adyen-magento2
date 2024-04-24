@@ -15,6 +15,7 @@ namespace Adyen\Payment\Gateway\Request;
 
 use Adyen\Exception\MissingDataException;
 use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Requests;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
@@ -23,15 +24,26 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
 
 class HeaderDataBuilder implements BuilderInterface
 {
+    const FRONTENDTYPE = 'frontendType';
+    const FRONTENDTYPE_HEADLESS = 'headless';
+
     /**
      * @var Requests
      */
     private $adyenRequestsHelper;
 
     /**
+     * @var Data
+     */
+    private $adyenHelper;
+
+    /**
      * @var ChargedCurrency
      */
     private $chargedCurrency;
+
+
+
 
     /**
      * PaymentDataBuilder constructor.
@@ -41,11 +53,13 @@ class HeaderDataBuilder implements BuilderInterface
      */
     public function __construct(
         Requests        $adyenRequestsHelper,
-        ChargedCurrency $chargedCurrency
+        ChargedCurrency $chargedCurrency,
+        Data $adyenHelper
     )
     {
         $this->adyenRequestsHelper = $adyenRequestsHelper;
         $this->chargedCurrency = $chargedCurrency;
+        $this->adyenHelper = $adyenHelper;
     }
 
     /**
@@ -60,13 +74,11 @@ class HeaderDataBuilder implements BuilderInterface
         $paymentDataObject = SubjectReader::readPayment($buildSubject);
 
         $payment = $paymentDataObject->getPayment();
-        $additionalInformation = $payment->getAdditionalInformation();
 
-        $frontendType = $additionalInformation['frontendType'] ?? 'headless'; //If not set we assume headless
+        $headers = $this->adyenHelper->buildRequestHeaders($payment);
 
-        $request['headers'] = [
-            'Content-Type' => 'application/json',
-            'External-Platform-FrontendType' => $frontendType  // Add frontend type to the headers
+        $request = [
+            'headers' => $headers
         ];
 
         return $request;
