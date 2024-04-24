@@ -41,7 +41,6 @@ class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
         self::RECURRING_PROCESSING_MODEL,
         self::CC_NUMBER,
         self::FRONTEND_TYPE
-        // add frontend_type validator
     ];
 
     protected CheckoutStateDataValidator $checkoutStateDataValidator;

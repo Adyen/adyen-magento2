@@ -88,7 +88,6 @@ class TransactionPayment implements ClientInterface
                 $headers['idempotencyExtraData'] ?? null
             );
             $requestOptions['idempotencyKey'] = $idempotencyKey;
-//            $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders(); cleanup this later from transfer object.
             $requestOptions['headers'] = $headers;
 
 

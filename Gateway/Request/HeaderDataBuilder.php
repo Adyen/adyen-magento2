@@ -59,17 +59,10 @@ class HeaderDataBuilder implements BuilderInterface
         /** @var PaymentDataObject $paymentDataObject */
         $paymentDataObject = SubjectReader::readPayment($buildSubject);
 
-        $order = $paymentDataObject->getOrder();
         $payment = $paymentDataObject->getPayment();
-        $fullOrder = $payment->getOrder();
         $additionalInformation = $payment->getAdditionalInformation();
 
-        $frontendType = isset($additionalInformation['frontendType']) ? $additionalInformation['frontendType'] : 'headless';
-
-        // Build request header array
-//        $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
-
-
+        $frontendType = $additionalInformation['frontendType'] ?? 'headless'; //If not set we assume headless
 
         $request['headers'] = [
             'Content-Type' => 'application/json',

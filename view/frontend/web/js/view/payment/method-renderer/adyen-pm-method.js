@@ -274,7 +274,6 @@ define(
 
                     let additionalData = {};
                     additionalData.brand_code = this.paymentMethod().type;
-                    debugger;
                     additionalData.frontendType = 'luma';
 
                     let stateData;

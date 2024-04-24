@@ -31,6 +31,7 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
     const STORE_PAYMENT_METHOD = 'storePaymentMethod';
     const RETURN_URL = 'returnUrl';
     const RECURRING_PROCESSING_MODEL = 'recurringProcessingModel';
+    const FRONTEND_TYPE = 'frontendType';
 
     /**
      * Approved root level keys from additional data array
@@ -44,7 +45,8 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
         self::NUMBER_OF_INSTALLMENTS,
         self::CC_TYPE,
         self::RETURN_URL,
-        self::RECURRING_PROCESSING_MODEL
+        self::RECURRING_PROCESSING_MODEL,
+        self::FRONTEND_TYPE
     ];
 
     /**
