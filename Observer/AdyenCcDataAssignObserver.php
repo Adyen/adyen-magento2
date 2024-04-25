@@ -115,15 +115,21 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
 
         // JSON decode state data from the frontend or fetch it from the DB entity with the quote ID
         if (!empty($additionalData[self::STATE_DATA])) {
-            $stateData = json_decode((string) $additionalData[self::STATE_DATA], true);
+            $stateData = json_decode((string)$additionalData[self::STATE_DATA], true);
         } else {
             $stateData = $this->stateDataCollection->getStateDataArrayWithQuoteId($paymentInfo->getData('quote_id'));
         }
+
         // Get validated state data array
-        if (!empty($stateData)) {
+        if (!empty($stateData) && $stateData['paymentMethod']['type'] != 'giftcard') {
             $stateData = $this->checkoutStateDataValidator->getValidatedAdditionalData($stateData);
             // Set stateData in a service and remove from payment's additionalData
             $this->stateData->setStateData($stateData, $paymentInfo->getData('quote_id'));
+
+            // set storeCc
+            if (!empty($stateData[self::STORE_PAYMENT_METHOD])) {
+                $paymentInfo->setAdditionalInformation(self::STORE_CC, $stateData[self::STORE_PAYMENT_METHOD]);
+            }
         }
 
         unset($additionalData[self::STATE_DATA]);
@@ -144,11 +150,6 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
         // set ccType
         if (!empty($additionalData[self::CC_TYPE])) {
             $paymentInfo->setCcType($additionalData[self::CC_TYPE]);
-        }
-
-        // set storeCc
-        if (!empty($stateData[self::STORE_PAYMENT_METHOD])) {
-            $paymentInfo->setAdditionalInformation(self::STORE_CC, $stateData[self::STORE_PAYMENT_METHOD]);
         }
     }
 }

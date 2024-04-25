@@ -11,14 +11,17 @@
 
 namespace Adyen\Payment\Test\Unit\Observer;
 
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Model\Method\Adapter;
 use Adyen\Payment\Observer\SetOrderStateAfterPaymentObserver;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Payment\Model\MethodInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
+use Magento\Sales\Model\Order\StatusResolver;
 
 class SetOrderStateAfterPaymentObserverTest extends AbstractAdyenTestCase
 {
@@ -27,6 +30,9 @@ class SetOrderStateAfterPaymentObserverTest extends AbstractAdyenTestCase
     private $paymentMock;
     private $orderMock;
     private $statusResolverMock;
+    private $configHelperMock;
+
+    const STORE_ID = 1;
 
     public function setUp(): void
     {
@@ -34,6 +40,7 @@ class SetOrderStateAfterPaymentObserverTest extends AbstractAdyenTestCase
         $this->paymentMock = $this->createMock(Payment::class);
         $this->orderMock = $this->createMock(Order::class);
         $this->statusResolverMock = $this->createMock(Order\StatusResolver::class);
+        $this->configHelperMock = $this->createMock(Config::class);
 
         $paymentMethodInstanceMock = $this->createMock(Adapter::class);
         $this->paymentMock->method('getMethodInstance')->willReturn($paymentMethodInstanceMock);
@@ -43,7 +50,8 @@ class SetOrderStateAfterPaymentObserverTest extends AbstractAdyenTestCase
             ->willReturn(Order::STATE_PENDING_PAYMENT);
 
         $this->setOrderStateAfterPaymentObserver = new SetOrderStateAfterPaymentObserver(
-            $this->statusResolverMock
+            $this->statusResolverMock,
+            $this->configHelperMock
         );
     }
 
@@ -97,6 +105,35 @@ class SetOrderStateAfterPaymentObserverTest extends AbstractAdyenTestCase
         }
 
         $this->setOrderStateAfterPaymentObserver->execute($this->observerMock);
+    }
 
+    public function testPosPaymentSuccessfulExecute()
+    {
+        $order = $this->createMock(Order::class);
+        $order->expects($this->once())->method('setState')->willReturn(Order::STATE_PENDING_PAYMENT);
+        $order->expects($this->once())->method('setStatus')->willReturn('pending');
+        $order->method('getStoreId')->willReturn(self::STORE_ID);
+
+        $payment = $this->createMock(Payment::class);
+        $payment->method('getMethod')->willReturn('adyen_pos_cloud');
+        $payment->method('getOrder')->willReturn($order);
+
+        $statusResolver = $this->createMock(StatusResolver::class);
+        $statusResolver->method('getOrderStatusByState')
+            ->with($order,  Order::STATE_PENDING_PAYMENT)
+            ->willReturn('pending');
+
+        $configHelperMock = $this->createMock(Config::class);
+        $configHelperMock->expects($this->once())
+            ->method('getAdyenPosCloudPaymentAction')
+            ->with(self::STORE_ID)
+            ->willReturn(MethodInterface::ACTION_ORDER);
+
+        $eventObserver = $this->createMock(Observer::class);
+        $eventObserver->method('getData')->with('payment')->willReturn($payment);
+
+        $observer = new SetOrderStateAfterPaymentObserver($statusResolver, $configHelperMock);
+
+        $observer->execute($eventObserver);
     }
 }
