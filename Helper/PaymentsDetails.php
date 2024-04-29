@@ -42,7 +42,7 @@ class PaymentsDetails
         Session $checkoutSession,
         Data $adyenHelper,
         AdyenLogger $adyenLogger,
-        Idempotency $idempotencyHelper,
+        Idempotency $idempotencyHelper
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->adyenHelper = $adyenHelper;
