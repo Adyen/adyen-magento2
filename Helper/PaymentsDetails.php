@@ -65,6 +65,7 @@ class PaymentsDetails
 
             $requestOptions['idempotencyKey'] = $this->idempotencyHelper->generateIdempotencyKey($request);
             $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
+
             $response = $service->paymentsDetails($request, $requestOptions);
         } catch (AdyenException $e) {
             $this->adyenLogger->error("Payment details call failed: " . $e->getMessage());
