@@ -91,24 +91,37 @@ define(
             },
             placeOrderPos: function () {
                 let self = this;
-                return $.when(
-                    placeOrderAction(self.getData(), new Messages())
-                ).fail(
-                    function (response) {
-                        if (response.responseText.indexOf("In Progress") > -1) {
-                            window.setTimeout(function () {
-                                self.placeOrderPos()},5000);
-                            return;
+                fullScreenLoader.startLoader();
+                placeOrderAction(self.getData(), new Messages())
+                    .fail(function (response) {
+                        self.handleFailedResponse(response)
+                    })
+                    .done(function (orderId) {
+                        let posPaymentAction = window.checkoutConfig.payment.adyenPos.paymentAction;
+                        if (posPaymentAction === 'order') {
+                            adyenPaymentService.posPayment(orderId)
+                                .fail(function (response) {
+                                    self.handleFailedResponse(response)
+                                })
+                                .done(function () {
+                                    self.posComplete()
+                                });
+                        } else {
+                            self.posComplete();
                         }
-                        errorProcessor.process(response);
-                        fullScreenLoader.stopLoader();
-                        self.isPlaceOrderActionAllowed(true);
-                    }
-                ).done(
-                    function () {
-                        self.posComplete();
-                    }
-                )
+                    })
+            },
+            handleFailedResponse: function (response) {
+                let self = this;
+                if (response.responseText.indexOf("In Progress") > -1) {
+                    window.setTimeout(function () {
+                        this.placeOrderPos()
+                    }, 5000);
+                    return;
+                }
+                errorProcessor.process(response);
+                fullScreenLoader.stopLoader();
+                self.isPlaceOrderActionAllowed(true);
             },
             getConnectedTerminals: function () {
                 let connectedTerminals = [];
