@@ -35,6 +35,8 @@ class WebhookHandlerFactory
     private ChargebackWebhookHandler $chargebackWebhookHandler;
     private ChargebackReversedWebhookHandler $chargebackReversedWebhookHandler;
     private NotificationOfChargebackWebhookHandler $notificationOfChargebackWebhookHandler;
+    private RequestForInformationWebhookHandler $requestForInformationWebhookHandler;
+    private SecondChargebackWebhookHandler $secondChargebackWebhookHandler;
 
 
     public function __construct(
