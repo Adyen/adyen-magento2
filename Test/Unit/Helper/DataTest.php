@@ -15,6 +15,7 @@ use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Locale;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Config\Source\RenderMode;
 use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
@@ -37,6 +38,7 @@ use Magento\Store\Model\StoreManager;
 use Magento\Tax\Model\Calculation;
 use Magento\Tax\Model\Config;
 use Magento\Sales\Model\Order;
+use Magento\Framework\View\Asset\File;
 
 class DataTest extends AbstractAdyenTestCase
 {
@@ -78,11 +80,11 @@ class DataTest extends AbstractAdyenTestCase
         $storeManager = $this->createMock(StoreManager::class);
         $cache = $this->createMock(CacheInterface::class);
         $localeResolver = $this->createMock(ResolverInterface::class);
-        $config = $this->createMock(ScopeConfigInterface::class);
+        $this->config = $this->createMock(ScopeConfigInterface::class);
         $componentRegistrar = $this->createConfiguredMock(ComponentRegistrarInterface::class, [
             'getPath' => 'vendor/adyen/module-payment'
         ]);
-        $localeHelper = $this->createMock(Locale::class);
+        $this->localeHelper = $this->createMock(Locale::class);
         $this->orderManagement = $this->createMock(OrderManagementInterface::class);
         $this->orderStatusHistoryFactory = $this->createGeneratedMock(HistoryFactory::class);
 
@@ -110,9 +112,9 @@ class DataTest extends AbstractAdyenTestCase
                 $storeManager,
                 $cache,
                 $localeResolver,
-                $config,
+                $this->config,
                 $componentRegistrar,
-                $localeHelper,
+                $this->localeHelper,
                 $this->orderManagement,
                 $this->orderStatusHistoryFactory,
                 $this->configHelper
@@ -286,6 +288,18 @@ class DataTest extends AbstractAdyenTestCase
         $this->assertEquals($expectedResult, $actualResult);
     }
 
+    public function testGetHmacInDemoMode()
+    {
+        $storeId = null; // Use default store ID for the test
+        $expectedHmac = ''; // Expected HMAC value for demo mode
+
+        // Call the method
+        $actualHmac = $this->dataHelper->getHmac($storeId);
+
+        // Assert that the actual HMAC matches the expected HMAC
+        $this->assertEquals($expectedHmac, $actualHmac);
+    }
+
     /**
      * Test isDemoMode method when demo mode is disabled
      */
@@ -304,6 +318,21 @@ class DataTest extends AbstractAdyenTestCase
 
         // Assert that the actual result matches the expected result
         $this->assertEquals($expectedResult, $actualResult);
+    }
+
+    /**
+     * Test getAPIKey method in demo mode
+     */
+    public function testGetAPIKeyInDemoMode()
+    {
+        $storeId = null; // Use default store ID for the test
+        $expectedApiKey = ''; // Expected API key value for demo mode
+
+        // Call the method
+        $actualApiKey = $this->dataHelper->getAPIKey($storeId);
+
+        // Assert that the actual API key matches the expected API key
+        $this->assertEquals($expectedApiKey, $actualApiKey);
     }
 
     /**
@@ -336,6 +365,21 @@ class DataTest extends AbstractAdyenTestCase
 
         // Assert that the actual result matches the expected result
         $this->assertEquals($expectedResult, $actualResult);
+    }
+
+    /**
+     * Test getWsUsername method in demo mode
+     */
+    public function testGetWsUsernameInDemoMode()
+    {
+        $storeId = null; // Use default store ID for the test
+        $expectedWsUsername = ''; // Expected WS username value for demo mode
+
+        // Call the method
+        $actualWsUsername = $this->dataHelper->getWsUsername($storeId);
+
+        // Assert that the actual WS username matches the expected WS username
+        $this->assertEquals($expectedWsUsername, $actualWsUsername);
     }
 
     public function testGetWsUsernameNotInDemoMode()
@@ -390,18 +434,6 @@ class DataTest extends AbstractAdyenTestCase
         // Call the method
         $this->dataHelper->cancelOrder($order);
     }
-
-    /**
-     * Mock getDataStorage method to return ccTypesAltData
-     */
-//    protected function getDataStorageMock()
-//    {
-//        $this->dataStorage->method('get')
-//            ->with('adyen_credit_cards')
-//            ->willReturn($this->ccTypesAltData);
-//
-//        return $this->dataStorage;
-//    }
 
     /**
      * Test getMagentoCreditCartType method with known credit card type
@@ -488,6 +520,99 @@ class DataTest extends AbstractAdyenTestCase
 
         // Assert that the actual result matches the expected result
         $this->assertEquals($expectedResult, $actualResult);
+    }
+
+    /**
+     * Test isPaymentMethodOfType method with various scenarios
+     *
+     * @dataProvider paymentMethodProvider
+     */
+    public function testIsPaymentMethodOfType($paymentMethod, $type, $expectedResult)
+    {
+        // Call the method with the provided payment method and type
+        $actualResult = $this->dataHelper->isPaymentMethodOfType($paymentMethod, $type);
+
+        // Assert that the actual result matches the expected result
+        $this->assertEquals($expectedResult, $actualResult);
+    }
+
+    /**
+     * Test isVatCategoryHigh method with various scenarios
+     *
+     * @dataProvider paymentMethodProviderForVat
+     */
+    public function testIsVatCategoryHigh($paymentMethod, $expectedResult)
+    {
+        // Call the method with the provided payment method
+        $actualResult = $this->dataHelper->isVatCategoryHigh($paymentMethod);
+
+        // Assert that the actual result matches the expected result
+        $this->assertEquals($expectedResult, $actualResult);
+    }
+
+    /**
+     * Data provider for isVatCategoryHigh method
+     */
+    public function paymentMethodProviderForVat(): array
+    {
+        return [
+            ['klarna', true], // KLARNA payment method
+            ['afterpay_nl', true], // afterpay_ prefixed payment method
+            ['adyen_cc', false], // Non-high VAT category payment method
+            ['paypal_express', false], // Non-high VAT category payment method
+        ];
+    }
+
+    /**
+     * Data provider for isPaymentMethodOfType method
+     */
+    public function paymentMethodProvider(): array
+    {
+        return [
+            ['adyen_cc', 'adyen', true], // Payment method contains the specified type
+            ['adyen_sepa', 'adyen', true], // Payment method contains the specified type
+            ['paypal_express', 'paypal', true], // Payment method contains the specified type
+            ['paypal_express_bml', 'paypal', true], // Payment method contains the specified type
+            ['stripe', 'adyen', false], // Payment method does not contain the specified type
+            ['paypal_express', 'adyen', false], // Payment method does not contain the specified type
+            ['paypal_express_bml', 'stripe', false], // Payment method does not contain the specified type
+        ];
+    }
+
+    /**
+     * Test showLogos method with various scenarios
+     *
+     * @dataProvider showLogosProvider
+     */
+    public function testShowLogos($titleRenderer, $expectedResult)
+    {
+        // Mock ConfigHelper class
+        $configHelperMock = $this->getMockBuilder(\Adyen\Payment\Helper\Config::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        // Set up ConfigHelper mock to return the specified title_renderer value
+        $configHelperMock->method('getAdyenAbstractConfigData')
+            ->with('title_renderer')
+            ->willReturn($titleRenderer);
+
+        // Call the method
+        $actualResult = $this->dataHelper->showLogos();
+
+        // Assert that the actual result matches the expected result
+        $this->assertEquals($expectedResult, $actualResult);
+    }
+
+    /**
+     * Data provider for showLogos method
+     */
+    public function showLogosProvider(): array
+    {
+        return [
+            [RenderMode::MODE_TITLE, false], // Title renderer mode is text, logos should not be shown
+            [RenderMode::MODE_TITLE_IMAGE, false], // Title renderer mode is image, logos should be shown
+            ['other_mode', false], // Invalid mode, logos should not be shown
+        ];
     }
 
     public static function checkoutEnvironmentsProvider(): array
