@@ -9,8 +9,6 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-
-
 namespace Adyen\Payment\Gateway\Request;
 
 use Adyen\Exception\MissingDataException;
@@ -28,22 +26,9 @@ class HeaderDataBuilder implements BuilderInterface
     const FRONTENDTYPE_HEADLESS = 'headless';
 
     /**
-     * @var Requests
-     */
-    private $adyenRequestsHelper;
-
-    /**
      * @var Data
      */
     private $adyenHelper;
-
-    /**
-     * @var ChargedCurrency
-     */
-    private $chargedCurrency;
-
-
-
 
     /**
      * PaymentDataBuilder constructor.
@@ -52,13 +37,9 @@ class HeaderDataBuilder implements BuilderInterface
      * @param ChargedCurrency $chargedCurrency
      */
     public function __construct(
-        Requests        $adyenRequestsHelper,
-        ChargedCurrency $chargedCurrency,
         Data $adyenHelper
     )
     {
-        $this->adyenRequestsHelper = $adyenRequestsHelper;
-        $this->chargedCurrency = $chargedCurrency;
         $this->adyenHelper = $adyenHelper;
     }
 
@@ -72,15 +53,10 @@ class HeaderDataBuilder implements BuilderInterface
     {
         /** @var PaymentDataObject $paymentDataObject */
         $paymentDataObject = SubjectReader::readPayment($buildSubject);
-
         $payment = $paymentDataObject->getPayment();
 
         $headers = $this->adyenHelper->buildRequestHeaders($payment);
 
-        $request = [
-            'headers' => $headers
-        ];
-
-        return $request;
+        return ['headers' => $headers];
     }
 }

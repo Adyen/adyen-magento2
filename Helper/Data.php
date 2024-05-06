@@ -1168,7 +1168,7 @@ class Data extends AbstractHelper
         ];
     }
 
-    public function buildRequestHeaders(Order\Payment $payment = null)
+    public function buildRequestHeaders($payment = null)
     {
         $magentoDetails = $this->getMagentoDetails();
         $headers = [
@@ -1176,7 +1176,7 @@ class Data extends AbstractHelper
             'external-platform-version' => $magentoDetails['version'],
             'external-platform-edition' => $magentoDetails['edition'],
             'merchant-application-name' => $this->getModuleName(),
-            'merchant-application-version' => $this->getModuleVersion(),
+            'merchant-application-version' => $this->getModuleVersion()
          ];
 
         if(isset($payment)){
