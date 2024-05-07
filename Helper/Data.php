@@ -1177,12 +1177,12 @@ class Data extends AbstractHelper
             'external-platform-edition' => $magentoDetails['edition'],
             'merchant-application-name' => $this->getModuleName(),
             'merchant-application-version' => $this->getModuleVersion()
-         ];
+        ];
 
         if(isset($payment)){
             $headers[HeaderDataBuilder::FRONTENDTYPE] =
                 $payment->getAdditionalInformation(HeaderDataBuilder::FRONTENDTYPE) ??
-                HeaderDataBuilder::FRONTENDTYPE_HEADLESS;
+                    HeaderDataBuilder::FRONTENDTYPE_HEADLESS;
         }
 
         return $headers;
