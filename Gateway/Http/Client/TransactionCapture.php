@@ -80,12 +80,14 @@ class TransactionCapture implements ClientInterface
     private function placeMultipleCaptureRequests($service, $requestContainer, $requestOptions): array
     {
         $response = [];
-        $headers = $requestContainer->getHeaders();
         foreach ($requestContainer[self::MULTIPLE_AUTHORIZATIONS] as $request) {
+            $idempotencyKeyExtraData = $request['idempotencyExtraData'];
+            unset($request['idempotencyExtraData']);
             $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
                 $request,
-                $headers['idempotencyExtraData'] ?? null
+                $idempotencyKeyExtraData ?? null
             );
+
             $requestOptions['idempotencyKey'] = $idempotencyKey;
             try {
                 // Copy merchant account from parent array to every request array
