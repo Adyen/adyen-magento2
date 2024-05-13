@@ -80,6 +80,7 @@ class TransactionCapture implements ClientInterface
     private function placeMultipleCaptureRequests($service, $requestContainer, $requestOptions): array
     {
         $response = [];
+        $headers = $requestContainer->getHeaders();
         foreach ($requestContainer[self::MULTIPLE_AUTHORIZATIONS] as $request) {
             $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
                 $request,
