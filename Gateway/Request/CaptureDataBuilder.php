@@ -188,6 +188,10 @@ class CaptureDataBuilder implements BuilderInterface
                     $openInvoiceFields = $this->openInvoiceHelper->getOpenInvoiceDataForInvoice($invoice);
                     $authToCapture = array_merge($authToCapture, $openInvoiceFields);
                 }
+                $authToCapture['idempotencyExtraData'] = [
+                    'totalInvoiced' => $adyenOrderPayment[OrderPaymentInterface::TOTAL_CAPTURED] ?? 0,
+                    'originalPspReference' => $adyenOrderPayment[OrderPaymentInterface::PSPREFRENCE]
+            ] ;
 
                 $captureData[] = $authToCapture;
             }
@@ -200,11 +204,6 @@ class CaptureDataBuilder implements BuilderInterface
 
         $request['body'] = $requestBody;
         $request['clientConfig'] = ["storeId" => $payment->getOrder()->getStoreId()];
-        $request['headers'] = [
-            'idempotencyExtraData' => [
-                'totalInvoiced' => $payment->getOrder()->getTotalInvoiced() ?? 0
-            ]
-        ];
 
         return $request;
     }
