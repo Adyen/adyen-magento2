@@ -19,6 +19,7 @@ use Adyen\Payment\Model\ResourceModel\StateData\Collection;
 use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
+use Adyen\Payment\Gateway\Request\HeaderDataBuilder;
 
 class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
 {
@@ -31,7 +32,6 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
     const STORE_PAYMENT_METHOD = 'storePaymentMethod';
     const RETURN_URL = 'returnUrl';
     const RECURRING_PROCESSING_MODEL = 'recurringProcessingModel';
-    const FRONTEND_TYPE = 'frontendType';
 
     /**
      * Approved root level keys from additional data array
@@ -46,7 +46,7 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
         self::CC_TYPE,
         self::RETURN_URL,
         self::RECURRING_PROCESSING_MODEL,
-        self::FRONTEND_TYPE
+        HeaderDataBuilder::FRONTENDTYPE
     ];
 
     /**

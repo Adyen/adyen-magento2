@@ -35,7 +35,6 @@ class TransactionPayment implements ClientInterface
     private OrdersApi $orderApiHelper;
     private StoreManagerInterface $storeManager;
     private GiftcardPayment $giftcardPaymentHelper;
-    private HeaderDataBuilder $headerDataBuilder;
 
     private ?int $remainingOrderAmount;
 
@@ -47,7 +46,6 @@ class TransactionPayment implements ClientInterface
         OrdersApi $orderApiHelper,
         StoreManagerInterface $storeManager,
         GiftcardPayment $giftcardPaymentHelper,
-        HeaderDataBuilder $headerDataBuilder
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->paymentResponseFactory = $paymentResponseFactory;
@@ -56,8 +54,6 @@ class TransactionPayment implements ClientInterface
         $this->orderApiHelper = $orderApiHelper;
         $this->storeManager = $storeManager;
         $this->giftcardPaymentHelper = $giftcardPaymentHelper;
-        $this->headerDataBuilder = $headerDataBuilder;
-
         $this->remainingOrderAmount = null;
     }
 
