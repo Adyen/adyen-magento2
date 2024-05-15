@@ -217,7 +217,8 @@ define([
                 additional_data: {
                     stateData: stateData,
                     public_hash: this.publicHash,
-                    numberOfInstallments: this.installment()
+                    numberOfInstallments: this.installment(),
+                    frontendType: 'luma'
                 },
             };
         },
