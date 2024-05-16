@@ -40,6 +40,7 @@ use Magento\Tax\Model\Config;
 use Magento\Sales\Model\Order;
 use Magento\Framework\View\Asset\File;
 use ReflectionClass;
+use Adyen\Service\Recurring;
 
 class DataTest extends AbstractAdyenTestCase
 {
@@ -906,4 +907,84 @@ class DataTest extends AbstractAdyenTestCase
         $result3 = $this->dataHelper->buildThreeDS2ProcessResponseJson('example', 'xyz123');
         $this->assertEquals($expected3, $result3);
     }
+
+    public function testFormatDateWithValidDate()
+    {
+        // Test case: When a valid date is provided
+        $inputDate = '2024-05-16 10:30:00';
+        $expected = '2024-05-16 10:30:00';
+        $result = $this->dataHelper->formatDate($inputDate);
+        $this->assertEquals($expected, $result);
+    }
+
+    public function testFormatDateWithDefaultDate()
+    {
+        // Test case: When date is not provided, should default to current date/time
+        $expectedFormat = 'Y-m-d H:i:s';
+        $expectedTimestamp = date($expectedFormat);
+        $result = $this->dataHelper->formatDate();
+        $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $result);
+        $this->assertStringContainsString($expectedTimestamp, $result);
+    }
+
+    public function testFormatDateWithInvalidDate()
+    {
+        // Test case: When an invalid date format is provided
+        $invalidDate = 'invalid_date_format';
+        $this->expectException(\Exception::class);
+        $this->dataHelper->formatDate($invalidDate);
+    }
+
+    public function testIsHppVaultEnabled_WhenEnabled()
+    {
+        // Mock the return value of getAdyenHppVaultConfigDataFlag
+        $this->configHelper->expects($this->once())
+            ->method('getAdyenHppVaultConfigDataFlag')
+            ->with('active', null)
+            ->willReturn(true);
+
+        // Call the method
+        $result = $this->dataHelper->isHppVaultEnabled();
+
+        // Assert that the result is true
+        $this->assertTrue($result);
+    }
+
+    public function testIsHppVaultEnabled_WhenDisabled()
+    {
+        // Mock the return value of getAdyenHppVaultConfigDataFlag
+        $this->configHelper->expects($this->once())
+            ->method('getAdyenHppVaultConfigDataFlag')
+            ->with('active', null)
+            ->willReturn(false);
+
+        // Call the method
+        $result = $this->dataHelper->isHppVaultEnabled();
+
+        // Assert that the result is false
+        $this->assertFalse($result);
+    }
+
+    public function testGetCustomerId()
+    {
+        // Mock an Order object
+        $orderMock = $this->getMockBuilder(Order::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        // Define the expected customer ID
+        $expectedCustomerId = 123;
+
+        // Mock the getCustomerId method of the Order object to return the expected value
+        $orderMock->expects($this->once())
+            ->method('getCustomerId')
+            ->willReturn($expectedCustomerId);
+
+        // Call the method getCustomerId from the Data helper
+        $customerId = $this->dataHelper->getCustomerId($orderMock);
+
+        // Assert that the returned customer ID matches the expected value
+        $this->assertEquals($expectedCustomerId, $customerId);
+    }
+
 }
