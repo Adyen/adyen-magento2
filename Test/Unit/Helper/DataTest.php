@@ -39,6 +39,7 @@ use Magento\Tax\Model\Calculation;
 use Magento\Tax\Model\Config;
 use Magento\Sales\Model\Order;
 use Magento\Framework\View\Asset\File;
+use ReflectionClass;
 
 class DataTest extends AbstractAdyenTestCase
 {
@@ -76,10 +77,10 @@ class DataTest extends AbstractAdyenTestCase
             'getVersion' => '2.x.x',
             'getEdition' => 'Community'
         ]);
-        $adyenLogger = $this->createMock(AdyenLogger::class);
-        $storeManager = $this->createMock(StoreManager::class);
+        $this->adyenLogger = $this->createMock(AdyenLogger::class);
+        $this->storeManager = $this->createMock(StoreManager::class);
         $cache = $this->createMock(CacheInterface::class);
-        $localeResolver = $this->createMock(ResolverInterface::class);
+        $this->localeResolver = $this->createMock(ResolverInterface::class);
         $this->config = $this->createMock(ScopeConfigInterface::class);
         $componentRegistrar = $this->createConfiguredMock(ComponentRegistrarInterface::class, [
             'getPath' => 'vendor/adyen/module-payment'
@@ -108,10 +109,10 @@ class DataTest extends AbstractAdyenTestCase
                 $taxCalculation,
                 $backendHelper,
                 $productMetadata,
-                $adyenLogger,
-                $storeManager,
+                $this->adyenLogger,
+                $this->storeManager,
                 $cache,
-                $localeResolver,
+                $this->localeResolver,
                 $this->config,
                 $componentRegistrar,
                 $this->localeHelper,
@@ -290,14 +291,28 @@ class DataTest extends AbstractAdyenTestCase
 
     public function testGetHmacInDemoMode()
     {
-        $storeId = null; // Use default store ID for the test
-        $expectedHmac = ''; // Expected HMAC value for demo mode
+        $hmacTest = 'hmac_test_value'; // Example HMAC value for live mode
+        $expectedResult = 'decrypted_hmac'; // Example decrypted HMAC value
+        $storeId = 1;
+
+        $this->configHelper->method('isDemoMode')
+            ->with($storeId)
+            ->willReturn(true);
+
+        // Set up the return value for the configHelper
+        $this->configHelper->method('getAdyenHppConfigData')
+            ->with('hmac_test', $storeId)
+            ->willReturn($hmacTest);
+
+        $this->encryptor->method('decrypt')
+            ->with($hmacTest)
+            ->willReturn($expectedResult);
 
         // Call the method
-        $actualHmac = $this->dataHelper->getHmac($storeId);
+        $result = $this->dataHelper->getHmac($storeId);
 
-        // Assert that the actual HMAC matches the expected HMAC
-        $this->assertEquals($expectedHmac, $actualHmac);
+        // Assertions
+        $this->assertEquals('decrypted_hmac', $result);
     }
 
     /**
@@ -325,14 +340,30 @@ class DataTest extends AbstractAdyenTestCase
      */
     public function testGetAPIKeyInDemoMode()
     {
-        $storeId = null; // Use default store ID for the test
-        $expectedApiKey = ''; // Expected API key value for demo mode
+        $storeId = 1; // Use default store ID for the test
+        $expectedResult = 'decrypted_api_key_test_value'; // Expected API key value for demo mode
+        $apiKeyTest = 'api_key_test_value';
+        $demoMode = true;
+        // Mock isDemoMode method to return true
+        $this->configHelper->method('isDemoMode')
+            ->with($storeId)
+            ->willReturn($demoMode);
+
+        // Mock getAdyenAbstractConfigData method to return API key live value
+        $this->configHelper->method('getAdyenAbstractConfigData')
+            ->with('api_key_test', $storeId)
+            ->willReturn($apiKeyTest);
+
+        // Mock decrypt method to return decrypted API key live value
+        $this->encryptor->method('decrypt')
+            ->with($apiKeyTest)
+            ->willReturn($expectedResult);
 
         // Call the method
-        $actualApiKey = $this->dataHelper->getAPIKey($storeId);
+        $actualResult = $this->dataHelper->getAPIKey($storeId);
 
         // Assert that the actual API key matches the expected API key
-        $this->assertEquals($expectedApiKey, $actualApiKey);
+        $this->assertEquals($expectedResult, $actualResult);
     }
 
     /**
@@ -372,14 +403,26 @@ class DataTest extends AbstractAdyenTestCase
      */
     public function testGetWsUsernameInDemoMode()
     {
-        $storeId = null; // Use default store ID for the test
-        $expectedWsUsername = ''; // Expected WS username value for demo mode
+        $storeId = 1; // Example store ID
+        $demoMode = true; // Demo mode is disabled
+        $wsUsernameTest = 'ws_username_test_value'; // Example web service username for live mode
+        $expectedResult = 'ws_username_test_value'; // Example web service username
 
-        // Call the method
-        $actualWsUsername = $this->dataHelper->getWsUsername($storeId);
+        // Mock isDemoMode method to return false
+        $this->configHelper->method('isDemoMode')
+            ->with($storeId)
+            ->willReturn($demoMode);
 
-        // Assert that the actual WS username matches the expected WS username
-        $this->assertEquals($expectedWsUsername, $actualWsUsername);
+        // Mock getAdyenAbstractConfigData method to return web service username live value
+        $this->configHelper->method('getAdyenAbstractConfigData')
+            ->with('ws_username_test', $storeId)
+            ->willReturn($wsUsernameTest);
+
+        // Call the method to get the actual result
+        $actualResult = $this->dataHelper->getWsUsername($storeId);
+
+        // Assert that the actual result matches the expected result
+        $this->assertEquals($expectedResult, $actualResult);
     }
 
     public function testGetWsUsernameNotInDemoMode()
@@ -482,6 +525,24 @@ class DataTest extends AbstractAdyenTestCase
         $storeId = 1; // Example store ID
         $liveEndpointPrefix = 'live_endpoint_prefix_value'; // Example live endpoint URL prefix
         $expectedResult = 'live_endpoint_prefix_value'; // Example result
+
+        // Mock getAdyenAbstractConfigData method to return live endpoint URL prefix
+        $this->configHelper->method('getAdyenAbstractConfigData')
+            ->with('live_endpoint_url_prefix', $storeId)
+            ->willReturn($liveEndpointPrefix);
+
+        // Call the method to get the actual result
+        $actualResult = $this->dataHelper->getLiveEndpointPrefix($storeId);
+
+        // Assert that the actual result matches the expected result
+        $this->assertEquals($expectedResult, $actualResult);
+    }
+
+    public function testGetLiveEndpointPrefixNull()
+    {
+        $storeId = 1; // Example store ID
+        $liveEndpointPrefix = ''; // Example live endpoint URL prefix
+        $expectedResult = ''; // Example result
 
         // Mock getAdyenAbstractConfigData method to return live endpoint URL prefix
         $this->configHelper->method('getAdyenAbstractConfigData')
@@ -687,5 +748,162 @@ class DataTest extends AbstractAdyenTestCase
 
         $headers = $this->dataHelper->buildRequestHeaders();
         $this->assertEquals($expectedHeaders, $headers);
+    }
+
+    public function testLogResponse()
+    {
+        // Set up dummy data
+        $response = ['key' => 'value'];
+        $storeId = 1; // Example store ID
+        $isDemo = true; // Example demo mode flag
+
+        // Mock methods for store manager and config helper
+        $store = $this->createMock(\Magento\Store\Model\Store::class);
+        $store->method('getId')->willReturn($storeId);
+        $this->storeManager->method('getStore')->willReturn($store);
+        $this->configHelper->method('isDemoMode')->with($storeId)->willReturn($isDemo);
+
+        // Assert that the logger was called with the correct parameters based on demo mode
+        $this->adyenLogger->expects($this->once())
+            ->method('info')
+            ->with('Response from Adyen API', ['body' => $response]);
+        // Call the method under test
+        $this->dataHelper->logResponse($response);
+
+    }
+
+    public function testLogResponseWhenDemoModeFalse()
+    {
+        // Set up dummy data
+        $storeId = 1; // Example store ID
+        $isDemo = false; // Demo mode is false
+
+        // Mock methods for store manager and config helper
+        $store = $this->createMock(\Magento\Store\Model\Store::class);
+        $store->method('getId')->willReturn($storeId);
+        $this->storeManager->method('getStore')->willReturn($store);
+        $this->configHelper->method('isDemoMode')->with($storeId)->willReturn($isDemo);
+
+        // Expect filtering of references in the response
+        $filteredResponse = ['reference' => '123'];
+        // Mock the private method filterReferences using ReflectionClass
+        $reflectionClass = new ReflectionClass(Data::class);
+        $method = $reflectionClass->getMethod('filterReferences');
+        $method->setAccessible(true);
+        $filteredResponse = $method->invokeArgs($this->dataHelper, [$filteredResponse]);
+
+        $this->adyenLogger->expects($this->once())
+            ->method('info')
+            ->with('Response from Adyen API', ['body' => $filteredResponse]);
+        // Call the method under test
+        $this->dataHelper->logResponse($filteredResponse);
+    }
+
+    public function testLogRequest()
+    {
+        // Set up dummy data
+        $request = ['reference' => '123', 'not_reference' => '456'];
+        $apiVersion = 'v1';
+        $endpoint = 'payment/authorise';
+
+        // Set up store ID and demo mode
+        $storeId = 1; // Example store ID
+        $isDemo = false; // Demo mode is false
+
+        // Mock methods for store manager and config helper
+        $store = $this->createMock(\Magento\Store\Model\Store::class);
+        $store->method('getId')->willReturn($storeId);
+        $this->storeManager->method('getStore')->willReturn($store);
+        $this->configHelper->method('isDemoMode')->with($storeId)->willReturn($isDemo);
+
+        $this->configHelper->method('getLiveEndpointPrefix')->willReturn('live_prefix');
+        $reflectionClass = new ReflectionClass(Data::class);
+        $method = $reflectionClass->getMethod('filterReferences');
+        $method->setAccessible(true);
+
+        $filteredResponse = $method->invokeArgs($this->dataHelper, [$request]);
+
+        // Expect info method to be called on adyenLogger with correct context
+        $this->adyenLogger->expects($this->once())
+            ->method('info')
+            ->with('Request to Adyen API payment/authorise', [
+                'apiVersion' => $apiVersion,
+                'livePrefix' => 'live_prefix',
+                'body' => $filteredResponse
+            ]);
+
+        // Call the method under test
+        $this->dataHelper->logRequest($request, $apiVersion, $endpoint);
+    }
+
+    public function testPadShopperReference()
+    {
+        // Test case 1: When the shopper reference length is less than 3
+        $shopperReference1 = '12';
+        $expected1 = '012'; // Expected output after padding
+        $result1 = $this->dataHelper->padShopperReference($shopperReference1);
+        $this->assertEquals($expected1, $result1);
+
+        // Test case 2: When the shopper reference length is equal to 3
+        $shopperReference2 = '123';
+        $expected2 = '123'; // No padding needed
+        $result2 = $this->dataHelper->padShopperReference($shopperReference2);
+        $this->assertEquals($expected2, $result2);
+
+        // Test case 3: When the shopper reference length is greater than 3
+        $shopperReference3 = '1234';
+        $expected3 = '1234'; // No padding needed
+        $result3 = $this->dataHelper->padShopperReference($shopperReference3);
+        $this->assertEquals($expected3, $result3);
+    }
+
+    public function testGetCurrentLocaleCode()
+    {
+        // Mock dependencies
+        $storeId = 1;
+
+        // Configure mocks
+        $this->configHelper->method('getAdyenHppConfigData')
+            ->willReturnMap([
+                ['shopper_locale', $storeId, 'en_US'], // Mocking a shopper locale value
+            ]);
+        $this->localeHelper->method('mapLocaleCode')
+            ->willReturnMap([
+                ['en_US', 'en_US'], // Mocking locale mapping
+            ]);
+        $this->localeResolver->method('getLocale')
+            ->willReturn('en_US'); // Mocking locale resolver
+        $this->config->method('getValue')
+            ->willReturn('en_US'); // Mocking default locale config
+
+        // Test case: When a shopper locale is provided
+        $expected1 = 'en_US';
+        $result1 = $this->dataHelper->getCurrentLocaleCode($storeId);
+        $this->assertEquals($expected1, $result1);
+
+        // Test case: When neither shopper locale nor locale resolver returns a value
+        $this->localeResolver->method('getLocale')
+            ->willReturn('');
+        $expected3 = 'en_US'; // Assuming en_US is the default locale
+        $result3 = $this->dataHelper->getCurrentLocaleCode($storeId);
+        $this->assertEquals($expected3, $result3);
+    }
+
+    public function testBuildThreeDS2ProcessResponseJson()
+    {
+        // Test case: When type and token are not provided
+        $expected1 = '{"threeDS2":false}';
+        $result1 = $this->dataHelper->buildThreeDS2ProcessResponseJson();
+        $this->assertEquals($expected1, $result1);
+
+        // Test case: When type is provided but token is not provided
+        $expected2 = '{"threeDS2":false,"type":"example"}';
+        $result2 = $this->dataHelper->buildThreeDS2ProcessResponseJson('example');
+        $this->assertEquals($expected2, $result2);
+
+        // Test case: When both type and token are provided
+        $expected3 = '{"threeDS2":true,"type":"example","token":"xyz123"}';
+        $result3 = $this->dataHelper->buildThreeDS2ProcessResponseJson('example', 'xyz123');
+        $this->assertEquals($expected3, $result3);
     }
 }
