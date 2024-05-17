@@ -67,8 +67,8 @@ class DataTest extends AbstractAdyenTestCase
         $this->dataStorage = $this->createMock(DataInterface::class);
         $country = $this->createMock(Country::class);
         $moduleList = $this->createMock(ModuleListInterface::class);
-        $assetRepo = $this->createMock(Repository::class);
-        $assetSource = $this->createMock(Source::class);
+        $this->assetRepo = $this->createMock(Repository::class);
+        $this->assetSource = $this->createMock(Source::class);
         $notificationFactory = $this->createGeneratedMock(NotificationCollectionFactory::class);
         $taxConfig = $this->createMock(Config::class);
         $taxCalculation = $this->createMock(Calculation::class);
@@ -103,8 +103,8 @@ class DataTest extends AbstractAdyenTestCase
                 $this->dataStorage,
                 $country,
                 $moduleList,
-                $assetRepo,
-                $assetSource,
+                $this->assetRepo,
+                $this->assetSource,
                 $notificationFactory,
                 $taxConfig,
                 $taxCalculation,
@@ -987,4 +987,120 @@ class DataTest extends AbstractAdyenTestCase
         $this->assertEquals($expectedCustomerId, $customerId);
     }
 
+    public function testGetCheckoutEnvironmentDemoMode()
+    {
+        // Setup the mock to return true for isDemoMode
+        $this->configHelper->expects($this->once())
+            ->method('isDemoMode')
+            ->willReturn(true);
+
+        // Call the method under test
+        $result = $this->dataHelper->getCheckoutEnvironment();
+
+        // Assert the expected result
+        $this->assertEquals(Data::TEST, $result);
+    }
+
+    public function testGetCheckoutEnvironmentLiveAU()
+    {
+        // Setup the mock to return false for isDemoMode
+        $this->configHelper->expects($this->once())
+            ->method('isDemoMode')
+            ->willReturn(false);
+
+        // Setup the mock to return "au" for getCheckoutFrontendRegion
+        $this->configHelper->expects($this->once())
+            ->method('getCheckoutFrontendRegion')
+            ->willReturn("au");
+
+        // Call the method under test
+        $result = $this->dataHelper->getCheckoutEnvironment();
+
+        // Assert the expected result
+        $this->assertEquals(Data::LIVE_AU, $result);
+    }
+
+    public function testGetCheckoutEnvironmentLiveUS()
+    {
+        // Setup the mock to return false for isDemoMode
+        $this->configHelper->expects($this->once())
+            ->method('isDemoMode')
+            ->willReturn(false);
+
+        // Setup the mock to return "us" for getCheckoutFrontendRegion
+        $this->configHelper->expects($this->once())
+            ->method('getCheckoutFrontendRegion')
+            ->willReturn("us");
+
+        // Call the method under test
+        $result = $this->dataHelper->getCheckoutEnvironment();
+
+        // Assert the expected result
+        $this->assertEquals(Data::LIVE_US, $result);
+    }
+
+    public function testGetCheckoutEnvironmentLiveIN()
+    {
+        // Setup the mock to return false for isDemoMode
+        $this->configHelper->expects($this->once())
+            ->method('isDemoMode')
+            ->willReturn(false);
+
+        // Setup the mock to return "in" for getCheckoutFrontendRegion
+        $this->configHelper->expects($this->once())
+            ->method('getCheckoutFrontendRegion')
+            ->willReturn("in");
+
+        // Call the method under test
+        $result = $this->dataHelper->getCheckoutEnvironment();
+
+        // Assert the expected result
+        $this->assertEquals(Data::LIVE_IN, $result);
+    }
+
+    public function testGetCheckoutEnvironmentDefault()
+    {
+        // Setup the mock to return false for isDemoMode
+        $this->configHelper->expects($this->once())
+            ->method('isDemoMode')
+            ->willReturn(false);
+
+        // Setup the mock to return a value other than "au", "us", or "in" for getCheckoutFrontendRegion
+        $this->configHelper->expects($this->once())
+            ->method('getCheckoutFrontendRegion')
+            ->willReturn("eu");
+
+        // Call the method under test
+        $result = $this->dataHelper->getCheckoutEnvironment();
+
+        // Assert the expected result
+        $this->assertEquals(Data::LIVE, $result);
+    }
+
+//    public function testGetVariantIcon()
+//    {
+//        // Define the test variant
+//        $variant = 'test_variant';
+//
+//        $this->requestMock = $this->getMockBuilder(\Magento\Framework\App\Request\Http::class)
+//            ->disableOriginalConstructor()
+//            ->getMock();
+//
+//        $this->requestMock->expects($this->once())
+//            ->method('isSecure')
+//            ->willReturn(true);
+//
+//        // Mock the findSource method of the asset repo object to return false
+//        $this->assetSource->expects($this->once())
+//            ->method('findSource')
+//            ->willReturn(false);
+//
+//        // Mock the createAsset method of the data helper to return the mocked asset object
+//        $icon = $this->dataHelper->getVariantIcon($variant);
+//
+//        // Assert that the returned icon has the correct URL, width, and height
+//        $this->assertEquals("https://checkoutshopper-test.adyen.com/checkoutshopper/images/logos/test_variant.svg", $icon['url']);
+//        $this->assertEquals(77, $icon['width']);
+//        $this->assertEquals(50, $icon['height']);
+//    }
 }
