@@ -25,11 +25,13 @@ use Magento\Framework\App\CacheInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\ProductMetadata;
+use Magento\Framework\App\State;
 use Magento\Framework\Component\ComponentRegistrarInterface;
 use Magento\Framework\Config\DataInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Module\ModuleListInterface;
+use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Asset\Repository;
 use Magento\Framework\View\Asset\Source;
 use Magento\Sales\Api\OrderManagementInterface;
@@ -41,6 +43,8 @@ use Magento\Sales\Model\Order;
 use Magento\Framework\View\Asset\File;
 use ReflectionClass;
 use Adyen\Service\Recurring;
+use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
+
 
 class DataTest extends AbstractAdyenTestCase
 {
@@ -48,6 +52,7 @@ class DataTest extends AbstractAdyenTestCase
      * @var Data
      */
     private $dataHelper;
+    private $_encryptor;
 
     public function setUp(): void
     {
@@ -62,6 +67,7 @@ class DataTest extends AbstractAdyenTestCase
                 'demo_mode' => '1'
             ]
         ]);
+        $this->objectManager = new ObjectManager($this);
         $context = $this->createMock(Context::class);
         $this->encryptor = $this->createMock(EncryptorInterface::class);
         $this->dataStorage = $this->createMock(DataInterface::class);
@@ -72,7 +78,7 @@ class DataTest extends AbstractAdyenTestCase
         $notificationFactory = $this->createGeneratedMock(NotificationCollectionFactory::class);
         $taxConfig = $this->createMock(Config::class);
         $taxCalculation = $this->createMock(Calculation::class);
-        $backendHelper = $this->createMock(BackendHelper::class);
+        $this->backendHelper = $this->createMock(BackendHelper::class);
         $productMetadata = $this->createConfiguredMock(ProductMetadata::class, [
             'getName' => 'magento',
             'getVersion' => '2.x.x',
@@ -80,7 +86,7 @@ class DataTest extends AbstractAdyenTestCase
         ]);
         $this->adyenLogger = $this->createMock(AdyenLogger::class);
         $this->storeManager = $this->createMock(StoreManager::class);
-        $cache = $this->createMock(CacheInterface::class);
+        $this->cache = $this->createMock(CacheInterface::class);
         $this->localeResolver = $this->createMock(ResolverInterface::class);
         $this->config = $this->createMock(ScopeConfigInterface::class);
         $componentRegistrar = $this->createConfiguredMock(ComponentRegistrarInterface::class, [
@@ -108,11 +114,11 @@ class DataTest extends AbstractAdyenTestCase
                 $notificationFactory,
                 $taxConfig,
                 $taxCalculation,
-                $backendHelper,
+                $this->backendHelper,
                 $productMetadata,
                 $this->adyenLogger,
                 $this->storeManager,
-                $cache,
+                $this->cache,
                 $this->localeResolver,
                 $this->config,
                 $componentRegistrar,
@@ -478,6 +484,58 @@ class DataTest extends AbstractAdyenTestCase
         // Call the method
         $this->dataHelper->cancelOrder($order);
     }
+
+    public function testCancelOrderCanHold()
+    {
+        $orderMock = $this->createMock(Order::class);
+
+        // Setup the mock to return STATE_HOLDED for getAdyenAbstractConfigData
+        $this->configHelper->expects($this->once())
+            ->method('getAdyenAbstractConfigData')
+            ->with('payment_cancelled')
+            ->willReturn(Order::STATE_HOLDED);
+
+        // Setup the order mock to allow holding
+        $orderMock->expects($this->once())
+            ->method('canHold')
+            ->willReturn(true);
+
+        $orderMock->expects($this->once())
+            ->method('hold')
+            ->willReturnSelf();
+
+        $orderMock->expects($this->once())
+            ->method('save');
+
+        // Call the method under test
+        $this->dataHelper->cancelOrder($orderMock);
+    }
+
+    public function testCancelOrderCanCancelNewProcess()
+    {
+        $orderMock = $this->createMock(Order::class);
+        $orderStatusHistoryMock = $this->createMock(\Magento\Sales\Model\Order\Status\History::class);
+
+        // Setup the mock to return a status other than STATE_HOLDED for getAdyenAbstractConfigData
+        $this->configHelper->expects($this->once())
+            ->method('getAdyenAbstractConfigData')
+            ->with('payment_cancelled')
+            ->willReturn(Order::STATE_NEW);
+
+        // Setup the order mock to allow cancellation
+        $orderMock->expects($this->once())
+            ->method('canCancel')
+            ->willReturn(true);
+
+        // Ensure getEntityId returns a valid order ID
+        $orderMock->expects($this->once())
+            ->method('getEntityId')
+            ->willReturn(1);
+
+        // Call the method under test
+        $this->dataHelper->cancelOrder($orderMock);
+    }
+
 
     /**
      * Test getMagentoCreditCartType method with known credit card type
@@ -1077,30 +1135,218 @@ class DataTest extends AbstractAdyenTestCase
         $this->assertEquals(Data::LIVE, $result);
     }
 
-//    public function testGetVariantIcon()
-//    {
-//        // Define the test variant
-//        $variant = 'test_variant';
-//
-//        $this->requestMock = $this->getMockBuilder(\Magento\Framework\App\Request\Http::class)
-//            ->disableOriginalConstructor()
-//            ->getMock();
-//
-//        $this->requestMock->expects($this->once())
-//            ->method('isSecure')
-//            ->willReturn(true);
-//
-//        // Mock the findSource method of the asset repo object to return false
-//        $this->assetSource->expects($this->once())
-//            ->method('findSource')
-//            ->willReturn(false);
-//
-//        // Mock the createAsset method of the data helper to return the mocked asset object
-//        $icon = $this->dataHelper->getVariantIcon($variant);
-//
-//        // Assert that the returned icon has the correct URL, width, and height
-//        $this->assertEquals("https://checkoutshopper-test.adyen.com/checkoutshopper/images/logos/test_variant.svg", $icon['url']);
-//        $this->assertEquals(77, $icon['width']);
-//        $this->assertEquals(50, $icon['height']);
-//    }
+    public function testGetOrigin()
+    {
+        $storeId = 1;
+        $expectedBaseUrl = 'https://example.com/';
+        $stateMock = $this->createMock(State::class);
+        $storeMock = $this->createMock(\Magento\Store\Model\Store::class);
+        $objectManagerStub = $this->createMock(\Magento\Framework\App\ObjectManager::class);
+        $objectManagerStub->method('get')->willReturnMap([
+            [State::class, $stateMock]
+        ]);
+        \Magento\Framework\App\ObjectManager::setInstance($objectManagerStub);
+
+        // Mock the config helper to return an empty value
+        $this->configHelper->expects($this->once())
+            ->method('getAdyenAbstractConfigData')
+            ->with('payment_origin_url', $storeId)
+            ->willReturn('');
+
+        // Mock the store manager to return the store mock
+        $this->storeManager->expects($this->once())
+            ->method('getStore')
+            ->willReturn($storeMock);
+
+        // Mock the store to return the expected base URL
+        $storeMock->expects($this->once())
+            ->method('getBaseUrl')
+            ->with(UrlInterface::URL_TYPE_WEB)
+            ->willReturn($expectedBaseUrl);
+
+        // Mock the state to return a different area code
+        $stateMock->expects($this->once())
+            ->method('getAreaCode')
+            ->willReturn('frontend');
+
+        // Call the method under test
+        $result = $this->dataHelper->getOrigin($storeId);
+
+        // Parse the expected base URL
+        $parsed = parse_url($expectedBaseUrl);
+        $expectedOrigin = $parsed['scheme'] . '://' . $parsed['host'];
+
+        // Assert the result
+        $this->assertEquals($expectedOrigin, $result);
+    }
+
+    public function testFormatTerminalAPIReceipt()
+    {
+        // Mock payment receipt data
+        $paymentReceipt = [
+            [
+                'DocumentQualifier' => 'CustomerReceipt',
+                'OutputContent' => [
+                    'OutputText' => [
+                        ['Text' => 'name=Item 1&value=$10'],
+                        ['Text' => 'name=Item 2&value=$20']
+                    ]
+                ]
+            ],
+            // Add more receipt data as needed for other scenarios
+        ];
+
+        // Call the method under test
+        $formattedHtml = $this->dataHelper->formatTerminalAPIReceipt($paymentReceipt);
+
+        // Assert the generated HTML
+        $expectedHtml = "<table class='terminal-api-receipt'>"
+            . "<tr class='terminal-api-receipt'><td class='terminal-api-receipt-name'>Item 1</td>"
+            . "<td class='terminal-api-receipt-value' align='right'>$10</td></tr>"
+            . "<tr class='terminal-api-receipt'><td class='terminal-api-receipt-name'>Item 2</td>"
+            . "<td class='terminal-api-receipt-value' align='right'>$20</td></tr>"
+            . "</table>";
+        $this->assertEquals($expectedHtml, $formattedHtml);
+    }
+
+    public function testGetAdyenMerchantAccountForAdyenPaymentMethod()
+    {
+        // Mock the store ID
+        $storeId = 1;
+
+        // Mock the payment method
+        $paymentMethod = 'adyen';
+
+        // Mock the merchant account data
+        $merchantAccount = 'mock_merchant_account';
+
+        // Mock the store manager and config helper
+        $storeMock = $this->createMock(\Magento\Store\Model\Store::class);
+        $storeMock->expects($this->any())
+            ->method('getId')
+            ->willReturn($storeId);
+
+        $this->storeManager->expects($this->any())
+            ->method('getStore')
+            ->willReturn($storeMock);
+
+        $this->configHelper->expects($this->once())
+            ->method('getAdyenAbstractConfigData')
+            ->with('merchant_account', $storeId)
+            ->willReturn($merchantAccount);
+
+        // Call the method under test
+        $result = $this->dataHelper->getAdyenMerchantAccount($paymentMethod, $storeId);
+
+        // Assert the result
+        $this->assertEquals($merchantAccount, $result);
+    }
+
+    public function testGetAdyenMerchantAccountForAdyenPosCloudPaymentMethod()
+    {
+        // Mock the store ID
+        $storeId = 1;
+
+        // Mock the payment method
+        $paymentMethod = 'adyen_pos_cloud';
+
+        // Mock the POS merchant account data
+        $merchantAccountPos = 'mock_pos_merchant_account';
+
+        // Mock the store manager and config helper
+        $storeMock = $this->createMock(\Magento\Store\Model\Store::class);
+        $storeMock->expects($this->any())
+            ->method('getId')
+            ->willReturn($storeId);
+
+        $this->storeManager->expects($this->any())
+            ->method('getStore')
+            ->willReturn($storeMock);
+
+        $this->configHelper->expects($this->once())
+            ->method('getAdyenAbstractConfigData')
+            ->willReturn('mock_merchant_account');
+
+        $this->configHelper->expects($this->once())
+            ->method('getAdyenPosCloudConfigData')
+            ->willReturn($merchantAccountPos);
+
+        // Call the method under test
+        $result = $this->dataHelper->getAdyenMerchantAccount($paymentMethod, $storeId);
+
+        // Assert the result
+        $this->assertEquals($merchantAccountPos, $result);
+    }
+
+    public function testGetPosApiKeyInDemoMode()
+    {
+        // Mock store ID
+        $storeId = 1;
+
+        // Mock encrypted API key for demo mode
+        $encryptedApiKeyTest = 'mock_encrypted_api_key_test';
+
+        // Mock decrypted API key for demo mode
+        $decryptedApiKey = 'mock_decrypted_api_key';
+
+        // Mock isDemoMode to return true
+        $this->configHelper->expects($this->once())
+            ->method('isDemoMode')
+            ->with($storeId)
+            ->willReturn(true);
+
+        // Mock getAdyenPosCloudConfigData to return the encrypted API key
+        $this->configHelper->expects($this->once())
+            ->method('getAdyenPosCloudConfigData')
+            ->with('api_key_test', $storeId)
+            ->willReturn($encryptedApiKeyTest);
+
+        // Mock decryptor to decrypt the API key
+        $this->encryptor->expects($this->once())
+            ->method('decrypt')
+            ->with(trim((string) $encryptedApiKeyTest))
+            ->willReturn($decryptedApiKey);
+
+        // Call the method under test
+        $result = $this->dataHelper->getPosApiKey($storeId);
+
+        // Assert the result
+        $this->assertEquals($decryptedApiKey, $result);
+    }
+
+    public function testGetPosApiKeyInLiveMode()
+    {
+        // Mock store ID
+        $storeId = 1;
+
+        // Mock encrypted API key for live mode
+        $encryptedApiKeyLive = 'mock_encrypted_api_key_live';
+
+        // Mock decrypted API key for live mode
+        $decryptedApiKey = 'mock_decrypted_api_key';
+
+        // Mock isDemoMode to return false
+        $this->configHelper->expects($this->once())
+            ->method('isDemoMode')
+            ->with($storeId)
+            ->willReturn(false);
+
+        // Mock getAdyenPosCloudConfigData to return the encrypted API key
+        $this->configHelper->expects($this->once())
+            ->method('getAdyenPosCloudConfigData')
+            ->with('api_key_live', $storeId)
+            ->willReturn($encryptedApiKeyLive);
+
+        // Mock decryptor to decrypt the API key
+        $this->encryptor->expects($this->once())
+            ->method('decrypt')
+            ->with(trim((string) $encryptedApiKeyLive))
+            ->willReturn($decryptedApiKey);
+
+        // Call the method under test
+        $result = $this->dataHelper->getPosApiKey($storeId);
+
+        // Assert the result
+        $this->assertEquals($decryptedApiKey, $result);
+    }
 }
