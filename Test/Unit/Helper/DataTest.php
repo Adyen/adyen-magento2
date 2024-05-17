@@ -11,6 +11,7 @@
 namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Client;
+use Adyen\Payment\Gateway\Request\HeaderDataBuilder;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Locale;
@@ -18,8 +19,10 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Config\Source\RenderMode;
 use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
+use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Backend\Helper\Data as BackendHelper;
+use Magento\Customer\Helper\Address;
 use Magento\Directory\Model\Config\Source\Country;
 use Magento\Framework\App\CacheInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -34,7 +37,9 @@ use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Asset\Repository;
 use Magento\Framework\View\Asset\Source;
+use Magento\Quote\Model\Quote\Address\RateRequest;
 use Magento\Sales\Api\OrderManagementInterface;
+use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\Order\Status\HistoryFactory;
 use Magento\Store\Model\StoreManager;
 use Magento\Tax\Model\Calculation;
@@ -52,7 +57,6 @@ class DataTest extends AbstractAdyenTestCase
      * @var Data
      */
     private $dataHelper;
-    private $_encryptor;
 
     public function setUp(): void
     {
@@ -69,6 +73,7 @@ class DataTest extends AbstractAdyenTestCase
         ]);
         $this->objectManager = new ObjectManager($this);
         $context = $this->createMock(Context::class);
+        $this->store = $this->createMock(\Magento\Store\Model\Store::class);
         $this->encryptor = $this->createMock(EncryptorInterface::class);
         $this->dataStorage = $this->createMock(DataInterface::class);
         $country = $this->createMock(Country::class);
@@ -76,8 +81,8 @@ class DataTest extends AbstractAdyenTestCase
         $this->assetRepo = $this->createMock(Repository::class);
         $this->assetSource = $this->createMock(Source::class);
         $notificationFactory = $this->createGeneratedMock(NotificationCollectionFactory::class);
-        $taxConfig = $this->createMock(Config::class);
-        $taxCalculation = $this->createMock(Calculation::class);
+        $this->taxConfig = $this->createMock(Config::class);
+        $this->taxCalculation = $this->createMock(Calculation::class);
         $this->backendHelper = $this->createMock(BackendHelper::class);
         $productMetadata = $this->createConfiguredMock(ProductMetadata::class, [
             'getName' => 'magento',
@@ -89,7 +94,7 @@ class DataTest extends AbstractAdyenTestCase
         $this->cache = $this->createMock(CacheInterface::class);
         $this->localeResolver = $this->createMock(ResolverInterface::class);
         $this->config = $this->createMock(ScopeConfigInterface::class);
-        $componentRegistrar = $this->createConfiguredMock(ComponentRegistrarInterface::class, [
+        $this->componentRegistrar = $this->createConfiguredMock(ComponentRegistrarInterface::class, [
             'getPath' => 'vendor/adyen/module-payment'
         ]);
         $this->localeHelper = $this->createMock(Locale::class);
@@ -112,8 +117,8 @@ class DataTest extends AbstractAdyenTestCase
                 $this->assetRepo,
                 $this->assetSource,
                 $notificationFactory,
-                $taxConfig,
-                $taxCalculation,
+                $this->taxConfig,
+                $this->taxCalculation,
                 $this->backendHelper,
                 $productMetadata,
                 $this->adyenLogger,
@@ -121,7 +126,7 @@ class DataTest extends AbstractAdyenTestCase
                 $this->cache,
                 $this->localeResolver,
                 $this->config,
-                $componentRegistrar,
+                $this->componentRegistrar,
                 $this->localeHelper,
                 $this->orderManagement,
                 $this->orderStatusHistoryFactory,
@@ -136,14 +141,12 @@ class DataTest extends AbstractAdyenTestCase
 
     public function testGetRecurringTypes()
     {
-        // Define the expected result
         $expectedResult = [
             RecurringType::ONECLICK => 'ONECLICK',
             RecurringType::ONECLICK_RECURRING => 'ONECLICK,RECURRING',
             RecurringType::RECURRING => 'RECURRING'
         ];
 
-        // Call the method to get the actual result
         $actualResult = $this->dataHelper->getRecurringTypes();
 
         // Assert that the actual result matches the expected result
@@ -152,7 +155,6 @@ class DataTest extends AbstractAdyenTestCase
 
     public function testGetCheckoutFrontendRegions()
     {
-        // Define the expected result
         $expectedResult = [
             'eu' => 'Default (EU - Europe)',
             'au' => 'AU - Australasia',
@@ -160,7 +162,6 @@ class DataTest extends AbstractAdyenTestCase
             'in' => 'IN - India'
         ];
 
-        // Call the method to get the actual result
         $actualResult = $this->dataHelper->getCheckoutFrontendRegions();
 
         // Assert that the actual result matches the expected result
@@ -169,13 +170,11 @@ class DataTest extends AbstractAdyenTestCase
 
     public function testGetCaptureModes()
     {
-        // Define the expected result for getCaptureModes
         $expectedResult = [
             'auto' => 'Immediate',
             'manual' => 'Manual'
         ];
 
-        // Call the method to get the actual result
         $actualResult = $this->dataHelper->getCaptureModes();
 
         // Assert that the actual result matches the expected result
@@ -187,14 +186,12 @@ class DataTest extends AbstractAdyenTestCase
      */
     public function testGetOpenInvoiceCaptureModes()
     {
-        // Define the expected result for getOpenInvoiceCaptureModes
         $expectedResult = [
             'auto' => 'Immediate',
             'manual' => 'Manual',
             'onshipment' => 'On shipment'
         ];
 
-        // Call the method to get the actual result
         $actualResult = $this->dataHelper->getOpenInvoiceCaptureModes();
 
         // Assert that the actual result matches the expected result
@@ -270,26 +267,22 @@ class DataTest extends AbstractAdyenTestCase
      */
     public function testGetHmacForLiveMode()
     {
-        $storeId = 1; // Example store ID
-        $hmacLive = 'hmac_live_value'; // Example HMAC value for live mode
-        $expectedResult = 'decrypted_hmac_live_value'; // Example decrypted HMAC value
+        $storeId = 1;
+        $hmacLive = 'hmac_live_value';
+        $expectedResult = 'decrypted_hmac_live_value';
 
-        // Mock isDemoMode method to return false
         $this->configHelper->method('isDemoMode')
             ->with($storeId)
             ->willReturn(false);
 
-        // Mock getAdyenHppConfigData method to return HMAC live value
         $this->configHelper->method('getAdyenHppConfigData')
             ->with('hmac_live', $storeId)
             ->willReturn($hmacLive);
 
-        // Mock decrypt method to return decrypted HMAC live value
         $this->encryptor->method('decrypt')
             ->with($hmacLive)
             ->willReturn($expectedResult);
 
-        // Call the method to get the actual result
         $actualResult = $this->dataHelper->getHmac($storeId);
 
         // Assert that the actual result matches the expected result
@@ -298,15 +291,14 @@ class DataTest extends AbstractAdyenTestCase
 
     public function testGetHmacInDemoMode()
     {
-        $hmacTest = 'hmac_test_value'; // Example HMAC value for live mode
-        $expectedResult = 'decrypted_hmac'; // Example decrypted HMAC value
+        $hmacTest = 'hmac_test_value';
+        $expectedResult = 'decrypted_hmac';
         $storeId = 1;
 
         $this->configHelper->method('isDemoMode')
             ->with($storeId)
             ->willReturn(true);
 
-        // Set up the return value for the configHelper
         $this->configHelper->method('getAdyenHppConfigData')
             ->with('hmac_test', $storeId)
             ->willReturn($hmacTest);
@@ -322,15 +314,35 @@ class DataTest extends AbstractAdyenTestCase
         $this->assertEquals('decrypted_hmac', $result);
     }
 
+    public function testGetHmacWhenHmacLiveIsNull()
+    {
+        $storeId = 1;
+
+        $this->configHelper->expects($this->once())
+            ->method('isDemoMode')
+            ->with($storeId)
+            ->willReturn(false);
+
+        $this->configHelper->expects($this->once())
+            ->method('getAdyenHppConfigData')
+            ->with('hmac_live', $storeId)
+            ->willReturn(null);
+
+        // Call the method under test
+        $result = $this->dataHelper->getHmac($storeId);
+
+        // Assert that the result is null
+        $this->assertNull($result);
+    }
+
     /**
      * Test isDemoMode method when demo mode is disabled
      */
     public function testIsDemoModeWhenDisabled()
     {
-        $storeId = 1; // Example store ID
-        $expectedResult = false; // Example result when demo mode is disabled
+        $storeId = 1;
+        $expectedResult = false;
 
-        // Mock getAdyenAbstractConfigDataFlag method to return false for demo_mode
         $this->configHelper->method('getAdyenAbstractConfigDataFlag')
             ->with('demo_mode', $storeId)
             ->willReturn($expectedResult);
@@ -347,8 +359,8 @@ class DataTest extends AbstractAdyenTestCase
      */
     public function testGetAPIKeyInDemoMode()
     {
-        $storeId = 1; // Use default store ID for the test
-        $expectedResult = 'decrypted_api_key_test_value'; // Expected API key value for demo mode
+        $storeId = 1;
+        $expectedResult = 'decrypted_api_key_test_value';
         $apiKeyTest = 'api_key_test_value';
         $demoMode = true;
         // Mock isDemoMode method to return true
@@ -356,7 +368,6 @@ class DataTest extends AbstractAdyenTestCase
             ->with($storeId)
             ->willReturn($demoMode);
 
-        // Mock getAdyenAbstractConfigData method to return API key live value
         $this->configHelper->method('getAdyenAbstractConfigData')
             ->with('api_key_test', $storeId)
             ->willReturn($apiKeyTest);
@@ -378,54 +389,89 @@ class DataTest extends AbstractAdyenTestCase
      */
     public function testGetAPIKeyNotInDemoMode()
     {
-        $storeId = 1; // Example store ID
-        $demoMode = false; // Demo mode is disabled
-        $apiKeyLive = 'api_key_live_value'; // Example API key for live mode
-        $expectedResult = 'decrypted_api_key_live_value'; // Example decrypted API key
+        $storeId = 1;
+        $demoMode = false;
+        $apiKeyLive = 'api_key_live_value';
+        $expectedResult = 'decrypted_api_key_live_value';
 
-        // Mock isDemoMode method to return false
         $this->configHelper->method('isDemoMode')
             ->with($storeId)
             ->willReturn($demoMode);
 
-        // Mock getAdyenAbstractConfigData method to return API key live value
         $this->configHelper->method('getAdyenAbstractConfigData')
             ->with('api_key_live', $storeId)
             ->willReturn($apiKeyLive);
 
-        // Mock decrypt method to return decrypted API key live value
         $this->encryptor->method('decrypt')
             ->with($apiKeyLive)
             ->willReturn($expectedResult);
 
-        // Call the method to get the actual result
         $actualResult = $this->dataHelper->getAPIKey($storeId);
 
         // Assert that the actual result matches the expected result
         $this->assertEquals($expectedResult, $actualResult);
     }
 
+    public function testGetAPIKeyWhenApiKeyTestIsNull()
+    {
+        $storeId = 1;
+
+        $this->configHelper->expects($this->once())
+            ->method('isDemoMode')
+            ->with($storeId)
+            ->willReturn(true);
+
+        $this->configHelper->expects($this->once())
+            ->method('getAdyenAbstractConfigData')
+            ->with('api_key_test', $storeId)
+            ->willReturn(null);
+
+        $result = $this->dataHelper->getAPIKey($storeId);
+
+        // Assert that the result is null
+        $this->assertNull($result);
+    }
+
+    public function testGetAPIKeyWhenApiKeyLiveIsNull()
+    {
+        $storeId = 1;
+
+        $this->configHelper->expects($this->once())
+            ->method('isDemoMode')
+            ->with($storeId)
+            ->willReturn(false);
+
+        $this->configHelper->expects($this->once())
+            ->method('getAdyenAbstractConfigData')
+            ->with('api_key_live', $storeId)
+            ->willReturn(null);
+
+        $result = $this->dataHelper->getAPIKey($storeId);
+
+        // Assert that the result is null
+        $this->assertNull($result);
+    }
+
+
     /**
      * Test getWsUsername method in demo mode
      */
     public function testGetWsUsernameInDemoMode()
     {
-        $storeId = 1; // Example store ID
-        $demoMode = true; // Demo mode is disabled
-        $wsUsernameTest = 'ws_username_test_value'; // Example web service username for live mode
-        $expectedResult = 'ws_username_test_value'; // Example web service username
+        $storeId = 1;
+        $demoMode = true;
+        $wsUsernameTest = 'ws_username_test_value';
+        $expectedResult = 'ws_username_test_value';
 
         // Mock isDemoMode method to return false
         $this->configHelper->method('isDemoMode')
             ->with($storeId)
             ->willReturn($demoMode);
 
-        // Mock getAdyenAbstractConfigData method to return web service username live value
         $this->configHelper->method('getAdyenAbstractConfigData')
             ->with('ws_username_test', $storeId)
             ->willReturn($wsUsernameTest);
 
-        // Call the method to get the actual result
         $actualResult = $this->dataHelper->getWsUsername($storeId);
 
         // Assert that the actual result matches the expected result
@@ -434,49 +480,92 @@ class DataTest extends AbstractAdyenTestCase
 
     public function testGetWsUsernameNotInDemoMode()
     {
-        $storeId = 1; // Example store ID
-        $demoMode = false; // Demo mode is disabled
-        $wsUsernameLive = 'ws_username_live_value'; // Example web service username for live mode
-        $expectedResult = 'ws_username_live_value'; // Example web service username
+        $storeId = 1;
+        $demoMode = false;
+        $wsUsernameLive = 'ws_username_live_value';
+        $expectedResult = 'ws_username_live_value';
 
-        // Mock isDemoMode method to return false
         $this->configHelper->method('isDemoMode')
             ->with($storeId)
             ->willReturn($demoMode);
 
-        // Mock getAdyenAbstractConfigData method to return web service username live value
         $this->configHelper->method('getAdyenAbstractConfigData')
             ->with('ws_username_live', $storeId)
             ->willReturn($wsUsernameLive);
 
-        // Call the method to get the actual result
         $actualResult = $this->dataHelper->getWsUsername($storeId);
 
         // Assert that the actual result matches the expected result
         $this->assertEquals($expectedResult, $actualResult);
     }
 
+    public function testGetWsUsernameWhenWsUsernameTestIsNull()
+    {
+        $storeId = 1;
+
+        $this->configHelper->expects($this->once())
+            ->method('isDemoMode')
+            ->with($storeId)
+            ->willReturn(true);
+
+        $this->configHelper->expects($this->once())
+            ->method('getAdyenAbstractConfigData')
+            ->with('ws_username_test', $storeId)
+            ->willReturn(null);
+
+        $result = $this->dataHelper->getWsUsername($storeId);
+
+        // Assert that the result is null
+        $this->assertNull($result);
+    }
+
+    public function testGetWsUsernameWhenWsUsernameLiveIsNull()
+    {
+        $storeId = 1;
+
+        $this->configHelper->expects($this->once())
+            ->method('isDemoMode')
+            ->with($storeId)
+            ->willReturn(false);
+
+        $this->configHelper->expects($this->once())
+            ->method('getAdyenAbstractConfigData')
+            ->with('ws_username_live', $storeId)
+            ->willReturn(null);
+
+        $result = $this->dataHelper->getWsUsername($storeId);
+
+        // Assert that the result is null
+        $this->assertNull($result);
+    }
+
+    public function testGetModuleVersionWhenVersionAvailable()
+    {
+        $result = $this->dataHelper->getModuleVersion();
+        $expectedResult = "1.2.3";
+
+        $this->assertEquals($expectedResult, $result);
+    }
+
+
     /**
      * Test cancelOrder method
      */
     public function testCancelOrder()
     {
-        $orderStatus = 'payment_cancelled'; // Example order status
+        $orderStatus = 'payment_cancelled';
         $order = $this->getMockBuilder(Order::class)
             ->disableOriginalConstructor()
             ->getMock();
 
-        // Mock getAdyenAbstractConfigData method to return order status
         $this->configHelper->method('getAdyenAbstractConfigData')
             ->with($orderStatus)
             ->willReturn($orderStatus);
 
-        // Mock canCancel method of the order to return true
         $order->expects($this->once())
             ->method('canCancel')
             ->willReturn(true);
 
-        // Mock cancel method of the order to return the order entity ID
         $order->expects($this->once())
             ->method('getEntityId')
             ->willReturn(1);
@@ -536,16 +625,41 @@ class DataTest extends AbstractAdyenTestCase
         $this->dataHelper->cancelOrder($orderMock);
     }
 
+    public function testCancelOrderCannotBeCancelled()
+    {
+        $orderMock = $this->createMock(Order::class);
+
+        // Setup the mock to return a status other than STATE_HOLDED for getAdyenAbstractConfigData
+        $this->configHelper->expects($this->once())
+            ->method('getAdyenAbstractConfigData')
+            ->with('payment_cancelled')
+            ->willReturn(Order::STATE_NEW); // For example, set a status that does not require cancellation
+
+        // Setup the order mock to return false for canCancel()
+        $orderMock->expects($this->once())
+            ->method('canCancel')
+            ->willReturn(false);
+
+        // Expect a debug log message for "Order can not be canceled"
+        $this->adyenLogger->expects($this->once())
+            ->method('addAdyenDebug')
+            ->with(
+                'Order can not be canceled',
+                $this->adyenLogger->getOrderContext($orderMock)
+            );
+
+        // Call the method under test
+        $this->dataHelper->cancelOrder($orderMock);
+    }
 
     /**
      * Test getMagentoCreditCartType method with known credit card type
      */
     public function testGetMagentoCreditCartTypeWithKnownType()
     {
-        $ccType = 'visa'; // Example credit card type
-        $expectedResult = 'visa'; // Expected Magento credit card type
+        $ccType = 'visa';
+        $expectedResult = 'visa';
 
-        // Call the method
         $actualResult = $this->dataHelper->getMagentoCreditCartType($ccType);
 
         // Assert that the actual result matches the expected result
@@ -557,15 +671,26 @@ class DataTest extends AbstractAdyenTestCase
      */
     public function testGetMagentoCreditCartTypeWithUnknownType()
     {
-        $ccType = 'unknown'; // Unknown credit card type
-        $expectedResult = 'unknown'; // Expected result is the same as input since mapping not available
+        $ccType = 'unknown';
+        $expectedResult = 'unknown';
 
-        // Call the method
         $actualResult = $this->dataHelper->getMagentoCreditCartType($ccType);
 
         // Assert that the actual result matches the expected result
         $this->assertEquals($expectedResult, $actualResult);
     }
+
+    public function testGetMagentoCreditCartTypeWhenNotSet()
+    {
+        $ccType = '';
+
+        // Call the method under test
+        $result = $this->dataHelper->getMagentoCreditCartType($ccType);
+
+        // Assert that the result is the same as the input
+        $this->assertEquals($ccType, $result);
+    }
+
 
     /**
      * Test getCcTypesAltData method
@@ -581,11 +706,10 @@ class DataTest extends AbstractAdyenTestCase
 
     public function testGetLiveEndpointPrefix()
     {
-        $storeId = 1; // Example store ID
-        $liveEndpointPrefix = 'live_endpoint_prefix_value'; // Example live endpoint URL prefix
-        $expectedResult = 'live_endpoint_prefix_value'; // Example result
+        $storeId = 1;
+        $liveEndpointPrefix = 'live_endpoint_prefix_value';
+        $expectedResult = 'live_endpoint_prefix_value';
 
-        // Mock getAdyenAbstractConfigData method to return live endpoint URL prefix
         $this->configHelper->method('getAdyenAbstractConfigData')
             ->with('live_endpoint_url_prefix', $storeId)
             ->willReturn($liveEndpointPrefix);
@@ -599,38 +723,50 @@ class DataTest extends AbstractAdyenTestCase
 
     public function testGetLiveEndpointPrefixNull()
     {
-        $storeId = 1; // Example store ID
-        $liveEndpointPrefix = ''; // Example live endpoint URL prefix
-        $expectedResult = ''; // Example result
+        $storeId = 1;
+        $liveEndpointPrefix = '';
+        $expectedResult = '';
 
-        // Mock getAdyenAbstractConfigData method to return live endpoint URL prefix
         $this->configHelper->method('getAdyenAbstractConfigData')
             ->with('live_endpoint_url_prefix', $storeId)
             ->willReturn($liveEndpointPrefix);
 
-        // Call the method to get the actual result
         $actualResult = $this->dataHelper->getLiveEndpointPrefix($storeId);
 
         // Assert that the actual result matches the expected result
         $this->assertEquals($expectedResult, $actualResult);
     }
 
+    public function testGetLiveEndpointPrefixWhenPrefixIsNull()
+    {
+        $storeId = 1;
+
+        $this->configHelper->expects($this->once())
+            ->method('getAdyenAbstractConfigData')
+            ->with('live_endpoint_url_prefix', $storeId)
+            ->willReturn(null);
+
+        $result = $this->dataHelper->getLiveEndpointPrefix($storeId);
+
+        // Assert that the result is null
+        $this->assertNull($result);
+    }
+
+
     /**
      * Test getClientKey method when not in demo mode
      */
     public function testGetClientKeyNotInDemoMode()
     {
-        $storeId = 1; // Example store ID
-        $demoMode = false; // Demo mode is disabled
-        $clientKeyLive = 'client_key_live_value'; // Example client key for live mode
-        $expectedResult = 'client_key_live_value'; // Example client key
+        $storeId = 1;
+        $demoMode = false;
+        $clientKeyLive = 'client_key_live_value';
+        $expectedResult = 'client_key_live_value';
 
-        // Mock isDemoMode method to return false
         $this->configHelper->method('isDemoMode')
             ->with($storeId)
             ->willReturn($demoMode);
 
-        // Mock getAdyenAbstractConfigData method to return client key live value
         $this->configHelper->method('getAdyenAbstractConfigData')
             ->with('client_key_live', $storeId)
             ->willReturn($clientKeyLive);
@@ -642,6 +778,48 @@ class DataTest extends AbstractAdyenTestCase
         $this->assertEquals($expectedResult, $actualResult);
     }
 
+    public function testGetClientKeyWhenClientKeyTestIsNull()
+    {
+        $storeId = 1;
+
+        $this->configHelper->expects($this->once())
+            ->method('isDemoMode')
+            ->with($storeId)
+            ->willReturn(true);
+
+        $this->configHelper->expects($this->once())
+            ->method('getAdyenAbstractConfigData')
+            ->with('client_key_test', $storeId)
+            ->willReturn(null);
+
+        // Call the method under test
+        $result = $this->dataHelper->getClientKey($storeId);
+
+        // Assert that the result is null
+        $this->assertNull($result);
+    }
+
+    public function testGetClientKeyWhenClientKeyLiveIsNull()
+    {
+        $storeId = 1;
+
+        $this->configHelper->expects($this->once())
+            ->method('isDemoMode')
+            ->with($storeId)
+            ->willReturn(false);
+
+        $this->configHelper->expects($this->once())
+            ->method('getAdyenAbstractConfigData')
+            ->with('client_key_live', $storeId)
+            ->willReturn(null);
+
+        $result = $this->dataHelper->getClientKey($storeId);
+
+        // Assert that the result is null
+        $this->assertNull($result);
+    }
+
+
     /**
      * Test isPaymentMethodOfType method with various scenarios
      *
@@ -649,11 +827,20 @@ class DataTest extends AbstractAdyenTestCase
      */
     public function testIsPaymentMethodOfType($paymentMethod, $type, $expectedResult)
     {
-        // Call the method with the provided payment method and type
         $actualResult = $this->dataHelper->isPaymentMethodOfType($paymentMethod, $type);
 
         // Assert that the actual result matches the expected result
         $this->assertEquals($expectedResult, $actualResult);
+    }
+
+    public function testIsPaymentMethodOpenInvoiceMethodIsNull()
+    {
+        $paymentMethod = null;
+
+        $result = $this->dataHelper->isPaymentMethodOpenInvoiceMethod($paymentMethod);
+
+        // Assert that the result is false
+        $this->assertFalse($result);
     }
 
     /**
@@ -735,6 +922,21 @@ class DataTest extends AbstractAdyenTestCase
         ];
     }
 
+    public function testShowLogosReturnsTrue()
+    {
+        // Set up the mock for configHelper to return RenderMode::MODE_TITLE_IMAGE
+        $this->configHelper->expects($this->once())
+            ->method('getAdyenAbstractConfigData')
+            ->with('title_renderer')
+            ->willReturn(RenderMode::MODE_TITLE_IMAGE);
+
+        // Call the method under test
+        $result = $this->dataHelper->showLogos();
+
+        // Assert that the result is true
+        $this->assertTrue($result);
+    }
+
     public static function checkoutEnvironmentsProvider(): array
     {
         return [
@@ -809,17 +1011,44 @@ class DataTest extends AbstractAdyenTestCase
         $this->assertEquals($expectedHeaders, $headers);
     }
 
+    public function testBuildRequestHeadersWithPayment()
+    {
+        // Mock dependencies as needed
+        $payment = $this->createMock(Payment::class); // Replace Payment with your actual payment class
+
+        // Set up expectations for the getAdditionalInformation method
+        $payment->expects($this->once())
+            ->method('getAdditionalInformation')
+            ->with(HeaderDataBuilder::FRONTENDTYPE)
+            ->willReturn('some_frontend_type');
+
+        // Call the method under test
+        $result = $this->dataHelper->buildRequestHeaders($payment);
+
+        // Assert that the 'frontend-type' header is correctly set
+        $this->assertArrayHasKey(HeaderDataBuilder::FRONTENDTYPE, $result);
+        $this->assertEquals('some_frontend_type', $result[HeaderDataBuilder::FRONTENDTYPE]);
+    }
+
+    public function testBuildRequestHeadersWithoutPayment()
+    {
+        // Call the method under test without providing a payment object
+        $result = $this->dataHelper->buildRequestHeaders();
+
+        // Assert that the 'frontend-type' header is not set
+        $this->assertArrayNotHasKey(HeaderDataBuilder::FRONTENDTYPE, $result);
+    }
+
     public function testLogResponse()
     {
         // Set up dummy data
         $response = ['key' => 'value'];
-        $storeId = 1; // Example store ID
-        $isDemo = true; // Example demo mode flag
+        $storeId = 1;
+        $isDemo = true;
 
         // Mock methods for store manager and config helper
-        $store = $this->createMock(\Magento\Store\Model\Store::class);
-        $store->method('getId')->willReturn($storeId);
-        $this->storeManager->method('getStore')->willReturn($store);
+        $this->store->method('getId')->willReturn($storeId);
+        $this->storeManager->method('getStore')->willReturn($this->store);
         $this->configHelper->method('isDemoMode')->with($storeId)->willReturn($isDemo);
 
         // Assert that the logger was called with the correct parameters based on demo mode
@@ -834,13 +1063,12 @@ class DataTest extends AbstractAdyenTestCase
     public function testLogResponseWhenDemoModeFalse()
     {
         // Set up dummy data
-        $storeId = 1; // Example store ID
-        $isDemo = false; // Demo mode is false
+        $storeId = 1;
+        $isDemo = false;
 
         // Mock methods for store manager and config helper
-        $store = $this->createMock(\Magento\Store\Model\Store::class);
-        $store->method('getId')->willReturn($storeId);
-        $this->storeManager->method('getStore')->willReturn($store);
+        $this->store->method('getId')->willReturn($storeId);
+        $this->storeManager->method('getStore')->willReturn($this->store);
         $this->configHelper->method('isDemoMode')->with($storeId)->willReturn($isDemo);
 
         // Expect filtering of references in the response
@@ -866,13 +1094,12 @@ class DataTest extends AbstractAdyenTestCase
         $endpoint = 'payment/authorise';
 
         // Set up store ID and demo mode
-        $storeId = 1; // Example store ID
-        $isDemo = false; // Demo mode is false
+        $storeId = 1;
+        $isDemo = false;
 
         // Mock methods for store manager and config helper
-        $store = $this->createMock(\Magento\Store\Model\Store::class);
-        $store->method('getId')->willReturn($storeId);
-        $this->storeManager->method('getStore')->willReturn($store);
+        $this->store->method('getId')->willReturn($storeId);
+        $this->storeManager->method('getStore')->willReturn($this->store);
         $this->configHelper->method('isDemoMode')->with($storeId)->willReturn($isDemo);
 
         $this->configHelper->method('getLiveEndpointPrefix')->willReturn('live_prefix');
@@ -918,10 +1145,8 @@ class DataTest extends AbstractAdyenTestCase
 
     public function testGetCurrentLocaleCode()
     {
-        // Mock dependencies
         $storeId = 1;
 
-        // Configure mocks
         $this->configHelper->method('getAdyenHppConfigData')
             ->willReturnMap([
                 ['shopper_locale', $storeId, 'en_US'], // Mocking a shopper locale value
@@ -1047,7 +1272,6 @@ class DataTest extends AbstractAdyenTestCase
 
     public function testGetCheckoutEnvironmentDemoMode()
     {
-        // Setup the mock to return true for isDemoMode
         $this->configHelper->expects($this->once())
             ->method('isDemoMode')
             ->willReturn(true);
@@ -1193,7 +1417,6 @@ class DataTest extends AbstractAdyenTestCase
                     ]
                 ]
             ],
-            // Add more receipt data as needed for other scenarios
         ];
 
         // Call the method under test
@@ -1244,13 +1467,10 @@ class DataTest extends AbstractAdyenTestCase
 
     public function testGetAdyenMerchantAccountForAdyenPosCloudPaymentMethod()
     {
-        // Mock the store ID
         $storeId = 1;
 
-        // Mock the payment method
         $paymentMethod = 'adyen_pos_cloud';
 
-        // Mock the POS merchant account data
         $merchantAccountPos = 'mock_pos_merchant_account';
 
         // Mock the store manager and config helper
@@ -1280,13 +1500,9 @@ class DataTest extends AbstractAdyenTestCase
 
     public function testGetPosApiKeyInDemoMode()
     {
-        // Mock store ID
         $storeId = 1;
 
-        // Mock encrypted API key for demo mode
         $encryptedApiKeyTest = 'mock_encrypted_api_key_test';
-
-        // Mock decrypted API key for demo mode
         $decryptedApiKey = 'mock_decrypted_api_key';
 
         // Mock isDemoMode to return true
@@ -1316,16 +1532,11 @@ class DataTest extends AbstractAdyenTestCase
 
     public function testGetPosApiKeyInLiveMode()
     {
-        // Mock store ID
         $storeId = 1;
 
-        // Mock encrypted API key for live mode
         $encryptedApiKeyLive = 'mock_encrypted_api_key_live';
-
-        // Mock decrypted API key for live mode
         $decryptedApiKey = 'mock_decrypted_api_key';
 
-        // Mock isDemoMode to return false
         $this->configHelper->expects($this->once())
             ->method('isDemoMode')
             ->with($storeId)
@@ -1348,5 +1559,158 @@ class DataTest extends AbstractAdyenTestCase
 
         // Assert the result
         $this->assertEquals($decryptedApiKey, $result);
+    }
+
+    public function testGetOpenInvoiceLineData()
+    {
+        // Mock dependencies as needed
+        $formFields = [];
+        $count = 1;
+        $currencyCode = "EUR";
+        $description = "Product Description";
+        $itemAmount = "10000";
+        $itemVatAmount = "1000";
+        $itemVatPercentage = 1000;
+        $numberOfItems = 1;
+        $payment = $this->createMock(Payment::class);
+        $itemId = "item_1";
+
+        $payment->expects($this->once())
+            ->method('getAdditionalInformation')
+            ->with(AdyenPaymentMethodDataAssignObserver::BRAND_CODE)
+            ->willReturn('adyen_brand_code');
+
+        // Call the method under test
+        $result = $this->dataHelper->getOpenInvoiceLineData(
+            $formFields,
+            $count,
+            $currencyCode,
+            $description,
+            $itemAmount,
+            $itemVatAmount,
+            $itemVatPercentage,
+            $numberOfItems,
+            $payment,
+            $itemId
+        );
+
+        // Assert that the formFields array is correctly populated
+        $this->assertArrayHasKey('openinvoicedata.line1.itemId', $result);
+        $this->assertEquals($itemId, $result['openinvoicedata.line1.itemId']);
+        $this->assertArrayHasKey('openinvoicedata.line1.currencyCode', $result);
+        $this->assertEquals($currencyCode, $result['openinvoicedata.line1.currencyCode']);
+        $this->assertArrayHasKey('openinvoicedata.line1.description', $result);
+        $this->assertEquals($description, $result['openinvoicedata.line1.description']);
+        $this->assertArrayHasKey('openinvoicedata.line1.itemAmount', $result);
+        $this->assertEquals($itemAmount, $result['openinvoicedata.line1.itemAmount']);
+        $this->assertArrayHasKey('openinvoicedata.line1.itemVatAmount', $result);
+        $this->assertEquals($itemVatAmount, $result['openinvoicedata.line1.itemVatAmount']);
+        $this->assertArrayHasKey('openinvoicedata.line1.itemVatPercentage', $result);
+        $this->assertEquals($itemVatPercentage, $result['openinvoicedata.line1.itemVatPercentage']);
+        $this->assertArrayHasKey('openinvoicedata.line1.numberOfItems', $result);
+        $this->assertEquals($numberOfItems, $result['openinvoicedata.line1.numberOfItems']);
+        $this->assertArrayHasKey('openinvoicedata.line1.vatCategory', $result);
+    }
+
+
+    public function testCreateOpenInvoiceLineItem()
+    {
+        // Mock any dependencies as needed
+        $formFields = [];
+        $count = 1;
+        $name = "Product Name";
+        $price = 100.00;
+        $currency = "EUR";
+        $taxAmount = 10.00;
+        $priceInclTax = 110.00;
+        $taxPercent = 10.0;
+        $numberOfItems = 1;
+        $itemId = "item_1";
+        $payment = $this->createMock(Payment::class);
+        $expectedResult = [
+            'openinvoicedata.line1.itemId' => 'item_1',
+            'openinvoicedata.line1.description' => 'Product Name',
+            'openinvoicedata.line1.itemAmount' => 10000,
+            'openinvoicedata.line1.itemVatAmount' => 1000,
+            'openinvoicedata.line1.itemVatPercentage' => 1000,
+            'openinvoicedata.line1.currencyCode' => 'EUR',
+            'openinvoicedata.line1.numberOfItems' => 1,
+            'openinvoicedata.line1.vatCategory' => 'None'
+        ];
+
+        $payment->expects($this->once())
+            ->method('getAdditionalInformation')
+            ->with(AdyenPaymentMethodDataAssignObserver::BRAND_CODE)
+            ->willReturn('adyen_brand_code');
+
+        // Call the method under test
+        $result = $this->dataHelper->createOpenInvoiceLineItem(
+            $formFields,
+            $count,
+            $name,
+            $price,
+            $currency,
+            $taxAmount,
+            $priceInclTax,
+            $taxPercent,
+            $numberOfItems,
+            $payment,
+            $itemId
+        );
+
+        // Assert that the result matches the expected data
+        $this->assertEquals($expectedResult, $result);
+    }
+
+    public function testCreateOpenInvoiceLineShipping()
+    {
+        $formFields = [];
+        $count = 1;
+        $order = $this->createMock(Order::class);
+        $shippingAmount = 10.00;
+        $shippingTaxAmount = 2.00;
+        $currency = "USD";
+        $class= 2;
+        $payment = $this->createMock(Payment::class);
+        $storeId = 1;
+        // Mock order methods to return required data
+        $order->expects($this->once())
+            ->method('getShippingDescription')
+            ->willReturn("Shipping Description");
+        $order->expects($this->once())
+            ->method('getShippingAddress')
+            ->willReturn($this->createMock(Address::class));
+        $order->expects($this->once())
+            ->method('getBillingAddress')
+            ->willReturn($this->createMock(Address::class));
+        $order->method('getStoreId')
+            ->willReturn(1);
+        $order->expects($this->once())
+            ->method('getCustomerId')
+            ->willReturn(1);
+
+        // Mock tax calculation methods
+        $this->taxConfig->expects($this->once())
+            ->method('getShippingTaxClass')
+            ->with($storeId)
+            ->willReturn($class);
+        $this->taxCalculation->expects($this->once())
+            ->method('getRateRequest')
+            ->willReturn($this->createMock(RateRequest::class));
+
+        // Call the method under test
+        $result = $this->dataHelper->createOpenInvoiceLineShipping(
+            $formFields,
+            $count,
+            $order,
+            $shippingAmount,
+            $shippingTaxAmount,
+            $currency,
+            $payment
+        );
+
+        // Assert that the formFields array is correctly populated
+        $this->assertArrayHasKey('openinvoicedata.line1.itemId', $result);
+        $this->assertEquals("shippingCost", $result['openinvoicedata.line1.itemId']);
     }
 }
