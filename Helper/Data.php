@@ -1175,8 +1175,7 @@ class Data extends AbstractHelper
 
         if(isset($payment)){
             $headers[HeaderDataBuilder::FRONTENDTYPE] =
-                $payment->getAdditionalInformation(HeaderDataBuilder::FRONTENDTYPE) ??
-                '';
+                $payment->getAdditionalInformation(HeaderDataBuilder::FRONTENDTYPE);
         }
 
         return $headers;
