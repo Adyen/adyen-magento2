@@ -1173,7 +1173,7 @@ class Data extends AbstractHelper
             'merchant-application-version' => $this->getModuleVersion()
         ];
 
-        if(isset($payment)){
+        if(isset($payment) && !is_null($payment->getAdditionalInformation(HeaderDataBuilder::FRONTENDTYPE))) {
             $headers[HeaderDataBuilder::FRONTENDTYPE] =
                 $payment->getAdditionalInformation(HeaderDataBuilder::FRONTENDTYPE);
         }
