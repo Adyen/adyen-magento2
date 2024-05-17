@@ -1011,14 +1011,13 @@ class DataTest extends AbstractAdyenTestCase
         $this->assertEquals($expectedHeaders, $headers);
     }
 
-    public function testBuildRequestHeadersWithPayment()
+    public function testBuildRequestHeadersWithNonNullFrontendType()
     {
         // Mock dependencies as needed
-        $payment = $this->createMock(Payment::class); // Replace Payment with your actual payment class
+        $payment = $this->createMock(Payment::class);
 
         // Set up expectations for the getAdditionalInformation method
-        $payment->expects($this->once())
-            ->method('getAdditionalInformation')
+        $payment->method('getAdditionalInformation')
             ->with(HeaderDataBuilder::FRONTENDTYPE)
             ->willReturn('some_frontend_type');
 
@@ -1028,7 +1027,10 @@ class DataTest extends AbstractAdyenTestCase
         // Assert that the 'frontend-type' header is correctly set
         $this->assertArrayHasKey(HeaderDataBuilder::FRONTENDTYPE, $result);
         $this->assertEquals('some_frontend_type', $result[HeaderDataBuilder::FRONTENDTYPE]);
+
+        // Assert other headers as needed
     }
+
 
     public function testBuildRequestHeadersWithoutPayment()
     {
