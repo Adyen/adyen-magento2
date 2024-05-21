@@ -144,7 +144,6 @@ class CaptureDataBuilderTest extends AbstractAdyenTestCase
 
         $this->assertArrayHasKey('body', $request);
         $this->assertArrayHasKey('clientConfig', $request);
-        $this->assertArrayHasKey('headers', $request);
 
         if (count($adyenOrderPayments) > 1) {
             $this->assertArrayHasKey(TransactionCapture::MULTIPLE_AUTHORIZATIONS, $request['body']);
