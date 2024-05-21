@@ -98,7 +98,6 @@ define(
                         self.loadAdyenPaymentMethods(paymentMethodsResponse);
                     });
 
-                self.loadAdyenPaymentMethods(paymentMethodsObserver());
             },
             loadAdyenPaymentMethods: async function (paymentMethodsResponse) {
                 var self = this;

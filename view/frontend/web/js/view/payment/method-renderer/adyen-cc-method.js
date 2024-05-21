@@ -87,7 +87,6 @@ define(
                         self.loadCheckoutComponent(paymentMethodsResponse)
                     });
 
-                self.loadCheckoutComponent(paymentMethodsObserver());
                 return this;
             },
             loadCheckoutComponent: async function (paymentMethodsResponse) {
