@@ -86,7 +86,7 @@ class Requests extends AbstractHelper
         $additionalData = null,
         $request = []
     ) {
-        $request['shopperReference'] = $this->getShopperReference($customerId, $payment->getOrder()->getIncrementId());
+        $request['shopperReference'] = $this->getShopperReference($customerId, $payment->getOrder()->getIncrementId(), $payment->getOrder()->getQuoteId());
 
         // In case of virtual product and guest checkout there is a workaround to get the guest's email address
         if (!empty($additionalData['guestEmail'])) {
@@ -417,13 +417,12 @@ class Requests extends AbstractHelper
      * @param string $orderIncrementId
      * @return string
      */
-    public function getShopperReference($customerId, $orderIncrementId): string
+    public function getShopperReference($customerId, $orderIncrementId, $quoteId): string
     {
         if ($customerId) {
             $shopperReference = $this->adyenHelper->padShopperReference($customerId);
         } else {
-            $uuid = Uuid::generateV4();
-            $guestCustomerId = $orderIncrementId . $uuid;
+            $guestCustomerId = $quoteId ? "guest-cart" . quoteId : orderIncrementId . Uuid::generateV4();
             $shopperReference = $guestCustomerId;
         }
 
