@@ -422,7 +422,7 @@ class Requests extends AbstractHelper
         if ($customerId) {
             $shopperReference = $this->adyenHelper->padShopperReference($customerId);
         } else {
-            $guestCustomerId = $quoteId ? "guest-cart" . quoteId : orderIncrementId . Uuid::generateV4();
+            $guestCustomerId = $quoteId ? "guest-cart" . $quoteId : $orderIncrementId . Uuid::generateV4();
             $shopperReference = $guestCustomerId;
         }
 
