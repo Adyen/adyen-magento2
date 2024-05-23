@@ -22,9 +22,6 @@ on:
 #      - main
 
 jobs:
-  push:
-    permissions:
-      contents: write
   release:
     permissions:
       contents: write
