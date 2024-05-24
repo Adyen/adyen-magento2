@@ -20,12 +20,7 @@ else
 	exit 1
 fi
 
-USE_OPENSEARCH='1'
-if [[ "$MAGENTO_VERSION" =~ ^2\.3 ]]; then
-	USE_OPENSEARCH='0'
-fi
-
-if [ "$USE_OPENSEARCH" == '1' ] && [ "$OPENSEARCH_SERVER" != "<will be defined>" ]; then
+if [ "$OPENSEARCH_SERVER" != "<will be defined>" ]; then
 	MAGENTO_INSTALL_ARGS=$(echo \
 	    --search-engine="opensearch" \
 		--opensearch-host="$OPENSEARCH_SERVER" \
