@@ -1,6 +1,7 @@
 name: Release
 
 on:
+  push:
   # Manual run from Github UI (e.g. for when a merged PR labels have changed)
   workflow_dispatch:
     inputs:
