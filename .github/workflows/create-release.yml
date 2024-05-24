@@ -33,7 +33,7 @@ jobs:
           cat VERSION
 
       - name: Prepare the next main release
-        uses: Adyen/release-automation-action@v1.2.0
+        uses: Adyen/release-automation-action@v1.3.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           # change this value to 'main' before merging to 'main', this value should be the same as 'on->pull_request->branches'
