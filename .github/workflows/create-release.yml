@@ -29,7 +29,8 @@ jobs:
 
       - name: Debug
         run: |
-          ls -la
+          ls -la \
+          cat VERSION
 
       - name: Prepare the next main release
         uses: Adyen/release-automation-action@v1.2.0
