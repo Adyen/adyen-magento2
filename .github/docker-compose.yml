@@ -13,7 +13,7 @@ services:
       MARIADB_PASSWORD: magento
   opensearch:
     image: opensearchproject/opensearch:2
-    container_name: opensearch
+    container_name: opensearch-container
     networks:
       - backend
     ports:
@@ -37,7 +37,7 @@ services:
           - magento2.test.com
     environment:
       DB_SERVER: mariadb
-      OPENSEARCH_SERVER: opensearch
+      OPENSEARCH_SERVER: opensearch-container
       MAGENTO_HOST: magento2.test.com
       VIRTUAL_HOST: magento2.test.com
       COMPOSER_MEMORY_LIMIT: -1
