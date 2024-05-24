@@ -30,14 +30,6 @@ jobs:
       pull-requests: write
     runs-on: ubuntu-latest
     steps:
-#     TODO: Remove after finalising
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Debug
-        run: |
-          ls -la
-          cat VERSION
-
       - name: Prepare the next main release
         uses: Adyen/release-automation-action@v1.3.1
         with:
