@@ -9,18 +9,13 @@ on:
         type: boolean
         default: false
         description: "This release will be labeled as non-production ready"
-      github-release:
-        required: false
-        type: boolean
-        default: false
-        description: "Publish Github release for the current version"
   # Monitor pull request events
   pull_request:
     types:
       - closed
   # 'develop' is for testing only, change this value to 'main' before merging to main
     branches:
-      - ECP-9213
+      - develop
 
 jobs:
   release:
@@ -37,7 +32,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           # change this value to 'main' before merging to 'main', this value should be the same as 'on->pull_request->branches'
-          develop-branch: ECP-9213
+          develop-branch: develop
           version-files: composer.json
           release-title: Adyen Magento-2 Plugin
           pre-release: ${{ inputs.pre-release || false }}
