@@ -13,7 +13,7 @@ on:
   pull_request:
     types:
       - closed
-  # 'develop' is for testing only, change this value to 'main' before merging to main
+  # TODO: 'develop' is for testing only, change this value to 'main' before merging to main
     branches:
       - develop
 
@@ -24,6 +24,7 @@ jobs:
       pull-requests: write
     runs-on: ubuntu-latest
     steps:
+#     TODO: Remove after finalising
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -36,7 +37,7 @@ jobs:
         uses: Adyen/release-automation-action@v1.3.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          # change this value to 'main' before merging to 'main', this value should be the same as 'on->pull_request->branches'
+          # TODO: change this value to 'main' before merging to 'main', this value should be the same as 'on->pull_request->branches'
           develop-branch: ECP-9213
           version-files: composer.json
           release-title: Adyen Magento-2 Plugin
