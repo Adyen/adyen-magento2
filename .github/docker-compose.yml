@@ -19,6 +19,9 @@ services:
     ports:
       - 9200:9200
       - 9300:9300
+    environment:
+      - "discovery.type=single-node"
+      - "ES_JAVA_OPTS=-Xms750m -Xmx750m"
   web:
     build:
       context: .

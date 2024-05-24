@@ -27,6 +27,7 @@ fi
 
 if [ "$USE_OPENSEARCH" == '1' ] && [ "$OPENSEARCH_SERVER" != "<will be defined>" ]; then
 	MAGENTO_INSTALL_ARGS=$(echo \
+	    --search-engine="opensearch" \
 		--opensearch-host="$OPENSEARCH_SERVER" \
 		--opensearch-port="$OPENSEARCH_PORT" \
 		--opensearch-index-prefix="$OPENSEARCH_INDEX_PREFIX" \
@@ -38,11 +39,11 @@ if [ "$USE_OPENSEARCH" == '1' ] && [ "$OPENSEARCH_SERVER" != "<will be defined>"
 		RET=$?
 
 		if [ $RET -ne 0 ]; then
-			echo "Connection to Elasticsearch is pending."
+			echo "Connection to OpenSearch is pending."
 			sleep 5
 		fi
 	done
-	echo "Elasticsearch server $OPENSEARCH_SERVER is available."
+	echo "OpenSearch server $OPENSEARCH_SERVER is available."
 fi
 
 if [[ -e /tmp/magento.tar.gz ]]; then
