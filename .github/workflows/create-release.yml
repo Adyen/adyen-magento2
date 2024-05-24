@@ -20,7 +20,7 @@ on:
       - closed
   # 'develop' is for testing only, change this value to 'main' before merging to main
     branches:
-      - develop
+      - ECP-9213
 
 jobs:
   release:
@@ -37,9 +37,8 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           # change this value to 'main' before merging to 'main', this value should be the same as 'on->pull_request->branches'
-          develop-branch: develop
+          develop-branch: ECP-9213
           version-files: composer.json
           release-title: Adyen Magento-2 Plugin
           pre-release: ${{ inputs.pre-release || false }}
-          github-release: ${{ inputs.github-release || true }}
           separator: .pre.beta
