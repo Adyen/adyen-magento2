@@ -2,7 +2,6 @@ name: Release
 
 on:
   push:
-
   # Manual run from Github UI (e.g. for when a merged PR labels have changed)
   workflow_dispatch:
     inputs:
@@ -36,7 +35,7 @@ jobs:
       - name: Prepare the next main release
         uses: Adyen/release-automation-action@v1.3.1
         with:
-          token: ${{ secrets.ADYEN_AUTOMATION_BOT_ACCESS_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           develop-branch: ECP-9213
           version-files: composer.json
           release-title: Adyen Magento-2 Plugin
