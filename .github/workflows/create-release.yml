@@ -33,7 +33,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Prepare the next main release
-        uses: Adyen/release-automation-action@v1.2.0
+        uses: Adyen/release-automation-action@v1.3.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           develop-branch: develop
