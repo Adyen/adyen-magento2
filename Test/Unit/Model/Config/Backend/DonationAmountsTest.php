@@ -52,7 +52,7 @@ class DonationAmountsTest extends \PHPUnit\Framework\TestCase
     public function testValidateDonationAmounts($donationAmounts, $expectedResult)
     {
         $result = $this->donationAmounts->validateDonationAmounts(explode(',', $donationAmounts));
-        $this->assertEquals($result, $expectedResult);
+        $this->assertEquals($expectedResult, $result);
     }
 
     public static function donationAmountsProvider()
