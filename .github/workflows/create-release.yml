@@ -40,7 +40,7 @@ jobs:
           version-files: composer.json
           release-title: Adyen Magento-2 Plugin
           pre-release: ${{ inputs.pre-release || false }}
-           For a manual Github release
+#           For a manual Github release
           github-release: ${{ inputs.github-release || false }}
           separator: .pre.beta
 
