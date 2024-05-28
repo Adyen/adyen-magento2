@@ -32,6 +32,12 @@ class WebhookHandlerFactory
     private CancelOrRefundWebhookHandler $cancelOrRefundWebhookHandler;
     private OrderClosedWebhookHandler $orderClosedWebhookHandler;
     private OrderOpenedWebhookHandler $orderOpenedWebhookHandler;
+    private ChargebackWebhookHandler $chargebackWebhookHandler;
+    private ChargebackReversedWebhookHandler $chargebackReversedWebhookHandler;
+    private NotificationOfChargebackWebhookHandler $notificationOfChargebackWebhookHandler;
+    private RequestForInformationWebhookHandler $requestForInformationWebhookHandler;
+    private SecondChargebackWebhookHandler $secondChargebackWebhookHandler;
+
 
     public function __construct(
         AdyenLogger $adyenLogger,
@@ -47,7 +53,12 @@ class WebhookHandlerFactory
         CancellationWebhookHandler $cancellationWebhookHandler,
         CancelOrRefundWebhookHandler $cancelOrRefundWebhookHandler,
         OrderClosedWebhookHandler $orderClosedWebhookHandler,
-        OrderOpenedWebhookHandler $orderOpenedWebhookHandler
+        OrderOpenedWebhookHandler $orderOpenedWebhookHandler,
+        ChargebackWebhookHandler $chargebackWebhookHandler,
+        RequestForInformationWebhookHandler $requestForInformationWebhookHandler,
+        ChargebackReversedWebhookHandler $chargebackReversedWebhookHandler,
+        SecondChargebackWebhookHandler $secondChargebackWebhookHandler,
+        NotificationOfChargebackWebhookHandler $notificationOfChargebackWebhookHandler
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->authorisationWebhookHandler = $authorisationWebhookHandler;
@@ -63,6 +74,11 @@ class WebhookHandlerFactory
         $this->cancelOrRefundWebhookHandler = $cancelOrRefundWebhookHandler;
         $this->orderClosedWebhookHandler = $orderClosedWebhookHandler;
         $this->orderOpenedWebhookHandler = $orderOpenedWebhookHandler;
+        $this->chargebackWebhookHandler = $chargebackWebhookHandler;
+        $this->requestForInformationWebhookHandler = $requestForInformationWebhookHandler;
+        $this->chargebackReversedWebhookHandler = $chargebackReversedWebhookHandler;
+        $this->secondChargebackWebhookHandler = $secondChargebackWebhookHandler;
+        $this->notificationOfChargebackWebhookHandler = $notificationOfChargebackWebhookHandler;
     }
 
     /**
@@ -98,6 +114,16 @@ class WebhookHandlerFactory
                 return $this->orderOpenedWebhookHandler;
             case Notification::ORDER_CLOSED:
                 return $this->orderClosedWebhookHandler;
+            case Notification::CHARGEBACK:
+                return $this->chargebackWebhookHandler;
+            case Notification::NOTIFICATION_OF_CHARGEBACK:
+                return $this->notificationOfChargebackWebhookHandler;
+            case Notification::REQUEST_FOR_INFORMATION:
+                return $this->requestForInformationWebhookHandler;
+            case Notification::CHARGEBACK_REVERSED:
+                return $this->chargebackReversedWebhookHandler;
+            case Notification::SECOND_CHARGEBACK:
+                return $this->secondChargebackWebhookHandler;
         }
 
         $exceptionMessage = sprintf(
