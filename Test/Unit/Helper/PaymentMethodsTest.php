@@ -21,6 +21,8 @@ use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\AdyenAmountCurrency;
 use Adyen\Payment\Model\Notification;
+use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Service\Checkout;
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -1338,5 +1340,17 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $this->assertArrayHasKey('visa', $result);
         $this->assertArrayHasKey('icon', $result['visa']);
         $this->assertArrayHasKey('isOpenInvoice', $result['visa']);
+    }
+
+    public function testRemovePaymentMethodsActivation()
+    {
+        $this->dataHelperMock->method('getPaymentMethodList')->willReturn([
+            AdyenCcConfigProvider::CODE => 'Card',
+            AdyenPayByLinkConfigProvider::CODE => 'Pay by Link'
+        ]);
+
+        $this->configHelperMock->expects($this->atLeastOnce())->method('removeConfigData');
+
+        $this->paymentMethodsHelper->removePaymentMethodsActivation('default', 0);
     }
 }

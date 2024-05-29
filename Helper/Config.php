@@ -591,9 +591,28 @@ class Config
         $value,
         string $field,
         string $xmlPrefix,
-        $scope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT
+        string $scope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
+        int $scopeId = 0
     ): void {
         $path = implode("/", [self::XML_PAYMENT_PREFIX, $xmlPrefix, $field]);
-        $this->configWriter->save($path, $value, $scope);
+        $this->configWriter->save($path, $value, $scope, $scopeId);
+    }
+
+    /**
+     * Deletes config data
+     * @param string $field
+     * @param string $xmlPrefix
+     * @param string $scope
+     * @param int $scopeId
+     * @return void
+     */
+    public function removeConfigData(
+        string $field,
+        string $xmlPrefix,
+        string $scope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
+        int $scopeId = 0
+    ): void {
+        $path = implode("/", [self::XML_PAYMENT_PREFIX, $xmlPrefix, $field]);
+        $this->configWriter->delete($path, $scope, $scopeId);
     }
 }
