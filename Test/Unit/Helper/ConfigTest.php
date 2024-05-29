@@ -107,4 +107,25 @@ class ConfigTest extends AbstractAdyenTestCase
 
         $this->assertEquals($expectedResult, $result);
     }
+
+    public function testSetConfigData()
+    {
+        $value = 'TEST_VALUE';
+        $field = 'test_path';
+        $xml_prefix = Config::XML_ADYEN_ABSTRACT_PREFIX;
+
+        $this->configWriterMock->expects($this->once())->method('save');
+
+        $this->configHelper->setConfigData($value, $field, $xml_prefix);
+    }
+
+    public function testRemoveConfigData()
+    {
+        $field = 'test_path';
+        $xml_prefix = Config::XML_ADYEN_ABSTRACT_PREFIX;
+
+        $this->configWriterMock->expects($this->once())->method('delete');
+
+        $this->configHelper->removeConfigData($field, $xml_prefix);
+    }
 }
