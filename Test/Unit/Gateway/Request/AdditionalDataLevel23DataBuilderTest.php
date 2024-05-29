@@ -184,7 +184,7 @@ class AdditionalDataLevel23DataBuilderTest extends AbstractAdyenTestCase
     public function testVirtualOrderGuest()
     {
         $storeId = 1;
-        $quoteId = 123;
+        $orderShopperReference = 123;
         $currencyCode = 'USD';
         $customerId = null;
         $orderIncrementId = '000000123';
@@ -196,7 +196,7 @@ class AdditionalDataLevel23DataBuilderTest extends AbstractAdyenTestCase
         $this->configMock->method('sendLevel23AdditionalData')->with($storeId)->willReturn(true);
         $this->chargedCurrencyMock->method('getOrderAmountCurrency')->willReturn(new AdyenAmountCurrency(null, $currencyCode));
         $this->adyenHelperMock->method('formatAmount')->willReturn($formattedTaxAmount);
-        $this->adyenRequestHelperMock->method('getShopperReference')->with(null, $orderIncrementId, $quoteId)->willReturn($shopperReference);
+        $this->adyenRequestHelperMock->method('getShopperReference')->with(null, $orderIncrementId, $orderShopperReference)->willReturn($shopperReference);
 
         $orderMock = $this->createConfiguredMock(Order::class, [
             'getCustomerId' => $customerId,
@@ -206,7 +206,7 @@ class AdditionalDataLevel23DataBuilderTest extends AbstractAdyenTestCase
             'getIsNotVirtual' => false,
             'getShippingAddress' => null,
             'getBaseShippingAmount' => 0.00,
-            'getQuoteId' => '123'
+            'getAdditionalInformation' => '123'
         ]);
 
         $orderAdapterMock = $this->createMock(OrderAdapterInterface::class);
