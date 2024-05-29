@@ -1,0 +1,44 @@
+name: Release
+
+on:
+#   Manual run from Github UI (e.g. for when a merged PR labels have changed)
+  workflow_dispatch:
+    inputs:
+      pre-release:
+        required: false
+        type: boolean
+        default: false
+        description: "This release will be labeled as non-production ready"
+        # Publish the current version now, useful if the automated run failed
+      github-release:
+        required: false
+        type: boolean
+        default: false
+        description: "Publish Github release for the current version"
+  # Monitor pull request events
+
+  pull_request:
+    types:
+      - closed
+    branches:
+      - develop
+
+jobs:
+  release:
+    permissions:
+      contents: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare the next main release
+        uses: Adyen/release-automation-action@v1.3.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          develop-branch: develop
+          version-files: composer.json
+          release-title: Adyen Magento-2 Plugin
+          pre-release: ${{ inputs.pre-release || false }}
+#           For a manual Github release
+          github-release: ${{ inputs.github-release || false }}
+          separator: .pre.beta
