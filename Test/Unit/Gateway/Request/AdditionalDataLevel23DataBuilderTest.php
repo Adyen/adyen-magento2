@@ -206,12 +206,12 @@ class AdditionalDataLevel23DataBuilderTest extends AbstractAdyenTestCase
             'getIsNotVirtual' => false,
             'getShippingAddress' => null,
             'getBaseShippingAmount' => 0.00,
-            'getAdditionalInformation' => '123'
         ]);
 
         $orderAdapterMock = $this->createMock(OrderAdapterInterface::class);
         $paymentMock = $this->createMock(Payment::class);
         $paymentMock->method('getOrder')->willReturn($orderMock);
+        $paymentMock->method('getAdditionalInformation')->willReturn($orderShopperReference);
         $paymentDataObject = new PaymentDataObject($orderAdapterMock, $paymentMock);
         $buildSubject = ['payment' => $paymentDataObject, 'order' => $orderMock];
         $result = $this->additionalDataBuilder->build($buildSubject);
