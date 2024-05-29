@@ -29,14 +29,15 @@ class PaymentMethodsStatusTest extends AbstractAdyenTestCase
         'adyen_ideal'
     ];
 
-    public function testAfterSave()
+    private $paymentMethodsStatusMock;
+    private $paymentMethodsHelperMock;
+
+    public function setUp(): void
     {
-        $paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
-        $paymentMethodsHelperMock->method('togglePaymentMethodsActivation')
-            ->willReturn(self::ENABLED_METHODS);
+        parent::setUp();
 
-
-        $paymentMethodsStatusMock = $this->getMockBuilder(PaymentMethodsStatus::class)
+        $this->paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
+        $this->paymentMethodsStatusMock = $this->getMockBuilder(PaymentMethodsStatus::class)
             ->setMethods([
                 'getScope',
                 'getScopeId'
@@ -48,16 +49,30 @@ class PaymentMethodsStatusTest extends AbstractAdyenTestCase
                 $this->createMock(Registry::class),
                 $this->createMock(ScopeConfigInterface::class),
                 $this->createMock(TypeListInterface::class),
-                $paymentMethodsHelperMock,
+                $this->paymentMethodsHelperMock,
                 $this->createMock(AbstractResource::class),
                 $this->createMock(AbstractDb::class),
                 []
             ])
             ->getMock();
-        $paymentMethodsStatusMock->method('getScope')->willReturn('default');
-        $paymentMethodsStatusMock->method('getScopeId')->willReturn(0);
 
-        $result = $paymentMethodsStatusMock->afterSave();
+        $this->paymentMethodsStatusMock->method('getScope')->willReturn('default');
+        $this->paymentMethodsStatusMock->method('getScopeId')->willReturn(0);
+    }
+
+    public function testAfterSave()
+    {
+        $this->paymentMethodsHelperMock->method('togglePaymentMethodsActivation')
+            ->willReturn(self::ENABLED_METHODS);
+
+        $result = $this->paymentMethodsStatusMock->afterSave();
+
+        $this->assertInstanceOf(PaymentMethodsStatus::class, $result);
+    }
+
+    public function testAfterDelete()
+    {
+        $result = $this->paymentMethodsStatusMock->afterDelete();
 
         $this->assertInstanceOf(PaymentMethodsStatus::class, $result);
     }
