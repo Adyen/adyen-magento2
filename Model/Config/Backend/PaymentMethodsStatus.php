@@ -41,8 +41,19 @@ class PaymentMethodsStatus extends Value
 
     public function afterSave(): PaymentMethodsStatus
     {
-        $this->paymentMethodsHelper->togglePaymentMethodsActivation((bool) $this->getValue());
 
-        return $this;
+        $this->paymentMethodsHelper->togglePaymentMethodsActivation((bool) $this->getValue(), $this->getScope(), $this->getScopeId());
+
+        return parent::afterSave();
+    }
+
+    /**
+     * @inheritDoc
+     * @return PaymentMethodsStatus
+     */
+    public function afterDelete() : PaymentMethodsStatus
+    {
+        $this->paymentMethodsHelper->removePaymentMethodsActivation($this->getScope(), $this->getScopeId());
+        return parent::afterDelete();
     }
 }
