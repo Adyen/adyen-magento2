@@ -606,8 +606,12 @@ class Config
      * @param int $scopeId
      * @return void
      */
-    public function removeConfigData(string $field, string $xmlPrefix, string $scope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT, int $scopeId = 0) : void
-    {
+    public function removeConfigData(
+        string $field,
+        string $xmlPrefix,
+        string $scope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
+        int $scopeId = 0
+    ): void {
         $path = implode("/", [self::XML_PAYMENT_PREFIX, $xmlPrefix, $field]);
         $this->configWriter->delete($path, $scope, $scopeId);
     }
