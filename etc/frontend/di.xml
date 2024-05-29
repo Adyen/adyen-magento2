@@ -106,6 +106,7 @@
                 <item name="adyen_vipps" xsi:type="string">vipps</item>
                 <item name="adyen_bizum" xsi:type="string">bizum</item>
                 <item name="adyen_ach" xsi:type="string">ach</item>
+                <item name="adyen_paypo" xsi:type="string">paypo</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
