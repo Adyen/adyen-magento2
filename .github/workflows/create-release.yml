@@ -21,7 +21,7 @@ on:
     types:
       - closed
     branches:
-      - develop
+      - main
 
 jobs:
   release:
@@ -35,7 +35,7 @@ jobs:
         uses: Adyen/release-automation-action@v1.3.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          develop-branch: develop
+          develop-branch: main
           version-files: composer.json
           release-title: Adyen Magento-2 Plugin
           pre-release: ${{ inputs.pre-release || false }}
