@@ -89,7 +89,7 @@ QUERY;
     {
         $methodCode = "adyen_hpp";
         $maskedQuoteId = $this->getMaskedQuoteIdByReservedOrderId->execute('test_quote');
-        $stateData = '{\"paymentMethod\":{\"type\":\"ideal\",\"issuer\":\"1154\"}}';
+        $stateData = '{\"paymentMethod\":{\"type\":\"ideal\"}}';
         $adyenAdditionalData = '
         ,
         adyen_additional_data_hpp: {
