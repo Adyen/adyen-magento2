@@ -88,6 +88,7 @@
                 <item name="adyen_ach" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
                 <item name="adyen_giftcard" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
                 <item name="adyen_paypo" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_upi" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
             </argument>
         </arguments>
     </type>
