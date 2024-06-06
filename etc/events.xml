@@ -296,4 +296,7 @@
     <event name="payment_method_assign_data_adyen_paypo">
         <observer name="adyen_paypo_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_upi">
+        <observer name="adyen_upi_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
 </config>
