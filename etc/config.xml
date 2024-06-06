@@ -2137,6 +2137,28 @@
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_paypo>
+            <adyen_wallet_IN>
+                <active>0</active>
+                <model>AdyenPaymentWalletINFacade</model>
+                <title>Wallets in India</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>1</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>1</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_wallet_IN>
         </payment>
     </default>
 </config>

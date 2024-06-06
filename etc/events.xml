@@ -287,6 +287,9 @@
     <event name="payment_method_assign_data_adyen_ach">
         <observer name="adyen_ach_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_wallet_IN">
+        <observer name="adyen_wallet_IN_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
     <event name="payment_method_assign_data_adyen_onlinebanking_IN">
         <observer name="adyen_onlinebanking_IN_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
