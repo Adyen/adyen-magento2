@@ -12,7 +12,7 @@ services:
       MARIADB_USER: magento
       MARIADB_PASSWORD: magento
   elastic:
-    image: elasticsearch:7.17.13
+    image: elasticsearch:7.17.20
     container_name: elasticsearch
     networks:
       - backend
