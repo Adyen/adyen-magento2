@@ -58,7 +58,7 @@ class WebhookHandlerFactory
         RequestForInformationWebhookHandler $requestForInformationWebhookHandler,
         ChargebackReversedWebhookHandler $chargebackReversedWebhookHandler,
         SecondChargebackWebhookHandler $secondChargebackWebhookHandler,
-        NotificationOfChargebackWebhookHandler $notificationOfChargebackWebhookHandler,
+        NotificationOfChargebackWebhookHandler $notificationOfChargebackWebhookHandler
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->authorisationWebhookHandler = $authorisationWebhookHandler;
