@@ -14,6 +14,7 @@ namespace Adyen\Payment\Helper;
 use Adyen\AdyenException;
 use Adyen\Client;
 use Adyen\Environment;
+use Adyen\Payment\Gateway\Request\HeaderDataBuilder;
 use Adyen\Service\Checkout;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Config\Source\RenderMode;
@@ -418,12 +419,6 @@ class Data extends AbstractHelper
         return ($amount / $format);
     }
 
-
-
-
-
-
-
     /**
      * Retrieve decrypted hmac key
      *
@@ -431,7 +426,7 @@ class Data extends AbstractHelper
      */
     public function getHmac($storeId = null)
     {
-        switch ($this->isDemoMode($storeId)) {
+        switch ($this->configHelper->isDemoMode($storeId)) {
             case true:
                 $hmacTest = $this->configHelper->getAdyenHppConfigData('hmac_test', $storeId);
                 if (is_null($hmacTest)) {
@@ -476,7 +471,7 @@ class Data extends AbstractHelper
      */
     public function getAPIKey($storeId = null)
     {
-        if ($this->isDemoMode($storeId)) {
+        if ($this->configHelper->isDemoMode($storeId)) {
             $encryptedApiKeyTest = $this->configHelper->getAdyenAbstractConfigData('api_key_test', $storeId);
             if (is_null($encryptedApiKeyTest)) {
                 return null;
@@ -501,7 +496,7 @@ class Data extends AbstractHelper
     public function getClientKey($storeId = null)
     {
         $clientKey = $this->configHelper->getAdyenAbstractConfigData(
-            $this->isDemoMode($storeId) ? 'client_key_test' : 'client_key_live',
+            $this->configHelper->isDemoMode($storeId) ? 'client_key_test' : 'client_key_live',
             $storeId
         );
 
@@ -520,7 +515,7 @@ class Data extends AbstractHelper
      */
     public function getWsUsername($storeId = null)
     {
-        if ($this->isDemoMode($storeId)) {
+        if ($this->configHelper->isDemoMode($storeId)) {
             $wsUsernameTest = $this->configHelper->getAdyenAbstractConfigData('ws_username_test', $storeId);
             if (is_null($wsUsernameTest)) {
                 return null;
@@ -1167,16 +1162,23 @@ class Data extends AbstractHelper
         ];
     }
 
-    public function buildRequestHeaders()
+    public function buildRequestHeaders($payment = null)
     {
         $magentoDetails = $this->getMagentoDetails();
-        return [
+        $headers = [
             'external-platform-name' => $magentoDetails['name'],
             'external-platform-version' => $magentoDetails['version'],
             'external-platform-edition' => $magentoDetails['edition'],
             'merchant-application-name' => $this->getModuleName(),
             'merchant-application-version' => $this->getModuleVersion()
         ];
+
+        if(isset($payment) && !is_null($payment->getAdditionalInformation(HeaderDataBuilder::FRONTENDTYPE))) {
+            $headers[HeaderDataBuilder::FRONTENDTYPE] =
+                $payment->getAdditionalInformation(HeaderDataBuilder::FRONTENDTYPE);
+        }
+
+        return $headers;
     }
 
     /**
@@ -1493,7 +1495,7 @@ class Data extends AbstractHelper
         if ($isDemo) {
             $context['body'] = $request;
         } else {
-            $context['livePrefix'] = $this->getLiveEndpointPrefix($storeId);
+            $context['livePrefix'] = $this->configHelper->getLiveEndpointPrefix($storeId);
             $context['body'] = $this->filterReferences($request);
         }
 

@@ -106,11 +106,7 @@
                                                    data-bind="
                                                        value: getCode(),
                                                        checked: isChecked,
-                                                       click: selectPaymentMethod,
                                                        visible: isRadioButtonVisible()"
-                                                <?php if ($checked): ?>
-                                                    checked="checked"
-                                                <?php endif; ?>
                                                    class="radio"/>
                                         <?php else: ?>
                                             <input type="radio"
@@ -118,8 +114,7 @@
                                                    value="<?= $block->escapeHtml($code); ?>"
                                                    name="payment[method]"
                                                    data-bind="
-                                                       value: getCode(),
-                                                       afterRender: selectPaymentMethod"
+                                                       value: getCode()"
                                                    checked="checked"
                                                    class="radio solo method" />
                                         <?php endif; ?>

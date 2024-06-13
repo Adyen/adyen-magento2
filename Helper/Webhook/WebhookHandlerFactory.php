@@ -35,6 +35,8 @@ class WebhookHandlerFactory
     private ChargebackWebhookHandler $chargebackWebhookHandler;
     private ChargebackReversedWebhookHandler $chargebackReversedWebhookHandler;
     private NotificationOfChargebackWebhookHandler $notificationOfChargebackWebhookHandler;
+    private RequestForInformationWebhookHandler $requestForInformationWebhookHandler;
+    private SecondChargebackWebhookHandler $secondChargebackWebhookHandler;
 
 
     public function __construct(
@@ -56,7 +58,7 @@ class WebhookHandlerFactory
         RequestForInformationWebhookHandler $requestForInformationWebhookHandler,
         ChargebackReversedWebhookHandler $chargebackReversedWebhookHandler,
         SecondChargebackWebhookHandler $secondChargebackWebhookHandler,
-        NotificationOfChargebackWebhookHandler $notificationOfChargebackWebhookHandler,
+        NotificationOfChargebackWebhookHandler $notificationOfChargebackWebhookHandler
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->authorisationWebhookHandler = $authorisationWebhookHandler;
