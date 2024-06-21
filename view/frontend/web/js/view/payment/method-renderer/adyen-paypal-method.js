@@ -28,6 +28,41 @@ define(
                 let paypalConfiguration = Object.assign(baseComponentConfiguration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
                 paypalConfiguration.showPayButton = true;
 
+                /*
+                 * Add onInit and onClick functions to the configuration object in order to maange the PayPal Buttons
+                 * state (enabled / disabled) depending on the checkout agreements checkbox state.
+                 *
+                 * Without these functions, if the form is not valid (checkbox unchecked) and the user clicks on the
+                 * PayPal button, the popup will be opened with an infinite loading spinner, and even if the customer
+                 * closes the popup, checks the checkbox and clicks again on the PayPal button, the popup will not work
+                 * anymore, until the page is reloaded.
+                 */
+                let checkoutAgreementsInput = document.querySelector('.checkout-agreement input');
+
+                if (null !== checkoutAgreementsInput) {
+                    let self = this;
+
+                    paypalConfiguration.onInit = function (data, actions) {
+                        actions.disable();
+
+                        document.querySelector('.form-checkout-agreements input')
+                            .addEventListener('change', function (event) {
+                                // Enable or disable the button when it is checked or unchecked
+                                if (event.target.checked) {
+                                    actions.enable();
+                                } else {
+                                    actions.disable();
+                                }
+                            });
+                    };
+
+                    paypalConfiguration.onClick = function (data, actions) {
+                        // Trigger the form validation in order to display potential error messages if the buttons 
+                        // have been disabled.
+                        self.validate();
+                    };
+                }
+
                 return paypalConfiguration
             },
             renderActionComponent: function(resultCode, action, component) {
