@@ -73,8 +73,8 @@ bin/magento setup:upgrade
 For more information see our [installation section](https://docs.adyen.com/developers/plugins/magento-2/set-up-the-plugin-in-magento?redirect#step1installtheplugin).
 
 ## Documentation
-[Magento 2 documentation](https://docs.adyen.com/developers/plugins/magento-2)
-
+- [Magento 2 documentation](https://docs.adyen.com/plugins/adobe-commerce)
+- [V9 migration guide](https://docs.adyen.com/plugins/adobe-commerce/migrate-to-a-new-version)
 
 ## Setup Cron
 Make sure that your Magento cron is running every minute. We are using a cronjob to process the notifications (our webhook service) and to update Adyen servers' IP addresses. The cronjobs will be executed every minute.

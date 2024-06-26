@@ -43,6 +43,12 @@ class Notification extends AbstractModel implements NotificationInterface
     const ORDER_OPENED = 'ORDER_OPENED';
     const ORDER_CLOSED = "ORDER_CLOSED";
     const OFFER_CLOSED = "OFFER_CLOSED";
+    const CHARGEBACK = "CHARGEBACK";
+    const SECOND_CHARGEBACK = "SECOND_CHARGEBACK";
+    const CHARGEBACK_REVERSED = "CHARGEBACK_REVERSED";
+    const REQUEST_FOR_INFORMATION = "REQUEST_FOR_INFORMATION";
+    const NOTIFICATION_OF_CHARGEBACK = "NOTIFICATION_OF_CHARGEBACK";
+    const STATE_ADYEN_AUTHORIZED = "adyen_authorized";
     const MAX_ERROR_COUNT = 5;
 
     public function __construct(

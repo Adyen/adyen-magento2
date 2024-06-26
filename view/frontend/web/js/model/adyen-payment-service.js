@@ -142,6 +142,19 @@ define(
                 );
             },
 
+            posPayment: function (orderId) {
+                let url = urlBuilder.createUrl('/adyen/orders/carts/mine/pos-payment', {})
+                if (!customer.isLoggedIn()) {
+                    url = urlBuilder.createUrl(
+                        '/adyen/orders/guest-carts/:cartId/pos-payment',
+                        {cartId: quote.getQuoteId()}
+                    )
+                }
+                const payload = JSON.stringify({orderId})
+
+                return storage.post(url, payload, true)
+            },
+
             getPaymentMethodFromResponse: function (txVariant, paymentMethodResponse) {
                 return paymentMethodResponse.find((paymentMethod) => {
                     return txVariant === paymentMethod.type
