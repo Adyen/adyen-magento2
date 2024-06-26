@@ -139,6 +139,10 @@ class PaymentResponseHandler
             return false;
         }
 
+        if(!$this->isValidMerchantReference($paymentsDetailsResponse, $order)){
+            return false;
+        }
+
         $this->adyenLogger->addAdyenResult('Updating the order');
         $payment = $order->getPayment();
 
@@ -311,5 +315,28 @@ class PaymentResponseHandler
         $this->orderResourceModel->save($order);
 
         return $result;
+    }
+
+    /**
+     * Validate whether the merchant reference is present in the response and belongs to the current order.
+     *
+     * @param array $paymentsDetailsResponse
+     * @param OrderInterface $order
+     * @return bool
+     */
+    private function isValidMerchantReference(array $paymentsDetailsResponse, OrderInterface $order): bool
+    {
+        $merchantReference = $paymentsDetailsResponse['merchantReference'] ?? null;
+        if (!$merchantReference) {
+            $this->adyenLogger->error("No merchantReference in the response");
+            return false;
+        }
+
+        if ($order->getIncrementId() !== $merchantReference) {
+            $this->adyenLogger->error("Wrong merchantReference was set in the query or in the session");
+            return false;
+        }
+
+        return true;
     }
 }
