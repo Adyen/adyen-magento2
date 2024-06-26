@@ -37,7 +37,7 @@
             </tooltip>
         </field>
         <field id="api_key_test" translate="label" type="obscure" sortOrder="20" showInDefault="1" showInWebsite="1"
-               showInStore="0">
+               showInStore="1">
             <depends>
                 <field id="demo_mode">1</field>
             </depends>
@@ -49,7 +49,7 @@
             <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding"/>
         </field>
         <field id="api_key_live" translate="label" type="obscure" sortOrder="20" showInDefault="1" showInWebsite="1"
-               showInStore="0">
+               showInStore="1">
             <depends>
                 <field id="demo_mode">0</field>
             </depends>
@@ -63,7 +63,7 @@
             </tooltip>
         </field>
         <field id="client_key_test" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1"
-               showInStore="0">
+               showInStore="1">
             <depends>
                 <field id="demo_mode">1</field>
                 <field id="configuration_mode">manual</field>
@@ -73,7 +73,7 @@
             <config_path>payment/adyen_abstract/client_key_test</config_path>
         </field>
         <field id="client_key_live" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1"
-               showInStore="0">
+               showInStore="1">
             <depends>
                 <field id="demo_mode">0</field>
                 <field id="configuration_mode">manual</field>
