@@ -306,9 +306,7 @@ define(
 
                 await $.when(placeOrderAction(data, self.currentMessageContainer)).fail(
                     function(response) {
-                        self.isPlaceOrderAllowed(true);
-                        fullScreenLoader.stopLoader();
-                        component.handleReject(response);
+                       self.handleOnFailure(response, component);
                     }
                 ).done(
                     function(orderId) {
@@ -318,6 +316,11 @@ define(
                         });
                     }
                 );
+            },
+
+            handleOnFailure: function(response, component) {
+                this.isPlaceOrderAllowed(true);
+                fullScreenLoader.stopLoader();
             },
 
             /**
