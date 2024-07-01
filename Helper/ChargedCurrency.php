@@ -17,6 +17,7 @@ use Magento\Sales\Api\Data\CreditmemoInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Api\Data\CreditmemoItemInterface;
+use Magento\Weee\Block\Adminhtml\Items\Price\Renderer;
 
 class ChargedCurrency
 {
@@ -31,10 +32,17 @@ class ChargedCurrency
      */
     private $config;
 
+    /**
+     * @var Renderer
+     */
+    private $weeeRenderer;
+
     public function __construct(
-        Config $config
+        Config $config,
+        Renderer $weeeRenderer
     ) {
         $this->config = $config;
+        $this->weeeRenderer = $weeeRenderer;
     }
 
     /**
@@ -91,8 +99,7 @@ class ChargedCurrency
                 $item->getBaseDiscountAmount() / $item->getQty(),
                 $item->getBaseTaxAmount() / $item->getQty(),
                 null,
-                $item->getBaseRowTotalInclTax() / $item->getQty(),
-                $item->getBaseDiscountTaxCompensationAmount() / $item->getQty()
+                $this->weeeRenderer->getBaseTotalAmount($item)
             );
         }
 
@@ -102,8 +109,7 @@ class ChargedCurrency
             $item->getDiscountAmount() / $item->getQty(),
             $item->getTaxAmount() / $item->getQty(),
             null,
-            $item->getRowTotalInclTax() / $item->getQty(),
-            $item->getDiscountTaxCompensationAmount() / $item->getQty()
+            $this->weeeRenderer->getTotalAmount($item)
         );
     }
 
@@ -118,8 +124,7 @@ class ChargedCurrency
                 $item->getBaseDiscountAmount() / $item->getQty(),
                 $item->getBaseTaxAmount() / $item->getQty(),
                 null,
-                $item->getBaseRowTotalInclTax() / $item->getQty(),
-                $item->getBaseDiscountTaxCompensationAmount() / $item->getQty()
+                $this->weeeRenderer->getBaseTotalAmount($item)
             );
         }
 
@@ -129,8 +134,7 @@ class ChargedCurrency
             $item->getDiscountAmount() / $item->getQty(),
             $item->getTaxAmount() / $item->getQty(),
             null,
-            $item->getRowTotalInclTax() / $item->getQty(),
-            $item->getDiscountTaxCompensationAmount() / $item->getQty()
+            $this->weeeRenderer->getTotalAmount($item)
         );
     }
 
@@ -188,8 +192,7 @@ class ChargedCurrency
                 null,
                 $creditMemo->getBaseShippingTaxAmount(),
                 null,
-                $creditMemo->getBaseShippingInclTax(),
-                $creditMemo->getBaseShippingDiscountTaxCompensationAmnt()
+                $creditMemo->getBaseShippingInclTax()
             );
         }
         return new AdyenAmountCurrency(
@@ -198,8 +201,7 @@ class ChargedCurrency
             null,
             $creditMemo->getShippingTaxAmount(),
             null,
-            $creditMemo->getShippingInclTax(),
-            $creditMemo->getShippingDiscountTaxCompensationAmount()
+            $creditMemo->getShippingInclTax()
         );
     }
 
@@ -214,8 +216,7 @@ class ChargedCurrency
                 $item->getBaseDiscountAmount() / $item->getQty(),
                 $item->getBaseTaxAmount() / $item->getQty(),
                 null,
-                $item->getBaseRowTotalInclTax() / $item->getQty(),
-                $item->getBaseDiscountTaxCompensationAmount() / $item->getQty()
+                $this->weeeRenderer->getBaseTotalAmount($item)
             );
         }
         return new AdyenAmountCurrency(
@@ -224,8 +225,7 @@ class ChargedCurrency
             $item->getDiscountAmount() / $item->getQty(),
             $item->getTaxAmount() / $item->getQty(),
             null,
-            $item->getRowTotalInclTax() / $item->getQty(),
-            $item->getDiscountTaxCompensationAmount() / $item->getQty()
+            $this->weeeRenderer->getTotalAmount($item)
         );
     }
 
@@ -240,8 +240,7 @@ class ChargedCurrency
                 $quote->getShippingAddress()->getBaseShippingDiscountAmount(),
                 $quote->getShippingAddress()->getBaseShippingTaxAmount(),
                 null,
-                $quote->getShippingAddress()->getBaseShippingInclTax(),
-                $quote->getShippingAddress()->getBaseShippingDiscountTaxCompensationAmnt()
+                $quote->getShippingAddress()->getBaseShippingInclTax()
             );
         }
 
@@ -251,8 +250,7 @@ class ChargedCurrency
             $quote->getShippingAddress()->getShippingDiscountAmount(),
             $quote->getShippingAddress()->getShippingTaxAmount(),
             null,
-            $quote->getShippingAddress()->getShippingInclTax(),
-            $quote->getShippingAddress()->getShippingDiscountTaxCompensationAmount()
+            $quote->getShippingAddress()->getShippingInclTax()
         );
     }
 
@@ -267,8 +265,7 @@ class ChargedCurrency
                 null,
                 $invoice->getBaseShippingTaxAmount(),
                 null,
-                $invoice->getBaseShippingInclTax(),
-                $invoice->getBaseShippingDiscountTaxCompensationAmnt()
+                $invoice->getBaseShippingInclTax()
             );
         }
 
@@ -278,8 +275,7 @@ class ChargedCurrency
             null,
             $invoice->getShippingTaxAmount(),
             null,
-            $invoice->getShippingInclTax(),
-            $invoice->getShippingDiscountTaxCompensationAmount()
+            $invoice->getShippingInclTax()
         );
     }
 
