@@ -152,6 +152,11 @@ class Index extends Action
             // Make paymentsDetails call to validate the payment
             $request["details"] = $redirectResponse;
             $paymentsDetailsResponse = $this->paymentsDetailsHelper->initiatePaymentDetails($order, $request);
+
+            if ($this->isResponseAlreadyProcessed($order, $paymentsDetailsResponse)) {
+                $this->adyenLogger->addAdyenResult('Duplicate response detected. Skipping processing.');
+                return true;
+            }
         } catch (Exception $e) {
             $paymentsDetailsResponse['error'] = $e->getMessage();
         }
@@ -198,6 +203,27 @@ class Index extends Action
         }
 
         return $order;
+    }
+
+    private function isResponseAlreadyProcessed(Order $order, array $paymentsDetailsResponse): bool
+    {
+        $pspReference = $paymentsDetailsResponse['pspReference'] ?? null;
+        $merchantReference = $paymentsDetailsResponse['merchantReference'] ?? null;
+
+        if (!$pspReference || !$merchantReference) {
+            return false;
+        }
+
+        $history = $order->getStatusHistories();
+
+        foreach ($history as $status) {
+            $comment = $status->getComment();
+            if (str_contains($comment, $pspReference) !== false) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
