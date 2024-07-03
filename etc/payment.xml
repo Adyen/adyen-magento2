@@ -248,7 +248,16 @@
         <method name="adyen_ach">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="adyen_onlinebanking_IN">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_wallet_IN">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
         <method name="adyen_paypo">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_upi">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
     </methods>

@@ -32,12 +32,12 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
      * This data member will be passed to the js frontend. It will be used to map the method code (adyen_ideal) to the
      * corresponding txVariant (ideal). The txVariant will then be used to instantiate the component
      */
-    private array $txVariants;
+    protected array $txVariants;
     /**
      * These payment methods have a custom method render file. This array has been used in the adyen-method.js
      * file to push correct payment method renderer.
      */
-    private array $customMethodRenderers;
+    protected array $customMethodRenderers;
 
     public function __construct(
         Data $adyenHelper,
