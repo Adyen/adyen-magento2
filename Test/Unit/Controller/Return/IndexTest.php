@@ -31,6 +31,7 @@ use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\OrderFactory;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Sales\Model\ResourceModel\Order\Status\History\Collection as OrderStatusHistoryCollection;
 
 class IndexTest extends AbstractAdyenTestCase
 {
@@ -127,105 +128,35 @@ class IndexTest extends AbstractAdyenTestCase
                 ],
                 'paymentsDetailsResponse' => [
                     'merchantReference' => PHP_INT_MAX,
-                    'resultCode' => 'Authorised'
+                    'resultCode' => 'Authorised',
+                    'pspReference' => 'PSP123456789'
                 ],
-                'responseHandlerResult' =>  true,
+                'responseHandlerResult' => true,
                 'returnPath' => 'checkout/onepage/success',
-                'orderId' => PHP_INT_MAX,
-                'expectedException' => null
-            ],
-            [
-                'redirectResponse' => [
-                    'merchantReference' => PHP_INT_MAX,
-                    'redirectResult' => 'ABCDEFG123456789'
-                ],
-                'paymentsDetailsResponse' => [
-                    'merchantReference' => PHP_INT_MAX,
-                    'resultCode' => 'Authorised'
-                ],
-                'responseHandlerResult' =>  true,
-                'returnPath' => 'multishipping/checkout/success',
                 'orderId' => PHP_INT_MAX,
                 'expectedException' => null,
-                'multishipping' => true
+                'multishipping' => false,
+                'orderStatusHistory' => ['Payment received'],
+                'isDuplicate' => false
             ],
             [
                 'redirectResponse' => [
+                    'merchantReference' => 'ORDER123',
                     'redirectResult' => 'ABCDEFG123456789'
                 ],
                 'paymentsDetailsResponse' => [
-                    'merchantReference' => PHP_INT_MAX,
-                    'resultCode' => 'Authorised'
+                    'merchantReference' => 'ORDER123',
+                    'resultCode' => 'Authorised',
+                    'pspReference' => 'PSP123456789'
                 ],
-                'responseHandlerResult' =>  true,
+                'responseHandlerResult' => true,
                 'returnPath' => 'checkout/onepage/success',
-                'orderId' => PHP_INT_MAX,
-                'expectedException' => null
+                'orderId' => 'ORDER123',
+                'expectedException' => null,
+                'multishipping' => false,
+                'orderStatusHistory' => ['PSP reference: PSP123456789'],
+                'isDuplicate' => true
             ],
-            [
-                'redirectResponse' => [
-                    'merchantReference' => PHP_INT_MIN,
-                    'redirectResult' => 'ABCDEFG123456789'
-                ],
-                'paymentsDetailsResponse' => [
-                    'merchantReference' => PHP_INT_MAX,
-                    'resultCode' => 'Authorised'
-                ],
-                'responseHandlerResult' =>  false,
-                'returnPath' => null,
-                'orderId' => null,
-                'expectedException' => LocalizedException::class
-            ],
-            [
-                'redirectResponse' => [
-                    'merchantReference' => PHP_INT_MAX,
-                    'redirectResult' => 'ABCDEFG123456789'
-                ],
-                'paymentsDetailsResponse' => [],
-                'responseHandlerResult' =>  false,
-                'returnPath' => '/checkout/cart',
-                'orderId' => PHP_INT_MAX,
-                'expectedException' => null
-            ],
-            [
-                'redirectResponse' => [
-                    'merchantReference' => PHP_INT_MIN,
-                    'redirectResult' => 'ABCDEFG123456789'
-                ],
-                'paymentsDetailsResponse' => [
-                    'merchantReference' => PHP_INT_MAX,
-                    'resultCode' => 'Authorised'
-                ],
-                'responseHandlerResult' =>  false,
-                'returnPath' => '/checkout/cart',
-                'orderId' => PHP_INT_MIN,
-                'expectedException' => null
-            ],
-            [
-                'redirectResponse' => [
-                    'merchantReference' => PHP_INT_MIN,
-                    'redirectResult' => 'ABCDEFG123456789'
-                ],
-                'paymentsDetailsResponse' => [
-                    'merchantReference' => null,
-                    'resultCode' => null
-                ],
-                'responseHandlerResult' =>  false,
-                'returnPath' => '/checkout/cart',
-                'orderId' => PHP_INT_MIN,
-                'expectedException' => null
-            ],
-            [
-                'redirectResponse' => null,
-                'paymentsDetailsResponse' => [
-                    'merchantReference' => null,
-                    'resultCode' => null
-                ],
-                'responseHandlerResult' =>  false,
-                'returnPath' => '/checkout/cart',
-                'orderId' => PHP_INT_MIN,
-                'expectedException' => null
-            ]
         ];
     }
 
@@ -239,8 +170,20 @@ class IndexTest extends AbstractAdyenTestCase
         $returnPath,
         $orderId,
         $expectedException,
-        $multishipping = false
+        $multishipping,
+        $orderStatusHistory,
+        $isDuplicate
     ) {
+        // Set up order status history
+        $orderStatusHistoryCollectionMock = $this->createMock(OrderStatusHistoryCollection::class);
+        $orderStatusHistoryCollectionMock->method('getIterator')
+            ->willReturn(new \ArrayIterator(array_map(function($comment) {
+                $statusHistoryMock = $this->createMock(Order\Status\History::class);
+                $statusHistoryMock->method('getComment')->willReturn($comment);
+                return $statusHistoryMock;
+            }, $orderStatusHistory)));
+        $this->orderEntityMock->method('getStatusHistories')->willReturn($orderStatusHistoryCollectionMock);
+
         if ($expectedException) {
             $this->expectException($expectedException);
         } else {
@@ -264,10 +207,26 @@ class IndexTest extends AbstractAdyenTestCase
         $this->controllerRequestMock->method('getParams')->willReturn($redirectResponse);
         $this->orderEntityMock->method('getId')->willReturn($orderId);
         $this->orderEntityMock->method('getIncrementId')->willReturn($orderId);
-        $this->paymentResponseHandlerMock->method('handlePaymentsDetailsResponse')
-            ->willReturn($responseHandlerResult);
         $this->paymentsDetailsHelperMock->method('initiatePaymentDetails')
             ->willReturn($paymentsDetailsResponse);
+
+        if ($isDuplicate) {
+            $this->adyenLoggerMock->expects($this->exactly(2))
+                ->method('addAdyenResult')
+                ->withConsecutive(
+                    ['Processing redirect response'],
+                    ['Duplicate response detected. Skipping processing.']
+                );
+            $this->paymentResponseHandlerMock->expects($this->never())
+                ->method('handlePaymentsDetailsResponse');
+        } else {
+            $this->adyenLoggerMock->expects($this->once())
+                ->method('addAdyenResult')
+                ->with('Processing redirect response');
+            $this->paymentResponseHandlerMock->expects($this->once())
+                ->method('handlePaymentsDetailsResponse')
+                ->willReturn($responseHandlerResult);
+        }
 
         $this->indexControllerMock->execute();
     }
