@@ -99,8 +99,9 @@ class ChargedCurrency
                 $item->getBaseDiscountAmount() / $item->getQty(),
                 $item->getBaseTaxAmount() / $item->getQty(),
                 null,
-                $this->weeeRenderer->getBaseTotalAmount($item)
+                $this->weeeRenderer->getBaseTotalAmount($item) / $item->getQty()
             );
+
         }
 
         return new AdyenAmountCurrency(
@@ -109,7 +110,7 @@ class ChargedCurrency
             $item->getDiscountAmount() / $item->getQty(),
             $item->getTaxAmount() / $item->getQty(),
             null,
-            $this->weeeRenderer->getTotalAmount($item)
+            $this->weeeRenderer->getTotalAmount($item) / $item->getQty()
         );
     }
 
