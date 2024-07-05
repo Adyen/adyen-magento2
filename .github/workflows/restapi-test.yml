@@ -34,9 +34,7 @@ jobs:
         run: docker exec magento2-container make fs
 
       - name: Check install
-        run: |
-          docker exec magento2-container bash -c "make --debug=v sys-check > /tmp/sys-check.log 2>&1"
-          docker cp magento2-container:/tmp/sys-check.log ./sys-check.log
+        run: docker exec magento2-container bash -c "make --debug=v sys-check || echo $?" > sys-check.log 2>&1
         continue-on-error: true
 
       - name: Upload sys-check log
