@@ -17,7 +17,7 @@
     "magento/framework": ">=103.0.4",
     "magento/module-vault": ">=101.2.4",
     "magento/module-multishipping": ">=100.4.4",
-    "magento/module-weee":  "*",
+    "magento/module-weee":  "^100.4.0",
     "ext-json": "*"
   },
   "require-dev": {
