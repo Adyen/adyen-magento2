@@ -35,13 +35,13 @@ jobs:
 
       - name: Check install
         run: docker exec magento2-container make sys-check -vvv
-        continue-on-error: true
+#        continue-on-error: true
 
       - name: Install plugin
         run: docker exec -u www-data magento2-container make install -vvv
-        continue-on-error: true
+#        continue-on-error: true
 
       - run: docker exec magento2-container /etc/init.d/cron stop
 
       - name: Run REST API tests
-        run: docker exec magento2-container make restapi
+        run: docker exec magento2-container make restapi -vvv
