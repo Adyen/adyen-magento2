@@ -101,7 +101,6 @@ class ChargedCurrency
                 null,
                 $this->weeeRenderer->getBaseTotalAmount($item) / $item->getQty()
             );
-
         }
 
         return new AdyenAmountCurrency(
