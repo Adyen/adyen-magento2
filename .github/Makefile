@@ -17,7 +17,6 @@ install:
 	composer require "adyen/module-payment:*"
 	vendor/bin/phpcs --standard=Magento2 --extensions=php,phtml --error-severity=10 --ignore-annotations -n -p vendor/adyen/module-payment
 	bin/magento module:enable Adyen_Payment
-	bin/magento cache:flush
 	rm -rf var/cache/* var/page_cache/* var/view_preprocessed/* pub/static/frontend/* pub/static/adminhtml/* pub/static/_cache/* generated/code/* generated/metadata/*
 	bin/magento setup:di:compile
 	bin/magento setup:upgrade -vvv
