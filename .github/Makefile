@@ -13,17 +13,14 @@ magento:
 
 # Plugin install
 install:
-    composer config --json repositories.local '{"type": "path", "url": "/data/extensions/workdir", "options": { "symlink": false } }'
-    composer require "adyen/module-payment:*"
-    vendor/bin/phpcs --standard=Magento2 --extensions=php,phtml --error-severity=10 --ignore-annotations -n -p vendor/adyen/module-payment
-    echo "Current directory: $$(pwd)"
-    echo "Magento CLI location: $$(which magento || echo 'not found')"
-    echo "Bin directory contents:"
-    ls -l bin/
-    php -v
-    bin/magento --version || echo "Magento CLI not working"
-    bin/magento module:enable Adyen_Payment
-    bin/magento cache:flush
+	composer config --json repositories.local '{"type": "path", "url": "/data/extensions/workdir", "options": { "symlink": false } }'
+	composer require "adyen/module-payment:*"
+	vendor/bin/phpcs --standard=Magento2 --extensions=php,phtml --error-severity=10 --ignore-annotations -n -p vendor/adyen/module-payment
+	bin/magento module:enable Adyen_Payment
+	bin/magento cache:flush
+	rm -rf var/cache/* var/page_cache/* var/view_preprocessed/* pub/static/frontend/* pub/static/adminhtml/* pub/static/_cache/* generated/code/* generated/metadata/*
+	bin/magento setup:di:compile
+	bin/magento setup:upgrade -vvv
 
 # Install developer module
 dev-module:
