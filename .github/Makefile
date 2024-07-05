@@ -5,7 +5,7 @@ n98-magerun2.phar:
 
 # Check Magento installation
 sys-check: n98-magerun2.phar
-	sudo -u www-data ./n98-magerun2.phar sys:check -vvv
+	./n98-magerun2.phar sys:check -vvv
 
 # Install Magento (without starting Apache)
 magento:
