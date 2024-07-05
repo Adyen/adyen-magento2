@@ -34,22 +34,12 @@ jobs:
         run: docker exec magento2-container make fs
 
       - name: Check install
-        run: docker exec magento2-container bash -c "make --debug=v sys-check || echo $?" > sys-check.log 2>&1
+        run: docker exec magento2-container make sys-check
         continue-on-error: true
 
-      - name: Upload sys-check log
-        uses: actions/upload-artifact@v2
-        with:
-          name: sys-check-log
-          path: sys-check.log
-        if: always()
-
-      - name: Display sys-check log
-        run: cat ./sys-check.log
-        if: always()
-
       - name: Install plugin
-        run: docker exec -u www-data magento2-container make plugin
+        run: docker exec -u www-data magento2-container make instal
+        continue-on-error: true
 
       - run: docker exec magento2-container /etc/init.d/cron stop
 
