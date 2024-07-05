@@ -34,10 +34,10 @@ jobs:
         run: docker exec magento2-container make fs
 
       - name: Check install
-        run: docker exec magento2-container make sys-check
+        run: docker exec magento2-container make sys-check -vvv
 
       - name: Install plugin
-        run: docker exec -u www-data magento2-container make plugin
+        run: docker exec -u www-data magento2-container make plugin -vvv
 
       - run: docker exec magento2-container /etc/init.d/cron stop
 

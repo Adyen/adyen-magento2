@@ -38,7 +38,7 @@ jobs:
 #        continue-on-error: true
 
       - name: Install plugin
-        run: docker exec -u www-data magento2-container make install -vvv
+        run: docker exec -u www-data magento2-container make plugin -vvv
 #        continue-on-error: true
 
       - run: docker exec magento2-container /etc/init.d/cron stop
