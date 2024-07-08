@@ -64,7 +64,6 @@ define(
                 this._super();
                 let self = this;
 
-                this.isPlaceOrderAllowed(true);
 
                 let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
                 paymentMethodsObserver.subscribe(
@@ -77,6 +76,8 @@ define(
                     self.createCheckoutComponent(paymentMethodsObserver());
                 }
             },
+
+            paymentMethodStates: {},
 
             createCheckoutComponent: async function(paymentMethodsResponse) {
                 // Set to null by default and modify depending on the paymentMethods response
@@ -179,16 +180,57 @@ define(
                 });
             },
 
+            // renderCheckoutComponent: function() {
+            //     this.isPlaceOrderAllowed(false);
+            //     debugger;
+            //     if (!!this.paymentComponent && this.paymentComponent.isValid) {
+            //         this.isPlaceOrderAllowed(true);
+            //         // console.log(this.paymentMethod())
+            //         console.log(this.placeOrderButtonVisible)
+            //     }
+            //     let configuration = this.buildComponentConfiguration(this.paymentMethod(), this.paymentMethodsExtraInfo());
+            //
+            //     this.mountPaymentMethodComponent(this.paymentMethod(), configuration);
+            // },
+
             renderCheckoutComponent: function() {
-                this.isPlaceOrderAllowed(false);
+                let methodCode = this.getMethodCode();
+                let state = this.initializeMethod(methodCode);
+
                 let configuration = this.buildComponentConfiguration(this.paymentMethod(), this.paymentMethodsExtraInfo());
 
-                this.mountPaymentMethodComponent(this.paymentMethod(), configuration);
+                this.mountPaymentMethodComponent(this.paymentMethod(), configuration, methodCode);
+
+
+                debugger;
+                console.log(configuration)
+                // Use setTimeout to ensure the component has been mounted
+                setTimeout(() => {
+                    this.updatePlaceOrderButtonState(methodCode);
+                }, 0);
+            },
+            updatePlaceOrderButtonState: function(methodCode) {
+                let state = this.initializeMethod(methodCode);
+                let container = $(`#${methodCode}Container`);
+
+                // Check if the payment method has any input fields
+                let hasForm = container.find('input, select, textarea').length > 0;
+
+                if (hasForm) {
+                    // If there's a form, start with button disabled and let the onChange handler manage its state
+                    state.isPlaceOrderAllowed(false);
+                } else {
+                    // If there's no form, it's likely a direct redirect method, so enable the button
+                    state.isPlaceOrderAllowed(true);
+                }
             },
 
             buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo) {
                 let self = this;
                 let showPayButton = false;
+                let methodCode = this.getMethodCode();
+                let state = this.initializeMethod(methodCode);
+
 
                 let formattedShippingAddress = {};
                 let formattedBillingAddress = {};
@@ -222,21 +264,20 @@ define(
                 return this.item.method;
             },
 
-            mountPaymentMethodComponent(paymentMethod, configuration)
-            {
+            mountPaymentMethodComponent: function(paymentMethod, configuration, methodCode) {
                 let self = this;
+                let state = this.initializeMethod(methodCode);
 
                 try {
                     const containerId = '#' + paymentMethod.type + 'Container';
 
-                    this.paymentComponent = adyenCheckout.mountPaymentMethodComponent(
+                    state.paymentComponent = adyenCheckout.mountPaymentMethodComponent(
                         self.checkoutComponent,
                         self.getTxVariant(),
                         configuration,
                         containerId
                     );
                 } catch (err) {
-                    // The component does not exist yet
                     if ('test' === adyenConfiguration.getCheckoutEnvironment()) {
                         console.log(err);
                     }
@@ -244,14 +285,35 @@ define(
             },
 
             validate: function() {
+                let methodCode = this.getMethodCode();
+                let state = this.initializeMethod(methodCode);
+
+                if (!state.paymentComponent) {
+                    return true;
+                }
                 const form = '#adyen-' + this.getTxVariant() + '-form';
-                const validate = $(form).validation() && $(form).validation('isValid');
-                return validate && additionalValidators.validate();
+                return $(form).validation() && $(form).validation('isValid') && additionalValidators.validate();
             },
 
-            isPlaceOrderAllowed: function(bool) {
-                this.isPlaceOrderActionAllowed(bool);
-                return this.isPlaceOrderActionAllowed(bool);
+
+            initializeMethod: function(methodCode) {
+                if (!this.paymentMethodStates[methodCode]) {
+                    this.paymentMethodStates[methodCode] = {
+                        isPlaceOrderAllowed: ko.observable(true),
+                        paymentComponent: null
+                    };
+                }
+                return this.paymentMethodStates[methodCode];
+            },
+
+            isPlaceOrderAllowed: function(methodCode) {
+                let state = this.initializeMethod(methodCode);
+                return state.isPlaceOrderAllowed;
+            },
+
+            setPlaceOrderAllowed: function(methodCode, allowed) {
+                let state = this.initializeMethod(methodCode);
+                state.isPlaceOrderAllowed(allowed);
             },
 
             showPlaceOrderButton: function() {
@@ -259,10 +321,12 @@ define(
             },
 
             placeOrder: function() {
-                if (this.paymentComponent) {
+                let methodCode = this.getMethodCode();
+                let state = this.initializeMethod(methodCode);
 
-                    this.paymentComponent.showValidation();
-                    if (this.paymentComponent.state.isValid === false) {
+                if (state.paymentComponent) {
+                    state.paymentComponent.showValidation();
+                    if (state.paymentComponent.state.isValid === false) {
                         return false;
                     }
                 }
@@ -277,8 +341,8 @@ define(
                     additionalData.frontendType = 'luma';
 
                     let stateData;
-                    if (this.paymentComponent) {
-                        stateData = this.paymentComponent.data;
+                    if (state.paymentComponent) {
+                        stateData = state.paymentComponent.data;
                     } else {
                         stateData = {
                             paymentMethod: {
@@ -290,7 +354,7 @@ define(
                     additionalData.stateData = JSON.stringify(stateData);
                     data.additional_data = additionalData;
 
-                    this.placeRedirectOrder(data, this.paymentComponent);
+                    this.placeRedirectOrder(data, state.paymentComponent);
                 }
 
                 return false;
@@ -366,7 +430,8 @@ define(
 
 
             isButtonActive: function() {
-                return this.isPlaceOrderActionAllowed();
+                let methodCode = this.getMethodCode();
+                return this.isPlaceOrderAllowed(methodCode);
             },
 
             /**
