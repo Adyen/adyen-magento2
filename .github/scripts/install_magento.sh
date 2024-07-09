@@ -120,7 +120,7 @@ if [ "$DEPLOY_SAMPLEDATA" -eq 1 ]; then
 		tar -xf ../sample-data.tar.gz --strip-components 1 -C ../sample-data
 		rm ../sample-data.tar.gz
 		php -f ../sample-data/dev/tools/build-sample-data.php -- --ce-source="/var/www/html"
-		bin/magento setup:upgrade
+		bin/magento setup:upgrade --area="global"
 	else
 		echo "Sample data is already installed"
 	fi
