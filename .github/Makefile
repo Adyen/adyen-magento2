@@ -17,13 +17,13 @@ install:
 	composer require "adyen/module-payment:*"
 	vendor/bin/phpcs --standard=Magento2 --extensions=php,phtml --error-severity=10 --ignore-annotations -n -p vendor/adyen/module-payment
 	bin/magento module:enable Adyen_Payment
-	bin/magento setup:upgrade --area="global"
+	bin/magento setup:upgrade
 	bin/magento setup:di:compile
 
 # Install developer module
 dev-module:
 	bin/magento module:enable Adyen_Developer
-	bin/magento setup:upgrade --area="global"
+	bin/magento setup:upgrade
 
 # Configuration
 configure: n98-magerun2.phar
@@ -59,7 +59,7 @@ flush:
 # Setup upgrade
 enable-express:
 	bin/magento module:enable Adyen_ExpressCheckout
-	bin/magento setup:upgrade --area="global"
+	bin/magento setup:upgrade
 	bin/magento config:set payment/adyen_express/show_google_pay_on "1,2,3"
 	bin/magento config:set payment/adyen_express/show_apple_pay_on "1,2,3"
 	bin/magento cache:clean
