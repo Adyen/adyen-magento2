@@ -23,7 +23,7 @@ class EnablePaymentMethodsCommand extends Command
         parent::__construct();
 
         $this->paymentMethodsFactory = $paymentMethodsFactory;
-        $this->appState = $appState
+        $this->appState = $appState;
     }
 
     protected function configure(): void
