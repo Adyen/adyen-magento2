@@ -37,7 +37,7 @@ class EnablePaymentMethodsCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->state->setAreaCode(Area::AREA_GLOBAL);
+        $this->appState->setAreaCode(Area::AREA_GLOBAL);
 
         $output->writeln('Starting enabling payment methods.');
         $paymentMethods = $this->paymentMethodsFactory->create();
