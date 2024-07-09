@@ -84,7 +84,6 @@ else
 	chmod u+x bin/magento
 
 	bin/magento setup:install \
-		--area-code=adminhtml \
 		--base-url="http://$MAGENTO_HOST" \
 		--db-host="$DB_SERVER:$DB_PORT" \
 		--db-name="$DB_NAME" \
