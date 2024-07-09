@@ -34,14 +34,14 @@ jobs:
         run: docker exec magento2-container make fs
 
       - name: Check install
-        run: docker exec magento2-container make sys-check -vvv
+        run: docker exec magento2-container make sys-check
 #        continue-on-error: true
 
       - name: Install plugin
-        run: docker exec -u www-data magento2-container make plugin -vvv
+        run: docker exec -u www-data magento2-container make plugin
 #        continue-on-error: true
 
       - run: docker exec magento2-container /etc/init.d/cron stop
 
       - name: Run REST API tests
-        run: docker exec magento2-container make restapi -vvv
+        run: docker exec magento2-container make restapi
