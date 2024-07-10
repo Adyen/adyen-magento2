@@ -14,13 +14,10 @@ namespace Adyen\Payment\Controller\Adminhtml\Configuration;
 use Adyen\AdyenException;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\ManagementHelper;
-use Adyen\Service\Management\WebhooksMerchantLevelApi;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
-use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Controller\Result\JsonFactory;
-use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\StoreManager;
 
@@ -29,27 +26,27 @@ class WebhookTest extends Action
     /**
      * @var ManagementHelper
      */
-    private $managementApiHelper;
+    private ManagementHelper $managementApiHelper;
 
     /**
      * @var Config
      */
-    protected $configHelper;
+    protected Config $configHelper;
 
     /**
      * @var JsonFactory
      */
-    protected $resultJsonFactory;
+    protected JsonFactory $resultJsonFactory;
 
     /**
      * @var Context
      */
-    protected $context;
+    protected Context $context;
 
     /**
      * @var StoreManager
      */
-    protected $storeManager;
+    protected StoreManager $storeManager;
 
     /**
      * @param Context $context
@@ -74,11 +71,11 @@ class WebhookTest extends Action
     }
 
     /**
-     * @return ResponseInterface|Json|ResultInterface
+     * @return Json
      * @throws AdyenException
      * @throws NoSuchEntityException
      */
-    public function execute()
+    public function execute(): Json
     {
         $storeId = $this->storeManager->getStore()->getId();
 
