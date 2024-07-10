@@ -186,9 +186,6 @@ define(
 
                 this.mountPaymentMethodComponent(this.paymentMethod(), configuration, methodCode);
 
-
-                console.log(configuration)
-                // Use setTimeout to ensure the component has been mounted
                 setTimeout(() => {
                     this.updatePlaceOrderButtonState(methodCode);
                 }, 0);
