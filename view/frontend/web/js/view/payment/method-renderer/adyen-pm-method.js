@@ -212,7 +212,6 @@ define(
             buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo) {
                 let self = this;
                 let showPayButton = false;
-                let methodCode = this.getMethodCode();
 
 
                 let formattedShippingAddress = {};
