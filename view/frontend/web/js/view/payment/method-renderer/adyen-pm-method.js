@@ -213,7 +213,6 @@ define(
                 let self = this;
                 let showPayButton = false;
 
-
                 let formattedShippingAddress = {};
                 let formattedBillingAddress = {};
 
