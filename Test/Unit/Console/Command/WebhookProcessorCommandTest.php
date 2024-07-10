@@ -5,6 +5,7 @@ namespace Adyen\Payment\Test\Unit\Console\Command;
 use Adyen\Payment\Console\Command\WebhookProcessorCommand;
 use Adyen\Payment\Cron\WebhookProcessor;
 use Magento\Framework\Console\Cli;
+use Magento\Framework\App\State;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -42,6 +43,7 @@ class WebhookProcessorCommandTest extends TestCase
     {
         // Mock dependencies
         $webhookProcessorMock = $this->createMock(WebhookProcessor::class);
+        $appStateMock = $this->createMock(State::class);
         $inputMock = $this->createMock(InputInterface::class);
         $outputMock = $this->createMock(OutputInterface::class);
 
@@ -56,7 +58,7 @@ class WebhookProcessorCommandTest extends TestCase
             ->with('Starting webhook processor.');
 
         // Create the command instance
-        $command = new WebhookProcessorCommand($webhookProcessorMock);
+        $command = new WebhookProcessorCommand($webhookProcessorMock, $appStateMock);
 
         // Execute the command
         $result = $command->run($inputMock, $outputMock);
