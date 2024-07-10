@@ -17,7 +17,7 @@ install:
 	composer require "adyen/module-payment:*"
 	vendor/bin/phpcs --standard=Magento2 --extensions=php,phtml --error-severity=10 --ignore-annotations -n -p vendor/adyen/module-payment
 	bin/magento module:enable Adyen_Payment
-	bin/magento setup:upgrade
+	bin/magento setup:upgrade -vvv
 	bin/magento setup:di:compile
 
 # Install developer module
