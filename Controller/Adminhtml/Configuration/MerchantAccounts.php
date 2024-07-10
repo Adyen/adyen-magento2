@@ -1,23 +1,10 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
- * Adyen Payment Module
+ * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2022 Adyen N.V.
- * This file is open source and available under the MIT license.
- * See the LICENSE file for more info.
+ * Copyright (c) 2022 Adyen N.V. (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
@@ -28,21 +15,28 @@ use Adyen\AdyenException;
 use Adyen\ConnectionException;
 use Adyen\Payment\Helper\ManagementHelper;
 use Magento\Backend\App\Action;
+use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\Exception\NoSuchEntityException;
 
 class MerchantAccounts extends Action
 {
     /**
      * @var ManagementHelper
      */
-    protected $managementHelper;
+    protected ManagementHelper $managementHelper;
 
     /**
      * @var JsonFactory
      */
-    protected $resultJsonFactory;
+    protected JsonFactory $resultJsonFactory;
 
+    /**
+     * @param Context $context
+     * @param ManagementHelper $managementHelper
+     * @param JsonFactory $resultJsonFactory
+     */
     public function __construct(
         Context $context,
         ManagementHelper $managementHelper,
@@ -54,15 +48,16 @@ class MerchantAccounts extends Action
     }
 
     /**
-     * @return \Magento\Framework\Controller\Result\Json
+     * @return Json
+     * @throws NoSuchEntityException
      */
-    public function execute()
+    public function execute(): Json
     {
         $resultJson = $this->resultJsonFactory->create();
         try {
             $apiKey = $this->getRequest()->getParam('apiKey', '');
             $demoMode = (int) $this->getRequest()->getParam('demoMode');
-            //Use the stored xapi key if the return value is encrypted chars only or it is empty,
+            // Use the stored xapi key if the return value is encrypted chars only or it is empty,
             if (!empty($apiKey) && preg_match('/^\*+$/', (string) $apiKey)) {
                 $apiKey = '';
             }
@@ -88,4 +83,3 @@ class MerchantAccounts extends Action
         return $resultJson;
     }
 }
-
