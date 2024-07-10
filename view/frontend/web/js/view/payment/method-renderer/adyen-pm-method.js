@@ -181,7 +181,6 @@ define(
             },
             renderCheckoutComponent: function() {
                 let methodCode = this.getMethodCode();
-                let state = this.initializeMethod(methodCode);
 
                 let configuration = this.buildComponentConfiguration(this.paymentMethod(), this.paymentMethodsExtraInfo());
 
@@ -214,7 +213,6 @@ define(
                 let self = this;
                 let showPayButton = false;
                 let methodCode = this.getMethodCode();
-                let state = this.initializeMethod(methodCode);
 
 
                 let formattedShippingAddress = {};
