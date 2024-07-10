@@ -179,20 +179,6 @@ define(
                     self.isPlaceOrderAllowed(true);
                 });
             },
-
-            // renderCheckoutComponent: function() {
-            //     this.isPlaceOrderAllowed(false);
-            //     debugger;
-            //     if (!!this.paymentComponent && this.paymentComponent.isValid) {
-            //         this.isPlaceOrderAllowed(true);
-            //         // console.log(this.paymentMethod())
-            //         console.log(this.placeOrderButtonVisible)
-            //     }
-            //     let configuration = this.buildComponentConfiguration(this.paymentMethod(), this.paymentMethodsExtraInfo());
-            //
-            //     this.mountPaymentMethodComponent(this.paymentMethod(), configuration);
-            // },
-
             renderCheckoutComponent: function() {
                 let methodCode = this.getMethodCode();
                 let state = this.initializeMethod(methodCode);
@@ -202,7 +188,6 @@ define(
                 this.mountPaymentMethodComponent(this.paymentMethod(), configuration, methodCode);
 
 
-                debugger;
                 console.log(configuration)
                 // Use setTimeout to ensure the component has been mounted
                 setTimeout(() => {
@@ -285,14 +270,42 @@ define(
             },
 
             validate: function() {
-                let methodCode = this.getMethodCode();
-                let state = this.initializeMethod(methodCode);
+                let state = this.initializeMethod(this.getMethodCode());
 
                 if (!state.paymentComponent) {
                     return true;
                 }
+
+                state.paymentComponent.showValidation();
+
+                if (!this.isComponentValid(state.paymentComponent)) {
+                    return false;
+                }
+
                 const form = '#adyen-' + this.getTxVariant() + '-form';
                 return $(form).validation() && $(form).validation('isValid') && additionalValidators.validate();
+            },
+
+            isComponentValid: function(component) {
+                return component.state.isValid !== false &&
+                    !this.isPaymentDataEmpty(component.state) &&
+                    !this.isPaymentDataEmpty(component.data);
+            },
+
+            isPaymentDataEmpty: function(obj) {
+                if (obj && obj.data && typeof obj.data === 'object' && Object.keys(obj.data).length > 0) {
+                    return Object.values(obj.data).every(value =>
+                        value === '' || (typeof value === 'object' && Object.keys(value).length === 0)
+                    );
+                }
+                return false;
+            },
+
+
+            showErrorMessage: function(message) {
+                messageList.addErrorMessage({
+                    message: message
+                });
             },
 
 
@@ -326,9 +339,6 @@ define(
 
                 if (state.paymentComponent) {
                     state.paymentComponent.showValidation();
-                    if (state.paymentComponent.state.isValid === false) {
-                        return false;
-                    }
                 }
 
                 if (this.validate()) {
@@ -355,6 +365,8 @@ define(
                     data.additional_data = additionalData;
 
                     this.placeRedirectOrder(data, state.paymentComponent);
+                } else {
+                    this.isPlaceOrderAllowed(true);
                 }
 
                 return false;
@@ -363,28 +375,25 @@ define(
             placeRedirectOrder: async function(data, component) {
                 const self = this;
 
-                // Place Order but use our own redirect url after
                 fullScreenLoader.startLoader();
                 $('.hpp-message').slideUp();
                 self.isPlaceOrderAllowed(false);
 
-                await $.when(placeOrderAction(data, self.currentMessageContainer)).fail(
-                    function(response) {
-                       self.handleOnFailure(response, component);
-                    }
-                ).done(
-                    function(orderId) {
-                        self.afterPlaceOrder();
-                        adyenPaymentService.getOrderPaymentStatus(orderId).done(function(responseJSON) {
-                            self.validateActionOrPlaceOrder(responseJSON, orderId, component);
-                        });
-                    }
-                );
+                try {
+                    const orderId = await placeOrderAction(data, self.currentMessageContainer);
+                    self.afterPlaceOrder();
+                    const responseJSON = await adyenPaymentService.getOrderPaymentStatus(orderId);
+                    self.validateActionOrPlaceOrder(responseJSON, orderId, component);
+                } catch (response) {
+                    self.handleOnFailure(response, component);
+                }
             },
+
 
             handleOnFailure: function(response, component) {
                 this.isPlaceOrderAllowed(true);
                 fullScreenLoader.stopLoader();
+                errorProcessor.process(response, this.currentMessageContainer);
             },
 
             /**
