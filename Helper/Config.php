@@ -51,9 +51,11 @@ class Config
     const XML_MOTO_MERCHANT_ACCOUNTS = 'moto_merchant_accounts';
     const XML_CONFIGURATION_MODE = 'configuration_mode';
     const XML_ADYEN_POS_CLOUD = 'adyen_pos_cloud';
+    const XML_PAYMENT_ACTION = 'payment_action';
     const XML_WEBHOOK_NOTIFICATION_PROCESSOR = 'webhook_notification_processor';
     const AUTO_CAPTURE_OPENINVOICE = 'auto';
     const XML_RECURRING_CONFIGURATION = 'recurring_configuration';
+    const XML_ALLOW_MULTISTORE_TOKENS = 'allow_multistore_tokens';
 
     protected ScopeConfigInterface $scopeConfig;
     private EncryptorInterface $encryptor;
@@ -464,6 +466,11 @@ class Config
         return $this->getConfigData($field, self::XML_ADYEN_POS_CLOUD, $storeId, $flag);
     }
 
+    public function getAdyenPosCloudPaymentAction(int $storeId): string
+    {
+        return $this->getAdyenPosCloudConfigData(self::XML_PAYMENT_ACTION, $storeId);
+    }
+
     public function useQueueProcessor($storeId = null): bool
     {
         return $this->getConfigData(
@@ -559,6 +566,16 @@ class Config
         return $this->getConfigData("ratepay_id", self::XML_ADYEN_RATEPAY, $storeId);
     }
 
+    public function getAllowMultistoreTokens(int $storeId = null): ?bool
+    {
+        return $this->getConfigData(
+            self::XML_ALLOW_MULTISTORE_TOKENS,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId,
+            true
+        );
+    }
+
     public function getConfigData(string $field, string $xmlPrefix, ?int $storeId, bool $flag = false): mixed
     {
         $path = implode("/", [self::XML_PAYMENT_PREFIX, $xmlPrefix, $field]);
@@ -574,9 +591,28 @@ class Config
         $value,
         string $field,
         string $xmlPrefix,
-        $scope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT
+        string $scope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
+        int $scopeId = 0
     ): void {
         $path = implode("/", [self::XML_PAYMENT_PREFIX, $xmlPrefix, $field]);
-        $this->configWriter->save($path, $value, $scope);
+        $this->configWriter->save($path, $value, $scope, $scopeId);
+    }
+
+    /**
+     * Deletes config data
+     * @param string $field
+     * @param string $xmlPrefix
+     * @param string $scope
+     * @param int $scopeId
+     * @return void
+     */
+    public function removeConfigData(
+        string $field,
+        string $xmlPrefix,
+        string $scope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
+        int $scopeId = 0
+    ): void {
+        $path = implode("/", [self::XML_PAYMENT_PREFIX, $xmlPrefix, $field]);
+        $this->configWriter->delete($path, $scope, $scopeId);
     }
 }

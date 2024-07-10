@@ -53,16 +53,17 @@ class TransactionCapture implements ClientInterface
         $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
         $service = $this->adyenHelper->initializeModificationsApi($client);
 
-        $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
-            $request,
-            $headers['idempotencyExtraData'] ?? null
-        );
-
-        $requestOptions['idempotencyKey'] = $idempotencyKey;
         $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
 
         if (array_key_exists(self::MULTIPLE_AUTHORIZATIONS, $request)) {
             return $this->placeMultipleCaptureRequests($service, $request, $requestOptions);
+        }
+        else {
+            $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
+                $request,
+                $headers['idempotencyExtraData'] ?? null
+            );
+            $requestOptions['idempotencyKey'] = $idempotencyKey;
         }
 
         $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/captures');
@@ -94,6 +95,14 @@ class TransactionCapture implements ClientInterface
     {
         $response = [];
         foreach ($requestContainer[self::MULTIPLE_AUTHORIZATIONS] as $request) {
+            $idempotencyKeyExtraData = $request['idempotencyExtraData'];
+            unset($request['idempotencyExtraData']);
+            $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
+                $request,
+                $idempotencyKeyExtraData ?? null
+            );
+
+            $requestOptions['idempotencyKey'] = $idempotencyKey;
             try {
                 // Copy merchant account from parent array to every request array
                 $request[Requests::MERCHANT_ACCOUNT] = $requestContainer[Requests::MERCHANT_ACCOUNT];
@@ -106,10 +115,10 @@ class TransactionCapture implements ClientInterface
 
                 $singleResponse = json_decode(json_encode($singleResponseObj->jsonSerialize()), true);
                 $singleResponse[self::FORMATTED_CAPTURE_AMOUNT] = $request['amount']['currency'] . ' ' .
-                $this->adyenHelper->originalAmount(
-                    $request['amount']['value'],
-                    $request['amount']['currency']
-                );
+                    $this->adyenHelper->originalAmount(
+                        $request['amount']['value'],
+                        $request['amount']['currency']
+                    );
                 $singleResponse = $this->copyParamsToResponse($singleResponse, $request);
                 $response[self::MULTIPLE_AUTHORIZATIONS][] = $singleResponse;
             } catch (AdyenException $e) {

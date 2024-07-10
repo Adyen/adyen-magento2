@@ -29,6 +29,7 @@ use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\OrderFactory;
+use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
 class IndexTest extends AbstractAdyenTestCase
@@ -41,6 +42,7 @@ class IndexTest extends AbstractAdyenTestCase
     private $quoteMock;
     private $orderEntityMock;
     private $paymentEntityMock;
+    private $storeMock;
 
     private $contextMock;
     private $orderFactoryMock;
@@ -51,6 +53,8 @@ class IndexTest extends AbstractAdyenTestCase
     private $configHelperMock;
     private $paymentsDetailsHelperMock;
     private $paymentResponseHandlerMock;
+
+    const STORE_ID = 1;
 
     protected function setUp(): void
     {
@@ -92,10 +96,13 @@ class IndexTest extends AbstractAdyenTestCase
         $this->contextMock->method('getResponse')->willReturn($this->contextResponseMock);
         $this->configHelperMock->method('getAdyenAbstractConfigData')->will(
             $this->returnValueMap([
-                ['return_path', null, '/checkout/cart'],
-                ['custom_success_redirect_path', null, null]
+                ['return_path', self::STORE_ID, '/checkout/cart'],
+                ['custom_success_redirect_path', self::STORE_ID, null]
             ])
         );
+        $this->storeMock = $this->createMock(StoreInterface::class);
+        $this->storeMock->method('getId')->willReturn(self::STORE_ID);
+        $this->storeManagerMock->method('getStore')->willReturn($this->storeMock);
 
         $this->indexControllerMock = new Index(
             $this->contextMock,

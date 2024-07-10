@@ -81,7 +81,6 @@ define(
             createCheckoutComponent: async function(paymentMethodsResponse) {
                 // Set to null by default and modify depending on the paymentMethods response
                 this.adyenPaymentMethod(null);
-
                 if (this.checkBrowserCompatibility() && !!paymentMethodsResponse.paymentMethodsResponse) {
                     this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
                         paymentMethodsResponse,
@@ -275,6 +274,7 @@ define(
 
                     let additionalData = {};
                     additionalData.brand_code = this.paymentMethod().type;
+                    additionalData.frontendType = 'luma';
 
                     let stateData;
                     if (this.paymentComponent) {
@@ -306,9 +306,7 @@ define(
 
                 await $.when(placeOrderAction(data, self.currentMessageContainer)).fail(
                     function(response) {
-                        self.isPlaceOrderAllowed(true);
-                        fullScreenLoader.stopLoader();
-                        component.handleReject(response);
+                       self.handleOnFailure(response, component);
                     }
                 ).done(
                     function(orderId) {
@@ -318,6 +316,11 @@ define(
                         });
                     }
                 );
+            },
+
+            handleOnFailure: function(response, component) {
+                this.isPlaceOrderAllowed(true);
+                fullScreenLoader.stopLoader();
             },
 
             /**

@@ -11,7 +11,6 @@
 
 namespace Adyen\Payment\Test\Unit\Gateway\Http\Client;
 
-use Adyen\Model\Checkout\PaymentDetailsRequest;
 use Adyen\Model\Checkout\PaymentRequest;
 use Adyen\Payment\Api\Data\PaymentResponseInterface;
 use Adyen\Payment\Model\PaymentResponse;
@@ -38,7 +37,7 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
     private $orderApiHelperMock;
     private $storeManagerMock;
     private $giftcardPaymentHelperMock;
-    private TransactionPayment $transactionPayment;
+    private $transactionPayment;
 
     protected function setUp(): void
     {
@@ -141,6 +140,8 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
             ->method('buildRequestHeaders')
             ->willReturn($expectedHeaders);
 
+        $actualHeaders = $this->adyenHelperMock->buildRequestHeaders();
+
         $paymentResponse = new \Adyen\Model\Checkout\PaymentResponse([
             'reference' => 'ABC12345',
             'amount' => ['value' => 100],
@@ -164,6 +165,7 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
 
         $this->assertArrayHasKey('resultCode', $response);
         $this->assertEquals('Authorised', $response['resultCode']);
+        $this->assertEquals($expectedHeaders, $actualHeaders);
     }
 
     public function testProcessGiftCardsWithNoGiftCards()

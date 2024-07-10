@@ -45,7 +45,7 @@ RUN a2enmod ssl
 RUN a2ensite default-ssl.conf #can be removed if not needed
 WORKDIR /var/www/html
 COPY config/php.ini /usr/local/etc/php/
-COPY config/install_magento.sh /tmp/install_magento.sh
+COPY scripts/install_magento.sh /tmp/install_magento.sh
 
 RUN if [ -x "$(command -v apache2-foreground)" ]; then a2enmod rewrite; fi
 

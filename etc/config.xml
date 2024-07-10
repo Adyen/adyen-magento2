@@ -33,6 +33,7 @@
                 <payment_authorized>processing</payment_authorized>
                 <payment_cancelled>canceled</payment_cancelled>
                 <capture_for_openinvoice>manual</capture_for_openinvoice>
+                <allow_multistore_tokens>1</allow_multistore_tokens>
             </adyen_abstract>
             <adyen_cc>
                 <active>0</active>
@@ -2025,8 +2026,8 @@
                 <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
-          </adyen_mobilepay>
-          <adyen_vipps>
+            </adyen_mobilepay>
+            <adyen_vipps>
                 <active>0</active>
                 <model>AdyenPaymentVippsFacade</model>
                 <title>Vipps</title>
@@ -2048,6 +2049,138 @@
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_vipps>
+            <adyen_bizum>
+                <active>0</active>
+                <model>AdyenPaymentBizumFacade</model>
+                <title>Bizum</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>0</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_bizum>
+            <adyen_ach>
+                <active>0</active>
+                <model>AdyenPaymentAchFacade</model>
+                <title>ACH US Direct Debit</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>1</supports_recurring>
+                <supports_manual_capture>1</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_ach>
+            <adyen_onlinebanking_IN>
+                <active>0</active>
+                <model>AdyenPaymentOnlinebankingINFacade</model>
+                <title>Netbanking India</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>1</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_onlinebanking_IN>
+            <adyen_paypo>
+                <active>0</active>
+                <model>AdyenPaymentPaypoFacade</model>
+                <title>PayPo</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>1</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_paypo>
+            <adyen_wallet_IN>
+                <active>0</active>
+                <model>AdyenPaymentWalletINFacade</model>
+                <title>Wallets in India</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>1</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>1</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_wallet_IN>
+            <adyen_upi>
+                <active>0</active>
+                <model>AdyenPaymentUpiFacade</model>
+                <title>UPI Payment Method India</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>1</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_upi>
         </payment>
     </default>
 </config>

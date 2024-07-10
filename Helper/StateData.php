@@ -16,7 +16,9 @@ use Adyen\Payment\Helper\Util\CheckoutStateDataValidator;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\ResourceModel\StateData as StateDataResourceModel;
 use Adyen\Payment\Model\ResourceModel\StateData\Collection as StateDataCollection;
+use Adyen\Payment\Model\StateData as AdyenStateData;
 use Adyen\Payment\Model\StateDataFactory;
+use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 
@@ -80,7 +82,14 @@ class StateData
         return $stateDataByQuoteId['paymentMethod']['type'];
     }
 
-    public function saveStateData(string $stateData, int $quoteId): void
+    /**
+     * @param string $stateData
+     * @param int $quoteId
+     * @return AdyenStateData
+     * @throws LocalizedException
+     * @throws AlreadyExistsException
+     */
+    public function saveStateData(string $stateData, int $quoteId): AdyenStateData
     {
         // Decode payload from frontend
         $stateData = json_decode($stateData, true);
@@ -92,10 +101,11 @@ class StateData
 
         $stateData = json_encode($this->checkoutStateDataValidator->getValidatedAdditionalData($stateData));
 
-        /** @var \Adyen\Payment\Model\StateData $stateDataObj */
         $stateDataObj = $this->stateDataFactory->create();
         $stateDataObj->setQuoteId($quoteId)->setStateData((string)$stateData);
         $this->stateDataResourceModel->save($stateDataObj);
+
+        return $stateDataObj;
     }
 
     /**

@@ -4,11 +4,12 @@ namespace Adyen\Payment\Setup;
 
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\PaymentMethodsFactory;
-use Magento\Framework\Setup\InstallSchemaInterface;
+use Magento\Framework\Setup\InstallDataInterface;
 use Magento\Framework\Setup\ModuleContextInterface;
+use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\SchemaSetupInterface;
 
-class Recurring implements InstallSchemaInterface
+class RecurringData implements InstallDataInterface
 {
     private PaymentMethodsFactory $paymentMethodsFactory;
 
@@ -19,7 +20,7 @@ class Recurring implements InstallSchemaInterface
         $this->paymentMethodsFactory = $paymentMethodsFactory;
     }
 
-    public function install(SchemaSetupInterface $setup, ModuleContextInterface $context)
+    public function install(ModuleDataSetupInterface $setup, ModuleContextInterface $context)
     {
         $setup->startSetup();
         $paymentMethods = $this->paymentMethodsFactory->create();
@@ -28,3 +29,4 @@ class Recurring implements InstallSchemaInterface
         $setup->endSetup();
     }
 }
+

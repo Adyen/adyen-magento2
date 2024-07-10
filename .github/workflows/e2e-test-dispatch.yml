@@ -31,22 +31,22 @@ jobs:
     env:
       PHP_VERSION: "8.1"
       MAGENTO_VERSION: "2.4.5"
+      ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
+      ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
+      ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
       ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
       ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
+      DONATION_ACCOUNT: ${{secrets.DONATION_ACCOUNT}}
+      DEPLOY_SAMPLEDATA: 1
     steps:
       - uses: actions/checkout@v3
 
       - name: Install Magento
-        run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm web make magento
+        run: docker-compose -f .github/docker-compose.yml run --rm web make magento
 
       - name: Start web server in background
-        run: docker-compose -f .github/workflows/templates/docker-compose.yml up -d web
-        env:
-          DONATION_ACCOUNT: ${{secrets.DONATION_ACCOUNT}}
-          ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
-          ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
-          ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
-
+        run: docker-compose -f .github/docker-compose.yml up -d web
+        
       - name: Setup permissions
         run: docker exec magento2-container make fs
 
@@ -94,7 +94,7 @@ jobs:
         run: docker exec magento2-container make fs
 
       - name: Run E2E tests
-        run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm playwright /e2e.sh ${{inputs.testGroup}}
+        run: docker-compose -f .github/docker-compose.e2e.yml run --rm playwright /e2e.sh ${{inputs.testGroup}}
         env:
           INTEGRATION_TESTS_BRANCH: ${{inputs.testBranch}}
           MAGENTO_ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
@@ -102,9 +102,6 @@ jobs:
           MAGENTO_BASE_URL: ${{secrets.MAGENTO_BASE_URL}}
           PAYPAL_USERNAME: ${{secrets.PLAYWRIGHT_PAYPAL_USERNAME}}
           PAYPAL_PASSWORD: ${{secrets.PLAYWRIGHT_PAYPAL_PASSWORD}}
-          ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
-          ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
-          ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
           GOOGLE_USERNAME: ${{secrets.GOOGLE_USERNAME}}
           GOOGLE_PASSWORD: ${{secrets.GOOGLE_PASSWORD}}
           WEBHOOK_USERNAME: admin

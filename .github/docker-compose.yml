@@ -29,31 +29,37 @@ services:
         - PHP_VERSION=${PHP_VERSION}
         - MAGENTO_VERSION=${MAGENTO_VERSION}
     container_name: magento2-container
+    extra_hosts:
+      - "magento2.test.com:127.0.0.1"
     networks:
       backend:
         aliases:
           - magento2.test.com
     environment:
-      - DB_SERVER=mariadb
-      - ELASTICSEARCH_SERVER=elasticsearch
-      - MAGENTO_HOST=magento2.test.com
-      - VIRTUAL_HOST=magento2.test.com
-      - ADMIN_URLEXT=admin
-      - DONATION_ACCOUNT
-      - ADMIN_USERNAME
-      - ADMIN_PASSWORD
-      - ADYEN_MERCHANT
-      - ADYEN_API_KEY
-      - ADYEN_CLIENT_KEY
-      - PHP_VERSION
-      - MAGENTO_VERSION
-      - WEBHOOK_USERNAME
-      - WEBHOOK_PASSWORD
+      DB_SERVER: mariadb
+      ELASTICSEARCH_SERVER: elasticsearch
+      MAGENTO_HOST: magento2.test.com
+      VIRTUAL_HOST: magento2.test.com
+      COMPOSER_MEMORY_LIMIT: -1
+      DEPLOY_SAMPLEDATA:
+      DONATION_ACCOUNT:
+      ADMIN_USERNAME:
+      ADMIN_PASSWORD:
+      ADYEN_MERCHANT:
+      ADYEN_API_KEY:
+      ADYEN_CLIENT_KEY:
+      PHP_VERSION:
+      MAGENTO_VERSION:
     depends_on:
       - db
       - elastic
     volumes:
       - ../:/data/extensions/workdir
       - ./Makefile:/var/www/html/Makefile
+      - composer:/usr/local/bin
+      - magento:/var/www/html
 networks:
   backend:
+volumes:
+  magento:
+  composer:

@@ -93,6 +93,7 @@ class Index extends Action
     {
         // Receive all params as this could be a GET or POST request
         $redirectResponse = $this->getRequest()->getParams();
+        $storeId = $this->storeManager->getStore()->getId();
 
         if ($redirectResponse) {
             $result = $this->validateRedirectResponse($redirectResponse);
@@ -105,9 +106,9 @@ class Index extends Action
                 $successPath = $failPath = 'multishipping/checkout/success';
                 $setQuoteAsActive = true;
             } else {
-                $successPath = $this->configHelper->getAdyenAbstractConfigData('custom_success_redirect_path') ??
+                $successPath = $this->configHelper->getAdyenAbstractConfigData('custom_success_redirect_path', $storeId) ??
                     'checkout/onepage/success';
-                $failPath = $this->configHelper->getAdyenAbstractConfigData('return_path');
+                $failPath = $this->configHelper->getAdyenAbstractConfigData('return_path', $storeId);
                 $setQuoteAsActive = false;
             }
 
@@ -115,7 +116,7 @@ class Index extends Action
                 $this->session->getQuote()->setIsActive($setQuoteAsActive)->save();
 
                 // Add OrderIncrementId to redirect parameters for headless support.
-                $redirectParams = $this->configHelper->getAdyenAbstractConfigData('custom_success_redirect_path')
+                $redirectParams = $this->configHelper->getAdyenAbstractConfigData('custom_success_redirect_path', $storeId)
                     ? ['_query' => ['utm_nooverride' => '1', 'order_increment_id' => $this->order->getIncrementId()]]
                     : ['_query' => ['utm_nooverride' => '1']];
                 $this->_redirect($successPath, $redirectParams);
@@ -135,7 +136,7 @@ class Index extends Action
                 $this->_redirect($failPath, ['_query' => ['utm_nooverride' => '1']]);
             }
         } else {
-            $this->_redirect($this->configHelper->getAdyenAbstractConfigData('return_path'));
+            $this->_redirect($this->configHelper->getAdyenAbstractConfigData('return_path', $storeId));
         }
     }
 

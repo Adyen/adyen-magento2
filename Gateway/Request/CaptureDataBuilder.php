@@ -114,7 +114,7 @@ class CaptureDataBuilder implements BuilderInterface
 
         //Check additionaldata
         if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) {
-            $openInvoiceFields = $this->openInvoiceHelper->getOpenInvoiceDataForOrder($order);
+            $openInvoiceFields = $this->openInvoiceHelper->getOpenInvoiceDataForInvoice($latestInvoice);
             $requestBody = array_merge($requestBody, $openInvoiceFields);
         }
         $request['body'] = $requestBody;
@@ -179,9 +179,19 @@ class CaptureDataBuilder implements BuilderInterface
                 if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod(
                     $adyenOrderPayment[OrderPaymentInterface::PAYMENT_METHOD]
                 )) {
-                    $openInvoiceFields = $this->openInvoiceHelper->getOpenInvoiceDataForLastInvoice($payment);
+                    $order = $payment->getOrder();
+                    $invoices = $order->getInvoiceCollection();
+                    // The latest invoice will contain only the selected items(and quantities) for the (partial) capture
+                    /** @var Invoice $invoice */
+                    $invoice = $invoices->getLastItem();
+
+                    $openInvoiceFields = $this->openInvoiceHelper->getOpenInvoiceDataForInvoice($invoice);
                     $authToCapture = array_merge($authToCapture, $openInvoiceFields);
                 }
+                $authToCapture['idempotencyExtraData'] = [
+                    'totalInvoiced' => $adyenOrderPayment[OrderPaymentInterface::TOTAL_CAPTURED] ?? 0,
+                    'originalPspReference' => $adyenOrderPayment[OrderPaymentInterface::PSPREFRENCE]
+            ] ;
 
                 $captureData[] = $authToCapture;
             }
@@ -194,11 +204,6 @@ class CaptureDataBuilder implements BuilderInterface
 
         $request['body'] = $requestBody;
         $request['clientConfig'] = ["storeId" => $payment->getOrder()->getStoreId()];
-        $request['headers'] = [
-            'idempotencyExtraData' => [
-                'totalInvoiced' => $payment->getOrder()->getTotalInvoiced() ?? 0
-            ]
-        ];
 
         return $request;
     }

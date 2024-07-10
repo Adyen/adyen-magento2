@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Observer;
 
+use Adyen\Payment\Gateway\Request\HeaderDataBuilder;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Util\CheckoutStateDataValidator;
 use Adyen\Payment\Helper\Util\DataArrayValidator;
@@ -19,7 +20,6 @@ use Adyen\Payment\Model\ResourceModel\StateData\Collection;
 use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
-use Magento\Store\Model\StoreManagerInterface;
 
 class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
 {
@@ -38,32 +38,31 @@ class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
         self::STATE_DATA,
         self::RETURN_URL,
         self::RECURRING_PROCESSING_MODEL,
-        self::CC_NUMBER
+        self::CC_NUMBER,
+        HeaderDataBuilder::FRONTENDTYPE
     ];
 
     protected CheckoutStateDataValidator $checkoutStateDataValidator;
     protected Collection $stateDataCollection;
     private StateData $stateData;
-    private StoreManagerInterface $storeManager;
     private Vault $vaultHelper;
 
     public function __construct(
         CheckoutStateDataValidator $checkoutStateDataValidator,
         Collection $stateDataCollection,
         StateData $stateData,
-        StoreManagerInterface $storeManager,
         Vault $vaultHelper
     ) {
         $this->checkoutStateDataValidator = $checkoutStateDataValidator;
         $this->stateDataCollection = $stateDataCollection;
         $this->stateData = $stateData;
-        $this->storeManager = $storeManager;
         $this->vaultHelper = $vaultHelper;
     }
 
     public function execute(Observer $observer)
     {
         $additionalDataToSave = [];
+        $stateData = null;
         // Get request fields
         $data = $this->readDataArgument($observer);
         $paymentInfo = $this->readPaymentModelArgument($observer);
@@ -87,11 +86,17 @@ class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
         if (!empty($additionalData[self::STATE_DATA])) {
             $stateData = json_decode((string) $additionalData[self::STATE_DATA], true);
         } elseif (!empty($additionalData[self::CC_NUMBER])) {
+            //This block goes for multi shipping scenarios
             $stateData = json_decode((string) $additionalData[self::CC_NUMBER], true);
             $paymentInfo->setAdditionalInformation(self::BRAND_CODE, $stateData['paymentMethod']['type']);
-        } else {
+        } elseif($paymentInfo->getData('method') != 'adyen_giftcard') {
             $stateData = $this->stateDataCollection->getStateDataArrayWithQuoteId($paymentInfo->getData('quote_id'));
+            if(!empty($stateData) && $stateData['paymentMethod']['type'] == 'giftcard')
+            {
+                $stateData = null;
+            }
         }
+
         // Get validated state data array
         if (!empty($stateData)) {
             $stateData = $this->checkoutStateDataValidator->getValidatedAdditionalData($stateData);

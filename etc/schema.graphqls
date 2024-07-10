@@ -9,6 +9,14 @@ type Query {
         shopper_locale: String @doc(description: "Language and country code combination separated by underscore (_), e.g. en_US")
         country: String @doc(description: "Country code to be used in paymentMethods call, e.g. US")
     ) : AdyenPaymentMethods @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentMethods")
+
+    adyenPaymentMethodsBalance (
+        payload: String! @doc(description: "JSON encoded payload with giftcard state data and amount.")
+    ): AdyenPaymentMethodsBalanceResponse @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentMethodsBalance")
+
+    adyenRedeemedGiftcards (
+        cartId: String! @doc(description: "Cart ID for which to fetch redeemed gift cards.")
+    ): AdyenRedeemedGiftcardsResponse @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenRedeemedGiftcards")
 }
 
 type Mutation {
@@ -16,6 +24,16 @@ type Mutation {
         payload: String! @doc(description: "Payload JSON String with orderId, details, paymentData and threeDSAuthenticationOnly.")
         cart_id: String! @doc(description: "Cart ID.")
     ) : AdyenPaymentStatus @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentDetails")
+
+    adyenSaveStateData (
+        stateData: String! @doc(description: "JSON string of Adyen state data.")
+        cartId: String! @doc(description: "Cart ID associated with the state data.")
+    ): AdyenStateData @resolver(class: "Adyen\\Payment\\Model\\Resolver\\SaveAdyenStateData")
+
+    adyenRemoveStateData(
+        stateDataId: Int! @doc(description: "ID of the state data to remove.")
+        cartId: String! @doc(description: "Cart ID associated with the state data.")
+    ): AdyenStateData @resolver(class: "Adyen\\Payment\\Model\\Resolver\\RemoveAdyenStateData")
 }
 
 type AdyenPaymentStatus {
@@ -62,7 +80,6 @@ type AdyenPaymentMethodsArray {
     brand: String @doc(description: "Brand for the selected gift card. For example: plastix, hmclub.")
     brands: [String] @doc(description: "List of possible brands. For example: visa, mc.")
     configuration: AdyenPaymentMethodsConfiguration @doc(description: "The configuration of the payment method.")
-    details: [AdyenPaymentMethodsDetails] @doc(description: "All input details to be provided to complete the payment with this payment method.")
     issuers: [AdyenPaymentMethodsIssuers] @doc(description: "Payment method issuer list.")
 }
 
@@ -88,6 +105,33 @@ type AdyenPaymentMethodsIssuers {
 type AdyenPaymentMethodsDetailsItems {
     id: String @doc(description: "The value to provide in the result.")
     name: String @doc(description: "The display name.")
+}
+
+type AdyenPaymentMethodsBalanceResponse {
+    balanceResponse: String @doc(description: "Balance of the payment method.")
+}
+
+type AdyenRedeemedGiftcardsResponse {
+    redeemedGiftcards: [AdyenGiftcard] @doc(description: "List of redeemed gift cards.")
+    remainingAmount: String @doc(description: "Remaining order amount after giftcard discount.")
+    totalDiscount: String @doc(description: "Total giftcard discount applied to the cart.")
+}
+
+type PaymentMethodBalance {
+    currency: String @doc(description: "Cart currency")
+    value: String @doc(description: "Total cart amount")
+}
+
+type AdyenGiftcard {
+    stateDataId: String @doc(description: "Gift card identifier.")
+    brand: String @doc(description: "Gift card brand")
+    title: String @doc(description: "Gift card payment method title")
+    balance: PaymentMethodBalance @doc(description: "Remaining balance on the gift card.")
+    deductedAmount: String @doc(description: "Deducted balance from the gift card")
+}
+
+type AdyenStateData {
+    stateDataId: String @doc(description: "ID of the inserted stateData object.")
 }
 
 type AdyenPaymentMethodsExtraDetails {

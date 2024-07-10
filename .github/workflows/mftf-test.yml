@@ -17,16 +17,16 @@ jobs:
       MAGENTO_VERSION: ${{ matrix.magento-version }}
       ADMIN_USERNAME: ${{ secrets.MAGENTO_ADMIN_USERNAME }}
       ADMIN_PASSWORD: ${{ secrets.MAGENTO_ADMIN_PASSWORD }}
+      DONATION_ACCOUNT: ${{secrets.DONATION_ACCOUNT}}
+      ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
+      ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
+      ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
+      ADMIN_URLEXT: admin
     steps:
       - uses: actions/checkout@v3
 
       - name: Start services
         run: docker-compose -f .github/docker-compose.yml -f .github/docker-compose.mftf.yml up -d
-        env:
-          DONATION_ACCOUNT: ${{secrets.DONATION_ACCOUNT}}
-          ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
-          ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
-          ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
 
       # Temp solution to wait for install script to run
       - name: Sleep for 120 seconds

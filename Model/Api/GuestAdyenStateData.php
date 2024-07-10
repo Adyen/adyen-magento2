@@ -14,6 +14,7 @@ namespace Adyen\Payment\Model\Api;
 
 use Adyen\Payment\Api\GuestAdyenStateDataInterface;
 use Adyen\Payment\Helper\StateData as StateDataHelper;
+use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -33,14 +34,19 @@ class GuestAdyenStateData implements GuestAdyenStateDataInterface
     }
 
     /**
+     * @param string $stateData
+     * @param string $cartId
+     * @return int
      * @throws InputException
      * @throws LocalizedException
+     * @throws AlreadyExistsException
      */
-    public function save(string $stateData, string $cartId): void
+    public function save(string $stateData, string $cartId): int
     {
         $quoteId = $this->getQuoteIdFromMaskedCartId($cartId);
+        $stateData = $this->stateDataHelper->saveStateData($stateData, $quoteId);
 
-        $this->stateDataHelper->saveStateData($stateData, $quoteId);
+        return $stateData->getEntityId();
     }
 
     /**

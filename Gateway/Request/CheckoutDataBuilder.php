@@ -16,11 +16,9 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\OpenInvoice;
-use Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
-use Magento\Catalog\Helper\Image;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
@@ -40,28 +38,32 @@ class CheckoutDataBuilder implements BuilderInterface
     /**
      * @var Data
      */
-    private $adyenHelper;
+    private Data $adyenHelper;
 
     /**
      * @var CartRepositoryInterface
      */
-    private $cartRepository;
+    private CartRepositoryInterface $cartRepository;
 
     /**
      * @var ChargedCurrency
      */
-    private $chargedCurrency;
+    private ChargedCurrency $chargedCurrency;
 
     /**
      * @var StateData
      */
-    private $stateData;
+    private StateData $stateData;
 
-    /** @var Config */
-    private $configHelper;
+    /**
+     * @var Config
+     */
+    private Config $configHelper;
 
-    /** @var OpenInvoice */
-    private $openInvoiceHelper;
+    /**
+     * @var OpenInvoice
+     */
+    private OpenInvoice $openInvoiceHelper;
 
     /**
      * CheckoutDataBuilder constructor.

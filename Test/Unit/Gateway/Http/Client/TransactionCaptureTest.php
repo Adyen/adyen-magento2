@@ -2,118 +2,124 @@
 
 namespace Adyen\Payment\Test\Unit\Gateway\Http\Client;
 
-use Adyen\Client;
-use Adyen\Model\Checkout\PaymentCaptureResponse;
 use Adyen\Payment\Gateway\Http\Client\TransactionCapture;
-use Adyen\Payment\Helper\Data;
-use Adyen\Payment\Helper\Requests;
-use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Helper\Idempotency;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
-use Adyen\Service\Checkout\ModificationsApi;
+use Adyen\Service\Checkout;
 use Magento\Payment\Gateway\Http\TransferInterface;
+use Adyen\Payment\Helper\Idempotency;
+use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Helper\Data;
+use Adyen\AdyenException;
+use PHPUnit\Framework\MockObject\MockObject;
 
 class TransactionCaptureTest extends AbstractAdyenTestCase
 {
-    private $adyenHelperMock;
-    private $adyenLoggerMock;
-    private $idempotencyHelperMock;
-    private $transferObjectMock;
-    private $checkoutServiceMock;
-    private $clientMock;
-    private $transactionCapture;
+    private TransactionCapture $transactionCapture;
+    private TransferInterface|MockObject $transferObject;
+    private array $request;
+    private Data|MockObject $adyenHelper;
+    private Idempotency|MockObject $idempotencyHelper;
 
     protected function setUp(): void
     {
-        $this->adyenHelperMock = $this->createMock(Data::class);
-        $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
-        $this->idempotencyHelperMock = $this->createMock(Idempotency::class);
-        $this->transferObjectMock = $this->createMock(TransferInterface::class);
-        $this->clientMock = $this->createMock(Client::class);
-        $this->checkoutServiceMock = $this->createConfiguredMock(ModificationsApi::class, [
-            'captureAuthorisedPayment' => new PaymentCaptureResponse([])
-        ]);
-
+        $this->adyenHelper = $this->createMock(Data::class);
+        $adyenLogger = $this->createMock(AdyenLogger::class);
+        $this->idempotencyHelper = $this->createMock(Idempotency::class);
 
         $this->transactionCapture = new TransactionCapture(
-            $this->adyenHelperMock,
-            $this->adyenLoggerMock,
-            $this->idempotencyHelperMock
+            $this->adyenHelper,
+            $adyenLogger,
+            $this->idempotencyHelper
         );
+
+        $this->request = [
+            'amount' => ['value' => 100, 'currency' => 'USD'],
+            'paymentPspReference' => 'testPspReference'
+        ];
+
+        $this->transferObject = $this->createConfiguredMock(TransferInterface::class, [
+            'getBody' => $this->request,
+            'getHeaders' => ['idempotencyExtraData' => ['someData']],
+            'getClientConfig' => []
+        ]);
     }
 
-    public function testPlaceRequestWithSingleAuthorization()
+    private function configureAdyenMocks(array $response = null, \Exception $exception = null)
     {
-        // Arrange
-        $requestBody = [
-            'amount' => ['value' => 1000, 'currency' => 'EUR'],
-            'reference' => 'ORDER_REFERENCE',
-            TransactionCapture::ORIGINAL_REFERENCE => 'PSP_REFERENCE'
-        ];
-        $this->transferObjectMock->method('getBody')->willReturn($requestBody);
-        $this->transferObjectMock->method('getHeaders')->willReturn([]);
-        $this->transferObjectMock->method('getClientConfig')->willReturn([]);
+        $adyenClient = $this->createMock(\Adyen\Client::class);
+        $adyenService = $this->createMock(Checkout::class);
+        $expectedIdempotencyKey = 'generated_idempotency_key';
 
-        $this->adyenHelperMock->method('initializeAdyenClientWithClientConfig')->willReturn($this->clientMock);
-        $this->adyenHelperMock->method('initializeModificationsApi')->willReturn($this->checkoutServiceMock);
-        $this->adyenHelperMock->method('buildRequestHeaders')->willReturn(['x-api-key' => 'test_key']);
+        $this->adyenHelper->method('initializeAdyenClientWithClientConfig')->willReturn($adyenClient);
+        $this->adyenHelper->method('createAdyenCheckoutService')->willReturn($adyenService);
+        $this->adyenHelper->method('buildRequestHeaders')->willReturn([]);
+        $this->adyenHelper->expects($this->once())->method('logRequest');
+        $this->adyenHelper->expects($this->once())->method('logResponse');
 
-        $expectedResult = ['capture_amount' => 1000, 'paymentPspReference' => 'PSP_REFERENCE'];
+        $this->idempotencyHelper->expects($this->once())
+            ->method('generateIdempotencyKey')
+            ->with(
+                $this->request,
+                $this->equalTo(['someData'])
+            )
+            ->willReturn($expectedIdempotencyKey);
 
-        // Act
-        $result = $this->transactionCapture->placeRequest($this->transferObjectMock);
+        if ($response) {
+            $adyenService->expects($this->once())
+                ->method('captureAuthorisedPayment')
+                ->with(
+                    $this->equalTo($this->request),
+                    $this->callback(function ($requestOptions) use ($expectedIdempotencyKey) {
+                        return isset($requestOptions['idempotencyKey']) &&
+                            $requestOptions['idempotencyKey'] === $expectedIdempotencyKey;
+                    })
+                )
+                ->willReturn($response);
+        }
 
-        // Assert
-        $this->assertEquals($expectedResult, $result);
+        if ($exception) {
+            $adyenService->expects($this->once())
+                ->method('captureAuthorisedPayment')
+                ->with(
+                    $this->equalTo($this->request),
+                    $this->callback(function ($requestOptions) use ($expectedIdempotencyKey) {
+                        return isset($requestOptions['idempotencyKey']) &&
+                            $requestOptions['idempotencyKey'] === $expectedIdempotencyKey;
+                    })
+                )
+                ->willThrowException($exception);
+        }
+
+        return $adyenService;
     }
 
-    public function testPlaceRequestWithMultipleAuthorizations()
+    public function testPlaceRequest()
     {
-        // Arrange
-        $multipleAuthorizations = [
-            [
-                'amount' => ['value' => 500, 'currency' => 'EUR'],
-                'reference' => 'ORDER_REFERENCE_1',
-                TransactionCapture::ORIGINAL_REFERENCE => 'PSP_REFERENCE_1'
-            ],
-            [
-                'amount' => ['value' => 1500, 'currency' => 'EUR'],
-                'reference' => 'ORDER_REFERENCE_2',
-                TransactionCapture::ORIGINAL_REFERENCE => 'PSP_REFERENCE_2'
-            ]
-        ];
-        $requestBody = [
-            TransactionCapture::MULTIPLE_AUTHORIZATIONS => $multipleAuthorizations,
-            Requests::MERCHANT_ACCOUNT => 'MERCHANT_ACCOUNT'
-        ];
-        $this->transferObjectMock->method('getBody')->willReturn($requestBody);
-        $this->transferObjectMock->method('getHeaders')->willReturn([]);
-        $this->transferObjectMock->method('getClientConfig')->willReturn([]);
-
-        $this->adyenHelperMock->method('initializeAdyenClientWithClientConfig')->willReturn($this->clientMock);
-        $this->adyenHelperMock->method('initializeModificationsApi')->willReturn($this->checkoutServiceMock);
-        $this->adyenHelperMock->method('buildRequestHeaders')->willReturn(['x-api-key' => 'test_key']);
-
-        $expectedResults = [
-            TransactionCapture::MULTIPLE_AUTHORIZATIONS => [
-                [
-                    'formatted_capture_amount' => 'EUR ',
-                    'capture_amount' => 500,
-                    'paymentPspReference' => 'PSP_REFERENCE_1'
-
-                ],
-                [
-                    'formatted_capture_amount' => 'EUR ',
-                    'capture_amount' => 1500,
-                    'paymentPspReference' => 'PSP_REFERENCE_2'
-                ]
-            ]
+        $expectedResponse = [
+            'capture_amount' => $this->request['amount']['value'],
+            'paymentPspReference' => $this->request['paymentPspReference']
         ];
 
-        // Act
-        $results = $this->transactionCapture->placeRequest($this->transferObjectMock);
+        $this->configureAdyenMocks($expectedResponse);
 
-        // Assert
-        $this->assertEquals($expectedResults, $results);
+        // Call the method under test
+        $response = $this->transactionCapture->placeRequest($this->transferObject);
+
+        // Assert that the response is as expected
+        $this->assertEquals($expectedResponse, $response);
+    }
+
+    public function testPlaceRequestWithException()
+    {
+        $expectedException = new AdyenException('Test exception');
+
+        $this->configureAdyenMocks(null, $expectedException);
+
+        // Call the method under test
+        $response = $this->transactionCapture->placeRequest($this->transferObject);
+
+        // Assert that the response contains the error message
+        $this->assertArrayHasKey('error', $response);
+        $this->assertEquals('Test exception', $response['error']);
     }
 }

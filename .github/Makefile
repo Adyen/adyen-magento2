@@ -30,6 +30,7 @@ configure: n98-magerun2.phar
 	bin/magento config:set payment/adyen_abstract/demo_mode 1
 	bin/magento adyen:enablepaymentmethods:run
 	bin/magento config:set payment/adyen_abstract/has_holder_name 1
+	bin/magento config:set payment/adyen_pay_by_link/active 1
 	bin/magento config:set payment/adyen_pay_by_link/days_to_expire 5
 	bin/magento config:set payment/adyen_giving/active 1
 	bin/magento config:set payment/adyen_giving/charity_description 'test'
@@ -70,29 +71,14 @@ plugin: install configure flush
 fs:
 	find var generated vendor pub/static pub/media app/etc -type f -exec chmod g+w {} +
 	find var generated vendor pub/static pub/media app/etc -type d -exec chmod g+ws {} +
+	chmod 777 -R var
 	chown -R www-data:www-data .
 	chmod u+x bin/magento
 	echo "memory_limit = -1" > /usr/local/etc/php/conf.d/memory.ini
 
-# Deploy sample data
-sampledata:
-	composer config http-basic.repo.magento.com "${MAGENTO_USERNAME}" "${MAGENTO_PASSWORD}"
-	composer config repositories.magento composer https://repo.magento.com/
-	bin/magento sampledata:deploy
-	bin/magento setup:upgrade
-
 # Production mode
 production:
 	bin/magento deploy:mode:set production
-
-# JavaScript bundling
-bundlejs:
-	bin/magento config:set dev/js/enable_js_bundling 1
-	bin/magento config:set dev/js/minify_files 1
-	bin/magento config:set dev/static/sign 1
-	bin/magento config:set dev/js/merge_files 0
-	bin/magento setup:static-content:deploy
-	bin/magento cache:clean config
 
 MAGENTO_ROOT=/var/www/html
 GRAPHQL_XML=${MAGENTO_ROOT}/dev/tests/api-functional/phpunit_graphql.xml.dist
@@ -110,16 +96,6 @@ restapi:
         ${MAGENTO_ROOT}/vendor/bin/phpunit --prepend /data/extensions/workdir/Test/phpunit_rest.php \
         --configuration ${MAGENTO_ROOT}/dev/tests/api-functional/phpunit_rest.xml.dist \
         ${MAGENTO_ROOT}/vendor/adyen/module-payment/Test/api-functional/Webapi
-
-# Destroy services
-clean:
-	docker-compose -f workflows/templates/docker-compose.yml down --volumes --rmi local
-	docker-compose -f docker-compose.yml -f docker-compose.mftf.yml down --volumes --rmi local
-
-# Docker image build
-image:
-	docker-compose -f workflows/templates/docker-compose.yml -f docker-compose.e2e.yml build
-	docker-compose -f docker-compose.yml -f docker-compose.mftf.yml build
 
 # Setup environment to run functional tests (https://devdocs.magento.com/mftf/docs/getting-started.html)
 setup-mftf:
@@ -153,19 +129,3 @@ setup-mftf:
 # Magento Functional Testing Framework
 mftf:
 	vendor/bin/mftf run:group --remove -- AdyenMagentoSuite || vendor/bin/mftf run:failed
-
-# Simulate a full CI build
-ci:
-	docker-compose -f workflows/templates/docker-compose.yml run --rm web make magento
-	docker-compose -f workflows/templates/docker-compose.yml up -d web
-
-	docker exec magento2-container make fs
-	docker exec magento2-container make sys-check
-	docker exec -u www-data magento2-container make plugin
-	docker exec magento2-container /etc/init.d/cron stop
-	docker exec -u www-data magento2-container make unit
-	docker exec magento2-container make graphql
-	docker exec -u www-data magento2-container make production
-	docker exec magento2-container make fs
-
-	docker-compose -f workflows/templates/docker-compose.yml run --rm playwright /e2e.sh

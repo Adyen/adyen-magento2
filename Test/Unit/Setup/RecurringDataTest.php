@@ -11,22 +11,22 @@
 
 namespace Adyen\Payment\Test\Unit\Setup;
 
-use Adyen\Payment\Setup\Recurring;
+use Adyen\Payment\Setup\RecurringData;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Setup\ModuleContextInterface;
-use Magento\Framework\Setup\SchemaSetupInterface;
+use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Adyen\Payment\Helper\PaymentMethodsFactory;
 use Adyen\Payment\Helper\PaymentMethods;
 
-class RecurringTest extends AbstractAdyenTestCase
+class RecurringDataTest extends AbstractAdyenTestCase
 {
-    private Recurring $recurring;
+    private RecurringData $recurringData;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->paymentMethodsFactoryMock = $this->createGeneratedMock(PaymentMethodsFactory::class, ['create']);
-        $this->recurring = new Recurring($this->paymentMethodsFactoryMock);
+        $this->recurringData = new RecurringData($this->paymentMethodsFactoryMock);
     }
 
     public function testInstall()
@@ -39,9 +39,9 @@ class RecurringTest extends AbstractAdyenTestCase
         $paymentMethods
             ->expects($this->once())
             ->method('togglePaymentMethodsActivation');
-        $setup = $this->createMock(SchemaSetupInterface::class);
+        $setup = $this->createMock(ModuleDataSetupInterface::class);
         $context = $this->createMock(ModuleContextInterface::class);
 
-        $this->recurring->install($setup, $context);
+        $this->recurringData->install($setup, $context);
     }
 }

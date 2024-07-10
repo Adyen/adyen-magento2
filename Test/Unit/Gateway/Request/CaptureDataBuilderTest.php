@@ -79,6 +79,16 @@ class CaptureDataBuilderTest extends AbstractAdyenTestCase
     */
     public function testBuildCaptureRequest($adyenOrderPayments, $fullAmountAuthorized)
     {
+        $adyenHelperMock = $this->createPartialMock(Data::class, ['isPaymentMethodOpenInvoiceMethod']);
+        $adyenHelperMock->method('isPaymentMethodOpenInvoiceMethod')->willReturn(true);
+
+        $lineItems = [
+            'id' => PHP_INT_MAX
+        ];
+
+        $openInvoiceHelperMock = $this->createMock(OpenInvoice::class);
+        $openInvoiceHelperMock->method('getOpenInvoiceDataForInvoice')->willReturn($lineItems);
+
         if (!$fullAmountAuthorized) {
             $this->expectException(AdyenException::class);
         }
@@ -121,17 +131,19 @@ class CaptureDataBuilderTest extends AbstractAdyenTestCase
         ];
 
         $captureDataBuilder = $this->buildCaptureDataBuilderObject(
-            null,
+            $adyenHelperMock,
             $chargedCurrencyHelperMock,
             $orderPaymentResourceModelMock,
-            $adyenOrderPaymentHelperMock
+            $adyenOrderPaymentHelperMock,
+            null,
+            null,
+            $openInvoiceHelperMock
         );
 
         $request = $captureDataBuilder->build($buildSubject);
 
         $this->assertArrayHasKey('body', $request);
         $this->assertArrayHasKey('clientConfig', $request);
-        $this->assertArrayHasKey('headers', $request);
 
         if (count($adyenOrderPayments) > 1) {
             $this->assertArrayHasKey(TransactionCapture::MULTIPLE_AUTHORIZATIONS, $request['body']);

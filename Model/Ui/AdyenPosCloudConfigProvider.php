@@ -16,50 +16,76 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\ConnectedTerminals;
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Framework\App\RequestInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\UrlInterface;
+use Magento\Store\Model\StoreManager;
 
 class AdyenPosCloudConfigProvider implements ConfigProviderInterface
 {
     const CODE = 'adyen_pos_cloud';
 
-    /** @var RequestInterface  */
-    protected $request;
+    /**
+     * @var RequestInterface
+     */
+    protected RequestInterface $request;
 
-    /** @var UrlInterface  */
-    protected $urlBuilder;
+    /**
+     * @var UrlInterface
+     */
+    protected UrlInterface $urlBuilder;
 
-    /** @var ConnectedTerminals  */
-    protected $connectedTerminalsHelper;
+    /**
+     * @var ConnectedTerminals
+     */
+    protected ConnectedTerminals $connectedTerminalsHelper;
 
-    /** @var Config */
-    protected $configHelper;
+    /**
+     * @var Config
+     */
+    protected Config $configHelper;
 
     /**
      * @var SerializerInterface
      */
-    private $serializer;
+    private SerializerInterface $serializer;
 
+    /**
+     * @var StoreManager
+     */
+    private StoreManager $storeManager;
+
+    /**
+     * @param RequestInterface $request
+     * @param UrlInterface $urlBuilder
+     * @param ConnectedTerminals $connectedTerminalsHelper
+     * @param SerializerInterface $serializer
+     * @param Config $configHelper
+     * @param StoreManager $storeManager
+     */
     public function __construct(
         RequestInterface $request,
         UrlInterface $urlBuilder,
         ConnectedTerminals $connectedTerminalsHelper,
         SerializerInterface $serializer,
-        Config $configHelper
+        Config $configHelper,
+        StoreManager $storeManager
     ) {
         $this->request = $request;
         $this->urlBuilder = $urlBuilder;
         $this->connectedTerminalsHelper = $connectedTerminalsHelper;
         $this->configHelper = $configHelper;
         $this->serializer = $serializer;
+        $this->storeManager = $storeManager;
     }
 
     /**
      * Set configuration for POS Terminal payment method
      *
      * @return array
+     * @throws NoSuchEntityException
      */
-    public function getConfig()
+    public function getConfig(): array
     {
         // set to active
         $config = [
@@ -74,7 +100,11 @@ class AdyenPosCloudConfigProvider implements ConfigProviderInterface
             ]
         ];
 
-        if ($this->configHelper->getAdyenPosCloudConfigData("active", null, true)) {
+        $storeId = $this->storeManager->getStore()->getId();
+
+        $config['payment']['adyenPos']['paymentAction'] = $this->configHelper->getAdyenPosCloudPaymentAction($storeId);
+
+        if ($this->configHelper->getAdyenPosCloudConfigData("active", $storeId, true)) {
             $config['payment']['adyenPos']['fundingSourceOptions'] = $this->getFundingSourceOptions();
         }
 
@@ -82,8 +112,8 @@ class AdyenPosCloudConfigProvider implements ConfigProviderInterface
         $config['payment']['adyenPos']['hasInstallments'] = false;
 
         // get Installments
-        $installmentsEnabled = $this->configHelper->getAdyenPosCloudConfigData('enable_installments');
-        $installments = $this->configHelper->getAdyenPosCloudConfigData('installments');
+        $installmentsEnabled = $this->configHelper->getAdyenPosCloudConfigData('enable_installments', $storeId);
+        $installments = $this->configHelper->getAdyenPosCloudConfigData('installments', $storeId);
 
         if ($installmentsEnabled && $installments) {
             $config['payment']['adyenPos']['installments'] = $this->serializer->unserialize($installments);
@@ -100,7 +130,7 @@ class AdyenPosCloudConfigProvider implements ConfigProviderInterface
      *
      * @return RequestInterface
      */
-    protected function getRequest()
+    protected function getRequest(): RequestInterface
     {
         return $this->request;
     }

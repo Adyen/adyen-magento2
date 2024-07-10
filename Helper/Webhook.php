@@ -25,6 +25,7 @@ use Adyen\Webhook\PaymentStates;
 use Adyen\Webhook\Processor\ProcessorFactory;
 use DateTime;
 use Exception;
+use Adyen\Payment\Model\Notification as NotificationEntity;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Sales\Model\Order;
@@ -39,7 +40,8 @@ class Webhook
         Order::STATE_PROCESSING => PaymentStates::STATE_IN_PROGRESS,
         Order::STATE_COMPLETE => PaymentStates::STATE_PAID,
         Order::STATE_CANCELED => PaymentStates::STATE_CANCELLED,
-        Order::STATE_CLOSED => PaymentStates::STATE_REFUNDED
+        Order::STATE_CLOSED => PaymentStates::STATE_REFUNDED,
+        NotificationEntity::STATE_ADYEN_AUTHORIZED => PaymentStates::STATE_PENDING
     ];
 
     /**
@@ -271,7 +273,7 @@ class Webhook
             'additionalData' => !empty($notification->getAdditionalData())
                 ? $this->serializer->unserialize($notification->getAdditionalData()) : null,
         ]);
-        $processor = ProcessorFactory::create($webhookNotificationItem, $currentOrderState, $this->logger);
+        $processor = ProcessorFactory::create($webhookNotificationItem, $currentOrderState);
 
         return $processor->process();
     }
@@ -421,7 +423,9 @@ class Webhook
              * the  previous notification was authorisation : true do not update pspreference
              */
             if (!$notification->isSuccessful()) {
-                $previousAdyenEventCode = $order->getData('adyen_notification_event_code');
+                $previousAdyenEventCode = $this->orderRepository
+                    ->get($order->getId())
+                    ->getData('adyen_notification_event_code');
                 if ($previousAdyenEventCode != "AUTHORISATION : TRUE") {
                     $this->updateOrderPaymentWithAdyenAttributes($order->getPayment(), $notification, $additionalData);
                 }

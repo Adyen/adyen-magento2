@@ -13,6 +13,7 @@ namespace Adyen\Payment\Gateway\Http\Client;
 
 use Adyen\AdyenException;
 use Adyen\Client;
+use Adyen\Payment\Gateway\Request\HeaderDataBuilder;
 use Adyen\Model\Checkout\PaymentRequest;
 use Adyen\Model\Checkout\PaymentResponse as CheckoutPaymentResponse;
 use Adyen\Payment\Helper\Data;
@@ -46,7 +47,7 @@ class TransactionPayment implements ClientInterface
         Idempotency $idempotencyHelper,
         OrdersApi $orderApiHelper,
         StoreManagerInterface $storeManager,
-        GiftcardPayment $giftcardPaymentHelper
+        GiftcardPayment $giftcardPaymentHelper,
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->paymentResponseFactory = $paymentResponseFactory;
@@ -55,7 +56,6 @@ class TransactionPayment implements ClientInterface
         $this->orderApiHelper = $orderApiHelper;
         $this->storeManager = $storeManager;
         $this->giftcardPaymentHelper = $giftcardPaymentHelper;
-
         $this->remainingOrderAmount = null;
     }
 
@@ -89,7 +89,8 @@ class TransactionPayment implements ClientInterface
                 $headers['idempotencyExtraData'] ?? null
             );
             $requestOptions['idempotencyKey'] = $idempotencyKey;
-            $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
+            $requestOptions['headers'] = $headers;
+
 
             $this->adyenHelper->logRequest($requestData, Client::API_CHECKOUT_VERSION, '/payments');
             $response = $service->payments($paymentRequest, $requestOptions);
