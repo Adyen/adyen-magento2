@@ -16,14 +16,26 @@ use Adyen\Client;
 use Adyen\Model\Checkout\PaymentCancelRequest;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 
 class TransactionCancel implements ClientInterface
 {
+    /**
+     * @var Data
+     */
     private Data $adyenHelper;
+
+    /**
+     * @var Idempotency
+     */
     private Idempotency $idempotencyHelper;
 
+    /**
+     * @param Data $adyenHelper
+     * @param Idempotency $idempotencyHelper
+     */
     public function __construct(
         Data        $adyenHelper,
         Idempotency $idempotencyHelper
@@ -32,11 +44,18 @@ class TransactionCancel implements ClientInterface
         $this->idempotencyHelper = $idempotencyHelper;
     }
 
+    /**
+     * @param TransferInterface $transferObject
+     * @return array
+     * @throws AdyenException
+     * @throws NoSuchEntityException
+     */
     public function placeRequest(TransferInterface $transferObject): array
     {
         $requests = $transferObject->getBody();
         $headers = $transferObject->getHeaders();
         $clientConfig = $transferObject->getClientConfig();
+
         $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
         $service = $this->adyenHelper->initializeModificationsApi($client);
         $responseData = [];
@@ -57,7 +76,7 @@ class TransactionCancel implements ClientInterface
                     $paymentCancelRequest,
                     $requestOptions
                 );
-                $responseData = json_decode(json_encode($response->jsonSerialize()), true);
+                $responseData = $response->toArray();
                 $this->adyenHelper->logResponse($responseData);
             } catch (AdyenException $e) {
                 $responseData['error'] = $e->getMessage();
