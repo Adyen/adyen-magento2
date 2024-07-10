@@ -12,7 +12,6 @@
 // phpcs:ignore
 namespace Adyen\Payment\Controller\Return;
 
-
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Helper\PaymentsDetails;
 use Adyen\Payment\Helper\Quote;
@@ -200,7 +199,7 @@ class Index extends Action
 
         return $order;
     }
-  
+
     /**
      * @return void
      * @throws Exception
