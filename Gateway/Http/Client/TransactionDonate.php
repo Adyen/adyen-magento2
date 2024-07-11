@@ -55,7 +55,6 @@ class TransactionDonate implements ClientInterface
         $this->client = $this->adyenHelper->initializeAdyenClient();
     }
 
-
     /**
      * @param TransferInterface $transferObject
      * @return array
