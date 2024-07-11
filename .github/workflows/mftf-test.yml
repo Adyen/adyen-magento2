@@ -25,11 +25,16 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Install Magento
+        run: docker-compose -f .github/docker-compose.yml -f .github/docker-compose.mftf.yml run --rm web make magento
+
       - name: Start services
         run: docker-compose -f .github/docker-compose.yml -f .github/docker-compose.mftf.yml up -d
 
-      - name: Install Magento
-        run: docker exec magento2-container make magento
+      # Temp solution to wait for install script to run
+      - name: Sleep for 120 seconds
+        run: sleep 120s
+        shell: bash
 
       - name: Setup permissions
         run: docker exec magento2-container make fs
