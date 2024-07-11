@@ -28,24 +28,8 @@ jobs:
       - name: Start services
         run: docker-compose -f .github/docker-compose.yml -f .github/docker-compose.mftf.yml up -d
 
-      # Temp solution to wait for install script to run
-      - name: Sleep for 120 seconds
-        run: sleep 120s
-        shell: bash
-
-      - name: Show install logs
-        run: docker logs --tail 100 magento2-container
-
-      - name: Prevent cron from interfering with test execution
-        run: docker exec magento2-container /etc/init.d/cron stop
-
-#      - name: Install plugin
-#        run: docker exec -u www-data magento2-container make install
       - name: Install Magento
-        run: docker-compose -f .github/docker-compose.yml run --rm web make magento
-
-      - name: Start web server in background
-        run: docker-compose -f .github/docker-compose.yml up -d web
+        run: docker exec magento2-container make magento
 
       - name: Setup permissions
         run: docker exec magento2-container make fs
@@ -56,7 +40,8 @@ jobs:
       - name: Install plugin
         run: docker exec -u www-data magento2-container make plugin
 
-      - run: docker exec magento2-container /etc/init.d/cron stop
+      - name: Stop cron
+        run: docker exec magento2-container /etc/init.d/cron stop
 
       - name: Build MFTF project
         run: docker exec magento2-container make setup-mftf
