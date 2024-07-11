@@ -16,7 +16,7 @@ use Adyen\Client;
 use Adyen\Model\Checkout\PaymentRefundRequest;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
-use Adyen\Service\Checkout\ModificationsApi;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Http\TransferInterface;
 
 /**
@@ -24,9 +24,20 @@ use Magento\Payment\Gateway\Http\TransferInterface;
  */
 class TransactionRefund implements TransactionRefundInterface
 {
+    /**
+     * @var Data
+     */
     private Data $adyenHelper;
+
+    /**
+     * @var Idempotency
+     */
     private Idempotency $idempotencyHelper;
 
+    /**
+     * @param Data $adyenHelper
+     * @param Idempotency $idempotencyHelper
+     */
     public function __construct(
         Data $adyenHelper,
         Idempotency $idempotencyHelper
@@ -35,11 +46,18 @@ class TransactionRefund implements TransactionRefundInterface
         $this->idempotencyHelper = $idempotencyHelper;
     }
 
+    /**
+     * @param TransferInterface $transferObject
+     * @return array
+     * @throws AdyenException
+     * @throws NoSuchEntityException
+     */
     public function placeRequest(TransferInterface $transferObject): array
     {
         $requests = $transferObject->getBody();
         $headers = $transferObject->getHeaders();
         $clientConfig = $transferObject->getClientConfig();
+
         $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
         $service = $this->adyenHelper->initializeModificationsApi($client);
         $responses = [];
@@ -61,7 +79,7 @@ class TransactionRefund implements TransactionRefundInterface
                     $paymentRefundRequest,
                     $requestOptions
                 );
-                $responseData = json_decode(json_encode($response->jsonSerialize()), true);
+                $responseData = $response->toArray();
                 // Add amount original reference and amount information to response
                 $responseData[self::REFUND_AMOUNT] = $request['amount']['value'];
                 $responseData[self::REFUND_CURRENCY] = $request['amount']['currency'];
