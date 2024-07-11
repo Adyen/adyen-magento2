@@ -20,16 +20,6 @@ install:
 	bin/magento setup:upgrade --verbose
 	bin/magento setup:di:compile
 
-# Plugin install for mftf tests
-install-mftf:
-	composer config --json repositories.local '{"type": "path", "url": "/data/extensions/workdir", "options": { "symlink": false } }'
-	composer require "adyen/module-payment:*"
-	vendor/bin/phpcs --standard=Magento2 --extensions=php,phtml --error-severity=10 --ignore-annotations -n -p vendor/adyen/module-payment
-	bin/magento module:enable Adyen_Payment
-	bin/magento adyen:setareacode:run
-	bin/magento setup:upgrade
-	bin/magento setup:di:compile
-
 # Install developer module
 dev-module:
 	bin/magento module:enable Adyen_Developer

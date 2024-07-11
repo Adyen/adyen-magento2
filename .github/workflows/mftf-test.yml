@@ -39,8 +39,24 @@ jobs:
       - name: Prevent cron from interfering with test execution
         run: docker exec magento2-container /etc/init.d/cron stop
 
+#      - name: Install plugin
+#        run: docker exec -u www-data magento2-container make install
+      - name: Install Magento
+        run: docker-compose -f .github/docker-compose.yml run --rm web make magento
+
+      - name: Start web server in background
+        run: docker-compose -f .github/docker-compose.yml up -d web
+
+      - name: Setup permissions
+        run: docker exec magento2-container make fs
+
+      - name: Check install
+        run: docker exec magento2-container make sys-check
+
       - name: Install plugin
-        run: docker exec -u www-data magento2-container make install-mftf
+        run: docker exec -u www-data magento2-container make plugin
+
+      - run: docker exec magento2-container /etc/init.d/cron stop
 
       - name: Build MFTF project
         run: docker exec magento2-container make setup-mftf
