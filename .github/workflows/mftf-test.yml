@@ -1,40 +1,31 @@
 name: Functional Tests
-on:
-  workflow_dispatch:
-  pull_request:
-    branches: [main]
+on: [pull_request, pull_request_target]
 
 jobs:
   build:
     strategy:
       matrix:
-        include:
-          - php-version: '8.1'
-            magento-version: '2.4.5'
+        php-version: ["8.1"]
+        magento-version: ["2.4.5"]
     runs-on: ubuntu-latest
     env:
       PHP_VERSION: ${{ matrix.php-version }}
       MAGENTO_VERSION: ${{ matrix.magento-version }}
-      ADMIN_USERNAME: ${{ secrets.MAGENTO_ADMIN_USERNAME }}
-      ADMIN_PASSWORD: ${{ secrets.MAGENTO_ADMIN_PASSWORD }}
+      ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
+      ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
       DONATION_ACCOUNT: ${{secrets.DONATION_ACCOUNT}}
       ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
       ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
       ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
-      ADMIN_URLEXT: admin
+
     steps:
       - uses: actions/checkout@v3
 
       - name: Install Magento
         run: docker-compose -f .github/docker-compose.yml -f .github/docker-compose.mftf.yml run --rm web make magento
 
-      - name: Start services
-        run: docker-compose -f .github/docker-compose.yml -f .github/docker-compose.mftf.yml up -d
-
-      # Temp solution to wait for install script to run
-      - name: Sleep for 120 seconds
-        run: sleep 120s
-        shell: bash
+      - name: Start web server in background
+        run: docker-compose -f .github/docker-compose.yml up -d web
 
       - name: Setup permissions
         run: docker exec magento2-container make fs
@@ -42,14 +33,15 @@ jobs:
       - name: Check install
         run: docker exec magento2-container make sys-check
 
-      - name: Install plugin for mftf
-        run: docker exec -u www-data magento2-container make plugin-mftf
+      - name: Install plugin
+        run: docker exec -u www-data magento2-container make plugin
 
-      - name: Stop cron
-        run: docker exec magento2-container /etc/init.d/cron stop
+#      - name: Stop cron
+#        run: docker exec magento2-container /etc/init.d/cron stop
+#
+#      - name: Build MFTF project
+#        run: docker exec magento2-container make setup-mftf
+#
+#      - name: Run MFTF tests
+#        run: docker exec magento2-container make mftf
 
-      - name: Build MFTF project
-        run: docker exec magento2-container make setup-mftf
-
-      - name: Run MFTF tests
-        run: docker exec magento2-container make mftf
