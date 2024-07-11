@@ -17,7 +17,6 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
 use Adyen\Client;
-use Adyen\ConnectionException;
 use Adyen\Model\Management\CreateAllowedOriginRequest;
 use Adyen\Model\Management\CreateMerchantWebhookRequest;
 use Adyen\Model\Management\TestWebhookRequest;
@@ -37,32 +36,30 @@ class ManagementHelper
     /**
      * @var Data
      */
-    private $dataHelper;
+    private Data $dataHelper;
     /**
      * @var StoreManager
      */
-    private $storeManager;
+    private StoreManager $storeManager;
     /**
      * @var Config
      */
-    private $configHelper;
+    private Config $configHelper;
 
     /**
      * @var EncryptorInterface
      */
-    private $encryptor;
+    private EncryptorInterface $encryptor;
 
     /**
-     * Logging instance
-     *
      * @var AdyenLogger
      */
-    private $adyenLogger;
+    private AdyenLogger $adyenLogger;
 
     /**
      * @var ManagerInterface
      */
-    protected $messageManager;
+    protected ManagerInterface $messageManager;
 
     /**
      * ManagementHelper constructor.
@@ -80,8 +77,7 @@ class ManagementHelper
         Config             $configHelper,
         AdyenLogger        $adyenLogger,
         ManagerInterface   $messageManager
-    )
-    {
+    ) {
         $this->dataHelper = $dataHelper;
         $this->storeManager = $storeManager;
         $this->encryptor = $encryptor;
@@ -91,20 +87,23 @@ class ManagementHelper
     }
 
     /**
-     * @throws AdyenException | ConnectionException | NoSuchEntityException
+     * @param AccountMerchantLevelApi $accountMerchantLevelApi
+     * @param MyAPICredentialApi $myAPICredentialApi
+     * @return array
+     * @throws AdyenException
+     * @throws NoSuchEntityException
      */
     public function getMerchantAccountsAndClientKey(
         AccountMerchantLevelApi $accountMerchantLevelApi,
         MyAPICredentialApi $myAPICredentialApi
-    ): array
-    {
+    ): array {
         $merchantAccounts = [];
         $page = 1;
         $pageSize = 100;
         $responseMerchantsObj = $accountMerchantLevelApi->listMerchantAccounts(
             ['queryParams' => ['pageSize' => $pageSize]]
         );
-        $responseMerchants = json_decode(json_encode($responseMerchantsObj->jsonSerialize()), true);
+        $responseMerchants = $responseMerchantsObj->toArray();
         while (count($merchantAccounts) < $responseMerchants['itemsTotal']) {
             foreach ($responseMerchants['data'] as $merchantAccount) {
                 $defaultDC = array_filter($merchantAccount['dataCenters'], function ($dc) {
@@ -121,12 +120,12 @@ class ManagementHelper
                 $responseMerchantsObj = $accountMerchantLevelApi->listMerchantAccounts(
                     ['queryParams' => ["pageSize" => $pageSize, "pageNumber" => $page]]
                 );
-                $responseMerchants = json_decode(json_encode($responseMerchantsObj->jsonSerialize()), true);
+                $responseMerchants = $responseMerchantsObj->toArray();
             }
         }
 
         $responseMeObj = $myAPICredentialApi->getApiCredentialDetails();
-        $responseMe = json_decode(json_encode($responseMeObj->jsonSerialize()), true);
+        $responseMe = $responseMeObj->toArray();
 
         $currentMerchantAccount = $this->configHelper->getMerchantAccount($this->storeManager->getStore()->getId());
 
@@ -138,7 +137,15 @@ class ManagementHelper
     }
 
     /**
-     * @throws AdyenException | NoSuchEntityException
+     * @param string $merchantId
+     * @param string $username
+     * @param string $password
+     * @param string $url
+     * @param bool $demoMode
+     * @param WebhooksMerchantLevelApi $service
+     * @return string|null
+     * @throws AdyenException
+     * @throws NoSuchEntityException
      */
     public function setupWebhookCredentials(
         string                   $merchantId,
@@ -147,8 +154,7 @@ class ManagementHelper
         string                   $url,
         bool                     $demoMode,
         WebhooksMerchantLevelApi $service
-    ): ?string
-    {
+    ): ?string {
         $params = [
             'url' => $url,
             'username' => $username,
@@ -225,6 +231,8 @@ class ManagementHelper
     }
 
     /**
+     * @param MyAPICredentialApi $service
+     * @return array
      * @throws AdyenException
      */
     public function getAllowedOrigins(MyAPICredentialApi $service): array
@@ -236,6 +244,9 @@ class ManagementHelper
     }
 
     /**
+     * @param MyAPICredentialApi $service
+     * @param string $domain
+     * @return void
      * @throws AdyenException
      */
     public function saveAllowedOrigin(MyAPICredentialApi $service, string $domain): void
@@ -243,12 +254,17 @@ class ManagementHelper
         $service->addAllowedOrigin(new CreateAllowedOriginRequest(['domain' => $domain]));
     }
 
+    /**
+     * @param string $merchantId
+     * @param string $webhookId
+     * @param WebhooksMerchantLevelApi $service
+     * @return TestWebhookResponse|null
+     */
     public function webhookTest(
         string                   $merchantId,
         string                   $webhookId,
         WebhooksMerchantLevelApi $service
-    ): ?TestWebhookResponse
-    {
+    ): ?TestWebhookResponse {
         $testWebhookRequest = new TestWebhookRequest(['types' => ['AUTHORISATION']]);
         $response = null;
         try {
@@ -285,16 +301,31 @@ class ManagementHelper
         );
     }
 
+    /**
+     * @param Client $client
+     * @return AccountMerchantLevelApi
+     * @throws AdyenException
+     */
     public function getAccountMerchantLevelApi(Client $client): AccountMerchantLevelApi
     {
         return new AccountMerchantLevelApi($client);
     }
 
+    /**
+     * @param Client $client
+     * @return MyAPICredentialApi
+     * @throws AdyenException
+     */
     public function getMyAPICredentialApi(Client $client): MyAPICredentialApi
     {
         return new MyAPICredentialApi($client);
     }
 
+    /**
+     * @param Client $client
+     * @return WebhooksMerchantLevelApi
+     * @throws AdyenException
+     */
     public function getWebhooksMerchantLevelApi(Client $client): WebhooksMerchantLevelApi
     {
         return new WebhooksMerchantLevelApi($client);
