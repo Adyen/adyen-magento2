@@ -18,7 +18,7 @@ use Adyen\Payment\Api\AdyenPaymentMethodsBalanceInterface;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Service\Checkout\OrdersApi;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Store\Model\StoreManager;
 
@@ -26,12 +26,38 @@ class AdyenPaymentMethodsBalance implements AdyenPaymentMethodsBalanceInterface
 {
     const FAILED_RESULT_CODE = 'Failed';
 
+    /**
+     * @var Json
+     */
     private Json $jsonSerializer;
+
+    /**
+     * @var StoreManager
+     */
     private StoreManager $storeManager;
+
+    /**
+     * @var Config
+     */
     private Config $config;
+
+    /**
+     * @var Data
+     */
     private Data $adyenHelper;
+
+    /**
+     * @var AdyenLogger
+     */
     private AdyenLogger $adyenLogger;
 
+    /**
+     * @param Json $jsonSerializer
+     * @param StoreManager $storeManager
+     * @param Config $config
+     * @param Data $adyenHelper
+     * @param AdyenLogger $adyenLogger
+     */
     public function __construct(
         Json $jsonSerializer,
         StoreManager $storeManager,
@@ -46,6 +72,12 @@ class AdyenPaymentMethodsBalance implements AdyenPaymentMethodsBalanceInterface
         $this->adyenLogger = $adyenLogger;
     }
 
+    /**
+     * @param string $payload
+     * @return string
+     * @throws AdyenException
+     * @throws NoSuchEntityException
+     */
     public function getBalance(string $payload): string
     {
         $payload = $this->jsonSerializer->unserialize($payload);
@@ -64,7 +96,7 @@ class AdyenPaymentMethodsBalance implements AdyenPaymentMethodsBalanceInterface
                 throw new AdyenException($errorMessage);
             }
 
-            return (string) $response;
+            return json_encode($response->jsonSerialize());
         } catch (AdyenException $e) {
             $this->adyenLogger->error(
                 sprintf("An error occurred during balance check! %s", $e->getMessage())
