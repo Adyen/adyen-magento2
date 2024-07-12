@@ -19,8 +19,6 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\RecurringType;
-use Adyen\Service\Checkout\PaymentsApi;
-use Adyen\Service\RecurringApi;
 use Exception;
 use Magento\Framework\App\State;
 use Magento\Framework\DataObject;
@@ -32,16 +30,34 @@ use Magento\Sales\Model\Order\Payment;
 
 class PaymentRequest extends DataObject
 {
+    /**
+     * @var EncryptorInterface
+     */
     protected EncryptorInterface $encryptor;
 
+    /**
+     * @var Data
+     */
     protected Data $adyenHelper;
 
+    /**
+     * @var AdyenLogger
+     */
     protected AdyenLogger $adyenLogger;
 
+    /**
+     * @var Config
+     */
     protected Config $configHelper;
 
+    /**
+     * @var RecurringType
+     */
     protected RecurringType $recurringType;
 
+    /**
+     * @var State
+     */
     protected State $appState;
 
     /**
@@ -49,6 +65,7 @@ class PaymentRequest extends DataObject
      * @param EncryptorInterface $encryptor
      * @param Data $adyenHelper
      * @param AdyenLogger $adyenLogger
+     * @param Config $configHelper
      * @param RecurringType $recurringType
      * @param array $data
      */
@@ -113,7 +130,7 @@ class PaymentRequest extends DataObject
             throw new LocalizedException(__('3D secure failed'));
         }
 
-        return json_decode(json_encode($response->jsonSerialize()), true);
+        return $response->toArray();
     }
 
     /**
