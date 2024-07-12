@@ -224,7 +224,6 @@ class TransactionPayment implements ClientInterface
      * @throws AdyenException
      * @throws AlreadyExistsException
      * @throws NoSuchEntityException
-     * @throws ConnectionException
      */
     public function processGiftcards(array $request, PaymentsApi $service): array
     {

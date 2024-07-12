@@ -14,17 +14,32 @@ namespace Adyen\Payment\Helper;
 use Adyen\AdyenException;
 use Adyen\Model\Checkout\CreateOrderRequest;
 use Adyen\Client;
-use Adyen\ConnectionException;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Service\Checkout\OrdersApi as CheckoutOrdersApi;
 use Magento\Framework\Exception\NoSuchEntityException;
 
 class OrdersApi
 {
+    /**
+     * @var Config
+     */
     private Config $configHelper;
+
+    /**
+     * @var Data
+     */
     private Data $adyenHelper;
+
+    /**
+     * @var AdyenLogger
+     */
     private AdyenLogger $adyenLogger;
 
+    /**
+     * @param Config $configHelper
+     * @param Data $adyenHelper
+     * @param AdyenLogger $adyenLogger
+     */
     public function __construct(
         Config $configHelper,
         Data $adyenHelper,
@@ -42,7 +57,6 @@ class OrdersApi
      * @param string $merchantReference
      * @return array
      * @throws AdyenException
-     * @throws ConnectionException
      * @throws NoSuchEntityException
      */
     public function createOrder(string $merchantReference, int $amount, string $currency, string $storeId): array
@@ -55,8 +69,8 @@ class OrdersApi
         try {
             $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/orders');
             $responseObj = $checkoutService->orders(new CreateOrderRequest($request));
-            $response = json_decode(json_encode($responseObj->jsonSerialize()), true);
-        } catch (ConnectionException $e) {
+            $response = $responseObj->toArray();
+        } catch (AdyenException $e) {
             $this->adyenLogger->error(
                 "Connection to the endpoint failed. Check the Adyen Live endpoint prefix configuration."
             );
