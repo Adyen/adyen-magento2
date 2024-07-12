@@ -34,11 +34,32 @@ class PaymentsDetails
         'merchantReference'
     ];
 
+    /**
+     * @var Session
+     */
     private Session $checkoutSession;
+
+    /**
+     * @var Data
+     */
     private Data $adyenHelper;
+
+    /**
+     * @var AdyenLogger
+     */
     private AdyenLogger $adyenLogger;
+
+    /**
+     * @var Idempotency
+     */
     private Idempotency $idempotencyHelper;
 
+    /**
+     * @param Session $checkoutSession
+     * @param Data $adyenHelper
+     * @param AdyenLogger $adyenLogger
+     * @param Idempotency $idempotencyHelper
+     */
     public function __construct(
         Session $checkoutSession,
         Data $adyenHelper,
@@ -67,7 +88,7 @@ class PaymentsDetails
             $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
 
             $paymentDetailsObj = $service->paymentsDetails(new PaymentDetailsRequest($request), $requestOptions);
-            $response = json_decode(json_encode($paymentDetailsObj->jsonSerialize()), true);
+            $response = $paymentDetailsObj->toArray();
         } catch (AdyenException $e) {
             $this->adyenLogger->error("Payment details call failed: " . $e->getMessage());
             $this->checkoutSession->restoreQuote();
@@ -78,6 +99,10 @@ class PaymentsDetails
         return $response;
     }
 
+    /**
+     * @param array $payload
+     * @return array
+     */
     private function cleanUpPaymentDetailsPayload(array $payload): array
     {
         $payload = DataArrayValidator::getArrayOnlyWithApprovedKeys(
