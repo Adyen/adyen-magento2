@@ -39,10 +39,10 @@ jobs:
         run: docker exec -u www-data magento2-container make plugin
 
       - run: docker exec magento2-container /etc/init.d/cron stop
-#
-#      - name: Build MFTF project
-#        run: docker exec magento2-container make setup-mftf
-#
-#      - name: Run MFTF tests
-#        run: docker exec magento2-container make mftf
+
+      - name: Build MFTF project
+        run: docker exec magento2-container make setup-mftf
+
+      - name: Run MFTF tests
+        run: docker exec magento2-container make mftf
 
