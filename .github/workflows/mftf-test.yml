@@ -25,26 +25,21 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Install Magento
-        run: docker-compose -f .github/docker-compose.yml run --rm web make magento
+      - name: Start services
+        run: docker-compose -f .github/docker-compose.yml -f .github/docker-compose.mftf.yml up -d
 
-      - name: Start web server in background
-        run: docker-compose -f .github/docker-compose.yml up -d web
+      - name: Sleep for 120 seconds
+        run: sleep 120s
+        shell: bash
 
-      - name: Setup permissions
-        run: docker exec magento2-container make fs
-
-      - name: Check install
-        run: docker exec magento2-container make sys-check
+      - name: Setup Magento
+        run: docker-compose -f .github/docker-compose.yml -f .github/docker-compose.mftf.yml exec -T web make magento
 
       - name: Install plugin
         run: docker exec -u www-data magento2-container make plugin
 
       - run: docker exec magento2-container /etc/init.d/cron stop
 
-
-#      - name: Stop cron
-#        run: docker exec magento2-container /etc/init.d/cron stop
 #
 #      - name: Build MFTF project
 #        run: docker exec magento2-container make setup-mftf
