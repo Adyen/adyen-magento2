@@ -68,7 +68,7 @@ class AdyenPaymentMethodsBalanceTest extends AbstractAdyenTestCase
         );
 
         $balance = $adyenPaymentMethodsBalance->getBalance($payload);
-        $this->assertEquals((string)$this->response, $balance );
+        $this->assertEquals(json_encode($this->response->jsonSerialize()), $balance);
     }
 
     public function testFailedGetBalance()
