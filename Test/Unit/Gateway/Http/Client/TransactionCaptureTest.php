@@ -2,7 +2,11 @@
 
 namespace Adyen\Payment\Test\Unit\Gateway\Http\Client;
 
+use Adyen\Client;
+use Adyen\Model\Checkout\PaymentCaptureRequest;
+use Adyen\Model\Checkout\PaymentCaptureResponse;
 use Adyen\Payment\Gateway\Http\Client\TransactionCapture;
+use Adyen\Payment\Model\Order\Payment;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Service\Checkout;
 use Magento\Payment\Gateway\Http\TransferInterface;
@@ -10,15 +14,14 @@ use Adyen\Payment\Helper\Idempotency;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Helper\Data;
 use Adyen\AdyenException;
-use PHPUnit\Framework\MockObject\MockObject;
 
 class TransactionCaptureTest extends AbstractAdyenTestCase
 {
-    private TransactionCapture $transactionCapture;
-    private TransferInterface|MockObject $transferObject;
-    private array $request;
-    private Data|MockObject $adyenHelper;
-    private Idempotency|MockObject $idempotencyHelper;
+    private $transactionCapture;
+    private $transferObject;
+    private $request;
+    private $adyenHelper;
+    private $idempotencyHelper;
 
     protected function setUp(): void
     {
@@ -44,17 +47,16 @@ class TransactionCaptureTest extends AbstractAdyenTestCase
         ]);
     }
 
-    private function configureAdyenMocks(array $response = null, \Exception $exception = null)
+    private function configureAdyenMocks(array $response = null, \Exception $exception = null): void
     {
-        $adyenClient = $this->createMock(\Adyen\Client::class);
-        $adyenService = $this->createMock(Checkout::class);
+        $adyenClient = $this->createMock(Client::class);
+        $checkoutModificationsService = $this->createMock(Checkout\ModificationsApi::class);
         $expectedIdempotencyKey = 'generated_idempotency_key';
 
         $this->adyenHelper->method('initializeAdyenClientWithClientConfig')->willReturn($adyenClient);
-        $this->adyenHelper->method('createAdyenCheckoutService')->willReturn($adyenService);
+        $this->adyenHelper->method('initializeModificationsApi')->willReturn($checkoutModificationsService);
         $this->adyenHelper->method('buildRequestHeaders')->willReturn([]);
         $this->adyenHelper->expects($this->once())->method('logRequest');
-        $this->adyenHelper->expects($this->once())->method('logResponse');
 
         $this->idempotencyHelper->expects($this->once())
             ->method('generateIdempotencyKey')
@@ -65,32 +67,31 @@ class TransactionCaptureTest extends AbstractAdyenTestCase
             ->willReturn($expectedIdempotencyKey);
 
         if ($response) {
-            $adyenService->expects($this->once())
+            $this->adyenHelper->expects($this->once())->method('logResponse');
+
+            $request = new PaymentCaptureRequest($this->request);
+
+            $responseMock = $this->createMock(PaymentCaptureResponse::class);
+            $responseMock->method('toArray')->willReturn($response);
+
+            $requestOptions['idempotencyKey'] = $expectedIdempotencyKey;
+            $requestOptions['headers'] = [];
+
+            $checkoutModificationsService->expects($this->once())
                 ->method('captureAuthorisedPayment')
                 ->with(
-                    $this->equalTo($this->request),
-                    $this->callback(function ($requestOptions) use ($expectedIdempotencyKey) {
-                        return isset($requestOptions['idempotencyKey']) &&
-                            $requestOptions['idempotencyKey'] === $expectedIdempotencyKey;
-                    })
+                    $this->request['paymentPspReference'],
+                    $request,
+                    $requestOptions
                 )
-                ->willReturn($response);
+                ->willReturn($responseMock);
         }
 
         if ($exception) {
-            $adyenService->expects($this->once())
+            $checkoutModificationsService->expects($this->once())
                 ->method('captureAuthorisedPayment')
-                ->with(
-                    $this->equalTo($this->request),
-                    $this->callback(function ($requestOptions) use ($expectedIdempotencyKey) {
-                        return isset($requestOptions['idempotencyKey']) &&
-                            $requestOptions['idempotencyKey'] === $expectedIdempotencyKey;
-                    })
-                )
                 ->willThrowException($exception);
         }
-
-        return $adyenService;
     }
 
     public function testPlaceRequest()

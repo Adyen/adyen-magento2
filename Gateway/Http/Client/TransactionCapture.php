@@ -105,6 +105,7 @@ class TransactionCapture implements ClientInterface
             $this->adyenHelper->logResponse($responseData);
         } catch (AdyenException $e) {
             $this->adyenHelper->logAdyenException($e);
+            $responseData['error'] = $e->getMessage();
         }
 
         return $responseData;
