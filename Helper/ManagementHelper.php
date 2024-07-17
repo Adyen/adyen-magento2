@@ -238,7 +238,7 @@ class ManagementHelper
     public function getAllowedOrigins(MyAPICredentialApi $service): array
     {
         $responseObj = $service->getAllowedOrigins();
-        $response = json_decode(json_encode($responseObj->jsonSerialize()), true);
+        $response = $responseObj->toArray();
 
         return !empty($response) ? array_column($response['data'], 'domain') : [];
     }

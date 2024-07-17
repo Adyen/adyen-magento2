@@ -11,13 +11,14 @@
 
 namespace Adyen\Payment\Model\Config\Backend;
 
+use Adyen\AdyenException;
 use Adyen\Payment\Helper\BaseUrlHelper;
 use Adyen\Payment\Helper\ManagementHelper;
-use Adyen\Service\Management\MyAPICredentialApi;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Value;
 use Magento\Framework\Data\Collection\AbstractDb;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
 use Magento\Framework\Registry;
@@ -28,16 +29,30 @@ class AutoConfiguration extends Value
     /**
      * @var ManagementHelper
      */
-    private $managementApiHelper;
+    private ManagementHelper $managementApiHelper;
+
     /**
      * @var UrlInterface
      */
-    private $url;
+    private UrlInterface $url;
+
     /**
      * @var BaseUrlHelper
      */
-    private $baseUrlHelper;
+    private BaseUrlHelper $baseUrlHelper;
 
+    /**
+     * @param Context $context
+     * @param Registry $registry
+     * @param ScopeConfigInterface $config
+     * @param TypeListInterface $cacheTypeList
+     * @param ManagementHelper $managementApiHelper
+     * @param UrlInterface $url
+     * @param BaseUrlHelper $baseUrlHelper
+     * @param AbstractResource|null $resource
+     * @param AbstractDb|null $resourceCollection
+     * @param array $data
+     */
     public function __construct(
         Context $context,
         Registry $registry,
@@ -56,7 +71,12 @@ class AutoConfiguration extends Value
         $this->baseUrlHelper = $baseUrlHelper;
     }
 
-    public function beforeSave()
+    /**
+     * @return AutoConfiguration
+     * @throws AdyenException
+     * @throws NoSuchEntityException
+     */
+    public function beforeSave(): AutoConfiguration
     {
         if ('auto' === $this->getValue()) {
             $this->saveAllowedOrigins();
@@ -66,8 +86,8 @@ class AutoConfiguration extends Value
 
     /**
      * @return void
-     * @throws \Adyen\AdyenException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws AdyenException
+     * @throws NoSuchEntityException
      */
     private function saveAllowedOrigins(): void
     {
