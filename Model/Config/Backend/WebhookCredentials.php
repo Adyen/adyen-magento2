@@ -10,6 +10,7 @@
 
 namespace Adyen\Payment\Model\Config\Backend;
 
+use Adyen\AdyenException;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\ManagementHelper;
 use Adyen\Service\Management\WebhooksMerchantLevelApi;
@@ -17,6 +18,7 @@ use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Value;
 use Magento\Framework\Data\Collection\AbstractDb;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
 use Magento\Framework\Registry;
@@ -27,17 +29,30 @@ class WebhookCredentials extends Value
     /**
      * @var ManagementHelper
      */
-    private $managementApiHelper;
+    private ManagementHelper $managementApiHelper;
+
     /**
      * @var Config
      */
-    private $configHelper;
+    private Config $configHelper;
 
     /**
      * @var UrlInterface
      */
-    private $url;
+    private UrlInterface $url;
 
+    /**
+     * @param Context $context
+     * @param Registry $registry
+     * @param ScopeConfigInterface $config
+     * @param TypeListInterface $cacheTypeList
+     * @param ManagementHelper $managementApiHelper
+     * @param Config $configHelper
+     * @param UrlInterface $url
+     * @param AbstractResource|null $resource
+     * @param AbstractDb|null $resourceCollection
+     * @param array $data
+     */
     public function __construct(
         Context $context,
         Registry $registry,
@@ -56,7 +71,12 @@ class WebhookCredentials extends Value
         parent::__construct($context, $registry, $config, $cacheTypeList, $resource, $resourceCollection, $data);
     }
 
-    public function beforeSave()
+    /**
+     * @return WebhookCredentials
+     * @throws AdyenException
+     * @throws NoSuchEntityException
+     */
+    public function beforeSave(): WebhookCredentials
     {
         if ($this->getFieldsetDataValue('configuration_mode') === 'auto' &&
             $this->getFieldsetDataValue('create_new_webhook') === '1') {
