@@ -25,12 +25,38 @@ use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 
 class PaymentVaultDeleteToken
 {
+    /**
+     * @var StoreManagerInterface
+     */
     protected StoreManagerInterface $storeManager;
+
+    /**
+     * @var Data
+     */
     protected Data $dataHelper;
+
+    /**
+     * @var AdyenLogger
+     */
     protected AdyenLogger $adyenLogger;
+
+    /**
+     * @var Requests
+     */
     protected Requests $requestsHelper;
+
+    /**
+     * @var Vault
+     */
     protected Vault $vaultHelper;
 
+    /**
+     * @param StoreManagerInterface $storeManager
+     * @param Data $dataHelper
+     * @param AdyenLogger $adyenLogger
+     * @param Requests $requestsHelper
+     * @param Vault $vaultHelper
+     */
     public function __construct(
         StoreManagerInterface $storeManager,
         Data $dataHelper,
@@ -71,7 +97,7 @@ class PaymentVaultDeleteToken
 
                 $response = $recurringService->disable(new DisableRequest($request));
 
-                $responseData = json_decode(json_encode($response->jsonSerialize()), true);
+                $responseData = $response->toArray();
                 $this->dataHelper->logResponse($responseData);
             } catch (AdyenException $e) {
                 $this->adyenLogger->error(sprintf(
