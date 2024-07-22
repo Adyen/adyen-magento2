@@ -59,12 +59,17 @@ class GraphQlPlaceOrderAddCartId
      */
     public function afterResolve(PlaceOrder $placeOrder, array $result): array
     {
+        if (!isset($result['order']) || !isset($result['order']['order_number'])) {
+            $this->adyenLogger->error('Order information not found in PlaceOrder result');
+            return $result;
+        }
+
         try {
             $cart = $this->quoteHelper->getQuoteByOrderIncrementId($result['order']['order_number']);
             $maskedId = $this->quoteIdToMaskedQuoteId->execute($cart->getId());
             $result['order']['cart_id'] = $maskedId;
         } catch (NoSuchEntityException $exception) {
-            $this->adyenLogger->error($exception->getMessage());
+            $this->adyenLogger->error('Error retrieving cart: ' . $exception->getMessage());
         }
 
         return $result;

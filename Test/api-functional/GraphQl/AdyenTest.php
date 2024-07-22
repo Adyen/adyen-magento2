@@ -101,14 +101,22 @@ QUERY;
 
         $response = $this->graphQlMutation($query);
 
-        self::assertArrayHasKey('placeOrder', $response);
-        self::assertArrayHasKey('order', $response['placeOrder']);
-        self::assertArrayHasKey('order_number', $response['placeOrder']['order']);
-        self::assertArrayHasKey('cart_id', $response['placeOrder']['order']);
-        self::assertArrayHasKey('adyen_payment_status', $response['placeOrder']['order']);
-        self::assertArrayHasKey('isFinal', $response['placeOrder']['order']['adyen_payment_status']);
-        self::assertArrayHasKey('resultCode', $response['placeOrder']['order']['adyen_payment_status']);
-        self::assertArrayHasKey('action', $response['placeOrder']['order']['adyen_payment_status']);
+        self::assertArrayHasKey('placeOrder', $response, 'placeOrder key is missing in the response');
+        if (isset($response['placeOrder']['order'])) {
+            $order = $response['placeOrder']['order'];
+            self::assertArrayHasKey('order_number', $order, 'order_number is missing');
+            self::assertArrayHasKey('cart_id', $order, 'cart_id is missing');
+            if (isset($order['adyen_payment_status'])) {
+                $paymentStatus = $order['adyen_payment_status'];
+                self::assertArrayHasKey('isFinal', $paymentStatus, 'isFinal is missing in adyen_payment_status');
+                self::assertArrayHasKey('resultCode', $paymentStatus, 'resultCode is missing in adyen_payment_status');
+                self::assertArrayHasKey('action', $paymentStatus, 'action is missing in adyen_payment_status');
+            } else {
+                $this->fail('adyen_payment_status is missing in the order');
+            }
+        } else {
+            $this->fail('order is missing in the placeOrder response');
+        }
     }
 
     public function testAdyenPaymentDetails()
@@ -198,14 +206,23 @@ JSON;
 
         $response = $this->graphQlMutation($query);
 
-        self::assertArrayHasKey('placeOrder', $response);
-        self::assertArrayHasKey('order', $response['placeOrder']);
-        $order = $response['placeOrder']['order'];
-        self::assertArrayHasKey('order_number', $order);
-        self::assertArrayHasKey('cart_id', $order);
-        self::assertArrayHasKey('adyen_payment_status', $order);
-        self::assertTrue($order['adyen_payment_status']['isFinal']);
-        self::assertEquals('Authorised', $order['adyen_payment_status']['resultCode']);
+        self::assertArrayHasKey('placeOrder', $response, 'placeOrder key is missing in the response');
+        if (isset($response['placeOrder']['order'])) {
+            $order = $response['placeOrder']['order'];
+            self::assertArrayHasKey('order_number', $order, 'order_number is missing');
+            self::assertArrayHasKey('cart_id', $order, 'cart_id is missing');
+            if (isset($order['adyen_payment_status'])) {
+                $paymentStatus = $order['adyen_payment_status'];
+                self::assertArrayHasKey('isFinal', $paymentStatus, 'isFinal is missing in adyen_payment_status');
+                self::assertArrayHasKey('resultCode', $paymentStatus, 'resultCode is missing in adyen_payment_status');
+                self::assertTrue($paymentStatus['isFinal'], 'Payment is not final');
+                self::assertEquals('Authorised', $paymentStatus['resultCode'], 'Unexpected result code');
+            } else {
+                $this->fail('adyen_payment_status is missing in the order');
+            }
+        } else {
+            $this->fail('order is missing in the placeOrder response');
+        }
     }
 
     /**
@@ -253,7 +270,12 @@ JSON;
 
         $response = $this->graphQlMutation($query, [], '', $this->getHeaderMap());
 
-        self::assertEquals('Authorised', $response['placeOrder']['order']['adyen_payment_status']['resultCode']);
+        self::assertArrayHasKey('placeOrder', $response, 'placeOrder key is missing in the response');
+        if (isset($response['placeOrder']['order']['adyen_payment_status'])) {
+            self::assertEquals('Authorised', $response['placeOrder']['order']['adyen_payment_status']['resultCode'], 'Unexpected result code');
+        } else {
+            $this->fail('adyen_payment_status is missing in the order');
+        }
     }
 
     /**
