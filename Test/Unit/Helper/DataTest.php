@@ -64,6 +64,25 @@ class DataTest extends AbstractAdyenTestCase
 
     private $clientMock;
     private $adyenLogger;
+    private $ccTypesAltData;
+    private $configHelper;
+    private $objectManager;
+    private $store;
+    private $encryptor;
+    private $dataStorage;
+    private $assetRepo;
+    private $assetSource;
+    private $taxConfig;
+    private $taxCalculation;
+    private $backendHelper;
+    private $storeManager;
+    private $cache;
+    private $localeResolver;
+    private $config;
+    private $componentRegistrar;
+    private $localeHelper;
+    private $orderManagement;
+    private $orderStatusHistoryFactory;
 
     public function setUp(): void
     {
@@ -81,23 +100,13 @@ class DataTest extends AbstractAdyenTestCase
             'getMotoMerchantAccountProperties' => [
                 'apikey' => 'wellProtectedEncryptedApiKey',
                 'demo_mode' => '1'
-            ],
-            'getAdyenAbstractConfigDataFlag' => '1',
-            'getAdyenHppConfigData' => 'hmac'
+            ]
         ]);
-        $this->configHelper->method('getAdyenAbstractConfigData')
-            ->willReturnCallback(function ($config) {
-                return $config . '_1';
-            });
 
         $this->objectManager = new ObjectManager($this);
         $context = $this->createMock(Context::class);
-        $this->store = $this->createMock(\Magento\Store\Model\Store::class);
+        $this->store = $this->createMock(Store::class);
         $this->encryptor = $this->createMock(EncryptorInterface::class);
-        $this->encryptor->method('decrypt')
-            ->willReturnCallback(function ($data) {
-                return $data;
-            });
         $this->dataStorage = $this->createMock(DataInterface::class);
         $country = $this->createMock(Country::class);
         $moduleList = $this->createMock(ModuleListInterface::class);
@@ -113,11 +122,8 @@ class DataTest extends AbstractAdyenTestCase
             'getEdition' => 'Community'
         ]);
         $this->adyenLogger = $this->createMock(AdyenLogger::class);
-        $this->storeManager = $this->createConfiguredMock(StoreManager::class, [
-            'getStore' => $this->createConfiguredMock(Store::class, [
-                'getId' => 1
-            ])
-        ]);
+        $this->storeManager = $this->createMock(StoreManager::class);
+        $this->storeManager->method('getStore')->willReturn($this->store);
         $this->cache = $this->createMock(CacheInterface::class);
         $this->localeResolver = $this->createMock(ResolverInterface::class);
         $this->config = $this->createMock(ScopeConfigInterface::class);
@@ -1392,8 +1398,9 @@ class DataTest extends AbstractAdyenTestCase
     {
         $storeId = 1;
         $expectedBaseUrl = 'https://example.com/';
+
         $stateMock = $this->createMock(State::class);
-        $storeMock = $this->createMock(\Magento\Store\Model\Store::class);
+
         $objectManagerStub = $this->createMock(\Magento\Framework\App\ObjectManager::class);
         $objectManagerStub->method('get')->willReturnMap([
             [State::class, $stateMock]
@@ -1406,13 +1413,8 @@ class DataTest extends AbstractAdyenTestCase
             ->with('payment_origin_url', $storeId)
             ->willReturn('');
 
-        // Mock the store manager to return the store mock
-        $this->storeManager->expects($this->once())
-            ->method('getStore')
-            ->willReturn($storeMock);
-
         // Mock the store to return the expected base URL
-        $storeMock->expects($this->once())
+        $this->store->expects($this->once())
             ->method('getBaseUrl')
             ->with(UrlInterface::URL_TYPE_WEB)
             ->willReturn($expectedBaseUrl);
@@ -1473,7 +1475,7 @@ class DataTest extends AbstractAdyenTestCase
         $merchantAccount = 'mock_merchant_account';
 
         // Mock the store manager and config helper
-        $storeMock = $this->createMock(\Magento\Store\Model\Store::class);
+        $storeMock = $this->createMock(Store::class);
         $storeMock->expects($this->any())
             ->method('getId')
             ->willReturn($storeId);
@@ -1503,7 +1505,7 @@ class DataTest extends AbstractAdyenTestCase
         $merchantAccountPos = 'mock_pos_merchant_account';
 
         // Mock the store manager and config helper
-        $storeMock = $this->createMock(\Magento\Store\Model\Store::class);
+        $storeMock = $this->createMock(Store::class);
         $storeMock->expects($this->any())
             ->method('getId')
             ->willReturn($storeId);
@@ -1767,25 +1769,53 @@ class DataTest extends AbstractAdyenTestCase
 
     public function testGetClientKey()
     {
+        $expectedValue = 'client_key_test_value';
+        $storeId = 1;
+
+        $this->configHelper->method('isDemoMode')
+            ->with($storeId)
+            ->willReturn(true);
+
+        $this->configHelper->method('getAdyenAbstractConfigData')
+            ->with('client_key_test', $storeId)
+            ->willReturn($expectedValue);
+
         $key = $this->dataHelper->getClientKey(1);
-        $this->assertEquals('client_key_test_1',$key);
+        $this->assertEquals($expectedValue, $key);
     }
 
     public function testGetApiKey()
     {
+        $apiKey = 'api_key_test_value';
+        $expectedValue = 'api_key_test_decryted_value';
+        $storeId = 1;
+
+        $this->configHelper->method('isDemoMode')
+            ->with($storeId)
+            ->willReturn(true);
+
+        $this->configHelper->method('getAdyenAbstractConfigData')
+            ->with('api_key_test', $storeId)
+            ->willReturn($apiKey);
+
+        $this->encryptor->method('decrypt')
+            ->with($apiKey)
+            ->willReturn($expectedValue);
+
         $key = $this->dataHelper->getAPIKey(1);
-        $this->assertEquals('api_key_test_1',$key);
+        $this->assertEquals($expectedValue, $key);
     }
 
     public function testIsDemoMode()
     {
-        $this->assertEquals('1', $this->dataHelper->isDemoMode(1));
-    }
+        $storeId = 1;
+        $this->configHelper->method('getAdyenAbstractConfigDataFlag')
+            ->with('demo_mode', $storeId)
+            ->willReturn(true);
 
-    public function testGetHmac()
-    {
-        $hmac = $this->dataHelper->getHmac(1);
-        $this->assertEquals('hmac', $hmac);
+        $value = $this->dataHelper->isDemoMode($storeId);
+
+        $this->assertEquals(true, $value);
     }
 
     public function testCaptureModes()
@@ -1825,6 +1855,7 @@ class DataTest extends AbstractAdyenTestCase
 
     public function testLogAdyenException()
     {
+        $this->store->method('getId')->willReturn(1);
         $this->adyenLogger->expects($this->once())->method('info');
         $this->dataHelper->logAdyenException(new AdyenException('error message', 123));
     }
