@@ -21,34 +21,53 @@ use Magento\TestFramework\TestCase\GraphQlAbstract;
 
 class AdyenTest extends GraphQlAbstract
 {
-    /**
-     * @var GetMaskedQuoteIdByReservedOrderId
-     */
     private $getMaskedQuoteIdByReservedOrderId;
-    /**
-     * @var CustomerTokenServiceInterface
-     */
     private $customerTokenService;
+    private $productRepository;
+    private $productFactory;
+    private $quoteFactory;
+    private $cartRepository;
+    private $storeManager;
 
-    /**
-     * @inheritdoc
-     */
     protected function setUp(): void
     {
         $objectManager = Bootstrap::getObjectManager();
         $this->getMaskedQuoteIdByReservedOrderId = $objectManager->get(GetMaskedQuoteIdByReservedOrderId::class);
         $this->customerTokenService = $objectManager->get(CustomerTokenServiceInterface::class);
+        $this->productRepository = $objectManager->get(ProductRepositoryInterface::class);
+        $this->productFactory = $objectManager->get(ProductFactory::class);
+        $this->quoteFactory = $objectManager->get(QuoteFactory::class);
+        $this->cartRepository = $objectManager->get(CartRepositoryInterface::class);
+        $this->storeManager = $objectManager->get(StoreManagerInterface::class);
     }
 
-    /**
-     * @magentoApiDataFixture Magento/GraphQl/Catalog/_files/simple_product.php
-     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/guest/create_empty_cart.php
-     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/add_simple_product.php
-     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/set_new_shipping_address.php
-     */
+    private function createSimpleProduct()
+    {
+        $product = $this->productFactory->create();
+        $product->setTypeId('simple')
+            ->setAttributeSetId(4)
+            ->setName('Simple Product for Adyen Test')
+            ->setSku('simple-product-adyen-test')
+            ->setPrice(10)
+            ->setVisibility(4)
+            ->setStatus(1)
+            ->setWebsiteIds([$this->storeManager->getStore()->getWebsiteId()])
+            ->setStockData(['use_config_manage_stock' => 1, 'qty' => 100, 'is_qty_decimal' => 0, 'is_in_stock' => 1]);
+
+        return $this->productRepository->save($product);
+    }
+
     public function testAdyenPaymentMethods()
     {
-        $maskedQuoteId = $this->getMaskedQuoteIdByReservedOrderId->execute('test_quote');
+        $product = $this->createSimpleProduct();
+
+        $quote = $this->quoteFactory->create();
+        $quote->addProduct($product, 1);
+        $quote->setReservedOrderId('test_order_adyen');
+        $this->cartRepository->save($quote);
+
+        $maskedQuoteId = $this->getMaskedQuoteIdByReservedOrderId->execute('test_order_adyen');
+
         $query = <<<QUERY
 {
   adyenPaymentMethods(cart_id: "$maskedQuoteId") {
@@ -69,11 +88,15 @@ class AdyenTest extends GraphQlAbstract
 }
 QUERY;
 
+
         $response = $this->graphQlQuery($query);
 
         $this->assertArrayHasKey('adyenPaymentMethods', $response);
         $this->assertArrayHasKey('paymentMethodsResponse', $response['adyenPaymentMethods']);
         $this->assertArrayHasKey('paymentMethodsExtraDetails', $response['adyenPaymentMethods']);
+
+        // Clean up
+        $this->productRepository->delete($product);
     }
 
     /**
@@ -369,7 +392,11 @@ QUERY;
      */
     private function getHeaderMap(string $username = 'customer@example.com', string $password = 'password'): array
     {
-        $customerToken = $this->customerTokenService->createCustomerAccessToken($username, $password);
-        return ['Authorization' => 'Bearer ' . $customerToken];
+        try {
+            $customerToken = $this->customerTokenService->createCustomerAccessToken($username, $password);
+            return ['Authorization' => 'Bearer ' . $customerToken];
+        } catch (AuthenticationException $e) {
+            $this->fail('Failed to create customer token: ' . $e->getMessage());
+        }
     }
 }
