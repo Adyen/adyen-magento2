@@ -20,29 +20,25 @@ else
 	exit 1
 fi
 
-USE_ELASTICSEARCH='1'
-if [[ "$MAGENTO_VERSION" =~ ^2\.3 ]]; then
-	USE_ELASTICSEARCH='0'
-fi
-
-if [ "$USE_ELASTICSEARCH" == '1' ] && [ "$ELASTICSEARCH_SERVER" != "<will be defined>" ]; then
+if [ "$OPENSEARCH_SERVER" != "<will be defined>" ]; then
 	MAGENTO_INSTALL_ARGS=$(echo \
-		--elasticsearch-host="$ELASTICSEARCH_SERVER" \
-		--elasticsearch-port="$ELASTICSEARCH_PORT" \
-		--elasticsearch-index-prefix="$ELASTICSEARCH_INDEX_PREFIX" \
-		--elasticsearch-timeout="$ELASTICSEARCH_TIMEOUT")
+	    --search-engine="opensearch" \
+		--opensearch-host="$OPENSEARCH_SERVER" \
+		--opensearch-port="$OPENSEARCH_PORT" \
+		--opensearch-index-prefix="$OPENSEARCH_INDEX_PREFIX" \
+		--opensearch-timeout="$OPENSEARCH_TIMEOUT")
 	RET=1
 	while [ $RET -ne 0 ]; do
-		echo "Checking if $ELASTICSEARCH_SERVER is available."
-		curl -XGET "$ELASTICSEARCH_SERVER:$ELASTICSEARCH_PORT/_cat/health?v&pretty" >/dev/null 2>&1
+		echo "Checking if $OPENSEARCH_SERVER is available."
+		curl -XGET "$OPENSEARCH_SERVER:$OPENSEARCH_PORT/_cat/health?v&pretty" >/dev/null 2>&1
 		RET=$?
 
 		if [ $RET -ne 0 ]; then
-			echo "Connection to Elasticsearch is pending."
+			echo "Connection to OpenSearch is pending."
 			sleep 5
 		fi
 	done
-	echo "Elasticsearch server $ELASTICSEARCH_SERVER is available."
+	echo "OpenSearch server $OPENSEARCH_SERVER is available."
 fi
 
 if [[ -e /tmp/magento.tar.gz ]]; then
