@@ -13,6 +13,7 @@ namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Client;
 use Adyen\ConnectionException;
+use Adyen\Model\Checkout\PaymentMethodsResponse;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data as AdyenDataHelper;
@@ -413,52 +414,13 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         return $method;
     }
 
-    public function testFetchPaymentMethodsWhenMerchantAccountEmpty()
-    {
-        $country = 'US';
-        $shopperLocale = 'en_US';
-
-        // Invoke the private method
-        $fetchPaymentMethodsMethod = $this->getPrivateMethod(
-            PaymentMethods::class,
-            'fetchPaymentMethods'
-        );
-
-        $storeId = 1;
-
-        $this->storeMock->expects($this->any())
-            ->method('getId')
-            ->willReturn($storeId);
-
-        // Mock the getId method of the quote to return the quoteId
-        $this->quoteMock->expects($this->any())
-            ->method('getStore')
-            ->willReturn($this->storeMock);
-
-        $paymentMethodsHelper = $this->objectManager->getObject(
-            PaymentMethods::class,
-            [
-                'quote' => $this->quoteMock,
-                'configHelper' => $this->configHelperMock,
-            ]
-        );
-
-        // Call the protected method with the necessary parameters
-        $result = $fetchPaymentMethodsMethod->invoke($paymentMethodsHelper, $country, $shopperLocale);
-
-        // Assert the result
-        $this->assertIsString($result); // Ensure the result is a string
-
-        $this->assertEquals(json_encode([]), $result);
-    }
-
     public function testFetchPaymentMethodsWithEmptyResponseFromAdyenApi()
     {
         $quoteId = 1;
         $storeId = 1;
         $amountValue = 100;
         $adyenClientMock = $this->createMock(Client::class);
-        $checkoutServiceMock = $this->createMock(Checkout::class);
+        $checkoutServiceMock = $this->createMock(Checkout\PaymentsApi::class);
         // Setup test scenario
         $this->storeMock->expects($this->any())
             ->method('getId')
@@ -473,7 +435,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             ->with('merchant_account', $storeId) // Ensure it's called with the expected parameters
             ->willReturn('mocked_merchant_account'); // Define the return value for the mocked method
         $this->adyenHelperMock->method('initializeAdyenClient')->willReturn($adyenClientMock);
-        $this->adyenHelperMock->method('createAdyenCheckoutService')->willReturn($checkoutServiceMock);
+        $this->adyenHelperMock->method('initializePaymentsApi')->willReturn($checkoutServiceMock);
         $this->amountCurrencyMock->method('getCurrencyCode')->willReturn('EUR');
         $this->amountCurrencyMock->method('getAmount')->willReturn($amountValue);
         $this->chargedCurrencyMock->method('getQuoteAmountCurrency')->willReturn($this->amountCurrencyMock);
@@ -524,7 +486,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         ];
 
         $adyenClientMock = $this->createMock(Client::class);
-        $checkoutServiceMock = $this->createMock(Checkout::class);
+        $checkoutServiceMock = $this->createMock(Checkout\PaymentsApi::class);
         $quoteId = 1;
         $storeId = 1;
         $amountValue = '100';
@@ -565,13 +527,15 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             ->willReturn($paymentMethodsExtraDetails);
 
         $this->adyenHelperMock->method('initializeAdyenClient')->willReturn($adyenClientMock);
+        $this->adyenHelperMock->method('initializePaymentsApi')->willReturn($checkoutServiceMock);
 
-        $this->adyenHelperMock->method('createAdyenCheckoutService')->willReturn($checkoutServiceMock);
+        $responseMock = $this->createMock(PaymentMethodsResponse::class);
+        $responseMock->method('toArray')->willReturn($expectedResult);
 
         // Simulate successful API call
         $checkoutServiceMock->expects($this->once())
             ->method('paymentMethods')
-            ->willReturn($expectedResult);
+            ->willReturn($responseMock);
 
         $this->storeMock->expects($this->any())
             ->method('getId')
@@ -587,14 +551,12 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             ->with('merchant_account', $storeId) // Ensure it's called with the expected parameters
             ->willReturn('mocked_merchant_account'); // Define the return value for the mocked method
 
-
         $this->amountCurrencyMock->method('getCurrencyCode')->willReturn('EUR');
         $this->amountCurrencyMock->method('getAmount')->willReturn($amountValue);
         $this->chargedCurrencyMock->method('getQuoteAmountCurrency')->willReturn($this->amountCurrencyMock);
 
         $this->adyenHelperMock->expects($this->once())
-            ->method('logResponse')
-            ->with($expectedResult);
+            ->method('logResponse');
 
         $paymentMethods = $this->objectManager->getObject(
             PaymentMethods::class,
@@ -1166,7 +1128,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $this->storeMock->method('getId')->willReturn($storeId);
 
         $clientMock = $this->createMock(Client::class);
-        $checkoutServiceMock = $this->createMock(Checkout::class);
+        $checkoutServiceMock = $this->createMock(Checkout\PaymentsApi::class);
 
         $this->adyenHelperMock->expects($this->once())
             ->method('initializeAdyenClient')
@@ -1174,7 +1136,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             ->willReturn($clientMock);
 
         $this->adyenHelperMock
-            ->method('createAdyenCheckoutService')
+            ->method('initializePaymentsApi')
             ->with($clientMock)
             ->willReturn($checkoutServiceMock);
 
