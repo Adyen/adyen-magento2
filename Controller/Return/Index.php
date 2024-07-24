@@ -161,25 +161,15 @@ class Index extends Action
             $paymentsDetailsResponse['error'] = $e->getMessage();
         }
 
-        $result = false;
+        $result = $this->paymentResponseHandler->handlePaymentsDetailsResponse(
+            $paymentsDetailsResponse,
+            $order
+        );
 
-        // Compare the merchant references
-        $merchantReference = $paymentsDetailsResponse['merchantReference'] ?? null;
-        if ($merchantReference) {
-            if ($order->getIncrementId() === $merchantReference) {
-                $this->order = $order;
-                $this->payment = $order->getPayment();
-                $this->cleanUpRedirectAction();
-
-                $result = $this->paymentResponseHandler->handlePaymentsDetailsResponse(
-                    $paymentsDetailsResponse,
-                    $order
-                );
-            } else {
-                $this->adyenLogger->error("Wrong merchantReference was set in the query or in the session");
-            }
-        } else {
-            $this->adyenLogger->error("No merchantReference in the response");
+        if ($result) {
+            $this->order = $order;
+            $this->payment = $order->getPayment();
+            $this->cleanUpRedirectAction();
         }
 
         return $result;
