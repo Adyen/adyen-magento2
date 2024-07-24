@@ -12,6 +12,9 @@
 namespace Adyen\Payment\Model\Api;
 
 use Adyen\AdyenException;
+use Adyen\Model\Checkout\PaymentDetailsRequest;
+use Adyen\Model\Recurring\DisableRequest;
+use Adyen\Model\Recurring\RecurringDetailsRequest;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
@@ -27,16 +30,34 @@ use Magento\Sales\Model\Order\Payment;
 
 class PaymentRequest extends DataObject
 {
+    /**
+     * @var EncryptorInterface
+     */
     protected EncryptorInterface $encryptor;
 
+    /**
+     * @var Data
+     */
     protected Data $adyenHelper;
 
+    /**
+     * @var AdyenLogger
+     */
     protected AdyenLogger $adyenLogger;
 
+    /**
+     * @var Config
+     */
     protected Config $configHelper;
 
+    /**
+     * @var RecurringType
+     */
     protected RecurringType $recurringType;
 
+    /**
+     * @var State
+     */
     protected State $appState;
 
     /**
@@ -44,6 +65,7 @@ class PaymentRequest extends DataObject
      * @param EncryptorInterface $encryptor
      * @param Data $adyenHelper
      * @param AdyenLogger $adyenLogger
+     * @param Config $configHelper
      * @param RecurringType $recurringType
      * @param array $data
      */
@@ -70,7 +92,7 @@ class PaymentRequest extends DataObject
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function authorise3d(Payment $payment): mixed
+    public function authorise3d(Payment $payment): array
     {
         $order = $payment->getOrder();
         $storeId = $order->getStoreId();
@@ -102,13 +124,13 @@ class PaymentRequest extends DataObject
 
         try {
             $client = $this->adyenHelper->initializeAdyenClient($storeId);
-            $service = $this->adyenHelper->createAdyenCheckoutService($client);
-            $result = $service->paymentsDetails($request);
+            $service = $this->adyenHelper->initializePaymentsApi($client);
+            $response = $service->paymentsDetails(new PaymentDetailsRequest($request));
         } catch (AdyenException $e) {
             throw new LocalizedException(__('3D secure failed'));
         }
 
-        return $result;
+        return $response->toArray();
     }
 
     /**
@@ -179,10 +201,10 @@ class PaymentRequest extends DataObject
 
         // call lib
         $client = $this->adyenHelper->initializeAdyenClient($storeId);
-        $service = $this->adyenHelper->createAdyenRecurringService($client);
-        $result = $service->listRecurringDetails($request);
+        $service = $this->adyenHelper->initializeRecurringApi($client);
+        $response = $service->listRecurringDetails(new RecurringDetailsRequest($request));
 
-        return $result;
+        return (array)$response->jsonSerialize();
     }
 
     /**
@@ -209,10 +231,11 @@ class PaymentRequest extends DataObject
 
         // call lib
         $client = $this->adyenHelper->initializeAdyenClient($storeId);
-        $service = $this->adyenHelper->createAdyenRecurringService($client);
+        $service = $this->adyenHelper->initializeRecurringApi($client);
 
         try {
-            $result = $service->disable($request);
+            $response = $service->disable(new DisableRequest($request));
+            $result = (array) $response->jsonSerialize();
         } catch (Exception $e) {
             $this->adyenLogger->info($e->getMessage());
         }

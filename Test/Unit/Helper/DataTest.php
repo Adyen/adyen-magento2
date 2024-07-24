@@ -10,7 +10,9 @@
 
 namespace Adyen\Payment\Test\Unit\Helper;
 
+use Adyen\AdyenException;
 use Adyen\Client;
+use Adyen\Config as AdyenConfig;
 use Adyen\Payment\Gateway\Request\HeaderDataBuilder;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\Data;
@@ -21,6 +23,10 @@ use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Adyen\Service\Checkout\ModificationsApi;
+use Adyen\Service\Checkout\OrdersApi;
+use Adyen\Service\Checkout\PaymentsApi;
+use Adyen\Service\RecurringApi;
 use Magento\Backend\Helper\Data as BackendHelper;
 use Magento\Customer\Helper\Address;
 use Magento\Directory\Model\Config\Source\Country;
@@ -41,15 +47,13 @@ use Magento\Quote\Model\Quote\Address\RateRequest;
 use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\Order\Status\HistoryFactory;
+use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManager;
 use Magento\Tax\Model\Calculation;
 use Magento\Tax\Model\Config;
 use Magento\Sales\Model\Order;
-use Magento\Framework\View\Asset\File;
 use ReflectionClass;
-use Adyen\Service\Recurring;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
-
 
 class DataTest extends AbstractAdyenTestCase
 {
@@ -58,8 +62,35 @@ class DataTest extends AbstractAdyenTestCase
      */
     private $dataHelper;
 
+    private $clientMock;
+    private $adyenLogger;
+    private $ccTypesAltData;
+    private $configHelper;
+    private $objectManager;
+    private $store;
+    private $encryptor;
+    private $dataStorage;
+    private $assetRepo;
+    private $assetSource;
+    private $taxConfig;
+    private $taxCalculation;
+    private $backendHelper;
+    private $storeManager;
+    private $cache;
+    private $localeResolver;
+    private $config;
+    private $componentRegistrar;
+    private $localeHelper;
+    private $orderManagement;
+    private $orderStatusHistoryFactory;
+
     public function setUp(): void
     {
+        $this->clientMock = $this->createConfiguredMock(Client::class, [
+                'getConfig' => new AdyenConfig(['environment' => 'test'])
+            ]
+        );
+
         // Prepare mock data for ccTypesAltData
         $this->ccTypesAltData = [
             'VI' => ['code_alt' => 'VI', 'code' => 'VI'],
@@ -71,9 +102,10 @@ class DataTest extends AbstractAdyenTestCase
                 'demo_mode' => '1'
             ]
         ]);
+
         $this->objectManager = new ObjectManager($this);
         $context = $this->createMock(Context::class);
-        $this->store = $this->createMock(\Magento\Store\Model\Store::class);
+        $this->store = $this->createMock(Store::class);
         $this->encryptor = $this->createMock(EncryptorInterface::class);
         $this->dataStorage = $this->createMock(DataInterface::class);
         $country = $this->createMock(Country::class);
@@ -91,6 +123,7 @@ class DataTest extends AbstractAdyenTestCase
         ]);
         $this->adyenLogger = $this->createMock(AdyenLogger::class);
         $this->storeManager = $this->createMock(StoreManager::class);
+        $this->storeManager->method('getStore')->willReturn($this->store);
         $this->cache = $this->createMock(CacheInterface::class);
         $this->localeResolver = $this->createMock(ResolverInterface::class);
         $this->config = $this->createMock(ScopeConfigInterface::class);
@@ -1365,8 +1398,9 @@ class DataTest extends AbstractAdyenTestCase
     {
         $storeId = 1;
         $expectedBaseUrl = 'https://example.com/';
+
         $stateMock = $this->createMock(State::class);
-        $storeMock = $this->createMock(\Magento\Store\Model\Store::class);
+
         $objectManagerStub = $this->createMock(\Magento\Framework\App\ObjectManager::class);
         $objectManagerStub->method('get')->willReturnMap([
             [State::class, $stateMock]
@@ -1379,13 +1413,8 @@ class DataTest extends AbstractAdyenTestCase
             ->with('payment_origin_url', $storeId)
             ->willReturn('');
 
-        // Mock the store manager to return the store mock
-        $this->storeManager->expects($this->once())
-            ->method('getStore')
-            ->willReturn($storeMock);
-
         // Mock the store to return the expected base URL
-        $storeMock->expects($this->once())
+        $this->store->expects($this->once())
             ->method('getBaseUrl')
             ->with(UrlInterface::URL_TYPE_WEB)
             ->willReturn($expectedBaseUrl);
@@ -1446,7 +1475,7 @@ class DataTest extends AbstractAdyenTestCase
         $merchantAccount = 'mock_merchant_account';
 
         // Mock the store manager and config helper
-        $storeMock = $this->createMock(\Magento\Store\Model\Store::class);
+        $storeMock = $this->createMock(Store::class);
         $storeMock->expects($this->any())
             ->method('getId')
             ->willReturn($storeId);
@@ -1476,7 +1505,7 @@ class DataTest extends AbstractAdyenTestCase
         $merchantAccountPos = 'mock_pos_merchant_account';
 
         // Mock the store manager and config helper
-        $storeMock = $this->createMock(\Magento\Store\Model\Store::class);
+        $storeMock = $this->createMock(Store::class);
         $storeMock->expects($this->any())
             ->method('getId')
             ->willReturn($storeId);
@@ -1714,5 +1743,120 @@ class DataTest extends AbstractAdyenTestCase
         // Assert that the formFields array is correctly populated
         $this->assertArrayHasKey('openinvoicedata.line1.itemId', $result);
         $this->assertEquals("shippingCost", $result['openinvoicedata.line1.itemId']);
+    }
+
+    /**
+     * @test
+     */
+    public function getRecurringTypesShouldReturnAnArrayOfRecurringTypes()
+    {
+        $this->assertEquals([
+            RecurringType::ONECLICK => 'ONECLICK',
+            RecurringType::ONECLICK_RECURRING => 'ONECLICK,RECURRING',
+            RecurringType::RECURRING => 'RECURRING'
+        ], $this->dataHelper->getRecurringTypes());
+    }
+
+    public function getCheckoutFrontendRegionsShouldReturnAnArray()
+    {
+        $this->assertEquals([
+            'eu' => 'Default (EU - Europe)',
+            'au' => 'AU - Australasia',
+            'us' => 'US - United States',
+            'in' => 'IN - India'
+        ], $this->dataHelper->getRecurringTypes());
+    }
+
+    public function testGetClientKey()
+    {
+        $expectedValue = 'client_key_test_value';
+        $storeId = 1;
+
+        $this->configHelper->method('isDemoMode')
+            ->with($storeId)
+            ->willReturn(true);
+
+        $this->configHelper->method('getAdyenAbstractConfigData')
+            ->with('client_key_test', $storeId)
+            ->willReturn($expectedValue);
+
+        $key = $this->dataHelper->getClientKey(1);
+        $this->assertEquals($expectedValue, $key);
+    }
+
+    public function testGetApiKey()
+    {
+        $apiKey = 'api_key_test_value';
+        $expectedValue = 'api_key_test_decryted_value';
+        $storeId = 1;
+
+        $this->configHelper->method('isDemoMode')
+            ->with($storeId)
+            ->willReturn(true);
+
+        $this->configHelper->method('getAdyenAbstractConfigData')
+            ->with('api_key_test', $storeId)
+            ->willReturn($apiKey);
+
+        $this->encryptor->method('decrypt')
+            ->with($apiKey)
+            ->willReturn($expectedValue);
+
+        $key = $this->dataHelper->getAPIKey(1);
+        $this->assertEquals($expectedValue, $key);
+    }
+
+    public function testIsDemoMode()
+    {
+        $storeId = 1;
+        $this->configHelper->method('getAdyenAbstractConfigDataFlag')
+            ->with('demo_mode', $storeId)
+            ->willReturn(true);
+
+        $value = $this->dataHelper->isDemoMode($storeId);
+
+        $this->assertEquals(true, $value);
+    }
+
+    public function testCaptureModes()
+    {
+        $this->assertSame(
+            [
+                'auto' => 'Immediate',
+                'manual' => 'Manual'
+            ],
+            $this->dataHelper->getCaptureModes()
+        );
+    }
+
+    public function testInitializePaymentsApi()
+    {
+        $service = $this->dataHelper->initializePaymentsApi($this->clientMock);
+        $this->assertInstanceOf(PaymentsApi::class, $service);
+    }
+
+    public function testInitializeModificationsApi()
+    {
+        $service = $this->dataHelper->initializeModificationsApi($this->clientMock);
+        $this->assertInstanceOf(ModificationsApi::class, $service);
+    }
+
+    public function testInitializeRecurringApi()
+    {
+        $service = $this->dataHelper->initializeRecurringApi($this->clientMock);
+        $this->assertInstanceOf(RecurringApi::class, $service);
+    }
+
+    public function testInitializeOrdersApi()
+    {
+        $service = $this->dataHelper->initializeOrdersApi($this->clientMock);
+        $this->assertInstanceOf(OrdersApi::class, $service);
+    }
+
+    public function testLogAdyenException()
+    {
+        $this->store->method('getId')->willReturn(1);
+        $this->adyenLogger->expects($this->once())->method('info');
+        $this->dataHelper->logAdyenException(new AdyenException('error message', 123));
     }
 }
