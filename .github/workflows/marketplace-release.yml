@@ -8,7 +8,7 @@ on:
 jobs:
   marketplace-automation:
     runs-on: ubuntu-latest
-    environment: internal 
+    # environment: internal 
 
     steps:
       - name: Checkout repository
@@ -54,27 +54,21 @@ jobs:
         uses: thedoctor0/zip-release@0.7.5
         with:
           type: 'zip'
-          filename: 'processed_release.zip'
+          filename: 'adyen-magento2-main.zip'
           exclusions: '*.git* *.DS_Store'
 
       - name: List files for verification
         run: |
           ls -la
-
-      - name: Upload processed release as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: processed-release
-          path: processed_release.zip
           
       - name: Prepare the request payload
         run: |
           touch file-payload && \
           echo "--UNIQUE_BOUNDARY_TOKEN" > file-payload && \
-          echo 'Content-Disposition: form-data; name="file[]"; filename="processed-release.zip"' >> file-payload && \
+          echo 'Content-Disposition: form-data; name="file[]"; filename="adyen-magento2-main.zip"' >> file-payload && \
           echo 'Content-Type: application/zip' >> file-payload && \
           echo '' >> file-payload && \
-          cat processed_release.zip >> file-payload && \
+          cat adyen-magento2-main.zip >> file-payload && \
           echo '' >> file-payload && \
           echo "--UNIQUE_BOUNDARY_TOKEN--" >> file-payload
         
