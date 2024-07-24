@@ -2,6 +2,8 @@ name: Marketplace Automation
 
 on:
   workflow_dispatch:
+  # test only
+  push:
   release:
     types: [published]
 
