@@ -15,7 +15,7 @@ define(
         'Magento_Checkout/js/model/payment/renderer-list',
         'Magento_Checkout/js/action/get-payment-information',
         'Magento_Checkout/js/model/quote',
-        'Adyen_Payment/js/adyen-payment-service'
+        'Adyen_Payment/js/model/adyen-payment-service'
     ],
     function (
         Component,
