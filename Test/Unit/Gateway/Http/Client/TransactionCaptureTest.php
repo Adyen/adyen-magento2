@@ -3,6 +3,7 @@
 namespace Adyen\Payment\Test\Unit\Gateway\Http\Client;
 
 use Adyen\Client;
+use Adyen\Model\Checkout\ApplicationInfo;
 use Adyen\Model\Checkout\PaymentCaptureRequest;
 use Adyen\Model\Checkout\PaymentCaptureResponse;
 use Adyen\Payment\Gateway\Http\Client\TransactionCapture;
@@ -35,10 +36,13 @@ class TransactionCaptureTest extends AbstractAdyenTestCase
             $this->idempotencyHelper
         );
 
+        $applicationInfo = $this->createMock(ApplicationInfo::class);
+        $this->adyenHelper->method('buildApplicationInfo')->willReturn($applicationInfo);
+
         $this->request = [
             'amount' => ['value' => 100, 'currency' => 'USD'],
             'paymentPspReference' => 'testPspReference',
-            'applicationInfo' => '',
+            'applicationInfo' => $applicationInfo,
         ];
 
         $this->transferObject = $this->createConfiguredMock(TransferInterface::class, [
