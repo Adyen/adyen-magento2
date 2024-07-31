@@ -84,7 +84,7 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
 
     public function testPlaceRequestGeneratesIdempotencyKey()
     {
-        $requestBody = ['reference' => 'ABC12345', 'amount' => ['value' => 100]];
+        $requestBody = ['reference' => 'ABC12345', 'amount' => ['value' => 100], 'applicationInfo' => ''];
         $transferObjectMock = $this->createConfiguredMock(TransferInterface::class, [
             'getBody' => $requestBody,
             'getHeaders' => ['idempotencyExtraData' => ['someData']],
@@ -95,7 +95,7 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
         $this->idempotencyHelperMock->expects($this->once())
             ->method('generateIdempotencyKey')
             ->with(
-                $this->equalTo(['reference' => 'ABC12345', 'amount' => ['value' => 100]]),
+                $this->equalTo(['reference' => 'ABC12345', 'amount' => ['value' => 100], 'applicationInfo' => '']),
                 $this->equalTo(['someData'])
             )
             ->willReturn($expectedIdempotencyKey);
@@ -127,11 +127,11 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
 
     public function testRequestHeadersAreAddedToPaymentsCall()
     {
-        $requestBody = new PaymentRequest(['reference' => 'ABC12345', 'amount' => ['value' => 1000]]);
+        $requestBody = new PaymentRequest(['reference' => 'ABC12345', 'amount' => ['value' => 1000], 'applicationInfo' => '']);
         $expectedHeaders = ['header1' => 'value1', 'header2' => 'value2'];
 
         $transferObjectMock = $this->createConfiguredMock(TransferInterface::class, [
-            'getBody' => ['reference' => 'ABC12345', 'amount' => ['value' => 1000]],
+            'getBody' => ['reference' => 'ABC12345', 'amount' => ['value' => 1000], 'applicationInfo' => ''],
             'getHeaders' => ['header1' => 'value1', 'header2' => 'value2'],
             'getClientConfig' => []
         ]);

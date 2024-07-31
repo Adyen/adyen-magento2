@@ -37,7 +37,8 @@ class TransactionCaptureTest extends AbstractAdyenTestCase
 
         $this->request = [
             'amount' => ['value' => 100, 'currency' => 'USD'],
-            'paymentPspReference' => 'testPspReference'
+            'paymentPspReference' => 'testPspReference',
+            'applicationInfo' => '',
         ];
 
         $this->transferObject = $this->createConfiguredMock(TransferInterface::class, [
@@ -98,7 +99,8 @@ class TransactionCaptureTest extends AbstractAdyenTestCase
     {
         $expectedResponse = [
             'capture_amount' => $this->request['amount']['value'],
-            'paymentPspReference' => $this->request['paymentPspReference']
+            'paymentPspReference' => $this->request['paymentPspReference'],
+            'applicationInfo' => '',
         ];
 
         $this->configureAdyenMocks($expectedResponse);
@@ -122,5 +124,6 @@ class TransactionCaptureTest extends AbstractAdyenTestCase
         // Assert that the response contains the error message
         $this->assertArrayHasKey('error', $response);
         $this->assertEquals('Test exception', $response['error']);
+
     }
 }
