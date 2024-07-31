@@ -100,7 +100,7 @@ class TransactionCaptureTest extends AbstractAdyenTestCase
         $expectedResponse = [
             'capture_amount' => $this->request['amount']['value'],
             'paymentPspReference' => $this->request['paymentPspReference'],
-            'applicationInfo' => '',
+            'applicationInfo' => $this->request['applicationInfo'],
         ];
 
         $this->configureAdyenMocks($expectedResponse);
