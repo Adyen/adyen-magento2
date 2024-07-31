@@ -124,6 +124,5 @@ class TransactionCaptureTest extends AbstractAdyenTestCase
         // Assert that the response contains the error message
         $this->assertArrayHasKey('error', $response);
         $this->assertEquals('Test exception', $response['error']);
-
     }
 }
