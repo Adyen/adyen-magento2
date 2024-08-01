@@ -173,7 +173,7 @@ class Vault
         return null;
     }
 
-    public function createVaultToken(OrderPaymentInterface $payment, string $detailReference): PaymentTokenInterface
+    public function createVaultToken(OrderPaymentInterface $payment, string $detailReference, ?string $cardHolderName = null): PaymentTokenInterface
     {
         $paymentMethodInstance = $payment->getMethodInstance();
         $paymentMethodCode = $paymentMethodInstance->getCode();
@@ -211,6 +211,11 @@ class Vault
                 'maskedCC' => $additionalData['cardSummary'],
                 'expirationDate' => $additionalData['expiryDate']
             ];
+
+            if ($cardHolderName !== null) {
+                $details['cardHolderName'] = $cardHolderName;
+            }
+
             $paymentToken->setExpiresAt($this->getExpirationDate($additionalData['expiryDate']));
         } elseif ($paymentMethodCode === PaymentMethods::ADYEN_CC ||
             $paymentMethodCode === AdyenPosCloudConfigProvider::CODE) {
@@ -220,6 +225,9 @@ class Vault
                 'maskedCC' => $additionalData['cardSummary'],
                 'expirationDate' => $additionalData['expiryDate']
             ];
+            if ($cardHolderName !== null) {
+                $details['cardHolderName'] = $cardHolderName;
+            }
             $paymentToken->setExpiresAt($this->getExpirationDate($additionalData['expiryDate']));
         } elseif ($this->paymentMethodsHelper->isAlternativePaymentMethod($paymentMethodInstance)) {
             $paymentToken->setType(PaymentTokenFactoryInterface::TOKEN_TYPE_ACCOUNT);
@@ -293,9 +301,11 @@ class Vault
 
         if ($this->hasRecurringDetailReference($response) && $isRecurringEnabled) {
             try {
+                $cardHolderName = $response['additionalData']['cardHolderName'] ?? null;
                 $paymentToken = $this->createVaultToken(
                     $payment,
-                    $response['additionalData'][self::RECURRING_DETAIL_REFERENCE]
+                    $response['additionalData'][self::RECURRING_DETAIL_REFERENCE],
+                    $cardHolderName
                 );
                 $extensionAttributes = $this->getExtensionAttributes($payment);
                 $extensionAttributes->setVaultPaymentToken($paymentToken);
