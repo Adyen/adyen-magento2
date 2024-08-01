@@ -211,6 +211,11 @@ class Vault
                 'maskedCC' => $additionalData['cardSummary'],
                 'expirationDate' => $additionalData['expiryDate']
             ];
+
+            if ($cardHolderName !== null) {
+                $details['cardHolderName'] = $cardHolderName;
+            }
+
             $paymentToken->setExpiresAt($this->getExpirationDate($additionalData['expiryDate']));
         } elseif ($paymentMethodCode === PaymentMethods::ADYEN_CC ||
             $paymentMethodCode === AdyenPosCloudConfigProvider::CODE) {
