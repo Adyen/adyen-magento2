@@ -78,6 +78,7 @@ class TransactionCapture implements ClientInterface
         $service = $this->adyenHelper->initializeModificationsApi($client);
 
         $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
+        $request['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($client);
 
         if (array_key_exists(self::MULTIPLE_AUTHORIZATIONS, $request)) {
             return $this->placeMultipleCaptureRequests($service, $request, $requestOptions);
@@ -123,6 +124,8 @@ class TransactionCapture implements ClientInterface
         array            $requestOptions
     ): array {
         $response = [];
+        $applicationInfo = $requestContainer['applicationInfo'];
+
         foreach ($requestContainer[self::MULTIPLE_AUTHORIZATIONS] as $request) {
             $idempotencyKeyExtraData = $request['idempotencyExtraData'];
             unset($request['idempotencyExtraData']);
@@ -135,6 +138,7 @@ class TransactionCapture implements ClientInterface
             try {
                 // Copy merchant account from parent array to every request array
                 $request[Requests::MERCHANT_ACCOUNT] = $requestContainer[Requests::MERCHANT_ACCOUNT];
+                $request['applicationInfo'] = $applicationInfo;
                 $paymentCaptureRequest = new PaymentCaptureRequest($request);
                 $singleResponseObj = $service->captureAuthorisedPayment(
                     $request['paymentPspReference'],
