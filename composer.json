@@ -12,7 +12,7 @@
   ],
   "require": {
     "php": ">=8.1",
-    "adyen/php-api-library": "^17.5.0",
+    "adyen/php-api-library": "^17.0.0",
     "adyen/php-webhook-module": "^1",
     "magento/framework": ">=103.0.4",
     "magento/module-vault": ">=101.2.4",
