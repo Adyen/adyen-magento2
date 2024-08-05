@@ -71,7 +71,6 @@ class TransactionRefund implements TransactionRefundInterface
             $requestOptions['idempotencyKey'] = $idempotencyKey;
             $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
             $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/refunds');
-            $request['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($client);
             $paymentRefundRequest = new PaymentRefundRequest($request);
 
             try {
