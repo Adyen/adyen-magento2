@@ -110,6 +110,7 @@
                 <item name="adyen_onlinebanking_IN" xsi:type="string">onlinebanking_IN</item>
                 <item name="adyen_paypo" xsi:type="string">paypo</item>
                 <item name="adyen_upi" xsi:type="string">upi</item>
+                <item name="adyen_dana" xsi:type="string">dana</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
@@ -154,6 +155,7 @@
                 <item name="adyen_bcmc" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
                 <item name="adyen_cashapp" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
                 <item name="adyen_ach" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
+                <item name="adyen_dana" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
             </argument>
         </arguments>
     </type>

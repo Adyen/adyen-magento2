@@ -59,9 +59,11 @@ class RecurringVaultDataBuilder implements BuilderInterface
         /*
          * allow3DS flag is required to trigger the native 3DS challenge.
          * Otherwise, shopper will be redirected to the issuer for challenge.
+         * Due to new VISA compliance requirements, holderName is added to the payments call
          */
         if ($paymentMethod->getCode() === AdyenCcConfigProvider::CC_VAULT_CODE) {
             $requestBody['additionalData']['allow3DS2'] = true;
+            $requestBody['paymentMethod']['holderName'] = $details['cardHolderName'] ?? null;
         }
 
         /**
