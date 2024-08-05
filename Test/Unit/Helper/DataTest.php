@@ -13,8 +13,6 @@ namespace Adyen\Payment\Test\Unit\Helper;
 use Adyen\AdyenException;
 use Adyen\Client;
 use Adyen\Config as AdyenConfig;
-use Adyen\Model\Checkout\ApplicationInfo;
-use Adyen\Model\Checkout\CommonField;
 use Adyen\Payment\Gateway\Request\HeaderDataBuilder;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\Data;
@@ -89,14 +87,7 @@ class DataTest extends AbstractAdyenTestCase
     public function setUp(): void
     {
         $this->clientMock = $this->createConfiguredMock(Client::class, [
-                'getConfig' => new AdyenConfig([
-                    'environment' => 'test',
-                    'externalPlatform' => ['name' => 'test platform', 'version' => '1.2.3', 'integrator' => 'test integrator'],
-                    'merchantApplication' => ['name' => 'test merchant', 'version' => '1.2.3'],
-                    'adyenPaymentSource' => ['name' => 'test source', 'version' => '1.2.3']
-                ]),
-                'getLibraryName' => 'test library',
-                'getLibraryVersion' => '1.2.3',
+                'getConfig' => new AdyenConfig(['environment' => 'test'])
             ]
         );
 
@@ -1051,36 +1042,6 @@ class DataTest extends AbstractAdyenTestCase
 
         $headers = $this->dataHelper->buildRequestHeaders();
         $this->assertEquals($expectedHeaders, $headers);
-    }
-
-    public function testBuildApplicationInfo()
-    {
-        $expectedApplicationInfo =  new ApplicationInfo();
-
-        // These getters are deprecated but needed to mock the client
-        $expectedApplicationInfo->setAdyenLibrary(new CommonField([
-            'name' => $this->clientMock->getLibraryName(),
-            'version' => $this->clientMock->getLibraryVersion()
-        ]));
-
-        $expectedApplicationInfo->setAdyenPaymentSource(new CommonField(
-            $this->clientMock->getConfig()->getAdyenPaymentSource())
-        );
-
-        $expectedApplicationInfo->setExternalPlatform(
-            $this->clientMock->getConfig()->getExternalPlatform()
-        );
-
-        $expectedApplicationInfo->setMerchantApplication(new CommonField(
-            $this->clientMock->getConfig()->getMerchantApplication())
-        );
-
-        $applicationInfo = $this->dataHelper->buildApplicationInfo($this->clientMock);
-
-        $this->assertEquals(
-            $expectedApplicationInfo,
-            $applicationInfo
-        );
     }
 
     public function testBuildRequestHeadersWithNonNullFrontendType()

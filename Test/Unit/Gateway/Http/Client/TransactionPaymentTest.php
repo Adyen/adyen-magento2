@@ -11,7 +11,6 @@
 
 namespace Adyen\Payment\Test\Unit\Gateway\Http\Client;
 
-use Adyen\Model\Checkout\ApplicationInfo;
 use Adyen\Model\Checkout\PaymentRequest;
 use Adyen\Payment\Api\Data\PaymentResponseInterface;
 use Adyen\Payment\Model\PaymentResponse;
@@ -58,9 +57,6 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
         $this->paymentResponseFactoryMock = $this->createGeneratedMock(PaymentResponseFactory::class, ['create']);
         $this->paymentResponseFactoryMock->method('create')->willReturn($paymentResponseMock);
 
-        $this->applicationInfoMock = $this->createMock(ApplicationInfo::class);
-        $this->adyenHelperMock->method('buildApplicationInfo')->willReturn($this->applicationInfoMock);
-
         $this->transactionPayment = $objectManager->getObject(
             TransactionPayment::class,
             [
@@ -88,7 +84,7 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
 
     public function testPlaceRequestGeneratesIdempotencyKey()
     {
-        $requestBody = ['reference' => 'ABC12345', 'amount' => ['value' => 100], 'applicationInfo' => $this->applicationInfoMock];
+        $requestBody = ['reference' => 'ABC12345', 'amount' => ['value' => 100]];
         $transferObjectMock = $this->createConfiguredMock(TransferInterface::class, [
             'getBody' => $requestBody,
             'getHeaders' => ['idempotencyExtraData' => ['someData']],
@@ -99,7 +95,7 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
         $this->idempotencyHelperMock->expects($this->once())
             ->method('generateIdempotencyKey')
             ->with(
-                $this->equalTo(['reference' => 'ABC12345', 'amount' => ['value' => 100], 'applicationInfo' => $this->applicationInfoMock]),
+                $this->equalTo(['reference' => 'ABC12345', 'amount' => ['value' => 100]]),
                 $this->equalTo(['someData'])
             )
             ->willReturn($expectedIdempotencyKey);
@@ -131,11 +127,11 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
 
     public function testRequestHeadersAreAddedToPaymentsCall()
     {
-        $requestBody = new PaymentRequest(['reference' => 'ABC12345', 'amount' => ['value' => 1000], 'applicationInfo' => $this->applicationInfoMock]);
+        $requestBody = new PaymentRequest(['reference' => 'ABC12345', 'amount' => ['value' => 1000]]);
         $expectedHeaders = ['header1' => 'value1', 'header2' => 'value2'];
 
         $transferObjectMock = $this->createConfiguredMock(TransferInterface::class, [
-            'getBody' => ['reference' => 'ABC12345', 'amount' => ['value' => 1000], 'applicationInfo' => $this->applicationInfoMock],
+            'getBody' => ['reference' => 'ABC12345', 'amount' => ['value' => 1000]],
             'getHeaders' => ['header1' => 'value1', 'header2' => 'value2'],
             'getClientConfig' => []
         ]);
