@@ -14,6 +14,8 @@ namespace Adyen\Payment\Helper;
 use Adyen\AdyenException;
 use Adyen\Client;
 use Adyen\Environment;
+use Adyen\Model\Checkout\ApplicationInfo;
+use Adyen\Model\Checkout\CommonField;
 use Adyen\Model\Checkout\UtilityRequest;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Gateway\Request\HeaderDataBuilder;
@@ -1184,6 +1186,30 @@ class Data extends AbstractHelper
         }
 
         return $headers;
+    }
+
+    public function buildApplicationInfo(Client $client) :ApplicationInfo
+    {
+        $applicationInfo =  new ApplicationInfo();
+
+        $adyenLibrary['name'] = $client->getLibraryName(); // deprecated but no alternative was given.
+        $adyenLibrary['version'] = $client->getLibraryVersion(); // deprecated but no alternative was given.
+
+        $applicationInfo->setAdyenLibrary(new CommonField($adyenLibrary));
+
+        if ($adyenPaymentSource = $client->getConfig()->getAdyenPaymentSource()) {
+           $applicationInfo->setAdyenPaymentSource(new CommonField($adyenPaymentSource));
+        }
+
+        if ($externalPlatform = $client->getConfig()->getExternalPlatform()) {
+            $applicationInfo->setExternalPlatform($externalPlatform);
+        }
+
+        if ($merchantApplication = $client->getConfig()->getMerchantApplication()) {
+            $applicationInfo->setMerchantApplication(new CommonField($merchantApplication));
+        }
+
+        return $applicationInfo;
     }
 
     /**
