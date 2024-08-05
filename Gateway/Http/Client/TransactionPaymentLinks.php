@@ -73,7 +73,6 @@ class TransactionPaymentLinks implements ClientInterface
 
         $requestOptions['idempotencyKey'] = $idempotencyKey;
         $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
-        $request['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($client);
 
         $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/paymentLinks');
         try {
