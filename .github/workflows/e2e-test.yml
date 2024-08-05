@@ -72,7 +72,7 @@ jobs:
         run: docker exec magento2-container make fs
 
       - name: Run E2E tests
-        run: docker-compose -f .github/docker-compose.e2e.yml run --rm playwright /e2e.sh standard
+        run: docker compose -f .github/docker-compose.e2e.yml run --rm playwright /e2e.sh standard
         env:
           INTEGRATION_TESTS_BRANCH: develop
           MAGENTO_ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
