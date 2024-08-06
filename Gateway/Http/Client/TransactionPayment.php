@@ -130,6 +130,7 @@ class TransactionPayment implements ClientInterface
                 return $giftcardResponse->toArray();
             }
 
+            $requestData['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($client);
             $paymentRequest = new PaymentRequest($requestData);
 
             $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
