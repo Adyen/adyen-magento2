@@ -14,13 +14,15 @@ define(
         'uiComponent',
         'Magento_Checkout/js/model/payment/renderer-list',
         'Magento_Checkout/js/action/get-payment-information',
-        'Magento_Checkout/js/model/quote'
+        'Magento_Checkout/js/model/quote',
+        'Adyen_Payment/js/model/adyen-payment-service'
     ],
     function (
         Component,
         rendererList,
         getPaymentInformation,
-        quote
+        quote,
+        adyenPaymentService
     ) {
         'use strict';
 
@@ -47,9 +49,8 @@ define(
             initialize: function () {
                 this._super();
 
-                // Virtual quote doesn't call payment-information or shipping-information endpoints.
-                // payment-information endpoint should be called manually to fetch Adyen extension attributes.
-                if (quote.isVirtual()) {
+                // Check if paymentMethods or connectedTerminals are null
+                if (adyenPaymentService.paymentMethods() === null || adyenPaymentService.connectedTerminals() === null) {
                     getPaymentInformation();
                 }
             }
