@@ -74,7 +74,7 @@ jobs:
       - name: Run E2E tests
         run: docker-compose -f .github/docker-compose.e2e.yml run --rm playwright /e2e.sh standard
         env:
-          INTEGRATION_TESTS_BRANCH: dev-ECP-9342
+          INTEGRATION_TESTS_BRANCH: ECP-9342
           MAGENTO_ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
           MAGENTO_ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
           MAGENTO_BASE_URL: ${{secrets.MAGENTO_BASE_URL}}
