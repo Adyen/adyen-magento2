@@ -1,0 +1,190 @@
+name: Marketplace Automation
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  marketplace-automation:
+    runs-on: ubuntu-latest
+    # environment: internal
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch the latest release
+        id: fetch_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # for test only
+          # response=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/${{ github.repository }}/releases/latest")
+
+          # for live only
+          response=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ github.ref_name }}")
+
+          release_url=$(echo $response | jq -r '.zipball_url')
+          release_notes=$(echo $response | jq -r '.body')
+          release_tagname=$(echo $response | jq -r '.tag_name')
+
+          # Remove 'v' prefix if it exists
+          if [[ $release_tagname == v* ]]; then
+            release_tagname=${release_tagname#v}
+          fi
+
+          echo "LATEST_RELEASE_URL=$release_url" >> $GITHUB_OUTPUT
+          echo "RELEASE_NOTES<<EOF" >> $GITHUB_OUTPUT
+          echo "$release_notes" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "TAG_NAME=$release_tagname" >> $GITHUB_OUTPUT
+
+          echo "Latest Release URL: $release_url"
+          echo "Release Notes: $release_notes"
+          echo "Tag name: $release_tagname"
+
+      - name: Download the latest release
+        run: |
+          curl -L ${{ steps.fetch_release.outputs.LATEST_RELEASE_URL }} -o source.zip
+          unzip source.zip
+          rm source.zip
+
+      - name: Create Archive
+        uses: thedoctor0/zip-release@0.7.5
+        with:
+          type: 'zip'
+          filename: 'adyen-magento2-main.zip'
+          exclusions: '*.git* *.DS_Store'
+
+      - name: List files for verification
+        run: |
+          ls -la
+
+      - name: Prepare the request payload
+        run: |
+          touch file-payload && \
+          echo "--UNIQUE_BOUNDARY_TOKEN" > file-payload && \
+          echo 'Content-Disposition: form-data; name="file[]"; filename="adyen-magento2-main.zip"' >> file-payload && \
+          echo 'Content-Type: application/zip' >> file-payload && \
+          echo '' >> file-payload && \
+          cat adyen-magento2-main.zip >> file-payload && \
+          echo '' >> file-payload && \
+          echo "--UNIQUE_BOUNDARY_TOKEN--" >> file-payload
+
+      - name: Get session token
+        id: get_session_token
+        env:
+          BASE_URL: ${{ secrets.ADOBE_EQP_API_URL }}
+          ADOBE_CLIENT_ID: ${{ secrets.ADOBE_CLIENT_ID }}
+          ADOBE_CLIENT_SECRET: ${{ secrets.ADOBE_CLIENT_SECRET }}
+        run: |
+          response=$(curl -X POST \
+          -u "${ADOBE_CLIENT_ID}:${ADOBE_CLIENT_SECRET}" \
+          -H 'Content-Type: application/json' \
+          -d '{ "grant_type" : "session" }' \
+          ${BASE_URL}/rest/v1/app/session/token)
+
+          SESSION_TOKEN=$(echo $response | jq -r '.ust')
+          echo "SESSION_TOKEN=$SESSION_TOKEN" >> $GITHUB_OUTPUT
+
+          echo "Session Token Response: $response"
+
+      - name: Upload zip to adobe and get upload id
+        id: upload_and_fetch
+        env:
+          SESSION_TOKEN: ${{ steps.get_session_token.outputs.SESSION_TOKEN }}
+          BASE_URL: ${{ secrets.ADOBE_EQP_API_URL }}
+        run: |
+          # Upload the file
+          upload_response=$(curl -X POST \
+            -H "Authorization: Bearer $SESSION_TOKEN" \
+             -H 'Content-Type: multipart/form-data; boundary=UNIQUE_BOUNDARY_TOKEN' \
+             --data-binary @file-payload \
+            "${BASE_URL}/rest/v1/files/uploads")
+
+          # Check if the upload was successful
+          if echo "$upload_response" | grep -q 'error'; then
+            echo "Upload failed: $upload_response"
+            exit 1
+          else
+            echo "Upload successful: $upload_response"
+          fi
+
+          # Extract upload ID from JSON response
+          upload_id=$(echo $upload_response | jq -r '.[0].file_upload_id')
+
+          echo "Upload ID: $upload_id"
+          echo "FILE_UPLOAD_ID=$upload_id" >> $GITHUB_OUTPUT
+
+      - name: Prepare JSON Payload
+        id: prepare_payload
+        env:
+          NEW_VERSION: ${{ steps.fetch_release.outputs.TAG_NAME }}
+          #NEW_VERSION: "11.0.11"
+          FILE_UPLOAD_ID: ${{ steps.upload_and_fetch.outputs.FILE_UPLOAD_ID }}
+          THIS_RELEASE_NOTES: ${{ steps.fetch_release.outputs.RELEASE_NOTES }}
+        run: |
+          # Read the JSON template and replace placeholders with actual values
+          cp .github/workflows/payload-template.json updated-payload.json
+
+          # Replace placeholders with actual values
+          sed -i "s/VERSION/${NEW_VERSION}/g" updated-payload.json
+          sed -i "s/FILE_UPLOAD_ID/${FILE_UPLOAD_ID}/g" updated-payload.json
+
+          # Step 1: Prepare the release notes
+          echo "$THIS_RELEASE_NOTES" > temp_release_notes.txt
+
+          # Step 2: Remove specific line and emojis
+          sed -e '/<!-- Release notes generated using configuration in .github\/release.yml at main -->/d' \
+              -e 's/💎//g' \
+              -e 's/🖇️//g' \
+              temp_release_notes.txt > cleaned_release_notes.txt
+
+          # Step 3: Read the cleaned content into a variable
+          THIS_RELEASE_NOTES=$(cat cleaned_release_notes.txt)
+
+          # Step 4: Update the JSON file with the cleaned release notes
+          jq --arg notes "$THIS_RELEASE_NOTES" '.[0].release_notes = $notes' updated-payload.json > updated-payload.tmp && mv updated-payload.tmp updated-payload.json
+
+          # Step 5: Clean up temporary files
+          rm temp_release_notes.txt cleaned_release_notes.txt
+
+          # Update the JSON payload with the release notes
+          # jq --arg notes "$THIS_RELEASE_NOTES" '.[0].release_notes = $notes' updated-payload.json > updated-payload.tmp && mv updated-payload.tmp updated-payload.json
+
+          cat updated-payload.json
+
+      - name: Submit the package
+        env:
+          SESSION_TOKEN: ${{ steps.get_session_token.outputs.SESSION_TOKEN }}
+          BASE_URL: ${{ secrets.ADOBE_EQP_API_URL }}
+        run: |
+
+          # Sleep and wait for malware check to finish
+          sleep_duration=120
+          sleep $sleep_duration
+
+          # Make the POST request and capture the response
+          response_body=$(curl -s -X POST \
+            -H "Authorization: Bearer $SESSION_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data @updated-payload.json \
+            "${BASE_URL}/rest/v1/products/packages")
+
+          if [ -n "response_body" ]; then
+            echo "Response body: $response_body"  # For debugging
+
+            # Extract the "code" field from the JSON response
+            code=$(echo "$response_body" | jq -r '.[0].code // empty')
+
+            if [ -n "$code" ]; then
+              echo "$code"
+
+              if [ "$code" -eq 1321 ]; then
+                echo "The package is submitted as a draft and waiting for malware check."
+              fi
+            fi
+          else
+            echo "SUCCESS"
+          fi
