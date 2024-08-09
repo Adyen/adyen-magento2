@@ -1,14 +1,14 @@
 name: Magento 2 V8 E2E Pipeline
 run-name: --V8-- E2E tests for Adyen Magento2 Plugin
 
-on: 
+on:
   pull_request:
     types: [opened, synchronize]
 
 jobs:
   build:
     if: |
-      ${{ 
+      ${{
       github.event.pull_request.draft == false &&
       (github.actor != 'renovate' || github.actor != 'lgtm-com')
       }}
@@ -25,10 +25,10 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Install Magento
-        run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm web make magento
+        run: docker compose -f .github/workflows/templates/docker-compose.yml run --rm web make magento
 
       - name: Start web server in background
-        run: docker-compose -f .github/workflows/templates/docker-compose.yml up -d web
+        run: docker compose -f .github/workflows/templates/docker-compose.yml up -d web
         env:
           DONATION_ACCOUNT: ${{secrets.DONATION_ACCOUNT}}
           ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
@@ -53,7 +53,7 @@ jobs:
         run: docker exec magento2-container make fs
 
       - name: Run E2E tests
-        run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm playwright /e2e.sh standard
+        run: docker compose -f .github/workflows/templates/docker-compose.yml run --rm playwright /e2e.sh standard
         env:
           INTEGRATION_TESTS_BRANCH: develop-8
           MAGENTO_ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
