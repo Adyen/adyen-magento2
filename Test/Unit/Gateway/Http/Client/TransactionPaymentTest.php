@@ -138,6 +138,9 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
             ->method('buildRequestHeaders')
             ->willReturn($expectedHeaders);
 
+        $actualHeaders = $this->adyenHelperMock->buildRequestHeaders();
+
+
         $mockedPaymentResponse = [
             'reference' => 'ABC12345',
             'amount' => ['value' => 100],
@@ -161,5 +164,6 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
 
         $this->assertArrayHasKey('resultCode', $response);
         $this->assertEquals('Authorised', $response['resultCode']);
+        $this->assertEquals($expectedHeaders, $actualHeaders);
     }
 }
