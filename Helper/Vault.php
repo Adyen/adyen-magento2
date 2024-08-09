@@ -36,6 +36,7 @@ use Magento\Vault\Model\PaymentTokenManagement;
 class Vault
 {
     const RECURRING_DETAIL_REFERENCE = 'recurring.recurringDetailReference';
+    const CARDHOLDER_NAME= 'cardHolderName';
     const CARD_SUMMARY = 'cardSummary';
     const EXPIRY_DATE = 'expiryDate';
     const PAYMENT_METHOD = 'paymentMethod';
@@ -393,6 +394,10 @@ class Vault
 
         if (isset($recurringModel)) {
             $details[self::TOKEN_TYPE] = $recurringModel;
+            // Set token cardHolderName for new Visa compliance requirements
+            if ($additionalData[self::CARDHOLDER_NAME] !== null) {
+                $details[self::CARDHOLDER_NAME] = $additionalData[self::CARDHOLDER_NAME];
+            }
         }
 
         $paymentToken->setTokenDetails(json_encode($details));
