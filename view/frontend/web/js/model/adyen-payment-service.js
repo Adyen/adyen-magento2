@@ -93,7 +93,7 @@ define(
                 );
             },
 
-            paymentDetails: function(data, orderId, isMultishipping = false) {
+            paymentDetails: function(data, orderId, isMultishipping = false, quoteId = null) {
                 let serviceUrl;
                 let payload = {
                     'payload': JSON.stringify(data),
@@ -108,7 +108,7 @@ define(
                 } else {
                     serviceUrl = urlBuilder.createUrl(
                         '/adyen/guest-carts/:cartId/payments-details', {
-                            cartId: quote.getQuoteId(),
+                            cartId: quoteId ?? quote.getQuoteId()
                         }
                     );
                 }
@@ -177,12 +177,12 @@ define(
             saveStateData: function (stateData) {
                 let urlPath = '/adyen/guest-carts/:cartId/state-data';
                 let urlParams = {cartId: quote.getQuoteId()};
-                
+
                 if (customer.isLoggedIn()) {
                     urlPath = '/adyen/carts/mine/state-data';
                     urlParams = {};
-                } 
-                
+                }
+
                 let serviceUrl = urlBuilder.createUrl(urlPath, urlParams);
                 let request = {
                     stateData: JSON.stringify(stateData)
