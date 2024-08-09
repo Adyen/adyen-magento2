@@ -142,29 +142,19 @@ class OpenInvoice
     ): array {
         $currency = $shippingAmount->getCurrencyCode();
 
-        $formattedPriceExcludingTax = $this->adyenHelper->formatAmount(
-            $shippingAmount->getAmountWithDiscount(),
-            $currency
-        );
         $formattedPriceIncludingTax = $this->adyenHelper->formatAmount(
-            $shippingAmount->getAmountIncludingTaxWithDiscount(),
+            $shippingAmount->getAmountIncludingTax(),
             $currency
         );
 
         $formattedTaxAmount = $this->adyenHelper->formatAmount($shippingAmount->getTaxAmount(), $currency);
-        $formattedTaxPercentage = $this->adyenHelper->formatAmount(
-            $shippingAmount->getCalculatedTaxPercentage(),
-            $currency
-        );
 
         return [
             'id' => 'shippingCost',
-            'amountExcludingTax' => $formattedPriceExcludingTax,
             'amountIncludingTax' => $formattedPriceIncludingTax,
             'taxAmount' => $formattedTaxAmount,
             'description' => $shippingDescription,
-            'quantity' => 1,
-            'taxPercentage' => $formattedTaxPercentage
+            'quantity' => 1
         ];
     }
 
@@ -172,12 +162,8 @@ class OpenInvoice
     {
         $currency = $itemAmountCurrency->getCurrencyCode();
 
-        $formattedPriceExcludingTax = $this->adyenHelper->formatAmount(
-            $itemAmountCurrency->getAmountWithDiscount(),
-            $currency
-        );
         $formattedPriceIncludingTax = $this->adyenHelper->formatAmount(
-            $itemAmountCurrency->getAmountIncludingTaxWithDiscount(),
+            $itemAmountCurrency->getAmountIncludingTax(),
             $currency
         );
 
@@ -188,7 +174,6 @@ class OpenInvoice
 
         return [
             'id' => $product->getId(),
-            'amountExcludingTax' => $formattedPriceExcludingTax,
             'amountIncludingTax' => $formattedPriceIncludingTax,
             'taxAmount' => $formattedTaxAmount,
             'description' => $item->getName(),
@@ -199,6 +184,9 @@ class OpenInvoice
         ];
     }
 
+    /**
+     * @deprecated
+     */
     protected function formatInvoiceDiscount(
         mixed $discountAmount, $shippingDiscountAmount, AdyenAmountCurrency $itemAmountCurrency
     ): array
@@ -210,7 +198,6 @@ class OpenInvoice
 
         return [
             'id' => 'Discount',
-            'amountExcludingTax' => $itemAmount,
             'amountIncludingTax' => $itemAmount,
             'taxAmount' => 0,
             'description' => $description,
