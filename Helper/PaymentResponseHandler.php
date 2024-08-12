@@ -274,8 +274,14 @@ class PaymentResponseHandler
             case self::REFUSED:
             case self::CANCELLED:
                 // Cancel order in case result is refused
+                $result = false;
                 if (null !== $order) {
                     // Check if the current state allows for changing to new for cancellation
+                    if ($this->dataHelper->isPaymentMethodOfType($order->getPayment()->getMethod(), Data::KLARNA) && $paymentsDetailsResponse['resultCode'] === self::REFUSED) {
+                        // Klarna Refused payment response on paymentsDetails endpoint is not reliable. Wait for webhook notification in this case.
+                        $this->adyenLogger->addAdyenResult('Do nothing wait for the notification');
+                        break;
+                    }
                     if ($order->canCancel()) {
                         // Proceed to set cancellation action flag and cancel the order
                         $order->setActionFlag(\Magento\Sales\Model\Order::ACTION_FLAG_CANCEL, true);
@@ -284,7 +290,6 @@ class PaymentResponseHandler
                         $this->adyenLogger->addAdyenResult('The order cannot be cancelled');
                     }
                 }
-                $result = false;
                 break;
             default:
                 $this->adyenLogger->error(
