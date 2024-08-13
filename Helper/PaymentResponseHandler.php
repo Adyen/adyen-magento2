@@ -207,8 +207,10 @@ class PaymentResponseHandler
              * if no additional action is required according to /paymentsDetails response.
              * Otherwise keep the order state as pending_payment.
              */
-            $order = $this->orderHelper->setStatusOrderCreation($order);
-            $this->orderRepository->save($order);
+            if (!$order->isCanceled()) {
+                $order = $this->orderHelper->setStatusOrderCreation($order);
+                $this->orderRepository->save($order);
+            }
         }
 
         // Cleanup state data if exists.
