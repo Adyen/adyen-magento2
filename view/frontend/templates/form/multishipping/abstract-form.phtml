@@ -25,6 +25,7 @@ $code = $block->getMethod()->getCode();
     ], function (layout, $) {
         $(function () {
             const paymentMethodCode = "<?= $block->escapeJs($code) ?>";
+            console.log('Payment method code: ', paymentMethodCode);
             const customMethodRenderers = window.checkoutConfig.payment.adyen.customMethodRenderers;
             const paymentMethodData = {
                 method: paymentMethodCode

@@ -32,12 +32,14 @@ define([
         paymentMethodReady: ko.observable(false),
 
         initialize: function() {
+            console.log('Initializing adyen-pm-method');
             let self = this;
             this._super();
 
             let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
             paymentMethodsObserver.subscribe(
                 function(paymentMethods) {
+                    console.log('Payment methods updated: ', paymentMethods);
                     self.paymentMethodReady(paymentMethods);
                 }
             );
@@ -54,7 +56,10 @@ define([
         },
 
         buildComponentConfiguration: function(paymentMethod, paymentMethodsExtraInfo) {
-            return configHelper.buildMultishippingComponentConfiguration(paymentMethod, paymentMethodsExtraInfo);
+            console.log('Building component configuration for: ', paymentMethod);
+            let config = configHelper.buildMultishippingComponentConfiguration(paymentMethod, paymentMethodsExtraInfo);
+            console.log('Component configuration: ', config);
+            return config;
         }
     });
 });
