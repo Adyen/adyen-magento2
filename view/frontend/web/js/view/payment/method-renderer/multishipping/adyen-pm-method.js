@@ -50,11 +50,7 @@ define([
 
         selectPaymentMethod: function () {
             let result = this._super();
-
-            // Trigger the payment method change
             this.isChecked(true);
-
-            // Render the checkout component
             this.renderCheckoutComponent();
 
             if (!!this.paymentComponent && this.paymentComponent.isValid) {
