@@ -257,7 +257,7 @@ define(
                     );
                 } catch (err) {
                     if ('test' === adyenConfiguration.getCheckoutEnvironment()) {
-                        console.log(err);
+                        console.error(err);
                     }
                 }
             },
