@@ -33,10 +33,10 @@ We provide three levels of support:
 
 The schedule for the current maintained branches is:
 
-|  Plugin Major Version   | Release Date  |  Level 1 Support ends   | Level 2 Support ends |  Level 3 Support ends  |
-|  :-----          |:--------------|  :-----          |:---------------------|  :-----          |
-|  Version 8 |  November 2021 | January 2024 |  May 2024 | January 2025 |
-|  Version 9 | October 2023  |  October 2024 | April 2025           |  October 2025 |
+|  Plugin Major Version   | Release Date  | Level 1 Support ends | Level 2 Support ends | Level 3 Support ends |
+|  :-----          |:--------------|:---------------------|:---------------------|:---------------------|
+|  Version 8 |  November 2021 | January 2024         | May 2024             | January 2025         |
+|  Version 9 | October 2023  | --                   | --                   | --                   |
 
 Or, visualised as a calendar:
 
@@ -49,9 +49,9 @@ gantt
     Level 2   :l82, after l81, 2024-05-30
     Level 3   :l83, after l82, 2025-01-31
     section Version 9
-    Level 1   :l91, 2023-09-15, 2024-09-30
-    Level 2   :l92, after l91, 2025-03-31
-    Level 3   :l93, after l92, 2025-09-30
+    Level 1   :l91, 2023-09-15
+    Level 2   :l92, 
+    Level 3   :l93, 
 ```
 
 ## Contributing
