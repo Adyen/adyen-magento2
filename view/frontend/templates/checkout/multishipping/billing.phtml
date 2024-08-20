@@ -106,7 +106,8 @@
                                                    data-bind="
                                                        value: getCode(),
                                                        checked: isChecked,
-                                                       visible: isRadioButtonVisible()"
+                                                       visible: isRadioButtonVisible(),
+                                                       click: selectPaymentMethod"
                                                    class="radio"/>
                                         <?php else: ?>
                                             <input type="radio"
