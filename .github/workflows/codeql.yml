@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ "develop", "main" ]
     paths-ignore:
-      - 'view/base/web/js/*'
+      - 'view/base/web/js/**'
   schedule:
     - cron: "6 1 * * 0"
 
