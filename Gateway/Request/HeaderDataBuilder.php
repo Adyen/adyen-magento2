@@ -18,7 +18,7 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
 
 class HeaderDataBuilder implements BuilderInterface
 {
-    const FRONTENDTYPE = 'frontendType';
+    const FRONTENDTYPE = 'external-platform-frontendtype';
     const FRONTENDTYPE_HEADLESS = 'headless';
 
     /**
