@@ -5,7 +5,7 @@ on:
   pull_request_target:
   workflow_dispatch:
   push:
-    branches: [develop]
+    branches: [main]
 
 jobs:
   build:
