@@ -37,7 +37,6 @@ define(
         adyenCheckout
     ) {
         'use strict';
-        let popupModal;
 
         return Component.extend({
             self: this,
