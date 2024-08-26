@@ -123,11 +123,29 @@ class TransactionPayment implements ClientInterface
         $responseData = [];
 
         try {
-            list($requestData, $giftcardResponse) = $this->processGiftcards($requestData, $service);
+            $failedGiftcardResponse = null;
+            list($requestData, $giftcardResponseCollection) = $this->processGiftcards($requestData, $service);
 
-            /** @var PaymentResponse $giftcardResponse */
-            if (isset($giftcardResponse) && $this->remainingOrderAmount === 0) {
-                return $giftcardResponse->toArray();
+            /** @var PaymentResponse[] $giftcardResponseCollection */
+            if (!empty($giftcardResponseCollection)) {
+
+                // check if any giftcard was refused
+                foreach ($giftcardResponseCollection as $giftcardResponse) {
+                    if ($giftcardResponse->getResultCode() == "Refused"){
+                        $failedGiftcardResponse = $giftcardResponse;
+                        break;
+                    }
+                }
+
+                if ($this->remainingOrderAmount === 0) {
+                    // if any of the giftcard was refused, return that one in response, so that the payment fails
+                    if (!empty($failedGiftcardResponse)) {
+                        return $failedGiftcardResponse->toArray();
+                    }
+
+                    // if none of the giftcard payments are failed, return the first successful one
+                    return  $giftcardResponseCollection[0]->toArray();
+                }
             }
 
             $requestData['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($client);
@@ -150,7 +168,13 @@ class TransactionPayment implements ClientInterface
             $paymentResponse->setResultCode($response->getResultCode());
             $paymentResponse->setMerchantReference($requestData["reference"]);
             $this->paymentResponseResourceModel->save($paymentResponse);
-            $responseData = $response->toArray();
+
+            // if there is any failed giftcard payment use that as a response so that the payment fails
+            if (!empty($failedGiftcardResponse)) {
+                $responseData = $failedGiftcardResponse->toArray();
+            } else {
+                $responseData = $response->toArray();
+            }
 
             $this->adyenHelper->logResponse($responseData);
         } catch (AdyenException $e) {
@@ -165,7 +189,7 @@ class TransactionPayment implements ClientInterface
      * @param PaymentsApi $service
      * @param array $redeemedGiftcards
      * @param array $ordersResponse
-     * @return CheckoutPaymentResponse
+     * @return CheckoutPaymentResponse[]
      * @throws AdyenException
      * @throws AlreadyExistsException
      */
@@ -174,7 +198,10 @@ class TransactionPayment implements ClientInterface
         PaymentsApi $service,
         array $redeemedGiftcards,
         array $ordersResponse
-    ): CheckoutPaymentResponse {
+    ): array {
+
+        $giftCardResponseCollection = [];
+
         foreach ($redeemedGiftcards as $giftcard) {
             $stateData = json_decode($giftcard['state_data'], true);
 
@@ -204,6 +231,8 @@ class TransactionPayment implements ClientInterface
             $response = $service->payments(new PaymentRequest($giftcardPaymentRequest));
             $this->adyenHelper->logResponse($response->toArray());
 
+            $giftCardResponseCollection[] = $response;
+
             /** @var PaymentResponse $paymentResponse */
             $paymentResponse = $this->paymentResponseFactory->create();
             $paymentResponse->setResponse(json_encode($response));
@@ -215,7 +244,7 @@ class TransactionPayment implements ClientInterface
             $this->remainingOrderAmount -= $deductedAmount;
         }
 
-        return $response;
+        return $giftCardResponseCollection;
     }
 
     /**
@@ -239,7 +268,7 @@ class TransactionPayment implements ClientInterface
                 $this->storeManager->getStore()->getId()
             );
 
-            $giftcardResponse = $this->handleGiftcardPayments($request, $service, $redeemedGiftcards, $ordersResponse);
+            $giftcardResponseCollection = $this->handleGiftcardPayments($request, $service, $redeemedGiftcards, $ordersResponse);
 
             $request['amount']['value'] = $this->remainingOrderAmount;
             $request['order'] = [
@@ -247,9 +276,9 @@ class TransactionPayment implements ClientInterface
                 'orderData' => $ordersResponse['orderData']
             ];
         } else {
-            $giftcardResponse = null;
+            $giftcardResponseCollection = [];
         }
 
-        return array($request, $giftcardResponse);
+        return array($request, $giftcardResponseCollection);
     }
 }
