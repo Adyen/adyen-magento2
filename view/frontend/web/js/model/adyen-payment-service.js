@@ -93,7 +93,7 @@ define(
                 );
             },
 
-            paymentDetails: function(data, orderId, isMultishipping = false, quoteId = null) {
+            paymentDetails: function(data, orderId, isMultishipping = false) {
                 let serviceUrl;
                 let payload = {
                     'payload': JSON.stringify(data),
@@ -108,7 +108,7 @@ define(
                 } else {
                     serviceUrl = urlBuilder.createUrl(
                         '/adyen/guest-carts/:cartId/payments-details', {
-                            cartId: quoteId ?? quote.getQuoteId()
+                            cartId: quote.getQuoteId(),
                         }
                     );
                 }

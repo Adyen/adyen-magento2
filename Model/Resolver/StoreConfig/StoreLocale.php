@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2021 Adyen B.V.
+ * Copyright (c) 2024 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -39,8 +39,13 @@ class StoreLocale implements ResolverInterface
      * @param Context $context
      * @inheritDoc
      */
-    public function resolve(Field $field, $context, ResolveInfo $info, array $value = null, array $args = null)
-    {
+    public function resolve(
+        Field $field,
+        $context,
+        ResolveInfo $info,
+        array $value = null,
+        array $args = null
+    ): ?string {
         /** @var StoreInterface $store */
         $store = $context->getExtensionAttributes()->getStore();
         return $this->adyenHelper->getStoreLocale((int)$store->getId());
