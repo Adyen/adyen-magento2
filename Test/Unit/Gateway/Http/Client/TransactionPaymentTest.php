@@ -214,7 +214,7 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
 
         list($request, $giftCardResponseCollection) = $this->doMultipleGiftCardPayments($orderData);
 
-            // make sure processGiftcards response is an array
+        // make sure processGiftcards response is an array
         $this->assertIsArray($giftCardResponseCollection);
         // make sure the size of response array is equal to the number of redeemed gift cards
         $this->assertEquals(2, count($giftCardResponseCollection));
