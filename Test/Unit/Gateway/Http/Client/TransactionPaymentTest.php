@@ -185,49 +185,13 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
 
     public function testProcessGiftCardsWithGiftCards()
     {
-        $amount = 250;
-        $store = $this->createConfiguredMock(StoreInterface::class, [
-            'getId' => 12
-        ]);
-        $this->storeManagerMock->method('getStore')->willReturn($store);
-        $originalRequest = [
-            'reference' => '0000020',
-            'giftcardRequestParameters' => [
-                [
-                    'state_data' => '{"paymentMethod":{"type": "giftcard"}, "giftcard": {"balance": {"value": 100}, "currency": "EUR"}}'],
-                [
-                    'state_data' => '{"paymentMethod":{"type": "giftcard"}, "giftcard": {"balance": {"value": 50}, "currency": "EUR"}}'
-                ]
-            ],
-            'amount' => [
-                'value' => $amount,
-                'currency' => 'EUR'
-            ]
-        ];
-        $response = new CheckoutPaymentResponse();
-        $response->setResultCode('Authorised');
-        $response->setMerchantReference('PSPDMDM2222');
-        $serviceMock = $this->createMock(PaymentsApi::class);
-        $serviceMock->expects($this->exactly(2))
-            ->method('payments')
-            ->with(
-                $this->callback(function (PaymentRequest $detailsRequest) {
-                    return true;
-                }),
-            )->willReturn($response);
-        $reflector = new \ReflectionProperty(TransactionPayment::class, 'remainingOrderAmount');
-        $reflector->setAccessible(true);
-        $reflector->setValue($this->transactionPayment, $amount);
         $orderData = [
             'pspReference' => 'pspReference!23',
             'orderData' => 'orderData....'
         ];
-        $this->orderApiHelperMock
-            ->expects($this->once())
-            ->method('createOrder')
-            ->willReturn($orderData);
 
-        list($request, $giftCardResponseCollection) = $this->transactionPayment->processGiftcards($originalRequest, $serviceMock);
+        list($request, $giftCardResponseCollection) = $this->doMultipleGiftCardPayments($orderData);
+
         $this->assertEquals(
             $request,
             [
@@ -242,6 +206,24 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
     }
 
     public function testProcessGiftCardReturnsMultipleGiftCardResponses()
+    {
+        $orderData = [
+            'pspReference' => 'pspReference!23',
+            'orderData' => 'orderData....'
+        ];
+
+        list($request, $giftCardResponseCollection) = $this->doMultipleGiftCardPayments($orderData);
+
+            // make sure processGiftcards response is an array
+        $this->assertIsArray($giftCardResponseCollection);
+        // make sure the size of response array is equal to the number of redeemed gift cards
+        $this->assertEquals(2, count($giftCardResponseCollection));
+        // make sure the values in the response array are of type Checkout PaymentResponse Objects
+        $this->assertEquals(get_class($giftCardResponseCollection[0]), CheckoutPaymentResponse::class);
+        $this->assertEquals(get_class($giftCardResponseCollection[1]), CheckoutPaymentResponse::class);
+    }
+
+    private function doMultipleGiftCardPayments($orderData)
     {
         $amount = 250;
         $store = $this->createConfiguredMock(StoreInterface::class, [
@@ -276,23 +258,12 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
         $reflector = new \ReflectionProperty(TransactionPayment::class, 'remainingOrderAmount');
         $reflector->setAccessible(true);
         $reflector->setValue($this->transactionPayment, $amount);
-        $orderData = [
-            'pspReference' => 'pspReference!23',
-            'orderData' => 'orderData....'
-        ];
+
         $this->orderApiHelperMock
             ->expects($this->once())
             ->method('createOrder')
             ->willReturn($orderData);
 
-        list($request, $giftCardResponseCollection) = $this->transactionPayment->processGiftcards($originalRequest, $serviceMock);
-
-        // make sure processGiftcards response is an array
-        $this->assertIsArray($giftCardResponseCollection);
-        // make sure the size of response array is equal to the number of redeemed gift cards
-        $this->assertEquals(2, count($giftCardResponseCollection));
-        // make sure the values in the response array are of type Checkout PaymentResponse Objects
-        $this->assertEquals(get_class($giftCardResponseCollection[0]), CheckoutPaymentResponse::class);
-        $this->assertEquals(get_class($giftCardResponseCollection[1]), CheckoutPaymentResponse::class);
+        return $this->transactionPayment->processGiftcards($originalRequest, $serviceMock);
     }
 }
