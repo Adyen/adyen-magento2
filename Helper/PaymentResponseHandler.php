@@ -173,8 +173,9 @@ class PaymentResponseHandler
             $paymentMethod
         );
 
-        if (!empty($paymentsDetailsResponse['resultCode'])) {
-            $payment->setAdditionalInformation('resultCode', $paymentsDetailsResponse['resultCode']);
+        $resultCode = $paymentsDetailsResponse['resultCode'];
+        if (!empty($resultCode)) {
+            $payment->setAdditionalInformation('resultCode', $resultCode);
         }
 
         if (!empty($paymentsDetailsResponse['action'])) {
@@ -201,16 +202,14 @@ class PaymentResponseHandler
         $this->vaultHelper->handlePaymentResponseRecurringDetails($payment, $paymentsDetailsResponse);
 
         // If the response is valid, update the order status.
-        if (!in_array($paymentsDetailsResponse['resultCode'], PaymentResponseHandler::ACTION_REQUIRED_STATUSES)) {
+        if (!in_array($resultCode, PaymentResponseHandler::ACTION_REQUIRED_STATUSES) && !$order->isCanceled()) {
             /*
              * Change order state from pending_payment to new and expect authorisation webhook
              * if no additional action is required according to /paymentsDetails response.
              * Otherwise keep the order state as pending_payment.
              */
-            if (!$order->isCanceled()) {
-                $order = $this->orderHelper->setStatusOrderCreation($order);
-                $this->orderRepository->save($order);
-            }
+            $order = $this->orderHelper->setStatusOrderCreation($order);
+            $this->orderRepository->save($order);
         }
 
         // Cleanup state data if exists.
@@ -220,7 +219,7 @@ class PaymentResponseHandler
             $this->adyenLogger->error(__('Error cleaning the payment state data: %s', $exception->getMessage()));
         }
 
-        switch ($paymentsDetailsResponse['resultCode']) {
+        switch ($resultCode) {
             case self::AUTHORISED:
                 if (!empty($paymentsDetailsResponse['pspReference'])) {
                     // set pspReference as transactionId
@@ -296,7 +295,7 @@ class PaymentResponseHandler
                 $this->adyenLogger->error(
                     sprintf("Payment details call failed for action, resultCode is %s Raw API responds: %s.
                     Cancel or Hold the order on OFFER_CLOSED notification.",
-                        $paymentsDetailsResponse['resultCode'],
+                        $resultCode,
                         json_encode($paymentsDetailsResponse)
                     ));
 
