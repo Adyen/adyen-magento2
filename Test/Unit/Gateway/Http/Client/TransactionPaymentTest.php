@@ -13,6 +13,7 @@ namespace Adyen\Payment\Test\Unit\Gateway\Http\Client;
 
 use Adyen\Model\Checkout\ApplicationInfo;
 use Adyen\Model\Checkout\PaymentRequest;
+use Adyen\Model\Checkout\PaymentResponse as CheckoutPaymentResponse;
 use Adyen\Payment\Api\Data\PaymentResponseInterface;
 use Adyen\Payment\Model\PaymentResponse;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
@@ -104,7 +105,7 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
             )
             ->willReturn($expectedIdempotencyKey);
 
-        $paymentResponse = new \Adyen\Model\Checkout\PaymentResponse([
+        $paymentResponse = new CheckoutPaymentResponse([
             'reference' => 'ABC12345',
             'amount' => ['value' => 100],
             'resultCode' => 'Authorised'
@@ -146,7 +147,7 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
 
         $actualHeaders = $this->adyenHelperMock->buildRequestHeaders();
 
-        $paymentResponse = new \Adyen\Model\Checkout\PaymentResponse([
+        $paymentResponse = new CheckoutPaymentResponse([
             'reference' => 'ABC12345',
             'amount' => ['value' => 100],
             'resultCode' => 'Authorised'
@@ -179,7 +180,7 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
         list($request, $giftcardResponse) = $this->transactionPayment->processGiftcards($originalRequest, $service);
 
         $this->assertEquals($request, $originalRequest);
-        $this->assertNull($giftcardResponse);
+        $this->assertEmpty($giftcardResponse);
     }
 
     public function testProcessGiftCardsWithGiftCards()
@@ -203,7 +204,7 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
                 'currency' => 'EUR'
             ]
         ];
-        $response = new \Adyen\Model\Checkout\PaymentResponse();
+        $response = new CheckoutPaymentResponse();
         $response->setResultCode('Authorised');
         $response->setMerchantReference('PSPDMDM2222');
         $serviceMock = $this->createMock(PaymentsApi::class);
@@ -226,7 +227,7 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
             ->method('createOrder')
             ->willReturn($orderData);
 
-        list($request, $giftCardResponse) = $this->transactionPayment->processGiftcards($originalRequest, $serviceMock);
+        list($request, $giftCardResponseCollection) = $this->transactionPayment->processGiftcards($originalRequest, $serviceMock);
         $this->assertEquals(
             $request,
             [
@@ -238,5 +239,60 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
                 'order' => $orderData
             ]
         );
+    }
+
+    public function testProcessGiftCardReturnsMultipleGiftCardResponses()
+    {
+        $amount = 250;
+        $store = $this->createConfiguredMock(StoreInterface::class, [
+            'getId' => 12
+        ]);
+        $this->storeManagerMock->method('getStore')->willReturn($store);
+        $originalRequest = [
+            'reference' => '0000020',
+            'giftcardRequestParameters' => [
+                [
+                    'state_data' => '{"paymentMethod":{"type": "giftcard"}, "giftcard": {"balance": {"value": 100}, "currency": "EUR"}}'],
+                [
+                    'state_data' => '{"paymentMethod":{"type": "giftcard"}, "giftcard": {"balance": {"value": 50}, "currency": "EUR"}}'
+                ]
+            ],
+            'amount' => [
+                'value' => $amount,
+                'currency' => 'EUR'
+            ]
+        ];
+        $response = new CheckoutPaymentResponse();
+        $response->setResultCode('Authorised');
+        $response->setMerchantReference('PSPDMDM2222');
+        $serviceMock = $this->createMock(PaymentsApi::class);
+        $serviceMock->expects($this->exactly(2))
+            ->method('payments')
+            ->with(
+                $this->callback(function (PaymentRequest $detailsRequest) {
+                    return true;
+                }),
+            )->willReturn($response);
+        $reflector = new \ReflectionProperty(TransactionPayment::class, 'remainingOrderAmount');
+        $reflector->setAccessible(true);
+        $reflector->setValue($this->transactionPayment, $amount);
+        $orderData = [
+            'pspReference' => 'pspReference!23',
+            'orderData' => 'orderData....'
+        ];
+        $this->orderApiHelperMock
+            ->expects($this->once())
+            ->method('createOrder')
+            ->willReturn($orderData);
+
+        list($request, $giftCardResponseCollection) = $this->transactionPayment->processGiftcards($originalRequest, $serviceMock);
+
+        // make sure processGiftcards response is an array
+        $this->assertIsArray($giftCardResponseCollection);
+        // make sure the size of response array is equal to the number of redeemed gift cards
+        $this->assertEquals(2, count($giftCardResponseCollection));
+        // make sure the values in the response array are of type Checkout PaymentResponse Objects
+        $this->assertEquals(get_class($giftCardResponseCollection[0]), CheckoutPaymentResponse::class);
+        $this->assertEquals(get_class($giftCardResponseCollection[1]), CheckoutPaymentResponse::class);
     }
 }

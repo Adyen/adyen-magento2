@@ -128,7 +128,6 @@ class TransactionPayment implements ClientInterface
 
             /** @var PaymentResponse[] $giftcardResponseCollection */
             if (!empty($giftcardResponseCollection)) {
-
                 // check if any giftcard was refused
                 foreach ($giftcardResponseCollection as $giftcardResponse) {
                     if ($giftcardResponse->getResultCode() == "Refused"){
