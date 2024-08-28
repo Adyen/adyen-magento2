@@ -209,8 +209,6 @@ class TransactionPayment implements ClientInterface
             );
 
             $response = $service->payments(new PaymentRequest($giftcardPaymentRequest));
-            $this->adyenHelper->logResponse($response->toArray());
-
             $giftCardResponseCollection[] = $response->toArray();
 
             /** @var PaymentResponse $paymentResponse */
@@ -218,10 +216,10 @@ class TransactionPayment implements ClientInterface
             $paymentResponse->setResponse(json_encode($response));
             $paymentResponse->setResultCode($response['resultCode']);
             $paymentResponse->setMerchantReference($request["reference"]);
-
             $this->paymentResponseResourceModel->save($paymentResponse);
 
             $this->remainingOrderAmount -= $deductedAmount;
+            $this->adyenHelper->logResponse($response->toArray());
         }
 
         return $giftCardResponseCollection;
