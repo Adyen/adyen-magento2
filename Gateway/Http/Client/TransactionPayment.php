@@ -133,7 +133,6 @@ class TransactionPayment implements ClientInterface
                 $responseCollection[] = $giftcardResponseCollection;
             }
 
-            $responseCollection = $giftcardResponseCollection ?? [];
             $requestData['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($client);
             $paymentRequest = new PaymentRequest($requestData);
 
