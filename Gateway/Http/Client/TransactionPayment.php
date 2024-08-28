@@ -130,7 +130,7 @@ class TransactionPayment implements ClientInterface
                 if ($this->remainingOrderAmount === 0)
                     return  $giftcardResponseCollection;
 
-                $responseCollection[] = $giftcardResponseCollection;
+                $responseCollection = $giftcardResponseCollection;
             }
 
             $requestData['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($client);
