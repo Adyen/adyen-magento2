@@ -54,17 +54,23 @@ class CheckoutResponseValidator extends AbstractValidator
     }
 
     /**
-     * @param array $responseCollection
+     * @param array $validationSubject
      * @return ResultInterface
      */
-    public function validate(array $responseCollection)
+    public function validate(array $validationSubject): ResultInterface
     {
-        $commandSubject = array_pop($responseCollection);
+        // Extract all the payment responses
+        $responseCollection = $validationSubject['response'] ?? [];
+        unset($validationSubject['response']);
+        // Assign the remaining items to $commandSubject
+        $commandSubject = $validationSubject;
 
         foreach ($responseCollection as $thisResponse) {
-            $validationSubject = array_merge($commandSubject, ['response' => $thisResponse]);
-            $response = SubjectReader::readResponse($validationSubject);
-            $paymentDataObjectInterface = SubjectReader::readPayment($validationSubject);
+
+            $currentSubject = array_merge($commandSubject, ['response' => $thisResponse]);
+
+            $response = SubjectReader::readResponse($currentSubject);
+            $paymentDataObjectInterface = SubjectReader::readPayment($currentSubject);
             $payment = $paymentDataObjectInterface->getPayment();
 
             $payment->setAdditionalInformation('3dActive', false);
