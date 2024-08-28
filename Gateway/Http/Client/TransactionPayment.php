@@ -153,7 +153,6 @@ class TransactionPayment implements ClientInterface
             $paymentResponse->setResultCode($response->getResultCode());
             $paymentResponse->setMerchantReference($requestData["reference"]);
             $this->paymentResponseResourceModel->save($paymentResponse);
-
             $responseData = $response->toArray();
             $responseCollection[] = $responseData;
 
