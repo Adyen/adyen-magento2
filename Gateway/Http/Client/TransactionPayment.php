@@ -170,7 +170,7 @@ class TransactionPayment implements ClientInterface
      * @param PaymentsApi $service
      * @param array $redeemedGiftcards
      * @param array $ordersResponse
-     * @return CheckoutPaymentResponse[]
+     * @return array
      * @throws AdyenException
      * @throws AlreadyExistsException
      */
