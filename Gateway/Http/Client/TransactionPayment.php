@@ -120,33 +120,20 @@ class TransactionPayment implements ClientInterface
 
         $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
         $service = $this->adyenHelper->initializePaymentsApi($client);
-        $responseData = [];
+        $responseCollection = [];
 
         try {
-            $failedGiftcardResponse = null;
             list($requestData, $giftcardResponseCollection) = $this->processGiftcards($requestData, $service);
 
-            /** @var PaymentResponse[] $giftcardResponseCollection */
+            /** @var array $giftcardResponseCollection */
             if (!empty($giftcardResponseCollection)) {
-                // check if any giftcard was refused
-                foreach ($giftcardResponseCollection as $giftcardResponse) {
-                    if ($giftcardResponse->getResultCode() == "Refused"){
-                        $failedGiftcardResponse = $giftcardResponse;
-                        break;
-                    }
-                }
+                if ($this->remainingOrderAmount === 0)
+                    return  $giftcardResponseCollection;
 
-                if ($this->remainingOrderAmount === 0) {
-                    // if any of the giftcard was refused, return that one in response, so that the payment fails
-                    if (!empty($failedGiftcardResponse)) {
-                        return $failedGiftcardResponse->toArray();
-                    }
-
-                    // if none of the giftcard payments are failed, return the first successful one
-                    return  $giftcardResponseCollection[0]->toArray();
-                }
+                $responseCollection[] = $giftcardResponseCollection;
             }
 
+            $responseCollection = $giftcardResponseCollection ?? [];
             $requestData['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($client);
             $paymentRequest = new PaymentRequest($requestData);
 
@@ -168,19 +155,15 @@ class TransactionPayment implements ClientInterface
             $paymentResponse->setMerchantReference($requestData["reference"]);
             $this->paymentResponseResourceModel->save($paymentResponse);
 
-            // if there is any failed giftcard payment use that as a response so that the payment fails
-            if (!empty($failedGiftcardResponse)) {
-                $responseData = $failedGiftcardResponse->toArray();
-            } else {
-                $responseData = $response->toArray();
-            }
+            $responseData = $response->toArray();
+            $responseCollection[] = $responseData;
 
             $this->adyenHelper->logResponse($responseData);
         } catch (AdyenException $e) {
             $this->adyenHelper->logAdyenException($e);
         }
 
-        return $responseData;
+        return $responseCollection;
     }
 
     /**
@@ -230,7 +213,7 @@ class TransactionPayment implements ClientInterface
             $response = $service->payments(new PaymentRequest($giftcardPaymentRequest));
             $this->adyenHelper->logResponse($response->toArray());
 
-            $giftCardResponseCollection[] = $response;
+            $giftCardResponseCollection[] = $response->toArray();
 
             /** @var PaymentResponse $paymentResponse */
             $paymentResponse = $this->paymentResponseFactory->create();

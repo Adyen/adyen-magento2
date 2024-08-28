@@ -54,85 +54,89 @@ class CheckoutResponseValidator extends AbstractValidator
     }
 
     /**
-     * @param array $validationSubject
+     * @param array $responseCollection
      * @return ResultInterface
      */
-    public function validate(array $validationSubject)
+    public function validate(array $responseCollection)
     {
-        $response = SubjectReader::readResponse($validationSubject);
-        $paymentDataObjectInterface = SubjectReader::readPayment($validationSubject);
-        $payment = $paymentDataObjectInterface->getPayment();
+        $commandSubject = array_pop($responseCollection);
 
-        $payment->setAdditionalInformation('3dActive', false);
-        $isValid = true;
-        $errorMessages = [];
+        foreach ($responseCollection as $thisResponse) {
+            $validationSubject = array_merge($commandSubject, ['response' => $thisResponse]);
+            $response = SubjectReader::readResponse($validationSubject);
+            $paymentDataObjectInterface = SubjectReader::readPayment($validationSubject);
+            $payment = $paymentDataObjectInterface->getPayment();
 
-        // validate result
-        if (!empty($response['resultCode'])) {
-            $resultCode = $response['resultCode'];
-            $payment->setAdditionalInformation('resultCode', $resultCode);
+            $payment->setAdditionalInformation('3dActive', false);
+            $isValid = true;
+            $errorMessages = [];
 
-            if (!empty($response['action'])) {
-                $payment->setAdditionalInformation('action', $response['action']);
-            }
+            // validate result
+            if (!empty($response['resultCode'])) {
+                $resultCode = $response['resultCode'];
+                $payment->setAdditionalInformation('resultCode', $resultCode);
 
-            if (!empty($response['additionalData'])) {
-                $payment->setAdditionalInformation('additionalData', $response['additionalData']);
-            }
+                if (!empty($response['action'])) {
+                    $payment->setAdditionalInformation('action', $response['action']);
+                }
 
-            if (!empty($response['pspReference'])) {
-                $payment->setAdditionalInformation('pspReference', $response['pspReference']);
-            }
+                if (!empty($response['additionalData'])) {
+                    $payment->setAdditionalInformation('additionalData', $response['additionalData']);
+                }
 
-            if (!empty($response['details'])) {
-                $payment->setAdditionalInformation('details', $response['details']);
-            }
+                if (!empty($response['pspReference'])) {
+                    $payment->setAdditionalInformation('pspReference', $response['pspReference']);
+                }
 
-            if (!empty($response['donationToken'])) {
-                $payment->setAdditionalInformation('donationToken', $response['donationToken']);
-            }
+                if (!empty($response['details'])) {
+                    $payment->setAdditionalInformation('details', $response['details']);
+                }
 
-            switch ($resultCode) {
-                case "Authorised":
-                case "Received":
-                    // Save cc_type if available in the response
-                    if (!empty($response['additionalData']['paymentMethod'])) {
-                        $ccType = $this->adyenHelper->getMagentoCreditCartType(
-                            $response['additionalData']['paymentMethod']
-                        );
-                        $payment->setAdditionalInformation('cc_type', $ccType);
-                        $payment->setCcType($ccType);
-                    }
-                    break;
-                case "IdentifyShopper":
-                case "ChallengeShopper":
-                case "PresentToShopper":
-                case 'Pending':
-                case "RedirectShopper":
-                    // nothing extra
-                    break;
-                case "Refused":
-                    $errorMsg = __('The payment is REFUSED.');
-                    // this will result the specific error
-                    throw new ValidatorException($errorMsg);
-                default:
-                    $errorMsg = __('Error with payment method please select different payment method.');
-                    throw new ValidatorException($errorMsg);
-            }
-        } else {
-            if (!empty($response['error'])) {
-                $this->adyenLogger->error($response['error']);
-            }
+                if (!empty($response['donationToken'])) {
+                    $payment->setAdditionalInformation('donationToken', $response['donationToken']);
+                }
 
-            if (!empty($response['errorCode']) && !empty($response['error']) && in_array($response['errorCode'], self::ALLOWED_ERROR_CODES, true)) {
-                $errorMsg = __($response['error']);
+                switch ($resultCode) {
+                    case "Authorised":
+                    case "Received":
+                        // Save cc_type if available in the response
+                        if (!empty($response['additionalData']['paymentMethod'])) {
+                            $ccType = $this->adyenHelper->getMagentoCreditCartType(
+                                $response['additionalData']['paymentMethod']
+                            );
+                            $payment->setAdditionalInformation('cc_type', $ccType);
+                            $payment->setCcType($ccType);
+                        }
+                        break;
+                    case "IdentifyShopper":
+                    case "ChallengeShopper":
+                    case "PresentToShopper":
+                    case 'Pending':
+                    case "RedirectShopper":
+                        // nothing extra
+                        break;
+                    case "Refused":
+                        $errorMsg = __('The payment is REFUSED.');
+                        // this will result the specific error
+                        throw new ValidatorException($errorMsg);
+                    default:
+                        $errorMsg = __('Error with payment method please select different payment method.');
+                        throw new ValidatorException($errorMsg);
+                }
             } else {
-                $errorMsg = __('Error with payment method, please select a different payment method.');
+                if (!empty($response['error'])) {
+                    $this->adyenLogger->error($response['error']);
+                }
+
+                if (!empty($response['errorCode']) && !empty($response['error']) && in_array($response['errorCode'], self::ALLOWED_ERROR_CODES, true)) {
+                    $errorMsg = __($response['error']);
+                } else {
+                    $errorMsg = __('Error with payment method, please select a different payment method.');
+                }
+
+                throw new ValidatorException($errorMsg);
             }
-
-            throw new ValidatorException($errorMsg);
         }
-
         return $this->createResult($isValid, $errorMessages);
     }
 }

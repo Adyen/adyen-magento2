@@ -126,8 +126,8 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
 
         $response = $this->transactionPayment->placeRequest($transferObjectMock);
 
-        $this->assertArrayHasKey('resultCode', $response);
-        $this->assertEquals('Authorised', $response['resultCode']);
+        $this->assertArrayHasKey('resultCode', $response[0]);
+        $this->assertEquals('Authorised', $response[0]['resultCode']);
     }
 
     public function testRequestHeadersAreAddedToPaymentsCall()
@@ -168,8 +168,8 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
 
         $response = $this->transactionPayment->placeRequest($transferObjectMock);
 
-        $this->assertArrayHasKey('resultCode', $response);
-        $this->assertEquals('Authorised', $response['resultCode']);
+        $this->assertArrayHasKey('resultCode', $response[0]);
+        $this->assertEquals('Authorised', $response[0]['resultCode']);
         $this->assertEquals($expectedHeaders, $actualHeaders);
     }
 
@@ -218,9 +218,6 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
         $this->assertIsArray($giftCardResponseCollection);
         // make sure the size of response array is equal to the number of redeemed gift cards
         $this->assertEquals(2, count($giftCardResponseCollection));
-        // make sure the values in the response array are of type Checkout PaymentResponse Objects
-        $this->assertEquals(get_class($giftCardResponseCollection[0]), CheckoutPaymentResponse::class);
-        $this->assertEquals(get_class($giftCardResponseCollection[1]), CheckoutPaymentResponse::class);
     }
 
     private function doMultipleGiftCardPayments($orderData)
