@@ -66,7 +66,6 @@ class CheckoutResponseValidator extends AbstractValidator
         $commandSubject = $validationSubject;
 
         foreach ($responseCollection as $thisResponse) {
-
             $currentSubject = array_merge($commandSubject, ['response' => $thisResponse]);
 
             $response = SubjectReader::readResponse($currentSubject);
