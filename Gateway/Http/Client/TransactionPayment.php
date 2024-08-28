@@ -209,7 +209,6 @@ class TransactionPayment implements ClientInterface
             );
 
             $response = $service->payments(new PaymentRequest($giftcardPaymentRequest));
-            $giftCardResponseCollection[] = $response->toArray();
 
             /** @var PaymentResponse $paymentResponse */
             $paymentResponse = $this->paymentResponseFactory->create();
@@ -219,7 +218,9 @@ class TransactionPayment implements ClientInterface
             $this->paymentResponseResourceModel->save($paymentResponse);
 
             $this->remainingOrderAmount -= $deductedAmount;
-            $this->adyenHelper->logResponse($response->toArray());
+            $responseArray = $response->toArray();
+            $giftCardResponseCollection[] = $responseArray;
+            $this->adyenHelper->logResponse($responseArray);
         }
 
         return $giftCardResponseCollection;
