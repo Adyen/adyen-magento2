@@ -20,6 +20,7 @@ use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order\Status\HistoryFactory;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\ResourceModel\Order;
+use Magento\Sales\Model\Order as OrderModel;
 
 class PaymentResponseHandler
 {
@@ -202,7 +203,7 @@ class PaymentResponseHandler
         $this->vaultHelper->handlePaymentResponseRecurringDetails($payment, $paymentsDetailsResponse);
 
         // If the response is valid, update the order status.
-        if (!in_array($resultCode, PaymentResponseHandler::ACTION_REQUIRED_STATUSES) && !$order->isCanceled()) {
+        if (!in_array($resultCode, PaymentResponseHandler::ACTION_REQUIRED_STATUSES) && $order->getState() === OrderModel::STATE_PENDING_PAYMENT) {
             /*
              * Change order state from pending_payment to new and expect authorisation webhook
              * if no additional action is required according to /paymentsDetails response.
