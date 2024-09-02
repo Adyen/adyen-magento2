@@ -105,7 +105,10 @@ class OfferClosedWebhookHandler implements WebhookHandlerInterface
         }
 
         // Move the order from PAYMENT_REVIEW to NEW, so that it can be cancelled
-        if (!$order->canCancel() && $this->configHelper->getNotificationsCanCancel($order->getStoreId())) {
+        if (!$order->isCanceled()
+            && !$order->canCancel()
+            && $this->configHelper->getNotificationsCanCancel($order->getStoreId())
+        ) {
             $order->setState(MagentoOrder::STATE_NEW);
         }
 
