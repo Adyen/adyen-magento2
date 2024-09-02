@@ -11,14 +11,12 @@
 
 namespace Adyen\Payment\Test\Unit\Helper;
 
-use Adyen\AdyenException;
 use Adyen\Payment\Helper\CheckoutAnalytics;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Locale;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
-use Exception;
 use Magento\Framework\HTTP\ClientInterface;
 use Magento\Framework\UrlInterface;
 use Magento\Store\Api\Data\StoreInterface;
@@ -116,6 +114,24 @@ class CheckoutAnalyticsTest extends AbstractAdyenTestCase
         ];
 
         $this->assertEquals('test_response', $checkoutAnalytics->initiateCheckoutAttempt($extraParams));
+    }
+
+    public function testInitiateCheckoutAttemptIncorrectResponse() {
+        $this->configHelperMock->method('isDemoMode')
+            ->with(self::STORE_ID)
+            ->willReturn(false);
+
+        $this->configHelperMock->method('getClientKey')
+            ->with('live', self::STORE_ID)
+            ->willReturn(self::CLIENT_KEY);
+
+        $expectedResponse = '{"someOtherKey":"test_response"}';
+        $this->httpClient->method('getBody')->willReturn($expectedResponse);
+
+        $this->loggerMock->expects($this->once())->method('error');
+
+        $checkoutAnalytics = $this->generateClass();
+        $checkoutAnalytics->initiateCheckoutAttempt();
     }
 
     public function testInitiateCheckoutAttemptMissingClientKey() {
