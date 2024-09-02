@@ -41,7 +41,7 @@ class CheckoutAnalytics
     const MESSAGE_PARAMS = [
         'errors',
         'info',
-        'log'
+        'logs'
     ];
 
     /**
