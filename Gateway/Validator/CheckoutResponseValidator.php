@@ -60,10 +60,14 @@ class CheckoutResponseValidator extends AbstractValidator
     public function validate(array $validationSubject): ResultInterface
     {
         // Extract all the payment responses
-        $responseCollection = $validationSubject['response'] ?? [];
+        $responseCollection = $validationSubject['response'];
         unset($validationSubject['response']);
         // Assign the remaining items to $commandSubject
         $commandSubject = $validationSubject;
+
+        if(empty($responseCollection)) {
+            throw new ValidatorException(__("No responses were provided"));
+        }
 
         foreach ($responseCollection as $thisResponse) {
             $currentSubject = array_merge($commandSubject, ['response' => $thisResponse]);
@@ -73,8 +77,6 @@ class CheckoutResponseValidator extends AbstractValidator
             $payment = $paymentDataObjectInterface->getPayment();
 
             $payment->setAdditionalInformation('3dActive', false);
-            $isValid = true;
-            $errorMessages = [];
 
             // validate result
             if (!empty($response['resultCode'])) {
@@ -142,6 +144,7 @@ class CheckoutResponseValidator extends AbstractValidator
                 throw new ValidatorException($errorMsg);
             }
         }
-        return $this->createResult($isValid, $errorMessages);
+
+        return $this->createResult(true);
     }
 }
