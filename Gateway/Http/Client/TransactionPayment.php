@@ -127,9 +127,9 @@ class TransactionPayment implements ClientInterface
 
             /** @var array $giftcardResponseCollection */
             if (!empty($giftcardResponseCollection)) {
-                if ($this->remainingOrderAmount === 0)
+                if ($this->remainingOrderAmount === 0) {
                     return  $giftcardResponseCollection;
-
+                }
                 $responseCollection = $giftcardResponseCollection;
             }
 
