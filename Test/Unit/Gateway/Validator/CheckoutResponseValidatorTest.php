@@ -2,7 +2,6 @@
 
 namespace Adyen\Payment\Test\Unit\Gateway\Validator;
 
-use Adyen\Payment\Gateway\Data\Order\OrderAdapter;
 use Adyen\Payment\Gateway\Validator\CheckoutResponseValidator;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
@@ -10,51 +9,23 @@ use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Exception\ValidatorException;
 use Magento\Payment\Gateway\Data\OrderAdapterInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
-use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Validator\Result;
-use Magento\Payment\Gateway\Validator\ResultInterface;
 use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
-use Magento\Payment\Model\InfoInterface;
-use Magento\Payment\Model\Method\Logger;
-use Magento\Payment\Gateway\Data\PaymentDataObjectInterface;
 use Magento\Sales\Model\Order\Payment;
-use Magento\TestFramework\ObjectManager;
-use PHPUnit\Framework\TestCase;
 
 class CheckoutResponseValidatorTest extends AbstractAdyenTestCase
 {
-    /**
-     * @var CheckoutResponseValidator
-     */
     private $checkoutResponseValidator;
-
-    /**
-     * @var ResultInterfaceFactory|\PHPUnit\Framework\MockObject\MockObject
-     */
     private $resultFactoryMock;
-
-    /**
-     * @var AdyenLogger|\PHPUnit\Framework\MockObject\MockObject
-     */
-    private $adyenLoggerMock;
-
-    /**
-     * @var Data|\PHPUnit\Framework\MockObject\MockObject
-     */
-    private $adyenHelperMock;
-
     private $paymentDataObject;
 
     protected function setUp(): void
     {
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
         $this->adyenHelperMock = $this->createMock(Data::class);
-
         $this->resultFactoryMock = $this->createMock(ResultInterfaceFactory::class);
-
         $orderAdapterMock = $this->createMock(OrderAdapterInterface::class);
         $paymentMock = $this->createMock(Payment::class);
-
         $this->paymentDataObject = new PaymentDataObject($orderAdapterMock, $paymentMock);
 
         $this->checkoutResponseValidator = new CheckoutResponseValidator(
@@ -93,8 +64,6 @@ class CheckoutResponseValidatorTest extends AbstractAdyenTestCase
             ]
         ];
 
-        //       currently the test validates whether the factory is reached successfully. Not mocking the factory,
-        //       having it create a real Result object and testing against that object is also possible.
         $this->resultFactoryMock->expects($this->once())
             ->method('create')
             ->with([
@@ -104,6 +73,184 @@ class CheckoutResponseValidatorTest extends AbstractAdyenTestCase
             ])
             ->willReturn(new Result(true));
 
-        $result = $this->checkoutResponseValidator->validate($validationSubject);
+        $this->checkoutResponseValidator->validate($validationSubject);
+    }
+     public function testValidateThrowsExceptionForRefusedResultCode()
+    {
+        $validationSubject = [
+            'payment' => $this->paymentDataObject,
+            'stateObject' => [],
+            'response' => [
+                0 => [
+                    'additionalData' => [],
+                    'amount' => [],
+                    'resultCode' => 'Refused',
+                    'pspReference' => 'ABC12345'
+                ]
+            ]
+        ];
+
+        $this->expectException(ValidatorException::class);
+        $this->expectExceptionMessage("The payment is REFUSED.");
+
+        $this->checkoutResponseValidator->validate($validationSubject);
+    }
+
+    public function testValidateThrowsExceptionForUnknownResultCode()
+    {
+        $validationSubject = [
+            'payment' => $this->paymentDataObject,
+            'stateObject' => [],
+            'response' => [
+                0 => [
+                    'additionalData' => [],
+                    'amount' => [],
+                    'resultCode' => 'Some other result code',
+                    'pspReference' => 'ABC12345'
+                ]
+            ]
+        ];
+
+        $this->expectException(ValidatorException::class);
+        $this->expectExceptionMessage("Error with payment method please select different payment method.");
+
+        $this->checkoutResponseValidator->validate($validationSubject);
+    }
+
+    public function testValidateHandlesAllowedErrorCode()
+    {
+        $validationSubject = [
+            'payment' => $this->paymentDataObject,
+            'stateObject' => [],
+            'response' => [
+                0 => [
+                    'additionalData' => [],
+                    'amount' => [],
+                    'resultCode' => '',
+                    'pspReference' => 'ABC12345',
+                    'errorCode' => '124',
+                    'error' => 'No result code present in response.'
+                ]
+            ]
+        ];
+
+        $this->expectException(ValidatorException::class);
+        $this->expectExceptionMessage("No result code present in response.");
+
+        $this->checkoutResponseValidator->validate($validationSubject);
+    }
+
+     public function testValidateForSuccessfulPartialPayments()
+    {
+        $validationSubject = [
+            'payment' => $this->paymentDataObject,
+            'stateObject' => [],
+            'response' => [
+                0 => [
+                    'additionalData' => [],
+                    'amount' => [],
+                    'resultCode' => 'Authorised',
+                    'pspReference' => 'ABC12345',
+                    'paymentMethod' => [
+                        'name' => 'giftcard',
+                        'type' => 'Givex',
+                    ]
+                ],
+                1 => [
+                    'additionalData' => [],
+                    'amount' => [],
+                    'resultCode' => 'Authorised',
+                    'pspReference' => 'ABC12345',
+                    'paymentMethod' => [
+                        'name' => 'card',
+                        'type' => 'CreditCard',
+                    ]
+                ]
+            ]
+        ];
+
+        $this->resultFactoryMock->expects($this->once())
+            ->method('create')
+            ->with([
+                'isValid' => true,
+                'failsDescription' => [],
+                'errorCodes' => []
+            ])
+            ->willReturn(new Result(true));
+
+        $this->checkoutResponseValidator->validate($validationSubject);
+    }
+
+
+     public function testValidateForFailedPartialPayments()
+     {
+         $validationSubject = [
+             'payment' => $this->paymentDataObject,
+             'stateObject' => [],
+             'response' => [
+                 0 => [
+                     'additionalData' => [],
+                     'amount' => [],
+                     'resultCode' => 'Authorised',
+                     'pspReference' => 'ABC12345',
+                     'paymentMethod' => [
+                         'name' => 'giftcard',
+                         'type' => 'Givex',
+                     ]
+                 ],
+                 1 => [
+                     'additionalData' => [],
+                     'amount' => [],
+                     'resultCode' => 'Refused',
+                     'pspReference' => 'ABC12345',
+                     'paymentMethod' => [
+                         'name' => 'card',
+                         'type' => 'CreditCard',
+                     ]
+                 ]
+             ]
+         ];
+
+         $this->expectException(ValidatorException::class);
+         $this->expectExceptionMessage("The payment is REFUSED.");
+
+         $this->checkoutResponseValidator->validate($validationSubject);
+     }
+
+    public function testIfValidationSucceedsOnMiscellaneousResultCodes()
+    {
+        $resultCodes = [
+            'IdentifyShopper',
+            'ChallengeShopper',
+            'PresentToShopper',
+            'Pending',
+            'RedirectShopper'
+        ];
+
+        $this->resultFactoryMock->expects($this->exactly(count($resultCodes)))
+            ->method('create')
+            ->with([
+                'isValid' => true,
+                'failsDescription' => [],
+                'errorCodes' => []
+            ])
+            ->willReturn(new Result(true));
+
+        foreach ($resultCodes as $resultCode) {
+            $validationSubject = [
+                'payment' => $this->paymentDataObject,
+                'stateObject' => [],
+                'response' => [
+                    0 => [
+                        'additionalData' => [],
+                        'amount' => [],
+                        'resultCode' => $resultCode,
+                        'pspReference' => 'ABC12345'
+                    ],
+                ]
+            ];
+
+            $this->checkoutResponseValidator->validate($validationSubject);
+        }
     }
 }
