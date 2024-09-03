@@ -131,7 +131,6 @@ class CheckoutResponseValidator extends AbstractValidator
                         throw new ValidatorException($errorMsg);
                 }
             } else {
-
                 if (!empty($response['error'])) {
                     $this->adyenLogger->error($response['error']);
                 }
