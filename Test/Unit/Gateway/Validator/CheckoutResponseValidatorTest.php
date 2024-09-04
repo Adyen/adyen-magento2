@@ -197,8 +197,8 @@ class CheckoutResponseValidatorTest extends AbstractAdyenTestCase
                      'resultCode' => 'Authorised',
                      'pspReference' => 'ABC12345',
                      'paymentMethod' => [
-                         'name' => 'giftcard',
-                         'type' => 'Givex',
+                         'name' => 'Givex',
+                         'type' => 'giftcard',
                      ]
                  ],
                  1 => [
@@ -207,8 +207,8 @@ class CheckoutResponseValidatorTest extends AbstractAdyenTestCase
                      'resultCode' => 'Refused',
                      'pspReference' => 'ABC12345',
                      'paymentMethod' => [
-                         'name' => 'card',
-                         'type' => 'CreditCard',
+                         'name' => 'Cards',
+                         'type' => 'scheme',
                      ]
                  ]
              ]
