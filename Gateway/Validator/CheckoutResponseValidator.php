@@ -72,7 +72,6 @@ class CheckoutResponseValidator extends AbstractValidator
         // hasOnlyGiftCards is needed later but cannot be processed as a response
         unset($responseCollection['hasOnlyGiftCards']);
         foreach ($responseCollection as $thisResponse) {
-
             $responseSubject = array_merge($commandSubject, ['response' => $thisResponse]);
             $this->validateResponse($responseSubject);
         }
