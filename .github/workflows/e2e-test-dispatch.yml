@@ -11,7 +11,7 @@ on:
       expressBranch:
         description: "Express Checkout Repository Pipeline"
         required: true
-        default: "develop"
+        default: "main"
       testGroup:
         description: "Test group"
         required: true
@@ -29,7 +29,7 @@ jobs:
       labels: ubuntu-latest-8-cores
     timeout-minutes: 25
     env:
-      PHP_VERSION: "8.1"
+      PHP_VERSION: "8.3"
       MAGENTO_VERSION: "2.4.5"
       ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
       ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}

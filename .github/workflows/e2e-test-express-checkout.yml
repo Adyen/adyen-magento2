@@ -4,22 +4,20 @@ run-name: Adyen Magento 2 Express Checkout Plugin E2E tests
 on:
   workflow_dispatch:
   pull_request:
-    types: [opened, synchronize]
+    branches: [main]
+  pull_request_target:
     branches: [main]
 
 jobs:
   build:
-    if: |
-      ${{
-      github.event.pull_request.draft == false &&
-      (github.actor != 'renovate[bot]' || github.actor != 'lgtm-com[bot]')
-      }}
+    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) ||  (github.event_name == 'workflow_dispatch')
+    environment: ${{ (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) && 'external' || 'internal' }}
     runs-on:
       group: larger-runners
       labels: ubuntu-latest-8-cores
     timeout-minutes: 20
     env:
-      PHP_VERSION: "8.1"
+      PHP_VERSION: "8.3"
       MAGENTO_VERSION: "2.4.5"
       ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
       ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
