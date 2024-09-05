@@ -55,7 +55,7 @@ class WebhookTest extends \Magento\Config\Block\System\Config\Form\Field
 
     public function getAjaxUrl()
     {
-        return $this->getUrl('adyen/configuration/webhooktest');
+        return $this->getUrl('adyen/configuration/webhookTest');
     }
 
     public function getButtonHtml()

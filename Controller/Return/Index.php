@@ -152,29 +152,24 @@ class Index extends Action
             // Make paymentsDetails call to validate the payment
             $request["details"] = $redirectResponse;
             $paymentsDetailsResponse = $this->paymentsDetailsHelper->initiatePaymentDetails($order, $request);
+
+            if ($this->isResponseAlreadyProcessed($order, $paymentsDetailsResponse)) {
+                $this->adyenLogger->addAdyenResult('Duplicate response detected. Skipping processing.');
+                return true;
+            }
         } catch (Exception $e) {
             $paymentsDetailsResponse['error'] = $e->getMessage();
         }
 
-        $result = false;
+        $result = $this->paymentResponseHandler->handlePaymentsDetailsResponse(
+            $paymentsDetailsResponse,
+            $order
+        );
 
-        // Compare the merchant references
-        $merchantReference = $paymentsDetailsResponse['merchantReference'] ?? null;
-        if ($merchantReference) {
-            if ($order->getIncrementId() === $merchantReference) {
-                $this->order = $order;
-                $this->payment = $order->getPayment();
-                $this->cleanUpRedirectAction();
-
-                $result = $this->paymentResponseHandler->handlePaymentsDetailsResponse(
-                    $paymentsDetailsResponse,
-                    $order
-                );
-            } else {
-                $this->adyenLogger->error("Wrong merchantReference was set in the query or in the session");
-            }
-        } else {
-            $this->adyenLogger->error("No merchantReference in the response");
+        if ($result) {
+            $this->order = $order;
+            $this->payment = $order->getPayment();
+            $this->cleanUpRedirectAction();
         }
 
         return $result;
@@ -198,6 +193,27 @@ class Index extends Action
         }
 
         return $order;
+    }
+
+    private function isResponseAlreadyProcessed(Order $order, array $paymentsDetailsResponse): bool
+    {
+        $pspReference = $paymentsDetailsResponse['pspReference'] ?? null;
+        $merchantReference = $paymentsDetailsResponse['merchantReference'] ?? null;
+
+        if (!$pspReference || !$merchantReference) {
+            return false;
+        }
+
+        $history = $order->getStatusHistories();
+
+        foreach ($history as $status) {
+            $comment = $status->getComment();
+            if (str_contains($comment, $pspReference) !== false) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

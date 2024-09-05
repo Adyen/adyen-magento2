@@ -35,6 +35,11 @@ define(
 
                 this.actionComponent = component.handleAction(action);
             },
+            handleOnFailure: function(response, component) {
+                this.isPlaceOrderAllowed(true);
+                fullScreenLoader.stopLoader();
+                component.handleReject(response);
+            },
         })
     }
 );

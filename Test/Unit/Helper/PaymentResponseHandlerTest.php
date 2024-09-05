@@ -72,6 +72,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         $this->orderMock->method('getQuoteId')->willReturn(1);
         $this->orderMock->method('getPayment')->willReturn($this->paymentMock);
         $this->orderMock->method('getStatus')->willReturn('pending');
+        $this->orderMock->method('getIncrementId')->willReturn('00123456');
 
         $this->orderHelperMock->method('setStatusOrderCreation')->willReturn( $this->orderMock);
 
@@ -117,7 +118,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         $this->assertEquals($expectedResult, $result);
     }
 
-    private static function dataSourceForFormatPaymentResponseActionRequredPayments(): array
+    private static function dataSourceForFormatPaymentResponseActionRequiredPayments(): array
     {
         return [
             ['resultCode' => PaymentResponseHandler::REDIRECT_SHOPPER, 'action' => ['type' => 'qrCode']],
@@ -131,7 +132,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
      * @param $resultCode
      * @param $action
      * @return void
-     * @dataProvider dataSourceForFormatPaymentResponseActionRequredPayments
+     * @dataProvider dataSourceForFormatPaymentResponseActionRequiredPayments
      */
     public function testFormatPaymentResponseForActionRequiredPayments($resultCode, $action)
     {
@@ -239,7 +240,8 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
             'details' => [
                 'someData' => 'someValue'
             ],
-            'donationToken' => 'XYZ123456789'
+            'donationToken' => 'XYZ123456789',
+            'merchantReference' => '00123456'
         ];
 
         $this->quoteHelperMock->method('disableQuote')->willThrowException(new Exception());
@@ -281,7 +283,8 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
             'pspReference' => 'ABC123456789',
             'paymentMethod' => [
                 'brand' => $paymentMethodCode
-            ]
+            ],
+            'merchantReference' => '00123456'
         ];
 
         $result = $this->paymentResponseHandler->handlePaymentsDetailsResponse(
@@ -314,7 +317,8 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
             'pspReference' => 'ABC123456789',
             'paymentMethod' => [
                 'brand' => $paymentMethodCode
-            ]
+            ],
+            'merchantReference' => '00123456'
         ];
 
         $result = $this->paymentResponseHandler->handlePaymentsDetailsResponse(
@@ -350,6 +354,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
             'paymentMethod' => [
                 'brand' => 'ideal'
             ],
+            'merchantReference' => '00123456',
             'action' => [
                 'actionData' => 'actionValue'
             ]
@@ -388,6 +393,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
             'paymentMethod' => [
                 'brand' => 'ideal'
             ],
+            'merchantReference' => '00123456',
             'action' => [
                 'actionData' => 'actionValue'
             ]
@@ -423,6 +429,24 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
     {
         $paymentsDetailsResponse = [];
         $this->adyenLoggerMock->expects($this->atLeastOnce())->method('error');
+
+        $result = $this->paymentResponseHandler->handlePaymentsDetailsResponse(
+            $paymentsDetailsResponse,
+            $this->orderMock
+        );
+
+        $this->assertFalse($result);
+    }
+
+    public function testHandlePaymentsDetailsResponseInvalidMerchantReference(){
+        $paymentsDetailsResponse = [
+            'resultCode' => PaymentResponseHandler::AUTHORISED,
+            'pspReference' => 'ABC123456789',
+            'paymentMethod' => [
+                'brand' => 'ideal'
+            ],
+            'merchantReference' => '00777777'
+        ];
 
         $result = $this->paymentResponseHandler->handlePaymentsDetailsResponse(
             $paymentsDetailsResponse,
