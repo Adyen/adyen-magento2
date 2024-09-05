@@ -65,11 +65,14 @@ class CheckoutResponseValidator extends AbstractValidator
         // Assign the remaining items to $commandSubject
         $commandSubject = $validationSubject;
 
-        if(empty($responseCollection)) {
+        if (empty($responseCollection)) {
             throw new ValidatorException(__("No responses were provided"));
         }
 
+        // hasOnlyGiftCards is needed later but cannot be processed as a response
+        unset($responseCollection['hasOnlyGiftCards']);
         foreach ($responseCollection as $thisResponse) {
+
             $responseSubject = array_merge($commandSubject, ['response' => $thisResponse]);
             $this->validateResponse($responseSubject);
         }
