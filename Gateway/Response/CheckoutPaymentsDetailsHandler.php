@@ -48,6 +48,9 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
             $payment->getOrder()->setCanSendNewEmailFlag(false);
         }
 
+        // hasOnlyGiftCards is needed later but cannot be processed as a response
+        unset($responseCollection['hasOnlyGiftCards']);
+
         // for partial payments, non-giftcard payments will always be the last element in the collection
         // for non-partial, there is only one response in the collection
         $response = array_last($responseCollection);
