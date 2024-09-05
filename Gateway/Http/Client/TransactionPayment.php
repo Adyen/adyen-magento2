@@ -120,17 +120,19 @@ class TransactionPayment implements ClientInterface
 
         $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
         $service = $this->adyenHelper->initializePaymentsApi($client);
-        $responseCollection = [];
+
 
         try {
-            list($requestData, $giftcardResponseCollection) = $this->processGiftcards($requestData, $service);
+            list($requestData, $responseCollection) = $this->processGiftcards($requestData, $service);
+            $responseCollection['hasOnlyGiftCards'] = false;
 
-            /** @var array $giftcardResponseCollection */
-            if (!empty($giftcardResponseCollection)) {
+            /** @var array $responseCollection */
+            if (!empty($responseCollection)) {
+
                 if ($this->remainingOrderAmount === 0) {
-                    return  $giftcardResponseCollection;
+                    $responseCollection['hasOnlyGiftCards'] = true;
+                    return  $responseCollection;
                 }
-                $responseCollection = $giftcardResponseCollection;
             }
 
             $requestData['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($client);

@@ -17,45 +17,30 @@ class CheckoutPaymentCommentHistoryHandler implements HandlerInterface
 {
     /**
      * @param array $handlingSubject
-     * @param array $response
+     * @param array $responseCollection
      * @return $this
      */
-    public function handle(array $handlingSubject, array $response)
+    public function handle(array $handlingSubject, array $responseCollection)
     {
         $readPayment = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
-
         $payment = $readPayment->getPayment();
-
         $comment = __("Adyen Result response:");
 
-        if (isset($response['resultCode'])) {
-            $responseCode = $response['resultCode'];
-        } else {
-            // try to get response from response key (used for modifications
-            if (isset($response['response'])) {
-                $responseCode = $response['response'];
-            } else {
-                $responseCode = "";
+        foreach ($responseCollection as $response) {
+            $responseCode = $response['resultCode'] ?? $response['response'] ?? '';
+
+            if (!empty($responseCode)) {
+                $comment .= '<br /> ' . __('authResult:') . ' ' . $responseCode;
+                $payment->getOrder()->setAdyenResulturlEventCode($responseCode);
             }
-        }
 
-        if (isset($response['pspReference'])) {
-            $pspReference = $response['pspReference'];
-        } else {
-            $pspReference = "";
-        }
-
-        if ($responseCode) {
-            $comment .= '<br /> ' . __('authResult:') . ' ' . $responseCode;
-            $payment->getOrder()->setAdyenResulturlEventCode($responseCode);
-        }
-
-        if ($pspReference) {
-            $comment .= '<br /> ' . __('pspReference:') . ' ' . $pspReference;
+            if (isset($response['pspReference'])) {
+                $comment .= '<br /> ' . __('pspReference:') . ' ' . $response['pspReference'];
+            }
+            $comment .= '<br /> ';
         }
 
         $payment->getOrder()->addStatusHistoryComment($comment, $payment->getOrder()->getStatus());
-
         return $this;
     }
 }
