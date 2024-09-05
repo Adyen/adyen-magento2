@@ -260,5 +260,8 @@
         <method name="adyen_upi">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="adyen_dana">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>
