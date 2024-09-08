@@ -11,7 +11,7 @@ on:
       expressBranch:
         description: "Express Checkout Repository Pipeline"
         required: true
-        default: "develop"
+        default: "main"
       testGroup:
         description: "Test group"
         required: true
