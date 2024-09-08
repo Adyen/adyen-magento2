@@ -18,7 +18,6 @@ use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use PHPUnit\Framework\TestCase;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Adyen\Payment\Exception\GraphQlAdyenException;
-use Magento\Framework\GraphQl\Query;
 
 class GetAdyenPaymentMethodsBalanceTest extends TestCase
 {
