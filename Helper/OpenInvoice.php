@@ -127,7 +127,7 @@ class OpenInvoice
         $product = $item->getProduct();
         $imageUrl = "";
 
-        if ($image = $product->getSmallImage()) {
+        if ($product && $image = $product->getSmallImage()) {
             $imageUrl = $this->imageHelper->init($product, 'product_page_image_small')
                 ->setImageFile($image)
                 ->getUrl();
@@ -187,14 +187,14 @@ class OpenInvoice
         $product = $item->getProduct();
 
         return [
-            'id' => $product->getId(),
+            'id' => $product ? $product->getId() : $item->getProductId(),
             'amountExcludingTax' => $formattedPriceExcludingTax,
             'amountIncludingTax' => $formattedPriceIncludingTax,
             'taxAmount' => $formattedTaxAmount,
             'description' => $item->getName(),
             'quantity' => (int) ($qty ?? $item->getQty()),
             'taxPercentage' => $formattedTaxPercentage,
-            'productUrl' => $product->getUrlModel()->getUrl($product),
+            'productUrl' => $product ? $product->getUrlModel()->getUrl($product) : '',
             'imageUrl' => $this->getImageUrl($item)
         ];
     }
