@@ -128,7 +128,7 @@ class TransactionPayment implements ClientInterface
 
             /** @var array $responseCollection */
             if (!empty($giftcardResponseCollection)) {
-                $responseCollection = $giftcardResponseCollection;
+                $responseCollection = array_merge($responseCollection, $giftcardResponseCollection);
 
                 if ($this->remainingOrderAmount === 0) {
                     $responseCollection['hasOnlyGiftCards'] = true;
