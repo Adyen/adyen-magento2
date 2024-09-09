@@ -873,7 +873,7 @@
             <adyen_directEbanking>
                 <active>0</active>
                 <model>AdyenPaymentDirectEbankingFacade</model>
-                <title>Sofort</title>
+                <title>Klarna Debit Risk</title>
                 <allowspecific>0</allowspecific>
                 <sort_order>0</sort_order>
                 <payment_action>authorize</payment_action>
@@ -893,7 +893,7 @@
                 <group>adyen-alternative-payment-method</group>
             </adyen_directEbanking>
             <adyen_directEbanking_vault>
-                <title>Stored Sofort</title>
+                <title>Stored Klarna Debit Risk</title>
                 <model>AdyenPaymentDirectEbankingVaultFacade</model>
             </adyen_directEbanking_vault>
             <adyen_ebanking_FI>
