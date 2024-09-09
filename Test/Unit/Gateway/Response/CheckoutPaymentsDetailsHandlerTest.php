@@ -1,0 +1,171 @@
+<?php
+
+namespace Test\Unit\Gateway\Response;
+
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Adyen\Payment\Gateway\Response\CheckoutPaymentsDetailsHandler;
+use Adyen\Payment\Helper\Data;
+use Magento\Payment\Gateway\Data\OrderAdapterInterface;
+use Magento\Payment\Gateway\Data\PaymentDataObject;
+use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Payment;
+
+class CheckoutPaymentsDetailsHandlerTest extends AbstractAdyenTestCase
+{
+    private $checkoutPaymentsDetailsHandler;
+
+    private $paymentMock;
+    private $orderMock;
+    private $handlingSubject;
+
+    protected function setUp(): void
+    {
+        $this->adyenHelperMock = $this->createMock(Data::class);
+        $this->checkoutPaymentsDetailsHandler = new CheckoutPaymentsDetailsHandler($this->adyenHelperMock);
+
+        $orderAdapterMock = $this->createMock(OrderAdapterInterface::class);
+        $this->paymentMock = $this->createMock(Payment::class);
+
+        $this->orderMock = $this->createMock(Order::class);
+        $this->paymentMock->method('getOrder')->willReturn($this->orderMock);
+        $this->paymentDataObject = new PaymentDataObject($orderAdapterMock, $this->paymentMock);
+
+        $this->handlingSubject  = [
+            'payment' => $this->paymentDataObject,
+            'paymentAction' => "authorize",
+            'stateObject' => null
+        ];
+    }
+
+    public function testIfGeneralFlowIsHandledCorrectly()
+    {
+        // prepare Handler input.
+        $responseCollection = [
+            'hasOnlyGiftCards' => false,
+            0 => [
+                'additionalData' => [],
+                'amount' => [],
+                'resultCode' => 'Authorised',
+            ]
+        ];
+
+        $this->paymentMock
+            ->expects($this->once())
+            ->method('getMethod')
+            ->willReturn('any_method');
+
+        $this->orderMock
+            ->expects($this->once())
+            ->method('setCanSendNewEmailFlag')
+            ->with(false);
+
+        $this->applyGenericMockExpectations();
+
+        $this->checkoutPaymentsDetailsHandler->handle($this->handlingSubject, $responseCollection);
+    }
+
+    public function testIfBoletoSendsAnEmail()
+    {
+        // prepare Handler input.
+        $responseCollection = [
+            'hasOnlyGiftCards' => false,
+            0 => [
+                'additionalData' => [],
+                'amount' => [],
+                'resultCode' => 'Authorised',
+                'pspReference' => 'ABC12345'
+            ]
+        ];
+
+        $this->paymentMock
+            ->expects($this->once())
+            ->method('getMethod')
+            ->willReturn(CheckoutPaymentsDetailsHandler::ADYEN_BOLETO);
+
+        // for boleto it should not call this function.
+        $this->orderMock
+            ->expects($this->never())
+            ->method('setCanSendNewEmailFlag')
+            ->with(false);
+
+        $this->applyGenericMockExpectations();
+
+        $this->checkoutPaymentsDetailsHandler->handle($this->handlingSubject, $responseCollection);
+    }
+
+    public function testIfPartialPaymentHandlesLastPaymentResponse()
+    {
+        // prepare Handler input.
+        $responseCollection = [
+            'hasOnlyGiftCards' => false,
+            0 => [
+                'additionalData' => [],
+                'amount' => [],
+                'resultCode' => 'Authorised',
+                'pspReference' => 'ABC54321',
+                'paymentMethod' => [
+                    'name' => 'giftcard',
+                    'type' => 'Givex',
+                ]
+            ],
+            1 => [
+                'additionalData' => [],
+                'amount' => [],
+                'resultCode' => 'Authorised',
+                'pspReference' => 'ABC12345',
+                'paymentMethod' => [
+                    'name' => 'card',
+                    'type' => 'CreditCard',
+                ]
+            ]
+        ];
+
+        $this->paymentMock
+            ->expects($this->once())
+            ->method('getMethod')
+            ->willReturn('any_method');
+
+        $this->orderMock
+            ->expects($this->once())
+            ->method('setCanSendNewEmailFlag')
+            ->with(false);
+
+        // validate whether the psp reference of the last payment method is used when setting these values.
+        $this->paymentMock
+            ->expects($this->once())
+            ->method('setCcTransId')
+            ->with('ABC12345');
+
+        $this->paymentMock
+            ->expects($this->once())
+            ->method('setLastTransId')
+            ->with('ABC12345');
+
+        $this->paymentMock
+            ->expects($this->once())
+            ->method('setTransactionId')
+            ->with('ABC12345');
+
+        $this->applyGenericMockExpectations();
+
+        $this->checkoutPaymentsDetailsHandler->handle($this->handlingSubject, $responseCollection);
+    }
+
+    private function applyGenericMockExpectations()
+    {
+        $this->paymentMock
+            ->expects($this->once())
+            ->method('setIsTransactionPending')
+            ->with(true);
+
+        $this->paymentMock
+            ->expects($this->once())
+            ->method('setIsTransactionClosed')
+            ->with(false);
+
+        $this->paymentMock
+            ->expects($this->once())
+            ->method('setShouldCloseParentTransaction')
+            ->with(false);
+    }
+}
