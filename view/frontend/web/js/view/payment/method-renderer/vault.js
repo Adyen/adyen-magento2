@@ -157,6 +157,12 @@ define([
                 }
             }
 
+            if (!requireCvc) {
+                componentConfig.onBrand({
+                    brand: self.getCardType()
+                });
+            }
+
             self.component = adyenCheckout.mountPaymentMethodComponent(
                 this.checkoutComponent,
                 'card',
