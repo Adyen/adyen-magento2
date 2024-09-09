@@ -192,4 +192,5 @@ type StoreConfig @doc(description: "The type contains information about a store 
     adyen_title_renderer: String @doc(description: "Adyen Render Mode for Payment Method.")
     adyen_return_path_error: String @doc(description: "Adyen Return path in case of error")
     adyen_checkout_frontend_region: String @doc(description: "Adyen front end resources region.")
+    adyen_store_locale : String @doc(description: "Adyen store locale.") @resolver(class: "Adyen\\Payment\\Model\\Resolver\\StoreConfig\\StoreLocale")
 }
