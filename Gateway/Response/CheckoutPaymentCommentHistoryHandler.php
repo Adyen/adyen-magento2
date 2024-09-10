@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Gateway\Response;
 
+use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 
 class CheckoutPaymentCommentHistoryHandler implements HandlerInterface
@@ -20,9 +21,9 @@ class CheckoutPaymentCommentHistoryHandler implements HandlerInterface
      * @param array $responseCollection
      * @return $this
      */
-    public function handle(array $handlingSubject, array $responseCollection)
+    public function handle(array $handlingSubject, array $responseCollection): self
     {
-        $readPayment = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
+        $readPayment = SubjectReader::readPayment($handlingSubject);
         $payment = $readPayment->getPayment();
         $comment = __("Adyen Result response:");
 

@@ -23,9 +23,9 @@ class VaultDetailsHandlerTest extends AbstractAdyenTestCase
         $this->vaultDetailsHandler = new VaultDetailsHandler($this->vaultHelperMock);
 
         $orderAdapterMock = $this->createMock(OrderAdapterInterface::class);
-        $this->paymentMock = $this->createMock(Payment::class);
-
         $orderMock = $this->createMock(Order::class);
+
+        $this->paymentMock = $this->createMock(Payment::class);
         $this->paymentMock->method('getOrder')->willReturn($orderMock);
         $this->paymentDataObject = new PaymentDataObject($orderAdapterMock, $this->paymentMock);
 
