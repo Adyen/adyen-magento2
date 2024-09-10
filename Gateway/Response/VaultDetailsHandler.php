@@ -37,12 +37,11 @@ class VaultDetailsHandler implements HandlerInterface
      * @param array $handlingSubject
      * @param array $responseCollection
      * @return void
-     * @throws LocalizedException
      */
     public function handle(array $handlingSubject, array $responseCollection): void
     {
         // for (non-) partial payments, the non-giftcard payment is always last.
-        $response = array_last($responseCollection);
+        $response = end($responseCollection);
 
         // payments without additional data or only giftcards should be ignored.
         if (empty($response['additionalData']) || $responseCollection['hasOnlyGiftCards']) {

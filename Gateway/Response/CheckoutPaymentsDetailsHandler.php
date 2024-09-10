@@ -50,7 +50,7 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
 
         // for partial payments, non-giftcard payments will always be the last element in the collection
         // for non-partial, there is only one response in the collection
-        $response = array_last($responseCollection);
+        $response = end($responseCollection);
         if (!empty($response['pspReference'])) {
             // set pspReference as transactionId
             $payment->setCcTransId($response['pspReference']);

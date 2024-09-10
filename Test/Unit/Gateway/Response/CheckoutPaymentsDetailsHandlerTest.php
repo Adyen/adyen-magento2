@@ -9,14 +9,14 @@ use Magento\Payment\Gateway\Data\OrderAdapterInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
+use PHPUnit\Framework\MockObject\MockObject;
 
 class CheckoutPaymentsDetailsHandlerTest extends AbstractAdyenTestCase
 {
-    private $checkoutPaymentsDetailsHandler;
-
-    private $paymentMock;
-    private $orderMock;
-    private $handlingSubject;
+    private CheckoutPaymentsDetailsHandler $checkoutPaymentsDetailsHandler;
+    private Payment|MockObject $paymentMock;
+    private Order|MockObject $orderMock;
+    private array $handlingSubject;
 
     protected function setUp(): void
     {
@@ -151,7 +151,7 @@ class CheckoutPaymentsDetailsHandlerTest extends AbstractAdyenTestCase
         $this->checkoutPaymentsDetailsHandler->handle($this->handlingSubject, $responseCollection);
     }
 
-    private function applyGenericMockExpectations()
+    private function applyGenericMockExpectations() : void
     {
         $this->paymentMock
             ->expects($this->once())
