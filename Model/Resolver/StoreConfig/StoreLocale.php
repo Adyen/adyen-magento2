@@ -19,8 +19,6 @@ use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use Magento\GraphQl\Model\Query\Context;
 use Magento\Store\Api\Data\StoreInterface;
-use Reflet\GraphQlFaker\Attribute\FakeResolver;
-use Reflet\GraphQlFaker\Model\Resolver\NullResolver;
 
 class StoreLocale implements ResolverInterface
 {
@@ -32,7 +30,7 @@ class StoreLocale implements ResolverInterface
     public function __construct(
         Data $adyenHelper
     ) {
-        $this->adyenHelper = $adyenHelper;
+        $this->dataHelper = $adyenHelper;
     }
 
     /**
@@ -48,6 +46,6 @@ class StoreLocale implements ResolverInterface
     ): ?string {
         /** @var StoreInterface $store */
         $store = $context->getExtensionAttributes()->getStore();
-        return $this->adyenHelper->getStoreLocale((int)$store->getId());
+        return $this->dataHelper->getStoreLocale((int)$store->getId());
     }
 }
