@@ -22,15 +22,15 @@ use Magento\Store\Api\Data\StoreInterface;
 
 class StoreLocale implements ResolverInterface
 {
-    protected Data $dataHelper;
+    protected Data $adyenHelper;
 
     /**
-     * @param Data $adyenHelper
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
     public function __construct(
         Data $adyenHelper
     ) {
-        $this->dataHelper = $adyenHelper;
+        $this->adyenHelper = $adyenHelper;
     }
 
     /**
@@ -46,6 +46,6 @@ class StoreLocale implements ResolverInterface
     ): ?string {
         /** @var StoreInterface $store */
         $store = $context->getExtensionAttributes()->getStore();
-        return $this->dataHelper->getStoreLocale((int)$store->getId());
+        return $this->adyenHelper->getStoreLocale((int)$store->getId());
     }
 }
