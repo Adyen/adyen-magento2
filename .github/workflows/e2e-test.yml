@@ -1,11 +1,6 @@
 name: Magento 2 E2E Pipeline
 run-name: Adyen Magento 2 Payment Plugin E2E tests
-
-on:
-  pull_request:
-    types: [opened, synchronize, ready_for_review]
-  pull_request_target:
-    types: [opened, synchronize, ready_for_review]
+on: [pull_request, pull_request_target]
 
 jobs:
   build:
