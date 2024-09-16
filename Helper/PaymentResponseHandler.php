@@ -168,7 +168,7 @@ class PaymentResponseHandler
             return false;
         }
 
-        if(!$this->isValidMerchantReference($paymentDetailsResponse, $order)) {
+        if(!$this->isValidMerchantReference($paymentsResponse, $order)) {
             $order->setState(\Magento\Sales\Model\Order::STATE_NEW);
             $order->save();
             $order->setActionFlag(\Magento\Sales\Model\Order::ACTION_FLAG_CANCEL, true);
@@ -317,9 +317,9 @@ class PaymentResponseHandler
         return true;
     }
 
-    private function isValidMerchantReference($paymentDetailsResponse, $order)
+    private function isValidMerchantReference($paymentsResponse, $order)
     {
-        $merchantReference = $paymentDetailsResponse['merchantReference'] ?? null;
+        $merchantReference = $paymentsResponse['merchantReference'] ?? null;
         if(!$merchantReference) {
             $this->adyenLogger->error("No merchantReference in the response");
             return false;
