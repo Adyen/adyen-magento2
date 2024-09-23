@@ -11,7 +11,7 @@ on:
       expressBranch:
         description: "Express Checkout Repository Pipeline"
         required: true
-        default: "develop"
+        default: "main"
       testGroup:
         description: "Test group"
         required: true
@@ -42,10 +42,10 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Install Magento
-        run: docker-compose -f .github/docker-compose.yml run --rm web make magento
+        run: docker compose -f .github/docker-compose.yml run --rm web make magento
 
       - name: Start web server in background
-        run: docker-compose -f .github/docker-compose.yml up -d web
+        run: docker compose -f .github/docker-compose.yml up -d web
 
       - name: Setup permissions
         run: docker exec magento2-container make fs
@@ -94,7 +94,7 @@ jobs:
         run: docker exec magento2-container make fs
 
       - name: Run E2E tests
-        run: docker-compose -f .github/docker-compose.e2e.yml run --rm playwright /e2e.sh ${{inputs.testGroup}}
+        run: docker compose -f .github/docker-compose.e2e.yml run --rm playwright /e2e.sh ${{inputs.testGroup}}
         env:
           INTEGRATION_TESTS_BRANCH: ${{inputs.testBranch}}
           MAGENTO_ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}

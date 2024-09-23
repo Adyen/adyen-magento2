@@ -25,10 +25,10 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Install Magento
-        run: docker-compose -f .github/docker-compose.yml run --rm web make magento
+        run: docker compose -f .github/docker-compose.yml run --rm web make magento
 
       - name: Start web server in background
-        run: docker-compose -f .github/docker-compose.yml up -d web
+        run: docker compose -f .github/docker-compose.yml up -d web
 
       - name: Setup permissions
         run: docker exec magento2-container make fs
