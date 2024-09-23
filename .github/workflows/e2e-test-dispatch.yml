@@ -30,7 +30,7 @@ jobs:
     timeout-minutes: 25
     env:
       PHP_VERSION: "8.3"
-      MAGENTO_VERSION: "2.4.7"
+      MAGENTO_VERSION: "2.4.7-p2"
       ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
       ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
       ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}

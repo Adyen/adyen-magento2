@@ -8,8 +8,8 @@ jobs:
     environment: ${{ (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) && 'external' || 'internal' }}
     strategy:
       matrix:
-        php-version: [8.2,8.3]
-        magento-version: [2.4.7]
+        php-version: ["8.3"]
+        magento-version: ["2.4.7-p2"]
     runs-on:
       group: larger-runners
       labels: ubuntu-latest-8-cores
