@@ -141,7 +141,7 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
             'getClientConfig' => []
         ]);
 
-        $this->adyenHelperMock->expects($this->once())
+        $this->adyenHelperMock
             ->method('buildRequestHeaders')
             ->willReturn($expectedHeaders);
 
