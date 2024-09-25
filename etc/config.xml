@@ -2225,7 +2225,7 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>0</supports_auto_capture>
+                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_kcp_naverpay>
@@ -2247,7 +2247,7 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>0</supports_auto_capture>
+                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_kcp_payco>
@@ -2269,7 +2269,7 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>0</supports_auto_capture>
+                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_kcp_creditcard>
