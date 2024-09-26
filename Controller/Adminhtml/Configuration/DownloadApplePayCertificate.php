@@ -34,7 +34,7 @@ class DownloadApplePayCertificate extends Action
     const MAX_SIZE = 1000000;
     const MAX_RATIO = 5;
     const FILE_NAME = 'apple-developer-merchantid-domain-association';
-    const APPLEPAY_CERTIFICATE_URL = 'https://docs.adyen.com/payment-methods/apple-pay/web-component/apple-developer-merchantid-domain-association.zip';
+    const APPLEPAY_CERTIFICATE_URL = 'https://docs.adyen.com/payment-methods/apple-pay/web-component/apple-developer-merchantid-domain-association-2024.zip';
     private $directoryList;
     private $fileIo;
     private $adyenLogger;

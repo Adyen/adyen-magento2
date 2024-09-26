@@ -35,7 +35,7 @@
         <group id="adyen_headless_integration" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
             <label><![CDATA[Headless integration]]></label>
             <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-            <comment><![CDATA[<p>With headless integration, you can build your front end using Adyen’s pre-configured back end.<br><a href="https://docs-admin.is.adyen.com/plugins/magento-2/magento-headless-integration" target="_blank">Learn more about headless integration</a></p>]]></comment>
+            <comment><![CDATA[<p>With headless integration, you can build your front end using Adyen’s pre-configured back end.<br><a href="https://docs.adyen.com/plugins/adobe-commerce/headless-integration" target="_blank">Learn more about headless integration</a></p>]]></comment>
             <field id="payments_origin_url" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Payment Origin URL</label>
                 <tooltip>Only relevant if you process payments from an external URL different to that of Magento</tooltip>
