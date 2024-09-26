@@ -168,6 +168,18 @@ class PaymentResponseHandler
             return false;
         }
 
+        if(!$this->isValidMerchantReference($paymentsResponse, $order)) {
+            $order->setState(\Magento\Sales\Model\Order::STATE_NEW);
+            $order->save();
+            $order->setActionFlag(\Magento\Sales\Model\Order::ACTION_FLAG_CANCEL, true);
+            $this->dataHelper->cancelOrder($order);
+            $order->addStatusHistoryComment(
+                __('Invalid /payment/details response. Order has been cancelled due to potential fraud'),
+                $order->getStatus()
+            )->save();
+            return false;
+        }
+
         if (!empty($paymentsResponse['resultCode'])) {
             $payment->setAdditionalInformation('resultCode', $paymentsResponse['resultCode']);
         }
@@ -302,6 +314,22 @@ class PaymentResponseHandler
 
                 return false;
         }
+        return true;
+    }
+
+    private function isValidMerchantReference($paymentsResponse, $order)
+    {
+        $merchantReference = $paymentsResponse['merchantReference'] ?? null;
+        if(!$merchantReference) {
+            $this->adyenLogger->error("No merchantReference in the response");
+            return false;
+        }
+
+        if ($order->getIncrementId() !== $merchantReference) {
+            $this->adyenLogger->error("Incorrect merchantReference");
+            return false;
+        }
+
         return true;
     }
 }
