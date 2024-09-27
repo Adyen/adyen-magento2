@@ -36,7 +36,7 @@ The schedule for the current maintained branches is:
 |  Plugin Major Version   | Release Date  | Level 1 Support ends | Level 2 Support ends | Level 3 Support ends |
 |  :-----          |:--------------|:---------------------|:---------------------|:---------------------|
 |  Version 8 |  November 2021 | January 2024         | May 2024             | January 2025         |
-|  Version 9 | October 2023  | --                   | --                   | --                   |
+|  Version 9 | October 2023  | December 2025      | May 2026             | December 2026               |
 
 Or, visualised as a calendar:
 
