@@ -19,15 +19,13 @@ use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use Magento\GraphQl\Model\Query\Context;
 use Magento\Store\Api\Data\StoreInterface;
-use Reflet\GraphQlFaker\Attribute\FakeResolver;
-use Reflet\GraphQlFaker\Model\Resolver\NullResolver;
 
 class StoreLocale implements ResolverInterface
 {
-    protected Data $dataHelper;
+    protected Data $adyenHelper;
 
     /**
-     * @param Data $adyenHelper
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
     public function __construct(
         Data $adyenHelper
