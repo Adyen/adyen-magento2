@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
+ * Copyright (c) 2024 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Plugin;
 
 use Adyen\AdyenException;
+use Adyen\Model\Recurring\DisableRequest;
 use Adyen\Client;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Requests;
@@ -24,12 +25,38 @@ use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 
 class PaymentVaultDeleteToken
 {
+    /**
+     * @var StoreManagerInterface
+     */
     protected StoreManagerInterface $storeManager;
+
+    /**
+     * @var Data
+     */
     protected Data $dataHelper;
+
+    /**
+     * @var AdyenLogger
+     */
     protected AdyenLogger $adyenLogger;
+
+    /**
+     * @var Requests
+     */
     protected Requests $requestsHelper;
+
+    /**
+     * @var Vault
+     */
     protected Vault $vaultHelper;
 
+    /**
+     * @param StoreManagerInterface $storeManager
+     * @param Data $dataHelper
+     * @param AdyenLogger $adyenLogger
+     * @param Requests $requestsHelper
+     * @param Vault $vaultHelper
+     */
     public function __construct(
         StoreManagerInterface $storeManager,
         Data $dataHelper,
@@ -60,15 +87,18 @@ class PaymentVaultDeleteToken
 
             try {
                 $client = $this->dataHelper->initializeAdyenClient($storeId);
-                $recurringService = $this->dataHelper->createAdyenRecurringService($client);
+                $recurringService = $this->dataHelper->initializeRecurringApi($client);
 
                 $this->dataHelper->logRequest(
                     $request,
                     Client::API_RECURRING_VERSION,
                     sprintf("/pal/servlet/Recurring/%s/disable", Client::API_RECURRING_VERSION)
                 );
-                $response = $recurringService->disable($request);
-                $this->dataHelper->logResponse($response);
+
+                $response = $recurringService->disable(new DisableRequest($request));
+
+                $responseData = $response->toArray();
+                $this->dataHelper->logResponse($responseData);
             } catch (AdyenException $e) {
                 $this->adyenLogger->error(sprintf(
                     'Error while attempting to disable token with id %s: %s',
