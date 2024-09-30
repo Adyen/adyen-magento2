@@ -11,9 +11,9 @@ services:
       MARIADB_DATABASE: magento
       MARIADB_USER: magento
       MARIADB_PASSWORD: magento
-  elastic:
-    image: elasticsearch:7.17.23
-    container_name: elasticsearch
+  opensearch:
+    image: bitnami/opensearch:2
+    container_name: opensearch-container
     networks:
       - backend
     ports:
@@ -37,7 +37,7 @@ services:
           - magento2.test.com
     environment:
       DB_SERVER: mariadb
-      ELASTICSEARCH_SERVER: elasticsearch
+      OPENSEARCH_SERVER: opensearch-container
       MAGENTO_HOST: magento2.test.com
       VIRTUAL_HOST: magento2.test.com
       COMPOSER_MEMORY_LIMIT: -1
@@ -52,7 +52,7 @@ services:
       MAGENTO_VERSION:
     depends_on:
       - db
-      - elastic
+      - opensearch
     volumes:
       - ../:/data/extensions/workdir
       - ./Makefile:/var/www/html/Makefile
