@@ -344,4 +344,7 @@
     <event name="payment_method_assign_data_adyen_paybybank_ais_dd">
         <observer name="adyen_paybybank_ais_dd_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_adyen_analytics">
+        <observer name="adyen_analytics_observer" instance="Adyen\Payment\Observer\ProcessAnalyticsEvent" />
+    </event>
 </config>
