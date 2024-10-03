@@ -11,12 +11,14 @@ define(
     [
         'Magento_Checkout/js/model/quote',
         'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-method',
-        'Adyen_Payment/js/model/adyen-checkout'
+        'Adyen_Payment/js/model/adyen-checkout',
+        'mage/url'
     ],
     function(
         quote,
         adyenPaymentMethod,
-        adyenCheckout
+        adyenCheckout,
+        urlBuilder
     ) {
         const amazonSessionKey = 'amazonCheckoutSessionId';
         return adyenPaymentMethod.extend({
@@ -29,6 +31,12 @@ define(
                 let formattedShippingAddress = {};
                 let formattedBillingAddress = {};
                 let baseComponentConfiguration = this._super();
+
+                baseComponentConfiguration = Object.assign(
+                    baseComponentConfiguration,
+                    paymentMethodsExtraInfo[paymentMethod.type].configuration
+                );
+
                 if (!quote.isVirtual() && !!quote.shippingAddress()) {
                     formattedShippingAddress = self.getFormattedAddress(quote.shippingAddress());
                 }
@@ -36,7 +44,7 @@ define(
                 if (!!quote.billingAddress()) {
                     formattedBillingAddress = self.getFormattedAddress(quote.billingAddress());
                 }
-                baseComponentConfiguration.showPayButton = true;
+
                 baseComponentConfiguration.onClick = function(resolve,reject) {
                     if (self.validate()) {
                         resolve();
@@ -44,12 +52,6 @@ define(
                         reject();
                     }
                 }
-                baseComponentConfiguration = Object.assign(baseComponentConfiguration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
-                baseComponentConfiguration.productType = 'PayAndShip';
-                baseComponentConfiguration.checkoutMode = 'ProcessOrder';
-                let url = new URL(location.href);
-                url.searchParams.delete(amazonSessionKey);
-                baseComponentConfiguration.returnUrl = url.href;
                 baseComponentConfiguration.onSubmit = async (state, amazonPayComponent) => {
                     try {
                         await self.handleOnSubmit(state.data, amazonPayComponent);
@@ -57,6 +59,15 @@ define(
                         amazonPayComponent.handleDeclineFlow();
                     }
                 };
+
+                baseComponentConfiguration.productType = 'PayAndShip';
+                baseComponentConfiguration.checkoutMode = 'ProcessOrder';
+                baseComponentConfiguration.showPayButton = true;
+
+                // Redirect shoppers to the cart page if they cancel the payment on Amazon Pay hosted page.
+                baseComponentConfiguration.cancelUrl = urlBuilder.build('checkout/cart');
+                // Redirect shoppers to the checkout if they complete the payment on Amazon Pay hosted page.
+                baseComponentConfiguration.returnUrl = urlBuilder.build('checkout/#payment');
 
                 if (formattedShippingAddress &&
                     formattedShippingAddress.telephone) {
@@ -92,6 +103,7 @@ define(
                         baseComponentConfiguration.addressDetails.stateOrRegion = quote.billingAddress().regionCode
                     }
                 }
+
                 return baseComponentConfiguration;
             },
 
