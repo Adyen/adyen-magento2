@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Test\Unit\Gateway\Http\Client;
 
+use Adyen\AdyenException;
 use Adyen\Model\Checkout\ApplicationInfo;
 use Adyen\Model\Checkout\PaymentRequest;
 use Adyen\Model\Checkout\PaymentResponse as CheckoutPaymentResponse;
@@ -85,6 +86,23 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
         $result = $this->transactionPayment->placeRequest($transferObjectMock);
 
         $this->assertEquals($requestBody, $result);
+    }
+
+    public function testPlaceRequestWithoutResultCode()
+    {
+        $transferObjectMock = $this->createMock(TransferInterface::class);
+
+        $requestBody = ['amount' => ['value' => 1000]];
+        $transferObjectMock->method('getBody')->willReturn($requestBody);
+        $transferObjectMock->method('getClientConfig')->willReturn(['storeId' => 1]);
+
+        $clientMock = $this->createMock(PaymentsApi::class);
+        $clientMock->method('payments')->willThrowException(new AdyenException());
+
+        $this->adyenHelperMock->method('initializePaymentsApi')->willReturn($clientMock);
+
+        $response = $this->transactionPayment->placeRequest($transferObjectMock);
+        $this->assertArrayHasKey('errorCode', $response[0]);
     }
 
     public function testPlaceRequestGeneratesIdempotencyKey()
