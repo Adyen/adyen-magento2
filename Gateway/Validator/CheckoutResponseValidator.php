@@ -62,6 +62,10 @@ class CheckoutResponseValidator extends AbstractValidator
         // Extract all the payment responses
         $responseCollection = $validationSubject['response'];
         unset($validationSubject['response']);
+
+        // hasOnlyGiftCards is needed later but cannot be processed as a response
+        unset($responseCollection['hasOnlyGiftCards']);
+
         // Assign the remaining items to $commandSubject
         $commandSubject = $validationSubject;
 
@@ -69,8 +73,6 @@ class CheckoutResponseValidator extends AbstractValidator
             throw new ValidatorException(__("No responses were provided"));
         }
 
-        // hasOnlyGiftCards is needed later but cannot be processed as a response
-        unset($responseCollection['hasOnlyGiftCards']);
         foreach ($responseCollection as $thisResponse) {
             $responseSubject = array_merge($commandSubject, ['response' => $thisResponse]);
             $this->validateResponse($responseSubject);
@@ -90,11 +92,12 @@ class CheckoutResponseValidator extends AbstractValidator
 
         $payment->setAdditionalInformation('3dActive', false);
 
-        // validate result
+        // Handle empty result for unexpected cases
         if (empty($response['resultCode'])) {
             $this->handleEmptyResultCode($response);
         }
 
+        // Handle the `/payments` response
         $this->validateResult($response, $payment);
     }
 
