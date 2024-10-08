@@ -111,6 +111,9 @@
                 <item name="adyen_paypo" xsi:type="string">paypo</item>
                 <item name="adyen_upi" xsi:type="string">upi</item>
                 <item name="adyen_dana" xsi:type="string">dana</item>
+                <item name="adyen_kcp_naverpay" xsi:type="string">kcp_naverpay</item>
+                <item name="adyen_kcp_payco" xsi:type="string">kcp_payco</item>
+                <item name="adyen_kcp_creditcard" xsi:type="string">kcp_creditcard</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
