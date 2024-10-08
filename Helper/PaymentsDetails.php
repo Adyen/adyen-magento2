@@ -13,6 +13,7 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
 use Adyen\Model\Checkout\PaymentDetailsRequest;
+use Adyen\Payment\Gateway\Request\Header\ExternalPlatformHeaderDataBuilder;
 use Adyen\Payment\Helper\Util\DataArrayValidator;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Checkout\Model\Session;
@@ -43,6 +44,11 @@ class PaymentsDetails
      * @var Data
      */
     private Data $adyenHelper;
+
+    /**
+     * @var ExternalPlatformHeaderDataBuilder
+     */
+    private ExternalPlatformHeaderDataBuilder $headerBuilder;
 
     /**
      * @var AdyenLogger
@@ -85,7 +91,7 @@ class PaymentsDetails
             $service = $this->adyenHelper->initializePaymentsApi($client);
 
             $requestOptions['idempotencyKey'] = $this->idempotencyHelper->generateIdempotencyKey($request);
-            $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
+            $requestOptions['headers'] = $this->headerBuilder->buildRequestHeaders();
 
             $paymentDetailsObj = $service->paymentsDetails(new PaymentDetailsRequest($request), $requestOptions);
             $response = $paymentDetailsObj->toArray();

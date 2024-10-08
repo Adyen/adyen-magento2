@@ -18,7 +18,6 @@ use Adyen\Model\Checkout\ApplicationInfo;
 use Adyen\Model\Checkout\CommonField;
 use Adyen\Model\Checkout\UtilityRequest;
 use Adyen\Payment\Helper\Config as ConfigHelper;
-use Adyen\Payment\Gateway\Request\HeaderDataBuilder;
 use Adyen\Service\Checkout;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Config\Source\RenderMode;
@@ -1158,34 +1157,6 @@ class Data extends AbstractHelper
         }
 
         return $client;
-    }
-
-    public function getMagentoDetails()
-    {
-        return [
-            'name' => $this->productMetadata->getName(),
-            'version' => $this->productMetadata->getVersion(),
-            'edition' => $this->productMetadata->getEdition(),
-        ];
-    }
-
-    public function buildRequestHeaders($payment = null)
-    {
-        $magentoDetails = $this->getMagentoDetails();
-        $headers = [
-            'external-platform-name' => $magentoDetails['name'],
-            'external-platform-version' => $magentoDetails['version'],
-            'external-platform-edition' => $magentoDetails['edition'],
-            'merchant-application-name' => $this->getModuleName(),
-            'merchant-application-version' => $this->getModuleVersion()
-        ];
-
-        if(isset($payment) && !is_null($payment->getAdditionalInformation(HeaderDataBuilder::FRONTENDTYPE))) {
-            $headers[HeaderDataBuilder::FRONTENDTYPE] =
-                $payment->getAdditionalInformation(HeaderDataBuilder::FRONTENDTYPE);
-        }
-
-        return $headers;
     }
 
     public function buildApplicationInfo(Client $client) :ApplicationInfo

@@ -73,7 +73,7 @@ class TransactionDonate implements ClientInterface
         );
 
         $requestOptions['idempotencyKey'] = $idempotencyKey;
-        $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
+        $requestOptions['headers'] = $headers;
         $request['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($this->client);
 
         $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, 'donations');

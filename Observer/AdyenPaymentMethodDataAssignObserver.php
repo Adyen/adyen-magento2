@@ -11,7 +11,6 @@
 
 namespace Adyen\Payment\Observer;
 
-use Adyen\Payment\Gateway\Request\HeaderDataBuilder;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Util\CheckoutStateDataValidator;
 use Adyen\Payment\Helper\Util\DataArrayValidator;
@@ -20,6 +19,7 @@ use Adyen\Payment\Model\ResourceModel\StateData\Collection;
 use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
+use Adyen\Payment\Gateway\Request\Header\ExternalPlatformHeaderDataBuilderInterface;
 
 class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
 {
@@ -39,7 +39,7 @@ class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
         self::RETURN_URL,
         self::RECURRING_PROCESSING_MODEL,
         self::CC_NUMBER,
-        HeaderDataBuilder::FRONTENDTYPE
+        ExternalPlatformHeaderDataBuilderInterface::FRONTEND_TYPE
     ];
 
     protected CheckoutStateDataValidator $checkoutStateDataValidator;
