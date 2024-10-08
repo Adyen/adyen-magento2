@@ -68,6 +68,9 @@
       <column name="merchant_reference"/>
       <column name="event_code"/>
     </index>
+    <index referenceId="ADYEN_NOTIFICATION_CREATED_AT" indexType="btree">
+      <column name="created_at"/>
+    </index>
   </table>
   <table name="adyen_invoice" resource="default" engine="innodb" comment="Adyen Invoice">
     <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Adyen Invoice Entity ID"/>
