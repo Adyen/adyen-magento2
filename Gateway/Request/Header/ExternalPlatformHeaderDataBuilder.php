@@ -51,18 +51,9 @@ class ExternalPlatformHeaderDataBuilder implements ExternalPlatformHeaderDataBui
         return ['headers' => $headers];
     }
 
-    public function getMagentoDetails(): array
-    {
-        return [
-            'name' => $this->productMetadata->getName(),
-            'version' => $this->productMetadata->getVersion(),
-            'edition' => $this->productMetadata->getEdition(),
-        ];
-    }
-
     public function buildRequestHeaders($payment = null): array
     {
-        $magentoDetails = $this->getMagentoDetails();
+        $magentoDetails = $this->adyenHelper->getMagentoDetails();
         $headers = [
             ExternalPlatformHeaderDataBuilderInterface::EXTERNAL_PLATFORM_NAME => $magentoDetails['name'],
             ExternalPlatformHeaderDataBuilderInterface::EXTERNAL_PLATFORM_VERSION => $magentoDetails['version'],

@@ -2,6 +2,7 @@
 
 namespace Adyen\Payment\Test\Unit\Gateway\Request;
 
+use Adyen\Payment\Gateway\Request\Header\ExternalPlatformHeaderDataBuilder;
 use Adyen\Payment\Gateway\Request\HeaderDataBuilder;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Payment\Helper\Data;
@@ -14,7 +15,7 @@ use Magento\Sales\Model\ResourceModel\Order\Invoice\Collection as InvoiceCollect
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
-class HeaderDataBuilderTest extends AbstractAdyenTestCase
+class ExternalPlatformHeaderDataBuilderTest extends AbstractAdyenTestCase
 {
     /**
      * @var HeaderDataBuilder
@@ -35,7 +36,7 @@ class HeaderDataBuilderTest extends AbstractAdyenTestCase
             ->getMock();
 
         $this->headerDataBuilder = $objectManager->getObject(
-            HeaderDataBuilder::class,
+            ExternalPlatformHeaderDataBuilder::class,
             [
                 'adyenHelper' => $this->adyenHelperMock
             ]

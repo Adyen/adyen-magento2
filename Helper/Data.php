@@ -1159,6 +1159,15 @@ class Data extends AbstractHelper
         return $client;
     }
 
+    public function getMagentoDetails(): array
+    {
+        return [
+            'name' => $this->productMetadata->getName(),
+            'version' => $this->productMetadata->getVersion(),
+            'edition' => $this->productMetadata->getEdition(),
+        ];
+    }
+
     public function buildApplicationInfo(Client $client) :ApplicationInfo
     {
         $applicationInfo =  new ApplicationInfo();
