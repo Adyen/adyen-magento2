@@ -7,6 +7,6 @@ class AdyenAnalytics extends AbstractDb
 {
     protected function _construct()
     {
-        $this->_init('adyen_analytics', 'id'); // Table name and primary key
+        $this->_init('adyen_analytics', 'id');
     }
 }

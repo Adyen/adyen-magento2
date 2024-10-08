@@ -8,7 +8,7 @@ class AdyenAnalytics extends AbstractModel implements AdyenAnalyticsInterface
 {
     protected function _construct()
     {
-        $this->_init('Vendor\Module\Model\ResourceModel\AdyenAnalytics');
+        $this->_init('Adyen\Payment\Model\ResourceModel\AdyenAnalytics');
     }
 
     public function getCheckoutAttemptId()
