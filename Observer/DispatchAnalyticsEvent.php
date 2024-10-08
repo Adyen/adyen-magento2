@@ -5,18 +5,22 @@ use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Adyen\Payment\Api\AdyenAnalyticsRepositoryInterface;
+use Adyen\Payment\Api\Data\AdyenAnalyticsInterfaceFactory;
 
 class DispatchAnalyticsEvent implements ObserverInterface
 {
     protected ManagerInterface $eventManager;
     protected AdyenAnalyticsRepositoryInterface $adyenAnalyticsRepository;
+    protected AdyenAnalyticsInterfaceFactory $analyticsFactory;
 
     public function __construct(
         ManagerInterface $eventManager,
-        AdyenAnalyticsRepositoryInterface $adyenAnalyticsRepository
+        AdyenAnalyticsRepositoryInterface $adyenAnalyticsRepository,
+        AdyenAnalyticsInterfaceFactory $analyticsFactory
     ) {
         $this->eventManager = $eventManager;
         $this->adyenAnalyticsRepository = $adyenAnalyticsRepository;
+        $this->analyticsFactory = $analyticsFactory;
     }
 
     public function execute(Observer $observer)
@@ -33,5 +37,19 @@ class DispatchAnalyticsEvent implements ObserverInterface
 
         // Dispatch the event
         $this->eventManager->dispatch('payment_method_adyen_analytics', ['data' => $eventData]);
+
+        // Create an instance of AdyenAnalyticsInterface
+        $analytics = $this->analyticsFactory->create();
+
+        // Set data to the analytics object
+        $analytics->setCheckoutAttemptId($eventData['checkoutAttemptId']);
+        $analytics->setEventType($eventData['eventType']);
+        $analytics->setTopic($eventData['topic']);
+        $analytics->setMessage($eventData['message']);
+        $analytics->setErrorCount($eventData['errorCount']);
+        $analytics->setDone($eventData['done']);
+
+        // Save the analytics data to the database
+        $this->adyenAnalyticsRepository->save($analytics);
     }
 }
