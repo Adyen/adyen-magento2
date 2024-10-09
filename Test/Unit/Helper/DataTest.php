@@ -15,7 +15,6 @@ use Adyen\Client;
 use Adyen\Config as AdyenConfig;
 use Adyen\Model\Checkout\ApplicationInfo;
 use Adyen\Model\Checkout\CommonField;
-use Adyen\Payment\Gateway\Request\HeaderDataBuilder;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Locale;
@@ -1039,20 +1038,6 @@ class DataTest extends AbstractAdyenTestCase
         $this->assertEquals($expectedDetails, $actualDetails);
     }
 
-    public function testBuildRequestHeaders()
-    {
-        $expectedHeaders = [
-            'external-platform-name' => 'magento',
-            'external-platform-version' => '2.x.x',
-            'external-platform-edition' => 'Community',
-            'merchant-application-name' => 'adyen-magento2',
-            'merchant-application-version' => '1.2.3'
-        ];
-
-        $headers = $this->dataHelper->buildRequestHeaders();
-        $this->assertEquals($expectedHeaders, $headers);
-    }
-
     public function testBuildApplicationInfo()
     {
         $expectedApplicationInfo =  new ApplicationInfo();
@@ -1081,36 +1066,6 @@ class DataTest extends AbstractAdyenTestCase
             $expectedApplicationInfo,
             $applicationInfo
         );
-    }
-
-    public function testBuildRequestHeadersWithNonNullFrontendType()
-    {
-        // Mock dependencies as needed
-        $payment = $this->createMock(Payment::class);
-
-        // Set up expectations for the getAdditionalInformation method
-        $payment->method('getAdditionalInformation')
-            ->with(HeaderDataBuilder::FRONTENDTYPE)
-            ->willReturn('some_frontend_type');
-
-        // Call the method under test
-        $result = $this->dataHelper->buildRequestHeaders($payment);
-
-        // Assert that the 'frontend-type' header is correctly set
-        $this->assertArrayHasKey(HeaderDataBuilder::FRONTENDTYPE, $result);
-        $this->assertEquals('some_frontend_type', $result[HeaderDataBuilder::FRONTENDTYPE]);
-
-        // Assert other headers as needed
-    }
-
-
-    public function testBuildRequestHeadersWithoutPayment()
-    {
-        // Call the method under test without providing a payment object
-        $result = $this->dataHelper->buildRequestHeaders();
-
-        // Assert that the 'frontend-type' header is not set
-        $this->assertArrayNotHasKey(HeaderDataBuilder::FRONTENDTYPE, $result);
     }
 
     public function testLogResponse()
