@@ -15,6 +15,7 @@ namespace Adyen\Payment\Gateway\Http\Client;
 use Adyen\AdyenException;
 use Adyen\Client;
 use Adyen\Model\Checkout\DonationPaymentRequest;
+use Adyen\Payment\Gateway\Request\Header\HeaderDataBuilder;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
 use Adyen\Service\Checkout\DonationsApi;
@@ -51,7 +52,6 @@ class TransactionDonate implements ClientInterface
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->idempotencyHelper = $idempotencyHelper;
-
         $this->client = $this->adyenHelper->initializeAdyenClient();
     }
 
@@ -63,7 +63,13 @@ class TransactionDonate implements ClientInterface
     public function placeRequest(TransferInterface $transferObject): array
     {
         $request = $transferObject->getBody();
-        $headers = $transferObject->getHeaders();
+
+        if (!empty($transferObject->getHeaders())) {
+            $requestOptions['headers'] = $transferObject->getHeaders();
+        } else {
+            $headerBuilder = new HeaderDataBuilder($this->adyenHelper);
+            $requestOptions['headers'] = $headerBuilder->buildRequestHeaders();
+        }
 
         $service = new DonationsApi($this->client);
 
@@ -73,7 +79,6 @@ class TransactionDonate implements ClientInterface
         );
 
         $requestOptions['idempotencyKey'] = $idempotencyKey;
-        $requestOptions['headers'] = $headers;
         $request['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($this->client);
 
         $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, 'donations');

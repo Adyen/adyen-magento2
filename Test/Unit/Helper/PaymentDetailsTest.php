@@ -13,6 +13,7 @@ namespace Adyen\Payment\Test\Unit\Helper;
 use Adyen\AdyenException;
 use Adyen\Model\Checkout\PaymentDetailsRequest;
 use Adyen\Model\Checkout\PaymentDetailsResponse;
+use Adyen\Payment\Gateway\Request\Header\HeaderDataBuilder;
 use Adyen\Payment\Helper\PaymentsDetails;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Exception\ValidatorException;
@@ -38,6 +39,8 @@ class PaymentDetailsTest extends AbstractAdyenTestCase
     private $paymentsApiMock;
     private $adyenClientMock;
 
+    private $headerBuilderMock;
+
     protected function setUp(): void
     {
         $this->checkoutSessionMock = $this->createMock(Session::class);
@@ -56,6 +59,9 @@ class PaymentDetailsTest extends AbstractAdyenTestCase
 
         $this->adyenHelperMock->method('initializeAdyenClient')->willReturn($this->adyenClientMock);
         $this->adyenHelperMock->method('initializePaymentsApi')->willReturn($this->paymentsApiMock);
+        $this->headerBuilderMock = $this->getMockBuilder(HeaderDataBuilder::class)
+            ->setConstructorArgs([$this->adyenHelperMock])
+            ->getMock();
 
         $this->paymentDetails = new PaymentsDetails(
             $this->checkoutSessionMock,
@@ -63,6 +69,7 @@ class PaymentDetailsTest extends AbstractAdyenTestCase
             $this->adyenLoggerMock,
             $this->idempotencyHelperMock
         );
+
     }
 
     public function testInitiatePaymentDetailsSuccessfully()
@@ -85,7 +92,8 @@ class PaymentDetailsTest extends AbstractAdyenTestCase
 
         $paymentDetailsResult = ['resultCode' => 'Authorised'];
 
-        $this->adyenHelperMock->method('buildRequestHeaders')->willReturn($requestOptions['headers']);
+//        $this->adyenHelperMock->method('buildRequestHeaders')->willReturn($requestOptions['headers']);
+        $this->headerBuilderMock->method('buildRequestHeaders')->willReturn($requestOptions['headers']);
         $this->idempotencyHelperMock->method('generateIdempotencyKey')->willReturn($requestOptions['idempotencyKey']);
 
         // testing cleanUpPaymentDetailsPayload() method

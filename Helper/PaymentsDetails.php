@@ -91,7 +91,9 @@ class PaymentsDetails
             $service = $this->adyenHelper->initializePaymentsApi($client);
 
             $requestOptions['idempotencyKey'] = $this->idempotencyHelper->generateIdempotencyKey($request);
-            $requestOptions['headers'] = $this->headerBuilder->buildRequestHeaders();
+
+            $headerBuilder = new HeaderDataBuilder($this->adyenHelper);
+            $requestOptions['headers'] = $headerBuilder->buildRequestHeaders();
 
             $paymentDetailsObj = $service->paymentsDetails(new PaymentDetailsRequest($request), $requestOptions);
             $response = $paymentDetailsObj->toArray();

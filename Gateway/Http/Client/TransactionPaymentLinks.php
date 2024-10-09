@@ -14,6 +14,7 @@ namespace Adyen\Payment\Gateway\Http\Client;
 use Adyen\AdyenException;
 use Adyen\Client;
 use Adyen\Model\Checkout\PaymentLinkRequest;
+use Adyen\Payment\Gateway\Request\Header\HeaderDataBuilder;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
 use Adyen\Service\Checkout\PaymentLinksApi;
@@ -54,7 +55,14 @@ class TransactionPaymentLinks implements ClientInterface
     public function placeRequest(TransferInterface $transferObject): array
     {
         $request = $transferObject->getBody();
-        $headers = $transferObject->getHeaders();
+
+        if (!empty($transferObject->getHeaders())) {
+            $requestOptions['headers'] = $transferObject->getHeaders();
+        } else {
+            $headerBuilder = new HeaderDataBuilder($this->adyenHelper);
+            $requestOptions['headers'] = $headerBuilder->buildRequestHeaders();
+        }
+
         $clientConfig = $transferObject->getClientConfig();
 
         $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
@@ -72,7 +80,7 @@ class TransactionPaymentLinks implements ClientInterface
         );
 
         $requestOptions['idempotencyKey'] = $idempotencyKey;
-        $requestOptions['headers'] = $headers;
+
         $request['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($client);
 
         $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/paymentLinks');

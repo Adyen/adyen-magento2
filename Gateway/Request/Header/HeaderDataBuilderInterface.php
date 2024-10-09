@@ -15,10 +15,5 @@ interface HeaderDataBuilderInterface
     const MERCHANT_APPLICATION_NAME = 'merchant-application-name';
     const MERCHANT_APPLICATION_VERSION = 'merchant-application-version';
 
-    /*
-    * @param array $buildSubject
-    * @return array
-    */
-    public function build(array $buildSubject);
 }
 

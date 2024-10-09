@@ -15,8 +15,9 @@ use Adyen\Payment\Helper\Data;
 use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
+use Magento\Payment\Gateway\Request\BuilderInterface;
 
-class HeaderDataBuilder implements HeaderDataBuilderInterface
+class HeaderDataBuilder implements HeaderDataBuilderInterface, BuilderInterface
 {
 //    /**
 //     * @var ProductMetadataInterface
@@ -55,16 +56,16 @@ class HeaderDataBuilder implements HeaderDataBuilderInterface
     {
         $magentoDetails = $this->adyenHelper->getMagentoDetails();
         $headers = [
-            ExternalPlatformHeaderDataBuilderInterface::EXTERNAL_PLATFORM_NAME => $magentoDetails['name'],
-            ExternalPlatformHeaderDataBuilderInterface::EXTERNAL_PLATFORM_VERSION => $magentoDetails['version'],
-            ExternalPlatformHeaderDataBuilderInterface::EXTERNAL_PLATFORM_EDITION => $magentoDetails['edition'],
-            ExternalPlatformHeaderDataBuilderInterface::MERCHANT_APPLICATION_NAME => $this->adyenHelper->getModuleName(),
-            ExternalPlatformHeaderDataBuilderInterface::MERCHANT_APPLICATION_VERSION => $this->adyenHelper->getModuleVersion()
+            HeaderDataBuilderInterface::EXTERNAL_PLATFORM_NAME => $magentoDetails['name'],
+            HeaderDataBuilderInterface::EXTERNAL_PLATFORM_VERSION => $magentoDetails['version'],
+            HeaderDataBuilderInterface::EXTERNAL_PLATFORM_EDITION => $magentoDetails['edition'],
+            HeaderDataBuilderInterface::MERCHANT_APPLICATION_NAME => $this->adyenHelper->getModuleName(),
+            HeaderDataBuilderInterface::MERCHANT_APPLICATION_VERSION => $this->adyenHelper->getModuleVersion()
         ];
 
-        if(isset($payment) && !is_null($payment->getAdditionalInformation(ExternalPlatformHeaderDataBuilderInterface::FRONTEND_TYPE))) {
-            $headers[ExternalPlatformHeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE] =
-                $payment->getAdditionalInformation(ExternalPlatformHeaderDataBuilderInterface::FRONTEND_TYPE);
+        if(isset($payment) && !is_null($payment->getAdditionalInformation(HeaderDataBuilderInterface::FRONTEND_TYPE))) {
+            $headers[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE] =
+                $payment->getAdditionalInformation(HeaderDataBuilderInterface::FRONTEND_TYPE);
         }
 
         return $headers;

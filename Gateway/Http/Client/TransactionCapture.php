@@ -15,6 +15,7 @@ use Adyen\AdyenException;
 use Adyen\Client;
 use Adyen\Model\Checkout\PaymentCaptureRequest;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
+use Adyen\Payment\Gateway\Request\Header\HeaderDataBuilder;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
 use Adyen\Payment\Helper\Requests;
@@ -71,13 +72,19 @@ class TransactionCapture implements ClientInterface
     public function placeRequest(TransferInterface $transferObject): array
     {
         $request = $transferObject->getBody();
-        $headers = $transferObject->getHeaders();
+
+        if (!empty($transferObject->getHeaders())) {
+            $requestOptions['headers'] = $transferObject->getHeaders();
+        } else {
+            $headerBuilder = new HeaderDataBuilder($this->adyenHelper);
+            $requestOptions['headers'] = $headerBuilder->buildRequestHeaders();
+        }
+
         $clientConfig = $transferObject->getClientConfig();
 
         $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
         $service = $this->adyenHelper->initializeModificationsApi($client);
 
-        $requestOptions['headers'] = $headers;
         $request['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($client);
 
         if (array_key_exists(self::MULTIPLE_AUTHORIZATIONS, $request)) {
