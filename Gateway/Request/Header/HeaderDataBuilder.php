@@ -16,12 +16,12 @@ use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 
-class ExternalPlatformHeaderDataBuilder implements ExternalPlatformHeaderDataBuilderInterface
+class HeaderDataBuilder implements HeaderDataBuilderInterface
 {
-    /**
-     * @var ProductMetadataInterface
-     */
-    protected ProductMetadataInterface $productMetadata;
+//    /**
+//     * @var ProductMetadataInterface
+//     */
+//    protected ProductMetadataInterface $productMetadata;
 
     /**
      * @var Data

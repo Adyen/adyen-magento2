@@ -2,7 +2,7 @@
 
 namespace Adyen\Payment\Gateway\Request\Header;
 
-interface ExternalPlatformHeaderDataBuilderInterface
+interface HeaderDataBuilderInterface
 {
     const EXTERNAL_PLATFORM_NAME = 'external-platform-name';
     const EXTERNAL_PLATFORM_VERSION = 'external-platform-version';
@@ -21,3 +21,4 @@ interface ExternalPlatformHeaderDataBuilderInterface
     */
     public function build(array $buildSubject);
 }
+
