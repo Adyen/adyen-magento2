@@ -258,7 +258,7 @@ define(
                         //This is required by magento to store the token
                         'is_active_payment_token_enabler' : this.storeCc,
                         'number_of_installments': this.installment(),
-                        'frontendType': 'default'
+                        'frontendType': 'luma'
                     },
                 };
             },
