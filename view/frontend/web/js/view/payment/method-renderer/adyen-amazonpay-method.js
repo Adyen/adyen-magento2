@@ -139,6 +139,10 @@ define(
                 } else{
                     this._super();
                 }
+            },
+
+            handleOnFailure: function (response, component) {
+                debugger;
             }
         })
     }

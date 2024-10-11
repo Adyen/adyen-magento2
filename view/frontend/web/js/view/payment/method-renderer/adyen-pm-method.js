@@ -87,7 +87,8 @@ define(
                         paymentMethodsResponse,
                         this.handleOnAdditionalDetails.bind(this),
                         this.handleOnCancel.bind(this),
-                        this.handleOnSubmit.bind(this)
+                        this.handleOnSubmit.bind(this),
+                        this.handleOnError.bind(this)
                     );
 
                     if (!!this.checkoutComponent) {
@@ -179,6 +180,21 @@ define(
                     self.isPlaceOrderAllowed(true);
                 });
             },
+
+            handleOnError: function (error, component) {
+                /*
+                 *  Passing false as the response to hide the actual error message from the shopper for security.
+                 *  This will show a generic error message instead of the actual error message.
+                 */
+                this.handleOnFailure(false, component);
+            },
+
+            handleOnFailure: function(response, component) {
+                this.isPlaceOrderAllowed(true);
+                fullScreenLoader.stopLoader();
+                errorProcessor.process(response, this.currentMessageContainer);
+            },
+            
             renderCheckoutComponent: function() {
                 let methodCode = this.getMethodCode();
 
@@ -380,13 +396,6 @@ define(
                 } catch (response) {
                     self.handleOnFailure(response, component);
                 }
-            },
-
-
-            handleOnFailure: function(response, component) {
-                this.isPlaceOrderAllowed(true);
-                fullScreenLoader.stopLoader();
-                errorProcessor.process(response, this.currentMessageContainer);
             },
 
             /**
