@@ -28,7 +28,7 @@
         <policy id="form-action">
             <values>
                 <value id="adyen" type="host">*.adyen.com</value>
-                <value id="amazon-payments-de" type="host">payments.amazon.de</value>
+                <value id="amazon-payments-de" type="host">*.amazon.de</value>
             </values>
         </policy>
     </policies>
