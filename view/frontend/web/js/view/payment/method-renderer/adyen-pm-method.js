@@ -49,6 +49,9 @@ define(
                 modalLabel: 'hpp_actionModal'
             },
             placeOrderButtonVisible: true,
+            checkoutComponent: null,
+            paymentMethodStates: {},
+
             initObservable: function() {
                 this._super().observe([
                     'paymentMethod',
@@ -64,54 +67,78 @@ define(
                 this._super();
                 let self = this;
 
-
                 let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
                 paymentMethodsObserver.subscribe(
                     function(paymentMethodsResponse) {
-                        self.createCheckoutComponent(paymentMethodsResponse);
+                        self.enablePaymentMethod(paymentMethodsResponse);
                     }
                 );
 
                 if(!!paymentMethodsObserver()) {
-                    self.createCheckoutComponent(paymentMethodsObserver());
+                    self.enablePaymentMethod(paymentMethodsObserver());
                 }
             },
 
-            paymentMethodStates: {},
-
-            createCheckoutComponent: async function(paymentMethodsResponse) {
-                // Set to null by default and modify depending on the paymentMethods response
-                this.adyenPaymentMethod(null);
+            enablePaymentMethod: function (paymentMethodsResponse) {
                 if (this.checkBrowserCompatibility() && !!paymentMethodsResponse.paymentMethodsResponse) {
+                    this.paymentMethod(
+                        adyenPaymentService.getPaymentMethodFromResponse(
+                            this.getTxVariant(),
+                            paymentMethodsResponse.paymentMethodsResponse.paymentMethods
+                        )
+                    );
+
+                    if (!!this.paymentMethod()) {
+                        this.paymentMethodsExtraInfo(paymentMethodsResponse.paymentMethodsExtraDetails);
+                        // Setting the icon and method txvariant as an accessible field if it is available
+                        this.adyenPaymentMethod({
+                            icon: !!paymentMethodsResponse.paymentMethodsExtraDetails[this.getTxVariant()]
+                                ? paymentMethodsResponse.paymentMethodsExtraDetails[this.getTxVariant()].icon
+                                : undefined,
+                            method: this.getTxVariant()
+                        });
+                    }
+
+                    fullScreenLoader.stopLoader();
+                }
+            },
+
+            /*
+             * Create generic AdyenCheckout library and mount payment method component
+             * after selecting the payment method via overriding parent `selectPaymentMethod()` function.
+             */
+            selectPaymentMethod: function () {
+                this._super();
+                this.createCheckoutComponent();
+                return true;
+            },
+
+            /*
+             * Pre-selected payment methods don't trigger parent's `selectPaymentMethod()` function.
+             *
+             * This function is triggered via `afterRender` attribute of the html template
+             * and creates checkout component for pre-selected payment method.
+             */
+            renderPreSelected: function () {
+                if (this.isChecked() === this.getCode()) {
+                    this.createCheckoutComponent();
+                }
+            },
+
+            // Build AdyenCheckout library and creates the payment method component
+            createCheckoutComponent: async function() {
+                if (!this.checkoutComponent) {
+                    const paymentMethodsResponse = adyenPaymentService.getPaymentMethods();
+
                     this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
-                        paymentMethodsResponse,
+                        paymentMethodsResponse(),
                         this.handleOnAdditionalDetails.bind(this),
                         this.handleOnCancel.bind(this),
                         this.handleOnSubmit.bind(this)
                     );
-
-                    if (!!this.checkoutComponent) {
-                        this.paymentMethod(
-                            adyenPaymentService.getPaymentMethodFromResponse(
-                                this.getTxVariant(),
-                                paymentMethodsResponse.paymentMethodsResponse.paymentMethods
-                            )
-                        );
-
-                        if (!!this.paymentMethod()) {
-                            this.paymentMethodsExtraInfo(paymentMethodsResponse.paymentMethodsExtraDetails);
-                            // Setting the icon and method txvariant as an accessible field if it is available
-                            this.adyenPaymentMethod({
-                                icon: !!paymentMethodsResponse.paymentMethodsExtraDetails[this.getTxVariant()]
-                                    ? paymentMethodsResponse.paymentMethodsExtraDetails[this.getTxVariant()].icon
-                                    : undefined,
-                                method: this.getTxVariant()
-                            });
-                        }
-                    }
                 }
 
-                fullScreenLoader.stopLoader();
+                this.renderCheckoutComponent();
             },
 
             handleOnSubmit: async function(state, component) {
@@ -179,17 +206,15 @@ define(
                     self.isPlaceOrderAllowed(true);
                 });
             },
+
             renderCheckoutComponent: function() {
                 let methodCode = this.getMethodCode();
-
                 let configuration = this.buildComponentConfiguration(this.paymentMethod(), this.paymentMethodsExtraInfo());
 
                 this.mountPaymentMethodComponent(this.paymentMethod(), configuration, methodCode);
-
-                setTimeout(() => {
-                    this.updatePlaceOrderButtonState(methodCode);
-                }, 0);
+                this.updatePlaceOrderButtonState(methodCode);
             },
+
             updatePlaceOrderButtonState: function(methodCode) {
                 let state = this.initializeMethod(methodCode);
                 let container = $(`#${methodCode}Container`);
