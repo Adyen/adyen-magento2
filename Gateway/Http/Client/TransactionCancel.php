@@ -55,15 +55,13 @@ class TransactionCancel implements ClientInterface
     {
         $requests = $transferObject->getBody();
 
-        if (!empty($transferObject->getHeaders())) {
-            $requestOptions['headers'] = $transferObject->getHeaders();
-        } else {
+        $requestOptions['headers'] = $transferObject->getHeaders();
+        if (empty($requestOptions['headers'])) {
             $headerBuilder = new HeaderDataBuilder($this->adyenHelper);
             $requestOptions['headers'] = $headerBuilder->buildRequestHeaders();
         }
 
         $clientConfig = $transferObject->getClientConfig();
-
         $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
         $service = $this->adyenHelper->initializeModificationsApi($client);
         $responseData = [];
@@ -71,10 +69,10 @@ class TransactionCancel implements ClientInterface
         foreach ($requests as $request) {
             $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
                 $request,
-                $headers['idempotencyExtraData'] ?? null
+                $requestOptions['headers']['idempotencyExtraData'] ?? null
             );
-            $requestOptions['idempotencyKey'] = $idempotencyKey;
 
+            $requestOptions['idempotencyKey'] = $idempotencyKey;
             $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/cancels');
             $request['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($client);
             $paymentCancelRequest = new PaymentCancelRequest($request);

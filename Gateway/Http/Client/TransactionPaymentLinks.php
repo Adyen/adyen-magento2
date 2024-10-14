@@ -56,9 +56,8 @@ class TransactionPaymentLinks implements ClientInterface
     {
         $request = $transferObject->getBody();
 
-        if (!empty($transferObject->getHeaders())) {
-            $requestOptions['headers'] = $transferObject->getHeaders();
-        } else {
+        $requestOptions['headers'] = $transferObject->getHeaders();
+        if (empty($requestOptions['headers'])) {
             $headerBuilder = new HeaderDataBuilder($this->adyenHelper);
             $requestOptions['headers'] = $headerBuilder->buildRequestHeaders();
         }
@@ -76,7 +75,7 @@ class TransactionPaymentLinks implements ClientInterface
 
         $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
             $request,
-            $headers['idempotencyExtraData'] ?? null
+            $requestOptions['headers']['idempotencyExtraData'] ?? null
         );
 
         $requestOptions['idempotencyKey'] = $idempotencyKey;

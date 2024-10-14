@@ -57,9 +57,8 @@ class TransactionRefund implements TransactionRefundInterface
     {
         $requests = $transferObject->getBody();
 
-        if (!empty($transferObject->getHeaders())) {
-            $requestOptions['headers'] = $transferObject->getHeaders();
-        } else {
+        $requestOptions['headers'] = $transferObject->getHeaders();
+        if (empty($requestOptions['headers'])) {
             $headerBuilder = new HeaderDataBuilder($this->adyenHelper);
             $requestOptions['headers'] = $headerBuilder->buildRequestHeaders();
         }
@@ -74,8 +73,9 @@ class TransactionRefund implements TransactionRefundInterface
             $responseData = [];
             $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
                 $request,
-                $headers['idempotencyExtraData'] ?? null
+                $requestOptions['headers']['idempotencyExtraData'] ?? null
             );
+
             $requestOptions['idempotencyKey'] = $idempotencyKey;
             $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/refunds');
             $request['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($client);

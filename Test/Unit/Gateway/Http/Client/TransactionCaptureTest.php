@@ -60,7 +60,6 @@ class TransactionCaptureTest extends AbstractAdyenTestCase
 
         $this->adyenHelper->method('initializeAdyenClientWithClientConfig')->willReturn($adyenClient);
         $this->adyenHelper->method('initializeModificationsApi')->willReturn($checkoutModificationsService);
-        $this->adyenHelper->method('buildRequestHeaders')->willReturn([]);
         $this->adyenHelper->expects($this->once())->method('logRequest');
 
         $this->idempotencyHelper->expects($this->once())
@@ -80,7 +79,7 @@ class TransactionCaptureTest extends AbstractAdyenTestCase
             $responseMock->method('toArray')->willReturn($response);
 
             $requestOptions['idempotencyKey'] = $expectedIdempotencyKey;
-            $requestOptions['headers'] = [];
+            $requestOptions['headers'] = [ "idempotencyExtraData" => [0 => "someData"]];
 
             $checkoutModificationsService->expects($this->once())
                 ->method('captureAuthorisedPayment')

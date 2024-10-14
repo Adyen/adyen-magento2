@@ -122,8 +122,7 @@ class HeaderDataBuilderTest extends AbstractAdyenTestCase
 
         // Since no payment is passed, there should be no frontend type
         $this->assertArrayNotHasKey(HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE, $result);
-        // Validate that the frontend type is set to 'headless' as fallback
-//        $this->assertEquals('headless', $result[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE]);
+
     }
 
     public function testBuildRequestHeadersWithoutPayment()
@@ -139,6 +138,5 @@ class HeaderDataBuilderTest extends AbstractAdyenTestCase
 
         // Since no payment is passed, there should be no frontend type
         $this->assertArrayNotHasKey(HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE, $result);
-//        $this->assertEquals('headless', $result[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE]);
     }
 }
