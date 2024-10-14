@@ -39,8 +39,6 @@ class PaymentDetailsTest extends AbstractAdyenTestCase
     private $paymentsApiMock;
     private $adyenClientMock;
 
-    private $headerBuilderMock;
-
     protected function setUp(): void
     {
         $this->checkoutSessionMock = $this->createMock(Session::class);
