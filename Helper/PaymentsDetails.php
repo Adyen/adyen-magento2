@@ -46,11 +46,6 @@ class PaymentsDetails
     private Data $adyenHelper;
 
     /**
-     * @var HeaderDataBuilder
-     */
-    private HeaderDataBuilder $headerBuilder;
-
-    /**
      * @var AdyenLogger
      */
     private AdyenLogger $adyenLogger;
