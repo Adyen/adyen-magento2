@@ -1,21 +1,15 @@
 <?php
 
-namespace Adyen\Payment\Test\Unit\Gateway\Request\Header;
+namespace Adyen\Payment\Test\Unit\Gateway\Request;
 
 use Adyen\Payment\Gateway\Request\Header\HeaderDataBuilder;
 use Adyen\Payment\Gateway\Request\Header\HeaderDataBuilderInterface;
-use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Payment\Helper\Data;
-use Magento\Framework\App\ProductMetadata;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
-use Magento\Payment\Gateway\Helper\SubjectReader;
-use Magento\Sales\Model\Order;
-use Magento\Sales\Model\Order\Invoice;
-use Magento\Sales\Model\Order\Payment;
-use Magento\Sales\Model\ResourceModel\Order\Invoice\Collection as InvoiceCollection;
+use \Magento\Payment\Model\InfoInterface;
 use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
 
 class HeaderDataBuilderTest extends AbstractAdyenTestCase
 {
@@ -29,26 +23,17 @@ class HeaderDataBuilderTest extends AbstractAdyenTestCase
      */
     private $adyenHelperMock;
 
+    /**
+     * @var InfoInterface|MockObject
+     */
+    private $paymentMock;
+
     protected function setUp(): void
     {
         $objectManager = new ObjectManager($this);
 
-        $productMetadata = $this->createConfiguredMock(ProductMetadata::class, [
-            'getName' => 'magento',
-            'getVersion' => '2.x.x',
-            'getEdition' => 'Community'
-        ]);
-        $this->adyenHelperMock->method('getMagentoDetails')->willReturn('external-platform-name' => 'magento',
-            'external-platform-version' => '2.x.x',
-            'external-platform-edition' => 'Community',
-            'merchant-application-name' => 'adyen-magento2',
-            'merchant-application-version' => '1.2.3');
-
         $this->adyenHelperMock = $this->getMockBuilder(Data::class)
-//            ->disableOriginalConstructor()
-                ->setConstructorArgs(
-                $productMetadata,
-            )
+            ->disableOriginalConstructor()
             ->getMock();
 
         $this->headerDataBuilder = $objectManager->getObject(
@@ -58,74 +43,105 @@ class HeaderDataBuilderTest extends AbstractAdyenTestCase
             ]
         );
 
+        $this->paymentMock = $this->getMockBuilder(InfoInterface::class)
+            ->getMock();
+    }
+
+    /**
+     * Mock common Adyen helper expectations.
+     */
+    private function setUpAdyenHelperMockExpectations(): void
+    {
+        $this->adyenHelperMock->expects($this->once())
+            ->method('getMagentoDetails')
+            ->willReturn(['name' => 'Magento', 'version' => '2.x.x', 'edition' => 'Community']);
+
+        $this->adyenHelperMock->expects($this->once())
+            ->method('getModuleName')
+            ->willReturn('adyen-magento2');
+
+        $this->adyenHelperMock->expects($this->once())
+            ->method('getModuleVersion')
+            ->willReturn('1.2.3');
     }
 
     public function testBuild()
     {
-        $paymentMock = $this->getMockBuilder(\Magento\Payment\Model\InfoInterface::class)
-            ->getMock();
         $paymentDataObjectMock = $this->createConfiguredMock(PaymentDataObject::class, [
-            'getPayment' => $paymentMock
+            'getPayment' => $this->paymentMock
         ]);
 
         $buildSubject = ['payment' => $paymentDataObjectMock];
 
-        $headers = ['header1' => 'value1', 'header2' => 'value2'];
+        $this->paymentMock->method('getAdditionalInformation')
+            ->with(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY)
+            ->willReturn('luma');
 
-        $this->headerDataBuilder->expects($this->once())
-            ->method('buildRequestHeaders')
-            ->with($paymentMock)
-            ->willReturn($headers);
-
-        $result = $this->headerDataBuilder->build($buildSubject);
-
-        $this->assertArrayHasKey('headers', $result);
-        $this->assertEquals($headers, $result['headers']);
-    }
-
-
-    public function testBuildRequestHeaders()
-    {
         $expectedHeaders = [
-            'external-platform-name' => 'magento',
+            'external-platform-name' => 'Magento',
             'external-platform-version' => '2.x.x',
             'external-platform-edition' => 'Community',
             'merchant-application-name' => 'adyen-magento2',
-            'merchant-application-version' => '1.2.3'
+            'merchant-application-version' => '1.2.3',
+            'external-platform-frontendtype' => 'luma',
         ];
 
-        $headers = $this->headerDataBuilder->buildRequestHeaders();
+        $this->setUpAdyenHelperMockExpectations();
 
-        $this->assertEquals($expectedHeaders, $headers);
+        // Call the build method
+        $result = $this->headerDataBuilder->build($buildSubject);
+
+        $this->assertArrayHasKey('headers', $result);
+        $this->assertEquals($expectedHeaders, $result['headers']);
     }
 
-    public function testBuildRequestHeadersWithNonNullFrontendType()
+    public function testBuildRequestHeaders()
     {
-        // Mock dependencies as needed
-        $payment = $this->createMock(Payment::class);
+        $this->paymentMock->method('getAdditionalInformation')
+            ->with(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY)
+            ->willReturn('luma');
 
-        // Set up expectations for the getAdditionalInformation method
-        $payment->method('getAdditionalInformation')
-            ->with(HeaderDataBuilderInterface::FRONTEND_TYPE)
-            ->willReturn('some_frontend_type');
+        $this->setUpAdyenHelperMockExpectations();
 
-        // Call the method under test
-        $result = $this->headerDataBuilder->buildRequestHeaders($payment);
+        $result = $this->headerDataBuilder->buildRequestHeaders($this->paymentMock);
 
-        // Assert that the 'frontend-type' header is correctly set
-        $this->assertArrayHasKey(HeaderDataBuilderInterface::FRONTEND_TYPE, $result);
-        $this->assertEquals('some_frontend_type', $result[HeaderDataBuilderInterface::FRONTEND_TYPE]);
-
-        // Assert other headers as needed
+        $this->assertArrayHasKey(HeaderDataBuilderInterface::EXTERNAL_PLATFORM_NAME, $result);
+        $this->assertArrayHasKey(HeaderDataBuilderInterface::EXTERNAL_PLATFORM_VERSION, $result);
+        $this->assertArrayHasKey(HeaderDataBuilderInterface::EXTERNAL_PLATFORM_EDITION, $result);
+        $this->assertArrayHasKey(HeaderDataBuilderInterface::MERCHANT_APPLICATION_NAME, $result);
+        $this->assertArrayHasKey(HeaderDataBuilderInterface::MERCHANT_APPLICATION_VERSION, $result);
+        $this->assertArrayHasKey(HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE, $result);
+        $this->assertEquals('luma', $result[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE]);
     }
 
+    public function testBuildRequestHeadersWithoutFrontendType()
+    {
+        $this->paymentMock->method('getAdditionalInformation')
+            ->with(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY)
+            ->willReturn(null);
+
+        $this->setUpAdyenHelperMockExpectations();
+
+        $result = $this->headerDataBuilder->buildRequestHeaders($this->paymentMock);
+
+        // Validate that the frontend type is set to 'headless' as fallback
+        $this->assertEquals('headless', $result[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE]);
+    }
 
     public function testBuildRequestHeadersWithoutPayment()
     {
-        // Call the method under test without providing a payment object
+        $this->setUpAdyenHelperMockExpectations();
+
+        // Call the method with null payment
         $result = $this->headerDataBuilder->buildRequestHeaders();
 
-        // Assert that the 'frontend-type' header is not set
-        $this->assertArrayNotHasKey(HeaderDataBuilderInterface::FRONTEND_TYPE, $result);
+        $this->assertArrayHasKey(HeaderDataBuilderInterface::EXTERNAL_PLATFORM_NAME, $result);
+        $this->assertArrayHasKey(HeaderDataBuilderInterface::EXTERNAL_PLATFORM_VERSION, $result);
+        $this->assertArrayHasKey(HeaderDataBuilderInterface::EXTERNAL_PLATFORM_EDITION, $result);
+        $this->assertArrayHasKey(HeaderDataBuilderInterface::MERCHANT_APPLICATION_NAME, $result);
+        $this->assertArrayHasKey(HeaderDataBuilderInterface::MERCHANT_APPLICATION_VERSION, $result);
+
+        // Since no payment is passed, there should be no frontend type
+        $this->assertEquals('headless', $result[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE]);
     }
 }

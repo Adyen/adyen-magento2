@@ -46,7 +46,7 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
         self::CC_TYPE,
         self::RETURN_URL,
         self::RECURRING_PROCESSING_MODEL,
-        HeaderDataBuilderInterface::FRONTEND_TYPE
+        HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY
     ];
 
     /**

@@ -12,18 +12,12 @@
 namespace Adyen\Payment\Gateway\Request\Header;
 
 use Adyen\Payment\Helper\Data;
-use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
-class HeaderDataBuilder implements HeaderDataBuilderInterface, BuilderInterface
+class HeaderDataBuilder implements BuilderInterface, HeaderDataBuilderInterface
 {
-//    /**
-//     * @var ProductMetadataInterface
-//     */
-//    protected ProductMetadataInterface $productMetadata;
-
     /**
      * @var Data
      */
@@ -63,9 +57,13 @@ class HeaderDataBuilder implements HeaderDataBuilderInterface, BuilderInterface
             HeaderDataBuilderInterface::MERCHANT_APPLICATION_VERSION => $this->adyenHelper->getModuleVersion()
         ];
 
-        if(isset($payment) && !is_null($payment->getAdditionalInformation(HeaderDataBuilderInterface::FRONTEND_TYPE))) {
+        if(isset($payment) && !is_null($payment->getAdditionalInformation(
+            HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY
+            ))) {
             $headers[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE] =
-                $payment->getAdditionalInformation(HeaderDataBuilderInterface::FRONTEND_TYPE);
+                $payment->getAdditionalInformation(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY);
+        } else {
+            $headers[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE] = HeaderDataBuilderInterface::FRONTEND_TYPE_HEADLESS_VALUE;
         }
 
         return $headers;
