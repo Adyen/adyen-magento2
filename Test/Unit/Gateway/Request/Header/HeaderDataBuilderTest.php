@@ -45,6 +45,8 @@ class HeaderDataBuilderTest extends AbstractAdyenTestCase
 
         $this->paymentMock = $this->getMockBuilder(InfoInterface::class)
             ->getMock();
+
+        $this->setUpAdyenHelperMockExpectations();
     }
 
     /**
@@ -83,10 +85,8 @@ class HeaderDataBuilderTest extends AbstractAdyenTestCase
             'external-platform-edition' => 'Community',
             'merchant-application-name' => 'adyen-magento2',
             'merchant-application-version' => '1.2.3',
-            'external-platform-frontendtype' => 'luma',
+            'external-platform-frontendtype' => 'luma'
         ];
-
-        $this->setUpAdyenHelperMockExpectations();
 
         // Call the build method
         $result = $this->headerDataBuilder->build($buildSubject);
@@ -100,8 +100,6 @@ class HeaderDataBuilderTest extends AbstractAdyenTestCase
         $this->paymentMock->method('getAdditionalInformation')
             ->with(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY)
             ->willReturn('luma');
-
-        $this->setUpAdyenHelperMockExpectations();
 
         $result = $this->headerDataBuilder->buildRequestHeaders($this->paymentMock);
 
@@ -120,18 +118,16 @@ class HeaderDataBuilderTest extends AbstractAdyenTestCase
             ->with(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY)
             ->willReturn(null);
 
-        $this->setUpAdyenHelperMockExpectations();
-
         $result = $this->headerDataBuilder->buildRequestHeaders($this->paymentMock);
 
+        // Since no payment is passed, there should be no frontend type
+        $this->assertArrayNotHasKey(HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE, $result);
         // Validate that the frontend type is set to 'headless' as fallback
-        $this->assertEquals('headless', $result[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE]);
+//        $this->assertEquals('headless', $result[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE]);
     }
 
     public function testBuildRequestHeadersWithoutPayment()
     {
-        $this->setUpAdyenHelperMockExpectations();
-
         // Call the method with null payment
         $result = $this->headerDataBuilder->buildRequestHeaders();
 
@@ -142,6 +138,7 @@ class HeaderDataBuilderTest extends AbstractAdyenTestCase
         $this->assertArrayHasKey(HeaderDataBuilderInterface::MERCHANT_APPLICATION_VERSION, $result);
 
         // Since no payment is passed, there should be no frontend type
-        $this->assertEquals('headless', $result[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE]);
+        $this->assertArrayNotHasKey(HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE, $result);
+//        $this->assertEquals('headless', $result[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE]);
     }
 }
