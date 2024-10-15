@@ -159,12 +159,6 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
             'getClientConfig' => []
         ]);
 
-        $this->adyenHelperMock->expects($this->once())
-            ->method('buildRequestHeaders')
-            ->willReturn($expectedHeaders);
-
-        $actualHeaders = $this->adyenHelperMock->buildRequestHeaders();
-
         $paymentResponse = new CheckoutPaymentResponse([
             'reference' => 'ABC12345',
             'amount' => ['value' => 100],
@@ -188,7 +182,6 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
 
         $this->assertArrayHasKey('resultCode', $response[0]);
         $this->assertEquals('Authorised', $response[0]['resultCode']);
-        $this->assertEquals($expectedHeaders, $actualHeaders);
     }
 
     public function testProcessGiftCardsWithNoGiftCards()
