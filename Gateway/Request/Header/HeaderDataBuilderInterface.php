@@ -14,4 +14,3 @@ interface HeaderDataBuilderInterface
     const ADDITIONAL_DATA_FRONTEND_TYPE_KEY = 'frontendType';
     const FRONTEND_TYPE_HEADLESS_VALUE = 'headless';
 }
-

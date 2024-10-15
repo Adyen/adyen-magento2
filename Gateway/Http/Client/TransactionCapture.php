@@ -15,17 +15,15 @@ use Adyen\AdyenException;
 use Adyen\Client;
 use Adyen\Model\Checkout\PaymentCaptureRequest;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
-use Adyen\Payment\Gateway\Request\Header\HeaderDataBuilder;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
 use Adyen\Payment\Helper\Requests;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Service\Checkout\ModificationsApi;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 
-class TransactionCapture implements ClientInterface
+class TransactionCapture extends BaseTransaction
 {
     const MULTIPLE_AUTHORIZATIONS = 'multiple_authorizations';
     const FORMATTED_CAPTURE_AMOUNT = 'formatted_capture_amount';
@@ -36,7 +34,7 @@ class TransactionCapture implements ClientInterface
     /**
      * @var Data
      */
-    private Data $adyenHelper;
+    protected Data $adyenHelper;
 
     /**
      * @var AdyenLogger
@@ -58,7 +56,7 @@ class TransactionCapture implements ClientInterface
         AdyenLogger $adyenLogger,
         Idempotency $idempotencyHelper
     ) {
-        $this->adyenHelper = $adyenHelper;
+        parent::__construct($adyenHelper);
         $this->adyenLogger = $adyenLogger;
         $this->idempotencyHelper = $idempotencyHelper;
     }
@@ -72,15 +70,9 @@ class TransactionCapture implements ClientInterface
     public function placeRequest(TransferInterface $transferObject): array
     {
         $request = $transferObject->getBody();
-
-        $requestOptions['headers'] = $transferObject->getHeaders();
-        if (empty($requestOptions['headers'])) {
-            $headerBuilder = new HeaderDataBuilder($this->adyenHelper);
-            $requestOptions['headers'] = $headerBuilder->buildRequestHeaders();
-        }
+        $requestOptions['headers'] = $this->requestHeaders($transferObject);
 
         $clientConfig = $transferObject->getClientConfig();
-
         $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
         $service = $this->adyenHelper->initializeModificationsApi($client);
 

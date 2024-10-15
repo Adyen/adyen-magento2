@@ -17,11 +17,10 @@ use Adyen\Client;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
-use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
-class TransactionPosCloudSync implements ClientInterface
+class TransactionPosCloudSync extends BaseTransaction
 {
     protected int $storeId;
     protected mixed $timeout;
@@ -36,7 +35,7 @@ class TransactionPosCloudSync implements ClientInterface
         StoreManagerInterface $storeManager,
         Config $configHelper
     ) {
-        $this->adyenHelper = $adyenHelper;
+        parent::__construct($adyenHelper);
         $this->adyenLogger = $adyenLogger;
         $this->configHelper = $configHelper;
 

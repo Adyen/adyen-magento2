@@ -21,23 +21,23 @@ class TransactionCaptureTest extends AbstractAdyenTestCase
     private $transactionCapture;
     private $transferObject;
     private $request;
-    private $adyenHelper;
+    private $adyenHelperMock;
     private $idempotencyHelper;
 
     protected function setUp(): void
     {
-        $this->adyenHelper = $this->createMock(Data::class);
+        $this->adyenHelperMock = $this->createMock(Data::class);
         $adyenLogger = $this->createMock(AdyenLogger::class);
         $this->idempotencyHelper = $this->createMock(Idempotency::class);
 
         $this->transactionCapture = new TransactionCapture(
-            $this->adyenHelper,
+            $this->adyenHelperMock,
             $adyenLogger,
             $this->idempotencyHelper
         );
 
         $applicationInfo = $this->createMock(ApplicationInfo::class);
-        $this->adyenHelper->method('buildApplicationInfo')->willReturn($applicationInfo);
+        $this->adyenHelperMock->method('buildApplicationInfo')->willReturn($applicationInfo);
 
         $this->request = [
             'amount' => ['value' => 100, 'currency' => 'USD'],
@@ -50,6 +50,7 @@ class TransactionCaptureTest extends AbstractAdyenTestCase
             'getHeaders' => ['idempotencyExtraData' => ['someData']],
             'getClientConfig' => []
         ]);
+
     }
 
     private function configureAdyenMocks(array $response = null, \Exception $exception = null): void
@@ -58,9 +59,9 @@ class TransactionCaptureTest extends AbstractAdyenTestCase
         $checkoutModificationsService = $this->createMock(Checkout\ModificationsApi::class);
         $expectedIdempotencyKey = 'generated_idempotency_key';
 
-        $this->adyenHelper->method('initializeAdyenClientWithClientConfig')->willReturn($adyenClient);
-        $this->adyenHelper->method('initializeModificationsApi')->willReturn($checkoutModificationsService);
-        $this->adyenHelper->expects($this->once())->method('logRequest');
+        $this->adyenHelperMock->method('initializeAdyenClientWithClientConfig')->willReturn($adyenClient);
+        $this->adyenHelperMock->method('initializeModificationsApi')->willReturn($checkoutModificationsService);
+        $this->adyenHelperMock->expects($this->once())->method('logRequest');
 
         $this->idempotencyHelper->expects($this->once())
             ->method('generateIdempotencyKey')
@@ -71,7 +72,7 @@ class TransactionCaptureTest extends AbstractAdyenTestCase
             ->willReturn($expectedIdempotencyKey);
 
         if ($response) {
-            $this->adyenHelper->expects($this->once())->method('logResponse');
+            $this->adyenHelperMock->expects($this->once())->method('logResponse');
 
             $request = new PaymentCaptureRequest($this->request);
 

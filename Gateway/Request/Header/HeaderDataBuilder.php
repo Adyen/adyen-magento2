@@ -57,12 +57,13 @@ class HeaderDataBuilder implements BuilderInterface, HeaderDataBuilderInterface
             HeaderDataBuilderInterface::MERCHANT_APPLICATION_VERSION => $this->adyenHelper->getModuleVersion()
         ];
 
-        //
-        if(isset($payment) && !is_null($payment->getAdditionalInformation(
+        $additionalInfo = $payment?->getAdditionalInformation(
             HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY
-            ))) {
-            $headers[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE] =
-                $payment->getAdditionalInformation(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY);
+        );
+
+        // if the payment AND the frontend type in addition info are not null, then use it to set the frontend type
+        if (!empty($additionalInfo)){
+            $headers[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE] = $additionalInfo;
         }
 
         return $headers;

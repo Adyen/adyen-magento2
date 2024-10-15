@@ -122,7 +122,6 @@ class HeaderDataBuilderTest extends AbstractAdyenTestCase
 
         // Since no payment is passed, there should be no frontend type
         $this->assertArrayNotHasKey(HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE, $result);
-
     }
 
     public function testBuildRequestHeadersWithoutPayment()

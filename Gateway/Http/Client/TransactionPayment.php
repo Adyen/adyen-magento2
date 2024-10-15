@@ -26,16 +26,15 @@ use Adyen\Payment\Model\ResourceModel\PaymentResponse as PaymentResponseResource
 use Adyen\Service\Checkout\PaymentsApi;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
-class TransactionPayment implements ClientInterface
+class TransactionPayment extends baseTransaction
 {
     /**
      * @var Data
      */
-    private Data $adyenHelper;
+    protected Data $adyenHelper;
 
     /**
      * @var PaymentResponseFactory
@@ -87,7 +86,7 @@ class TransactionPayment implements ClientInterface
         StoreManagerInterface $storeManager,
         GiftcardPayment $giftcardPaymentHelper,
     ) {
-        $this->adyenHelper = $adyenHelper;
+        parent::__construct($adyenHelper);
         $this->paymentResponseFactory = $paymentResponseFactory;
         $this->paymentResponseResourceModel = $paymentResponseResourceModel;
         $this->idempotencyHelper = $idempotencyHelper;
