@@ -11,7 +11,10 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Model\Checkout\CancelOrderRequest;
+use Adyen\Payment\Helper\Config as Config;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\ResourceModel\PaymentResponse\CollectionFactory as PaymentResponseCollectionFactory;
 use Exception;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\InputException;
@@ -21,6 +24,8 @@ use Magento\Sales\Model\Order\Status\HistoryFactory;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\ResourceModel\Order;
 use Magento\Sales\Model\Order as OrderModel;
+use Adyen\Payment\Helper\Data as Data;
+use Magento\Framework\Mail\Exception\InvalidArgumentException;
 
 class PaymentResponseHandler
 {
@@ -57,6 +62,8 @@ class PaymentResponseHandler
     private OrderRepository $orderRepository;
     private HistoryFactory $orderHistoryFactory;
     private StateData $stateDataHelper;
+    private PaymentResponseCollectionFactory $paymentResponseCollectionFactory;
+    private Config $configHelper;
 
     public function __construct(
         AdyenLogger $adyenLogger,
@@ -67,7 +74,9 @@ class PaymentResponseHandler
         \Adyen\Payment\Helper\Order $orderHelper,
         OrderRepository $orderRepository,
         HistoryFactory $orderHistoryFactory,
-        StateData $stateDataHelper
+        StateData $stateDataHelper,
+        PaymentResponseCollectionFactory $paymentResponseCollectionFactory,
+        Config $configHelper
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->vaultHelper = $vaultHelper;
@@ -78,6 +87,8 @@ class PaymentResponseHandler
         $this->orderRepository = $orderRepository;
         $this->orderHistoryFactory = $orderHistoryFactory;
         $this->stateDataHelper = $stateDataHelper;
+        $this->paymentResponseCollectionFactory = $paymentResponseCollectionFactory;
+        $this->configHelper = $configHelper;
     }
 
     public function formatPaymentResponse(
@@ -279,6 +290,63 @@ class PaymentResponseHandler
                 break;
             case self::REFUSED:
             case self::CANCELLED:
+                $getGiftcardDetails = $this->hasActiveGiftCardPayments(
+                    $order,
+                    $paymentsDetailsResponse['merchantReference']
+                );
+                if (!empty($getGiftcardDetails)) {
+                    //Cancel the Authorised Payments
+                    $storeId = $order->getStoreId();
+                    $client = $this->dataHelper->initializeAdyenClient($storeId);
+                    $service = $this->dataHelper->initializeOrdersApi($client);
+                    foreach ($getGiftcardDetails as $giftcardData) {
+                        try {
+                            // Decode JSON response and validate it
+                            $response = json_decode($giftcardData['response'], true);
+                            if (json_last_error() !== JSON_ERROR_NONE || !isset($response['order'])) {
+                                throw new InvalidArgumentException('Invalid giftcard response data');
+                            }
+
+                            // Extract order data and PSPRef
+                            $orderData = $response['order']['orderData'] ?? null;
+                            $pspReference = $response['order']['pspReference'] ?? null;
+
+                            if (!$orderData || !$pspReference) {
+                                throw new InvalidArgumentException('Missing orderData or pspReference in the response');
+                            }
+
+                            // Prepare cancel request
+                            $merchantAccount = $this->configHelper->getAdyenAbstractConfigData("merchant_account", $storeId);
+                            $cancelRequest = [
+                                'order' => [
+                                    'pspReference' => $pspReference,
+                                    'orderData' => $orderData,
+                                ],
+                                'merchantAccount' => $merchantAccount,
+                            ];
+
+                            // Call the cancel service
+                            $cancelResponse = $service->cancelOrder(new CancelOrderRequest($cancelRequest));
+                            $response = $cancelResponse->toArray();
+
+                            if (is_null($response['resultCode'])) {
+                                // In case the result is unknown we log the request and don't update the history
+                                $this->adyenLogger->error(
+                                    "Unexpected result query parameter for cancel order request. Response: " . json_encode($response)
+                                );
+
+                                return false;
+                            }
+
+                        } catch (\Exception $e) {
+                            // Log the error with relevant information for debugging
+                            $this->adyenLogger->error('Error canceling partial payments', [
+                                'exception' => $e->getMessage(),
+                                'giftcardData' => $giftcardData,
+                            ]);
+                        }
+                    }
+                }
                 // Cancel order in case result is refused
                 if (null !== $order) {
                     // Check if the current state allows for changing to new for cancellation
@@ -340,5 +408,18 @@ class PaymentResponseHandler
         }
 
         return true;
+    }
+
+    // Method to check for existing Gift Card payments
+    private function hasActiveGiftCardPayments(OrderInterface $order, $merchantReference)
+    {
+        $paymentResponseCollection = $this->paymentResponseCollectionFactory->create()
+            ->addFieldToFilter('merchant_reference', $merchantReference)
+            ->addFieldToFilter('result_code', 'Authorised');
+
+        if ($paymentResponseCollection->getSize() > 0) {
+            return $paymentResponseCollection->getData();
+        }
+        return '';
     }
 }
