@@ -186,13 +186,13 @@ define(
                  *  Passing false as the response to hide the actual error message from the shopper for security.
                  *  This will show a generic error message instead of the actual error message.
                  */
-                this.handleOnFailure(false, component);
+                this.handleOnFailure(error, component);
             },
 
-            handleOnFailure: function(response, component) {
+            handleOnFailure: function(error, component) {
                 this.isPlaceOrderAllowed(true);
                 fullScreenLoader.stopLoader();
-                errorProcessor.process(response, this.currentMessageContainer);
+                errorProcessor.process(error, this.currentMessageContainer);
             },
             
             renderCheckoutComponent: function() {
@@ -390,7 +390,6 @@ define(
 
                 try {
                     const orderId = await placeOrderAction(data, self.currentMessageContainer);
-                    self.afterPlaceOrder();
                     const responseJSON = await adyenPaymentService.getOrderPaymentStatus(orderId);
                     self.validateActionOrPlaceOrder(responseJSON, orderId, component);
                 } catch (response) {

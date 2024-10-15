@@ -12,20 +12,21 @@ define(
         'Magento_Checkout/js/model/quote',
         'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-method',
         'Adyen_Payment/js/model/adyen-checkout',
+        'Adyen_Payment/js/model/adyen-payment-service',
         'mage/url'
     ],
     function(
         quote,
         adyenPaymentMethod,
         adyenCheckout,
+        adyenPaymentService,
         urlBuilder
     ) {
         const amazonSessionKey = 'amazonCheckoutSessionId';
         return adyenPaymentMethod.extend({
             placeOrderButtonVisible: false,
-            initialize: function () {
-                this._super();
-            },
+            amazonPayComponent: null,
+
             buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo) {
                 let self = this;
                 let formattedShippingAddress = {};
@@ -52,13 +53,6 @@ define(
                         reject();
                     }
                 }
-                baseComponentConfiguration.onSubmit = async (state, amazonPayComponent) => {
-                    try {
-                        await self.handleOnSubmit(state.data, amazonPayComponent);
-                    } catch (error) {
-                        amazonPayComponent.handleDeclineFlow();
-                    }
-                };
 
                 baseComponentConfiguration.productType = 'PayAndShip';
                 baseComponentConfiguration.checkoutMode = 'ProcessOrder';
@@ -82,6 +76,7 @@ define(
                         countryCode: formattedShippingAddress.country,
                         phoneNumber: formattedShippingAddress.telephone
                     };
+
                     if (baseComponentConfiguration.addressDetails.countryCode === 'US') {
                         baseComponentConfiguration.addressDetails.stateOrRegion = quote.shippingAddress().regionCode
                     }
@@ -99,6 +94,7 @@ define(
                         countryCode: formattedBillingAddress.country,
                         phoneNumber: formattedBillingAddress.telephone
                     };
+
                     if (baseComponentConfiguration.addressDetails.countryCode === 'US') {
                         baseComponentConfiguration.addressDetails.stateOrRegion = quote.billingAddress().regionCode
                     }
@@ -108,13 +104,16 @@ define(
             },
 
             mountPaymentMethodComponent: function (paymentMethod, configuration) {
-                let self = this;
                 const containerId = '#' + paymentMethod.type + 'Container';
-                let url = new URL(location.href);
-                //Handles the redirect back to checkout page with amazonSessionKey in url
-                if (url.searchParams.has(amazonSessionKey)) {
+                const currentUrl = new URL(location.href);
+
+                /*
+                 * If the first redirect is successful and URL contains `amazonCheckoutSessionId` parameter,
+                 * don't mount the default component but mount the second component to submit the `/payments` request.
+                 */
+                if (currentUrl.searchParams.has(amazonSessionKey)) {
                     let componentConfig = {
-                        amazonCheckoutSessionId: url.searchParams.get(amazonSessionKey),
+                        amazonCheckoutSessionId: currentUrl.searchParams.get(amazonSessionKey),
                         showOrderButton: false,
                         amount: {
                             currency: configuration.amount.currency,
@@ -122,27 +121,47 @@ define(
                         },
                         showChangePaymentDetailsButton: false
                     }
-                    try {
-                        const amazonPayComponent = adyenCheckout.mountPaymentMethodComponent( // This mountPaymentMethodCOmponent isn't up to date.
-                            self.checkoutComponent,
-                            'amazonpay',
-                            componentConfig,
-                            containerId
-                        );
-                        amazonPayComponent.submit();
-                    } catch (err) {
-                        // The component does not exist yet
-                        if ('test' === adyenConfiguration.getCheckoutEnvironment()) {
-                            console.log(err);
-                        }
-                    }
-                } else{
+
+                    this.amazonPayComponent = adyenCheckout.mountPaymentMethodComponent(
+                        this.checkoutComponent,
+                        'amazonpay',
+                        componentConfig,
+                        containerId
+                    );
+
+                    // Triggers `onSubmit` event and `handleOnSubmit()` callback in adyen-pm-method.js handles it
+                    this.amazonPayComponent.submit();
+                } else {
                     this._super();
                 }
             },
 
+            /*
+             * Try to handle decline flow if Amazon Pay session allows in case of `/payments` call fails.
+             * If decline flow is available, shopper will be redirected to Amazon Pay hosted page again.
+             * If handle decline flow is not present, the component will throw `onError` event.
+             */
             handleOnFailure: function (response, component) {
-                debugger;
+                this.amazonPayComponent.handleDeclineFlow();
+            },
+
+            /*
+            * If `handleDeclineFlow()` can not be handled for any reason, `onError` will be thrown.
+            * In this case, remove `amazonCheckoutSessionId` from the URL and remount the payment component.
+            */
+            handleOnError: function (error, component) {
+                this.remountAmazonPayComponent();
+            },
+
+            /*
+             * Remove `amazonCheckoutSessionId` from the URL and remount the component.
+             */
+            remountAmazonPayComponent: function () {
+                const checkoutPaymentUrl = "checkout/#payment";
+                window.history.pushState({}, document.title, "/" + checkoutPaymentUrl);
+
+                const paymentMethodsResponse = adyenPaymentService.getPaymentMethods();
+                this.createCheckoutComponent(paymentMethodsResponse());
             }
         })
     }
