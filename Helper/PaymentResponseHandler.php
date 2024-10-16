@@ -337,7 +337,6 @@ class PaymentResponseHandler
 
                                 return false;
                             }
-
                         } catch (\Exception $e) {
                             // Log the error with relevant information for debugging
                             $this->adyenLogger->error('Error canceling partial payments', [
