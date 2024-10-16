@@ -121,9 +121,9 @@ define(
              * This function is triggered via `afterRender` attribute of the html template
              * and creates checkout component for pre-selected payment method.
              */
-            renderPreSelected: function () {
+            renderPreSelected: async function () {
                 if (this.isChecked() === this.getCode()) {
-                    this.createCheckoutComponent();
+                    await this.createCheckoutComponent();
                 }
             },
 
@@ -464,6 +464,10 @@ define(
 
             checkBrowserCompatibility: function () {
                 return true;
+            },
+
+            getPaymentMethodComponent: function () {
+                return this.paymentComponent;
             }
         });
     },
