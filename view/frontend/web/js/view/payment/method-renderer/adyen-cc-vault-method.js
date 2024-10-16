@@ -49,7 +49,7 @@ define([
 
     return VaultComponent.extend({
         defaults: {
-            template: 'Adyen_Payment/payment/card-vault-form.html',
+            template: 'Adyen_Payment/payment/cc-vault-form',
             modalLabel: null,
             installment: ''
         },
