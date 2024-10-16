@@ -37,7 +37,7 @@ define([
         },
 
         setIsPlaceOrderAllowed: function (methodCode, isPlaceOrderAllowed) {
-            let state = this.getState(methodCode);
+            this.getState(methodCode);
             this.states[methodCode].isPlaceOrderAllowed(isPlaceOrderAllowed);
         },
 
