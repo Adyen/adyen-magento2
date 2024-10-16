@@ -51,6 +51,7 @@ define(
                 quote.billingAddress() != null),
             comboCardOption: ko.observable('credit'),
             checkoutComponent: null,
+            cardComponent: null,
 
             defaults: {
                 template: 'Adyen_Payment/payment/cc-form',
@@ -545,6 +546,9 @@ define(
                 }
                 return quote.totals().grand_total;
             },
+            getPaymentMethodComponent: function () {
+                return this.cardComponent;
+            }
         });
     }
 );
