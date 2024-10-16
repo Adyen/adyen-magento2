@@ -12,63 +12,34 @@
 define([
     'jquery',
     'ko',
-    'Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method',
-    'Adyen_Payment/js/model/adyen-configuration',
-    'Adyen_Payment/js/model/adyen-payment-service',
-    'Magento_Checkout/js/model/full-screen-loader',
+    'Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method'
 ], function (
     $,
     ko,
-    Component,
-    adyenConfiguration,
-    adyenPaymentService,
-    fullScreenLoader
+    Component
 ) {
     'use strict';
     return Component.extend({
+        paymentMethodReady: ko.observable(false),
         defaults: {
             template: 'Adyen_Payment/payment/multishipping/cc-form'
         },
 
-        paymentMethodReady: ko.observable(false),
-
-        initialize: function() {
-            let self = this;
-            this._super();
-
-            let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
-            paymentMethodsObserver.subscribe(
-                function(paymentMethods) {
-                    self.paymentMethodReady(paymentMethods);
-                }
-            );
-
-            this.paymentMethodReady(paymentMethodsObserver());
+        enablePaymentMethod: async function (paymentMethodsResponse) {
+            this.paymentMethodReady(paymentMethodsResponse);
         },
 
-        selectPaymentMethod: function () {
-            this.renderSecureFields();
-            return this._super();
-        },
-
-        renderSecureFields: function () {
+        buildComponentConfiguration: function () {
             let self = this;
+            let baseComponentConfiguration = this._super();
 
-            if (!self.getClientKey) {
-                return;
-            }
-            self.cardComponent = self.checkoutComponent.create('card', {
-                enableStoreDetails: self.getEnableStoreDetails(),
-                brands: self.getBrands(),
-                hasHolderName: adyenConfiguration.getHasHolderName(),
-                holderNameRequired: adyenConfiguration.getHasHolderName() &&
-                  adyenConfiguration.getHolderNameRequired(),
-                onChange: function (state) {
-                    $('#stateData').val(state.isValid ? JSON.stringify(state.data) : '');
-                    self.placeOrderAllowed(!!state.isValid);
-                    self.storeCc = !!state.data.storePaymentMethod;
-                }
-            }).mount('#cardContainer');
+            baseComponentConfiguration.onChange = function (state) {
+                $('#stateData').val(state.isValid ? JSON.stringify(state.data) : '');
+                self.placeOrderAllowed(!!state.isValid);
+                self.storeCc = !!state.data.storePaymentMethod;
+            };
+
+            return baseComponentConfiguration
         }
     });
 });

@@ -165,19 +165,31 @@ define(
              * set up the installments
              */
             renderCCPaymentMethod: function() {
+                let componentConfig = this.buildComponentConfiguration();
+
+                this.cardComponent = adyenCheckout.mountPaymentMethodComponent(
+                    this.checkoutComponent,
+                    'card',
+                    componentConfig,
+                    '#cardContainer'
+                )
+
+                return true
+            },
+
+            buildComponentConfiguration: function () {
                 let self = this;
-                if (!self.getClientKey) {
+
+                if (!this.getClientKey) {
                     return false;
                 }
 
-                self.installments(0);
-
-                // installments
-                let allInstallments = self.getAllInstallments();
+                this.installments(0);
+                let allInstallments = this.getAllInstallments();
 
                 let componentConfig = {
-                    enableStoreDetails: self.getEnableStoreDetails(),
-                    brands: self.getBrands(),
+                    enableStoreDetails: this.getEnableStoreDetails(),
+                    brands: this.getBrands(),
                     hasHolderName: adyenConfiguration.getHasHolderName(),
                     holderNameRequired: adyenConfiguration.getHasHolderName() &&
                         adyenConfiguration.getHolderNameRequired(),
@@ -225,21 +237,14 @@ define(
                     }
                 }
 
-                if (self.isClickToPayEnabled()) {
+                if (this.isClickToPayEnabled()) {
                     componentConfig.clickToPayConfiguration = {
                         merchantDisplayName: adyenConfiguration.getMerchantAccount(),
-                        shopperEmail: self.getShopperEmail()
+                        shopperEmail: this.getShopperEmail()
                     };
                 }
 
-                self.cardComponent = adyenCheckout.mountPaymentMethodComponent(
-                    this.checkoutComponent,
-                    'card',
-                    componentConfig,
-                    '#cardContainer'
-                )
-
-                return true
+                return componentConfig;
             },
 
             handleAction: function(action, orderId) {
