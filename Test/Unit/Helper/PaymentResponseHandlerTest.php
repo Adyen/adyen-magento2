@@ -29,7 +29,7 @@ use Magento\Sales\Model\ResourceModel\Order;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\Order\Status\HistoryFactory;
 use Adyen\Payment\Helper\StateData;
-use Adyen\Payment\Model\ResourceModel\PaymentResponse\CollectionFactory as PaymentResponseCollectionFactory;
+use Adyen\Payment\Model\ResourceModel\PaymentResponse\CollectionFactory;
 use Adyen\Payment\Helper\Config as Config;
 use \Magento\Framework\Data\Collection\AbstractDb;
 
@@ -46,7 +46,6 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
     private $orderRepositoryMock;
     private $orderHistoryFactoryMock;
     private $stateDataHelperMock;
-
     private $paymentResponseHandler;
 
     protected function setUp(): void
@@ -64,7 +63,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
             'create'
         ]);
         $this->stateDataHelperMock = $this->createMock(StateData::class);
-        $this->paymentResponseCollectionFactoryMock = $this->createMock(PaymentResponseCollectionFactory::class);
+        $this->paymentResponseCollectionFactoryMock = $this->createMock(CollectionFactory::class);
         $this->configHelperMock = $this->createMock(Config::class);
 
         // Mock for PaymentResponseCollection
@@ -85,11 +84,6 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         // Mock getData to return some dummy data
         $this->paymentResponseCollectionMock->method('getData')
             ->willReturn([['field' => 'value']]);
-
-
-
-
-
 
         $orderHistory = $this->createMock(History::class);
         $orderHistory->method('setStatus')->willReturnSelf();
