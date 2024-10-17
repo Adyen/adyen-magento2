@@ -29,6 +29,9 @@ use Magento\Sales\Model\ResourceModel\Order;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\Order\Status\HistoryFactory;
 use Adyen\Payment\Helper\StateData;
+use Adyen\Payment\Model\ResourceModel\PaymentResponse\CollectionFactory as PaymentResponseCollectionFactory;
+use Adyen\Payment\Helper\Config as Config;
+use \Magento\Framework\Data\Collection\AbstractDb;
 
 class PaymentResponseHandlerTest extends AbstractAdyenTestCase
 {
@@ -61,6 +64,32 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
             'create'
         ]);
         $this->stateDataHelperMock = $this->createMock(StateData::class);
+        $this->paymentResponseCollectionFactoryMock = $this->createMock(PaymentResponseCollectionFactory::class);
+        $this->configHelperMock = $this->createMock(Config::class);
+
+        // Mock for PaymentResponseCollection
+        $this->paymentResponseCollectionMock = $this->createMock(AbstractDb::class);
+
+        // Mock PaymentResponseCollectionFactory to return the mocked collection
+        $this->paymentResponseCollectionFactoryMock->method('create')
+            ->willReturn($this->paymentResponseCollectionMock);
+
+        // Mock addFieldToFilter behavior
+        $this->paymentResponseCollectionMock->method('addFieldToFilter')
+            ->willReturnSelf();
+
+        // Mock getSize to return a desired value
+        $this->paymentResponseCollectionMock->method('getSize')
+            ->willReturn(1); // Adjust based on your test case logic
+
+        // Mock getData to return some dummy data
+        $this->paymentResponseCollectionMock->method('getData')
+            ->willReturn([['field' => 'value']]);
+
+
+
+
+
 
         $orderHistory = $this->createMock(History::class);
         $orderHistory->method('setStatus')->willReturnSelf();
@@ -74,7 +103,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         $this->orderMock->method('getStatus')->willReturn('pending');
         $this->orderMock->method('getIncrementId')->willReturn('00123456');
 
-        $this->orderHelperMock->method('setStatusOrderCreation')->willReturn( $this->orderMock);
+        $this->orderHelperMock->method('setStatusOrderCreation')->willReturn($this->orderMock);
 
         $this->paymentResponseHandler = new PaymentResponseHandler(
             $this->adyenLoggerMock,
@@ -85,7 +114,9 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
             $this->orderHelperMock,
             $this->orderRepositoryMock,
             $this->orderHistoryFactoryMock,
-            $this->stateDataHelperMock
+            $this->stateDataHelperMock,
+            $this->paymentResponseCollectionFactoryMock,
+            $this->configHelperMock
         );
     }
 
