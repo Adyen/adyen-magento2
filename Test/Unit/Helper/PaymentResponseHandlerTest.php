@@ -387,7 +387,8 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
     {
         return [
             ['resultCode' => PaymentResponseHandler::REFUSED],
-            ['resultCode' => PaymentResponseHandler::CANCELLED]
+            ['resultCode' => PaymentResponseHandler::CANCELLED],
+            ['resultCode' => PaymentResponseHandler::CANCELLED, 'hasGiftCard' => true]
         ];
     }
 
@@ -398,7 +399,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
      * @throws NoSuchEntityException
      * @dataProvider handlePaymentsDetailsActionCancelledOrRefusedProvider
      */
-    public function testHandlePaymentsDetailsResponseCancelOrRefused($resultCode)
+    public function testHandlePaymentsDetailsResponseCancelOrRefused($resultCode, $hasGiftCard = false)
     {
         $paymentsDetailsResponse = [
             'resultCode' => $resultCode,
@@ -412,6 +413,16 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
             ]
         ];
 
+        if ($hasGiftCard) {
+            $giftcardData = $this->testHasActiveGiftCardPayments();
+            // Mock the dataHelper and service to simulate cancellation call
+            $this->dataHelperMock->expects($this->once())->method('initializeAdyenClient');
+            $this->dataHelperMock->expects($this->once())->method('initializeOrdersApi');
+            $this->adyenLoggerMock->expects($this->once())->method('error')->with(
+                'Error canceling partial payments',
+                $this->anything()
+            );
+        }
         $this->adyenLoggerMock->expects($this->atLeastOnce())->method('addAdyenResult');
 
         $result = $this->paymentResponseHandler->handlePaymentsDetailsResponse(
@@ -543,11 +554,6 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
 
     public function testHasActiveGiftCardPayments()
     {
-
-        // Mock the addFieldToFilter method to return the collection itself for chaining
-
-
-        // Mock getSize to simulate an authorized gift card payment
         $this->paymentResponseMockForFactory->expects($this->any())
             ->method('getSize')
             ->willReturn(1); // Simulate there is at least one record
@@ -583,5 +589,6 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         $this->assertEquals([
             ['merchant_reference' => '12345', 'result_code' => 'Authorised']
         ], $result);
+        return $result;
     }
 }
