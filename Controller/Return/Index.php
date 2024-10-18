@@ -12,6 +12,8 @@
 // phpcs:ignore
 namespace Adyen\Payment\Controller\Return;
 
+// This is a test line
+
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Helper\PaymentsDetails;
 use Adyen\Payment\Helper\Quote;
