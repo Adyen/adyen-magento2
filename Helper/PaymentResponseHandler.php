@@ -291,7 +291,6 @@ class PaymentResponseHandler
             case self::REFUSED:
             case self::CANCELLED:
                 $getGiftcardDetails = $this->hasActiveGiftCardPayments(
-                    $order,
                     $paymentsDetailsResponse['merchantReference']
                 );
                 if (!empty($getGiftcardDetails)) {
@@ -410,7 +409,7 @@ class PaymentResponseHandler
     }
 
     // Method to check for existing Gift Card payments
-    private function hasActiveGiftCardPayments(OrderInterface $order, $merchantReference)
+    private function hasActiveGiftCardPayments($merchantReference)
     {
         $paymentResponseCollection = $this->paymentResponseCollectionFactory->create()
             ->addFieldToFilter('merchant_reference', $merchantReference)

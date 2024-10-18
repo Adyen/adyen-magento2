@@ -30,6 +30,7 @@ use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Model\ResourceModel\PaymentResponse\Collection;
 use Adyen\Payment\Model\ResourceModel\PaymentResponse\CollectionFactory;
 use Adyen\Payment\Helper\Config as Config;
+use ReflectionClass;
 
 class PaymentResponseHandlerTest extends AbstractAdyenTestCase
 {
@@ -474,5 +475,39 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         );
 
         $this->assertFalse($result);
+    }
+
+    public function testHandlePaymentsDetailsResponseValidMerchantReference()
+    {
+        $paymentsDetailsResponse = [
+            'resultCode' => PaymentResponseHandler::AUTHORISED,
+            'pspReference' => 'ABC123456789',
+            'paymentMethod' => [
+                'brand' => 'ideal'
+            ],
+            'merchantReference' => '00123456' // assuming this is a valid reference
+        ];
+        // Mock the isValidMerchantReference to return true
+        $reflectionClass = new ReflectionClass(PaymentResponseHandler::class);
+        $method = $reflectionClass->getMethod('isValidMerchantReference');
+        $method->setAccessible(true);
+        $isValidMerchantReference = $method->invokeArgs($this->paymentResponseHandler, [$paymentsDetailsResponse,$this->orderMock]);
+        $this->assertTrue($isValidMerchantReference);
+    }
+
+    public function testPaymentDetailsCallFailureLogsError()
+    {
+        $resultCode = 'some_result_code';
+        $paymentsDetailsResponse = ['error' => 'some error message'];
+
+        // Expect the logger to be called with the specific message
+        $this->adyenLoggerMock->expects($this->once())
+            ->method('error');
+
+        // Call the method that triggers the logging, e.g., handlePaymentDetailsFailure()
+        $this->paymentResponseHandler->handlePaymentsDetailsResponse(
+            $paymentsDetailsResponse,
+            $this->orderMock
+        );
     }
 }
