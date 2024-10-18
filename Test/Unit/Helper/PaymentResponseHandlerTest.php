@@ -10,6 +10,7 @@
  */
 namespace Adyen\Payment\Test\Unit\Helper;
 
+use Adyen\Client;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Helper\Vault;
@@ -69,18 +70,9 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
 
         $this->paymentResponseCollectionFactoryMock = $this->createGeneratedMock(CollectionFactory::class, ['create']);
         $this->paymentResponseCollectionFactoryMock->method('create')->willReturn($this->paymentResponseMockForFactory);
-        // Mock addFieldToFilter behavior
-        $this->paymentResponseMockForFactory->method('addFieldToFilter')
-            ->willReturnSelf();
-
-        // Mock getSize to return a desired value
-        $this->paymentResponseMockForFactory->method('getSize')
-            ->willReturn(1); // Adjust based on your test case logic
-
-        // Mock getData to return some dummy data
-        $this->paymentResponseMockForFactory->method('getData')
-            ->willReturn([['field' => 'value']]);
-
+        $this->paymentResponseMockForFactory->expects($this->any())
+            ->method('addFieldToFilter')
+            ->willReturn($this->paymentResponseMockForFactory);
         $orderHistory = $this->createMock(History::class);
         $orderHistory->method('setStatus')->willReturnSelf();
         $orderHistory->method('setComment')->willReturnSelf();
@@ -547,5 +539,49 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
             ->with($this->orderMock);
 
         $this->paymentResponseHandler->handlePaymentsDetailsResponse($paymentsDetailsResponse, $this->orderMock);
+    }
+
+    public function testHasActiveGiftCardPayments()
+    {
+
+        // Mock the addFieldToFilter method to return the collection itself for chaining
+
+
+        // Mock getSize to simulate an authorized gift card payment
+        $this->paymentResponseMockForFactory->expects($this->any())
+            ->method('getSize')
+            ->willReturn(1); // Simulate there is at least one record
+
+        // Mock getData to return the desired array of data from the database
+        $this->paymentResponseMockForFactory->expects($this->any())
+            ->method('getData')
+            ->willReturn([
+                ['merchant_reference' => '12345', 'result_code' => 'Authorised']
+            ]);
+
+        $this->paymentResponseCollectionFactoryMock->expects($this->any())
+            ->method('create')
+            ->willReturn($this->paymentResponseMockForFactory);
+
+        // Create an instance of the class that has the private method
+        $class = new \ReflectionClass(PaymentResponseHandler::class);
+        $instance = $class->newInstanceWithoutConstructor();
+
+        // Inject the mocked factory into the instance if necessary
+        $property = $class->getProperty('paymentResponseCollectionFactory');
+        $property->setAccessible(true);
+        $property->setValue($instance, $this->paymentResponseCollectionFactoryMock);
+
+        // Use Reflection to access the private method
+        $method = $class->getMethod('hasActiveGiftCardPayments');
+        $method->setAccessible(true);
+
+        // Call the private method with the required parameters
+        $result = $method->invoke($instance, '12345');
+
+        // Assert the expected result
+        $this->assertEquals([
+            ['merchant_reference' => '12345', 'result_code' => 'Authorised']
+        ], $result);
     }
 }
