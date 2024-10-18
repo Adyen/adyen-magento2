@@ -510,4 +510,42 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
             $this->orderMock
         );
     }
+
+    public function testLogsErrorAndReturnsFalseForUnknownResult()
+    {
+        // Arrange
+        $paymentsDetailsResponse = [
+            'merchantReference' => '00123456'
+        ];
+
+        // Mock the logger to expect an error to be logged
+        $this->adyenLoggerMock->expects($this->once())
+            ->method('error')
+            ->with($this->stringContains('Unexpected result query parameter. Response: ' . json_encode($paymentsDetailsResponse)));
+
+        // Act: Call the method that will trigger the unexpected result handling
+        $result = $this->paymentResponseHandler->handlePaymentsDetailsResponse($paymentsDetailsResponse, $this->orderMock);
+
+        // Assert: Ensure the method returned false
+        $this->assertFalse($result);
+    }
+
+    public function testOrderStatusUpdateWhenResponseIsValid()
+    {
+        $paymentsDetailsResponse = [
+            'merchantReference' => '00123456',
+            'resultCode' => 'AUTHORISED'
+        ];
+
+        $this->orderMock->expects($this->once())
+            ->method('getState')
+            ->willReturn('pending_payment');
+
+        // Mock the order repository to save the order
+        $this->orderRepositoryMock->expects($this->once())
+            ->method('save')
+            ->with($this->orderMock);
+
+        $this->paymentResponseHandler->handlePaymentsDetailsResponse($paymentsDetailsResponse, $this->orderMock);
+    }
 }
