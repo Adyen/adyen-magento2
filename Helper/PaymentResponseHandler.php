@@ -409,7 +409,7 @@ class PaymentResponseHandler
     }
 
     // Method to check for existing Gift Card payments
-    private function hasActiveGiftCardPayments($merchantReference)
+    public function hasActiveGiftCardPayments($merchantReference): array|string|null
     {
         $paymentResponseCollection = $this->paymentResponseCollectionFactory->create()
             ->addFieldToFilter('merchant_reference', $merchantReference)

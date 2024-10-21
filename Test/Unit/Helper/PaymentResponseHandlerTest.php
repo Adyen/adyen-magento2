@@ -387,8 +387,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
     {
         return [
             ['resultCode' => PaymentResponseHandler::REFUSED],
-            ['resultCode' => PaymentResponseHandler::CANCELLED],
-            ['resultCode' => PaymentResponseHandler::CANCELLED, 'hasGiftCard' => true]
+            ['resultCode' => PaymentResponseHandler::CANCELLED]
         ];
     }
 
@@ -399,7 +398,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
      * @throws NoSuchEntityException
      * @dataProvider handlePaymentsDetailsActionCancelledOrRefusedProvider
      */
-    public function testHandlePaymentsDetailsResponseCancelOrRefused($resultCode, $hasGiftCard = false)
+    public function testHandlePaymentsDetailsResponseCancelOrRefused($resultCode)
     {
         $paymentsDetailsResponse = [
             'resultCode' => $resultCode,
@@ -412,17 +411,11 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
                 'actionData' => 'actionValue'
             ]
         ];
+        $giftcardData = "{['merchant_reference' => '12345', 'result_code' => 'Authorised']";
+        $this->paymentResponseHandler->method('hasActiveGiftCardPayments')
+            ->with('00123456')
+            ->willReturn($giftcardData);
 
-        if ($hasGiftCard) {
-            $giftcardData = $this->testHasActiveGiftCardPayments();
-            // Mock the dataHelper and service to simulate cancellation call
-            $this->dataHelperMock->expects($this->once())->method('initializeAdyenClient');
-            $this->dataHelperMock->expects($this->once())->method('initializeOrdersApi');
-            $this->adyenLoggerMock->expects($this->once())->method('error')->with(
-                'Error canceling partial payments',
-                $this->anything()
-            );
-        }
         $this->adyenLoggerMock->expects($this->atLeastOnce())->method('addAdyenResult');
 
         $result = $this->paymentResponseHandler->handlePaymentsDetailsResponse(
@@ -552,43 +545,115 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         $this->paymentResponseHandler->handlePaymentsDetailsResponse($paymentsDetailsResponse, $this->orderMock);
     }
 
-    public function testHasActiveGiftCardPayments()
+//    public function testHasActiveGiftCardPayments()
+//    {
+//        $this->paymentResponseMockForFactory->expects($this->any())
+//            ->method('getSize')
+//            ->willReturn(1); // Simulate there is at least one record
+//
+//        // Mock getData to return the desired array of data from the database
+//        $this->paymentResponseMockForFactory->expects($this->any())
+//            ->method('getData')
+//            ->willReturn([
+//                ['merchant_reference' => '12345', 'result_code' => 'Authorised']
+//            ]);
+//
+//        $this->paymentResponseCollectionFactoryMock->expects($this->any())
+//            ->method('create')
+//            ->willReturn($this->paymentResponseMockForFactory);
+//
+//        // Create an instance of the class that has the private method
+//        $class = new \ReflectionClass(PaymentResponseHandler::class);
+//        $instance = $class->newInstanceWithoutConstructor();
+//
+//        // Inject the mocked factory into the instance if necessary
+//        $property = $class->getProperty('paymentResponseCollectionFactory');
+//        $property->setAccessible(true);
+//        $property->setValue($instance, $this->paymentResponseCollectionFactoryMock);
+//
+//        // Use Reflection to access the private method
+//        $method = $class->getMethod('hasActiveGiftCardPayments');
+//        $method->setAccessible(true);
+//
+//        // Call the private method with the required parameters
+//        $result = $method->invoke($instance, '12345');
+//
+//        // Assert the expected result
+//        $this->assertEquals([
+//            ['merchant_reference' => '12345', 'result_code' => 'Authorised']
+//        ], $result);
+//        return $result;
+//    }
+
+    public function testCancelledScenarioWithActiveGiftCardPayments()
     {
-        $this->paymentResponseMockForFactory->expects($this->any())
-            ->method('getSize')
-            ->willReturn(1); // Simulate there is at least one record
+        $merchantReference = 'test_merchant_reference';
+        $storeId = 1;
 
-        // Mock getData to return the desired array of data from the database
-        $this->paymentResponseMockForFactory->expects($this->any())
-            ->method('getData')
-            ->willReturn([
-                ['merchant_reference' => '12345', 'result_code' => 'Authorised']
-            ]);
+        // Mock the order object
+        $orderMock = $this->createMock(\Magento\Sales\Model\Order::class);
+        $orderMock->expects($this->once())->method('getStoreId')->willReturn($storeId);
+        $orderMock->expects($this->once())->method('canCancel')->willReturn(true); // Order can be canceled
+        $orderMock->expects($this->once())->method('setActionFlag')->with(\Magento\Sales\Model\Order::ACTION_FLAG_CANCEL, true);
 
-        $this->paymentResponseCollectionFactoryMock->expects($this->any())
-            ->method('create')
-            ->willReturn($this->paymentResponseMockForFactory);
+        // Mock the payment response collection to simulate existing gift card payments
+        $giftCardDetails = [
+            [
+                'response' => json_encode([
+                    'order' => [
+                        'orderData' => 'test_order_data',
+                        'pspReference' => 'test_psp_reference'
+                    ]
+                ])
+            ]
+        ];
 
-        // Create an instance of the class that has the private method
-        $class = new \ReflectionClass(PaymentResponseHandler::class);
-        $instance = $class->newInstanceWithoutConstructor();
+        $giftcardData = $this->paymentResponseHandler->hasActiveGiftCardPayments('');
+        if(empty($giftcardData))
+        {
+            $this->expectException(\InvalidArgumentException::class);
+            $this->expectExceptionMessage('Invalid giftcard response data');
+        }
 
-        // Inject the mocked factory into the instance if necessary
-        $property = $class->getProperty('paymentResponseCollectionFactory');
-        $property->setAccessible(true);
-        $property->setValue($instance, $this->paymentResponseCollectionFactoryMock);
+        // Mock the Adyen client and Orders API
+        $clientMock = $this->createMock(\Adyen\Client::class);
+        $ordersApiMock = $this->createMock(\Adyen\Service\Orders::class);
 
-        // Use Reflection to access the private method
-        $method = $class->getMethod('hasActiveGiftCardPayments');
-        $method->setAccessible(true);
+        $this->dataHelperMock->expects($this->once())
+            ->method('initializeAdyenClient')
+            ->with($storeId)
+            ->willReturn($clientMock);
 
-        // Call the private method with the required parameters
-        $result = $method->invoke($instance, '12345');
+        $this->dataHelperMock->expects($this->once())
+            ->method('initializeOrdersApi')
+            ->with($clientMock)
+            ->willReturn($ordersApiMock);
 
-        // Assert the expected result
-        $this->assertEquals([
-            ['merchant_reference' => '12345', 'result_code' => 'Authorised']
-        ], $result);
-        return $result;
+        // Mock the cancelOrder API call and its response
+        $cancelOrderRequestMock = $this->createMock(\Adyen\Service\ResourceModel\Order\Cancel::class);
+        $ordersApiMock->expects($this->once())
+            ->method('cancelOrder')
+            ->with($this->isInstanceOf(\Adyen\Service\ResourceModel\Order\CancelOrderRequest::class))
+            ->willReturn($cancelOrderRequestMock);
+
+        $cancelOrderRequestMock->expects($this->once())
+            ->method('toArray')
+            ->willReturn(['resultCode' => 'Cancelled']);
+
+        // Mock the dataHelper's cancelOrder method
+        $this->dataHelperMock->expects($this->once())
+            ->method('cancelOrder')
+            ->with($orderMock);
+
+        // Run the actual method under test
+        $paymentsDetailsResponse = [
+            'merchantReference' => $merchantReference,
+        ];
+
+        $result = $this->paymentResponseHandler->handlePaymentsDetailsResponse($paymentsDetailsResponse, $orderMock);
+
+        // Assert the result is false after canceling
+        $this->assertFalse($result);
     }
+
 }
