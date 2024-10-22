@@ -66,12 +66,9 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         $this->configHelperMock = $this->createMock(Config::class);
 
         $this->paymentResponseMockForFactory = $this->createMock(Collection::class);
-        // Mock PaymentResponseCollectionFactory to return the mocked collection
 
         $this->paymentResponseCollectionFactoryMock = $this->createMock(CollectionFactory::class);
-        $this->paymentResponseMockForFactory->expects($this->any())
-            ->method('addFieldToFilter')
-            ->willReturn($this->paymentResponseMockForFactory);
+
         $orderHistory = $this->createMock(History::class);
         $orderHistory->method('setStatus')->willReturnSelf();
         $orderHistory->method('setComment')->willReturnSelf();
@@ -410,6 +407,11 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
                 'actionData' => 'actionValue'
             ]
         ];
+
+        $this->paymentResponseMockForFactory->expects($this->any())
+            ->method('addFieldToFilter')
+            ->willReturn($this->paymentResponseMockForFactory);
+
         $this->paymentResponseMockForFactory->expects($this->any())
             ->method('getSize')
             ->willReturn(1); // Simulate there is at least one record
