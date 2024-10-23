@@ -45,7 +45,9 @@ define(
                 component.handleReject(response);
             },
             handleOnError:  function (error, component) {
-                console.log("onError:",error);
+                if ('test' === adyenConfiguration.getCheckoutEnvironment()) {
+                    console.log("onError:",error);
+                }
 
                 // call endpoint with component.paymentData if available
                 let request = {};

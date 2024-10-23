@@ -375,7 +375,6 @@ define(
 
                 try {
                     const orderId = await placeOrderAction(data, self.currentMessageContainer);
-                    //self.afterPlaceOrder();
                     const responseJSON = await adyenPaymentService.getOrderPaymentStatus(orderId);
                     self.validateActionOrPlaceOrder(responseJSON, orderId, component);
                 } catch (response) {
