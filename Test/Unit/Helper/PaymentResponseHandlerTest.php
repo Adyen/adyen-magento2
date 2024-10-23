@@ -452,6 +452,12 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         // Use Reflection to access the private method
         $method = $class->getMethod('hasActiveGiftCardPayments');
         $method->setAccessible(true);
+        $merchantAccount = 'mock_merchant_account';
+        $storeId = 1;
+        $this->configHelperMock
+            ->method('getAdyenAbstractConfigData')
+            ->with('merchant_account', $storeId)
+            ->willReturn($merchantAccount);
 
         $this->adyenLoggerMock->expects($this->atLeastOnce())->method('addAdyenResult');
 
