@@ -24,6 +24,7 @@ define(
     ) {
         return adyenPaymentMethod.extend({
             placeOrderButtonVisible: false,
+            token: null,
             initialize: function () {
                 this._super();
             },
