@@ -36,7 +36,7 @@ define(
             },
             renderActionComponent: function(resultCode, action, component) {
                 fullScreenLoader.stopLoader();
-                   this.token = action.sdkData.token;
+                this.token = action.sdkData.token;
                 this.actionComponent = component.handleAction(action);
             },
             handleOnFailure: function(response, component) {
