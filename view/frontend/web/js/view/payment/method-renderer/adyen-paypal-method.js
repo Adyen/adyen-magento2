@@ -59,7 +59,7 @@ define(
                 //Create details array for the payload
                 let details = {};
                 if(!!this.token) {
-                    details.orderID= this.token;
+                    details.orderID = this.token;
                 }
                 request.details = details;
 
