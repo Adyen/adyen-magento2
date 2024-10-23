@@ -57,7 +57,7 @@ define(
                 }
 
                 //Create details array for the payload
-                let details ={};
+                let details = {};
                 if(!!this.token) {
                     details.orderID= this.token;
                 }
