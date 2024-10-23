@@ -428,6 +428,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
                         "amount":{"currency":"EUR","value":5000},
                         "merchantReference":"123",
                         "order":{"amount":{"currency":"EUR","value":17800},"expiresAt":"2024-10-10T13:11:37Z",
+                        "orderData":"orderData....",
                         "pspReference":"XYZ654",
                         "reference":"123",
                         "remainingAmount":{"currency":"EUR","value":12800}},
@@ -439,6 +440,14 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         $this->paymentResponseCollectionFactoryMock->expects($this->any())
             ->method('create')
             ->willReturn($this->paymentResponseMockForFactory);
+
+        $merchantAccount = 'mock_merchant_account';
+        $storeId = 1;
+        $this->orderMock->expects($this->once())->method('getStoreId')->willReturn($storeId);
+        $this->configHelperMock->expects($this->any())
+            ->method('getAdyenAbstractConfigData')
+            ->with('merchant_account', $storeId)
+            ->willReturn($merchantAccount);
 
         // Create an instance of the class that has the private method
         $class = new \ReflectionClass(PaymentResponseHandler::class);
@@ -452,12 +461,11 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         // Use Reflection to access the private method
         $method = $class->getMethod('hasActiveGiftCardPayments');
         $method->setAccessible(true);
-        $merchantAccount = 'mock_merchant_account';
-        $storeId = 1;
-        $this->configHelperMock
-            ->method('getAdyenAbstractConfigData')
-            ->with('merchant_account', $storeId)
-            ->willReturn($merchantAccount);
+
+        // Mock order cancellation
+        $this->orderMock->expects($this->any())
+            ->method('canCancel')
+            ->willReturn(true);
 
         $this->adyenLoggerMock->expects($this->atLeastOnce())->method('addAdyenResult');
 
