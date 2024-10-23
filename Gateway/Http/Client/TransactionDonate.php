@@ -19,10 +19,9 @@ use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
 use Adyen\Service\Checkout\DonationsApi;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 
-class TransactionDonate implements ClientInterface
+class TransactionDonate extends BaseTransaction
 {
     /**
      * @var Client
@@ -32,7 +31,7 @@ class TransactionDonate implements ClientInterface
     /**
      * @var Data
      */
-    private Data $adyenHelper;
+    protected Data $adyenHelper;
 
     /**
      * @var Idempotency
@@ -49,9 +48,8 @@ class TransactionDonate implements ClientInterface
         Data $adyenHelper,
         Idempotency $idempotencyHelper
     ) {
-        $this->adyenHelper = $adyenHelper;
+        parent::__construct($adyenHelper);
         $this->idempotencyHelper = $idempotencyHelper;
-
         $this->client = $this->adyenHelper->initializeAdyenClient();
     }
 
@@ -63,17 +61,15 @@ class TransactionDonate implements ClientInterface
     public function placeRequest(TransferInterface $transferObject): array
     {
         $request = $transferObject->getBody();
-        $headers = $transferObject->getHeaders();
-
+        $requestOptions['headers'] = $this->requestHeaders($transferObject);
         $service = new DonationsApi($this->client);
 
         $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
             $request,
-            $headers['idempotencyExtraData'] ?? null
+            $requestOptions['headers']['idempotencyExtraData'] ?? null
         );
 
         $requestOptions['idempotencyKey'] = $idempotencyKey;
-        $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
         $request['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($this->client);
 
         $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, 'donations');

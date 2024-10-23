@@ -18,15 +18,14 @@ use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
 use Adyen\Service\Checkout\PaymentLinksApi;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 
-class TransactionPaymentLinks implements ClientInterface
+class TransactionPaymentLinks extends BaseTransaction
 {
     /**
      * @var Data
      */
-    private Data $adyenHelper;
+    protected Data $adyenHelper;
 
     /**
      * @var Idempotency
@@ -41,7 +40,7 @@ class TransactionPaymentLinks implements ClientInterface
         Data $adyenHelper,
         Idempotency $idempotencyHelper
     ) {
-        $this->adyenHelper = $adyenHelper;
+        parent::__construct($adyenHelper);
         $this->idempotencyHelper = $idempotencyHelper;
     }
 
@@ -54,9 +53,9 @@ class TransactionPaymentLinks implements ClientInterface
     public function placeRequest(TransferInterface $transferObject): array
     {
         $request = $transferObject->getBody();
-        $headers = $transferObject->getHeaders();
-        $clientConfig = $transferObject->getClientConfig();
+        $requestOptions['headers'] = $this->requestHeaders($transferObject);
 
+        $clientConfig = $transferObject->getClientConfig();
         $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
         $service = new PaymentLinksApi($client);
 
@@ -68,11 +67,11 @@ class TransactionPaymentLinks implements ClientInterface
 
         $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
             $request,
-            $headers['idempotencyExtraData'] ?? null
+            $requestOptions['headers']['idempotencyExtraData'] ?? null
         );
 
         $requestOptions['idempotencyKey'] = $idempotencyKey;
-        $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
+
         $request['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($client);
 
         $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/paymentLinks');

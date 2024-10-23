@@ -56,6 +56,7 @@ class PaymentDetailsTest extends AbstractAdyenTestCase
 
         $this->adyenHelperMock->method('initializeAdyenClient')->willReturn($this->adyenClientMock);
         $this->adyenHelperMock->method('initializePaymentsApi')->willReturn($this->paymentsApiMock);
+        $this->setUpAdyenHelperMockExpectations();
 
         $this->paymentDetails = new PaymentsDetails(
             $this->checkoutSessionMock,
@@ -63,6 +64,22 @@ class PaymentDetailsTest extends AbstractAdyenTestCase
             $this->adyenLoggerMock,
             $this->idempotencyHelperMock
         );
+
+    }
+
+    private function setUpAdyenHelperMockExpectations(): void
+    {
+        $this->adyenHelperMock->expects($this->once())
+            ->method('getMagentoDetails')
+            ->willReturn(['name' => 'Magento', 'version' => '2.x.x', 'edition' => 'Community']);
+
+        $this->adyenHelperMock->expects($this->once())
+            ->method('getModuleName')
+            ->willReturn('adyen-magento2');
+
+        $this->adyenHelperMock->expects($this->once())
+            ->method('getModuleVersion')
+            ->willReturn('1.2.3');
     }
 
     public function testInitiatePaymentDetailsSuccessfully()
@@ -80,12 +97,17 @@ class PaymentDetailsTest extends AbstractAdyenTestCase
 
         $requestOptions = [
             'idempotencyKey' => 'some_idempotency_key',
-            'headers' => ['headerKey' => 'headerValue']
+            'headers' => [
+                'external-platform-name' => 'Magento',
+                'external-platform-version' => '2.x.x',
+                'external-platform-edition' => 'Community',
+                'merchant-application-name' => 'adyen-magento2',
+                'merchant-application-version' => '1.2.3'
+            ]
         ];
 
         $paymentDetailsResult = ['resultCode' => 'Authorised'];
 
-        $this->adyenHelperMock->method('buildRequestHeaders')->willReturn($requestOptions['headers']);
         $this->idempotencyHelperMock->method('generateIdempotencyKey')->willReturn($requestOptions['idempotencyKey']);
 
         // testing cleanUpPaymentDetailsPayload() method
