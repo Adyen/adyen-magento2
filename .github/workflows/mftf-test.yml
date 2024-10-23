@@ -28,6 +28,8 @@ jobs:
       ADMIN_URLEXT: admin
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
 
       - name: Start services
         run: docker compose -f .github/docker-compose.yml -f .github/docker-compose.mftf.yml up -d
