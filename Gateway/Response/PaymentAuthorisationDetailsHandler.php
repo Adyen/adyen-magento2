@@ -11,17 +11,19 @@
 
 namespace Adyen\Payment\Gateway\Response;
 
+use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Response\HandlerInterface;
+use Magento\Sales\Api\Data\OrderPaymentInterface;
 
 class PaymentAuthorisationDetailsHandler implements HandlerInterface
 {
     /**
      * @param array $handlingSubject
-     * @param array $response
+     * @param array $responseCollection
      */
-    public function handle(array $handlingSubject, array $response)
+    public function handle(array $handlingSubject, array $responseCollection): void
     {
-        $payment = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
+        $payment = SubjectReader::readPayment($handlingSubject);
 
         /** @var OrderPaymentInterface $payment */
         $payment = $payment->getPayment();
@@ -32,12 +34,17 @@ class PaymentAuthorisationDetailsHandler implements HandlerInterface
         // no not send order confirmation mail
         $payment->getOrder()->setCanSendNewEmailFlag(false);
 
-        // set pspReference as transactionId
-        $payment->setCcTransId($response['pspReference']);
-        $payment->setLastTransId($response['pspReference']);
+        // for partial payments, non-giftcard payments will always be the last element in the collection
+        // for non-partial, there is only one response in the collection
+        $response = end($responseCollection);
+        if (!empty($response['pspReference'])) {
+            // set pspReference as transactionId
+            $payment->setCcTransId($response['pspReference']);
+            $payment->setLastTransId($response['pspReference']);
 
-        // set transaction
-        $payment->setTransactionId($response['pspReference']);
+            // set transaction
+            $payment->setTransactionId($response['pspReference']);
+        }
 
         // do not close transaction so you can do a cancel() and void
         $payment->setIsTransactionClosed(false);
