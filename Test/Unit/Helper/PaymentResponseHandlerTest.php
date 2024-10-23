@@ -420,7 +420,20 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         $this->paymentResponseMockForFactory->expects($this->any())
             ->method('getData')
             ->willReturn([
-                ['merchant_reference' => '12345', 'result_code' => 'Authorised']
+                [
+                    'merchant_reference' => '12345',
+                    'result_code' => 'Authorised',
+                    'response' => '{
+                        "additionalData":{"paymentMethod":"svs","merchantReference":"123","acquirerCode":"Test"},
+                        "amount":{"currency":"EUR","value":5000},
+                        "merchantReference":"123",
+                        "order":{"amount":{"currency":"EUR","value":17800},"expiresAt":"2024-10-10T13:11:37Z",
+                        "pspReference":"XYZ654",
+                        "reference":"123",
+                        "remainingAmount":{"currency":"EUR","value":12800}},
+                        "paymentMethod":{"brand":"svs","type":"giftcard"},
+                        "pspReference":"ABC123","resultCode":"Authorised"}'
+                ]
             ]);
 
         $this->paymentResponseCollectionFactoryMock->expects($this->any())
