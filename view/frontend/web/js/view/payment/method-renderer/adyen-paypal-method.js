@@ -54,13 +54,13 @@ define(
                 if (!!component.paymentData) {
                     request.paymentData = component.paymentData;
                 }
+
                 //Create details array for the payload
                 let details ={};
                 if(!!this.token) {
                     details.orderID= this.token;
                 }
                 request.details = details;
-                request.cancelled = true;
 
                 adyenPaymentService.paymentDetails(request, this.orderId).done(function() {
                     $.mage.redirect(
