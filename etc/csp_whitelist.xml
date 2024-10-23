@@ -4,26 +4,31 @@
         <policy id="script-src">
             <values>
                 <value id="adyen" type="host">*.adyen.com</value>
+                <value id="googlepay" type="host">pay.google.com</value>
             </values>
         </policy>
         <policy id="frame-src">
             <values>
                 <value id="adyen" type="host">*.adyen.com</value>
+                <value id="googlepay" type="host">pay.google.com</value>
             </values>
         </policy>
         <policy id="img-src">
             <values>
                 <value id="adyen" type="host">*.adyen.com</value>
+                <value id="googlepay" type="host">pay.google.com</value>
             </values>
         </policy>
         <policy id="connect-src">
             <values>
                 <value id="adyen" type="host">*.adyen.com</value>
+                <value id="googlepay" type="host">pay.google.com</value>
             </values>
         </policy>
         <policy id="form-action">
             <values>
                 <value id="adyen" type="host">*.adyen.com</value>
+                <value id="googlepay" type="host">pay.google.com</value>
             </values>
         </policy>
     </policies>
