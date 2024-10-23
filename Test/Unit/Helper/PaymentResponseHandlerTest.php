@@ -67,7 +67,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
 
         $this->paymentResponseMockForFactory = $this->createMock(Collection::class);
 
-        $this->paymentResponseCollectionFactoryMock = $this->createMock(CollectionFactory::class);
+        $this->paymentResponseCollectionFactoryMock = $this->createGeneratedMock(CollectionFactory::class, ['create']);
 
         $orderHistory = $this->createMock(History::class);
         $orderHistory->method('setStatus')->willReturnSelf();
