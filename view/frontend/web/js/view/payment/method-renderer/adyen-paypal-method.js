@@ -26,6 +26,7 @@ define(
     ) {
         return adyenPaymentMethod.extend({
             placeOrderButtonVisible: false,
+            token: null,
             initialize: function () {
                 this._super();
             },
@@ -58,9 +59,9 @@ define(
                 }
 
                 //Create details array for the payload
-                let details ={};
+                let details = {};
                 if(!!this.token) {
-                    details.orderID= this.token;
+                    details.orderID = this.token;
                 }
                 request.details = details;
 
