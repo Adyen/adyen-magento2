@@ -208,7 +208,7 @@ class Index extends Action
 
         foreach ($history as $status) {
             $comment = $status->getComment();
-            if (str_contains($comment, $pspReference) !== false) {
+            if (str_contains((string)$comment, $pspReference) !== false) {
                 return true;
             }
         }
