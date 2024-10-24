@@ -50,47 +50,8 @@ class Address
         $address,
         $houseNumberStreetLine,
         $customerStreetLinesEnabled
-    ): array {
-        if ($address instanceof AddressAdapterInterface) {
-            $addressArray = [
-                $address->getStreetLine1(),
-                $address->getStreetLine2(),
-                $address->getStreetLine3(),
-                $address->getStreetLine4()
-            ];
-        } elseif ($address instanceof CoreAddressAdapterInterface) {
-            $addressArray = [
-                $address->getStreetLine1(),
-                $address->getStreetLine2()
-            ];
-        } elseif ($address instanceof OrderAddressInterface) {
-            $addressArray = $address->getStreet();
-        } else {
-            $this->logger->warning(sprintf(
-                'Unknown address type %s passed to the getStreetAndHouseNumberFromAddress function',
-                get_class($address)
-            ));
-
-            $addressArray = [];
-        }
-
-        // Cap the full street to the enabled street lines
-        $street = array_slice($addressArray, 0, $customerStreetLinesEnabled);
-
-        $drawHouseNumberWithRegex =
-            $houseNumberStreetLine == 0 || // Config is disabled
-            $houseNumberStreetLine > $customerStreetLinesEnabled ||  // Not enough street lines enabled
-            empty($street[$houseNumberStreetLine - 1]);  // House number field is empty
-
-        if ($drawHouseNumberWithRegex) {
-            // Use the regex to get the house number
-            return $this->getStreetAndHouseNumberFromArray($street);
-        } else {
-            // Extract and remove the house number from the street name array
-            $houseNumber = $street[$houseNumberStreetLine - 1];
-            unset($street[$houseNumberStreetLine - 1]);
-            return $this->formatAddressArray(implode(' ', $street), $houseNumber);
-        }
+    ): bool {
+        return false;
     }
 
     /**
