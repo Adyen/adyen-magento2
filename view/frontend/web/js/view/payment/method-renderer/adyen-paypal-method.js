@@ -14,13 +14,15 @@ define(
         'Magento_Checkout/js/model/full-screen-loader',
         'Adyen_Payment/js/model/adyen-payment-service',
         'Magento_Checkout/js/model/error-processor',
+        'Adyen_Payment/js/model/adyen-configuration'
     ],
     function(
         quote,
         adyenPaymentMethod,
         fullScreenLoader,
         adyenPaymentService,
-        errorProcessor
+        errorProcessor,
+        adyenConfiguration
     ) {
         return adyenPaymentMethod.extend({
             placeOrderButtonVisible: false,
