@@ -24,7 +24,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
-          tools: composer:2
+          tools: composer:v2
 
       - name: Test plugin installation
         run: |
