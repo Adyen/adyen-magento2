@@ -433,7 +433,9 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
                         "reference":"123",
                         "remainingAmount":{"currency":"EUR","value":12800}},
                         "paymentMethod":{"brand":"svs","type":"giftcard"},
-                        "pspReference":"ABC123","resultCode":"Authorised"}'
+                        "pspReference":"ABC123",
+                        "resultCode":"Authorised"
+                      }'
                 ]
             ]);
 
