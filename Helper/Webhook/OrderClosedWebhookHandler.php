@@ -88,9 +88,9 @@ class OrderClosedWebhookHandler implements WebhookHandlerInterface
             foreach ($additionalData as $key => $value) {
                 // Check if the key matches the pattern "order-X-pspReference"
                 if (preg_match('/^order-(\d+)-pspReference$/', $key, $matches)) {
-                    $orderIndex = (int)$matches[1]; // Get the order number, e.g., 1, 2
+                    $orderIndex = (int)$matches[1];
                     $pspReference = $value;
-                    $sortValue = $orderIndex; // Set status based on order index
+                    $sortValue = $orderIndex;
 
                     // Retrieve adyen_order_payment for this pspReference
                     $adyenOrderPayment = $this->adyenOrderPaymentCollectionFactory->create()
