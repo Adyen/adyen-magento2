@@ -1,7 +1,7 @@
 version: '3'
 services:
   playwright:
-    image: mcr.microsoft.com/playwright:v1.47.2
+    image: mcr.microsoft.com/playwright:v1.48.2
     shm_size: 1gb
     ipc: host
     cap_add:
