@@ -80,14 +80,15 @@ class OrderClosedWebhookHandler implements WebhookHandlerInterface
         string $transitionState
     ): MagentoOrder {
         $additionalData = $notification->getAdditionalData();
-        if (is_string($additionalData)) {
+        if (!empty($additionalData)) {
             $additionalData = $this->serializer->unserialize($additionalData);
         }
+
         if ($notification->isSuccessful()) {
             foreach ($additionalData as $key => $value) {
                 // Check if the key matches the pattern "order-X-pspReference"
                 if (preg_match('/^order-(\d+)-pspReference$/', $key, $matches)) {
-                    $orderIndex = (int) $matches[1]; // Get the order number, e.g., 1, 2
+                    $orderIndex = (int)$matches[1]; // Get the order number, e.g., 1, 2
                     $pspReference = $value;
                     $sortValue = $orderIndex; // Set status based on order index
 
@@ -121,6 +122,7 @@ class OrderClosedWebhookHandler implements WebhookHandlerInterface
                     }
                 }
             }
+
             $order->addCommentToStatusHistory(__('This order has been successfully completed.'));
         } else {
             /** @var OrderPaymentInterface $orderPayment */

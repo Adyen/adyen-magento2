@@ -1,5 +1,6 @@
 <?php
 
+use Magento\Framework\Serialize\SerializerInterface;
 use PHPUnit\Framework\TestCase;
 use Adyen\Payment\Helper\Webhook\OrderClosedWebhookHandler;
 use Adyen\Payment\Helper\AdyenOrderPayment;
@@ -21,6 +22,7 @@ class OrderClosedWebhookHandlerTest extends TestCase
     private $configHelperMock;
     private $adyenLoggerMock;
     private $adyenOrderPaymentCollectionFactoryMock;
+    private $serializerMock;
 
     protected function setUp(): void
     {
@@ -29,13 +31,15 @@ class OrderClosedWebhookHandlerTest extends TestCase
         $this->configHelperMock = $this->createMock(Config::class);
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
         $this->adyenOrderPaymentCollectionFactoryMock = $this->createMock(OrderPaymentCollectionFactory::class);
+        $this->serializerMock = $this->createMock(SerializerInterface::class);
 
         $this->orderClosedWebhookHandler = new OrderClosedWebhookHandler(
             $this->adyenOrderPaymentHelperMock,
             $this->orderHelperMock,
             $this->configHelperMock,
             $this->adyenOrderPaymentCollectionFactoryMock,
-            $this->adyenLoggerMock
+            $this->adyenLoggerMock,
+            $this->serializerMock
         );
     }
 
@@ -43,21 +47,27 @@ class OrderClosedWebhookHandlerTest extends TestCase
     {
         $orderMock = $this->createMock(MagentoOrder::class);
         $notificationMock = $this->createMock(Notification::class);
-        //$adyenOrderPaymentMock = $this->createMock(OrderPaymentInterface::class);
         $adyenOrderPaymentMock = $this->createConfiguredMock(Order\Payment::class, [
             'getId' => 123
         ]);
         $adyenOrderPaymentCollectionMock = $this->createMock(\Magento\Framework\Data\Collection\AbstractDb::class);
-
+        $additionalDataString = 'a:1:{s:20:"order-1-pspReference";s:16:"testPspReference";}';
+        $additionalData = array (
+            'order-1-pspReference' => 'testPspReference',
+        );
         $notificationMock->expects($this->once())->method('isSuccessful')->willReturn(true);
-        $notificationMock->expects($this->once())->method('getAdditionalData')->willReturn(serialize(['order-1-pspReference' => 'testPspReference']));
+        $notificationMock->expects($this->once())->method('getAdditionalData')->willReturn($additionalDataString);
+        $this->serializerMock
+            ->method('unserialize')
+            ->with($additionalDataString)
+            ->willReturn($additionalData);
 
-        $adyenOrderPaymentCollectionMock->expects($this->once())->method('addFieldToFilter')->willReturnSelf();
-        $adyenOrderPaymentCollectionMock->expects($this->once())->method('getFirstItem')->willReturn($adyenOrderPaymentMock);
+        $adyenOrderPaymentCollectionMock->method('addFieldToFilter')->willReturnSelf();
+        $adyenOrderPaymentCollectionMock->method('getFirstItem')->willReturn($adyenOrderPaymentMock);
 
-        $this->adyenOrderPaymentCollectionFactoryMock->expects($this->once())->method('create')->willReturn($adyenOrderPaymentCollectionMock);
+        $this->adyenOrderPaymentCollectionFactoryMock->method('create')->willReturn($adyenOrderPaymentCollectionMock);
 
-        $this->adyenLoggerMock->expects($this->once())->method('addAdyenNotification')
+        $this->adyenLoggerMock->method('addAdyenNotification')
             ->with('Updated adyen_order_payment with order status 1 for pspReference testPspReference', [
                 'pspReference' => 'testPspReference',
                 'status' => 1,
