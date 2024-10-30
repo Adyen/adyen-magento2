@@ -20,6 +20,7 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as OrderPaymentCollectionFactory;
+use Magento\Framework\Serialize\SerializerInterface;
 
 class OrderClosedWebhookHandler implements WebhookHandlerInterface
 {
@@ -39,6 +40,11 @@ class OrderClosedWebhookHandler implements WebhookHandlerInterface
     private $adyenOrderPaymentCollectionFactory;
 
     /**
+     * @var SerializerInterface
+     */
+    private $serializer;
+
+    /**
      * @param AdyenOrderPayment $adyenOrderPayment
      * @param OrderHelper $orderHelper
      * @param Config $configHelper
@@ -50,13 +56,15 @@ class OrderClosedWebhookHandler implements WebhookHandlerInterface
         OrderHelper $orderHelper,
         Config $configHelper,
         OrderPaymentCollectionFactory $adyenOrderPaymentCollectionFactory,
-        AdyenLogger $adyenLogger
+        AdyenLogger $adyenLogger,
+        SerializerInterface $serializer
     ) {
         $this->adyenOrderPaymentHelper = $adyenOrderPayment;
         $this->orderHelper = $orderHelper;
         $this->configHelper = $configHelper;
         $this->adyenOrderPaymentCollectionFactory = $adyenOrderPaymentCollectionFactory;
         $this->adyenLogger = $adyenLogger;
+        $this->serializer = $serializer;
     }
 
     /**
@@ -73,7 +81,7 @@ class OrderClosedWebhookHandler implements WebhookHandlerInterface
     ): MagentoOrder {
         $additionalData = $notification->getAdditionalData();
         if (is_string($additionalData)) {
-            $additionalData = @unserialize($additionalData) ?: [];
+            $additionalData = $this->serializer->unserialize($additionalData);
         }
         if ($notification->isSuccessful()) {
             foreach ($additionalData as $key => $value) {
