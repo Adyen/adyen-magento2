@@ -1,4 +1,5 @@
 <?php
+namespace Adyen\Payment\Test\Unit\Helper;
 
 use Magento\Framework\Serialize\SerializerInterface;
 use PHPUnit\Framework\TestCase;
