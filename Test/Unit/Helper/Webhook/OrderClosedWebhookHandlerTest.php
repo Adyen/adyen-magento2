@@ -1,6 +1,7 @@
 <?php
 namespace Adyen\Payment\Test\Unit\Helper;
 
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Serialize\SerializerInterface;
 use PHPUnit\Framework\TestCase;
 use Adyen\Payment\Helper\Webhook\OrderClosedWebhookHandler;
@@ -15,7 +16,7 @@ use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface as MagentoOrderPaymentInterface;
 use Magento\Sales\Model\Order;
 
-class OrderClosedWebhookHandlerTest extends TestCase
+class OrderClosedWebhookHandlerTest extends AbstractAdyenTestCase
 {
     private $orderClosedWebhookHandler;
     private $adyenOrderPaymentHelperMock;
@@ -31,7 +32,7 @@ class OrderClosedWebhookHandlerTest extends TestCase
         $this->orderHelperMock = $this->createMock(OrderHelper::class);
         $this->configHelperMock = $this->createMock(Config::class);
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
-        $this->adyenOrderPaymentCollectionFactoryMock = $this->createMock(OrderPaymentCollectionFactory::class);
+        $this->adyenOrderPaymentCollectionFactoryMock = $this->createGeneratedMock(OrderPaymentCollectionFactory::class, ['create']);
         $this->serializerMock = $this->createMock(SerializerInterface::class);
 
         $this->orderClosedWebhookHandler = new OrderClosedWebhookHandler(
