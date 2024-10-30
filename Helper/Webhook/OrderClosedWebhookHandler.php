@@ -71,7 +71,48 @@ class OrderClosedWebhookHandler implements WebhookHandlerInterface
         Notification $notification,
         string $transitionState
     ): MagentoOrder {
+        $additionalData = $notification->getAdditionalData();
+        if (is_string($additionalData)) {
+            $additionalData = @unserialize($additionalData) ?: [];
+        }
         if ($notification->isSuccessful()) {
+            foreach ($additionalData as $key => $value) {
+                // Check if the key matches the pattern "order-X-pspReference"
+                if (preg_match('/^order-(\d+)-pspReference$/', $key, $matches)) {
+                    $orderIndex = (int) $matches[1]; // Get the order number, e.g., 1, 2
+                    $pspReference = $value;
+                    $sortValue = $orderIndex; // Set status based on order index
+
+                    // Retrieve adyen_order_payment for this pspReference
+                    $adyenOrderPayment = $this->adyenOrderPaymentCollectionFactory->create()
+                        ->addFieldToFilter('pspreference', $pspReference)
+                        ->getFirstItem();
+
+                    if ($adyenOrderPayment->getId()) {
+                        // Update the status with the order index
+                        $adyenOrderPayment->setSortOrder($sortValue);
+                        $adyenOrderPayment->save();
+
+                        $this->adyenLogger->addAdyenNotification(
+                            sprintf("Updated adyen_order_payment with order status %d for pspReference %s", $sortValue, $pspReference),
+                            [
+                                'pspReference' => $pspReference,
+                                'status' => $sortValue,
+                                'merchantReference' => $notification->getMerchantReference()
+                            ]
+                        );
+                    } else {
+                        // Log if no matching record was found for the given pspReference
+                        $this->adyenLogger->addAdyenNotification(
+                            sprintf("No adyen_order_payment record found for pspReference %s", $pspReference),
+                            [
+                                'pspReference' => $pspReference,
+                                'merchantReference' => $notification->getMerchantReference()
+                            ]
+                        );
+                    }
+                }
+            }
             $order->addCommentToStatusHistory(__('This order has been successfully completed.'));
         } else {
             /** @var OrderPaymentInterface $orderPayment */
