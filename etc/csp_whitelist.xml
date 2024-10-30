@@ -6,12 +6,21 @@
                 <value id="adyen" type="host">*.adyen.com</value>
                 <value id="googlepay" type="host">pay.google.com</value>
                 <value id="amazonpay" type="host">*.payments-amazon.com</value>
+                <value id="paypal" type="host">*.paypal.com</value>
+                <value id="ratepay" type="host">*.ratepay.com</value>
+                <value id="cashapp" type="host">*.cash.app</value>
+                <!-- Unsafe external resource required for Cash App Pay -->
+                <value id="amplitude" type="host">*.amplitude.com</value>
+                <!-- Unsafe external resource -->
+                <value id="sentry" type="host">*.sentry.io</value>
             </values>
         </policy>
         <policy id="frame-src">
             <values>
                 <value id="adyen" type="host">*.adyen.com</value>
                 <value id="googlepay" type="host">pay.google.com</value>
+                <value id="paypal" type="host">*.paypal.com</value>
+                <value id="cashapp" type="host">*.cash.app</value>
             </values>
         </policy>
         <policy id="img-src">
@@ -20,13 +29,21 @@
                 <value id="googlepay" type="host">pay.google.com</value>
                 <value id="amazonpay" type="host">*.payments-amazon.com</value>
                 <value id="amazonpay-media" type="host">*.media-amazon.com</value>
+                <value id="paypal-objects" type="host">*.paypalobjects.com</value>
+                <value id="cashapp" type="host">*.cash.app</value>
             </values>
         </policy>
         <policy id="connect-src">
             <values>
                 <value id="adyen" type="host">*.adyen.com</value>
-                <value id="googlepay" type="host">pay.google.com</value>
+                <value id="google-wc" type="host">*.google.com</value>
+                <value id="google" type="host">google.com</value>
                 <value id="amazonpay" type="host">payments-eu.amazon.com</value>
+                <value id="paypal" type="host">*.paypal.com</value>
+                <!-- Unsafe external resource required for Cash App Pay -->
+                <value id="amplitude" type="host">*.amplitude.com</value>
+                <!-- Unsafe external resource required for Cash App Pay -->
+                <value id="sentry" type="host">*.sentry.io</value>
             </values>
         </policy>
         <policy id="form-action">
@@ -35,6 +52,17 @@
                 <value id="googlepay" type="host">pay.google.com</value>
                 <value id="amazonpay-eu" type="host">payments-eu.amazon.com</value>
                 <value id="amazonpay-de" type="host">payments.amazon.de</value>
+            </values>
+        </policy>
+        <policy id="font-src">
+            <values>
+                <!-- Unsafe external resource required for Cash App Pay -->
+                <value id="squarecdn" type="host">*.squarecdn.com</value>
+            </values>
+        </policy>
+        <policy id="style-src">
+            <values>
+                <value id="cashapp" type="host">*.cash.app</value>
             </values>
         </policy>
     </policies>
