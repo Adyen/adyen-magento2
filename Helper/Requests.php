@@ -16,6 +16,7 @@ use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Util\Uuid;
 use Magento\Framework\App\Helper\AbstractHelper;
+use Magento\Framework\App\RequestInterface;
 
 class Requests extends AbstractHelper
 {
@@ -36,19 +37,22 @@ class Requests extends AbstractHelper
     private Address $addressHelper;
     private StateData $stateData;
     private Vault $vaultHelper;
+    private RequestInterface $request;
 
     public function __construct(
         Data $adyenHelper,
         Config $adyenConfig,
         Address $addressHelper,
         StateData $stateData,
-        Vault $vaultHelper
+        Vault $vaultHelper,
+        RequestInterface $request
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenConfig = $adyenConfig;
         $this->addressHelper = $addressHelper;
         $this->stateData = $stateData;
         $this->vaultHelper = $vaultHelper;
+        $this->request = $request;
     }
 
     /**
@@ -294,14 +298,17 @@ class Requests extends AbstractHelper
      * @param array $request
      * @return array
      */
-    public function buildBrowserData($request = [])
+    public function buildBrowserData(array $request = []): array
     {
-        if (!empty($_SERVER['HTTP_USER_AGENT'])) {
-            $request['browserInfo']['userAgent'] = $_SERVER['HTTP_USER_AGENT'];
+        $userAgent = $this->request->getServer('HTTP_USER_AGENT');
+        $acceptHeader = $this->request->getServer('HTTP_ACCEPT');
+
+        if (!empty($userAgent)) {
+            $request['browserInfo']['userAgent'] = $userAgent;
         }
 
-        if (!empty($_SERVER['HTTP_ACCEPT'])) {
-            $request['browserInfo']['acceptHeader'] = $_SERVER['HTTP_ACCEPT'];
+        if (!empty($acceptHeader)) {
+            $request['browserInfo']['acceptHeader'] = $acceptHeader;
         }
 
         return $request;

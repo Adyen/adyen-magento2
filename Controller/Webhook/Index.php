@@ -89,6 +89,8 @@ class Index extends Action
      */
     private $remoteAddress;
 
+    private $request;
+
     /**
      * Json constructor.
      *
@@ -114,7 +116,8 @@ class Index extends Action
         RateLimiter $rateLimiterHelper,
         HmacSignature $hmacSignature,
         NotificationReceiver $notificationReceiver,
-        RemoteAddress $remoteAddress
+        RemoteAddress $remoteAddress,
+        Http $request
     ) {
         parent::__construct($context);
         $this->notificationFactory = $notificationFactory;
@@ -127,6 +130,7 @@ class Index extends Action
         $this->hmacSignature = $hmacSignature;
         $this->notificationReceiver = $notificationReceiver;
         $this->remoteAddress = $remoteAddress;
+        $this->request = $request;
 
         // Fix for Magento2.3 adding isAjax to the request params
         if (interface_exists(CsrfAwareActionInterface::class)) {
@@ -376,36 +380,30 @@ class Index extends Action
      */
     private function fixCgiHttpAuthentication()
     {
-        // do nothing if values are already there
-        if (!empty($_SERVER['PHP_AUTH_USER']) && !empty($_SERVER['PHP_AUTH_PW'])) {
+        if ($this->request->getServer('PHP_AUTH_USER') && $this->request->getServer('PHP_AUTH_PW')) {
             return;
-        } elseif (isset($_SERVER['REDIRECT_REMOTE_AUTHORIZATION']) &&
-            $_SERVER['REDIRECT_REMOTE_AUTHORIZATION'] != ''
-        ) {
-            list(
-                $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']
-                ) =
-                explode(':', base64_decode((string) $_SERVER['REDIRECT_REMOTE_AUTHORIZATION']), 2);
-        } elseif (!empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
-            list(
-                $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']
-                ) =
-                explode(':', base64_decode(substr((string) $_SERVER['REDIRECT_HTTP_AUTHORIZATION'], 6)), 2);
-        } elseif (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
-            list(
-                $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']
-                ) =
-                explode(':', base64_decode(substr((string) $_SERVER['HTTP_AUTHORIZATION'], 6)), 2);
-        } elseif (!empty($_SERVER['REMOTE_USER'])) {
-            list(
-                $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']
-                ) =
-                explode(':', base64_decode(substr((string) $_SERVER['REMOTE_USER'], 6)), 2);
-        } elseif (!empty($_SERVER['REDIRECT_REMOTE_USER'])) {
-            list(
-                $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']
-                ) =
-                explode(':', base64_decode(substr((string) $_SERVER['REDIRECT_REMOTE_USER'], 6)), 2);
+        }
+
+        $authorizationHeaders = [
+            'REDIRECT_REMOTE_AUTHORIZATION',
+            'REDIRECT_HTTP_AUTHORIZATION',
+            'HTTP_AUTHORIZATION',
+            'REMOTE_USER',
+            'REDIRECT_REMOTE_USER'
+        ];
+
+        foreach ($authorizationHeaders as $header) {
+            $authHeader = $this->request->getServer($header);
+
+            if ($authHeader) {
+                list(
+                    $phpAuthUser, $phpAuthPw
+                    ) = explode(':', base64_decode(substr($authHeader, 6)), 2);
+
+                $this->request->setServer('PHP_AUTH_USER', $phpAuthUser);
+                $this->request->setServer('PHP_AUTH_PW', $phpAuthPw);
+                return;
+            }
         }
     }
 
