@@ -12,6 +12,7 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Webhook\Receiver\HmacSignature;
 use Adyen\Webhook\Receiver\NotificationReceiver;
+use Magento\Framework\App\Request\Http as Http;
 use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\RequestInterface;
@@ -120,6 +121,10 @@ class IndexTest extends AbstractAdyenTestCase
             ->disableOriginalConstructor()
             ->getMock();
 
+        $this->request = $this->getMockBuilder(Http::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
 
         $this->contextMock->method('getRequest')->willReturn($this->requestMock);
         $this->contextMock->method('getResponse')->willReturn($this->responseMock);
@@ -136,7 +141,8 @@ class IndexTest extends AbstractAdyenTestCase
             $this->rateLimiterHelperMock,
             $this->hmacSignatureMock,
             $this->notificationReceiverMock,
-            $this->remoteAddressMock
+            $this->remoteAddressMock,
+            $this->request
         );
     }
 

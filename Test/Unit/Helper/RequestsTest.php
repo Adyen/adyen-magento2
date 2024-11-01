@@ -5,13 +5,13 @@ namespace Adyen\Payment\Test\Unit\Helper;
 use Adyen\Payment\Helper\Address;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
-use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\Requests;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
+use Magento\Framework\App\RequestInterface;
 
 class RequestsTest extends AbstractAdyenTestCase
 {
@@ -76,7 +76,8 @@ class RequestsTest extends AbstractAdyenTestCase
             $configHelperMock,
             $this->createMock(Address::class),
             $stateDataMock,
-            $vaultHelperMock
+            $vaultHelperMock,
+            $this->createMock(RequestInterface::class)
         );
 
         $orderMock = $this->createConfiguredMock(Order::class, [
