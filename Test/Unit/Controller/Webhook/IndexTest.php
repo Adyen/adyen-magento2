@@ -6,158 +6,134 @@ use Adyen\Payment\Controller\Webhook\Index;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\IpAddress;
-use Adyen\Payment\Model\NotificationFactory;
 use Adyen\Payment\Helper\RateLimiter;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
+use Adyen\Payment\Model\NotificationFactory;
 use Adyen\Webhook\Receiver\HmacSignature;
 use Adyen\Webhook\Receiver\NotificationReceiver;
+use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\Request\Http as Http;
 use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
-use Magento\Framework\App\Action\Context;
-use Magento\Framework\App\RequestInterface;
-use Magento\Framework\App\ResponseInterface;
-use Magento\Framework\Controller\Result\Json;
-use Magento\Framework\Controller\Result\JsonFactory;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\SerializerInterface;
-use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Magento\Framework\App\ResponseInterface;
+use PHPUnit\Framework\TestCase;
 
-class IndexTest extends AbstractAdyenTestCase
+class IndexTest extends TestCase
 {
-    /**
-     * @var Context|\PHPUnit\Framework\MockObject\MockObject
-     */
+    private $controller;
     private $contextMock;
-
-    /**
-     * @var RequestInterface|\PHPUnit\Framework\MockObject\MockObject
-     */
     private $requestMock;
-
-    /**
-     * @var ResponseInterface|\PHPUnit\Framework\MockObject\MockObject
-     */
     private $responseMock;
-
-    /**
-     * @var JsonFactory|\PHPUnit\Framework\MockObject\MockObject
-     */
-    private $resultJsonFactoryMock;
-
-    /**
-     * @var Json|\PHPUnit\Framework\MockObject\MockObject
-     */
-    private $resultJsonMock;
-
-    /**
-     * @var Data|\PHPUnit\Framework\MockObject\MockObject
-     */
+    private $notificationFactoryMock;
     private $adyenHelperMock;
-
-    /**
-     * @var NotificationFactory|\PHPUnit\Framework\MockObject\MockObject
-     */
-    private $notificationHelperMock;
-
-    /**
-     * @var SerializerInterface|\PHPUnit\Framework\MockObject\MockObject
-     */
-    private $serializerMock;
-
-    /**
-     * @var AdyenLogger|\PHPUnit\Framework\MockObject\MockObject
-     */
     private $adyenLoggerMock;
-
-    /**
-     * @var Index
-     */
-    private $indexController;
+    private $serializerMock;
+    private $configHelperMock;
+    private $ipAddressHelperMock;
+    private $rateLimiterMock;
+    private $hmacSignatureMock;
+    private $notificationReceiverMock;
+    private $remoteAddressMock;
 
     protected function setUp(): void
     {
-        $this->contextMock = $this->getMockBuilder(Context::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->requestMock = $this->getMockBuilder(RequestInterface::class)
-            ->getMockForAbstractClass();
-        $this->responseMock = $this->getMockBuilder(ResponseInterface::class)
-            ->getMockForAbstractClass();
-        $this->resultJsonFactoryMock = $this->getMockBuilder(JsonFactory::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->resultJsonMock = $this->getMockBuilder(Json::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->adyenHelperMock = $this->getMockBuilder(Data::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->notificationHelperMock = $this->createGeneratedMock(NotificationFactory::class, [
-            'create'
-        ]);
-        $this->serializerMock = $this->getMockBuilder(SerializerInterface::class)
-            ->getMockForAbstractClass();
-        $this->adyenLoggerMock = $this->getMockBuilder(AdyenLogger::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->ipAddressHelperMock = $this->getMockBuilder(IpAddress::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->configHelperMock = $this->getMockBuilder(Config::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $this->rateLimiterHelperMock = $this->getMockBuilder(RateLimiter::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->hmacSignatureMock = $this->getMockBuilder(HmacSignature::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->notificationReceiverMock = $this->getMockBuilder(NotificationReceiver::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $this->remoteAddressMock = $this->getMockBuilder(RemoteAddress::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $this->request = $this->getMockBuilder(Http::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
+        $this->contextMock = $this->createMock(Context::class);
+        $this->requestMock = $this->createMock(Http::class);
+        $this->responseMock = $this->createMock(ResponseInterface::class);
+        $this->notificationFactoryMock = $this->createMock(NotificationFactory::class);
+        $this->adyenHelperMock = $this->createMock(Data::class);
+        $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
+        $this->serializerMock = $this->createMock(SerializerInterface::class);
+        $this->configHelperMock = $this->createMock(Config::class);
+        $this->ipAddressHelperMock = $this->createMock(IpAddress::class);
+        $this->rateLimiterMock = $this->createMock(RateLimiter::class);
+        $this->hmacSignatureMock = $this->createMock(HmacSignature::class);
+        $this->notificationReceiverMock = $this->createMock(NotificationReceiver::class);
+        $this->remoteAddressMock = $this->createMock(RemoteAddress::class);
 
         $this->contextMock->method('getRequest')->willReturn($this->requestMock);
         $this->contextMock->method('getResponse')->willReturn($this->responseMock);
-        $this->resultJsonFactoryMock->method('create')->willReturn($this->resultJsonMock);
 
-        $this->indexController = new Index(
+        $this->controller = new Index(
             $this->contextMock,
-            $this->notificationHelperMock,
+            $this->notificationFactoryMock,
             $this->adyenHelperMock,
             $this->adyenLoggerMock,
             $this->serializerMock,
             $this->configHelperMock,
             $this->ipAddressHelperMock,
-            $this->rateLimiterHelperMock,
+            $this->rateLimiterMock,
             $this->hmacSignatureMock,
             $this->notificationReceiverMock,
             $this->remoteAddressMock,
-            $this->request
+            $this->requestMock
         );
     }
 
-    public function testLoadNotificationFromRequest()
+    public function testExecuteWithInvalidNotificationMode()
     {
-        $notificationMock = $this->getMockBuilder(Notification::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $notificationMock->expects($this->once())->method('setCreatedAt');
-        $notificationMock->expects($this->once())->method('setUpdatedAt');
-        $this->invokeMethod(
-            $this->indexController,
-            'loadNotificationFromRequest',
-            [$notificationMock, []]
-        );
+        $this->requestMock->method('getContent')->willReturn(json_encode([
+            'live' => 'invalid_mode',
+            'notificationItems' => []
+        ]));
 
+        $this->notificationReceiverMock->method('validateNotificationMode')->willReturn(false);
+
+        $this->expectException(LocalizedException::class);
+        $this->controller->execute();
+    }
+
+    public function testExecuteWithUnauthorizedRequest()
+    {
+        $this->requestMock->method('getContent')->willReturn(json_encode([
+            'live' => 'true',
+            'notificationItems' => [
+                ['NotificationRequestItem' => ['pspReference' => 'test_psp']]
+            ]
+        ]));
+
+        $this->notificationReceiverMock->method('validateNotificationMode')->willReturn(true);
+        $this->controller->execute();
+
+        $this->responseMock->expects($this->once())
+            ->method('setHttpResponseCode')
+            ->with(401);
+    }
+
+    public function testExecuteWithValidNotification()
+    {
+        $this->requestMock->method('getContent')->willReturn(json_encode([
+            'live' => 'true',
+            'notificationItems' => [
+                ['NotificationRequestItem' => [
+                    'pspReference' => 'test_psp',
+                    'merchantReference' => 'test_merchant',
+                    'eventCode' => 'AUTHORISATION',
+                    'success' => 'true',
+                    'amount' => ['value' => 1000, 'currency' => 'EUR'],
+                    'additionalData' => []
+                ]]
+            ]
+        ]));
+
+        $this->notificationReceiverMock->method('validateNotificationMode')->willReturn(true);
+        $this->notificationReceiverMock->method('isAuthenticated')->willReturn(true);
+        $this->ipAddressHelperMock->method('isIpAddressValid')->willReturn(true);
+        $this->hmacSignatureMock->method('isHmacSupportedEventCode')->willReturn(true);
+        $this->notificationReceiverMock->method('validateHmac')->willReturn(true);
+
+        $notificationMock = $this->createMock(Notification::class);
+        $notificationMock->expects($this->once())->method('setLive')->with('true');
+        $notificationMock->expects($this->once())->method('save');
+
+        $this->notificationFactoryMock->method('create')->willReturn($notificationMock);
+
+        $this->controller->execute();
+
+        $this->responseMock->expects($this->never())
+            ->method('setHttpResponseCode')
+            ->with(401);
     }
 }

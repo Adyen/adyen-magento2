@@ -54,6 +54,33 @@ class RequestsTest extends AbstractAdyenTestCase
         $this->assertEquals(Vault::SUBSCRIPTION, $request['recurringProcessingModel']);
     }
 
+    public function testBuildCardRecurringStorePaymentMethodFalse(): void
+    {
+        $this->setMockObjects(['storePaymentMethod' => false], false, Vault::SUBSCRIPTION);
+        $request = $this->sut->buildCardRecurringData(1, $this->paymentMock);
+
+        $this->assertArrayNotHasKey('storePaymentMethod', $request);
+        $this->assertArrayNotHasKey('recurringProcessingModel', $request);
+    }
+
+    public function testBuildCardRecurringNoRecurringProcessingModel(): void
+    {
+        $this->setMockObjects(['storePaymentMethod' => true], true, '');
+        $request = $this->sut->buildCardRecurringData(1, $this->paymentMock);
+
+        $this->assertTrue($request['storePaymentMethod']);
+        $this->assertArrayNotHasKey('recurringProcessingModel', $request);
+    }
+
+    public function testBuildCardRecurringWithEmptyStateData(): void
+    {
+        $this->setMockObjects([], true, Vault::SUBSCRIPTION);
+        $request = $this->sut->buildCardRecurringData(1, $this->paymentMock);
+
+        $this->assertArrayNotHasKey('storePaymentMethod', $request);
+        $this->assertArrayNotHasKey('recurringProcessingModel', $request);
+    }
+
     private function setMockObjects(array $stateDataArray, bool $vaultEnabled, string $tokenType): void
     {
         $stateDataMock = $this->createConfiguredMock(StateData::class, [
