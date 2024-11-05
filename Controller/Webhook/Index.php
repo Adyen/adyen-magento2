@@ -89,7 +89,7 @@ class Index extends Action
      */
     private $remoteAddress;
 
-    private $request;
+    private Http $request;
 
     /**
      * Json constructor.
@@ -400,8 +400,9 @@ class Index extends Action
                     $phpAuthUser, $phpAuthPw
                     ) = explode(':', base64_decode(substr($authHeader, 6)), 2);
 
-                $this->request->setServer('PHP_AUTH_USER', $phpAuthUser);
-                $this->request->setServer('PHP_AUTH_PW', $phpAuthPw);
+                $params = $this->request->getServer();
+                $params->set('PHP_AUTH_USER', $phpAuthUser);
+                $params->set('PHP_AUTH_PW', $phpAuthPw);
                 return;
             }
         }

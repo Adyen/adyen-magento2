@@ -157,6 +157,40 @@ class IndexTest extends AbstractAdyenTestCase
             'loadNotificationFromRequest',
             [$notificationMock, []]
         );
-
     }
+
+    public function testFixCgiHttpAuthenticationWithExistingAuthUser()
+    {
+        // Mock the scenario where PHP_AUTH_USER and PHP_AUTH_PW are set
+        $this->httpMock->method('getServer')
+            ->will($this->returnCallback(function ($header) {
+                if ($header === 'PHP_AUTH_USER') {
+                    return 'user';
+                } elseif ($header === 'PHP_AUTH_PW') {
+                    return 'password';
+                }
+                return null; // Return null for all other headers
+            }));
+
+        // Call the private method
+        $this->invokeMethod($this->indexController, 'fixCgiHttpAuthentication');
+
+        // No assertion needed, just ensuring no exception is thrown
+        $this->assertTrue(true);
+    }
+
+    public function testFixCgiHttpAuthenticationWithNoAuthHeaders()
+    {
+        // Mock all relevant server variables to return null
+        $this->httpMock->method('getServer')
+            ->will($this->returnValue(null)); // All headers return null
+
+        // Call the private method
+        $this->invokeMethod($this->indexController, 'fixCgiHttpAuthentication');
+
+        // No assertion needed, just ensuring no exception is thrown
+        $this->assertTrue(true);
+    }
+
+
 }
