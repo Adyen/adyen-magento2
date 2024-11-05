@@ -12,14 +12,12 @@ define(
         'Magento_Checkout/js/model/quote',
         'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-method',
         'Adyen_Payment/js/model/adyen-checkout',
-        'Adyen_Payment/js/model/adyen-payment-service',
         'mage/url'
     ],
     function(
         quote,
         adyenPaymentMethod,
         adyenCheckout,
-        adyenPaymentService,
         urlBuilder
     ) {
         const amazonSessionKey = 'amazonCheckoutSessionId';
@@ -160,8 +158,7 @@ define(
                 const checkoutPaymentUrl = "checkout/#payment";
                 window.history.pushState({}, document.title, "/" + checkoutPaymentUrl);
 
-                const paymentMethodsResponse = adyenPaymentService.getPaymentMethods();
-                this.createCheckoutComponent(paymentMethodsResponse());
+                this.createCheckoutComponent(true);
             }
         })
     }

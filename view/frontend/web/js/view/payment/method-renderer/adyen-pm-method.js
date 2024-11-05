@@ -128,8 +128,8 @@ define(
             },
 
             // Build AdyenCheckout library and creates the payment method component
-            createCheckoutComponent: async function() {
-                if (!this.checkoutComponent) {
+            createCheckoutComponent: async function(forceCreate = false) {
+                if (!this.checkoutComponent || forceCreate) {
                     const paymentMethodsResponse = adyenPaymentService.getPaymentMethods();
 
                     this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
@@ -276,12 +276,6 @@ define(
                     paymentComponentStates().setIsPlaceOrderAllowed(self.getMethodCode(), true);
                     self.showErrorMessage(response);
                 });
-            },
-
-            handleOnFailure: function(response, component) {
-                paymentComponentStates().setIsPlaceOrderAllowed(this.getMethodCode(), true);
-                fullScreenLoader.stopLoader();
-                errorProcessor.process(response, this.currentMessageContainer);
             },
 
             placeOrder: function() {
