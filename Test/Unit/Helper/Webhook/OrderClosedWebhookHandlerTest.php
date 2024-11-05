@@ -28,13 +28,19 @@ class OrderClosedWebhookHandlerTest extends AbstractAdyenTestCase
 
     protected function setUp(): void
     {
+        $this->orderMock = $this->createMock(MagentoOrder::class);
+        $this->notificationMock = $this->createMock(Notification::class);
+        $this->adyenOrderPaymentCollectionMock = $this->createMock(\Magento\Framework\Data\Collection\AbstractDb::class);
         $this->adyenOrderPaymentHelperMock = $this->createMock(AdyenOrderPayment::class);
         $this->orderHelperMock = $this->createMock(OrderHelper::class);
         $this->configHelperMock = $this->createMock(Config::class);
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
         $this->adyenOrderPaymentCollectionFactoryMock = $this->createGeneratedMock(OrderPaymentCollectionFactory::class, ['create']);
+        $this->adyenOrderPaymentMock = $this->createConfiguredMock(Order\Payment::class, [
+            'getId' => 123
+        ]);
         $this->serializerMock = $this->createMock(SerializerInterface::class);
-
+        $this->adyenOrderPaymentInterfaceMock = $this->createMock(OrderPaymentInterface::class);
         $this->orderClosedWebhookHandler = new OrderClosedWebhookHandler(
             $this->adyenOrderPaymentHelperMock,
             $this->orderHelperMock,
@@ -47,78 +53,116 @@ class OrderClosedWebhookHandlerTest extends AbstractAdyenTestCase
 
     public function testHandleWebhookSuccessfulNotificationWithMatchingAdyenOrderPayment()
     {
-        $orderMock = $this->createMock(MagentoOrder::class);
-        $notificationMock = $this->createMock(Notification::class);
-        $adyenOrderPaymentMock = $this->createConfiguredMock(Order\Payment::class, [
-            'getId' => 123
-        ]);
-        $adyenOrderPaymentCollectionMock = $this->createMock(\Magento\Framework\Data\Collection\AbstractDb::class);
         $additionalDataString = 'a:1:{s:20:"order-1-pspReference";s:16:"testPspReference";}';
         $additionalData = array (
             'order-1-pspReference' => 'testPspReference',
         );
-        $notificationMock->expects($this->once())->method('isSuccessful')->willReturn(true);
-        $notificationMock->expects($this->once())->method('getAdditionalData')->willReturn($additionalDataString);
+        $this->notificationMock->expects($this->once())->method('isSuccessful')->willReturn(true);
+        $this->notificationMock->expects($this->once())->method('getAdditionalData')->willReturn($additionalDataString);
         $this->serializerMock
             ->method('unserialize')
             ->with($additionalDataString)
             ->willReturn($additionalData);
 
-        $adyenOrderPaymentCollectionMock->method('addFieldToFilter')->willReturnSelf();
-        $adyenOrderPaymentCollectionMock->method('getFirstItem')->willReturn($adyenOrderPaymentMock);
+        $this->adyenOrderPaymentCollectionMock->method('addFieldToFilter')->willReturnSelf();
+        $this->adyenOrderPaymentCollectionMock->method('getFirstItem')->willReturn($this->adyenOrderPaymentMock);
 
-        $this->adyenOrderPaymentCollectionFactoryMock->method('create')->willReturn($adyenOrderPaymentCollectionMock);
+        $this->adyenOrderPaymentCollectionFactoryMock->method('create')->willReturn($this->adyenOrderPaymentCollectionMock);
 
         $this->adyenLoggerMock->method('addAdyenNotification')
             ->with('Updated adyen_order_payment with order status 1 for pspReference testPspReference', [
                 'pspReference' => 'testPspReference',
                 'status' => 1,
-                'merchantReference' => $notificationMock->getMerchantReference()
+                'merchantReference' => $this->notificationMock->getMerchantReference()
             ]);
 
-        $orderMock->expects($this->once())->method('addCommentToStatusHistory')
+        $this->orderMock->expects($this->once())->method('addCommentToStatusHistory')
             ->with(__('This order has been successfully completed.'));
 
-        $result = $this->orderClosedWebhookHandler->handleWebhook($orderMock, $notificationMock, 'completed');
-        $this->assertSame($orderMock, $result);
+        $result = $this->orderClosedWebhookHandler->handleWebhook($this->orderMock, $this->notificationMock, 'completed');
+        $this->assertSame($this->orderMock, $result);
     }
 
     public function testHandleWebhookUnsuccessfulNotificationWithRefund()
     {
-        $orderMock = $this->createMock(MagentoOrder::class);
-        $notificationMock = $this->createMock(Notification::class);
-        $adyenOrderPaymentMock = $this->createMock(OrderPaymentInterface::class);
-        $adyenOrderPaymentCollectionMock = $this->createMock(\Magento\Framework\Data\Collection\AbstractDb::class);
+        $this->notificationMock->expects($this->once())->method('isSuccessful')->willReturn(false);
 
-        $notificationMock->expects($this->once())->method('isSuccessful')->willReturn(false);
-
-        $orderMock->expects($this->once())->method('getPayment')->willReturn(
+        $this->orderMock->expects($this->once())->method('getPayment')->willReturn(
             $this->createConfiguredMock(MagentoOrderPaymentInterface::class, ['getEntityId' => 123])
         );
 
-        $adyenOrderPaymentCollectionMock->method('addFieldToFilter')
+        $this->adyenOrderPaymentCollectionMock->method('addFieldToFilter')
             ->willReturnSelf();
 
-        $adyenOrderPaymentCollectionMock->expects($this->once())->method('getItems')->willReturn([$adyenOrderPaymentMock]);
+        $this->adyenOrderPaymentCollectionMock->expects($this->once())->method('getItems')->willReturn([$this->adyenOrderPaymentInterfaceMock]);
 
-        $this->adyenOrderPaymentCollectionFactoryMock->expects($this->once())->method('create')->willReturn($adyenOrderPaymentCollectionMock);
+        $this->adyenOrderPaymentCollectionFactoryMock->expects($this->once())->method('create')->willReturn($this->adyenOrderPaymentCollectionMock);
 
-        $this->adyenOrderPaymentHelperMock->expects($this->once())->method('refundFullyAdyenOrderPayment')->with($adyenOrderPaymentMock);
+        $this->adyenOrderPaymentHelperMock->expects($this->once())->method('refundFullyAdyenOrderPayment')->with($this->adyenOrderPaymentInterfaceMock);
 
-        $orderMock->expects($this->once())->method('addCommentToStatusHistory')
+        $this->orderMock->expects($this->once())->method('addCommentToStatusHistory')
             ->with(__('All the funds captured/settled will be refunded by Adyen.'));
 
         $this->adyenLoggerMock->expects($this->once())->method('addAdyenNotification')
             ->with('All the funds captured/settled will be refunded by Adyen.', [
-                'pspReference' => $notificationMock->getPspreference(),
-                'merchantReference' => $notificationMock->getMerchantReference()
+                'pspReference' => $this->notificationMock->getPspreference(),
+                'merchantReference' => $this->notificationMock->getMerchantReference()
             ]);
 
-        $this->orderHelperMock->method('holdCancelOrder')->with($orderMock, true);
+        $this->orderHelperMock->method('holdCancelOrder')->with($this->orderMock, true);
 
-        $this->configHelperMock->method('getNotificationsCanCancel')->with($orderMock->getStoreId())->willReturn(true);
+        $this->configHelperMock->method('getNotificationsCanCancel')->with($this->orderMock->getStoreId())->willReturn(true);
 
-        $result = $this->orderClosedWebhookHandler->handleWebhook($orderMock, $notificationMock, 'completed');
-        $this->assertSame($orderMock, $result);
+        $result = $this->orderClosedWebhookHandler->handleWebhook($this->orderMock, $this->notificationMock, 'completed');
+        $this->assertSame($this->orderMock, $result);
+    }
+
+    public function testHandleWebhookLogsMessageWhenNoMatchingRecordFound(): void
+    {
+        $pspReference = 'testPspReference';
+        $merchantReference = 'testMerchantReference';
+        $additionalData = [
+            'order-1-pspReference' => $pspReference,
+        ];
+        $adyenOrderPaymentMock = $this->createConfiguredMock(Order\Payment::class, [
+            'getId' => null
+        ]);
+
+        $this->notificationMock->expects($this->once())
+            ->method('getAdditionalData')
+            ->willReturn(json_encode($additionalData));
+        $this->notificationMock->expects($this->once())
+            ->method('isSuccessful')
+            ->willReturn(true);
+        $this->notificationMock->expects($this->once())
+            ->method('getMerchantReference')
+            ->willReturn($merchantReference);
+
+        $this->serializerMock->expects($this->once())
+            ->method('unserialize')
+            ->with(json_encode($additionalData))
+            ->willReturn($additionalData);
+
+        $this->adyenOrderPaymentCollectionFactoryMock->expects($this->once())->method('create')->willReturn($this->adyenOrderPaymentCollectionMock);
+
+        $this->adyenOrderPaymentCollectionMock
+            ->method('addFieldToFilter')
+            ->willReturnSelf();
+        $this->adyenOrderPaymentCollectionMock->expects($this->once())
+            ->method('getFirstItem')
+            ->willReturn($adyenOrderPaymentMock);
+
+        // Log message assertion
+        $this->adyenLoggerMock->expects($this->once())
+            ->method('addAdyenNotification')
+            ->with(
+                sprintf("No adyen_order_payment record found for pspReference %s", $pspReference),
+                [
+                    'pspReference' => $pspReference,
+                    'merchantReference' => $merchantReference
+                ]
+            );
+
+        $this->orderClosedWebhookHandler->handleWebhook($this->orderMock, $this->notificationMock, 'someTransitionState');
     }
 }
