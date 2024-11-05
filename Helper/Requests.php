@@ -16,7 +16,7 @@ use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Util\Uuid;
 use Magento\Framework\App\Helper\AbstractHelper;
-use Magento\Framework\App\RequestInterface;
+use Magento\Framework\App\Request\Http as Http;
 
 class Requests extends AbstractHelper
 {
@@ -37,7 +37,7 @@ class Requests extends AbstractHelper
     private Address $addressHelper;
     private StateData $stateData;
     private Vault $vaultHelper;
-    private RequestInterface $request;
+    private Http $request;
 
     public function __construct(
         Data $adyenHelper,
@@ -45,7 +45,7 @@ class Requests extends AbstractHelper
         Address $addressHelper,
         StateData $stateData,
         Vault $vaultHelper,
-        RequestInterface $request
+        Http $request
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenConfig = $adyenConfig;
