@@ -24,6 +24,7 @@ services:
       - AMAZON_PASSWORD
       - WEBHOOK_USERNAME
       - WEBHOOK_PASSWORD
+      - CI
     volumes:
       - ./scripts/e2e.sh:/e2e.sh
       - ../test-report:/tmp/test-report
