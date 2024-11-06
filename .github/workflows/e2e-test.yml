@@ -28,7 +28,7 @@ on:
 
 jobs:
   build:
-    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository)
+    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) || (github.event_name == 'workflow_dispatch')
     environment: ${{ (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) && 'external' || 'internal' }}
     strategy:
       matrix:
@@ -127,6 +127,7 @@ jobs:
           GOOGLE_PASSWORD: ${{secrets.PLAYWRIGHT_GOOGLE_PASSWORD}}
           WEBHOOK_USERNAME: admin
           WEBHOOK_PASSWORD: 1234
+          CI: true
 
       - name: Archive test result artifacts
         if: always()

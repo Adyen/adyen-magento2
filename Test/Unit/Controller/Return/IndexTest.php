@@ -136,8 +136,7 @@ class IndexTest extends AbstractAdyenTestCase
                 'orderId' => PHP_INT_MAX,
                 'expectedException' => null,
                 'multishipping' => false,
-                'orderStatusHistory' => ['Payment received'],
-                'isDuplicate' => false
+                'orderStatusHistory' => ['Payment received']
             ],
             [
                 'redirectResponse' => [
@@ -154,8 +153,7 @@ class IndexTest extends AbstractAdyenTestCase
                 'orderId' => 'ORDER123',
                 'expectedException' => null,
                 'multishipping' => false,
-                'orderStatusHistory' => ['PSP reference: PSP123456789'],
-                'isDuplicate' => true
+                'orderStatusHistory' => ['PSP reference: PSP123456789']
             ],
         ];
     }
@@ -171,8 +169,7 @@ class IndexTest extends AbstractAdyenTestCase
         $orderId,
         $expectedException,
         $multishipping,
-        $orderStatusHistory,
-        $isDuplicate
+        $orderStatusHistory
     ) {
         // Set up order status history
         $orderStatusHistoryCollectionMock = $this->createMock(OrderStatusHistoryCollection::class);
@@ -209,24 +206,13 @@ class IndexTest extends AbstractAdyenTestCase
         $this->orderEntityMock->method('getIncrementId')->willReturn($orderId);
         $this->paymentsDetailsHelperMock->method('initiatePaymentDetails')
             ->willReturn($paymentsDetailsResponse);
+        $this->adyenLoggerMock->expects($this->once())
+            ->method('addAdyenResult')
+            ->with('Processing redirect response');
+        $this->paymentResponseHandlerMock->expects($this->once())
+            ->method('handlePaymentsDetailsResponse')
+            ->willReturn($responseHandlerResult);
 
-        if ($isDuplicate) {
-            $this->adyenLoggerMock->expects($this->exactly(2))
-                ->method('addAdyenResult')
-                ->withConsecutive(
-                    ['Processing redirect response'],
-                    ['Duplicate response detected. Skipping processing.']
-                );
-            $this->paymentResponseHandlerMock->expects($this->never())
-                ->method('handlePaymentsDetailsResponse');
-        } else {
-            $this->adyenLoggerMock->expects($this->once())
-                ->method('addAdyenResult')
-                ->with('Processing redirect response');
-            $this->paymentResponseHandlerMock->expects($this->once())
-                ->method('handlePaymentsDetailsResponse')
-                ->willReturn($responseHandlerResult);
-        }
 
         $this->indexControllerMock->execute();
     }
