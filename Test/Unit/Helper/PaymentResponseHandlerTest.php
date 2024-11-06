@@ -30,7 +30,7 @@ use Magento\Sales\Model\Order\Status\HistoryFactory;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Model\ResourceModel\PaymentResponse\Collection;
 use Adyen\Payment\Model\ResourceModel\PaymentResponse\CollectionFactory;
-use Adyen\Payment\Helper\Config as Config;
+use Adyen\Payment\Helper\Config;
 use ReflectionClass;
 
 class PaymentResponseHandlerTest extends AbstractAdyenTestCase
