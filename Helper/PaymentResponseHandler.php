@@ -12,7 +12,7 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Model\Checkout\CancelOrderRequest;
-use Adyen\Payment\Helper\Config as Config;
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\ResourceModel\PaymentResponse\CollectionFactory as PaymentResponseCollectionFactory;
 use Exception;
