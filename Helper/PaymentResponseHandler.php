@@ -24,7 +24,7 @@ use Magento\Sales\Model\Order\Status\HistoryFactory;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\ResourceModel\Order;
 use Magento\Sales\Model\Order as OrderModel;
-use Adyen\Payment\Helper\Data as Data;
+use Adyen\Payment\Helper\Data;
 use Magento\Framework\Mail\Exception\InvalidArgumentException;
 use Adyen\Client;
 
