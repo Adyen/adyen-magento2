@@ -21,7 +21,7 @@ class GuestAdyenPaymentMethodManagementTest extends AbstractAdyenTestCase
 
     protected function setUp(): void
     {
-        $this->quoteIdMaskFactoryMock = $this->createMock(QuoteIdMaskFactory::class);
+        $this->quoteIdMaskFactoryMock = $this->createGeneratedMock(QuoteIdMaskFactory::class, ['create']);
         $this->paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
 
         $this->guestAdyenPaymentMethodManagement = new GuestAdyenPaymentMethodManagement(
@@ -40,15 +40,14 @@ class GuestAdyenPaymentMethodManagementTest extends AbstractAdyenTestCase
         $expectedPaymentMethods = 'sample_payment_methods';
 
         $quoteIdMaskMock = $this->createGeneratedMock(QuoteIdMask::class, ['load', 'getQuoteId']);
-        $quoteIdMaskMock->method('load')
-            ->willReturn($quoteIdMaskMock);
-        $quoteIdMaskMock->method('getQuoteId')
-            ->willReturn(123);
+        $quoteIdMaskMock->method('load')->willReturn($quoteIdMaskMock);
+        $quoteIdMaskMock->method('getQuoteId')->willReturn($quoteId);
+        $this->quoteIdMaskFactoryMock->method('create')->willReturn($quoteIdMaskMock);
 
 
-        $this->quoteIdMaskFactoryMock->expects($this->once())
-            ->method('create')
-            ->willReturn($quoteIdMaskMock);
+//        $this->quoteIdMaskFactoryMock->expects($this->once())
+//            ->method('create')
+//            ->willReturn($quoteIdMaskMock);
 
         $this->paymentMethodsHelperMock->expects($this->once())
             ->method('getPaymentMethods')
