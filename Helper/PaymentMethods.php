@@ -563,10 +563,10 @@ class PaymentMethods extends AbstractHelper
         $channel = in_array($channel, self::VALID_CHANNELS, true) ? $channel : "Web";
 
         $paymentMethodRequest = [
-            "channel" => $channel ?: "Web",
+            "channel" => $channel ?? "Web",
             "merchantAccount" => $merchantAccount,
             "countryCode" => $country ?? $this->getCurrentCountryCode($store),
-            "shopperLocale" => $shopperLocale ?: $this->adyenHelper->getCurrentLocaleCode($store->getId()),
+            "shopperLocale" => $shopperLocale ?? $this->adyenHelper->getCurrentLocaleCode($store->getId()),
             "amount" => [
                 "currency" => $currencyCode
             ]
