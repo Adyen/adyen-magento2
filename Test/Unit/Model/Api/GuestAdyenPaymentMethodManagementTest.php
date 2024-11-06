@@ -44,11 +44,6 @@ class GuestAdyenPaymentMethodManagementTest extends AbstractAdyenTestCase
         $quoteIdMaskMock->method('getQuoteId')->willReturn($quoteId);
         $this->quoteIdMaskFactoryMock->method('create')->willReturn($quoteIdMaskMock);
 
-
-//        $this->quoteIdMaskFactoryMock->expects($this->once())
-//            ->method('create')
-//            ->willReturn($quoteIdMaskMock);
-
         $this->paymentMethodsHelperMock->expects($this->once())
             ->method('getPaymentMethods')
             ->with($quoteId, $country, $shopperLocale, $channel)
