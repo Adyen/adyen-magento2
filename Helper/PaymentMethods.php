@@ -237,7 +237,12 @@ class PaymentMethods extends AbstractHelper
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function getPaymentMethods(int $quoteId, ?string $country = null, ?string $shopperLocale = null, ?string $channel = null): string
+    public function getPaymentMethods(
+        int $quoteId,
+        ?string $country = null,
+        ?string $shopperLocale = null,
+        ?string $channel = null
+    ): string
     {
         // get quote from quoteId
         $quote = $this->quoteRepository->getActive($quoteId);
@@ -336,7 +341,11 @@ class PaymentMethods extends AbstractHelper
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    protected function fetchPaymentMethods(?string $country = null, ?string $shopperLocale = null, ?string $channel = null): string
+    protected function fetchPaymentMethods(
+        ?string $country = null,
+        ?string $shopperLocale = null,
+        ?string $channel = null
+    ): string
     {
         $quote = $this->getQuote();
         $store = $quote->getStore();
@@ -346,7 +355,14 @@ class PaymentMethods extends AbstractHelper
             return json_encode([]);
         }
 
-        $requestData = $this->getPaymentMethodsRequest($merchantAccount, $store, $quote, $shopperLocale, $country, $channel);
+        $requestData = $this->getPaymentMethodsRequest(
+            $merchantAccount,
+            $store,
+            $quote,
+            $shopperLocale,
+            $country,
+            $channel
+        );
         $responseData = $this->getPaymentMethodsResponse($requestData, $store);
         if (empty($responseData['paymentMethods'])) {
             return json_encode([]);

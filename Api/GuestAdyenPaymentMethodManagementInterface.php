@@ -25,5 +25,10 @@ interface GuestAdyenPaymentMethodManagementInterface
      * @param string|null $channel
      * @return string
      */
-    public function getPaymentMethods(string $cartId, ?string $shopperLocale = null, ?string $country = null, ?string $channel = null): string;
+    public function getPaymentMethods(
+        string $cartId,
+        ?string $shopperLocale = null,
+        ?string $country = null,
+        ?string $channel = null
+    ): string;
 }
