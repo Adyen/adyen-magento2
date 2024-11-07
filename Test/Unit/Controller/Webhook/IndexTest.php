@@ -159,38 +159,37 @@ class IndexTest extends AbstractAdyenTestCase
         );
     }
 
-    public function testFixCgiHttpAuthenticationWithExistingAuthUser()
+    public function fixCgiHttpAuthenticationDataProvider()
     {
-        // Mock the scenario where PHP_AUTH_USER and PHP_AUTH_PW are set
-        $this->httpMock->method('getServer')
-            ->will($this->returnCallback(function ($header) {
-                if ($header === 'PHP_AUTH_USER') {
-                    return 'user';
-                } elseif ($header === 'PHP_AUTH_PW') {
-                    return 'password';
-                }
-                return null; // Return null for all other headers
-            }));
-
-        // Call the private method
-        $this->invokeMethod($this->indexController, 'fixCgiHttpAuthentication');
-
-        // No assertion needed, just ensuring no exception is thrown
-        $this->assertTrue(true);
-    }
-
-    public function testFixCgiHttpAuthenticationWithNoAuthHeaders()
-    {
-        // Mock all relevant server variables to return null
-        $this->httpMock->method('getServer')
-            ->will($this->returnValue(null)); // All headers return null
-
-        // Call the private method
-        $this->invokeMethod($this->indexController, 'fixCgiHttpAuthentication');
-
-        // No assertion needed, just ensuring no exception is thrown
-        $this->assertTrue(true);
+        return [
+            'valid_auth_header' => [
+                'PHP_AUTH_VALUE' => base64_encode('user:password'), // Encoded base64 value
+                'expectedUser' => 'user',
+                'expectedPassword' => 'password'
+            ],
+            'no_auth_header' => [
+                null, // No authorization header
+                null,  // Expected user
+                null   // Expected password
+            ]
+        ];
     }
 
 
+    /**
+     * @dataProvider fixCgiHttpAuthenticationDataProvider
+     */
+    public function testFixCgiHttpAuthentication($phpAuthHeader, $expectedUser, $expectedPassword)
+    {
+        // Mock the getServer method to return the provided PHP_AUTH value
+        $this->httpMock->method('getServer')
+            ->willReturn($phpAuthHeader);
+
+        // Call the method you want to test
+        $this->invokeMethod($this->indexController, 'fixCgiHttpAuthentication');
+
+        // Assert the values are set in the $_SERVER global
+        $this->assertEquals($expectedUser, $_SERVER['PHP_AUTH_USER']);
+        $this->assertEquals($expectedPassword, $_SERVER['PHP_AUTH_PW']);
+    }
 }

@@ -380,7 +380,8 @@ class Index extends Action
      */
     private function fixCgiHttpAuthentication()
     {
-        if ($this->request->getServer('PHP_AUTH_USER') && $this->request->getServer('PHP_AUTH_PW')) {
+        if (!empty($this->request->getServer('PHP_AUTH_USER')) &&
+            !empty($this->request->getServer('PHP_AUTH_PW'))) {
             return;
         }
 
@@ -393,16 +394,10 @@ class Index extends Action
         ];
 
         foreach ($authorizationHeaders as $header) {
-            $authHeader = $this->request->getServer($header);
-
-            if ($authHeader) {
-                list(
-                    $phpAuthUser, $phpAuthPw
-                    ) = explode(':', base64_decode(substr($authHeader, 6)), 2);
-
-                $params = $this->request->getServer();
-                $params->set('PHP_AUTH_USER', $phpAuthUser);
-                $params->set('PHP_AUTH_PW', $phpAuthPw);
+            $authValue = $this->request->getServer($header);
+            if (!empty($authValue)) {
+                list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) =
+                    explode(':', base64_decode(substr((string) $authValue, 6)), 2);
                 return;
             }
         }
