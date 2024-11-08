@@ -28,7 +28,7 @@ use DateTime;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\CsrfAwareActionInterface;
-use Magento\Framework\App\Request\Http as Http;
+use Magento\Framework\App\Request\Http;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
@@ -380,12 +380,13 @@ class Index extends Action
      */
     private function fixCgiHttpAuthentication()
     {
-        if (!empty($this->request->getServer('PHP_AUTH_USER')) &&
-            !empty($this->request->getServer('PHP_AUTH_PW'))) {
+        // Exit if authentication values are already set
+        if (!empty($_SERVER['PHP_AUTH_USER']) && !empty($_SERVER['PHP_AUTH_PW'])) {
             return;
         }
 
-        $authorizationHeaders = [
+        // Define potential authorization headers to check
+        $authHeaders = [
             'REDIRECT_REMOTE_AUTHORIZATION',
             'REDIRECT_HTTP_AUTHORIZATION',
             'HTTP_AUTHORIZATION',
@@ -393,11 +394,17 @@ class Index extends Action
             'REDIRECT_REMOTE_USER'
         ];
 
-        foreach ($authorizationHeaders as $header) {
-            $authValue = $this->request->getServer($header);
-            if (!empty($authValue)) {
-                list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) =
-                    explode(':', base64_decode(substr((string) $authValue, 6)), 2);
+        // Check each header, decode and assign credentials if found
+        foreach ($authHeaders as $header) {
+            if (!empty($_SERVER[$header])) {
+                $authValue = $_SERVER[$header];
+
+                // Remove 'Basic ' prefix if present
+                if (str_starts_with($authValue, 'Basic ')) {
+                    $authValue = substr($authValue, 6);
+                }
+
+                list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) = explode(':', base64_decode($authValue), 2);
                 return;
             }
         }

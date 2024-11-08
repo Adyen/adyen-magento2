@@ -159,37 +159,99 @@ class IndexTest extends AbstractAdyenTestCase
         );
     }
 
-    public function fixCgiHttpAuthenticationDataProvider()
+    protected function tearDown(): void
     {
-        return [
-            'valid_auth_header' => [
-                'PHP_AUTH_VALUE' => base64_encode('user:password'), // Encoded base64 value
-                'expectedUser' => 'user',
-                'expectedPassword' => 'password'
-            ],
-            'no_auth_header' => [
-                null, // No authorization header
-                null,  // Expected user
-                null   // Expected password
-            ]
-        ];
+        // Reset $_SERVER global after each test
+        $_SERVER = [];
     }
 
-
-    /**
-     * @dataProvider fixCgiHttpAuthenticationDataProvider
-     */
-    public function testFixCgiHttpAuthentication($phpAuthHeader, $expectedUser, $expectedPassword)
+    public function testFixCgiHttpAuthenticationWithExistingAuth()
     {
-        // Mock the getServer method to return the provided PHP_AUTH value
-        $this->httpMock->method('getServer')
-            ->willReturn($phpAuthHeader);
+        $_SERVER['PHP_AUTH_USER'] = 'existingUser';
+        $_SERVER['PHP_AUTH_PW'] = 'existingPassword';
 
-        // Call the method you want to test
-        $this->invokeMethod($this->indexController, 'fixCgiHttpAuthentication');
+        $this->invokeMethod(
+            $this->indexController,
+            'fixCgiHttpAuthentication'
+        );
 
-        // Assert the values are set in the $_SERVER global
-        $this->assertEquals($expectedUser, $_SERVER['PHP_AUTH_USER']);
-        $this->assertEquals($expectedPassword, $_SERVER['PHP_AUTH_PW']);
+        $this->assertEquals('existingUser', $_SERVER['PHP_AUTH_USER']);
+        $this->assertEquals('existingPassword', $_SERVER['PHP_AUTH_PW']);
+    }
+
+    public function testFixCgiHttpAuthenticationWithRedirectRemoteAuthorization()
+    {
+        $_SERVER['REDIRECT_REMOTE_AUTHORIZATION'] = 'Basic ' . base64_encode('testUser:testPassword');
+
+        $this->invokeMethod(
+            $this->indexController,
+            'fixCgiHttpAuthentication'
+        );
+
+        $this->assertEquals('testUser', $_SERVER['PHP_AUTH_USER']);
+        $this->assertEquals('testPassword', $_SERVER['PHP_AUTH_PW']);
+    }
+
+    public function testFixCgiHttpAuthenticationWithRedirectHttpAuthorization()
+    {
+        $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] = 'Basic ' . base64_encode('testUser:testPassword');
+
+        $this->invokeMethod(
+            $this->indexController,
+            'fixCgiHttpAuthentication'
+        );
+
+        $this->assertEquals('testUser', $_SERVER['PHP_AUTH_USER']);
+        $this->assertEquals('testPassword', $_SERVER['PHP_AUTH_PW']);
+    }
+
+    public function testFixCgiHttpAuthenticationWithHttpAuthorization()
+    {
+        $_SERVER['HTTP_AUTHORIZATION'] = 'Basic ' . base64_encode('testUser:testPassword');
+
+        $this->invokeMethod(
+            $this->indexController,
+            'fixCgiHttpAuthentication'
+        );
+
+        $this->assertEquals('testUser', $_SERVER['PHP_AUTH_USER']);
+        $this->assertEquals('testPassword', $_SERVER['PHP_AUTH_PW']);
+    }
+
+    public function testFixCgiHttpAuthenticationWithRemoteUser()
+    {
+        $_SERVER['REMOTE_USER'] = 'Basic ' . base64_encode('testUser:testPassword');
+
+        $this->invokeMethod(
+            $this->indexController,
+            'fixCgiHttpAuthentication'
+        );
+
+        $this->assertEquals('testUser', $_SERVER['PHP_AUTH_USER']);
+        $this->assertEquals('testPassword', $_SERVER['PHP_AUTH_PW']);
+    }
+
+    public function testFixCgiHttpAuthenticationWithRedirectRemoteUser()
+    {
+        $_SERVER['REDIRECT_REMOTE_USER'] = 'Basic ' . base64_encode('testUser:testPassword');
+
+        $this->invokeMethod(
+            $this->indexController,
+            'fixCgiHttpAuthentication'
+        );
+
+        $this->assertEquals('testUser', $_SERVER['PHP_AUTH_USER']);
+        $this->assertEquals('testPassword', $_SERVER['PHP_AUTH_PW']);
+    }
+
+    public function testFixCgiHttpAuthenticationWithNoAuthorizationHeaders()
+    {
+        $this->invokeMethod(
+            $this->indexController,
+            'fixCgiHttpAuthentication'
+        );
+
+        $this->assertArrayNotHasKey('PHP_AUTH_USER', $_SERVER);
+        $this->assertArrayNotHasKey('PHP_AUTH_PW', $_SERVER);
     }
 }
