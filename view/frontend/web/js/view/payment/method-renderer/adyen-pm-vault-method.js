@@ -17,7 +17,7 @@ define([
 
     return VaultComponent.extend({
         defaults: {
-            template: 'Adyen_Payment/payment/payment-method-vault-form'
+            template: 'Adyen_Payment/payment/pm-vault-form'
         },
         /**
          * Get tx_variant

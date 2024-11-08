@@ -125,9 +125,11 @@ jobs:
           PAYPAL_PASSWORD: ${{secrets.PLAYWRIGHT_PAYPAL_PASSWORD}}
           GOOGLE_USERNAME: ${{secrets.PLAYWRIGHT_GOOGLE_USERNAME}}
           GOOGLE_PASSWORD: ${{secrets.PLAYWRIGHT_GOOGLE_PASSWORD}}
+          AMAZON_USERNAME: ${{secrets.AMAZON_USERNAME}}
+          AMAZON_PASSWORD: ${{secrets.AMAZON_PASSWORD}}
           WEBHOOK_USERNAME: admin
           WEBHOOK_PASSWORD: 1234
-          CI: true
+          CI: TRUE
 
       - name: Archive test result artifacts
         if: always()
