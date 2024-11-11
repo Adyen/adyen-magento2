@@ -10,7 +10,7 @@
  */
 -->
 
-<!-- ko if: checkoutComponentBuilt -->
+<!-- ko if: adyenVaultPaymentMethod -->
 <div class="payment-method" css="'_active': (getId() === isChecked())">
     <div class="payment-method-title field choice">
         <input type="radio"
@@ -67,7 +67,7 @@
                     </div>
                 </div>
 
-                <div class="checkout-component-dock" afterRender="renderCardVaultToken()" data-bind="attr: { id: 'cvcContainer-' + getId()}"></div>
+                <div class="checkout-component-dock" afterRender="renderPreSelected()" data-bind="attr: { id: 'cvcContainer-' + getId()}"></div>
             </fieldset>
         </form>
 
