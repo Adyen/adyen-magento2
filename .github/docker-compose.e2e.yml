@@ -20,8 +20,11 @@ services:
       - ADYEN_MERCHANT
       - GOOGLE_USERNAME
       - GOOGLE_PASSWORD
+      - AMAZON_USERNAME
+      - AMAZON_PASSWORD
       - WEBHOOK_USERNAME
       - WEBHOOK_PASSWORD
+      - CI
     volumes:
       - ./scripts/e2e.sh:/e2e.sh
       - ../test-report:/tmp/test-report

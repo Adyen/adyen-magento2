@@ -50,6 +50,8 @@ define(
             isPlaceOrderActionAllowed: ko.observable(
                 quote.billingAddress() != null),
             comboCardOption: ko.observable('credit'),
+            checkoutComponent: null,
+            cardComponent: null,
 
             defaults: {
                 template: 'Adyen_Payment/payment/cc-form',
@@ -84,18 +86,23 @@ define(
                 let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
                 paymentMethodsObserver.subscribe(
                     function (paymentMethodsResponse) {
-                        self.loadCheckoutComponent(paymentMethodsResponse)
+                        self.enablePaymentMethod(paymentMethodsResponse)
                     }
                 );
 
                 if(!!paymentMethodsObserver()) {
-                    self.loadCheckoutComponent(paymentMethodsObserver());
+                    self.enablePaymentMethod(paymentMethodsObserver());
                 }
             },
             isSchemePaymentsEnabled: function (paymentMethod) {
                 return paymentMethod.type === "scheme";
             },
-            loadCheckoutComponent: async function (paymentMethodsResponse) {
+
+            /*
+             * Enables the payment method and sets the required attributes
+             * if `/paymentMethods` response contains this payment method.
+             */
+            enablePaymentMethod: async function (paymentMethodsResponse) {
                 let self = this;
 
                 // Check the paymentMethods response to enable Credit Card payments
@@ -104,19 +111,46 @@ define(
                     return;
                 }
 
-                this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
-                    paymentMethodsResponse,
-                    this.handleOnAdditionalDetails.bind(this)
-                )
+                self.adyenCCMethod({
+                    icon: !!paymentMethodsResponse.paymentMethodsExtraDetails.card
+                        ? paymentMethodsResponse.paymentMethodsExtraDetails.card.icon
+                        : undefined
+                })
+            },
 
-                if (!!this.checkoutComponent) {
-                    // Setting the icon as an accessible field if it is available
-                    self.adyenCCMethod({
-                            icon: !!paymentMethodsResponse.paymentMethodsExtraDetails.card
-                                ? paymentMethodsResponse.paymentMethodsExtraDetails.card.icon
-                                : undefined
-                        })
+            /*
+             * Create generic AdyenCheckout library and mount payment method component
+             * after selecting the payment method via overriding parent `selectPaymentMethod()` function.
+             */
+            selectPaymentMethod: function () {
+                this._super();
+                this.createCheckoutComponent();
+
+                return true;
+            },
+            /*
+             * Pre-selected payment methods don't trigger parent's `selectPaymentMethod()` function.
+             *
+             * This function is triggered via `afterRender` attribute of the html template
+             * and creates checkout component for pre-selected payment method.
+             */
+            renderPreSelected: function () {
+                if (this.isChecked() === this.getCode()) {
+                    this.createCheckoutComponent();
                 }
+            },
+            // Build AdyenCheckout library and creates the payment method component
+            createCheckoutComponent: async function () {
+                if (!this.checkoutComponent) {
+                    const paymentMethodsResponse = adyenPaymentService.getPaymentMethods();
+
+                    this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
+                        paymentMethodsResponse(),
+                        this.handleOnAdditionalDetails.bind(this)
+                    )
+                }
+
+                this.renderCCPaymentMethod();
             },
             /**
              * Returns true if card details can be stored
@@ -132,19 +166,31 @@ define(
              * set up the installments
              */
             renderCCPaymentMethod: function() {
+                let componentConfig = this.buildComponentConfiguration();
+
+                this.cardComponent = adyenCheckout.mountPaymentMethodComponent(
+                    this.checkoutComponent,
+                    'card',
+                    componentConfig,
+                    '#cardContainer'
+                )
+
+                return true
+            },
+
+            buildComponentConfiguration: function () {
                 let self = this;
-                if (!self.getClientKey) {
+
+                if (!this.getClientKey) {
                     return false;
                 }
 
-                self.installments(0);
-
-                // installments
-                let allInstallments = self.getAllInstallments();
+                this.installments(0);
+                let allInstallments = this.getAllInstallments();
 
                 let componentConfig = {
-                    enableStoreDetails: self.getEnableStoreDetails(),
-                    brands: self.getBrands(),
+                    enableStoreDetails: this.getEnableStoreDetails(),
+                    brands: this.getBrands(),
                     hasHolderName: adyenConfiguration.getHasHolderName(),
                     holderNameRequired: adyenConfiguration.getHasHolderName() &&
                         adyenConfiguration.getHolderNameRequired(),
@@ -192,21 +238,14 @@ define(
                     }
                 }
 
-                if (self.isClickToPayEnabled()) {
+                if (this.isClickToPayEnabled()) {
                     componentConfig.clickToPayConfiguration = {
                         merchantDisplayName: adyenConfiguration.getMerchantAccount(),
-                        shopperEmail: self.getShopperEmail()
+                        shopperEmail: this.getShopperEmail()
                     };
                 }
 
-                self.cardComponent = adyenCheckout.mountPaymentMethodComponent(
-                    this.checkoutComponent,
-                    'card',
-                    componentConfig,
-                    '#cardContainer'
-                )
-
-                return true
+                return componentConfig;
             },
 
             handleAction: function(action, orderId) {
@@ -245,13 +284,10 @@ define(
              * @returns {{method: *}}
              */
             getData: function() {
-                let stateData = JSON.stringify(this.cardComponent.data);
-
-                window.sessionStorage.setItem('adyen.stateData', stateData);
-                return {
+                let data = {
                     'method': this.item.method,
                     additional_data: {
-                        'stateData': stateData,
+                        'stateData': {},
                         'guestEmail': quote.guestEmail,
                         'cc_type': this.creditCardType(),
                         'combo_card_type': this.comboCardOption(),
@@ -261,6 +297,15 @@ define(
                         'frontendType': 'luma'
                     },
                 };
+
+                // Get state data only if the checkout component is ready,
+                if (this.checkoutComponent) {
+                    const stateData = JSON.stringify(this.cardComponent.data)
+                    data.additional_data.stateData = stateData;
+                    window.sessionStorage.setItem('adyen.stateData', stateData);
+                }
+
+                return data;
             },
             /**
              * Returns state of place order button
@@ -501,6 +546,9 @@ define(
                 }
                 return quote.totals().grand_total;
             },
+            getPaymentMethodComponent: function () {
+                return this.cardComponent;
+            }
         });
     }
 );

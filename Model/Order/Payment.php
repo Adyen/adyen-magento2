@@ -183,4 +183,25 @@ class Payment extends AbstractModel implements OrderPaymentInterface
             false
         );
     }
+
+    /**
+     * Set sort order.
+     *
+     * @param int $sortOrder
+     * @return $this
+     */
+    public function setSortOrder($sortOrder)
+    {
+        return $this->setData('order_sort', $sortOrder);
+    }
+
+    /**
+     * Get sort order.
+     *
+     * @return int|null
+     */
+    public function getSortOrder()
+    {
+        return $this->getData('order_sort');
+    }
 }

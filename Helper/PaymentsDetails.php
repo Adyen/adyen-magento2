@@ -114,7 +114,7 @@ class PaymentsDetails
         );
 
         foreach (self::REQUEST_HELPER_PARAMETERS as $helperParam) {
-            if (array_key_exists($helperParam, $payload['details'])) {
+            if (isset($payload['details']) && array_key_exists($helperParam, $payload['details'])) {
                 unset($payload['details'][$helperParam]);
             }
         }

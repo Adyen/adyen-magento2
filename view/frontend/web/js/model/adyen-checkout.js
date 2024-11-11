@@ -19,7 +19,13 @@ define(
     ) {
         'use strict';
         return {
-            buildCheckoutComponent: function (paymentMethodsResponse, handleOnAdditionalDetails, handleOnCancel = undefined, handleOnSubmit = undefined) {
+            buildCheckoutComponent: function (
+                paymentMethodsResponse,
+                handleOnAdditionalDetails,
+                handleOnCancel = undefined,
+                handleOnSubmit = undefined,
+                handleOnError = undefined
+            ) {
                 if (!!paymentMethodsResponse.paymentMethodsResponse) {
                     return AdyenCheckout({
                             locale: adyenConfiguration.getLocale(),
@@ -28,7 +34,8 @@ define(
                             paymentMethodsResponse: paymentMethodsResponse.paymentMethodsResponse,
                             onAdditionalDetails: handleOnAdditionalDetails,
                             onCancel: handleOnCancel,
-                            onSubmit: handleOnSubmit
+                            onSubmit: handleOnSubmit,
+                            onError: handleOnError
                         }
                     );
                 } else {
