@@ -162,6 +162,11 @@ class TransactionPayment implements ClientInterface
             $this->adyenHelper->logResponse($responseData);
         } catch (AdyenException $e) {
             $this->adyenHelper->logAdyenException($e);
+
+            $responseObj['error'] = $e->getMessage();
+            $responseObj['errorCode'] = $e->getAdyenErrorCode();
+
+            $responseCollection[] = $responseObj;
         }
 
         return $responseCollection;
