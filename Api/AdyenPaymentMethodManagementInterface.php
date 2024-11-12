@@ -22,7 +22,13 @@ interface AdyenPaymentMethodManagementInterface
      * @param string $cartId
      * @param string|null $shopperLocale
      * @param string|null $country
+     * @param string|null $channel
      * @return string
      */
-    public function getPaymentMethods(string $cartId, ?string $shopperLocale = null, ?string $country = null) :string;
+    public function getPaymentMethods(
+        string $cartId,
+        ?string $shopperLocale = null,
+        ?string $country = null,
+        ?string $channel = null
+    ) :string;
 }
