@@ -43,5 +43,11 @@
       "Composer\\Config::disableProcessTimeout",
       "vendor/bin/phpunit -c Test/phpunit.xml"
     ]
+  },
+  "config": {
+    "allow-plugins": {
+      "magento/composer-dependency-version-audit-plugin": true,
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
   }
 }
