@@ -16,7 +16,7 @@
         <input type="radio"
                name="payment[method]"
                class="radio"
-               data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()"/>
+               data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()">
         <label data-bind="attr: {'for': getCode()}" class="label">
 
             <!-- ko if: adyenCCMethod().icon -->
@@ -85,7 +85,7 @@
                 <!-- /ko -->
 
                 <div class="field number cardContainerField">
-                    <div class="checkout-component-dock" afterRender="renderCCPaymentMethod()" data-bind="attr: { id: 'cardContainer'}"></div>
+                    <div class="checkout-component-dock" afterRender="renderPreSelected()" data-bind="attr: { id: 'cardContainer'}"></div>
                 </div>
 
                 <div id="cc_actionModalWrapper">

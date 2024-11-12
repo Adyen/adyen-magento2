@@ -14,114 +14,87 @@ define([
     'ko',
     'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-method',
     'Adyen_Payment/js/helper/configHelper',
-    'Adyen_Payment/js/model/adyen-payment-service'
+    'Adyen_Payment/js/model/adyen-payment-service',
+    'Magento_Checkout/js/model/full-screen-loader'
 ], function (
     $,
     ko,
     Component,
     configHelper,
-    adyenPaymentService
+    adyenPaymentService,
+    fullScreenLoader
 ) {
     'use strict';
 
     return Component.extend({
+        paymentMethodReady: ko.observable(false),
+        isTemplateRendered: ko.observable(false),
         defaults: {
             template: 'Adyen_Payment/payment/multishipping/pm-form'
         },
 
-        paymentMethodReady: ko.observable(false),
-
-        initialize: function() {
-            let self = this;
+        enablePaymentMethod: function (paymentMethodsResponse) {
             this._super();
-
-            this.isChecked = ko.observable(false);
-
-            let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
-            paymentMethodsObserver.subscribe(
-                function(paymentMethods) {
-                    self.paymentMethodReady(paymentMethods);
-                    self.renderCheckoutComponent();
-                }
-            );
-
-            this.paymentMethodReady(paymentMethodsObserver());
+            this.paymentMethodReady(paymentMethodsResponse);
         },
 
         selectPaymentMethod: function () {
-            let result = this._super();
-            this.isChecked(true);
-            this.renderCheckoutComponent();
+            fullScreenLoader.startLoader();
+            let self = this;
 
-            if (!!this.paymentComponent && this.paymentComponent.isValid) {
-                $('#stateData').val(JSON.stringify(this.paymentComponent.data));
-            } else {
-                console.warn('Payment component is not valid or not available');
+            // Only try to mount component if HTML template is rendered.
+            this.isTemplateRendered.subscribe(function (response) {
+                self.initializeMultishippingPaymentMethod();
+            });
+            if (this.isTemplateRendered()) {
+                self.initializeMultishippingPaymentMethod();
             }
 
-            return result;
+            return true;
+        },
+
+        // This will return a promise once the payment component is created and mounted.
+        createMultishippingCheckoutComponent: async function () {
+            await this.createCheckoutComponent();
+            return true;
+        },
+
+        initializeMultishippingPaymentMethod: function () {
+            let self = this;
+
+            /*
+             * Wait until payment component is created and mounted.
+             * Then, handle the promise, fetch the stateData and fill out the hidden input field.
+             */
+            this.createMultishippingCheckoutComponent().then(function (status) {
+                if (status) {
+                    let paymentComponent = self.getPaymentMethodComponent();
+
+                    if (paymentComponent && paymentComponent.isValid) {
+                        $('#stateData').val(JSON.stringify(paymentComponent.data));
+                    }
+
+                    // Remove previously assigned event listeners
+                    $("#payment-continue").off();
+                    // Assign event listener for component validation
+                    $("#payment-continue").on("click", function () {
+                        paymentComponent.showValidation();
+                    });
+                } else {
+                    console.warn('Payment component could not be generated!');
+                }
+
+                fullScreenLoader.stopLoader();
+            });
         },
 
         buildComponentConfiguration: function(paymentMethod, paymentMethodsExtraInfo) {
             return configHelper.buildMultishippingComponentConfiguration(paymentMethod, paymentMethodsExtraInfo);
         },
 
-        renderCheckoutComponent: function() {
-            let methodCode = this.getMethodCode();
-            let paymentMethod = this.paymentMethod();
-
-            if (!paymentMethod || !this.isChecked()) {
-                console.error('Payment method is undefined for ', methodCode);
-                return;
-            }
-
-            let configuration = this.buildComponentConfiguration(paymentMethod, this.paymentMethodsExtraInfo());
-
-            if (this.paymentComponent) {
-                this.paymentComponent.update(configuration);
-            } else {
-                this.mountPaymentMethodComponent(paymentMethod, configuration, methodCode);
-            }
-        },
-
-        mountPaymentMethodComponent: function(paymentMethod, configuration, methodCode) {
-            let self = this;
-
-            const containerId = '#' + paymentMethod.type + 'Container';
-
-            if ($(containerId).length) {
-                if (this.paymentComponent && typeof this.paymentComponent.unmount === 'function') {
-                    this.paymentComponent.unmount();
-                }
-
-                const paymentMethodComponent = this.checkoutComponent.create(
-                    paymentMethod.type,
-                    configuration
-                );
-
-
-                paymentMethodComponent.mount(containerId);
-
-                this.paymentComponent = paymentMethodComponent;
-
-                if (typeof paymentMethodComponent.onChange === 'function') {
-                    paymentMethodComponent.onChange(function(state) {
-                        self.onPaymentMethodChange(state, methodCode);
-                    });
-                } else {
-                    console.warn('Unable to add onChange event listener to payment component', paymentMethodComponent);
-                }
-            } else {
-                console.warn('Container not found for', containerId);
-            }
-        },
-
-        onPaymentMethodChange: function(state, methodCode) {
-            if (methodCode !== this.getMethodCode()) {
-                return;
-            }
-            this.isPlaceOrderAllowed(state.isValid);
-            $('#stateData').val(state.data ? JSON.stringify(state.data) : '');
+        // Observable is set to true after div element in `pm-form.html` template is rendered
+        setIsTemplateRendered: function () {
+            this.isTemplateRendered(true);
         }
     });
 });
