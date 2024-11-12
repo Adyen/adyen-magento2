@@ -12,6 +12,7 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Webhook\Receiver\HmacSignature;
 use Adyen\Webhook\Receiver\NotificationReceiver;
+use Magento\Framework\App\Request\Http as Http;
 use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\RequestInterface;
@@ -78,6 +79,9 @@ class IndexTest extends AbstractAdyenTestCase
         $this->contextMock = $this->getMockBuilder(Context::class)
             ->disableOriginalConstructor()
             ->getMock();
+        $this->httpMock = $this->getMockBuilder(http::class)
+            ->disableOriginalConstructor()
+            ->getMock();
         $this->requestMock = $this->getMockBuilder(RequestInterface::class)
             ->getMockForAbstractClass();
         $this->responseMock = $this->getMockBuilder(ResponseInterface::class)
@@ -136,7 +140,8 @@ class IndexTest extends AbstractAdyenTestCase
             $this->rateLimiterHelperMock,
             $this->hmacSignatureMock,
             $this->notificationReceiverMock,
-            $this->remoteAddressMock
+            $this->remoteAddressMock,
+            $this->httpMock
         );
     }
 
@@ -152,6 +157,101 @@ class IndexTest extends AbstractAdyenTestCase
             'loadNotificationFromRequest',
             [$notificationMock, []]
         );
+    }
 
+    protected function tearDown(): void
+    {
+        // Reset $_SERVER global after each test
+        $_SERVER = [];
+    }
+
+    public function testFixCgiHttpAuthenticationWithExistingAuth()
+    {
+        $_SERVER['PHP_AUTH_USER'] = 'existingUser';
+        $_SERVER['PHP_AUTH_PW'] = 'existingPassword';
+
+        $this->invokeMethod(
+            $this->indexController,
+            'fixCgiHttpAuthentication'
+        );
+
+        $this->assertEquals('existingUser', $_SERVER['PHP_AUTH_USER']);
+        $this->assertEquals('existingPassword', $_SERVER['PHP_AUTH_PW']);
+    }
+
+    public function testFixCgiHttpAuthenticationWithRedirectRemoteAuthorization()
+    {
+        $_SERVER['REDIRECT_REMOTE_AUTHORIZATION'] = 'Basic ' . base64_encode('testUser:testPassword');
+
+        $this->invokeMethod(
+            $this->indexController,
+            'fixCgiHttpAuthentication'
+        );
+
+        $this->assertEquals('testUser', $_SERVER['PHP_AUTH_USER']);
+        $this->assertEquals('testPassword', $_SERVER['PHP_AUTH_PW']);
+    }
+
+    public function testFixCgiHttpAuthenticationWithRedirectHttpAuthorization()
+    {
+        $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] = 'Basic ' . base64_encode('testUser:testPassword');
+
+        $this->invokeMethod(
+            $this->indexController,
+            'fixCgiHttpAuthentication'
+        );
+
+        $this->assertEquals('testUser', $_SERVER['PHP_AUTH_USER']);
+        $this->assertEquals('testPassword', $_SERVER['PHP_AUTH_PW']);
+    }
+
+    public function testFixCgiHttpAuthenticationWithHttpAuthorization()
+    {
+        $_SERVER['HTTP_AUTHORIZATION'] = 'Basic ' . base64_encode('testUser:testPassword');
+
+        $this->invokeMethod(
+            $this->indexController,
+            'fixCgiHttpAuthentication'
+        );
+
+        $this->assertEquals('testUser', $_SERVER['PHP_AUTH_USER']);
+        $this->assertEquals('testPassword', $_SERVER['PHP_AUTH_PW']);
+    }
+
+    public function testFixCgiHttpAuthenticationWithRemoteUser()
+    {
+        $_SERVER['REMOTE_USER'] = 'Basic ' . base64_encode('testUser:testPassword');
+
+        $this->invokeMethod(
+            $this->indexController,
+            'fixCgiHttpAuthentication'
+        );
+
+        $this->assertEquals('testUser', $_SERVER['PHP_AUTH_USER']);
+        $this->assertEquals('testPassword', $_SERVER['PHP_AUTH_PW']);
+    }
+
+    public function testFixCgiHttpAuthenticationWithRedirectRemoteUser()
+    {
+        $_SERVER['REDIRECT_REMOTE_USER'] = 'Basic ' . base64_encode('testUser:testPassword');
+
+        $this->invokeMethod(
+            $this->indexController,
+            'fixCgiHttpAuthentication'
+        );
+
+        $this->assertEquals('testUser', $_SERVER['PHP_AUTH_USER']);
+        $this->assertEquals('testPassword', $_SERVER['PHP_AUTH_PW']);
+    }
+
+    public function testFixCgiHttpAuthenticationWithNoAuthorizationHeaders()
+    {
+        $this->invokeMethod(
+            $this->indexController,
+            'fixCgiHttpAuthentication'
+        );
+
+        $this->assertArrayNotHasKey('PHP_AUTH_USER', $_SERVER);
+        $this->assertArrayNotHasKey('PHP_AUTH_PW', $_SERVER);
     }
 }
