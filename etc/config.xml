@@ -61,6 +61,7 @@
                 <can_authorize_vault>1</can_authorize_vault>
                 <can_capture_vault>1</can_capture_vault>
                 <supports_recurring>1</supports_recurring>
+                <threeds_mode>native</threeds_mode>
                 <group>adyen</group>
             </adyen_cc>
             <adyen_cc_vault>

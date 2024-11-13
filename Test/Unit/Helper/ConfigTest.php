@@ -128,4 +128,24 @@ class ConfigTest extends AbstractAdyenTestCase
 
         $this->configHelper->removeConfigData($field, $xml_prefix);
     }
+
+    public function testGetThreeDSModes()
+    {
+        $storeId = PHP_INT_MAX;
+        $expectedResult = MethodInterface::ACTION_ORDER;
+        $path = sprintf(
+            "%s/%s/%s",
+            Config::XML_PAYMENT_PREFIX,
+            Config::XML_ADYEN_CC,
+            Config::XML_THREEDS_MODE
+        );
+
+        $this->scopeConfigMock->expects($this->once())
+            ->method('getValue')
+            ->with($this->equalTo($path), $this->equalTo(ScopeInterface::SCOPE_STORE), $this->equalTo($storeId))
+            ->willReturn($expectedResult);
+
+        $result = $this->configHelper->getThreeDSMode($storeId);
+        $this->assertEquals($expectedResult, $result);
+    }
 }

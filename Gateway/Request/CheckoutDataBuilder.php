@@ -16,6 +16,7 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\OpenInvoice;
+use Adyen\Payment\Model\Config\Source\ThreeDSMode;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
@@ -209,7 +210,8 @@ class CheckoutDataBuilder implements BuilderInterface
             unset($requestBody['installments']);
         }
 
-        $requestBody['additionalData']['allow3DS2'] = true;
+        $requestBody['additionalData']['allow3DS2'] =
+            $this->configHelper->getThreeDSMode($storeId) === ThreeDSMode::THREEDS_MODE_NATIVE;
 
         return [
             'body' => $requestBody
