@@ -74,10 +74,10 @@
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_cc/enable_click_to_pay</config_path>
         </field>
-        <field id="threeds_mode" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1">
-            <label>Preferred 3D Secure 2 authentication</label>
-            <source_model>Adyen\Payment\Model\Config\Source\ThreeDSMode</source_model>
-            <config_path>payment/adyen_cc/threeds_mode</config_path>
+        <field id="threeds_flow" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1">
+            <label>3D Secure 2 authentication flow</label>
+            <source_model>Adyen\Payment\Model\Config\Source\ThreeDSFlow</source_model>
+            <config_path>payment/adyen_cc/threeds_flow</config_path>
         </field>
     </group>
 </include>

@@ -137,7 +137,7 @@ class ConfigTest extends AbstractAdyenTestCase
             "%s/%s/%s",
             Config::XML_PAYMENT_PREFIX,
             Config::XML_ADYEN_CC,
-            Config::XML_THREEDS_MODE
+            Config::XML_THREEDS_FLOW
         );
 
         $this->scopeConfigMock->expects($this->once())
@@ -145,7 +145,7 @@ class ConfigTest extends AbstractAdyenTestCase
             ->with($this->equalTo($path), $this->equalTo(ScopeInterface::SCOPE_STORE), $this->equalTo($storeId))
             ->willReturn($expectedResult);
 
-        $result = $this->configHelper->getThreeDSMode($storeId);
+        $result = $this->configHelper->getThreeDSFlow($storeId);
         $this->assertEquals($expectedResult, $result);
     }
 }

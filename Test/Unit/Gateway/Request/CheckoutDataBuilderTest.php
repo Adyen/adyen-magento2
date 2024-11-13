@@ -8,7 +8,7 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\OpenInvoice;
 use Adyen\Payment\Helper\StateData;
-use Adyen\Payment\Model\Config\Source\ThreeDSMode;
+use Adyen\Payment\Model\Config\Source\ThreeDSFlow;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Quote\Api\CartRepositoryInterface;
@@ -72,9 +72,9 @@ class CheckoutDataBuilderTest extends AbstractAdyenTestCase
         ];
 
         $this->configMock->expects($this->once())
-            ->method('getThreeDSMode')
+            ->method('getThreeDSFlow')
             ->with($storeId)
-            ->willReturn(ThreeDSMode::THREEDS_MODE_NATIVE);
+            ->willReturn(ThreeDSFlow::THREEDS_NATIVE);
 
         $request = $this->checkoutDataBuilder->build($buildSubject);
 

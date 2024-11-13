@@ -13,10 +13,10 @@ namespace Adyen\Payment\Model\Config\Source;
 
 use Magento\Framework\Data\OptionSourceInterface;
 
-class ThreeDSMode implements OptionSourceInterface
+class ThreeDSFlow implements OptionSourceInterface
 {
-    const THREEDS_MODE_NATIVE = 'native';
-    const THREEDS_MODE_REDIRECT = 'redirect';
+    const THREEDS_NATIVE = 'native';
+    const THREEDS_REDIRECT = 'redirect';
 
     /**
      * @return array
@@ -24,8 +24,8 @@ class ThreeDSMode implements OptionSourceInterface
     public function toOptionArray(): array
     {
         return [
-            ['value' => self::THREEDS_MODE_NATIVE, 'label' => __('Native 3D Secure 2')],
-            ['value' => self::THREEDS_MODE_REDIRECT, 'label' => __('Redirect 3D Secure 2')],
+            ['value' => self::THREEDS_NATIVE, 'label' => __('Native 3D Secure 2')],
+            ['value' => self::THREEDS_REDIRECT, 'label' => __('Redirect 3D Secure 2')],
         ];
     }
 }
