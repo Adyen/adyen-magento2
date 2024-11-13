@@ -12,13 +12,8 @@
 namespace Adyen\Payment\Controller\Adminhtml\Configuration;
 
 use Adyen\AdyenException;
-use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Logger\AdyenLogger;
-use Magento\Framework\App\ResponseInterface;
-use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Controller\ResultInterface;
-use Magento\Framework\Exception\FileSystemException;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Filesystem\DirectoryList;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Controller\ResultFactory;
@@ -35,29 +30,25 @@ class DownloadApplePayCertificate extends Action
     const MAX_RATIO = 5;
     const FILE_NAME = 'apple-developer-merchantid-domain-association';
     const APPLEPAY_CERTIFICATE_URL = 'https://docs.adyen.com/payment-methods/apple-pay/web-component/apple-developer-merchantid-domain-association-2024.zip';
-    private $directoryList;
-    private $fileIo;
-    private $adyenLogger;
+
+    private DirectoryList $directoryList;
+    private File $fileIo;
+    private AdyenLogger $adyenLogger;
 
     public function __construct(
-        Context       $context,
+        Context $context,
         DirectoryList $directoryList,
-        File          $fileIo,
-        AdyenLogger   $adyenLogger
-    )
-    {
+        File $fileIo,
+        AdyenLogger $adyenLogger
+    ) {
         parent::__construct($context);
+
         $this->directoryList = $directoryList;
         $this->fileIo = $fileIo;
         $this->adyenLogger = $adyenLogger;
     }
 
-    /**
-     * @return ResponseInterface|Redirect|Redirect&ResultInterface|ResultInterface
-     * @throws FileSystemException
-     * @throws LocalizedExceptionff
-     */
-    public function execute()
+    public function execute(): ResultInterface
     {
         $redirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
         $redirect->setUrl($this->_redirect->getRefererUrl());
@@ -66,23 +57,19 @@ class DownloadApplePayCertificate extends Action
         $directoryName = '.well-known';
 
         $wellknownPath = $pubPath . '/' . $directoryName;
-        $applepayPath = $wellknownPath . '/' . self::FILE_NAME;
-
         $applepayUrl = self::APPLEPAY_CERTIFICATE_URL;
 
         try {
-            if ($this->fileIo->checkAndCreateFolder($wellknownPath, 0700)) {
-                $this->downloadAndUnzip($applepayUrl, $wellknownPath);
-            } else {
-                $this->fileIo->chmod($wellknownPath, 0770);
-                if (!$this->fileIo->fileExists($applepayPath)) {
-                    $this->downloadAndUnzip($applepayUrl, $wellknownPath);
-                }
-            }
+            $this->fileIo->checkAndCreateFolder($wellknownPath, 0700);
+            $this->downloadAndUnzip($applepayUrl, $wellknownPath);
+
+            $this->messageManager->addSuccessMessage(
+                __('Apple Pay domain association file has been successfully downloaded!')
+            );
         } catch (Exception $e) {
-            $errormessage = 'Failed to download the ApplePay certificate, please do so manually';
-            $this->adyenLogger->addAdyenWarning($errormessage);
-            $this->messageManager->addErrorMessage($errormessage);
+            $errorMessage = 'Failed to download the ApplePay domain association file!';
+            $this->adyenLogger->error(sprintf("%s %s", $errorMessage, $e->getMessage()));
+            $this->messageManager->addErrorMessage(__($errorMessage));
         }
 
         return $redirect;
@@ -92,9 +79,9 @@ class DownloadApplePayCertificate extends Action
      * @param string $applepayUrl
      * @param string $applepayPath
      * @return void
-     * @throws LocalizedException
+     * @throws AdyenException
      */
-    private function downloadAndUnzip(string $applepayUrl, string $applepayPath)
+    private function downloadAndUnzip(string $applepayUrl, string $applepayPath): void
     {
         $tmpPath = tempnam(sys_get_temp_dir(), self::FILE_NAME);
         file_put_contents($tmpPath, file_get_contents($applepayUrl));
@@ -112,12 +99,12 @@ class DownloadApplePayCertificate extends Action
                 $stats = $zip->statIndex($i);
 
                 // Prevent ZipSlip path traversal (S6096)
-                if (strpos($filename, '../') !== false ||
-                    substr($filename, 0, 1) === '/') {
+                if (str_contains($filename, '../') ||
+                    str_starts_with($filename, '/')) {
                     throw new AdyenException('The zip file is trying to ZipSlip please check the file');
                 }
 
-                if (substr($filename, -1) !== '/') {
+                if (!str_ends_with($filename, '/')) {
                     $fileCount++;
                     if ($fileCount > 10) {
                         // Reached max. number of files

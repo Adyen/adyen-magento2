@@ -19,7 +19,7 @@
             <![CDATA[<p>Set up additional payment methods to accept online and <a href="https://docs.adyen.com/get-started-with-adyen/payment-glossary#in-app-payments-or-mobile-payments" target="_blank">in-app payments</a> and eliminate the need for traditional card-based transactions.</p>]]>
         </comment>
         <field id="apple_pay_certificate_download" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Apple Pay Certificate</label>
+            <label>Apple Pay domain association file</label>
             <frontend_model>Adyen\Payment\Model\Config\Adminhtml\ApplepayCertificateButton</frontend_model>
         </field>
         <field id="ratepay_id" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
