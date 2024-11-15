@@ -50,6 +50,7 @@ class Config
     const XML_CONFIGURATION_MODE = 'configuration_mode';
     const XML_ADYEN_POS_CLOUD = 'adyen_pos_cloud';
     const XML_WEBHOOK_NOTIFICATION_PROCESSOR = 'webhook_notification_processor';
+    const XML_THREEDS_FLOW = 'threeds_flow';
 
     /**
      * @var ScopeConfigInterface
@@ -540,6 +541,21 @@ class Config
         return $this->getConfigData(
             self::XML_CONFIGURATION_MODE,
             self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId
+        );
+    }
+
+    /**
+     * Returns the preferred ThreeDS authentication type for card and card vault payments.
+     *
+     * @param int|null $storeId
+     * @return string
+     */
+    public function getThreeDSFlow(int $storeId = null): string
+    {
+        return $this->getConfigData(
+            self::XML_THREEDS_FLOW,
+            self::XML_ADYEN_CC,
             $storeId
         );
     }
