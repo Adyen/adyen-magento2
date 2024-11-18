@@ -14,6 +14,7 @@ namespace Adyen\Payment\Gateway\Request;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Vault;
+use Adyen\Payment\Model\Config\Source\ThreeDSFlow;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
@@ -82,7 +83,8 @@ class RecurringVaultDataBuilder implements BuilderInterface
          */
         if ($paymentMethod->getCode() === AdyenCcConfigProvider::CC_VAULT_CODE ||
             $paymentMethod->getCode() === AdyenOneclickConfigProvider::CODE) {
-            $requestBody['additionalData']['allow3DS2'] = true;
+            $requestBody['additionalData']['allow3DS2'] =
+                $this->configHelper->getThreeDSFlow($order->getStoreId()) === ThreeDSFlow::THREEDS_NATIVE;
             $requestBody['paymentMethod']['holderName'] = $details['cardHolderName'] ?? null;
         }
 

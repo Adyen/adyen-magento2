@@ -47,8 +47,13 @@
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_cc/enable_click_to_pay</config_path>
         </field>
+        <field id="threeds_flow" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="1">
+            <label>3D Secure 2 authentication flow</label>
+            <source_model>Adyen\Payment\Model\Config\Source\ThreeDSFlow</source_model>
+            <config_path>payment/adyen_cc/threeds_flow</config_path>
+        </field>
         <group id="adyen_cc_advanced_settings" translate="label" showInDefault="1" showInWebsite="1" showInStore="1"
-               sortOrder="60">
+               sortOrder="80">
             <label>Installments Setup</label>
             <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
             <field id="enable_installments" translate="label" type="select" sortOrder="10" showInDefault="1"
@@ -74,7 +79,7 @@
                 <config_path>payment/adyen_cc/installments</config_path>
             </field>
         </group>
-        <group id="adyen_cc_country_specific" translate="label" showInDefault="1" showInWebsite="1" sortOrder="70">
+        <group id="adyen_cc_country_specific" translate="label" showInDefault="1" showInWebsite="1" sortOrder="90">
             <label>Country Specific Settings</label>
             <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
             <field id="allowspecific" translate="label" type="allowspecific" sortOrder="10" showInDefault="1"
