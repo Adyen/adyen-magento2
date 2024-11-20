@@ -9,9 +9,8 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Gateway\Request;
+namespace Adyen\Payment\Gateway\Request\Header;
 
-use Adyen\Payment\Gateway\Request\Header\HeaderDataBuilderInterface;
 use Adyen\Payment\Helper\Data;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;

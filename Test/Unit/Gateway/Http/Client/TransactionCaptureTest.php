@@ -80,7 +80,7 @@ class TransactionCaptureTest extends AbstractAdyenTestCase
             $responseMock->method('toArray')->willReturn($response);
 
             $requestOptions['idempotencyKey'] = $expectedIdempotencyKey;
-            $requestOptions['headers'] = [];
+            $requestOptions['headers'] = [ "idempotencyExtraData" => [0 => "someData"]];;
 
             $checkoutModificationsService->expects($this->once())
                 ->method('captureAuthorisedPayment')
