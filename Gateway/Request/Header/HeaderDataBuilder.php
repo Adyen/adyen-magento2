@@ -11,16 +11,14 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Adyen\Payment\Gateway\Request\Header\HeaderDataBuilderInterface;
 use Adyen\Payment\Helper\Data;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
-class HeaderDataBuilder implements BuilderInterface
+class HeaderDataBuilder implements BuilderInterface, HeaderDataBuilderInterface
 {
-    const FRONTENDTYPE = 'external-platform-frontendtype';
-    const FRONTENDTYPE_HEADLESS = 'headless';
-
     /**
      * @var Data
      */
