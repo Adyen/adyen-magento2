@@ -17,8 +17,8 @@ use Adyen\Environment;
 use Adyen\Model\Checkout\ApplicationInfo;
 use Adyen\Model\Checkout\CommonField;
 use Adyen\Model\Checkout\UtilityRequest;
+use Adyen\Payment\Gateway\Request\Header\HeaderDataBuilderInterface;
 use Adyen\Payment\Helper\Config as ConfigHelper;
-use Adyen\Payment\Gateway\Request\HeaderDataBuilder;
 use Adyen\Service\Checkout;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Config\Source\RenderMode;
@@ -1180,9 +1180,9 @@ class Data extends AbstractHelper
             'merchant-application-version' => $this->getModuleVersion()
         ];
 
-        if(isset($payment) && !is_null($payment->getAdditionalInformation(HeaderDataBuilder::FRONTENDTYPE))) {
-            $headers[HeaderDataBuilder::FRONTENDTYPE] =
-                $payment->getAdditionalInformation(HeaderDataBuilder::FRONTENDTYPE);
+        if(isset($payment) && !is_null($payment->getAdditionalInformation(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY))) {
+            $headers[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE] =
+                $payment->getAdditionalInformation(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY);
         }
 
         return $headers;
