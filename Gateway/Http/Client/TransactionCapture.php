@@ -77,7 +77,7 @@ class TransactionCapture implements ClientInterface
         $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
         $service = $this->adyenHelper->initializeModificationsApi($client);
 
-        $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
+        $requestOptions['headers']= $headers;
         $request['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($client);
 
         if (array_key_exists(self::MULTIPLE_AUTHORIZATIONS, $request)) {

@@ -1262,7 +1262,6 @@
         <arguments>
             <argument name="builders" xsi:type="array">
                 <item name="poscloud" xsi:type="string">Adyen\Payment\Gateway\Request\PosCloudBuilder</item>
-                <item name="header" xsi:type="string">Adyen\Payment\Gateway\Request\Header\HeaderDataBuilder</item>
             </argument>
         </arguments>
     </virtualType>
