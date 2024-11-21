@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2022 Adyen N.V.
+ * Copyright (c) 2024 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -45,8 +45,7 @@ class AdditionalDataLevel23DataBuilder implements BuilderInterface
         public Requests $adyenRequestHelper,
         public Data $adyenHelper,
         public AdyenLogger $adyenLogger
-    )
-    { }
+    ) { }
 
     /**
      * This data builder creates `additionalData` object for Level 2/3 enhanced scheme data.
@@ -58,7 +57,7 @@ class AdditionalDataLevel23DataBuilder implements BuilderInterface
      */
     public function build(array $buildSubject): array
     {
-        $additionalDataLevel23 = [];
+        $request = [];
 
         if ($this->config->sendLevel23AdditionalData($this->storeManager->getStore()->getId())) {
             $paymentDataObject = SubjectReader::readPayment($buildSubject);
@@ -71,7 +70,7 @@ class AdditionalDataLevel23DataBuilder implements BuilderInterface
             // `totalTaxAmount` field is required and L2/L3 data can not be generated without this field.
             if (empty($order->getTaxAmount()) || $order->getTaxAmount() < 0 || $order->getTaxAmount() === 0) {
                 $this->adyenLogger->warning(__('L2/L3 data can not be generated if tax amount is zero.'));
-                return [];
+                return $request;
             }
 
             $additionalDataLevel23 = [
@@ -120,13 +119,15 @@ class AdditionalDataLevel23DataBuilder implements BuilderInterface
 
                 $itemIndex++;
             }
+
+            $request = [
+                'body' => [
+                    'additionalData' => $additionalDataLevel23
+                ]
+            ];
         }
 
-        return [
-            'body' => [
-                'additionalData' => $additionalDataLevel23
-            ]
-        ];
+        return $request;
     }
 
     /**
@@ -138,11 +139,6 @@ class AdditionalDataLevel23DataBuilder implements BuilderInterface
     private function validateLineItem(OrderItemInterface $orderItem): bool
     {
         $validationResult = true;
-
-        // Products variants get added to the order as separate items, filter out the variants.
-        if ($orderItem->getPrice() === 0 && !empty($orderItem->getParentItem())) {
-            $validationResult = false;
-        }
 
         // `unitPrice` should be a non-zero numeric value.
         if ($orderItem->getPrice() === 0) {
