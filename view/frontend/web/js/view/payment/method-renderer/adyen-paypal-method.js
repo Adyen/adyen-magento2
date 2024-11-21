@@ -10,7 +10,6 @@
 define(
     [
         'jquery',
-        'Magento_Checkout/js/model/quote',
         'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-method',
         'Adyen_Payment/js/model/adyen-configuration',
         'Magento_Checkout/js/model/full-screen-loader',
@@ -20,7 +19,6 @@ define(
     ],
     function(
         $,
-        quote,
         adyenPaymentMethod,
         adyenConfiguration,
         fullScreenLoader,
@@ -35,33 +33,43 @@ define(
                 this._super();
             },
             buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo) {
+                let self = this;
+
                 let baseComponentConfiguration = this._super();
                 let paypalConfiguration = Object.assign(baseComponentConfiguration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
                 paypalConfiguration.showPayButton = true;
+
                 let agreementsConfig = adyenConfiguration.getAgreementsConfig();
 
                 if (agreementsConfig && agreementsConfig.checkoutAgreements.isEnabled) {
-                    let self = this;
-
-                    paypalConfiguration.onInit = function (data, actions) {
-                        try {
-                            actions.disable();
-
-                                $(document).off('change', '.checkout-agreements input')
-                                    .on('change', '.checkout-agreements input', function () {
-                                        self.updatePayPalButton(actions);
-                                    });
-
-                        } catch (error) {
-                            console.warn("Error in onInit:", error.message);
+                    let agreementsMode = null;
+                    agreementsConfig.checkoutAgreements.agreements.forEach((item) => {
+                        if (item.mode === '1') {
+                            agreementsMode = 'manual';
                         }
-                    };
+                    });
 
-                    paypalConfiguration.onClick = function (data, actions) {
-                        if(!self.validate()) {
-                            console.error('Agreements configuration failed');
-                        }
-                    };
+                    if (agreementsMode === 'manual') {
+                        paypalConfiguration.onInit = function (data, actions) {
+                            try {
+                                actions.disable();
+
+                                $("input.required-entry").on('change', function () {
+                                    self.validate() ? actions.enable() : actions.disable();
+                                });
+                            } catch (error) {
+                                console.warn("PayPal component initialization failed!");
+                            }
+                        };
+
+                        paypalConfiguration.onClick = function (data, actions) {
+                            if (self.validate()) {
+                                return actions.resolve();
+                            } else {
+                                return actions.reject();
+                            }
+                        };
+                    }
                 }
 
                 return paypalConfiguration
@@ -79,17 +87,10 @@ define(
                 }
                 component.handleReject(response);
             },
-            updatePayPalButton: function (actions) {
-                if (this.validate()) {
-                    actions.enable();
-                } else {
-                    actions.disable();
-                }
-            },
             handleOnError:  function (error, component) {
                 let self = this;
                 if ('test' === adyenConfiguration.getCheckoutEnvironment()) {
-                    console.log("onError:",error);
+                    console.log("An error occured on PayPal component!");
                 }
 
                 // call endpoint with component.paymentData if available
