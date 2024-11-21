@@ -15,7 +15,8 @@ define(
         'Adyen_Payment/js/model/adyen-configuration',
         'Magento_Checkout/js/model/full-screen-loader',
         'Adyen_Payment/js/model/adyen-payment-service',
-        'Magento_Checkout/js/model/error-processor'
+        'Magento_Checkout/js/model/error-processor',
+        'Adyen_Payment/js/model/payment-component-states',
     ],
     function(
         $,
@@ -24,7 +25,8 @@ define(
         adyenConfiguration,
         fullScreenLoader,
         adyenPaymentService,
-        errorProcessor
+        errorProcessor,
+        paymentComponentStates
     ) {
         return adyenPaymentMethod.extend({
             placeOrderButtonVisible: false,
@@ -38,22 +40,28 @@ define(
                 paypalConfiguration.showPayButton = true;
                 let agreementsConfig = adyenConfiguration.getAgreementsConfig();
 
-                if (null !== agreementsConfig) {
+                if (agreementsConfig && agreementsConfig.checkoutAgreements.isEnabled) {
                     let self = this;
 
                     paypalConfiguration.onInit = function (data, actions) {
-                        actions.disable()
+                        try {
+                            actions.disable();
 
-                        $(document).off('change', '.checkout-agreements input').on('change', '.checkout-agreements input', function () {
-                            self.updatePayPalButton(actions);
-                        });
-                    }
+                                $(document).off('change', '.checkout-agreements input')
+                                    .on('change', '.checkout-agreements input', function () {
+                                        self.updatePayPalButton(actions);
+                                    });
+
+                        } catch (error) {
+                            console.warn("Error in onInit:", error.message);
+                        }
+                    };
 
                     paypalConfiguration.onClick = function (data, actions) {
                         if(!self.validate()) {
                             console.error('Agreements configuration failed');
                         }
-                    }
+                    };
                 }
 
                 return paypalConfiguration
@@ -79,6 +87,7 @@ define(
                 }
             },
             handleOnError:  function (error, component) {
+                let self = this;
                 if ('test' === adyenConfiguration.getCheckoutEnvironment()) {
                     console.log("onError:",error);
                 }
@@ -102,13 +111,13 @@ define(
                     );
                 }).fail(function(response) {
                     fullScreenLoader.stopLoader();
+
                     if (this.popupModal) {
                         this.closeModal(this.popupModal);
                     }
                     errorProcessor.process(response,
-                        this.currentMessageContainer);
-                    this.isPlaceOrderAllowed(true);
-                    this.showErrorMessage(response);
+                        self.currentMessageContainer);
+                    paymentComponentStates().setIsPlaceOrderAllowed(self.getMethodCode(), true);
                 });
             }
         })
