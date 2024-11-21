@@ -2,6 +2,8 @@
 
 namespace Adyen\Payment\Test\Gateway\Request;
 
+use Adyen\Payment\Logger\AdyenLogger;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Data\OrderAdapterInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Sales\Model\Order;
@@ -17,19 +19,23 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Requests;
+use PHPUnit\Framework\MockObject\MockObject;
 
 class AdditionalDataLevel23DataBuilderTest extends AbstractAdyenTestCase
 {
-    private $storeMock;
-    private $configMock;
-    private $storeManagerMock;
-    private $adyenHelperMock;
-    private $chargedCurrencyMock;
-    private $adyenRequestHelperMock;
+    protected ?AdditionalDataLevel23DataBuilder $additionalDataBuilder;
+    protected MockObject|StoreInterface $storeMock;
+    protected MockObject|Config $configMock;
+    protected MockObject|StoreManagerInterface $storeManagerMock;
+    protected MockObject|Data $adyenHelperMock;
+    protected MockObject|ChargedCurrency $chargedCurrencyMock;
+    protected MockObject|Requests $adyenRequestHelperMock;
+    protected MockObject|AdyenLogger $adyenLoggerMock;
 
-
-    protected function setUp(): void
+    public function setUp(): void
     {
+        parent::setUp();
+
         $this->configMock = $this->createMock(Config::class);
         $this->storeManagerMock = $this->createMock(StoreManagerInterface::class);
         $this->chargedCurrencyMock = $this->createMock(ChargedCurrency::class);
@@ -37,17 +43,41 @@ class AdditionalDataLevel23DataBuilderTest extends AbstractAdyenTestCase
         $this->adyenHelperMock = $this->createMock(Data::class);
         $this->storeMock = $this->createMock(StoreInterface::class);
         $this->storeManagerMock->method('getStore')->willReturn($this->storeMock);
+        $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
 
         $this->additionalDataBuilder = new AdditionalDataLevel23DataBuilder(
             $this->configMock,
             $this->storeManagerMock,
             $this->chargedCurrencyMock,
             $this->adyenRequestHelperMock,
-            $this->adyenHelperMock
+            $this->adyenHelperMock,
+            $this->adyenLoggerMock
         );
     }
 
-    public function testLevel23DataConfigurationEnabled()
+    public function tearDown(): void
+    {
+        parent::tearDown();
+
+        $this->additionalDataBuilder = null;
+    }
+
+    protected static function orderTypeDataProvider(): array
+    {
+        return [
+            ['isVirtual' => true],
+            ['isVirtual' => false],
+        ];
+    }
+
+    /**
+     * @dataProvider orderTypeDataProvider
+     *
+     * @param $isVirtual
+     * @return void
+     * @throws NoSuchEntityException
+     */
+    public function testLevel23DataConfigurationEnabled($isVirtual)
     {
         $storeId = 1;
         $currencyCode = 'USD';
@@ -56,21 +86,56 @@ class AdditionalDataLevel23DataBuilderTest extends AbstractAdyenTestCase
         $shopperReference = '000123';
         $taxAmount = 10.00;
         $formattedTaxAmount = '1000';
+        $shippingAmount = 5.00;
 
         $this->storeMock->method('getId')->willReturn($storeId);
-        $this->configMock->method('sendLevel23AdditionalData')->with($storeId)->willReturn(true);
-        $this->chargedCurrencyMock->method('getOrderAmountCurrency')->willReturn(new AdyenAmountCurrency(null, $currencyCode));
+        $this->configMock->method('sendLevel23AdditionalData')
+            ->with($storeId)
+            ->willReturn(true);
+
+        $this->chargedCurrencyMock->method('getOrderAmountCurrency')
+            ->willReturn(new AdyenAmountCurrency(null, $currencyCode));
+
         $this->adyenHelperMock->method('formatAmount')->willReturn($formattedTaxAmount);
-        $this->adyenRequestHelperMock->method('getShopperReference')->with($customerId, $orderIncrementId)->willReturn($shopperReference);
+
+        $this->adyenRequestHelperMock->method('getShopperReference')
+            ->with($customerId, $orderIncrementId)
+            ->willReturn($shopperReference);
+
         $itemMock1 = $this->createMock(Item::class);
+        $itemMock1->method('getPrice')->willReturn(0);
+
         $itemMock2 = $this->createMock(Item::class);
+        $itemMock2->method('getPrice')->willReturn(10);
+        $itemMock2->method('getRowTotal')->willReturn(0);
+
+        $itemMock3 = $this->createMock(Item::class);
+        $itemMock3->method('getPrice')->willReturn(10);
+        $itemMock3->method('getRowTotal')->willReturn(5);
+        $itemMock3->method('getQtyOrdered')->willReturn(0.5);
+
+        $itemMock4 = $this->createMock(Item::class);
+        $itemMock4->method('getPrice')->willReturn(15);
+        $itemMock4->method('getRowTotal')->willReturn(30);
+        $itemMock4->method('getQtyOrdered')->willReturn(2);
+        $itemMock4->method('getSku')->willReturn('ABC123');
+        $itemMock4->method('getDescription')->willReturn('Mock Product Description');
 
         $orderMock = $this->createConfiguredMock(Order::class, [
             'getCustomerId' => $customerId,
             'getIncrementId' => $orderIncrementId,
             'getTaxAmount' => $taxAmount,
-            'getItems' => [$itemMock1, $itemMock2]
+            'getItems' => [$itemMock1, $itemMock2, $itemMock3, $itemMock4],
+            'getIsNotVirtual' => !$isVirtual,
+            'getBaseShippingAmount' => $shippingAmount
         ]);
+
+        $shippingAddressMock = $this->createMock(Address::class);
+        $shippingAddressMock->method('getPostcode')->willReturn('12345');
+        $shippingAddressMock->method('getCountryId')->willReturn('US');
+        $shippingAddressMock->method('getRegionCode')->willReturn('MI');
+
+        $orderMock->method('getShippingAddress')->willReturn($shippingAddressMock);
 
         $orderAdapterMock = $this->createMock(OrderAdapterInterface::class);
         $paymentMock = $this->createMock(Payment::class);
@@ -78,235 +143,83 @@ class AdditionalDataLevel23DataBuilderTest extends AbstractAdyenTestCase
         $paymentDataObject = new PaymentDataObject($orderAdapterMock, $paymentMock);
         $buildSubject = ['payment' => $paymentDataObject, 'order' => $orderMock];
         $result = $this->additionalDataBuilder->build($buildSubject);
-        $expectedResult = [
-            'body' => [
-                'additionalData' => [
-                    'enhancedSchemeData.totalTaxAmount' => '1000',
-                    'enhancedSchemeData.customerReference' => '000123',
-                    'enhancedSchemeData.itemDetailLine0.description' => null,
-                    'enhancedSchemeData.itemDetailLine0.unitPrice' => '1000',
-                    'enhancedSchemeData.itemDetailLine0.discountAmount' => '1000',
-                    'enhancedSchemeData.itemDetailLine0.commodityCode' => null,
-                    'enhancedSchemeData.itemDetailLine0.quantity' => null,
-                    'enhancedSchemeData.itemDetailLine0.productCode' => null,
-                    'enhancedSchemeData.itemDetailLine0.totalAmount' => '1000',
-                    'enhancedSchemeData.itemDetailLine1.description' => null,
-                    'enhancedSchemeData.itemDetailLine1.unitPrice' => '1000',
-                    'enhancedSchemeData.itemDetailLine1.discountAmount' => '1000',
-                    'enhancedSchemeData.itemDetailLine1.commodityCode' => null,
-                    'enhancedSchemeData.itemDetailLine1.quantity' => null,
-                    'enhancedSchemeData.itemDetailLine1.productCode' => null,
-                    'enhancedSchemeData.itemDetailLine1.totalAmount' => '1000',
-                ]
-            ]
-        ];
 
-        $this->assertEquals($expectedResult, $result);
+        $this->assertArrayHasKey('additionalData', $result['body']);
+        $this->assertArrayHasKey(AdditionalDataLevel23DataBuilder::ENHANCED_SCHEME_DATA_PREFIX . '.orderDate', $result['body']['additionalData']);
+        $this->assertArrayHasKey(AdditionalDataLevel23DataBuilder::ENHANCED_SCHEME_DATA_PREFIX . '.customerReference', $result['body']['additionalData']);
+        $this->assertArrayHasKey(AdditionalDataLevel23DataBuilder::ENHANCED_SCHEME_DATA_PREFIX . '.totalTaxAmount', $result['body']['additionalData']);
+
+        if (!$isVirtual) {
+            $this->assertArrayHasKey(AdditionalDataLevel23DataBuilder::ENHANCED_SCHEME_DATA_PREFIX . '.freightAmount', $result['body']['additionalData']);
+            $this->assertArrayHasKey(AdditionalDataLevel23DataBuilder::ENHANCED_SCHEME_DATA_PREFIX . '.destinationPostalCode', $result['body']['additionalData']);
+            $this->assertArrayHasKey(AdditionalDataLevel23DataBuilder::ENHANCED_SCHEME_DATA_PREFIX . '.destinationCountryCode', $result['body']['additionalData']);
+            $this->assertArrayHasKey(AdditionalDataLevel23DataBuilder::ENHANCED_SCHEME_DATA_PREFIX . '.destinationStateProvinceCode', $result['body']['additionalData']);
+        }
+
+        $itemArrayKey = AdditionalDataLevel23DataBuilder::ENHANCED_SCHEME_DATA_PREFIX . '.' .
+            AdditionalDataLevel23DataBuilder::ITEM_DETAIL_LINE_PREFIX;
+
+        $this->assertArrayHasKey($itemArrayKey . '1.productCode', $result['body']['additionalData']);
+        $this->assertArrayHasKey($itemArrayKey . '1.description', $result['body']['additionalData']);
+        $this->assertArrayHasKey($itemArrayKey . '1.quantity', $result['body']['additionalData']);
+        $this->assertArrayHasKey($itemArrayKey . '1.unitOfMeasure', $result['body']['additionalData']);
+        $this->assertArrayHasKey($itemArrayKey . '1.commodityCode', $result['body']['additionalData']);
+        $this->assertArrayHasKey($itemArrayKey . '1.totalAmount', $result['body']['additionalData']);
+        $this->assertArrayHasKey($itemArrayKey . '1.unitPrice', $result['body']['additionalData']);
+
+        // Index starts from 1
+        $this->assertArrayNotHasKey($itemArrayKey . '0.productCode', $result['body']['additionalData']);
+
+        // Only one line item is valid, others should be cleaned up
+        $this->assertArrayNotHasKey($itemArrayKey . '2.productCode', $result['body']['additionalData']);
+        $this->assertArrayNotHasKey($itemArrayKey . '3.productCode', $result['body']['additionalData']);
     }
+
 
     public function testLevel23DataConfigurationDisabled()
     {
         $storeId = 1;
-        $orderIncrementId = '000000123';
-        $customerId = 123;
-        $taxAmount = 10.00;
 
         $this->storeMock->method('getId')->willReturn($storeId);
         $this->configMock->method('sendLevel23AdditionalData')->with($storeId)->willReturn(false);
-        $itemMock1 = $this->createMock(Item::class);
-        $itemMock2 = $this->createMock(Item::class);
 
-        $orderMock = $this->createConfiguredMock(Order::class, [
-            'getCustomerId' => $customerId,
-            'getIncrementId' => $orderIncrementId,
-            'getTaxAmount' => $taxAmount,
-            'getItems' => [$itemMock1, $itemMock2]
-        ]);
+        $paymentDataObjectMock = $this->createMock(PaymentDataObject::class);
+        $orderMock = $this->createMock(Order::class);
+        $buildSubject = ['payment' => $paymentDataObjectMock, 'order' => $orderMock];
 
-        $orderAdapterMock = $this->createMock(OrderAdapterInterface::class);
-        $paymentMock = $this->createMock(Payment::class);
-        $paymentMock->method('getOrder')->willReturn($orderMock);
-        $paymentDataObject = new PaymentDataObject($orderAdapterMock, $paymentMock);
-        $buildSubject = ['payment' => $paymentDataObject, 'order' => $orderMock];
         $result = $this->additionalDataBuilder->build($buildSubject);
-        $expectedResult = [
-            'body' => []
-        ];
-
-        $this->assertEquals($expectedResult, $result);
+        $this->assertEmpty($result);
     }
 
-    public function testVirtualOrder()
+    protected static function taxAmountDataProvider(): array
     {
-        $storeId = 1;
-        $currencyCode = 'USD';
-        $customerId = 123;
-        $orderIncrementId = '000000123';
-        $shopperReference = '000123';
-        $taxAmount = 10.00;
-        $formattedTaxAmount = '1000';
-
-        $this->storeMock->method('getId')->willReturn($storeId);
-        $this->configMock->method('sendLevel23AdditionalData')->with($storeId)->willReturn(true);
-        $this->chargedCurrencyMock->method('getOrderAmountCurrency')->willReturn(new AdyenAmountCurrency(null, $currencyCode));
-        $this->adyenHelperMock->method('formatAmount')->willReturn($formattedTaxAmount);
-        $this->adyenRequestHelperMock->method('getShopperReference')->with($customerId, $orderIncrementId)->willReturn($shopperReference);
-
-        $orderMock = $this->createConfiguredMock(Order::class, [
-            'getCustomerId' => $customerId,
-            'getIncrementId' => $orderIncrementId,
-            'getTaxAmount' => $taxAmount,
-            'getItems' => [],
-            'getIsNotVirtual' => false,
-            'getShippingAddress' => null,
-            'getBaseShippingAmount' => 0.00
-        ]);
-
-        $orderAdapterMock = $this->createMock(OrderAdapterInterface::class);
-        $paymentMock = $this->createMock(Payment::class);
-        $paymentMock->method('getOrder')->willReturn($orderMock);
-        $paymentDataObject = new PaymentDataObject($orderAdapterMock, $paymentMock);
-        $buildSubject = ['payment' => $paymentDataObject, 'order' => $orderMock];
-        $result = $this->additionalDataBuilder->build($buildSubject);
-
-        $expectedResult = [
-            'body' => [
-                'additionalData' => [
-                    'enhancedSchemeData.totalTaxAmount' => '1000',
-                    'enhancedSchemeData.customerReference' => '000123'
-                ]
-            ]
+        return [
+            ['taxAmount' => 0],
+            ['taxAmount' => null],
+            ['taxAmount' => -1]
         ];
-
-        $this->assertEquals($expectedResult, $result);
     }
 
-    public function testNonVirtualOrder()
+    /**
+     * @dataProvider taxAmountDataProvider
+     *
+     * @param $taxAmount
+     * @return void
+     * @throws NoSuchEntityException
+     */
+    public function testLevel23DataInvalidTaxAmounts($taxAmount)
     {
         $storeId = 1;
-        $currencyCode = 'USD';
-        $customerId = 123;
-        $orderIncrementId = '000000123';
-        $shopperReference = '000123';
-        $taxAmount = 10.00;
-        $shippingAmount = 5.00;
-        $formattedAmount = '1000';
-        $postalCode = '12345';
-        $countryId = 'US';
 
         $this->storeMock->method('getId')->willReturn($storeId);
-        $this->configMock->method('sendLevel23AdditionalData')->with($storeId)->willReturn(true);
-        $this->chargedCurrencyMock->method('getOrderAmountCurrency')->willReturn(new AdyenAmountCurrency(null, $currencyCode));
-        $this->adyenHelperMock->method('formatAmount')->willReturn($formattedAmount);
-        $this->adyenRequestHelperMock->method('getShopperReference')->with($customerId, $orderIncrementId)->willReturn($shopperReference);
-        $shippingAddressMock = $this->createMock(Address::class);
-        $shippingAddressMock->method('getPostcode')->willReturn($postalCode);
-        $shippingAddressMock->method('getCountryId')->willReturn($countryId);
+        $this->configMock->method('sendLevel23AdditionalData')->with($storeId)->willReturn(false);
 
-        $orderMock = $this->createConfiguredMock(Order::class, [
-            'getCustomerId' => $customerId,
-            'getIncrementId' => $orderIncrementId,
-            'getTaxAmount' => $taxAmount,
-            'getIsNotVirtual' => true,
-            'getShippingAddress' => $shippingAddressMock,
-            'getBaseShippingAmount' => $shippingAmount,
-            'getItems' => []
-        ]);
+        $paymentDataObjectMock = $this->createMock(PaymentDataObject::class);
+        $orderMock = $this->createMock(Order::class);
+        $orderMock->method('getTaxAmount')->willReturn($taxAmount);
+        $buildSubject = ['payment' => $paymentDataObjectMock, 'order' => $orderMock];
 
-        $orderAdapterMock = $this->createMock(OrderAdapterInterface::class);
-        $paymentMock = $this->createMock(Payment::class);
-        $paymentMock->method('getOrder')->willReturn($orderMock);
-        $paymentDataObject = new PaymentDataObject($orderAdapterMock, $paymentMock);
-        $buildSubject = ['payment' => $paymentDataObject, 'order' => $orderMock];
         $result = $this->additionalDataBuilder->build($buildSubject);
-        $expectedResult = [
-            'body' => [
-                'additionalData' => [
-                    'enhancedSchemeData.totalTaxAmount' => $formattedAmount,
-                    'enhancedSchemeData.customerReference' => $shopperReference,
-                    'enhancedSchemeData.freightAmount' => $formattedAmount,
-                    'enhancedSchemeData.destinationPostalCode' => $postalCode,
-                    'enhancedSchemeData.destinationCountryCode' => $countryId
-                ]
-            ]
-        ];
-
-        $this->assertEquals($expectedResult, $result);
-    }
-
-    public function testOrderWithDiscount()
-    {
-        $storeId = 1;
-        $currencyCode = 'USD';
-        $customerId = 123;
-        $orderIncrementId = '000000123';
-        $shopperReference = '000123';
-        $taxAmount = 10.00;
-        $formattedAmount = '1000';
-        $discountAmount = 2.00;
-
-        $this->storeMock->method('getId')->willReturn($storeId);
-        $this->configMock->method('sendLevel23AdditionalData')->with($storeId)->willReturn(true);
-        $this->chargedCurrencyMock->method('getOrderAmountCurrency')->willReturn(new AdyenAmountCurrency(null, $currencyCode));
-        $this->adyenHelperMock->method('formatAmount')->willReturn($formattedAmount);
-        $this->adyenRequestHelperMock->method('getShopperReference')->with($customerId, $orderIncrementId)->willReturn($shopperReference);
-
-        $itemMock1 = $this->createConfiguredMock(Item::class, [
-            'getPrice' => 10.00,
-            'getDiscountAmount' => $discountAmount,
-            'getName' => 'Item 1',
-            'getQuoteItemId' => 101,
-            'getQtyOrdered' => 1,
-            'getSku' => 'sku-1',
-            'getRowTotal' => 8.00
-        ]);
-
-        $itemMock2 = $this->createConfiguredMock(Item::class, [
-            'getPrice' => 20.00,
-            'getDiscountAmount' => $discountAmount,
-            'getName' => 'Item 2',
-            'getQuoteItemId' => 102,
-            'getQtyOrdered' => 1,
-            'getSku' => 'sku-2',
-            'getRowTotal' => 18.00
-        ]);
-
-        $orderMock = $this->createConfiguredMock(Order::class, [
-            'getCustomerId' => $customerId,
-            'getIncrementId' => $orderIncrementId,
-            'getTaxAmount' => $taxAmount,
-            'getItems' => [$itemMock1, $itemMock2]
-        ]);
-
-        $orderAdapterMock = $this->createMock(OrderAdapterInterface::class);
-        $paymentMock = $this->createMock(Payment::class);
-        $paymentMock->method('getOrder')->willReturn($orderMock);
-        $paymentDataObject = new PaymentDataObject($orderAdapterMock, $paymentMock);
-        $buildSubject = ['payment' => $paymentDataObject, 'order' => $orderMock];
-        $result = $this->additionalDataBuilder->build($buildSubject);
-        $expectedResult = [
-            'body' => [
-                'additionalData' => [
-                    'enhancedSchemeData.totalTaxAmount' => '1000',
-                    'enhancedSchemeData.customerReference' => '000123',
-                    'enhancedSchemeData.itemDetailLine0.description' => 'Item 1',
-                    'enhancedSchemeData.itemDetailLine0.unitPrice' => '1000',
-                    'enhancedSchemeData.itemDetailLine0.discountAmount' => '1000',
-                    'enhancedSchemeData.itemDetailLine0.commodityCode' => 101,
-                    'enhancedSchemeData.itemDetailLine0.quantity' => 1,
-                    'enhancedSchemeData.itemDetailLine0.productCode' => 'sku-1',
-                    'enhancedSchemeData.itemDetailLine0.totalAmount' => '1000',
-                    'enhancedSchemeData.itemDetailLine1.description' => 'Item 2',
-                    'enhancedSchemeData.itemDetailLine1.unitPrice' => '1000',
-                    'enhancedSchemeData.itemDetailLine1.discountAmount' => '1000',
-                    'enhancedSchemeData.itemDetailLine1.commodityCode' => 102,
-                    'enhancedSchemeData.itemDetailLine1.quantity' => 1,
-                    'enhancedSchemeData.itemDetailLine1.productCode' => 'sku-2',
-                    'enhancedSchemeData.itemDetailLine1.totalAmount' => '1000',
-                ]
-            ]
-        ];
-
-        $this->assertEquals($expectedResult, $result);
+        $this->assertEmpty($result);
     }
 }
