@@ -210,13 +210,23 @@ class AdditionalDataLevel23DataBuilderTest extends AbstractAdyenTestCase
     public function testLevel23DataInvalidTaxAmounts($taxAmount)
     {
         $storeId = 1;
+        $currencyCode = 'USD';
+
+        $this->chargedCurrencyMock->method('getOrderAmountCurrency')
+            ->willReturn(new AdyenAmountCurrency(null, $currencyCode));
 
         $this->storeMock->method('getId')->willReturn($storeId);
-        $this->configMock->method('sendLevel23AdditionalData')->with($storeId)->willReturn(false);
+        $this->configMock->method('sendLevel23AdditionalData')->with($storeId)->willReturn(true);
 
-        $paymentDataObjectMock = $this->createMock(PaymentDataObject::class);
         $orderMock = $this->createMock(Order::class);
         $orderMock->method('getTaxAmount')->willReturn($taxAmount);
+
+        $paymentMock = $this->createMock(Payment::class);
+        $paymentMock->method('getOrder')->willReturn($orderMock);
+
+        $paymentDataObjectMock = $this->createMock(PaymentDataObject::class);
+        $paymentDataObjectMock->method('getPayment')->willReturn($paymentMock);
+
         $buildSubject = ['payment' => $paymentDataObjectMock, 'order' => $orderMock];
 
         $result = $this->additionalDataBuilder->build($buildSubject);
