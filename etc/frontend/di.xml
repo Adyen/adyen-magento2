@@ -114,6 +114,7 @@
                 <item name="adyen_kcp_naverpay" xsi:type="string">kcp_naverpay</item>
                 <item name="adyen_kcp_payco" xsi:type="string">kcp_payco</item>
                 <item name="adyen_kcp_creditcard" xsi:type="string">kcp_creditcard</item>
+                <item name="adyen_doku_alfamart" xsi:type="string">doku_alfamart</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
