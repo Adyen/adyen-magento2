@@ -335,4 +335,7 @@
     <event name="payment_method_assign_data_adyen_doku_indomaret">
         <observer name="adyen_doku_indomaret_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_doku_mandiri_va">
+        <observer name="adyen_doku_mandiri_va_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
 </config>
