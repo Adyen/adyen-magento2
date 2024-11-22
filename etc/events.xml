@@ -317,4 +317,7 @@
     <event name="payment_method_assign_data_adyen_doku_permata_lite_atm">
         <observer name="adyen_doku_permata_lite_atm_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_doku_bca_va">
+        <observer name="adyen_doku_bca_va_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
 </config>
