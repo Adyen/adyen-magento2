@@ -290,5 +290,8 @@
         <method name="adyen_doku_cimb_va">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="adyen_doku_danamon_va">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>
