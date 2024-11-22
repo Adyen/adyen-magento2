@@ -117,6 +117,7 @@
                 <item name="adyen_doku_alfamart" xsi:type="string">doku_alfamart</item>
                 <item name="adyen_doku_permata_lite_atm" xsi:type="string">doku_permata_lite_atm</item>
                 <item name="adyen_doku_bca_va" xsi:type="string">doku_bca_va</item>
+                <item name="adyen_doku_bni_va" xsi:type="string">doku_bni_va</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
