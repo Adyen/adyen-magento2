@@ -9,20 +9,22 @@
  */
 define(
     [
-        'Magento_Checkout/js/model/quote',
+        'jquery',
         'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-method',
+        'Adyen_Payment/js/model/adyen-configuration',
         'Magento_Checkout/js/model/full-screen-loader',
         'Adyen_Payment/js/model/adyen-payment-service',
         'Magento_Checkout/js/model/error-processor',
-        'Adyen_Payment/js/model/adyen-configuration'
+        'Adyen_Payment/js/model/payment-component-states',
     ],
     function(
-        quote,
+        $,
         adyenPaymentMethod,
+        adyenConfiguration,
         fullScreenLoader,
         adyenPaymentService,
         errorProcessor,
-        adyenConfiguration
+        paymentComponentStates
     ) {
         return adyenPaymentMethod.extend({
             placeOrderButtonVisible: false,
@@ -31,9 +33,44 @@ define(
                 this._super();
             },
             buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo) {
+                let self = this;
+
                 let baseComponentConfiguration = this._super();
                 let paypalConfiguration = Object.assign(baseComponentConfiguration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
                 paypalConfiguration.showPayButton = true;
+
+                let agreementsConfig = adyenConfiguration.getAgreementsConfig();
+
+                if (agreementsConfig && agreementsConfig.checkoutAgreements.isEnabled) {
+                    let agreementsMode = null;
+                    agreementsConfig.checkoutAgreements.agreements.forEach((item) => {
+                        if (item.mode === '1') {
+                            agreementsMode = 'manual';
+                        }
+                    });
+
+                    if (agreementsMode === 'manual') {
+                        paypalConfiguration.onInit = function (data, actions) {
+                            try {
+                                actions.disable();
+
+                                $("input.required-entry").on('change', function () {
+                                    self.validate() ? actions.enable() : actions.disable();
+                                });
+                            } catch (error) {
+                                console.warn("PayPal component initialization failed!");
+                            }
+                        };
+
+                        paypalConfiguration.onClick = function (data, actions) {
+                            if (self.validate()) {
+                                return actions.resolve();
+                            } else {
+                                return actions.reject();
+                            }
+                        };
+                    }
+                }
 
                 return paypalConfiguration
             },
@@ -45,11 +82,15 @@ define(
             handleOnFailure: function(response, component) {
                 this.isPlaceOrderAllowed(true);
                 fullScreenLoader.stopLoader();
+                if (response && response.error) {
+                    console.error('Error details:', response.error);
+                }
                 component.handleReject(response);
             },
             handleOnError:  function (error, component) {
+                let self = this;
                 if ('test' === adyenConfiguration.getCheckoutEnvironment()) {
-                    console.log("onError:",error);
+                    console.log("An error occured on PayPal component!");
                 }
 
                 // call endpoint with component.paymentData if available
@@ -71,13 +112,13 @@ define(
                     );
                 }).fail(function(response) {
                     fullScreenLoader.stopLoader();
+
                     if (this.popupModal) {
                         this.closeModal(this.popupModal);
                     }
                     errorProcessor.process(response,
-                        this.currentMessageContainer);
-                    this.isPlaceOrderAllowed(true);
-                    this.showErrorMessage(response);
+                        self.currentMessageContainer);
+                    paymentComponentStates().setIsPlaceOrderAllowed(self.getMethodCode(), true);
                 });
             }
         })
