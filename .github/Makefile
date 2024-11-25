@@ -62,6 +62,7 @@ enable-express:
 	bin/magento setup:upgrade
 	bin/magento config:set payment/adyen_googlepay/express_show_on "1,2,3"
 	bin/magento config:set payment/adyen_applepay/express_show_on "1,2,3"
+	bin/magento config:set payment/adyen_paypal_express/express_show_on "1,2,3"
 	bin/magento cache:clean
 
 # Full plugin setup
