@@ -31,7 +31,7 @@ define(
                         amount: paymentMethodsExtraInfo[paymentMethod.type].configuration.amount
                     }
                 );
-                googlePayConfiguration.onClick = function(resolve,reject) {
+                applePayConfiguration.onClick = function(resolve, reject) {
                     if (self.validate()) {
                         resolve();
                     } else {
