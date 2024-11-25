@@ -17,15 +17,14 @@ use Adyen\Model\Checkout\PaymentCancelRequest;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 
-class TransactionCancel implements ClientInterface
+class TransactionCancel extends BaseTransaction
 {
     /**
      * @var Data
      */
-    private Data $adyenHelper;
+    protected Data $adyenHelper;
 
     /**
      * @var Idempotency
@@ -40,7 +39,7 @@ class TransactionCancel implements ClientInterface
         Data        $adyenHelper,
         Idempotency $idempotencyHelper
     ) {
-        $this->adyenHelper = $adyenHelper;
+        parent::__construct($adyenHelper);
         $this->idempotencyHelper = $idempotencyHelper;
     }
 
@@ -53,9 +52,9 @@ class TransactionCancel implements ClientInterface
     public function placeRequest(TransferInterface $transferObject): array
     {
         $requests = $transferObject->getBody();
-        $headers = $transferObject->getHeaders();
-        $clientConfig = $transferObject->getClientConfig();
+        $requestOptions['headers'] = $this->requestHeaders($transferObject);
 
+        $clientConfig = $transferObject->getClientConfig();
         $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
         $service = $this->adyenHelper->initializeModificationsApi($client);
         $responseData = [];
@@ -63,10 +62,10 @@ class TransactionCancel implements ClientInterface
         foreach ($requests as $request) {
             $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
                 $request,
-                $headers['idempotencyExtraData'] ?? null
+                $requestOptions['headers']['idempotencyExtraData'] ?? null
             );
+
             $requestOptions['idempotencyKey'] = $idempotencyKey;
-            $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
             $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/cancels');
             $request['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($client);
             $paymentCancelRequest = new PaymentCancelRequest($request);

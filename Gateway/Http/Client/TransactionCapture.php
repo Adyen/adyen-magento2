@@ -21,10 +21,9 @@ use Adyen\Payment\Helper\Requests;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Service\Checkout\ModificationsApi;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 
-class TransactionCapture implements ClientInterface
+class TransactionCapture extends BaseTransaction
 {
     const MULTIPLE_AUTHORIZATIONS = 'multiple_authorizations';
     const FORMATTED_CAPTURE_AMOUNT = 'formatted_capture_amount';
@@ -35,7 +34,7 @@ class TransactionCapture implements ClientInterface
     /**
      * @var Data
      */
-    private Data $adyenHelper;
+    protected Data $adyenHelper;
 
     /**
      * @var AdyenLogger
@@ -57,7 +56,7 @@ class TransactionCapture implements ClientInterface
         AdyenLogger $adyenLogger,
         Idempotency $idempotencyHelper
     ) {
-        $this->adyenHelper = $adyenHelper;
+        parent::__construct($adyenHelper);
         $this->adyenLogger = $adyenLogger;
         $this->idempotencyHelper = $idempotencyHelper;
     }
@@ -71,13 +70,12 @@ class TransactionCapture implements ClientInterface
     public function placeRequest(TransferInterface $transferObject): array
     {
         $request = $transferObject->getBody();
-        $headers = $transferObject->getHeaders();
-        $clientConfig = $transferObject->getClientConfig();
+        $requestOptions['headers'] = $this->requestHeaders($transferObject);
 
+        $clientConfig = $transferObject->getClientConfig();
         $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
         $service = $this->adyenHelper->initializeModificationsApi($client);
 
-        $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
         $request['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($client);
 
         if (array_key_exists(self::MULTIPLE_AUTHORIZATIONS, $request)) {
@@ -86,10 +84,10 @@ class TransactionCapture implements ClientInterface
 
         $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
             $request,
-            $headers['idempotencyExtraData'] ?? null
+            $requestOptions['headers']['idempotencyExtraData'] ?? null
         );
-        $requestOptions['idempotencyKey'] = $idempotencyKey;
 
+        $requestOptions['idempotencyKey'] = $idempotencyKey;
         $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/captures');
         $paymentCaptureRequest = new PaymentCaptureRequest($request);
         $responseData = [];

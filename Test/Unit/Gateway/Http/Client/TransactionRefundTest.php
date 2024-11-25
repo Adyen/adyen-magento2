@@ -70,7 +70,6 @@ class TransactionRefundTest extends AbstractAdyenTestCase
 
         $this->adyenHelperMock->method('initializeAdyenClientWithClientConfig')->willReturn($adyenClientMock);
         $this->adyenHelperMock->method('initializeModificationsApi')->willReturn($serviceMock);
-        $this->adyenHelperMock->method('buildRequestHeaders')->willReturn(['custom-header' => 'value']);
 
         $this->idempotencyHelperMock->expects($this->once())
             ->method('generateIdempotencyKey')
@@ -90,7 +89,6 @@ class TransactionRefundTest extends AbstractAdyenTestCase
                     $this->assertArrayHasKey('idempotencyKey', $requestOptions);
                     $this->assertArrayHasKey('headers', $requestOptions);
                     $this->assertEquals('generated_idempotency_key', $requestOptions['idempotencyKey']);
-                    $this->assertArrayHasKey('custom-header', $requestOptions['headers']);
                     return true;
                 })
             )
