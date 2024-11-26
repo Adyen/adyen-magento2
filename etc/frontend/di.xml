@@ -130,6 +130,10 @@
                 <item name="adyen_applepay" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-applepay-method</item>
                 <item name="adyen_boleto" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-boleto-method</item>
                 <item name="adyen_facilypay_3x" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-facilypay-3x-method</item>
+                <item name="adyen_facilypay_4x" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-facilypay-method</item>
+                <item name="adyen_facilypay_6x" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-facilypay-method</item>
+                <item name="adyen_facilypay_10x" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-facilypay-method</item>
+                <item name="adyen_facilypay_12x" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-facilypay-method</item>
                 <item name="adyen_googlepay" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-googlepay-method</item>
                 <item name="adyen_paypal" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-paypal-method</item>
                 <item name="adyen_giftcard" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-giftcard-method</item>
