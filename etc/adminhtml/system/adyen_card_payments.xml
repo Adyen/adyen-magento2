@@ -58,13 +58,13 @@
             <config_path>payment/adyen_cc/installments</config_path>
         </field>
         <field id="send_level23_data" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Send Level 2/3 additional data</label>
+            <label>Send Level 2/3 enhanced scheme data</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_abstract/send_level23_data</config_path>
             <comment>
                 <![CDATA[
                 If enabled level 2/level 3 data will be sent for credit card payments. Refer to
-                <a target="_blank" href="https://docs.adyen.com/online-payments/classic-integrations/hosted-payment-pages/hpp-payments-with-l2l3-data">Adyen documentation</a>
+                <a target="_blank" href="https://docs.adyen.com/payment-methods/cards/enhanced-scheme-data/l2-l3/">Adyen documentation</a>
                 for more information.
                 ]]>
             </comment>

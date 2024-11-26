@@ -114,6 +114,15 @@
                 <item name="adyen_kcp_naverpay" xsi:type="string">kcp_naverpay</item>
                 <item name="adyen_kcp_payco" xsi:type="string">kcp_payco</item>
                 <item name="adyen_kcp_creditcard" xsi:type="string">kcp_creditcard</item>
+                <item name="adyen_doku_alfamart" xsi:type="string">doku_alfamart</item>
+                <item name="adyen_doku_permata_lite_atm" xsi:type="string">doku_permata_lite_atm</item>
+                <item name="adyen_doku_bca_va" xsi:type="string">doku_bca_va</item>
+                <item name="adyen_doku_bni_va" xsi:type="string">doku_bni_va</item>
+                <item name="adyen_doku_bri_va" xsi:type="string">doku_bri_va</item>
+                <item name="adyen_doku_cimb_va" xsi:type="string">doku_cimb_va</item>
+                <item name="adyen_doku_danamon_va" xsi:type="string">doku_danamon_va</item>
+                <item name="adyen_doku_indomaret" xsi:type="string">doku_indomaret</item>
+                <item name="adyen_doku_mandiri_va" xsi:type="string">doku_mandiri_va</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
