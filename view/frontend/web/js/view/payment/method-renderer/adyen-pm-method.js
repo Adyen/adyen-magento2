@@ -149,7 +149,9 @@ define(
             },
 
             handleOnFailure: function(error, component) {
-                this.isPlaceOrderAllowed(true);
+
+                paymentComponentStates().setIsPlaceOrderAllowed(this.getMethodCode(), true);
+
                 fullScreenLoader.stopLoader();
                 errorProcessor.process(error, this.currentMessageContainer);
             },
