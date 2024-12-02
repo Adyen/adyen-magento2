@@ -29,7 +29,13 @@ class DescriptionDataBuilder implements BuilderInterface
         $payment = $paymentDataObject->getPayment();
         /** @var Order $order */
         $order = $payment->getOrder();
-        $request['body']['description'] = 'Order ' . $order->getIncrementId() . ' from ' . $order->getStore()->getGroup()->getName();
+
+        $request['body']['description'] = (string)__(
+            'Order %1 from %2',
+            $order->getIncrementId(),
+            $order->getStore()->getGroup()->getName()
+        );
+
         return $request;
     }
 }
