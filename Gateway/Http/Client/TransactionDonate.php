@@ -64,12 +64,14 @@ class TransactionDonate implements ClientInterface
     {
         $request = $transferObject->getBody();
         $headers = $transferObject->getHeaders();
+        $idempotencyKeyExtraData = $headers['idempotencyExtraData'];
+        unset($headers['idempotencyExtraData']);
 
         $service = new DonationsApi($this->client);
 
         $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
             $request,
-            $headers['idempotencyExtraData'] ?? null
+            $idempotencyKeyExtraData ?? null
         );
 
         $requestOptions['idempotencyKey'] = $idempotencyKey;
