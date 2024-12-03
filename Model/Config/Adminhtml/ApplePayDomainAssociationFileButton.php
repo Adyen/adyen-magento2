@@ -16,9 +16,9 @@ use Magento\Backend\Block\Template\Context;
 use Magento\Backend\Helper\Data;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 
-class ApplepayCertificateButton extends Field
+class ApplePayDomainAssociationFileButton extends Field
 {
-    const APPLEPAY_BUTTON = 'Adyen_Payment::config/applepay_button.phtml';
+    const APPLEPAY_BUTTON = 'Adyen_Payment::config/applepay_domain_association_file_button.phtml';
 
     /**
      * @var Data
@@ -40,7 +40,7 @@ class ApplepayCertificateButton extends Field
     }
 
     /**
-     * @return $this|ApplepayCertificateButton
+     * @return $this|ApplePayDomainAssociationFileButton
      */
     protected function _prepareLayout()
     {
@@ -73,6 +73,6 @@ class ApplepayCertificateButton extends Field
      */
     public function getActionUrl(): string
     {
-            return $this->backendHelper->getUrl("adyen/configuration/DownloadApplePayCertificate");
+        return $this->backendHelper->getUrl("adyen/configuration/DownloadApplePayDomainAssociationFile");
     }
 }
