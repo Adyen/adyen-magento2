@@ -2,13 +2,10 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2023 Adyen NV (https://www.adyen.com/)
+ * Copyright (c) 2024 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
- *
- * @deprecated This file will be removed on V10. Use `adyen-facilypay-method.js` instead.
- *
  */
 define(
     [
@@ -34,7 +31,6 @@ define(
                 if (!!customerData.dob){
                     shopperDateOfBirth = customerData.dob;
                 }
-
 
                 if (!!customerData.email) {
                     email = customerData.email;
