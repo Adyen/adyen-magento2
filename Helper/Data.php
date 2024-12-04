@@ -1173,11 +1173,11 @@ class Data extends AbstractHelper
     {
         $magentoDetails = $this->getMagentoDetails();
         $headers = [
-            'external-platform-name' => $magentoDetails['name'],
-            'external-platform-version' => $magentoDetails['version'],
-            'external-platform-edition' => $magentoDetails['edition'],
-            'merchant-application-name' => $this->getModuleName(),
-            'merchant-application-version' => $this->getModuleVersion()
+            HeaderDataBuilderInterface::EXTERNAL_PLATFORM_NAME => $magentoDetails['name'],
+            HeaderDataBuilderInterface::EXTERNAL_PLATFORM_VERSION => $magentoDetails['version'],
+            HeaderDataBuilderInterface::EXTERNAL_PLATFORM_EDITION => $magentoDetails['edition'],
+            HeaderDataBuilderInterface::MERCHANT_APPLICATION_NAME => $this->getModuleName(),
+            HeaderDataBuilderInterface::MERCHANT_APPLICATION_VERSION  => $this->getModuleVersion()
         ];
 
         if(isset($payment) && !is_null($payment->getAdditionalInformation(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY))) {

@@ -12,5 +12,4 @@ interface HeaderDataBuilderInterface
     const MERCHANT_APPLICATION_VERSION = 'merchant-application-version';
 
     const ADDITIONAL_DATA_FRONTEND_TYPE_KEY = 'frontendType';
-    const FRONTEND_TYPE_HEADLESS_VALUE = 'headless';
 }
