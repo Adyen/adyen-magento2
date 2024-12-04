@@ -23,7 +23,7 @@ class ApplePayDomainAssociationFileButton extends Field
     /**
      * @var Data
      */
-    protected $backendHelper;
+    protected Data $backendHelper;
 
     /**
      * @param Context $context
@@ -42,7 +42,7 @@ class ApplePayDomainAssociationFileButton extends Field
     /**
      * @return $this|ApplePayDomainAssociationFileButton
      */
-    protected function _prepareLayout()
+    protected function _prepareLayout(): ApplePayDomainAssociationFileButton|static
     {
         parent::_prepareLayout();
 
@@ -57,7 +57,7 @@ class ApplePayDomainAssociationFileButton extends Field
      * @param AbstractElement $element
      * @return string
      */
-    protected function _getElementHtml(AbstractElement $element)
+    protected function _getElementHtml(AbstractElement $element): string
     {
         $this->addData([
             'id' => 'addbutton_button',
