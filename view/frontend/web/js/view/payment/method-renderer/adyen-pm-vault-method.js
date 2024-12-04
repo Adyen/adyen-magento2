@@ -54,6 +54,20 @@ define([
          */
         getIcons: function (type) {
             return this.details.icon;
+        },
+        getData: function () {
+            const self = this;
+            return {
+                method: this.code,
+                additional_data: {
+                    public_hash: this.publicHash,
+                    numberOfInstallments: this.installment(),
+                    frontendType: 'default'
+                },
+            };
+        },
+        getPlaceOrderDeferredObject: function () {
+            return $.when(placeOrderAction(this.getData()));
         }
     });
 });

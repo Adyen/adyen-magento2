@@ -143,7 +143,7 @@ define(
                     this.renderCheckoutComponent();
                 }
             },
-            
+
             handleOnError: function (error, component) {
                 this.handleOnFailure(error, component);
             },
@@ -155,7 +155,7 @@ define(
                 fullScreenLoader.stopLoader();
                 errorProcessor.process(error, this.currentMessageContainer);
             },
-            
+
             renderCheckoutComponent: function() {
                 let methodCode = this.getMethodCode();
                 let configuration = this.buildComponentConfiguration(this.paymentMethod(), this.paymentMethodsExtraInfo());
@@ -294,7 +294,7 @@ define(
 
                     let additionalData = {};
                     additionalData.brand_code = this.paymentMethod().type;
-                    additionalData.frontendType = 'luma';
+                    additionalData.frontendType = 'default';
 
                     let stateData;
                     if (this.paymentComponent) {
