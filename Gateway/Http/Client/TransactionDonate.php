@@ -64,18 +64,16 @@ class TransactionDonate implements ClientInterface
     {
         $request = $transferObject->getBody();
         $headers = $transferObject->getHeaders();
-        $idempotencyKeyExtraData = $headers['idempotencyExtraData'];
-        unset($headers['idempotencyExtraData']);
 
         $service = new DonationsApi($this->client);
 
         $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
             $request,
-            $idempotencyKeyExtraData ?? null
+            $headers['idempotencyExtraData'] ?? null
         );
 
         $requestOptions['idempotencyKey'] = $idempotencyKey;
-        $requestOptions['headers'] = $headers;
+        $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
         $request['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($this->client);
 
         $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, 'donations');
