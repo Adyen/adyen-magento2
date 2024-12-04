@@ -57,7 +57,6 @@ class TransactionRefund implements TransactionRefundInterface
         $requests = $transferObject->getBody();
         $headers = $transferObject->getHeaders();
         $idempotencyKeyExtraData = $headers['idempotencyExtraData'];
-
         unset($headers['idempotencyExtraData']);
         $clientConfig = $transferObject->getClientConfig();
 
