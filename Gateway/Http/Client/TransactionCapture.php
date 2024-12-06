@@ -72,12 +72,14 @@ class TransactionCapture implements ClientInterface
     {
         $request = $transferObject->getBody();
         $headers = $transferObject->getHeaders();
+        $idempotencyKeyExtraData = $headers['idempotencyExtraData'];
+        unset($headers['idempotencyExtraData']);
         $clientConfig = $transferObject->getClientConfig();
 
         $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
         $service = $this->adyenHelper->initializeModificationsApi($client);
 
-        $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
+        $requestOptions['headers'] = $headers;
         $request['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($client);
 
         if (array_key_exists(self::MULTIPLE_AUTHORIZATIONS, $request)) {
@@ -86,7 +88,7 @@ class TransactionCapture implements ClientInterface
 
         $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
             $request,
-            $headers['idempotencyExtraData'] ?? null
+            $idempotencyKeyExtraData ?? null
         );
         $requestOptions['idempotencyKey'] = $idempotencyKey;
 

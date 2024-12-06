@@ -55,6 +55,8 @@ class TransactionPaymentLinks implements ClientInterface
     {
         $request = $transferObject->getBody();
         $headers = $transferObject->getHeaders();
+        $idempotencyKeyExtraData = $headers['idempotencyExtraData'];
+        unset($headers['idempotencyExtraData']);
         $clientConfig = $transferObject->getClientConfig();
 
         $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
@@ -68,11 +70,11 @@ class TransactionPaymentLinks implements ClientInterface
 
         $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
             $request,
-            $headers['idempotencyExtraData'] ?? null
+            $idempotencyKeyExtraData ?? null
         );
 
         $requestOptions['idempotencyKey'] = $idempotencyKey;
-        $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
+        $requestOptions['headers'] = $headers;
         $request['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($client);
 
         $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/paymentLinks');

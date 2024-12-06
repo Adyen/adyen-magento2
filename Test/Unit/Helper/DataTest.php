@@ -15,7 +15,7 @@ use Adyen\Client;
 use Adyen\Config as AdyenConfig;
 use Adyen\Model\Checkout\ApplicationInfo;
 use Adyen\Model\Checkout\CommonField;
-use Adyen\Payment\Gateway\Request\HeaderDataBuilder;
+use Adyen\Payment\Gateway\Request\Header\HeaderDataBuilderInterface;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Locale;
@@ -1090,15 +1090,15 @@ class DataTest extends AbstractAdyenTestCase
 
         // Set up expectations for the getAdditionalInformation method
         $payment->method('getAdditionalInformation')
-            ->with(HeaderDataBuilder::FRONTENDTYPE)
+            ->with(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY)
             ->willReturn('some_frontend_type');
 
         // Call the method under test
         $result = $this->dataHelper->buildRequestHeaders($payment);
 
         // Assert that the 'frontend-type' header is correctly set
-        $this->assertArrayHasKey(HeaderDataBuilder::FRONTENDTYPE, $result);
-        $this->assertEquals('some_frontend_type', $result[HeaderDataBuilder::FRONTENDTYPE]);
+        $this->assertArrayHasKey(HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE, $result);
+        $this->assertEquals('some_frontend_type', $result[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE]);
 
         // Assert other headers as needed
     }
@@ -1110,7 +1110,7 @@ class DataTest extends AbstractAdyenTestCase
         $result = $this->dataHelper->buildRequestHeaders();
 
         // Assert that the 'frontend-type' header is not set
-        $this->assertArrayNotHasKey(HeaderDataBuilder::FRONTENDTYPE, $result);
+        $this->assertArrayNotHasKey(HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE, $result);
     }
 
     public function testLogResponse()

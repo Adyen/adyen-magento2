@@ -66,7 +66,7 @@ class TransactionCancel implements ClientInterface
                 $headers['idempotencyExtraData'] ?? null
             );
             $requestOptions['idempotencyKey'] = $idempotencyKey;
-            $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
+            $requestOptions['headers'] = $headers;
             $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/cancels');
             $request['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($client);
             $paymentCancelRequest = new PaymentCancelRequest($request);
