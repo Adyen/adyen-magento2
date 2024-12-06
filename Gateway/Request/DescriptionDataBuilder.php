@@ -34,7 +34,7 @@ class DescriptionDataBuilder implements BuilderInterface
             'Order %1 from %2',
             $order->getIncrementId(),
             $order->getStore()->getGroup()->getName()
-        );
+        )->render();
 
         return $request;
     }
