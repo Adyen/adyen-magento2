@@ -73,7 +73,8 @@ class OrderRepository extends SalesOrderRepository
 
         $quoteIdFilterGroup = $this->filterGroupBuilder->setFilters([$quoteIdFilter])->create();
         $sortOrder = $this->sortOrderBuilder->setField('entity_id')
-            ->setDescendingDirection();
+            ->setDescendingDirection()
+            ->create();
 
         $searchCriteria = $this->searchCriteriaBuilder
             ->setFilterGroups([$quoteIdFilterGroup])
