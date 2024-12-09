@@ -88,6 +88,8 @@ class TransactionRefund implements TransactionRefundInterface
                 $this->adyenHelper->logResponse($responseData);
             } catch (AdyenException $e) {
                 $this->adyenHelper->logAdyenException($e);
+                $responseData['error'] = $e->getMessage();
+                $responseData['errorCode'] = $e->getAdyenErrorCode();
             }
             $responses[] = $responseData;
         }

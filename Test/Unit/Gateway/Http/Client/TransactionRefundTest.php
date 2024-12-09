@@ -21,6 +21,7 @@ use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Service\Checkout\ModificationsApi;
 use Magento\Payment\Gateway\Http\TransferInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use Adyen\AdyenException;
 
 class TransactionRefundTest extends AbstractAdyenTestCase
 {
@@ -101,5 +102,47 @@ class TransactionRefundTest extends AbstractAdyenTestCase
         $this->assertIsArray($responses);
         $this->assertCount(1, $responses);
         $this->assertArrayHasKey('pspReference', $responses[0]);
+    }
+
+    public function testPlaceRequestHandlesException()
+    {
+        $requestBody = [
+            'amount' => ['value' => 1000, 'currency' => 'EUR'],
+            'paymentPspReference' => '123456789'
+        ];
+
+        $headers = ['idempotencyExtraData' => ['order_id' => '1001']];
+
+        $transferObjectMock = $this->createConfiguredMock(TransferInterface::class, [
+            'getBody' => [$requestBody],
+            'getHeaders' => $headers,
+            'getClientConfig' => []
+        ]);
+
+        $serviceMock = $this->createMock(ModificationsApi::class);
+        $adyenClientMock = $this->createMock(Client::class);
+
+        $this->adyenHelperMock->method('initializeAdyenClientWithClientConfig')->willReturn($adyenClientMock);
+        $this->adyenHelperMock->method('initializeModificationsApi')->willReturn($serviceMock);
+        $this->adyenHelperMock->method('buildRequestHeaders')->willReturn(['custom-header' => 'value']);
+
+        $this->idempotencyHelperMock->expects($this->once())
+            ->method('generateIdempotencyKey')
+            ->with($requestBody, $headers['idempotencyExtraData'])
+            ->willReturn('generated_idempotency_key');
+
+        $serviceMock->expects($this->once())
+            ->method('refundCapturedPayment')
+            ->willThrowException(new AdyenException());
+
+        $this->adyenHelperMock->expects($this->once())
+            ->method('logAdyenException')
+            ->with($this->isInstanceOf(AdyenException::class));
+
+        $responses = $this->transactionRefund->placeRequest($transferObjectMock);
+        $this->assertIsArray($responses);
+        $this->assertCount(1, $responses);
+        $this->assertArrayHasKey('error', $responses[0]);
+        $this->assertArrayHasKey('errorCode', $responses[0]);
     }
 }
