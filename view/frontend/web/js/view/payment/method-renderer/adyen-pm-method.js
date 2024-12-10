@@ -143,7 +143,7 @@ define(
                     this.renderCheckoutComponent();
                 }
             },
-
+            
             handleOnError: function (error, component) {
                 this.handleOnFailure(error, component);
             },
