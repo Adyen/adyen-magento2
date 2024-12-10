@@ -61,13 +61,9 @@ define([
                 method: this.code,
                 additional_data: {
                     public_hash: this.publicHash,
-                    numberOfInstallments: this.installment(),
                     frontendType: 'default'
                 },
             };
-        },
-        getPlaceOrderDeferredObject: function () {
-            return $.when(placeOrderAction(this.getData()));
         }
     });
 });
