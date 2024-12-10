@@ -19,6 +19,8 @@ use Magento\Framework\Api\Search\FilterGroup;
 use Magento\Framework\Api\Search\FilterGroupBuilder;
 use Magento\Framework\Api\SearchCriteria;
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\Api\SortOrder;
+use Magento\Framework\Api\SortOrderBuilder;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderSearchResultInterface;
 use ReflectionClass;
@@ -41,10 +43,15 @@ class OrderRepositoryTest extends AbstractAdyenTestCase
         $filterGroupBuilderMock->method('create')
             ->willReturn($this->createMock(FilterGroup::class));
 
+        $sortOrderBuilderMock = $this->createPartialMock(SortOrderBuilder::class, ['create']);
+        $sortOrderBuilderMock->method('create')
+            ->willReturn($this->createMock(SortOrder::class));
+
         $orderRepository = $this->buildOrderRepositoryClass(
             $searchCriteriaBuilderMock,
             $filterBuilderMock,
-            $filterGroupBuilderMock
+            $filterGroupBuilderMock,
+            $sortOrderBuilderMock
         );
 
         $order = $orderRepository->getOrderByQuoteId($quoteId);
@@ -54,7 +61,8 @@ class OrderRepositoryTest extends AbstractAdyenTestCase
     public function buildOrderRepositoryClass(
         $searchCriteriaBuilderMock = null,
         $filterBuilderMock = null,
-        $filterGroupBuilderMock = null
+        $filterGroupBuilderMock = null,
+        $sortOrderBuilderMock = null
     ): OrderRepository {
         if (is_null($searchCriteriaBuilderMock)) {
             $searchCriteriaBuilderMock = $this->createMock(SearchCriteriaBuilder::class);
@@ -66,6 +74,10 @@ class OrderRepositoryTest extends AbstractAdyenTestCase
 
         if (is_null($filterGroupBuilderMock)) {
             $filterGroupBuilderMock = $this->createMock(FilterGroupBuilder::class);
+        }
+
+        if (is_null($sortOrderBuilderMock)) {
+            $sortOrderBuilderMock = $this->createMock(SortOrderBuilder::class);
         }
 
         $orderRepositoryPartialMock = $this->getMockBuilder(OrderRepository::class)
@@ -86,6 +98,10 @@ class OrderRepositoryTest extends AbstractAdyenTestCase
         $filterGroupBuilderProperty = $reflection->getProperty('filterGroupBuilder');
         $filterGroupBuilderProperty->setAccessible(true);
         $filterGroupBuilderProperty->setValue($orderRepositoryPartialMock, $filterGroupBuilderMock);
+
+        $sortOrderBuilderProperty = $reflection->getProperty('sortOrderBuilder');
+        $sortOrderBuilderProperty->setAccessible(true);
+        $sortOrderBuilderProperty->setValue($orderRepositoryPartialMock, $sortOrderBuilderMock);
 
         $orderSearchResultMock = $this->createConfiguredMock(OrderSearchResultInterface::class, [
             'getItems' => [$this->createMock(OrderInterface::class)]
