@@ -307,7 +307,7 @@ define(
                     additionalData.brand_code = stateData.data.paymentMethod.brand;
                     additionalData.stateData = JSON.stringify(stateData.data);
                 }
-                additionalData.frontendType = 'luma';
+                additionalData.frontendType = 'default';
                 let data = {
                     'method': this.item.method,
                     'additional_data': additionalData
