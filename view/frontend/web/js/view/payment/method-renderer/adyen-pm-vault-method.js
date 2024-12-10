@@ -56,7 +56,6 @@ define([
             return this.details.icon;
         },
         getData: function () {
-            const self = this;
             return {
                 method: this.code,
                 additional_data: {
