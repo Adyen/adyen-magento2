@@ -27,6 +27,7 @@ use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as Notifica
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Adyen\Service\Checkout\ModificationsApi;
 use Adyen\Service\Checkout\OrdersApi;
+use Adyen\Service\Checkout\PaymentLinksApi;
 use Adyen\Service\Checkout\PaymentsApi;
 use Adyen\Service\Checkout\UtilityApi;
 use Adyen\Service\PosPayment;
@@ -1246,6 +1247,11 @@ class Data extends AbstractHelper
     public function initializeOrdersApi(Client $client): OrdersApi
     {
         return new OrdersApi($client);
+    }
+
+    public function initializePaymentLinksApi(Client $client):PaymentLinksApi
+    {
+        return new PaymentLinksApi($client);
     }
 
     /**
