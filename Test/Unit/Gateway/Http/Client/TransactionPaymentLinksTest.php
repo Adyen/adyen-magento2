@@ -3,8 +3,6 @@
 namespace Adyen\Payment\Test\Unit\Gateway\Http\Client;
 
 use Adyen\AdyenException;
-use Adyen\Config as AdyenConfig;
-use Adyen\Model\Checkout\Amount;
 use Adyen\Model\Checkout\ApplicationInfo;
 use Adyen\Model\Checkout\PaymentLinkRequest;
 use Adyen\Model\Checkout\PaymentLinkResponse;
