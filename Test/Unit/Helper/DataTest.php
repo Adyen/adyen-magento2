@@ -27,6 +27,7 @@ use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Service\Checkout\ModificationsApi;
 use Adyen\Service\Checkout\OrdersApi;
+use Adyen\Service\Checkout\PaymentLinksApi;
 use Adyen\Service\Checkout\PaymentsApi;
 use Adyen\Service\RecurringApi;
 use Magento\Backend\Helper\Data as BackendHelper;
@@ -1890,6 +1891,12 @@ class DataTest extends AbstractAdyenTestCase
     {
         $service = $this->dataHelper->initializeOrdersApi($this->clientMock);
         $this->assertInstanceOf(OrdersApi::class, $service);
+    }
+
+    public function testInitializePaymentLinksApi()
+    {
+        $service = $this->dataHelper->initializePaymentLinksApi($this->clientMock);
+        $this->assertInstanceOf(PaymentLinksApi::class, $service);
     }
 
     public function testLogAdyenException()
