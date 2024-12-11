@@ -34,6 +34,12 @@ class TransactionPaymentLinksTest extends AbstractAdyenTestCase
         $this->adyenHelperMock->method('buildApplicationInfo')->willReturn($this->applicationInfoMock);
         $this->transferObjectMock->method('getClientConfig')->willReturn([]);
         $this->clientMock = $this->createMock(Client::class);
+        $this->adyenHelperMock->method('initializeAdyenClientWithClientConfig')->willReturn($this->clientMock);
+        $this->paymentLinksApiMock = $this->createMock(PaymentLinksApi::class);
+        $this->adyenHelperMock
+            ->method('initializePaymentLinksApi')
+            ->with($this->clientMock)
+            ->willReturn($this->paymentLinksApiMock);
 
         $this->transactionPaymentLinks = new TransactionPaymentLinks(
             $this->adyenHelperMock,
@@ -54,19 +60,11 @@ class TransactionPaymentLinksTest extends AbstractAdyenTestCase
 
         $this->transferObjectMock->method('getBody')->willReturn($requestBody);
         $this->transferObjectMock->method('getHeaders')->willReturn($headers);
-        $this->adyenHelperMock->method('buildApplicationInfo')->willReturn($this->applicationInfoMock);
+
         $this->idempotencyHelperMock->expects($this->once())
             ->method('generateIdempotencyKey')
             ->with($requestBody, $headers['idempotencyExtraData'])
             ->willReturn('generated_idempotency_key');
-
-        $this->adyenHelperMock->method('initializeAdyenClientWithClientConfig')->willReturn($this->clientMock);
-        $this->paymentLinksApiMock = $this->createMock(PaymentLinksApi::class);
-        $this->adyenHelperMock
-            ->method('initializePaymentLinksApi')
-            ->with($this->clientMock)
-            ->willReturn($this->paymentLinksApiMock);
-
 
         $this->paymentLinksApiMock->expects($this->once())
             ->method('paymentLinks')
@@ -103,20 +101,9 @@ class TransactionPaymentLinksTest extends AbstractAdyenTestCase
         $this->transferObjectMock->method('getHeaders')->willReturn([]);
         $this->transferObjectMock->method('getClientConfig')->willReturn([]);
 
-        $clientMock = $this->createMock(Client::class);
-        $this->adyenHelperMock
-            ->method('initializeAdyenClientWithClientConfig')
-            ->willReturn($clientMock);
-
-        $mockedPaymentLinksApi = $this->createMock(PaymentLinksApi::class);
-        $mockedPaymentLinksApi
+        $this->paymentLinksApiMock
             ->method('paymentLinks')
             ->willThrowException(new AdyenException());
-
-        $this->adyenHelperMock
-            ->method('initializePaymentLinksApi')
-            ->with($clientMock)
-            ->willReturn($mockedPaymentLinksApi);
 
         $response = $this->transactionPaymentLinks->placeRequest($this->transferObjectMock);
 
