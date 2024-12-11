@@ -2,7 +2,7 @@
 
 namespace Adyen\Payment\Test\Unit\Gateway\Request;
 
-use Adyen\Payment\Gateway\Request\HeaderDataBuilder;
+use Adyen\Payment\Gateway\Request\Header\HeaderDataBuilder;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Payment\Helper\Data;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
