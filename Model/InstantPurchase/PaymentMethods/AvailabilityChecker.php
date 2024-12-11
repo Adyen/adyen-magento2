@@ -14,8 +14,8 @@ namespace Adyen\Payment\Model\InstantPurchase\PaymentMethods;
 
 use Adyen\Payment\Api\InstantPurchase\PaymentMethodIntegration\AdyenAvailabilityCheckerInterface;
 use Adyen\Payment\Helper\Vault;
+use Magento\Framework\Exception\NotFoundException;
 use Magento\Store\Model\StoreManagerInterface;
-use Symfony\Polyfill\Intl\Icu\Exception\MethodNotImplementedException;
 
 class AvailabilityChecker implements AdyenAvailabilityCheckerInterface
 {
@@ -48,12 +48,15 @@ class AvailabilityChecker implements AdyenAvailabilityCheckerInterface
         return $isMethodRecurringEnabled && $recurringProcessingModel === Vault::CARD_ON_FILE;
     }
 
+    /**
+     * @throws NotFoundException
+     */
     public function isAvailable(): bool
     {
         /*
          * This is the pseudo implementation of the interface. Actual logic has been written
          * in `isAvailableAdyenMethod() and implemented via plugin `InstantPurchaseIntegrationTest`.
          */
-        throw new MethodNotImplementedException('isAvailable');
+        throw new NotFoundException(__('This method has not been implemented!'));
     }
 }

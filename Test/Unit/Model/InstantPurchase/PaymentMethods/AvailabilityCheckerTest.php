@@ -14,10 +14,10 @@ namespace Adyen\Payment\Test\Helper\Unit\Model\InstantPurchase\PaymentMethods;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Magento\Framework\Exception\NotFoundException;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
-use Symfony\Polyfill\Intl\Icu\Exception\MethodNotImplementedException;
 
 class AvailabilityCheckerTest extends AbstractAdyenTestCase
 {
@@ -115,7 +115,7 @@ class AvailabilityCheckerTest extends AbstractAdyenTestCase
      */
     public function testIsAvailable()
     {
-        $this->expectException(MethodNotImplementedException::class);
+        $this->expectException(NotFoundException::class);
         $this->availabilityChecker->isAvailable();
     }
 }
