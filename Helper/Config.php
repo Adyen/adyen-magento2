@@ -592,6 +592,16 @@ class Config
         );
     }
 
+    public function getIsCvcRequiredForRecurringCardPayments(int $storeId = null): bool
+    {
+         return (bool) $this->getConfigData(
+            'require_cvc',
+            Config::XML_ADYEN_CC_VAULT,
+            $storeId,
+            true
+        );
+    }
+
     public function getConfigData(string $field, string $xmlPrefix, ?int $storeId, bool $flag = false): mixed
     {
         $path = implode("/", [self::XML_PAYMENT_PREFIX, $xmlPrefix, $field]);
