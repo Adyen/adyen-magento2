@@ -79,7 +79,7 @@ class DownloadApplePayDomainAssociationFileTest extends AbstractAdyenTestCase
 
         $this->fileIoMock->method('read')
             ->with(
-                'https://eu.adyen.link/.well-known/apple-developer-merchantid-domain-association',
+                'https://bae81f955b.cdn.adyen.com/checkoutshopper/.well-known/apple-developer-merchantid-domain-association',
                 '/var/www/html/pub/.well-known/apple-developer-merchantid-domain-association'
             )
             ->willReturn(true);
@@ -108,7 +108,7 @@ class DownloadApplePayDomainAssociationFileTest extends AbstractAdyenTestCase
 
         $this->fileIoMock->method('read')
             ->with(
-                'https://eu.adyen.link/.well-known/apple-developer-merchantid-domain-association',
+                'https://bae81f955b.cdn.adyen.com/checkoutshopper/.well-known/apple-developer-merchantid-domain-association',
                 '/var/www/html/pub/.well-known/apple-developer-merchantid-domain-association'
             )
             ->willReturn(false);

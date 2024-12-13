@@ -25,7 +25,7 @@ use Magento\Framework\Filesystem\Io\File;
 class DownloadApplePayDomainAssociationFile extends Action
 {
     const FILE_NAME = 'apple-developer-merchantid-domain-association';
-    const REMOTE_PATH = 'https://eu.adyen.link/.well-known';
+    const REMOTE_PATH = 'https://bae81f955b.cdn.adyen.com/checkoutshopper/.well-known';
     const PUB_PATH = 'pub';
     const WELL_KNOWN_PATH = '.well-known';
 
