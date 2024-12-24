@@ -12,9 +12,11 @@
 namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Payment\Api\Data\InvoiceInterface;
+use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Invoice;
+use Adyen\Payment\Model\AdyenAmountCurrency;
 use Adyen\Payment\Model\InvoiceFactory;
 use Adyen\Payment\Model\Order\Payment;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
@@ -162,6 +164,13 @@ class InvoiceTest extends AbstractAdyenTestCase
         $transactionMock = $this->createGeneratedMock(Transaction::class, ['addObject']);
         $transactionMock->method('addObject')->willReturn($invoiceMock);
 
+        $adyenAmountCurrencyMock = $this->createMock(AdyenAmountCurrency::class);
+        $adyenAmountCurrencyMock->method('getAmount')->willReturn(10);
+        $adyenAmountCurrencyMock->method('getCurrencyCode')->willReturn('EUR');
+
+        $chargedCurrencyMock = $this->createMock(ChargedCurrency::class);
+        $chargedCurrencyMock->method('getOrderAmountCurrency')->willReturn($adyenAmountCurrencyMock);
+
         $invoiceHelper = $this->createInvoiceHelper(
             $contextMock,
             null,
@@ -176,7 +185,8 @@ class InvoiceTest extends AbstractAdyenTestCase
             $magentoOrderResourceModelMock,
             null,
             null,
-            $transactionMock
+            $transactionMock,
+            $chargedCurrencyMock
         );
 
         $orderPaymentMock = $this->createConfiguredMock(MagentoOrder\Payment::class, [
@@ -425,7 +435,8 @@ class InvoiceTest extends AbstractAdyenTestCase
         $magentoOrderResourceModelMock = null,
         $adyenConfigHelperMock = null,
         $invoiceSenderMock = null,
-        $transactionMock = null
+        $transactionMock = null,
+        $chargedCurrencyMock = null
     ): Invoice {
 
         if (is_null($contextMock)) {
@@ -484,6 +495,10 @@ class InvoiceTest extends AbstractAdyenTestCase
             $transactionMock = $this->createGeneratedMock(Transaction::class);
         }
 
+        if (is_null($chargedCurrencyMock)) {
+            $chargedCurrencyMock = $this->createMock(ChargedCurrency::class);
+        }
+
         return new Invoice(
             $contextMock,
             $adyenLoggerMock,
@@ -498,7 +513,8 @@ class InvoiceTest extends AbstractAdyenTestCase
             $magentoOrderResourceModelMock,
             $adyenConfigHelperMock,
             $invoiceSenderMock,
-            $transactionMock
+            $transactionMock,
+            $chargedCurrencyMock
         );
     }
 }
