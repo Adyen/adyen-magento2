@@ -11,8 +11,10 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Vault;
+use Adyen\Payment\Model\Config\Source\ThreeDSFlow;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
@@ -22,13 +24,16 @@ class RecurringVaultDataBuilder implements BuilderInterface
 {
     private StateData $stateData;
     private Vault $vaultHelper;
+    private Config $configHelper;
 
     public function __construct(
         StateData $stateData,
-        Vault $vaultHelper
+        Vault $vaultHelper,
+        Config $configHelper
     ) {
         $this->stateData = $stateData;
         $this->vaultHelper = $vaultHelper;
+        $this->configHelper = $configHelper;
     }
 
     public function build(array $buildSubject): array
@@ -59,9 +64,12 @@ class RecurringVaultDataBuilder implements BuilderInterface
         /*
          * allow3DS flag is required to trigger the native 3DS challenge.
          * Otherwise, shopper will be redirected to the issuer for challenge.
+         * Due to new VISA compliance requirements, holderName is added to the payments call
          */
         if ($paymentMethod->getCode() === AdyenCcConfigProvider::CC_VAULT_CODE) {
-            $requestBody['additionalData']['allow3DS2'] = true;
+            $requestBody['additionalData']['allow3DS2'] =
+                $this->configHelper->getThreeDSFlow($order->getStoreId()) === ThreeDSFlow::THREEDS_NATIVE;
+            $requestBody['paymentMethod']['holderName'] = $details['cardHolderName'] ?? null;
         }
 
         /**

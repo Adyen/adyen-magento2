@@ -61,6 +61,7 @@
                 <can_authorize_vault>1</can_authorize_vault>
                 <can_capture_vault>1</can_capture_vault>
                 <supports_recurring>1</supports_recurring>
+                <threeds_flow>native</threeds_flow>
                 <group>adyen</group>
             </adyen_cc>
             <adyen_cc_vault>
@@ -873,7 +874,7 @@
             <adyen_directEbanking>
                 <active>0</active>
                 <model>AdyenPaymentDirectEbankingFacade</model>
-                <title>Sofort</title>
+                <title>Klarna Debit Risk</title>
                 <allowspecific>0</allowspecific>
                 <sort_order>0</sort_order>
                 <payment_action>authorize</payment_action>
@@ -893,7 +894,7 @@
                 <group>adyen-alternative-payment-method</group>
             </adyen_directEbanking>
             <adyen_directEbanking_vault>
-                <title>Stored Sofort</title>
+                <title>Stored Klarna Debit Risk</title>
                 <model>AdyenPaymentDirectEbankingVaultFacade</model>
             </adyen_directEbanking_vault>
             <adyen_ebanking_FI>
@@ -2181,6 +2182,296 @@
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_upi>
+            <adyen_dana>
+                <active>0</active>
+                <model>AdyenPaymentDanaFacade</model>
+                <title>DANA</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>1</supports_recurring>
+                <supports_manual_capture>0</supports_manual_capture>
+                <supports_auto_capture>0</supports_auto_capture>
+                <is_wallet>1</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_dana>
+            <adyen_dana_vault>
+                <title>Stored DANA</title>
+                <model>AdyenPaymentDanaVaultFacade</model>
+            </adyen_dana_vault>
+            <adyen_kcp_naverpay>
+                <active>0</active>
+                <model>AdyenPaymentKcpNaverpayFacade</model>
+                <title>NaverPay</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>0</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>1</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_kcp_naverpay>
+            <adyen_kcp_payco>
+                <active>0</active>
+                <model>AdyenPaymentKcpPaycoFacade</model>
+                <title>PayCo</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>0</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>1</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_kcp_payco>
+            <adyen_kcp_creditcard>
+                <active>0</active>
+                <model>AdyenPaymentKcpCreditcardFacade</model>
+                <title>Credit Card via KCP</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>0</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_kcp_creditcard>
+            <adyen_doku_alfamart>
+                <active>0</active>
+                <model>AdyenPaymentDokuAlfamartFacade</model>
+                <title>Alfamart via DOKU</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>0</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_doku_alfamart>
+            <adyen_doku_permata_lite_atm>
+                <active>0</active>
+                <model>AdyenPaymentDokuPermataLiteAtmFacade</model>
+                <title>ATM Permata VA LITE via DOKU</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>0</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_doku_permata_lite_atm>
+            <adyen_doku_bca_va>
+                <active>0</active>
+                <model>AdyenPaymentDokuBcaVaFacade</model>
+                <title>ATM BCA VA via DOKU</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>0</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_doku_bca_va>
+            <adyen_doku_bni_va>
+                <active>0</active>
+                <model>AdyenPaymentDokuBniVaFacade</model>
+                <title>BNI VA via DOKU</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>0</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_doku_bni_va>
+            <adyen_doku_bri_va>
+                <active>0</active>
+                <model>AdyenPaymentDokuBriVaFacade</model>
+                <title>BRI VA via DOKU</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>0</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_doku_bri_va>
+            <adyen_doku_cimb_va>
+                <active>0</active>
+                <model>AdyenPaymentDokuCimbVaFacade</model>
+                <title>CIMB VA via DOKU</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>0</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_doku_cimb_va>
+            <adyen_doku_danamon_va>
+                <active>0</active>
+                <model>AdyenPaymentDokuDanamonVaFacade</model>
+                <title>Danamon VA via DOKU</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>0</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_doku_danamon_va>
+            <adyen_doku_indomaret>
+                <active>0</active>
+                <model>AdyenPaymentDokuIndomaretFacade</model>
+                <title>Indomaret via DOKU</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>0</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_doku_indomaret>
+            <adyen_doku_mandiri_va>
+                <active>0</active>
+                <model>AdyenPaymentDokuMandiriVaFacade</model>
+                <title>Mandiri VA via DOKU</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>0</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_doku_mandiri_va>
         </payment>
     </default>
 </config>

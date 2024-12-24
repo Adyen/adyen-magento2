@@ -44,7 +44,7 @@ configure: n98-magerun2.phar
 	bin/magento config:set payment/adyen_abstract/payment_pre_authorized 'pending_payment'
 	bin/magento config:set payment/adyen_abstract/capture_mode 'manual'
 	bin/magento config:set payment/adyen_abstract/paypal_capture_mode 0
-	bin/magento config:set payment/adyen_abstract/recurring_configuration '{"adyen_cc":{"name":"Credit Card","enabled":"1","recurringProcessingModel":"CardOnFile"}}'
+	bin/magento config:set payment/adyen_abstract/recurring_configuration '{"adyen_cc":{"name":"Cards","enabled":"1","recurringProcessingModel":"CardOnFile"},"adyen_sepadirectdebit":{"name":"SEPA Direct Debit","enabled":"1","recurringProcessingModel":"CardOnFile"}}'
 	bin/magento config:set payment/adyen_cc_vault/require_cvc 1
 	bin/magento config:set payment/adyen_abstract/client_key_test "${ADYEN_CLIENT_KEY}"
 	bin/magento config:set payment/adyen_abstract/notification_username 'admin'
@@ -60,8 +60,9 @@ flush:
 enable-express:
 	bin/magento module:enable Adyen_ExpressCheckout
 	bin/magento setup:upgrade
-	bin/magento config:set payment/adyen_express/show_google_pay_on "1,2,3"
-	bin/magento config:set payment/adyen_express/show_apple_pay_on "1,2,3"
+	bin/magento config:set payment/adyen_googlepay/express_show_on "1,2,3"
+	bin/magento config:set payment/adyen_applepay/express_show_on "1,2,3"
+	bin/magento config:set payment/adyen_paypal_express/express_show_on "1,2,3"
 	bin/magento cache:clean
 
 # Full plugin setup
@@ -115,7 +116,6 @@ setup-mftf:
 		--MAGENTO_BASE_URL "https://${MAGENTO_HOST}/" \
 		--MAGENTO_BACKEND_NAME "${ADMIN_URLEXT}" \
 		--MAGENTO_ADMIN_USERNAME "${ADMIN_USERNAME}" \
-		--MAGENTO_ADMIN_PASSWORD "${ADMIN_PASSWORD}" \
 		--BROWSER chrome \
 		--ELASTICSEARCH_VERSION 7;
 	echo 'SELENIUM_HOST=selenium' >> dev/tests/acceptance/.env;

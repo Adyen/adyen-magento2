@@ -49,18 +49,18 @@ define([
 
     return VaultComponent.extend({
         defaults: {
-            template: 'Adyen_Payment/payment/card-vault-form.html',
-            checkoutComponentBuilt: false,
+            template: 'Adyen_Payment/payment/cc-vault-form',
             modalLabel: null,
             installment: ''
         },
+        checkoutComponent: null,
 
         initObservable: function () {
             this._super()
                 .observe([
-                    'checkoutComponentBuilt',
                     'installment',
                     'installments',
+                    'adyenVaultPaymentMethod'
                 ]);
 
             return this;
@@ -70,25 +70,61 @@ define([
             let self = this;
             this._super();
             this.modalLabel = 'card_action_modal_' + this.getId();
+
             let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
-            paymentMethodsObserver.subscribe(
-                function (paymentMethodsResponse) {
-                    self.loadCheckoutComponent(paymentMethodsResponse)
-                });
-            self.loadCheckoutComponent(paymentMethodsObserver());
+            paymentMethodsObserver.subscribe(function (paymentMethodsResponse) {
+                self.enablePaymentMethod(paymentMethodsResponse)
+            });
+
+            if(!!paymentMethodsObserver()) {
+                self.enablePaymentMethod(paymentMethodsObserver());
+            }
 
             return this;
         },
 
-        loadCheckoutComponent: async function(paymentMethodsResponse) {
-            this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
-                paymentMethodsResponse,
-                this.handleOnAdditionalDetails.bind(this)
-            );
-
-            if (this.checkoutComponent) {
-                this.checkoutComponentBuilt(true)
+        enablePaymentMethod: function (paymentMethodsResponse) {
+            if (!!paymentMethodsResponse.paymentMethodsResponse) {
+                this.adyenVaultPaymentMethod(true);
+                fullScreenLoader.stopLoader();
             }
+        },
+
+        /*
+         * Create generic AdyenCheckout library and mount payment method component
+         * after selecting the payment method via overriding parent `selectPaymentMethod()` function.
+         */
+        selectPaymentMethod: function () {
+            this._super();
+            this.createCheckoutComponent();
+
+            return true;
+        },
+
+        /*
+         * Pre-selected payment methods don't trigger parent's `selectPaymentMethod()` function.
+         *
+         * This function is triggered via `afterRender` attribute of the html template
+         * and creates checkout component for pre-selected payment method.
+         */
+        renderPreSelected: function () {
+            if (this.isChecked() === this.getCode()) {
+                this.createCheckoutComponent();
+            }
+        },
+
+        // Build AdyenCheckout library and creates the payment method component
+        createCheckoutComponent: async function() {
+            if (!this.checkoutComponent) {
+                const paymentMethodsResponse = adyenPaymentService.getPaymentMethods();
+
+                this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
+                    paymentMethodsResponse(),
+                    this.handleOnAdditionalDetails.bind(this)
+                );
+            }
+
+            this.renderCheckoutComponent();
         },
 
         handleOnAdditionalDetails: function (result) {
@@ -110,7 +146,7 @@ define([
             });
         },
 
-        renderCardVaultToken: function () {
+        renderCheckoutComponent: function () {
             let self = this;
             if (!this.getClientKey()) {
                 return false
@@ -155,6 +191,12 @@ define([
                         self.installments(0);
                     }
                 }
+            }
+
+            if (!requireCvc) {
+                componentConfig.onBrand({
+                    brand: self.getCardType()
+                });
             }
 
             self.component = adyenCheckout.mountPaymentMethodComponent(

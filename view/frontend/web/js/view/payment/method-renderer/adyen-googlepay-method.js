@@ -12,9 +12,9 @@ define(
         'Magento_Checkout/js/model/quote',
         'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-method',
     ],
-    function(
+    function (
         quote,
-        adyenPaymentMethod,
+        adyenPaymentMethod
     ) {
         return adyenPaymentMethod.extend({
             placeOrderButtonVisible: false,
@@ -23,12 +23,23 @@ define(
             },
             buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo) {
                 let baseComponentConfiguration = this._super();
+                let self = this;
+                let googlePayConfiguration = Object.assign(
+                        baseComponentConfiguration,
+                        paymentMethodsExtraInfo[paymentMethod.type].configuration
+                    );
 
-                let googlePayConfiguration = Object.assign(baseComponentConfiguration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
                 googlePayConfiguration.showPayButton = true;
 
-                return googlePayConfiguration
+                googlePayConfiguration.onClick = function(resolve,reject) {
+                    if (self.validate()) {
+                        resolve();
+                    } else {
+                        reject();
+                    }
+                }
+                return googlePayConfiguration;
             }
-        })
+        });
     }
 );

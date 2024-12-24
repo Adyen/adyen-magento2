@@ -10,7 +10,7 @@
  */
 -->
 
-<!-- ko if: checkoutComponentBuilt -->
+<!-- ko if: adyenVaultPaymentMethod -->
 <div class="payment-method" css="'_active': (getId() === isChecked())">
     <div class="payment-method-title field choice">
         <input type="radio"
@@ -21,7 +21,7 @@
                     value: getId(),
                     click: selectPaymentMethod,
                     checked: isChecked,
-                    visible: isRadioButtonVisible()"/>
+                    visible: isRadioButtonVisible()">
         <label class="label" data-bind="attr: {'for': getId()}">
             <img data-bind="attr: {
             'src': getIcons(getCardType()).url,
@@ -67,7 +67,7 @@
                     </div>
                 </div>
 
-                <div class="checkout-component-dock" afterRender="renderCardVaultToken()" data-bind="attr: { id: 'cvcContainer-' + getId()}"></div>
+                <div class="checkout-component-dock" afterRender="renderPreSelected()" data-bind="attr: { id: 'cvcContainer-' + getId()}"></div>
             </fieldset>
         </form>
 
@@ -94,7 +94,7 @@
                 </select>
             </div>
         </div>
-        <br/>
+        <br>
 
         <!-- /ko -->
 
