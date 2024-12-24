@@ -378,8 +378,6 @@ class Invoice extends AbstractHelper
         );
         $transactionSave->save();
 
-        $this->sendInvoiceMail($invoice);
-
         //Send Invoice mail to customer
         $invoiceAutoMail = (bool)$this->scopeConfig->isSetFlag(
             InvoiceIdentity::XML_PATH_EMAIL_ENABLED,
