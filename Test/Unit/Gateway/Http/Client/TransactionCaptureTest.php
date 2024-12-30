@@ -43,11 +43,12 @@ class TransactionCaptureTest extends AbstractAdyenTestCase
             'amount' => ['value' => 100, 'currency' => 'USD'],
             'paymentPspReference' => 'testPspReference',
             'applicationInfo' => $applicationInfo,
+            'idempotencyExtraData' => ['someData']
         ];
 
         $this->transferObject = $this->createConfiguredMock(TransferInterface::class, [
             'getBody' => $this->request,
-            'getHeaders' => ['idempotencyExtraData' => ['someData']],
+            'getHeaders' => [],
             'getClientConfig' => []
         ]);
     }
@@ -63,10 +64,13 @@ class TransactionCaptureTest extends AbstractAdyenTestCase
         $this->adyenHelper->method('buildRequestHeaders')->willReturn([]);
         $this->adyenHelper->expects($this->once())->method('logRequest');
 
+        $trimmedRequest = $this->request;
+        unset($trimmedRequest['idempotencyExtraData']);
+
         $this->idempotencyHelper->expects($this->once())
             ->method('generateIdempotencyKey')
             ->with(
-                $this->request,
+                $trimmedRequest,
                 $this->equalTo(['someData'])
             )
             ->willReturn($expectedIdempotencyKey);
