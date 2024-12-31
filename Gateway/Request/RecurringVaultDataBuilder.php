@@ -69,8 +69,9 @@ class RecurringVaultDataBuilder implements BuilderInterface
              * `allow3DS: true` flag is required to trigger the native 3DS challenge.
              * Otherwise, shopper will be redirected to the issuer for challenge.
              */
+            $threeDSFlow = $this->configHelper->getThreeDSFlow($order->getStoreId());
             $requestBody['authenticationData']['threeDSRequestData']['nativeThreeDS'] =
-                $this->configHelper->getThreeDSFlow($order->getStoreId());
+                $threeDSFlow === 'native' ? 'preferred' : 'disabled';
 
             // Due to new VISA compliance requirements, holderName is added to the payments call
             $requestBody['paymentMethod']['holderName'] = $details['cardHolderName'] ?? null;

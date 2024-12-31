@@ -210,8 +210,9 @@ class CheckoutDataBuilder implements BuilderInterface
             unset($requestBody['installments']);
         }
 
+        $threeDSFlow = $this->configHelper->getThreeDSFlow($order->getStoreId());
         $requestBody['authenticationData']['threeDSRequestData']['nativeThreeDS'] =
-            $this->configHelper->getThreeDSFlow($storeId);
+            $threeDSFlow === 'native' ? 'preferred' : 'disabled';
 
         return [
             'body' => $requestBody
