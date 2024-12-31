@@ -67,8 +67,8 @@ class RecurringVaultDataBuilder implements BuilderInterface
          * Due to new VISA compliance requirements, holderName is added to the payments call
          */
         if ($paymentMethod->getCode() === AdyenCcConfigProvider::CC_VAULT_CODE) {
-            $requestBody['additionalData']['allow3DS2'] =
-                $this->configHelper->getThreeDSFlow($order->getStoreId()) === ThreeDSFlow::THREEDS_NATIVE;
+            $requestBody['authenticationData']['threeDSRequestData']['nativeThreeDS'] =
+                $this->configHelper->getThreeDSFlow($order->getStoreId());
             $requestBody['paymentMethod']['holderName'] = $details['cardHolderName'] ?? null;
         }
 

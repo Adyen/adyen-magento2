@@ -78,6 +78,6 @@ class CheckoutDataBuilderTest extends AbstractAdyenTestCase
 
         $request = $this->checkoutDataBuilder->build($buildSubject);
 
-        $this->assertTrue($request['body']['additionalData']['allow3DS2']);
+        $this->assertArrayHasKey('nativeThreeDS', $request['body']['authenticationData']['threeDSRequestData']);
     }
 }

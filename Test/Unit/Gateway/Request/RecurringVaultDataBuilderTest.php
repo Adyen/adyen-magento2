@@ -86,7 +86,7 @@ class RecurringVaultDataBuilderTest extends AbstractAdyenTestCase
         $this->assertIsArray($request);
         $this->assertArrayHasKey('recurringProcessingModel', $request['body']);
         if ($expect3dsFlag) {
-            $this->assertArrayHasKey('allow3DS2', $request['body']['additionalData']);
+            $this->assertArrayHasKey('nativeThreeDS', $request['body']['authenticationData']['threeDSRequestData']);
         }
     }
 

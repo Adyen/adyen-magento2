@@ -15,8 +15,8 @@ use Magento\Framework\Data\OptionSourceInterface;
 
 class ThreeDSFlow implements OptionSourceInterface
 {
-    const THREEDS_NATIVE = 'native';
-    const THREEDS_REDIRECT = 'redirect';
+    const THREEDS_NATIVE = 'preferred';
+    const THREEDS_REDIRECT = 'disabled';
 
     /**
      * @return array
