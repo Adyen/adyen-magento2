@@ -71,7 +71,9 @@ class RecurringVaultDataBuilder implements BuilderInterface
              */
             $threeDSFlow = $this->configHelper->getThreeDSFlow($order->getStoreId());
             $requestBody['authenticationData']['threeDSRequestData']['nativeThreeDS'] =
-                $threeDSFlow === 'native' ? 'preferred' : 'disabled';
+                $threeDSFlow === ThreeDSFlow::THREEDS_NATIVE ?
+                    ThreeDSFlow::THREEDS_PREFERRED :
+                    ThreeDSFlow::THREEDS_DISABLED;
 
             // Due to new VISA compliance requirements, holderName is added to the payments call
             $requestBody['paymentMethod']['holderName'] = $details['cardHolderName'] ?? null;
