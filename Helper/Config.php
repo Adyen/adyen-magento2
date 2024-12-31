@@ -57,6 +57,8 @@ class Config
     const XML_RECURRING_CONFIGURATION = 'recurring_configuration';
     const XML_ALLOW_MULTISTORE_TOKENS = 'allow_multistore_tokens';
     const XML_THREEDS_FLOW = 'threeds_flow';
+    const XML_CLEANUP_OLD_WEBHOOKS = 'cleanup_old_webhooks';
+    const XML_REQUIRED_DAYS_OLD_WEBHOOKS = 'required_days_old_webhooks';
 
     protected ScopeConfigInterface $scopeConfig;
     private EncryptorInterface $encryptor;
@@ -588,6 +590,25 @@ class Config
         return $this->getConfigData(
             self::XML_THREEDS_FLOW,
             self::XML_ADYEN_CC,
+            $storeId
+        );
+    }
+
+    public function getIsWebhookCleanupEnabled(int $storeId = null): bool
+    {
+        return $this->getConfigData(
+            self::XML_CLEANUP_OLD_WEBHOOKS,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId,
+            true
+        );
+    }
+
+    public function getRequiredDaysForOldWebhooks(int $storeId = null): int
+    {
+        return (int) $this->getConfigData(
+            self::XML_REQUIRED_DAYS_OLD_WEBHOOKS,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
             $storeId
         );
     }
