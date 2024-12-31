@@ -260,7 +260,7 @@ define([
                     stateData: stateData,
                     public_hash: this.publicHash,
                     numberOfInstallments: this.installment(),
-                    frontendType: 'luma'
+                    frontendType: 'default'
                 },
             };
         },
