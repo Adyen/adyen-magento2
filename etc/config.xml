@@ -70,6 +70,10 @@
                 <title>Stored Cards (Adyen)</title>
                 <model>AdyenPaymentCardVaultFacade</model>
                 <require_cvc>1</require_cvc>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\Card\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\Card\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_cc_vault>
             <adyen_oneclick>
                 <active>0</active>
@@ -173,6 +177,10 @@
             <adyen_klarna_vault>
                 <title>Stored Klarna</title>
                 <model>AdyenPaymentKlarnaVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_klarna_vault>
             <adyen_paypal>
                 <active>0</active>
@@ -202,6 +210,10 @@
             <adyen_paypal_vault>
                 <title>Stored PayPal</title>
                 <model>AdyenPaymentPaypalVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_paypal_vault>
             <adyen_bcmc_mobile>
                 <active>0</active>
@@ -278,6 +290,10 @@
             <adyen_amazonpay_vault>
                 <title>Stored Amazon Pay</title>
                 <model>AdyenPaymentAmazonpayVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\Card\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\Card\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_amazonpay_vault>
             <adyen_googlepay>
                 <active>0</active>
@@ -307,6 +323,10 @@
             <adyen_googlepay_vault>
                 <title>Stored GooglePay</title>
                 <model>AdyenPaymentGooglepayVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\Card\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\Card\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_googlepay_vault>
             <adyen_multibanco>
                 <active>0</active>
@@ -385,6 +405,10 @@
             <adyen_sepadirectdebit_vault>
                 <title>Stored SEPA Direct Debit</title>
                 <model>AdyenPaymentSepadirectdebitVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_sepadirectdebit_vault>
             <adyen_pos_cloud>
                 <active>0</active>
@@ -500,6 +524,10 @@
             <adyen_applepay_vault>
                 <title>Stored Apple Pay</title>
                 <model>AdyenPaymentApplePayVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\Card\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\Card\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_applepay_vault>
             <adyen_giftcard>
                 <active>0</active>
@@ -898,6 +926,10 @@
             <adyen_directEbanking_vault>
                 <title>Stored Klarna Debit Risk</title>
                 <model>AdyenPaymentDirectEbankingVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_directEbanking_vault>
             <adyen_ebanking_FI>
                 <active>0</active>
@@ -1056,6 +1088,10 @@
             <adyen_eps_vault>
                 <title>Stored EPS</title>
                 <model>AdyenPaymentEpsVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_eps_vault>
             <adyen_facilypay_4x>
                 <active>0</active>
@@ -1170,6 +1206,10 @@
             <adyen_giropay_vault>
                 <title>Stored Giropay</title>
                 <model>AdyenPaymentGiropayVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_giropay_vault>
             <adyen_grabpay_MY>
                 <active>0</active>
@@ -1288,6 +1328,10 @@
             <adyen_klarna_account_vault>
                 <title>Stored Klarna Pay over Time</title>
                 <model>AdyenPaymentKlarnaAccountVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_klarna_account_vault>
             <adyen_klarna_paynow>
                 <active>0</active>
@@ -1314,6 +1358,10 @@
             <adyen_klarna_paynow_vault>
                 <title>Stored Klarna Pay Now</title>
                 <model>AdyenPaymentKlarnaPaynowVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_klarna_paynow_vault>
             <adyen_mbway>
                 <active>0</active>
@@ -1516,6 +1564,10 @@
             <adyen_paybybank_vault>
                 <title>Stored Open banking</title>
                 <model>AdyenPaymentPaybybankVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_paybybank_vault>
             <adyen_pix>
                 <active>0</active>
@@ -1653,6 +1705,10 @@
             <adyen_twint_vault>
                 <title>Stored TWINT</title>
                 <model>AdyenPaymentTwintVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\Card\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\Card\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_twint_vault>
             <adyen_walley>
                 <active>0</active>
@@ -1745,6 +1801,10 @@
             <adyen_zip_vault>
                 <title>Stored Zip</title>
                 <model>AdyenPaymentZipVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\Card\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\Card\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_zip_vault>
             <adyen_gcash>
                 <active>0</active>
@@ -1771,6 +1831,10 @@
             <adyen_gcash_vault>
                 <title>Stored GCash</title>
                 <model>AdyenPaymentGcashVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\Card\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\Card\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_gcash_vault>
             <adyen_oxxo>
                 <active>0</active>
@@ -1841,6 +1905,10 @@
             <adyen_carnet_vault>
                 <title>Stored Carnet</title>
                 <model>AdyenPaymentCarnetVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_carnet_vault>
             <adyen_walley_b2b>
                 <active>0</active>
@@ -1911,6 +1979,10 @@
             <adyen_momo_vault>
                 <title>Stored MoMo Wallet</title>
                 <model>AdyenPaymentMomoWalletVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\Card\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\Card\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_momo_vault>
             <adyen_touchngo>
                 <active>0</active>
@@ -1959,6 +2031,10 @@
             <adyen_bcmc_vault>
                 <title>Stored Bancontact</title>
                 <model>AdyenPaymentBcmcVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_bcmc_vault>
             <adyen_cashapp>
                 <active>0</active>
@@ -1985,6 +2061,10 @@
             <adyen_cashapp_vault>
                 <title>Stored Cash App Pay</title>
                 <model>AdyenPaymentCashappVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_cashapp_vault>
             <adyen_klarna_b2b>
                 <active>0</active>
@@ -2209,6 +2289,10 @@
             <adyen_dana_vault>
                 <title>Stored DANA</title>
                 <model>AdyenPaymentDanaVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\Card\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\Card\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_dana_vault>
             <adyen_kcp_naverpay>
                 <active>0</active>
