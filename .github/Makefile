@@ -41,7 +41,7 @@ configure: n98-magerun2.phar
 	bin/magento config:set payment/adyen_abstract/merchant_account "${ADYEN_MERCHANT}"
 	bin/magento config:set payment/adyen_abstract/notifications_ip_check 0
 	bin/magento config:set payment/adyen_abstract/payment_authorized 'processing'
-	bin/magento config:set payment/adyen_abstract/payment_pre_authorized 'pending_payment'
+	bin/magento config:set payment/adyen_abstract/payment_pre_authorized 'adyen_authorized'
 	bin/magento config:set payment/adyen_abstract/capture_mode 'manual'
 	bin/magento config:set payment/adyen_abstract/paypal_capture_mode 0
 	bin/magento config:set payment/adyen_abstract/recurring_configuration '{"adyen_cc":{"name":"Cards","enabled":"1","recurringProcessingModel":"CardOnFile"},"adyen_sepadirectdebit":{"name":"SEPA Direct Debit","enabled":"1","recurringProcessingModel":"CardOnFile"}}'

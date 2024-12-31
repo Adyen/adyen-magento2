@@ -148,4 +148,25 @@ class ConfigTest extends AbstractAdyenTestCase
         $result = $this->configHelper->getThreeDSFlow($storeId);
         $this->assertEquals($expectedResult, $result);
     }
+
+    public function testGetIsCvcRequiredForRecurringCardPayments()
+    {
+        $storeId = PHP_INT_MAX;
+        $expectedResult = true;
+
+        $path = sprintf(
+            "%s/%s/%s",
+            Config::XML_PAYMENT_PREFIX,
+            Config::XML_ADYEN_CC_VAULT,
+            'require_cvc'
+        );
+
+        $this->scopeConfigMock->expects($this->once())
+            ->method('isSetFlag')
+            ->with($this->equalTo($path), $this->equalTo(ScopeInterface::SCOPE_STORE), $this->equalTo($storeId))
+            ->willReturn($expectedResult);
+
+        $result = $this->configHelper->getIsCvcRequiredForRecurringCardPayments($storeId);
+        $this->assertEquals($expectedResult, $result);
+    }
 }
