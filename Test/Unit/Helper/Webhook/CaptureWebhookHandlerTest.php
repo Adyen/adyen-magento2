@@ -9,8 +9,10 @@ use Adyen\Payment\Helper\Invoice;
 use Adyen\Payment\Helper\Order;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Helper\AdyenOrderPayment;
+use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\Order\InvoiceFactory as MagentoInvoiceFactory;
 use Adyen\Payment\Model\Invoice as AdyenInvoice;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
@@ -20,6 +22,8 @@ use Magento\Sales\Model\Order\Invoice as MagentoInvoice;
 class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
 {
     protected CaptureWebhookHandler $captureWebhookHandler;
+    private MagentoOrder $order;
+    private Notification $notification;
 
     protected function setUp(): void
     {
