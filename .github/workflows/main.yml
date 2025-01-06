@@ -39,6 +39,9 @@ jobs:
       - name: Code Sniffer
         run: vendor/bin/phpcs .
 
+      - name: PHPStan
+        run: vendor/bin/phpstan analyse .
+
       - name: Run PHPUnit
         run: vendor/bin/phpunit --coverage-clover=build/clover.xml --log-junit=build/tests-log.xml -c Test/phpunit.xml Test/Unit
 
