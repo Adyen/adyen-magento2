@@ -52,7 +52,7 @@ class DonationAmounts extends Value
         parent::__construct($context, $registry, $config, $cacheTypeList, $resource, $resourceCollection, $data);
     }
 
-    public function validateBeforeSave()
+    public function validateBeforeSave(): DonationAmounts
     {
         if (
             (bool)$this->getFieldsetDataValue('active') &&
@@ -64,6 +64,8 @@ class DonationAmounts extends Value
                 )
             );
         }
+
+        return $this;
     }
 
 
