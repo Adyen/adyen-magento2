@@ -20,24 +20,22 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
-use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Quote\Model\QuoteIdMask;
 use Magento\Quote\Model\QuoteIdMaskFactory;
+use PHPUnit\Framework\MockObject\MockObject;
 
 class RemoveAdyenStateDataTest extends AbstractAdyenTestCase
 {
-    private $removeAdyenStateDataResolver;
-    private $adyenStateDataHelperMock;
-    private $quoteIdMaskFactoryMock;
-    private $quoteIdMaskMock;
-    private $fieldMock;
-    private $contextMock;
-    private $infoMock;
+    private RemoveAdyenStateData $removeAdyenStateDataResolver;
+    private AdyenStateData|MockObject $adyenStateDataHelperMock;
+    private QuoteIdMaskFactory|MockObject $quoteIdMaskFactoryMock;
+    private QuoteIdMask|MockObject $quoteIdMaskMock;
+    private Field|MockObject $fieldMock;
+    private ContextInterface|MockObject $contextMock;
+    private ResolveInfo|MockObject $infoMock;
 
     public function setUp(): void
     {
-        $this->objectManager = new ObjectManager($this);
-
         $this->adyenStateDataHelperMock = $this->createMock(AdyenStateData::class);
         $this->fieldMock = $this->createMock(Field::class);
         $this->contextMock = $this->createMock(ContextInterface::class);
@@ -52,10 +50,10 @@ class RemoveAdyenStateDataTest extends AbstractAdyenTestCase
         ]);
         $this->quoteIdMaskFactoryMock->method('create')->willReturn($this->quoteIdMaskMock);
 
-        $this->removeAdyenStateDataResolver = $this->objectManager->getObject(RemoveAdyenStateData::class, [
-            'adyenStateData' => $this->adyenStateDataHelperMock,
-            'quoteIdMaskFactory' => $this->quoteIdMaskFactoryMock
-        ]);
+        $this->removeAdyenStateDataResolver = new RemoveAdyenStateData(
+            $this->adyenStateDataHelperMock,
+            $this->quoteIdMaskFactoryMock
+        );
     }
 
     public function testResolve()

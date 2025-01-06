@@ -18,24 +18,21 @@ use Magento\Catalog\Model\Layer\ContextInterface;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
-use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Quote\Model\QuoteIdMask;
 use Magento\Quote\Model\QuoteIdMaskFactory;
 
 class SaveAdyenStateDataTest extends AbstractAdyenTestCase
 {
-    private $saveAdyenStateDataResolver;
-    private $adyenStateDataHelperMock;
-    private $quoteIdMaskFactoryMock;
-    private $quoteIdMaskMock;
-    private $fieldMock;
-    private $contextMock;
-    private $infoMock;
+    private SaveAdyenStateData $saveAdyenStateDataResolver;
+    private AdyenStateData $adyenStateDataHelperMock;
+    private QuoteIdMaskFactory $quoteIdMaskFactoryMock;
+    private QuoteIdMask $quoteIdMaskMock;
+    private Field $fieldMock;
+    private ContextInterface$contextMock;
+    private ResolveInfo $infoMock;
 
     public function setUp(): void
     {
-        $this->objectManager = new ObjectManager($this);
-
         $this->adyenStateDataHelperMock = $this->createMock(AdyenStateData::class);
         $this->fieldMock = $this->createMock(Field::class);
         $this->contextMock = $this->createMock(ContextInterface::class);
@@ -50,10 +47,10 @@ class SaveAdyenStateDataTest extends AbstractAdyenTestCase
         ]);
         $this->quoteIdMaskFactoryMock->method('create')->willReturn($this->quoteIdMaskMock);
 
-        $this->saveAdyenStateDataResolver = $this->objectManager->getObject(SaveAdyenStateData::class, [
-            'adyenStateData' => $this->adyenStateDataHelperMock,
-            'quoteIdMaskFactory' => $this->quoteIdMaskFactoryMock
-        ]);
+        $this->saveAdyenStateDataResolver = new SaveAdyenStateData(
+            $this->adyenStateDataHelperMock,
+            $this->quoteIdMaskFactoryMock
+        );
     }
 
     public function testResolve()
