@@ -22,6 +22,7 @@ use Exception;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Sales\Api\OrderStatusHistoryRepositoryInterface;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\Order\Status\History;
@@ -32,6 +33,7 @@ use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Model\ResourceModel\PaymentResponse\Collection;
 use Adyen\Payment\Model\ResourceModel\PaymentResponse\CollectionFactory;
 use Adyen\Payment\Helper\Config;
+use PHPUnit\Framework\MockObject\MockObject;
 use ReflectionClass;
 
 class PaymentResponseHandlerTest extends AbstractAdyenTestCase
@@ -51,6 +53,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
     private Config $configHelperMock;
     private Collection $paymentResponseMockForFactory;
     private CollectionFactory $paymentResponseCollectionFactoryMock;
+    private OrderStatusHistoryRepositoryInterface|MockObject $historyRepositoryMock;
 
     protected function setUp(): void
     {
@@ -68,6 +71,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         ]);
         $this->stateDataHelperMock = $this->createMock(StateData::class);
         $this->configHelperMock = $this->createMock(Config::class);
+        $this->historyRepositoryMock = $this->createMock(OrderStatusHistoryRepositoryInterface::class);
 
         $this->paymentResponseMockForFactory = $this->createMock(Collection::class);
 
@@ -98,7 +102,8 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
             $this->orderHistoryFactoryMock,
             $this->stateDataHelperMock,
             $this->paymentResponseCollectionFactoryMock,
-            $this->configHelperMock
+            $this->configHelperMock,
+            $this->historyRepositoryMock
         );
     }
 

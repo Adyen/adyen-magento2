@@ -12,6 +12,7 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Helper\AdyenOrderPayment;
+use Magento\Sales\Api\InvoiceRepositoryInterface;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\Order\InvoiceFactory as MagentoInvoiceFactory;
 use Adyen\Payment\Model\Invoice as AdyenInvoice;
@@ -47,7 +48,8 @@ class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
         $adyenLogger = null,
         $magentoInvoiceFactory = null,
         $orderHelper = null,
-        $paymentMethodsHelper = null
+        $paymentMethodsHelper = null,
+        $invoiceRepository = null
     ): CaptureWebhookHandler
     {
         if($invoiceHelper == null) {
@@ -71,6 +73,9 @@ class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
         if($paymentMethodsHelper == null) {
             $paymentMethodsHelper = $this->createGeneratedMock(PaymentMethods::class);
         }
+        if($invoiceRepository == null) {
+            $invoiceRepository = $this->createGeneratedMock(InvoiceRepositoryInterface::class);
+        }
 
         return new CaptureWebhookHandler(
             invoiceHelper: $invoiceHelper,
@@ -79,7 +84,8 @@ class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
             adyenLogger: $adyenLogger,
             magentoInvoiceFactory: $magentoInvoiceFactory,
             orderHelper: $orderHelper,
-            paymentMethodsHelper: $paymentMethodsHelper
+            paymentMethodsHelper: $paymentMethodsHelper,
+            invoiceRepository: $invoiceRepository
         );
     }
 

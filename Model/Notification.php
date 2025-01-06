@@ -51,14 +51,18 @@ class Notification extends AbstractModel implements NotificationInterface
     const STATE_ADYEN_AUTHORIZED = "adyen_authorized";
     const MAX_ERROR_COUNT = 5;
 
+    private ResourceModel\Notification|AbstractDb $notificationResourceModel;
+
     public function __construct(
         Context $context,
         Registry $registry,
         AbstractResource $resource = null,
         AbstractDb $resourceCollection = null,
-        array $data = []
+        array $data = [],
     ) {
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
+
+        $this->notificationResourceModel = $resourceCollection;
     }
 
     protected function _construct()
@@ -74,7 +78,7 @@ class Notification extends AbstractModel implements NotificationInterface
      */
     public function isDuplicate($done = null): bool
     {
-        $result = $this->getResource()->getNotification(
+        $result = $this->notificationResourceModel->getNotification(
             $this->getPspreference(),
             $this->getEventCode(),
             $this->getSuccess(),

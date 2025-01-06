@@ -24,6 +24,7 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\Order\Invoice as InvoiceModel;
@@ -405,20 +406,23 @@ class InvoiceTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @param $contextMock
-     * @param $adyenLoggerMock
-     * @param $adyenDataHelperMock
-     * @param $invoiceRepositoryInterfaceMock
-     * @param $adyenInvoiceFactory
-     * @param $adyenInvoiceResourceModelMock
-     * @param $orderPaymentResourceModelMock
-     * @param $paymentFactoryMock
-     * @param $adyenInvoiceCollectionMock
-     * @param $magentoInvoiceFactoryMock
-     * @param $magentoOrderResourceModelMock
-     * @param $adyenConfigHelperMock
-     * @param $invoiceSenderMock
-     * @param $transactionMock
+     * @param null $contextMock
+     * @param null $adyenLoggerMock
+     * @param null $adyenDataHelperMock
+     * @param null $invoiceRepositoryInterfaceMock
+     * @param null $adyenInvoiceFactory
+     * @param null $adyenInvoiceResourceModelMock
+     * @param null $orderPaymentResourceModelMock
+     * @param null $paymentFactoryMock
+     * @param null $adyenInvoiceCollectionMock
+     * @param null $magentoInvoiceFactoryMock
+     * @param null $magentoOrderResourceModelMock
+     * @param null $adyenConfigHelperMock
+     * @param null $invoiceSenderMock
+     * @param null $transactionMock
+     * @param null $chargedCurrencyMock
+     * @param null $orderRepositoryMock
+     *
      * @return Invoice
      */
     protected function createInvoiceHelper(
@@ -436,7 +440,8 @@ class InvoiceTest extends AbstractAdyenTestCase
         $adyenConfigHelperMock = null,
         $invoiceSenderMock = null,
         $transactionMock = null,
-        $chargedCurrencyMock = null
+        $chargedCurrencyMock = null,
+        $orderRepositoryMock = null
     ): Invoice {
 
         if (is_null($contextMock)) {
@@ -499,6 +504,10 @@ class InvoiceTest extends AbstractAdyenTestCase
             $chargedCurrencyMock = $this->createMock(ChargedCurrency::class);
         }
 
+        if (is_null($orderRepositoryMock)) {
+            $orderRepositoryMock = $this->createMock(OrderRepositoryInterface::class);
+        }
+
         return new Invoice(
             $contextMock,
             $adyenLoggerMock,
@@ -514,7 +523,8 @@ class InvoiceTest extends AbstractAdyenTestCase
             $adyenConfigHelperMock,
             $invoiceSenderMock,
             $transactionMock,
-            $chargedCurrencyMock
+            $chargedCurrencyMock,
+            $orderRepositoryMock
         );
     }
 }

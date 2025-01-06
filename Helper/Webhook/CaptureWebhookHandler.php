@@ -22,50 +22,23 @@ use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Webhook\PaymentStates;
 use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Sales\Api\InvoiceRepositoryInterface;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\Order\Invoice as MagentoInvoice;
 use Magento\Sales\Model\Order\InvoiceFactory as MagentoInvoiceFactory;
 
 class CaptureWebhookHandler implements WebhookHandlerInterface
 {
-    /** @var Invoice */
-    private $invoiceHelper;
-
-    /** @var PaymentFactory */
-    private $adyenOrderPaymentFactory;
-
-    /** @var AdyenOrderPayment */
-    private $adyenOrderPaymentHelper;
-
-    /** @var AdyenLogger */
-    private $adyenLogger;
-
-    /** @var MagentoInvoiceFactory */
-    private $magentoInvoiceFactory;
-
-    /** @var Order */
-    private $orderHelper;
-
-    /** @var PaymentMethods */
-    private $paymentMethodsHelper;
-
     public function __construct(
-        Invoice $invoiceHelper,
-        PaymentFactory $adyenOrderPaymentFactory,
-        AdyenOrderPayment $adyenOrderPaymentHelper,
-        AdyenLogger $adyenLogger,
-        MagentoInvoiceFactory $magentoInvoiceFactory,
-        Order $orderHelper,
-        PaymentMethods $paymentMethodsHelper
-    ) {
-        $this->invoiceHelper = $invoiceHelper;
-        $this->adyenOrderPaymentFactory = $adyenOrderPaymentFactory;
-        $this->adyenOrderPaymentHelper = $adyenOrderPaymentHelper;
-        $this->adyenLogger = $adyenLogger;
-        $this->magentoInvoiceFactory = $magentoInvoiceFactory;
-        $this->orderHelper = $orderHelper;
-        $this->paymentMethodsHelper = $paymentMethodsHelper;
-    }
+        private readonly Invoice $invoiceHelper,
+        private readonly PaymentFactory $adyenOrderPaymentFactory,
+        private readonly AdyenOrderPayment $adyenOrderPaymentHelper,
+        private readonly AdyenLogger $adyenLogger,
+        private readonly MagentoInvoiceFactory $magentoInvoiceFactory,
+        private readonly Order $orderHelper,
+        private readonly PaymentMethods $paymentMethodsHelper,
+        private readonly InvoiceRepositoryInterface $invoiceRepository
+    ) { }
 
     /**
      * @param MagentoOrder $order
@@ -112,7 +85,8 @@ class CaptureWebhookHandler implements WebhookHandlerInterface
             ]
         );
 
-        $magentoInvoice = $this->magentoInvoiceFactory->create()->load($adyenInvoice->getInvoiceId(), MagentoInvoice::ENTITY_ID);
+        $magentoInvoice = $this->invoiceRepository->get($adyenInvoice->getInvoiceId());
+
         $this->adyenLogger->addAdyenNotification(
             sprintf('Notification %s updated invoice {invoiceId}', $notification->getEntityId()),
             array_merge(

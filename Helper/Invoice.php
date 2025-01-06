@@ -30,6 +30,7 @@ use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\DB\Transaction;
 use Magento\Sales\Api\InvoiceRepositoryInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Email\Container\InvoiceIdentity;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
@@ -76,7 +77,8 @@ class Invoice extends AbstractHelper
         protected readonly Config $configHelper,
         protected readonly InvoiceSender $invoiceSender,
         protected readonly Transaction $transaction,
-        protected readonly ChargedCurrency $chargedCurrencyHelper
+        protected readonly ChargedCurrency $chargedCurrencyHelper,
+        protected readonly OrderRepositoryInterface $orderRepository
     ) {
         parent::__construct($context);
     }
@@ -277,7 +279,7 @@ class Invoice extends AbstractHelper
         $this->adyenInvoiceResourceModel->save($adyenInvoiceObject);
 
         /** @var InvoiceModel $magentoInvoice */
-        $magentoInvoice = $this->magentoInvoiceFactory->create()->load($adyenInvoiceObject->getInvoiceId());
+        $magentoInvoice = $this->invoiceRepository->get($adyenInvoiceObject->getInvoiceId());
 
         if ($this->isFullInvoiceAmountManuallyCaptured($magentoInvoice)) {
             $magentoInvoice->pay();
@@ -368,7 +370,8 @@ class Invoice extends AbstractHelper
         $invoice->setTransactionId($notification->getPspreference());
         $invoice->register();
         $invoice->pay();
-        $invoice->save();
+
+        $this->invoiceRepository->save($invoice);
 
         $transactionSave = $this->transaction->addObject(
             $invoice
@@ -391,13 +394,13 @@ class Invoice extends AbstractHelper
                 __('Notified customer about invoice creation #%1.', $invoice->getId())
             );
             $order->setIsCustomerNotified(true);
-            $order->save();
+            $this->orderRepository->save($order);
         } else {
             $order->addStatusHistoryComment(
                 __('Created invoice #%1.', $invoice->getId())
             );
             $order->setIsCustomerNotified(false);
-            $order->save();
+            $this->orderRepository->save($order);
         }
 
         //Create entry in adyen_invoice table

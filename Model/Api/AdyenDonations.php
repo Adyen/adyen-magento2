@@ -150,12 +150,12 @@ class AdyenDonations implements AdyenDonationsInterface
             $order->getPayment()->setAdditionalInformation('donationTryCount', $this->donationTryCount);
         }
 
-        $order->save();
+        $this->orderRepository->save($order);
     }
 
     private function removeDonationToken(Order $order): void
     {
         $order->getPayment()->unsAdditionalInformation('donationToken');
-        $order->save();
+        $this->orderRepository->save($order);
     }
 }
