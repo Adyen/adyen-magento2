@@ -107,7 +107,7 @@ define(
 
                 // Check the paymentMethods response to enable Credit Card payments
                 if (!!paymentMethodsResponse &&
-                    !paymentMethodsResponse.paymentMethodsResponse.paymentMethods.find(self.isSchemePaymentsEnabled)) {
+                    !paymentMethodsResponse.paymentMethodsResponse?.paymentMethods.find(self.isSchemePaymentsEnabled)) {
                     return;
                 }
 
