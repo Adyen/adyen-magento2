@@ -27,19 +27,16 @@ use PHPUnit\Framework\MockObject\MockObject;
  */
 class StoreLocaleTest extends AbstractAdyenTestCase
 {
-    private MockObject&Context $contextMock;
-    private MockObject&Field $fieldMock;
-    private MockObject&ResolveInfo $infoMock;
-    private MockObject&Data $dataHelperMock;
-    private MockObject&ContextExtensionInterface $contextExtensionMock;
+    private MockObject|Context $contextMock;
+    private MockObject|Field $fieldMock;
+    private MockObject|ResolveInfo $infoMock;
+    private MockObject|Data $dataHelperMock;
+    private MockObject|ContextExtensionInterface $contextExtensionMock;
     private StoreLocale $storeLocale;
 
     protected function setUp(): void
     {
-        $this->contextExtensionMock = $this->createGeneratedMock(
-            ContextExtensionInterface::class,
-            ['getStore']
-        );
+        $this->contextExtensionMock = $this->createMock(ContextExtensionInterface::class);
 
         $this->contextMock = $this->getMockBuilder(Context::class)
             ->disableOriginalConstructor()
