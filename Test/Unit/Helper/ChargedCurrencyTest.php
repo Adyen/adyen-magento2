@@ -22,6 +22,7 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Creditmemo\Item;
 use Magento\Tax\Block\Item\Price\Renderer;
 use PHPUnit\Framework\MockObject\MockObject;
+use Magento\Tax\Block\Item\Price\RendererFactory;
 
 class ChargedCurrencyTest extends AbstractAdyenTestCase
 {
@@ -97,9 +98,14 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
     private $creditMemo;
 
     /**
+     * @var RendererFactory
+     */
+    private $priceRendererFactory;
+
+    /**
      * @var Renderer
      */
-    private $weeeRenderer;
+    private $priceRenderer;
 
     protected function setUp(): void
     {
@@ -235,10 +241,6 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
             ]
         );
 
-        $this->weeeRenderer = $this->createMock(Renderer::class);
-        $this->weeeRenderer->method('getBaseTotalAmount')->willReturn(self::AMOUNT_CURRENCY['base']['amountIncludingTax']);
-        $this->weeeRenderer->method('getTotalAmount')->willReturn(self::AMOUNT_CURRENCY['display']['amountIncludingTax']);
-
         $this->invoice = $this->createMockWithMethods(
             Order\Invoice::class,
             [
@@ -372,14 +374,21 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
         );
 
         $this->configHelper = $this->createMock(Config::class);
+
+        $this->priceRenderer = $this->createMock(Renderer::class);
+        $this->priceRenderer->method('getBaseTotalAmount')->willReturn(self::AMOUNT_CURRENCY['base']['amountIncludingTax']);
+        $this->priceRenderer->method('getTotalAmount')->willReturn(self::AMOUNT_CURRENCY['display']['amountIncludingTax']);
+
+        $this->priceRendererFactory = $this->createGeneratedMock(RendererFactory::class, ['create']);
+        $this->priceRendererFactory->method('create')->willReturn($this->priceRenderer);
     }
 
     /**
      * @dataProvider amountCurrencyProvider
      * @param $configValue
+     * @param AdyenAmountCurrency $expectedResult
      * @param $orderPlacement
      * @param $getAdyenChargedCurrency
-     * @param $expectedResult
      */
     public function testGetOrderAmountCurrency(
         $configValue,
@@ -389,7 +398,7 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
     ) {
         $this->configHelper->method('getChargedCurrency')->willReturn($configValue);
         $this->order->method('getAdyenChargedCurrency')->willReturn($getAdyenChargedCurrency);
-        $this->chargedCurrencyHelper = new ChargedCurrency($this->configHelper, $this->weeeRenderer);
+        $this->chargedCurrencyHelper = new ChargedCurrency($this->configHelper, $this->priceRendererFactory);
         $result = $this->chargedCurrencyHelper->getOrderAmountCurrency($this->order, $orderPlacement);
         $this->assertEquals(
             [
@@ -418,7 +427,7 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
     ) {
         if ($orderPlacement) {
             $this->configHelper->method('getChargedCurrency')->willReturn($configValue);
-            $this->chargedCurrencyHelper = new ChargedCurrency($this->configHelper, $this->weeeRenderer);
+            $this->chargedCurrencyHelper = new ChargedCurrency($this->configHelper, $this->priceRendererFactory);
             $result = $this->chargedCurrencyHelper->getQuoteAmountCurrency($this->quote);
             $this->assertEquals(
                 [
@@ -449,7 +458,7 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
     ) {
         if ($orderPlacement) {
             $this->configHelper->method('getChargedCurrency')->willReturn($configValue);
-            $this->chargedCurrencyHelper = new ChargedCurrency($this->configHelper, $this->weeeRenderer);
+            $this->chargedCurrencyHelper = new ChargedCurrency($this->configHelper, $this->priceRendererFactory);
             $result = $this->chargedCurrencyHelper->getQuoteItemAmountCurrency($this->quoteItem);
 
             $expected = [
@@ -493,7 +502,7 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
         $getAdyenChargedCurrency
     ) {
         $this->order->method('getAdyenChargedCurrency')->willReturn($orderPlacement ? $configValue : $getAdyenChargedCurrency);
-        $this->chargedCurrencyHelper = new ChargedCurrency($this->configHelper, $this->weeeRenderer);
+        $this->chargedCurrencyHelper = new ChargedCurrency($this->configHelper, $this->priceRendererFactory);
         $result = $this->chargedCurrencyHelper->getInvoiceItemAmountCurrency($this->invoiceItem);
         $this->assertEquals(
             [
@@ -524,7 +533,7 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
         $getAdyenChargedCurrency
     ) {
         $this->order->method('getAdyenChargedCurrency')->willReturn($getAdyenChargedCurrency);
-        $this->chargedCurrencyHelper = new ChargedCurrency($this->configHelper, $this->weeeRenderer);
+        $this->chargedCurrencyHelper = new ChargedCurrency($this->configHelper, $this->priceRendererFactory);
         $result = $this->chargedCurrencyHelper->getCreditMemoAmountCurrency($this->creditMemo);
 
         $this->assertEquals(
@@ -555,7 +564,7 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
         $getAdyenChargedCurrency
     ) {
         $this->order->method('getAdyenChargedCurrency')->willReturn($getAdyenChargedCurrency);
-        $this->chargedCurrencyHelper = new ChargedCurrency($this->configHelper, $this->weeeRenderer);
+        $this->chargedCurrencyHelper = new ChargedCurrency($this->configHelper, $this->priceRendererFactory);
         $result = $this->chargedCurrencyHelper->getCreditMemoAdjustmentAmountCurrency($this->creditMemo);
 
         $this->assertEquals(
@@ -584,7 +593,7 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
         $getAdyenChargedCurrency
     ) {
         $this->order->method('getAdyenChargedCurrency')->willReturn($getAdyenChargedCurrency);
-        $this->chargedCurrencyHelper = new ChargedCurrency($this->configHelper, $this->weeeRenderer);
+        $this->chargedCurrencyHelper = new ChargedCurrency($this->configHelper, $this->priceRendererFactory);
         $result = $this->chargedCurrencyHelper->getCreditMemoShippingAmountCurrency($this->creditMemo);
 
         $this->assertEquals(
@@ -615,7 +624,7 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
         $getAdyenChargedCurrency
     ) {
         $this->order->method('getAdyenChargedCurrency')->willReturn($getAdyenChargedCurrency);
-        $this->chargedCurrencyHelper = new ChargedCurrency($this->configHelper, $this->weeeRenderer);
+        $this->chargedCurrencyHelper = new ChargedCurrency($this->configHelper, $this->priceRendererFactory);
         $result = $this->chargedCurrencyHelper->getCreditMemoItemAmountCurrency($this->creditMemoItem);
 
         $this->assertEquals(
@@ -646,7 +655,7 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
         $getAdyenChargedCurrency
     ) {
         $this->configHelper->method('getChargedCurrency')->willReturn($orderPlacement ? $configValue : $getAdyenChargedCurrency);
-        $this->chargedCurrencyHelper = new ChargedCurrency($this->configHelper, $this->weeeRenderer);
+        $this->chargedCurrencyHelper = new ChargedCurrency($this->configHelper, $this->priceRendererFactory);
         $result = $this->chargedCurrencyHelper->getQuoteShippingAmountCurrency($this->quote);
         $this->assertEquals(
             [
@@ -681,7 +690,7 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
         $getAdyenChargedCurrency
     ) {
         $this->order->method('getAdyenChargedCurrency')->willReturn($getAdyenChargedCurrency);
-        $this->chargedCurrencyHelper = new ChargedCurrency($this->configHelper, $this->weeeRenderer);
+        $this->chargedCurrencyHelper = new ChargedCurrency($this->configHelper, $this->priceRendererFactory);
         $result = $this->chargedCurrencyHelper->getInvoiceShippingAmountCurrency($this->invoice);
         $this->assertEquals(
             [
@@ -711,7 +720,7 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
         $getAdyenChargedCurrency
     ) {
         $this->order->method('getAdyenChargedCurrency')->willReturn($getAdyenChargedCurrency);
-        $this->chargedCurrencyHelper = new ChargedCurrency($this->configHelper, $this->weeeRenderer);
+        $this->chargedCurrencyHelper = new ChargedCurrency($this->configHelper, $this->priceRendererFactory);
         $result = $this->chargedCurrencyHelper->getInvoiceAmountCurrency($this->invoice);
         $this->assertEquals(
             [
