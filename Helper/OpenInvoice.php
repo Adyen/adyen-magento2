@@ -174,7 +174,6 @@ class OpenInvoice
 
         return [
             'id' => $product ? $product->getId() : $item->getProductId(),
-            'amountExcludingTax' => $formattedPriceExcludingTax,
             'amountIncludingTax' => $formattedPriceIncludingTax,
             'taxAmount' => $formattedTaxAmount,
             'description' => $item->getName(),
