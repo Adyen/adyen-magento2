@@ -45,107 +45,47 @@ use Magento\Store\Model\ScopeInterface;
 class Invoice extends AbstractHelper
 {
     /**
-     * @var AdyenLogger
+     * @param Context $context
+     * @param AdyenLogger $adyenLogger
+     * @param Data $adyenDataHelper
+     * @param InvoiceRepositoryInterface $invoiceRepository
+     * @param InvoiceFactory $adyenInvoiceFactory
+     * @param AdyenInvoiceResourceModel $adyenInvoiceResourceModel
+     * @param OrderPaymentResourceModel $orderPaymentResourceModel
+     * @param PaymentFactory $adyenOrderPaymentFactory
+     * @param Collection $adyenInvoiceCollection
+     * @param MagentoInvoiceFactory $magentoInvoiceFactory
+     * @param \Magento\Sales\Model\ResourceModel\Order $magentoOrderResourceModel
+     * @param Config $configHelper
+     * @param InvoiceSender $invoiceSender
+     * @param Transaction $transaction
+     * @param ChargedCurrency $chargedCurrencyHelper
      */
-    protected $adyenLogger;
-
-    /**
-     * @var Data
-     */
-    protected $adyenDataHelper;
-
-    /**
-     * @var InvoiceRepositoryInterface
-     */
-    protected $invoiceRepository;
-
-    /**
-     * @var \Magento\Sales\Model\ResourceModel\Order
-     */
-    protected $magentoOrderResourceModel;
-
-    /**
-     * @var InvoiceFactory
-     */
-    protected $adyenInvoiceFactory;
-
-    /**
-     * @var AdyenInvoiceResourceModel
-     */
-    protected $adyenInvoiceResourceModel;
-
-    /**
-     * @var Collection
-     */
-    protected $adyenInvoiceCollection;
-
-    /**
-     * @var OrderPaymentResourceModel
-     */
-    protected $orderPaymentResourceModel;
-
-    /**
-     * @var PaymentFactory
-     */
-    protected $adyenOrderPaymentFactory;
-
-    /**
-     * @var MagentoInvoiceFactory
-     */
-    protected $magentoInvoiceFactory;
-
-    /**
-     * @var Config
-     */
-    protected $configHelper;
-
-    /**
-     * @var InvoiceSender
-     */
-    protected $invoiceSender;
-
-    /**
-     * @var Transaction
-     */
-    protected $transaction;
-
     public function __construct(
-        Context $context,
-        AdyenLogger $adyenLogger,
-        Data $adyenDataHelper,
-        InvoiceRepositoryInterface $invoiceRepository,
-        InvoiceFactory $adyenInvoiceFactory,
-        AdyenInvoiceResourceModel $adyenInvoiceResourceModel,
-        OrderPaymentResourceModel $orderPaymentResourceModel,
-        PaymentFactory $paymentFactory,
-        Collection $adyenInvoiceCollection,
-        MagentoInvoiceFactory $magentoInvoiceFactory,
-        \Magento\Sales\Model\ResourceModel\Order $magentoOrderResourceModel,
-        Config $configHelper,
-        InvoiceSender $invoiceSender,
-        Transaction $transaction
+        protected readonly Context $context,
+        protected readonly AdyenLogger $adyenLogger,
+        protected readonly Data $adyenDataHelper,
+        protected readonly InvoiceRepositoryInterface $invoiceRepository,
+        protected readonly InvoiceFactory $adyenInvoiceFactory,
+        protected readonly AdyenInvoiceResourceModel $adyenInvoiceResourceModel,
+        protected readonly OrderPaymentResourceModel $orderPaymentResourceModel,
+        protected readonly PaymentFactory $adyenOrderPaymentFactory,
+        protected readonly Collection $adyenInvoiceCollection,
+        protected readonly MagentoInvoiceFactory $magentoInvoiceFactory,
+        protected readonly \Magento\Sales\Model\ResourceModel\Order $magentoOrderResourceModel,
+        protected readonly Config $configHelper,
+        protected readonly InvoiceSender $invoiceSender,
+        protected readonly Transaction $transaction,
+        protected readonly ChargedCurrency $chargedCurrencyHelper
     ) {
         parent::__construct($context);
-        $this->adyenLogger = $adyenLogger;
-        $this->adyenDataHelper = $adyenDataHelper;
-        $this->invoiceRepository = $invoiceRepository;
-        $this->adyenInvoiceFactory = $adyenInvoiceFactory;
-        $this->adyenInvoiceResourceModel = $adyenInvoiceResourceModel;
-        $this->orderPaymentResourceModel = $orderPaymentResourceModel;
-        $this->adyenOrderPaymentFactory = $paymentFactory;
-        $this->adyenInvoiceCollection = $adyenInvoiceCollection;
-        $this->magentoInvoiceFactory = $magentoInvoiceFactory;
-        $this->magentoOrderResourceModel = $magentoOrderResourceModel;
-        $this->configHelper = $configHelper;
-        $this->invoiceSender = $invoiceSender;
-        $this->transaction = $transaction;
     }
 
     /**
      * @param Order $order
      * @param Notification $notification
      * @param bool $isAutoCapture
-     * @return InvoiceModel
+     * @return InvoiceModel|null
      * @throws LocalizedException
      */
     public function createInvoice(Order $order, Notification $notification, bool $isAutoCapture): ?InvoiceModel
@@ -287,9 +227,10 @@ class Invoice extends AbstractHelper
     {
         $invoiceFactory = $this->adyenInvoiceFactory->create();
         $adyenInvoice = $this->adyenInvoiceResourceModel->getAdyenInvoiceByCaptureWebhook($order, $notification);
+        $chargedCurrency = $this->chargedCurrencyHelper->getOrderAmountCurrency($order, false);
         $formattedAdyenOrderAmount = $this->adyenDataHelper->formatAmount(
-            $order->getBaseGrandTotal(),
-            $order->getOrderCurrencyCode()
+            $chargedCurrency->getAmount(),
+            $chargedCurrency->getCurrencyCode()
         );
         $notificationAmount = $notification->getAmountValue();
         $isFullAmountCaptured = $formattedAdyenOrderAmount == $notificationAmount;
@@ -436,8 +377,6 @@ class Invoice extends AbstractHelper
             $invoice->getOrder()
         );
         $transactionSave->save();
-
-        $this->sendInvoiceMail($invoice);
 
         //Send Invoice mail to customer
         $invoiceAutoMail = (bool)$this->scopeConfig->isSetFlag(

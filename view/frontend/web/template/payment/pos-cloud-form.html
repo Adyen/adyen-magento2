@@ -15,7 +15,7 @@
             <input type="radio"
                name="payment[method]"
                class="radio"
-               data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()"/>
+               data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()" >
             <!-- ko if: showLogo() -->
             <span data-bind="attr: { 'class': 'adyen-sprite ' + getCode() }"></span>
             <!--/ko-->

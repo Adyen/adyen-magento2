@@ -1,14 +1,9 @@
 name: "CodeQL"
 
 on:
-  push:
-    branches: [ "develop", "develop-6", "develop-7", "develop-8", "main", "main-6", "main-7", "main-8" ]
   pull_request:
-    branches: [ "develop", "main" ]
     paths-ignore:
-      - 'view/base/web/js/*'
-  schedule:
-    - cron: "6 1 * * 0"
+      - 'view/base/web/js/**'
 
 jobs:
   analyze:

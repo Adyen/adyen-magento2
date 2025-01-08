@@ -24,8 +24,13 @@ class AdyenPaymentMethodManagement implements AdyenPaymentMethodManagementInterf
         $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
 
-    public function getPaymentMethods(string $cartId, ?string $shopperLocale = null, ?string $country = null) : string
+    public function getPaymentMethods(
+        string $cartId,
+        ?string $shopperLocale = null,
+        ?string $country = null,
+        ?string $channel = null
+    ) : string
     {
-        return $this->paymentMethodsHelper->getPaymentMethods($cartId, $country, $shopperLocale);
+        return $this->paymentMethodsHelper->getPaymentMethods($cartId, $country, $shopperLocale, $channel);
     }
 }

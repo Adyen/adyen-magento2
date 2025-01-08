@@ -32,7 +32,7 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
      * This is being used for all checkout methods (adyen hpp payment method)
      *
      */
-    public function handle(array $handlingSubject, array $response)
+    public function handle(array $handlingSubject, array $responseCollection)
     {
         $paymentDataObject = SubjectReader::readPayment($handlingSubject);
 
@@ -48,6 +48,9 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
             $payment->getOrder()->setCanSendNewEmailFlag(false);
         }
 
+        // for partial payments, non-giftcard payments will always be the last element in the collection
+        // for non-partial, there is only one response in the collection
+        $response = end($responseCollection);
         if (!empty($response['pspReference'])) {
             // set pspReference as transactionId
             $payment->setCcTransId($response['pspReference']);
@@ -57,7 +60,7 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
             $payment->setTransactionId($response['pspReference']);
         }
 
-        // do not close transaction so you can do a cancel() and void
+        // do not close transaction, so you can do a cancel() and void
         $payment->setIsTransactionClosed(false);
         $payment->setShouldCloseParentTransaction(false);
     }
