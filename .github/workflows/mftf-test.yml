@@ -19,14 +19,13 @@ jobs:
     env:
       PHP_VERSION: ${{ matrix.php-version }}
       MAGENTO_VERSION: ${{ matrix.magento-version }}
-      ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
-      ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
+      ADMIN_USERNAME: ${{ secrets.MAGENTO_ADMIN_USERNAME }}
+      ADMIN_PASSWORD: ${{ secrets.MAGENTO_ADMIN_PASSWORD }}
       DONATION_ACCOUNT: ${{secrets.DONATION_ACCOUNT}}
       ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
       ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
       ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
-      DEPLOY_SAMPLEDATA: 1
-
+      ADMIN_URLEXT: admin
     steps:
       - uses: actions/checkout@v3
         with:
@@ -35,21 +34,22 @@ jobs:
       - name: Start services
         run: docker compose -f .github/docker-compose.yml -f .github/docker-compose.mftf.yml up -d
 
+      # Temp solution to wait for install script to run
       - name: Sleep for 120 seconds
         run: sleep 120s
         shell: bash
 
-      - name: Setup Magento
-        run: docker-compose -f .github/docker-compose.yml -f .github/docker-compose.mftf.yml exec -T web make magento
+      - name: Show install logs
+        run: docker logs --tail 100 magento2-container
+
+      - name: Prevent cron from interfering with test execution
+        run: docker exec magento2-container /etc/init.d/cron stop
 
       - name: Install plugin
-        run: docker exec -u www-data magento2-container make plugin
-
-      - run: docker exec magento2-container /etc/init.d/cron stop
+        run: docker exec -u www-data magento2-container make install
 
       - name: Build MFTF project
         run: docker exec magento2-container make setup-mftf
 
       - name: Run MFTF tests
         run: docker exec magento2-container make mftf
-

@@ -3,11 +3,12 @@
 namespace Adyen\Payment\Test\Unit\Console\Command;
 
 use Adyen\Payment\Console\Command\EnablePaymentMethodsCommand;
+use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\ConfigFactory;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\PaymentMethodsFactory;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Console\Cli;
-use Magento\Framework\App\State;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -21,8 +22,7 @@ class EnablePaymentMethodsCommandTest extends AbstractAdyenTestCase
         // Mock dependencies
         $availablePaymentMethods = ['method1', 'method2'];
         $paymentMethodMock = $this->createConfiguredMock(PaymentMethods::class, [
-            'getAdyenPaymentMethods' => $availablePaymentMethods,
-            'togglePaymentMethodsActivation' => $availablePaymentMethods
+            'getAdyenPaymentMethods' => $availablePaymentMethods
         ]);
         $paymentMethodsFactoryMock = $this->createGeneratedMock(
             PaymentMethodsFactory::class,
@@ -30,13 +30,19 @@ class EnablePaymentMethodsCommandTest extends AbstractAdyenTestCase
         );
         $paymentMethodsFactoryMock->method('create')->willReturn($paymentMethodMock);
 
-        $appStateMock = $this->createMock(State::class);
+        $configHelperMock = $this->createMock(Config::class);
+
+        $configHelperFactoryMock = $this->createGeneratedMock(
+            ConfigFactory::class,
+            ['create']
+        );
+        $configHelperFactoryMock->method('create')->willReturn($configHelperMock);
 
         $inputMock = $this->createMock(InputInterface::class);
         $outputMock = $this->createMock(OutputInterface::class);
 
         // Create the command instance
-        $command = new EnablePaymentMethodsCommand($paymentMethodsFactoryMock, $appStateMock);
+        $command = new EnablePaymentMethodsCommand($paymentMethodsFactoryMock, $configHelperFactoryMock);
 
         // Execute the command
         $result = $command->run($inputMock, $outputMock);

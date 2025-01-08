@@ -5,8 +5,6 @@ namespace Adyen\Payment\Console\Command;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\PaymentMethodsFactory;
 use Magento\Framework\Console\Cli;
-use Magento\Framework\App\State;
-use Magento\Framework\App\Area;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -14,15 +12,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 class EnablePaymentMethodsCommand extends Command
 {
     private PaymentMethodsFactory $paymentMethodsFactory;
-    private State $appState;
 
     public function __construct(
         PaymentMethodsFactory $paymentMethodsFactory,
-        State $appState
     )
     {
         $this->paymentMethodsFactory = $paymentMethodsFactory;
-        $this->appState = $appState;
         parent::__construct();
     }
 
@@ -37,7 +32,6 @@ class EnablePaymentMethodsCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->appState->setAreaCode(Area::AREA_GLOBAL);
         $output->writeln('Starting enabling payment methods.');
         $paymentMethods = $this->paymentMethodsFactory->create();
         /** @var PaymentMethods $paymentMethods */

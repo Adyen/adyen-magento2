@@ -68,9 +68,6 @@ enable-express:
 # Full plugin setup
 plugin: install configure flush
 
-# Full plugin setup for mftf
-plugin-mftf: flush install configure flush
-
 # Setup permissions
 fs:
 	find var generated vendor pub/static pub/media app/etc -type f -exec chmod g+w {} +
