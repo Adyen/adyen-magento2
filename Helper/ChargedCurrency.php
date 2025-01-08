@@ -17,7 +17,7 @@ use Magento\Sales\Api\Data\CreditmemoInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Api\Data\CreditmemoItemInterface;
-use Magento\Weee\Block\Adminhtml\Items\Price\Renderer;
+use Magento\Tax\Block\Item\Price\Renderer;
 
 class ChargedCurrency
 {
@@ -27,23 +27,10 @@ class ChargedCurrency
      */
     const BASE = "base";
 
-    /**
-     * @var Config
-     */
-    private $config;
-
-    /**
-     * @var Renderer
-     */
-    private $weeeRenderer;
-
     public function __construct(
-        Config $config,
-        Renderer $weeeRenderer
-    ) {
-        $this->config = $config;
-        $this->weeeRenderer = $weeeRenderer;
-    }
+        private readonly Config $config,
+        private readonly Renderer $priceRenderer
+    ) { }
 
     /**
      * @param Order $order
@@ -52,7 +39,7 @@ class ChargedCurrency
      *
      * @return AdyenAmountCurrency
      */
-    public function getOrderAmountCurrency(Order $order, bool $orderPlacement = true)
+    public function getOrderAmountCurrency(Order $order, bool $orderPlacement = true): AdyenAmountCurrency
     {
         $chargedCurrency = $orderPlacement
             ? $this->config->getChargedCurrency($order->getStoreId())
@@ -79,7 +66,7 @@ class ChargedCurrency
      * @param Quote $quote
      * @return AdyenAmountCurrency
      */
-    public function getQuoteAmountCurrency(Quote $quote)
+    public function getQuoteAmountCurrency(Quote $quote): AdyenAmountCurrency
     {
         $chargedCurrency = $this->config->getChargedCurrency($quote->getStoreId());
         if ($chargedCurrency == self::BASE) {
@@ -99,7 +86,7 @@ class ChargedCurrency
                 $item->getBaseDiscountAmount() / $item->getQty(),
                 $item->getBaseTaxAmount() / $item->getQty(),
                 null,
-                $this->weeeRenderer->getBaseTotalAmount($item) / $item->getQty()
+                $this->priceRenderer->getBaseTotalAmount($item) / $item->getQty()
             );
         }
 
@@ -109,7 +96,7 @@ class ChargedCurrency
             $item->getDiscountAmount() / $item->getQty(),
             $item->getTaxAmount() / $item->getQty(),
             null,
-            $this->weeeRenderer->getTotalAmount($item) / $item->getQty()
+            $this->priceRenderer->getTotalAmount($item) / $item->getQty()
         );
     }
 
@@ -124,7 +111,7 @@ class ChargedCurrency
                 $item->getBaseDiscountAmount() / $item->getQty(),
                 $item->getBaseTaxAmount() / $item->getQty(),
                 null,
-                $this->weeeRenderer->getBaseTotalAmount($item)
+                $this->priceRenderer->getBaseTotalAmount($item)
             );
         }
 
@@ -134,7 +121,7 @@ class ChargedCurrency
             $item->getDiscountAmount() / $item->getQty(),
             $item->getTaxAmount() / $item->getQty(),
             null,
-            $this->weeeRenderer->getTotalAmount($item)
+            $this->priceRenderer->getTotalAmount($item)
         );
     }
 
@@ -142,7 +129,7 @@ class ChargedCurrency
      * @param CreditmemoInterface $creditMemo
      * @return AdyenAmountCurrency
      */
-    public function getCreditMemoAmountCurrency(CreditmemoInterface $creditMemo)
+    public function getCreditMemoAmountCurrency(CreditmemoInterface $creditMemo): AdyenAmountCurrency
     {
         $chargedCurrency = $creditMemo->getOrder()->getAdyenChargedCurrency();
         if ($chargedCurrency == self::BASE) {
@@ -166,7 +153,7 @@ class ChargedCurrency
      * @param CreditmemoInterface $creditMemo
      * @return AdyenAmountCurrency
      */
-    public function getCreditMemoAdjustmentAmountCurrency(CreditmemoInterface $creditMemo)
+    public function getCreditMemoAdjustmentAmountCurrency(CreditmemoInterface $creditMemo): AdyenAmountCurrency
     {
         $chargedCurrency = $creditMemo->getOrder()->getAdyenChargedCurrency();
         if ($chargedCurrency == self::BASE) {
@@ -216,7 +203,7 @@ class ChargedCurrency
                 $item->getBaseDiscountAmount() / $item->getQty(),
                 $item->getBaseTaxAmount() / $item->getQty(),
                 null,
-                $this->weeeRenderer->getBaseTotalAmount($item)
+                $this->priceRenderer->getBaseTotalAmount($item)
             );
         }
         return new AdyenAmountCurrency(
@@ -225,7 +212,7 @@ class ChargedCurrency
             $item->getDiscountAmount() / $item->getQty(),
             $item->getTaxAmount() / $item->getQty(),
             null,
-            $this->weeeRenderer->getTotalAmount($item)
+            $this->priceRenderer->getTotalAmount($item)
         );
     }
 
