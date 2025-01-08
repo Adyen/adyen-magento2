@@ -20,9 +20,8 @@ use Magento\Sales\Api\Data\CreditmemoInterface;
 use Magento\Sales\Api\Data\CreditmemoItemInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Creditmemo\Item;
-use Magento\Weee\Block\Adminhtml\Items\Price\Renderer;
+use Magento\Tax\Block\Item\Price\Renderer;
 use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
 
 class ChargedCurrencyTest extends AbstractAdyenTestCase
 {
