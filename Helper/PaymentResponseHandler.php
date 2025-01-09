@@ -211,6 +211,14 @@ class PaymentResponseHandler
             $payment->setAdditionalInformation('donationToken', $paymentsDetailsResponse['donationToken']);
         }
 
+        $ccType = $payment->getAdditionalInformation('cc_type');
+
+        if (!empty($paymentsDetailsResponse['additionalData']['paymentMethod']) && $ccType == null) {
+            $ccType = $paymentsDetailsResponse['additionalData']['paymentMethod'];
+            $payment->setAdditionalInformation('cc_type', $ccType);
+            $payment->setCcType($ccType);
+        }
+
         // Handle recurring details
         $this->vaultHelper->handlePaymentResponseRecurringDetails($payment, $paymentsDetailsResponse);
 
