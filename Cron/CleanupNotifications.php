@@ -15,6 +15,7 @@ use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
 use Adyen\Payment\Cron\Providers\NotificationsProviderInterface;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Notification;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\StoreManagerInterface;
 
@@ -44,10 +45,15 @@ class CleanupNotifications
             $numberOfItemsRemoved = 0;
 
             foreach ($this->providers as $provider) {
+                /** @var Notification $notificationToCleanup */
                 foreach ($provider->provide() as $notificationToCleanup) {
                     $isSuccessfullyDeleted = $this->adyenNotificationRepository->delete($notificationToCleanup);
 
                     if ($isSuccessfullyDeleted) {
+                        $message = __('%1: Notification with entityId %2 has been deleted.',
+                            $provider->getProviderName(), $notificationToCleanup->getEntityId());
+                        $this->adyenLogger->addAdyenNotification($message);
+
                         $numberOfItemsRemoved++;
                     }
                 }
