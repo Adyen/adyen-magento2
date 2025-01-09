@@ -221,9 +221,8 @@ class PaymentResponseHandler
         $ccType = $payment->getAdditionalInformation('cc_type');
 
         if (!empty($paymentsDetailsResponse['additionalData']['paymentMethod']) &&
-            !is_null($ccType) &&
-            $isWalletPaymentMethod &&
-            $isCardPaymentMethod
+            is_null($ccType) &&
+            ($isWalletPaymentMethod || $isCardPaymentMethod)
         ) {
             $ccType = $paymentsDetailsResponse['additionalData']['paymentMethod'];
             $payment->setAdditionalInformation('cc_type', $ccType);
