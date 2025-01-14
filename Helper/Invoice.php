@@ -12,7 +12,9 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Api\Data\InvoiceInterface;
+use Adyen\Payment\Api\Data\NotificationInterface;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
+use Adyen\Payment\Api\Repository\AdyenInvoiceRepositoryInterface;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Invoice as AdyenInvoice;
 use Adyen\Payment\Model\InvoiceFactory;
@@ -61,6 +63,8 @@ class Invoice extends AbstractHelper
      * @param InvoiceSender $invoiceSender
      * @param Transaction $transaction
      * @param ChargedCurrency $chargedCurrencyHelper
+     * @param OrderRepositoryInterface $orderRepository
+     * @param AdyenInvoiceRepositoryInterface $adyenInvoiceRepository
      */
     public function __construct(
         protected readonly Context $context,
@@ -78,7 +82,8 @@ class Invoice extends AbstractHelper
         protected readonly InvoiceSender $invoiceSender,
         protected readonly Transaction $transaction,
         protected readonly ChargedCurrency $chargedCurrencyHelper,
-        protected readonly OrderRepositoryInterface $orderRepository
+        protected readonly OrderRepositoryInterface $orderRepository,
+        protected readonly AdyenInvoiceRepositoryInterface $adyenInvoiceRepository
     ) {
         parent::__construct($context);
     }
@@ -117,9 +122,9 @@ class Invoice extends AbstractHelper
                     // if amount is zero create a offline invoice
                     $value = (int)$notification->getAmountValue();
                     if ($value == 0) {
-                        $invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::CAPTURE_OFFLINE);
+                        $invoice->setRequestedCaptureCase(InvoiceModel::CAPTURE_OFFLINE);
                     } else {
-                        $invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::NOT_CAPTURE);
+                        $invoice->setRequestedCaptureCase(InvoiceModel::NOT_CAPTURE);
                     }
 
                     $invoice->register();
@@ -148,7 +153,7 @@ class Invoice extends AbstractHelper
                 throw $e;
             }
 
-            $invoiceAutoMail = (bool)$this->scopeConfig->isSetFlag(
+            $invoiceAutoMail = $this->scopeConfig->isSetFlag(
                 InvoiceIdentity::XML_PATH_EMAIL_ENABLED,
                 ScopeInterface::SCOPE_STORE,
                 $order->getStoreId()
@@ -184,7 +189,6 @@ class Invoice extends AbstractHelper
      * @param int $captureAmountCents
      * @param int|null $invoiceId
      * @return AdyenInvoice
-     * @throws AlreadyExistsException
      */
     public function createAdyenInvoice(
         Order\Payment $payment,
@@ -210,7 +214,7 @@ class Invoice extends AbstractHelper
             $adyenInvoice->setInvoiceId($invoiceId);
         }
 
-        $this->adyenInvoiceResourceModel->save($adyenInvoice);
+        $this->adyenInvoiceRepository->save($adyenInvoice);
 
         return $adyenInvoice;
     }
@@ -227,36 +231,37 @@ class Invoice extends AbstractHelper
      */
     public function handleCaptureWebhook(Order $order, Notification $notification): AdyenInvoice
     {
-        $invoiceFactory = $this->adyenInvoiceFactory->create();
-        $adyenInvoice = $this->adyenInvoiceResourceModel->getAdyenInvoiceByCaptureWebhook($order, $notification);
-        $chargedCurrency = $this->chargedCurrencyHelper->getOrderAmountCurrency($order, false);
-        $formattedAdyenOrderAmount = $this->adyenDataHelper->formatAmount(
-            $chargedCurrency->getAmount(),
-            $chargedCurrency->getCurrencyCode()
-        );
-        $notificationAmount = $notification->getAmountValue();
-        $isFullAmountCaptured = $formattedAdyenOrderAmount == $notificationAmount;
+        $adyenInvoice = $this->adyenInvoiceRepository->getByCaptureWebhook($notification);
 
+        // No adyen_invoice found, trying to process external capture attempt
         if (is_null($adyenInvoice) && $order->canInvoice()) {
-                if ($isFullAmountCaptured) {
-                   $adyenInvoiceObject = $this->createInvoiceFromWebhook($order, $notification);
-                } else {
-                    $order->addStatusHistoryComment(__(sprintf(
-                        'Partial %s webhook notification w/amount %s %s was processed, no invoice created.
-                        Please create offline invoice.',
-                        $notification->getEventCode(),
-                        $notification->getAmountCurrency(),
-                        $this->adyenDataHelper->originalAmount(
-                            $notification->getAmountValue(),
-                            $notification->getAmountCurrency())
-                    )), false);
-                    throw new AdyenWebhookException(__(sprintf(
-                        'Unable to create adyen_invoice from CA partial capture linked to original reference %s,
-                        psp reference %s, and order %s.',
-                        $notification->getOriginalReference(),
-                        $notification->getPspreference(),
-                        $order->getIncrementId()
-                    )));
+            $chargedCurrency = $this->chargedCurrencyHelper->getOrderAmountCurrency($order, false);
+            $formattedAdyenOrderAmount = $this->adyenDataHelper->formatAmount(
+                $chargedCurrency->getAmount(),
+                $chargedCurrency->getCurrencyCode()
+            );
+            $notificationAmount = $notification->getAmountValue();
+            $isFullAmountCaptured = $formattedAdyenOrderAmount == $notificationAmount;
+
+            if ($isFullAmountCaptured) {
+                $adyenInvoice = $this->createInvoiceFromWebhook($order, $notification);
+            } else {
+                $order->addStatusHistoryComment(__(sprintf(
+                    'Partial %s webhook notification w/amount %s %s was processed, no invoice created.
+                    Please create offline invoice.',
+                    $notification->getEventCode(),
+                    $notification->getAmountCurrency(),
+                    $this->adyenDataHelper->originalAmount(
+                        $notification->getAmountValue(),
+                        $notification->getAmountCurrency())
+                )), false);
+                throw new AdyenWebhookException(__(sprintf(
+                    'Unable to create adyen_invoice from CA partial capture linked to original reference %s,
+                    psp reference %s, and order %s.',
+                    $notification->getOriginalReference(),
+                    $notification->getPspreference(),
+                    $order->getIncrementId()
+                )));
             }
         } elseif (is_null($adyenInvoice) && !$order->canInvoice()) {
             throw new AdyenWebhookException(__(sprintf(
@@ -268,18 +273,14 @@ class Invoice extends AbstractHelper
             )));
         }
 
-        /** @var AdyenInvoice $adyenInvoiceObject */
-        $adyenInvoiceObject = $adyenInvoiceObject
-            ?? $invoiceFactory->load($adyenInvoice[InvoiceInterface::ENTITY_ID], InvoiceInterface::ENTITY_ID);
-
         $additionalData = $notification->getAdditionalData();
-        $acquirerReference = $additionalData[Notification::ADDITIONAL_DATA] ?? null;
-        $adyenInvoiceObject->setAcquirerReference($acquirerReference);
-        $adyenInvoiceObject->setStatus(InvoiceInterface::STATUS_SUCCESSFUL);
-        $this->adyenInvoiceResourceModel->save($adyenInvoiceObject);
+        $acquirerReference = $additionalData[NotificationInterface::ADDITIONAL_DATA] ?? null;
+        $adyenInvoice->setAcquirerReference($acquirerReference);
+        $adyenInvoice->setStatus(InvoiceInterface::STATUS_SUCCESSFUL);
+        $this->adyenInvoiceRepository->save($adyenInvoice);
 
         /** @var InvoiceModel $magentoInvoice */
-        $magentoInvoice = $this->invoiceRepository->get($adyenInvoiceObject->getInvoiceId());
+        $magentoInvoice = $this->invoiceRepository->get($adyenInvoice->getInvoiceId());
 
         if ($this->isFullInvoiceAmountManuallyCaptured($magentoInvoice)) {
             $magentoInvoice->pay();
@@ -287,7 +288,7 @@ class Invoice extends AbstractHelper
             $this->magentoOrderResourceModel->save($magentoInvoice->getOrder());
         }
 
-        return $adyenInvoiceObject;
+        return $adyenInvoice;
     }
 
     /**
@@ -296,22 +297,22 @@ class Invoice extends AbstractHelper
      * @param Payment $adyenOrderPayment
      * @param InvoiceModel $invoice
      * @return float
-     * @throws AlreadyExistsException
      */
     public function linkAndUpdateAdyenInvoices(Payment $adyenOrderPayment, InvoiceModel $invoice): float
     {
-        $invoiceFactory = $this->adyenInvoiceFactory->create();
         $linkedAmount = 0;
 
-        $adyenInvoices = $this->adyenInvoiceResourceModel->getAdyenInvoicesByAdyenPaymentId($adyenOrderPayment[OrderPaymentInterface::ENTITY_ID]);
+        $adyenInvoices = $this->adyenInvoiceRepository->getByAdyenOrderPaymentId(
+            $adyenOrderPayment[OrderPaymentInterface::ENTITY_ID]
+        );
+
         if (!is_null($adyenInvoices)) {
+            /** @var AdyenInvoice $adyenInvoice */
             foreach ($adyenInvoices as $adyenInvoice) {
-                if (is_null($adyenInvoice[AdyenInvoice::INVOICE_ID])) {
-                    /** @var AdyenInvoice $adyenInvoiceObject */
-                    $adyenInvoiceObject = $invoiceFactory->load($adyenInvoice[InvoiceInterface::ENTITY_ID], InvoiceInterface::ENTITY_ID);
-                    $adyenInvoiceObject->setInvoiceId($invoice->getEntityId());
-                    $this->adyenInvoiceResourceModel->save($adyenInvoiceObject);
-                    $linkedAmount += $adyenInvoiceObject->getAmount();
+                if (is_null($adyenInvoice->getInvoiceId())) {
+                    $adyenInvoice->setInvoiceId($invoice->getEntityId());
+                    $this->adyenInvoiceRepository->save($adyenInvoice);
+                    $linkedAmount += $adyenInvoice->getAmount();
                 }
             }
         }
@@ -382,7 +383,7 @@ class Invoice extends AbstractHelper
         $transactionSave->save();
 
         //Send Invoice mail to customer
-        $invoiceAutoMail = (bool)$this->scopeConfig->isSetFlag(
+        $invoiceAutoMail = $this->scopeConfig->isSetFlag(
             InvoiceIdentity::XML_PATH_EMAIL_ENABLED,
             ScopeInterface::SCOPE_STORE,
             $order->getStoreId()
@@ -394,14 +395,14 @@ class Invoice extends AbstractHelper
                 __('Notified customer about invoice creation #%1.', $invoice->getId())
             );
             $order->setIsCustomerNotified(true);
-            $this->orderRepository->save($order);
         } else {
             $order->addStatusHistoryComment(
                 __('Created invoice #%1.', $invoice->getId())
             );
             $order->setIsCustomerNotified(false);
-            $this->orderRepository->save($order);
         }
+
+        $this->orderRepository->save($order);
 
         //Create entry in adyen_invoice table
         $adyenInvoice = $this->createAdyenInvoice(
@@ -421,7 +422,7 @@ class Invoice extends AbstractHelper
         return $adyenInvoice;
     }
 
-    public function sendInvoiceMail(InvoiceModel $invoice)
+    public function sendInvoiceMail(InvoiceModel $invoice): void
     {
         try {
             $this->invoiceSender->send($invoice);
