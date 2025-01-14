@@ -24,8 +24,6 @@ use Adyen\Webhook\PaymentStates;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Sales\Api\InvoiceRepositoryInterface;
 use Magento\Sales\Model\Order as MagentoOrder;
-use Magento\Sales\Model\Order\Invoice as MagentoInvoice;
-use Magento\Sales\Model\Order\InvoiceFactory as MagentoInvoiceFactory;
 
 class CaptureWebhookHandler implements WebhookHandlerInterface
 {
@@ -34,7 +32,6 @@ class CaptureWebhookHandler implements WebhookHandlerInterface
         private readonly PaymentFactory $adyenOrderPaymentFactory,
         private readonly AdyenOrderPayment $adyenOrderPaymentHelper,
         private readonly AdyenLogger $adyenLogger,
-        private readonly MagentoInvoiceFactory $magentoInvoiceFactory,
         private readonly Order $orderHelper,
         private readonly PaymentMethods $paymentMethodsHelper,
         private readonly InvoiceRepositoryInterface $invoiceRepository
