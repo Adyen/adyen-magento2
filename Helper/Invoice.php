@@ -20,9 +20,7 @@ use Adyen\Payment\Model\Invoice as AdyenInvoice;
 use Adyen\Payment\Model\InvoiceFactory;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Order\Payment;
-use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Model\ResourceModel\Invoice\Collection;
-use Adyen\Payment\Model\ResourceModel\Invoice\Invoice as AdyenInvoiceResourceModel;
 use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel;
 use Adyen\Payment\Exception\AdyenWebhookException;
 use Exception;
@@ -37,7 +35,6 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Email\Container\InvoiceIdentity;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Sales\Model\Order\Invoice as InvoiceModel;
-use Magento\Sales\Model\Order\InvoiceFactory as MagentoInvoiceFactory;
 use Magento\Store\Model\ScopeInterface;
 
 /**
@@ -53,13 +50,8 @@ class Invoice extends AbstractHelper
      * @param Data $adyenDataHelper
      * @param InvoiceRepositoryInterface $invoiceRepository
      * @param InvoiceFactory $adyenInvoiceFactory
-     * @param AdyenInvoiceResourceModel $adyenInvoiceResourceModel
      * @param OrderPaymentResourceModel $orderPaymentResourceModel
-     * @param PaymentFactory $adyenOrderPaymentFactory
      * @param Collection $adyenInvoiceCollection
-     * @param MagentoInvoiceFactory $magentoInvoiceFactory
-     * @param \Magento\Sales\Model\ResourceModel\Order $magentoOrderResourceModel
-     * @param Config $configHelper
      * @param InvoiceSender $invoiceSender
      * @param Transaction $transaction
      * @param ChargedCurrency $chargedCurrencyHelper
@@ -72,13 +64,8 @@ class Invoice extends AbstractHelper
         protected readonly Data $adyenDataHelper,
         protected readonly InvoiceRepositoryInterface $invoiceRepository,
         protected readonly InvoiceFactory $adyenInvoiceFactory,
-        protected readonly AdyenInvoiceResourceModel $adyenInvoiceResourceModel,
         protected readonly OrderPaymentResourceModel $orderPaymentResourceModel,
-        protected readonly PaymentFactory $adyenOrderPaymentFactory,
         protected readonly Collection $adyenInvoiceCollection,
-        protected readonly MagentoInvoiceFactory $magentoInvoiceFactory,
-        protected readonly \Magento\Sales\Model\ResourceModel\Order $magentoOrderResourceModel,
-        protected readonly Config $configHelper,
         protected readonly InvoiceSender $invoiceSender,
         protected readonly Transaction $transaction,
         protected readonly ChargedCurrency $chargedCurrencyHelper,
@@ -285,7 +272,7 @@ class Invoice extends AbstractHelper
         if ($this->isFullInvoiceAmountManuallyCaptured($magentoInvoice)) {
             $magentoInvoice->pay();
             $this->invoiceRepository->save($magentoInvoice);
-            $this->magentoOrderResourceModel->save($magentoInvoice->getOrder());
+            $this->orderRepository->save($magentoInvoice->getOrder());
         }
 
         return $adyenInvoice;
