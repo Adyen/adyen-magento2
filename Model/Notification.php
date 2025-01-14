@@ -13,6 +13,7 @@ namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Api\Data\NotificationInterface;
 use DateTime;
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Data\Collection\AbstractDb;
 use Magento\Framework\Model\AbstractModel;
 use Magento\Framework\Model\Context;
@@ -51,18 +52,14 @@ class Notification extends AbstractModel implements NotificationInterface
     const STATE_ADYEN_AUTHORIZED = "adyen_authorized";
     const MAX_ERROR_COUNT = 5;
 
-    private ResourceModel\Notification|AbstractDb $notificationResourceModel;
-
     public function __construct(
         Context $context,
         Registry $registry,
         AbstractResource $resource = null,
         AbstractDb $resourceCollection = null,
-        array $data = [],
+        array $data = []
     ) {
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
-
-        $this->notificationResourceModel = $resourceCollection;
     }
 
     protected function _construct()
@@ -78,7 +75,14 @@ class Notification extends AbstractModel implements NotificationInterface
      */
     public function isDuplicate($done = null): bool
     {
-        $result = $this->notificationResourceModel->getNotification(
+        /*
+         * Load resource model Adyen\Payment\Model\ResourceModel\Notification manually
+         * as Magento\Framework\Model\AbstractModel::_getResource() method has been deprecated.
+         * ObjectManager has been used due to dependencies not being loaded timely manner on entity classes.
+         */
+        $notificationResourceModel = ObjectManager::getInstance()->get($this->getResourceName());
+
+        $result = $notificationResourceModel->getNotification(
             $this->getPspreference(),
             $this->getEventCode(),
             $this->getSuccess(),
