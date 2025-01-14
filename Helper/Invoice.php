@@ -289,9 +289,7 @@ class Invoice extends AbstractHelper
     {
         $linkedAmount = 0;
 
-        $adyenInvoices = $this->adyenInvoiceRepository->getByAdyenOrderPaymentId(
-            $adyenOrderPayment[OrderPaymentInterface::ENTITY_ID]
-        );
+        $adyenInvoices = $this->adyenInvoiceRepository->getByAdyenOrderPaymentId($adyenOrderPayment->getEntityId());
 
         if (!is_null($adyenInvoices)) {
             /** @var AdyenInvoice $adyenInvoice */

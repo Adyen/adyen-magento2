@@ -12,32 +12,29 @@
 namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Payment\Api\Data\InvoiceInterface;
+use Adyen\Payment\Api\Repository\AdyenInvoiceRepositoryInterface;
 use Adyen\Payment\Helper\ChargedCurrency;
-use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Invoice;
 use Adyen\Payment\Model\AdyenAmountCurrency;
 use Adyen\Payment\Model\InvoiceFactory;
 use Adyen\Payment\Model\Order\Payment;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Exception;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\Order\Invoice as InvoiceModel;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Model\ResourceModel\Invoice\Collection;
-use Adyen\Payment\Model\ResourceModel\Invoice\Invoice as AdyenInvoiceResourceModel;
 use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\DB\Transaction;
 use Magento\Sales\Api\InvoiceRepositoryInterface;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
-use Magento\Sales\Model\Order\InvoiceFactory as MagentoInvoiceFactory;
 use Adyen\Payment\Model\Invoice as AdyenInvoice;
 
 class InvoiceTest extends AbstractAdyenTestCase
@@ -77,18 +74,11 @@ class InvoiceTest extends AbstractAdyenTestCase
         $this->assertInstanceOf(InvoiceModel::class, $invoice);
     }
 
-    /**
-     * @throws AlreadyExistsException
-     */
     public function testCreateAdyenInvoice()
     {
         $adyenInvoiceMockForFactory = $this->createMock(AdyenInvoice::class);
         $adyenInvoiceFactoryMock = $this->createGeneratedMock(InvoiceFactory::class, ['create']);
         $adyenInvoiceFactoryMock->method('create')->willReturn($adyenInvoiceMockForFactory);
-
-        $adyenInvoiceResourceModelMock =  $this->createConfiguredMock(AdyenInvoiceResourceModel::class, [
-            'save' => $this->createMock(AbstractDb::class)
-        ]);
 
         $orderPaymentResourceModelMock = $this->createConfiguredMock(OrderPaymentResourceModel::class, [
             'getOrderPaymentDetails' => [
@@ -102,7 +92,6 @@ class InvoiceTest extends AbstractAdyenTestCase
             null,
             null,
             $adyenInvoiceFactoryMock,
-            $adyenInvoiceResourceModelMock,
             $orderPaymentResourceModelMock
         );
 
@@ -127,6 +116,8 @@ class InvoiceTest extends AbstractAdyenTestCase
      */
     public function testHandleCaptureWebhook()
     {
+        $magentoInvoiceId = 1;
+
         $scopeConfigMock = $this->createConfiguredMock(ScopeConfigInterface::class, [
             'isSetFlag' => false
         ]);
@@ -135,32 +126,31 @@ class InvoiceTest extends AbstractAdyenTestCase
         ]);
 
         $adyenInvoiceMock = $this->createMock(AdyenInvoice::class);
+        $adyenInvoiceMock->method('getInvoiceId')->willReturn($magentoInvoiceId);
+
         $adyenInvoiceFactory = $this->createGeneratedMock(InvoiceFactory::class, ['create']);
         $adyenInvoiceFactory->method('create')->willReturn($adyenInvoiceMock);
 
+        $orderMock = $this->createMock(MagentoOrder::class);
+
         $invoiceLoadedMock = $this->createConfiguredMock(InvoiceModel::class, [
-            'getOrder' => $this->createMock(MagentoOrder::class)
+            'getOrder' => $orderMock
         ]);
 
         $invoiceMock = $this->createConfiguredMock(InvoiceModel::class, [
-            'getId' => 1,
-            'load' => $invoiceLoadedMock
+            'getId' => $magentoInvoiceId,
+            'load' => $invoiceLoadedMock,
+            'getOrder' => $orderMock
         ]);
+
+        $magentoInvoiceRepositoryMock = $this->createMock(InvoiceRepositoryInterface::class);
+        $magentoInvoiceRepositoryMock->method('get')->with($magentoInvoiceId)->willReturn($invoiceMock);
 
         $orderPaymentResourceModelMock = $this->createConfiguredMock(OrderPaymentResourceModel::class, [
             'getOrderPaymentDetails' => [
                 'entity_id' => 1000
             ]
         ]);
-
-        $magentoInvoiceFactoryMock = $this->createGeneratedMock(MagentoInvoiceFactory::class, ['create']);
-        $magentoInvoiceFactoryMock->method('create')->willReturn($invoiceMock);
-
-        $magentoOrderResourceModelMock = $this->createGeneratedMock(
-            \Magento\Sales\Model\ResourceModel\Order::class,
-            ['save']
-        );
-        $magentoOrderResourceModelMock->method('save')->willReturn($invoiceMock);
 
         $transactionMock = $this->createGeneratedMock(Transaction::class, ['addObject']);
         $transactionMock->method('addObject')->willReturn($invoiceMock);
@@ -176,14 +166,9 @@ class InvoiceTest extends AbstractAdyenTestCase
             $contextMock,
             null,
             null,
-            null,
+            $magentoInvoiceRepositoryMock,
             $adyenInvoiceFactory,
-            null,
             $orderPaymentResourceModelMock,
-            null,
-            null,
-            $magentoInvoiceFactoryMock,
-            $magentoOrderResourceModelMock,
             null,
             null,
             $transactionMock,
@@ -216,43 +201,35 @@ class InvoiceTest extends AbstractAdyenTestCase
         $this->assertInstanceOf(AdyenInvoice::class, $adyenInvoice);
     }
 
-    /**
-     * @throws AlreadyExistsException
-     */
     public function testLinkAndUpdateAdyenInvoices()
     {
-        $adyenInvoiceResourceModelMock =  $this->createConfiguredMock(AdyenInvoiceResourceModel::class, [
-            'getAdyenInvoicesByAdyenPaymentId' => [
-                ['invoice_id' => null, 'entity_id' => 99]
-            ],
-            'save' => $this->createMock(AbstractDb::class)
-        ]);
-
-        $adyenInvoiceLoadedMock = $this->createConfiguredMock(AdyenInvoice::class, [
+        $adyenInvoiceMock = $this->createConfiguredMock(AdyenInvoice::class, [
             'getAmount' => 1000.0,
             'getEntityId' => 99,
         ]);
-        $adyenInvoiceMockForFactory = $this->createConfiguredMock(AdyenInvoice::class, [
-            'load' => $adyenInvoiceLoadedMock
-        ]);
-        $adyenInvoiceFactory = $this->createGeneratedMock(InvoiceFactory::class, ['create']);
-        $adyenInvoiceFactory->method('create')->willReturn($adyenInvoiceMockForFactory);
+
+        $adyenInvoiceRepositoryMock = $this->createMock(AdyenInvoiceRepositoryInterface::class);
+        $adyenInvoiceRepositoryMock->method('getByAdyenOrderPaymentId')->willReturn([$adyenInvoiceMock]);
 
         $invoiceHelper = $this->createInvoiceHelper(
             null,
             null,
             null,
             null,
-            $adyenInvoiceFactory,
-            $adyenInvoiceResourceModelMock
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $adyenInvoiceRepositoryMock
         );
 
         $adyenOrderPaymentMock = $this->createMock(Payment::class);
+        $adyenOrderPaymentMock->method('getEntityId')->willReturn(1);
+
         $invoiceMock = $this->createConfiguredMock(InvoiceModel::class, [
-            'getOrder' => $this->createMock(Order::class),
-            'getGrandTotal' => 1000.0,
-            'getOrderCurrencyCode' => 'EUR',
-            'register' => $this->createMock(InvoiceModel::class),
             'getEntityId' => 99
         ]);
 
@@ -285,8 +262,6 @@ class InvoiceTest extends AbstractAdyenTestCase
             null,
             null,
             null,
-            null,
-            null,
             $adyenInvoiceCollectionMock
         );
 
@@ -310,10 +285,6 @@ class InvoiceTest extends AbstractAdyenTestCase
         $adyenInvoiceMockForFactory = $this->createMock(AdyenInvoice::class);
         $adyenInvoiceFactoryMock = $this->createGeneratedMock(InvoiceFactory::class, ['create']);
         $adyenInvoiceFactoryMock->method('create')->willReturn($adyenInvoiceMockForFactory);
-
-        $adyenInvoiceResourceModelMock =  $this->createConfiguredMock(AdyenInvoiceResourceModel::class, [
-            'save' => $this->createMock(AbstractDb::class)
-        ]);
 
         $orderPaymentResourceModelMock = $this->createConfiguredMock(OrderPaymentResourceModel::class, [
             'getOrderPaymentDetails' => [
@@ -341,12 +312,7 @@ class InvoiceTest extends AbstractAdyenTestCase
             null,
             null,
             $adyenInvoiceFactoryMock,
-            $adyenInvoiceResourceModelMock,
             $orderPaymentResourceModelMock,
-            null,
-            null,
-            null,
-            null,
             null,
             null,
             $transactionMock
@@ -384,14 +350,9 @@ class InvoiceTest extends AbstractAdyenTestCase
         $invoiceSenderMock
             ->expects($this->once())
             ->method('send')
-            ->willThrowException(new \Exception('Test Exception Message'));
+            ->willThrowException(new Exception('Test Exception Message'));
 
         $invoiceHelper = $this->createInvoiceHelper(
-            null,
-            null,
-            null,
-            null,
-            null,
             null,
             null,
             null,
@@ -411,18 +372,13 @@ class InvoiceTest extends AbstractAdyenTestCase
      * @param null $adyenDataHelperMock
      * @param null $invoiceRepositoryInterfaceMock
      * @param null $adyenInvoiceFactory
-     * @param null $adyenInvoiceResourceModelMock
      * @param null $orderPaymentResourceModelMock
-     * @param null $paymentFactoryMock
      * @param null $adyenInvoiceCollectionMock
-     * @param null $magentoInvoiceFactoryMock
-     * @param null $magentoOrderResourceModelMock
-     * @param null $adyenConfigHelperMock
      * @param null $invoiceSenderMock
      * @param null $transactionMock
      * @param null $chargedCurrencyMock
      * @param null $orderRepositoryMock
-     *
+     * @param null $adyenInvoiceRepositoryMock
      * @return Invoice
      */
     protected function createInvoiceHelper(
@@ -431,19 +387,14 @@ class InvoiceTest extends AbstractAdyenTestCase
         $adyenDataHelperMock = null,
         $invoiceRepositoryInterfaceMock = null,
         $adyenInvoiceFactory = null,
-        $adyenInvoiceResourceModelMock = null,
         $orderPaymentResourceModelMock = null,
-        $paymentFactoryMock = null,
         $adyenInvoiceCollectionMock = null,
-        $magentoInvoiceFactoryMock = null,
-        $magentoOrderResourceModelMock = null,
-        $adyenConfigHelperMock = null,
         $invoiceSenderMock = null,
         $transactionMock = null,
         $chargedCurrencyMock = null,
-        $orderRepositoryMock = null
+        $orderRepositoryMock = null,
+        $adyenInvoiceRepositoryMock = null
     ): Invoice {
-
         if (is_null($contextMock)) {
             $contextMock = $this->createMock(Context::class);
         }
@@ -464,32 +415,12 @@ class InvoiceTest extends AbstractAdyenTestCase
             $adyenInvoiceFactory = $this->createGeneratedMock(InvoiceFactory::class);
         }
 
-        if (is_null($adyenInvoiceResourceModelMock)) {
-            $adyenInvoiceResourceModelMock = $this->createMock(AdyenInvoiceResourceModel::class);
-        }
-
         if (is_null($orderPaymentResourceModelMock)) {
             $orderPaymentResourceModelMock = $this->createMock(OrderPaymentResourceModel::class);
         }
 
-        if (is_null($paymentFactoryMock)) {
-            $paymentFactoryMock = $this->createGeneratedMock(PaymentFactory::class);
-        }
-
         if (is_null($adyenInvoiceCollectionMock)) {
             $adyenInvoiceCollectionMock = $this->createMock(Collection::class);
-        }
-
-        if (is_null($magentoInvoiceFactoryMock)) {
-            $magentoInvoiceFactoryMock = $this->createGeneratedMock(MagentoInvoiceFactory::class);
-        }
-
-        if (is_null($magentoOrderResourceModelMock)) {
-            $magentoOrderResourceModelMock = $this->createMock(\Magento\Sales\Model\ResourceModel\Order::class);
-        }
-
-        if (is_null($adyenConfigHelperMock)) {
-            $adyenConfigHelperMock = $this->createMock(Config::class);
         }
 
         if (is_null($invoiceSenderMock)) {
@@ -508,23 +439,23 @@ class InvoiceTest extends AbstractAdyenTestCase
             $orderRepositoryMock = $this->createMock(OrderRepositoryInterface::class);
         }
 
+        if (is_null($adyenInvoiceRepositoryMock)) {
+            $adyenInvoiceRepositoryMock = $this->createMock(AdyenInvoiceRepositoryInterface::class);
+        }
+
         return new Invoice(
             $contextMock,
             $adyenLoggerMock,
             $adyenDataHelperMock,
             $invoiceRepositoryInterfaceMock,
             $adyenInvoiceFactory,
-            $adyenInvoiceResourceModelMock,
             $orderPaymentResourceModelMock,
-            $paymentFactoryMock,
             $adyenInvoiceCollectionMock,
-            $magentoInvoiceFactoryMock,
-            $magentoOrderResourceModelMock,
-            $adyenConfigHelperMock,
             $invoiceSenderMock,
             $transactionMock,
             $chargedCurrencyMock,
-            $orderRepositoryMock
+            $orderRepositoryMock,
+            $adyenInvoiceRepositoryMock
         );
     }
 }

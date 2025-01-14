@@ -12,13 +12,12 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Helper\AdyenOrderPayment;
+use Magento\Sales\Api\Data\InvoiceInterface;
 use Magento\Sales\Api\InvoiceRepositoryInterface;
 use Magento\Sales\Model\Order as MagentoOrder;
-use Magento\Sales\Model\Order\InvoiceFactory as MagentoInvoiceFactory;
 use Adyen\Payment\Model\Invoice as AdyenInvoice;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Payment\Model\Order\Payment;
-use Magento\Sales\Model\Order\Invoice as MagentoInvoice;
 
 class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
 {
@@ -46,7 +45,6 @@ class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
         $adyenOrderPaymentFactory = null,
         $adyenOrderPaymentHelper = null,
         $adyenLogger = null,
-        $magentoInvoiceFactory = null,
         $orderHelper = null,
         $paymentMethodsHelper = null,
         $invoiceRepository = null
@@ -64,9 +62,6 @@ class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
         if($adyenLogger == null) {
             $adyenLogger = $this->createGeneratedMock(AdyenLogger::class, ['addAdyenNotification', 'getInvoiceContext']);
         }
-        if($magentoInvoiceFactory == null) {
-            $magentoInvoiceFactory = $this->createGeneratedMock(MagentoInvoiceFactory::class, ['create', 'load']);
-        }
         if($orderHelper == null) {
             $orderHelper = $this->createGeneratedMock(Order::class, ['fetchOrderByIncrementId', 'finalizeOrder']);
         }
@@ -82,7 +77,6 @@ class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
             adyenOrderPaymentFactory: $adyenOrderPaymentFactory,
             adyenOrderPaymentHelper: $adyenOrderPaymentHelper,
             adyenLogger: $adyenLogger,
-            magentoInvoiceFactory: $magentoInvoiceFactory,
             orderHelper: $orderHelper,
             paymentMethodsHelper: $paymentMethodsHelper,
             invoiceRepository: $invoiceRepository
@@ -105,7 +99,6 @@ class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
             null,
             null,
             null,
-            null,
             $paymentMethodsHelperMock
         );
 
@@ -119,7 +112,11 @@ class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
     public function testHandleWebhookWithoutAutoCapture()
     {
         // Mock methods
-        $invoice = $this->createConfiguredMock(AdyenInvoice::class, ['getAdyenPaymentOrderId' => 123, 'getInvoiceId' => 456]);
+        $adyenInvoice = $this->createConfiguredMock(AdyenInvoice::class, ['getAdyenPaymentOrderId' => 123, 'getInvoiceId' => 456]);
+        $magentoInvoice = $this->createMock(MagentoOrder\Invoice::class);
+
+        $magentoInvoiceRepositoryMock = $this->createMock(InvoiceRepositoryInterface::class);
+        $magentoInvoiceRepositoryMock->method('get')->willReturn($magentoInvoice);
 
         // Mock the paymentMethodsHelper to return false for isAutoCapture
         $paymentMethodsHelperMock = $this->createMockWithMethods(PaymentMethods::class, ['isAutoCapture'], []);
@@ -127,7 +124,7 @@ class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
 
         // Set up expectations on the invoiceHelperMock
         $invoiceHelperMock = $this->createMockWithMethods(Invoice::class, ['handleCaptureWebhook'], []);
-        $invoiceHelperMock->expects($this->once())->method('handleCaptureWebhook')->willReturn($invoice);
+        $invoiceHelperMock->expects($this->once())->method('handleCaptureWebhook')->willReturn($adyenInvoice);
 
         // Set up a partial mock of orderHelper to expect a call to fetchOrderByIncrementId
         $orderHelperMock = $this->createGeneratedMock(Order::class, ['fetchOrderByIncrementId', 'finalizeOrder']);
@@ -161,35 +158,15 @@ class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
             ->method('refreshPaymentCaptureStatus')
             ->with($adyenOrderPaymentMock, $this->notification->getAmountCurrency());
 
-        // Create a mock for the magentoInvoiceFactory
-        $magentoInvoiceFactoryMock = $this->createGeneratedMock(MagentoInvoiceFactory::class, ['create']);
-
-        // Create a mock for MagentoInvoice
-        $magentoInvoiceMock = $this->getMockBuilder(MagentoInvoice::class)
-            ->setMethods(['load']) // Define the method you want to mock
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        // Configure the load method of the magentoInvoiceMock to return the same mock
-        $magentoInvoiceMock->expects($this->once())
-            ->method('load')
-            ->with(456, MagentoInvoice::ENTITY_ID)
-            ->willReturnSelf(); // Return the mock itself
-
-        // Configure the magentoInvoiceFactoryMock to return the magentoInvoiceMock
-        $magentoInvoiceFactoryMock->expects($this->once())
-            ->method('create')
-            ->willReturn($magentoInvoiceMock);
-
         $this->captureWebhookHandler = $this->createCaptureWebhookHandler(
             $invoiceHelperMock,
             $adyenOrderPaymentFactoryMock,
             $adyenOrderPaymentHelperMock,
             null,
-            $magentoInvoiceFactoryMock,
             $orderHelperMock,
-            $paymentMethodsHelperMock)
-        ;
+            $paymentMethodsHelperMock,
+            $magentoInvoiceRepositoryMock
+        );
 
         // Test handleWebhook method
         $result = $this->captureWebhookHandler->handleWebhook($this->order, $this->notification, 'paid');

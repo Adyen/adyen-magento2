@@ -102,10 +102,10 @@ class SetOrderStateAfterPaymentObserverTest extends AbstractAdyenTestCase
 
         if ($changeStatus) {
             $this->orderMock->expects($this->once())->method('setState');
-            $this->orderMock->expects($this->once())->method('save');
+            $this->orderRepositoryMock->expects($this->once())->method('save');
         } else {
             $this->orderMock->expects($this->never())->method('setState');
-            $this->orderMock->expects($this->never())->method('save');
+            $this->orderRepositoryMock->expects($this->never())->method('save');
         }
 
         $this->setOrderStateAfterPaymentObserver->execute($this->observerMock);
