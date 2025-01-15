@@ -263,6 +263,8 @@ define(
                     request = state.data;
                 }
 
+                request.cancelled = true;
+
                 adyenPaymentService.paymentDetails(request, self.orderId).done(function() {
                     $.mage.redirect(
                         window.checkoutConfig.payment.adyen.successPage
