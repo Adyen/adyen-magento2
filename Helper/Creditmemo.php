@@ -11,20 +11,18 @@
 
 namespace Adyen\Payment\Helper;
 
-use Adyen\Payment\Api\Data\CreditmemoInterface;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
+use Adyen\Payment\Api\Repository\AdyenCreditmemoRepositoryInterface;
 use Adyen\Payment\Model\Order\Payment;
 use Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo as CreditMemoResourceModel;
 use Adyen\Payment\Model\CreditmemoFactory;
 use Adyen\Payment\Model\Creditmemo as AdyenCreditmemoModel;
 use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel;
-use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Creditmemo as MagentoCreditMemoModel;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
-use Magento\Sales\Model\Order\CreditmemoFactory as MagentoCreditMemoFactory;
-use Magento\Sales\Model\ResourceModel\Order\Creditmemo as MagentoCreditMemoResourceModel;
 
 /**
  * Helper class for anything related to the creditmemo entity
@@ -34,46 +32,22 @@ use Magento\Sales\Model\ResourceModel\Order\Creditmemo as MagentoCreditMemoResou
 class Creditmemo extends AbstractHelper
 {
     /**
-     * @var Data
-     */
-    protected $adyenDataHelper;
-
-    /**
-     * @var OrderPaymentResourceModel
-     */
-    protected $orderPaymentResourceModel;
-
-    /**
-     * @var CreditmemoResourceModel
-     */
-    private $adyenCreditmemoResourceModel;
-
-    /**
-     * @var CreditmemoFactory
-     */
-    private $adyenCreditmemoFactory;
-
-    /**
-     * Creditmemo constructor.
      * @param Context $context
      * @param Data $adyenDataHelper
      * @param CreditmemoFactory $adyenCreditmemoFactory
-     * @param CreditmemoResourceModel $adyenCreditmemoResourceModel
+     * @param CreditMemoResourceModel $adyenCreditmemoResourceModel
      * @param OrderPaymentResourceModel $orderPaymentResourceModel
+     * @param AdyenCreditmemoRepositoryInterface $adyenCreditmemoRepository
      */
     public function __construct(
         Context $context,
-        Data $adyenDataHelper,
-        CreditmemoFactory $adyenCreditmemoFactory,
-        CreditmemoResourceModel $adyenCreditmemoResourceModel,
-        OrderPaymentResourceModel $orderPaymentResourceModel
-    )
-    {
+        protected Data $adyenDataHelper,
+        private readonly CreditmemoFactory $adyenCreditmemoFactory,
+        private readonly CreditmemoResourceModel $adyenCreditmemoResourceModel,
+        protected OrderPaymentResourceModel $orderPaymentResourceModel,
+        private readonly AdyenCreditmemoRepositoryInterface $adyenCreditmemoRepository
+    ) {
         parent::__construct($context);
-        $this->adyenDataHelper = $adyenDataHelper;
-        $this->adyenCreditmemoFactory = $adyenCreditmemoFactory;
-        $this->adyenCreditmemoResourceModel = $adyenCreditmemoResourceModel;
-        $this->orderPaymentResourceModel = $orderPaymentResourceModel;
     }
 
     /**
@@ -84,7 +58,6 @@ class Creditmemo extends AbstractHelper
      * @param string $originalReference
      * @param float $refundAmount
      * @return AdyenCreditmemoModel
-     * @throws AlreadyExistsException
      */
     public function createAdyenCreditMemo(
         Order\Payment $payment,
@@ -110,52 +83,56 @@ class Creditmemo extends AbstractHelper
         $adyenCreditmemo->setAmount($refundAmount);
         $adyenCreditmemo->setStatus(AdyenCreditmemoModel::WAITING_FOR_WEBHOOK_STATUS);
 
-        $this->adyenCreditmemoResourceModel->save($adyenCreditmemo);
+        $this->adyenCreditmemoRepository->save($adyenCreditmemo);
 
         return $adyenCreditmemo;
     }
 
     /**
      * Link all the adyen_creditmemos related to the adyen_order_payment with the given magento entity of the creditmemo
-     * @throws AlreadyExistsException
+     *
+     * @param Payment $adyenOrderPayment
+     * @param MagentoCreditMemoModel $magentoCreditmemo
+     * @return void
      */
     public function linkAndUpdateAdyenCreditmemos(
         Payment $adyenOrderPayment,
         MagentoCreditmemoModel $magentoCreditmemo
     ): void {
-        $adyenCreditmemoLoader = $this->adyenCreditmemoFactory->create();
-
-        $adyenCreditmemos = $this->adyenCreditmemoResourceModel->getAdyenCreditmemosByAdyenPaymentid(
+        $adyenCreditmemos = $this->adyenCreditmemoRepository->getByAdyenOrderPaymentId(
             $adyenOrderPayment->getEntityId()
         );
 
         if (isset($adyenCreditmemos)) {
             foreach ($adyenCreditmemos as $adyenCreditmemo) {
-                /** @var AdyenCreditmemoModel $currAdyenCreditmemo */
-                $currAdyenCreditmemo = $adyenCreditmemoLoader->load(
-                    $adyenCreditmemo[CreditmemoInterface::ENTITY_ID],
-                    CreditmemoInterface::ENTITY_ID
-                );
+                if ($adyenCreditmemo->getAmount() == $magentoCreditmemo->getGrandTotal()) {
+                    $adyenCreditmemo->setCreditmemoId($magentoCreditmemo->getEntityId());
+                    $this->adyenCreditmemoRepository->save($adyenCreditmemo);
 
-                if ($currAdyenCreditmemo->getCreditmemoId() !== null) {
-                    continue;
-                }
-
-                if ($currAdyenCreditmemo->getAmount() == $magentoCreditmemo->getGrandTotal()) {
-                    $currAdyenCreditmemo->setCreditmemoId($magentoCreditmemo->getEntityId());
-                    $this->adyenCreditmemoResourceModel->save($currAdyenCreditmemo);
                     break;
                 }
             }
         }
     }
 
+    /**
+     * @param AdyenCreditmemoModel $adyenCreditmemo
+     * @param string $status
+     * @return void
+     */
     public function updateAdyenCreditmemosStatus(AdyenCreditmemoModel $adyenCreditmemo, string $status)
     {
         $adyenCreditmemo->setStatus($status);
-        $this->adyenCreditmemoResourceModel->save($adyenCreditmemo);
+        $this->adyenCreditmemoRepository->save($adyenCreditmemo);
     }
 
+    /**
+     * @deprecated Use AdyenCreditmemoRepositoryInterface::getByRefundWebhook() instead.
+     *
+     * @param string $pspreference
+     * @return AdyenCreditmemoModel|null
+     * @throws NoSuchEntityException
+     */
     public function getAdyenCreditmemoByPspreference(string $pspreference): ?AdyenCreditmemoModel {
         $results = $this->adyenCreditmemoResourceModel->getAdyenCreditmemoByPspreference($pspreference);
 
@@ -163,6 +140,6 @@ class Creditmemo extends AbstractHelper
             return null;
         }
 
-        return $this->adyenCreditmemoFactory->create()->load($results['entity_id']);
+        return $this->adyenCreditmemoRepository->get($results['entity_id']);
     }
 }
