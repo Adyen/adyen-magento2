@@ -43,4 +43,4 @@ jobs:
           composer require --dev phpstan/extension-installer
 
       - name: PHPStan
-        run: vendor/bin/phpstan analyse . -c phpstan.neon
+        run: vendor/bin/phpstan analyse -c phpstan.neon
