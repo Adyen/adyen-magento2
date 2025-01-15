@@ -18,18 +18,17 @@ use Magento\Catalog\Model\Layer\ContextInterface;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
-use Magento\Quote\Model\QuoteIdMask;
-use Magento\Quote\Model\QuoteIdMaskFactory;
+use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 
 class SaveAdyenStateDataTest extends AbstractAdyenTestCase
 {
     private SaveAdyenStateData $saveAdyenStateDataResolver;
-    private AdyenStateData $adyenStateDataHelperMock;
-    private QuoteIdMaskFactory $quoteIdMaskFactoryMock;
-    private QuoteIdMask $quoteIdMaskMock;
-    private Field $fieldMock;
-    private ContextInterface$contextMock;
-    private ResolveInfo $infoMock;
+    private AdyenStateData|MockObject $adyenStateDataHelperMock;
+    private Field|MockObject $fieldMock;
+    private ContextInterface|MockObject $contextMock;
+    private ResolveInfo|MockObject $infoMock;
+    private MaskedQuoteIdToQuoteIdInterface|MockObject $maskedQuoteIdToQuoteIdMock;
 
     public function setUp(): void
     {
@@ -38,18 +37,12 @@ class SaveAdyenStateDataTest extends AbstractAdyenTestCase
         $this->contextMock = $this->createMock(ContextInterface::class);
         $this->infoMock = $this->createMock(ResolveInfo::class);
 
-        $this->quoteIdMaskMock = $this->createGeneratedMock(QuoteIdMask::class, ['load', 'getQuoteId']);
-        $this->quoteIdMaskMock->method('load')->willReturn($this->quoteIdMaskMock);
-        $this->quoteIdMaskMock->method('getQuoteId')->willReturn(1);
-
-        $this->quoteIdMaskFactoryMock = $this->createGeneratedMock(QuoteIdMaskFactory::class, [
-            'create'
-        ]);
-        $this->quoteIdMaskFactoryMock->method('create')->willReturn($this->quoteIdMaskMock);
+        $this->maskedQuoteIdToQuoteIdMock = $this->createMock(MaskedQuoteIdToQuoteIdInterface::class);
+        $this->maskedQuoteIdToQuoteIdMock->method('execute')->willReturn(1);
 
         $this->saveAdyenStateDataResolver = new SaveAdyenStateData(
             $this->adyenStateDataHelperMock,
-            $this->quoteIdMaskFactoryMock
+            $this->maskedQuoteIdToQuoteIdMock
         );
     }
 
@@ -60,7 +53,7 @@ class SaveAdyenStateDataTest extends AbstractAdyenTestCase
 
         $args = [
             'stateData' => $stateData,
-            'cartId' => 1
+            'cartId' => '1'
         ];
 
         $this->adyenStateDataHelperMock->expects($this->once())->method('save')->willReturn($stateDataId);
@@ -83,7 +76,7 @@ class SaveAdyenStateDataTest extends AbstractAdyenTestCase
 
         $args = [
             'stateData' => "{}",
-            'cartId' => 1
+            'cartId' => '1'
         ];
 
         $this->adyenStateDataHelperMock->expects($this->once())
@@ -130,7 +123,7 @@ class SaveAdyenStateDataTest extends AbstractAdyenTestCase
         return [
             [
                 'stateData' => '',
-                'cartId' => 1
+                'cartId' => '1'
             ],
             [
                 'stateData' => "{}",
@@ -142,7 +135,7 @@ class SaveAdyenStateDataTest extends AbstractAdyenTestCase
             ],
             [
                 'stateData' => null,
-                'cartId' => 1
+                'cartId' => '1'
             ]
         ];
     }

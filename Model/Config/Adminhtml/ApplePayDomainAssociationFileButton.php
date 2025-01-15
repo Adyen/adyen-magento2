@@ -39,6 +39,11 @@ class ApplePayDomainAssociationFileButton extends Field
         parent::__construct($context, $data);
     }
 
+    public function _construct()
+    {
+        parent::_construct();
+    }
+
     /**
      * @param AbstractElement $element
      * @return string
