@@ -49,8 +49,8 @@ interface AdyenInvoiceRepositoryInterface
     /**
      * Performs persist operations for a specified adyen_invoice.
      *
-     * @param InvoiceInterface $entity The order ID.
-     * @return InvoiceInterface Order interface.
+     * @param InvoiceInterface $entity adyen_invoice entity
+     * @return InvoiceInterface
      */
     public function save(InvoiceInterface $entity): InvoiceInterface;
 }
