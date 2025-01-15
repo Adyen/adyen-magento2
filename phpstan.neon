@@ -1,4 +1,5 @@
 parameters:
     level: 0
     excludePaths:
-        - vendor
+        analyse:
+            - vendor
