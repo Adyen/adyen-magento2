@@ -17,6 +17,8 @@ class ThreeDSFlow implements OptionSourceInterface
 {
     const THREEDS_NATIVE = 'native';
     const THREEDS_REDIRECT = 'redirect';
+    const THREEDS_PREFERRED = 'preferred';
+    const THREEDS_DISABLED = 'disabled';
 
     /**
      * @return array

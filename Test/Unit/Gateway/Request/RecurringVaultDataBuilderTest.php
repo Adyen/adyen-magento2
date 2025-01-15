@@ -122,7 +122,7 @@ class RecurringVaultDataBuilderTest extends AbstractAdyenTestCase
         $this->assertArrayHasKey('recurringProcessingModel', $request['body']);
 
         if ($tokenType === PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD) {
-            $this->assertArrayHasKey('allow3DS2', $request['body']['additionalData']);
+            $this->assertArrayHasKey('nativeThreeDS', $request['body']['authenticationData']['threeDSRequestData']);
             $this->assertArrayHasKey('holderName', $request['body']['paymentMethod']);
         } else {
             $this->assertArrayNotHasKey('additionalData', $request['body']);
