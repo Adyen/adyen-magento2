@@ -25,7 +25,7 @@ interface AdyenCreditmemoRepositoryInterface
      * Retrieve adyen_creditmemo entity by the ID.
      *
      * @param int $entityId
-     * @return CreditmemoInterface Gift message.
+     * @return CreditmemoInterface Adyen creditmemo entity
      * @throws NoSuchEntityException
      */
     public function get(int $entityId): CreditmemoInterface;
