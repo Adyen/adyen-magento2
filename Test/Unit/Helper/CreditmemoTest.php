@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
+use Adyen\Payment\Api\Repository\AdyenCreditmemoRepositoryInterface;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Creditmemo;
 use Adyen\Payment\Model\CreditmemoFactory;
@@ -191,7 +192,8 @@ class CreditmemoTest extends AbstractAdyenTestCase
         $adyenDataHelper = null,
         $adyenCreditmemoFactory = null,
         $adyenCreditmemoResourceModel = null,
-        $orderPaymentResourceModel = null
+        $orderPaymentResourceModel = null,
+        $adyenCreditmemoRepositoryMock = null
     ): Creditmemo
     {
         if (is_null($context)) {
@@ -216,12 +218,19 @@ class CreditmemoTest extends AbstractAdyenTestCase
             $orderPaymentResourceModel = $this->createMock(Payment::class);
         }
 
+        if (is_null($adyenCreditmemoRepositoryMock)) {
+            $adyenCreditmemoRepositoryMock = $this->createMock(
+                AdyenCreditmemoRepositoryInterface::class
+            );
+        }
+
         return new Creditmemo(
             $context,
             $adyenDataHelper,
             $adyenCreditmemoFactory,
             $adyenCreditmemoResourceModel,
-            $orderPaymentResourceModel
+            $orderPaymentResourceModel,
+            $adyenCreditmemoRepositoryMock
         );
     }
 }

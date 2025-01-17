@@ -73,13 +73,13 @@ class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
         }
 
         return new CaptureWebhookHandler(
-            invoiceHelper: $invoiceHelper,
-            adyenOrderPaymentFactory: $adyenOrderPaymentFactory,
-            adyenOrderPaymentHelper: $adyenOrderPaymentHelper,
-            adyenLogger: $adyenLogger,
-            orderHelper: $orderHelper,
-            paymentMethodsHelper: $paymentMethodsHelper,
-            invoiceRepository: $invoiceRepository
+            $invoiceHelper,
+            $adyenOrderPaymentHelper,
+            $adyenLogger,
+            $orderHelper,
+            $paymentMethodsHelper,
+            $invoiceRepository,
+            $adyenOrderPaymentFactory
         );
     }
 
