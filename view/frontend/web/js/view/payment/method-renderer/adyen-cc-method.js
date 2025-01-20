@@ -532,12 +532,6 @@ define(
             isActive: function() {
                 return true;
             },
-            getControllerName: function() {
-                return window.checkoutConfig.payment.iframe.controllerName[this.getCode()];
-            },
-            getPlaceOrderUrl: function() {
-                return window.checkoutConfig.payment.iframe.placeOrderUrl[this.getCode()];
-            },
             grandTotal: function () {
                 for (const totalsegment of quote.getTotals()()['total_segments']) {
                     if (totalsegment.code === 'grand_total') {
