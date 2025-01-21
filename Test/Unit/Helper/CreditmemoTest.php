@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Test\Unit\Helper;
 
+use Adyen\Payment\Api\Data\CreditmemoInterface;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Api\Repository\AdyenCreditmemoRepositoryInterface;
 use Adyen\Payment\Helper\Data;
@@ -46,23 +47,24 @@ class CreditmemoTest extends AbstractAdyenTestCase
         $adyenCreditmemoFactoryMock = $this->createGeneratedMock(CreditmemoFactory::class, ['create']);
         $adyenCreditmemoFactoryMock->method('create')->willReturn($adyenCreditmemoMock);
 
-        $adyenCreditmemoResourceModel = $this->createMock(
-            \Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo::class
-        );
+        $adyenCreditmemoRepositoryMock = $this->createMock(AdyenCreditmemoRepositoryInterface::class);
+        $adyenCreditmemoRepositoryMock->expects($this->once())
+            ->method('save')
+            ->with($adyenCreditmemoMock);
 
         $creditmemoHelper = $this->createCreditmemoHelper(
             null,
             null,
             $adyenCreditmemoFactoryMock,
-            $adyenCreditmemoResourceModel,
-            $orderPaymentResourceModel
+            null,
+            $orderPaymentResourceModel,
+            $adyenCreditmemoRepositoryMock
         );
 
         $adyenCreditmemoMock->expects($this->once())->method('setPspreference')->with($pspReference);
         $adyenCreditmemoMock->expects($this->once())->method('setOriginalReference')->with($originalReference);
         $adyenCreditmemoMock->expects($this->once())->method('setAdyenPaymentOrderId')->with($adyenOrderPaymentId);
         $adyenCreditmemoMock->expects($this->once())->method('setAmount')->with($refundAmount);
-        $adyenCreditmemoResourceModel->expects($this->once())->method('save')->with($adyenCreditmemoMock);
 
         $result = $creditmemoHelper->createAdyenCreditMemo(
             $paymentMock,
@@ -84,67 +86,35 @@ class CreditmemoTest extends AbstractAdyenTestCase
             ]
         );
 
-        $adyenCreditmemos = [
-            [
-                'entity_id' => 1,
-                'creditmemo_id' => 00001,
-                'adyen_payment_order_id' => 5
-            ],
-            [
-                'entity_id' => 2,
-                'creditmemo_id' => 00002,
-                'adyen_payment_order_id' => 5
-            ]
-        ];
-
-        $adyenCreditmemoResourceModelMock = $this->createConfiguredMock(
-            \Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo::class,
-            [
-                'getAdyenCreditmemosByAdyenPaymentid' => $adyenCreditmemos,
-                'save' => $this->createPartialMock(
-                    \Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo::class,
-                    ['save']
-                )
-            ]
-        );
-
-        $adyenCreditmemoResourceModelMock->expects($this->atLeastOnce())
-            ->method('save')
-            ->willReturn(true);
-
-        $magentoCreditmemoMock = $this->createConfiguredMock(\Magento\Sales\Model\Order\Creditmemo::class, [
-            'getEntityId' => $magentoCreditmemoId
+        $adyenCreditmemoMock = $this->createConfiguredMock(CreditmemoInterface::class, [
+            'getAmount' => 10.00
         ]);
+        $adyenCreditmemoMock->expects($this->once())->method('setCreditmemoId')->with($magentoCreditmemoId);
+        $adyenCreditmemoMock->expects($this->once())->method('setCreditmemoId')->with($magentoCreditmemoId);
 
-        $adyenCreditmemoMock = $this->createMock(\Adyen\Payment\Model\Creditmemo::class);
+        $adyenCreditmemos[] = $adyenCreditmemoMock;
 
-        $adyenCreditmemoLoaderMock = $this->getMockBuilder(\Adyen\Payment\Model\Creditmemo::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $adyenCreditmemoLoaderMock->method('load')->willReturn($adyenCreditmemoMock);
-
-        $adyenCreditmemoFactoryMock = $this->createGeneratedMock(CreditmemoFactory::class, ['create']);
-        $adyenCreditmemoFactoryMock->method('create')->willReturn($adyenCreditmemoLoaderMock);
-
-        $adyenCreditmemoResourceModelMock->expects($this->once())
-            ->method('getAdyenCreditmemosByAdyenPaymentid')
+        $adyenCreditmemoRepositoryMock = $this->createMock(AdyenCreditmemoRepositoryInterface::class);
+        $adyenCreditmemoRepositoryMock->expects($this->once())
+            ->method('getByAdyenOrderPaymentId')
             ->with($adyenOrderPaymentId)
             ->willReturn($adyenCreditmemos);
+        $adyenCreditmemoRepositoryMock->expects($this->once())
+            ->method('save')
+            ->with($adyenCreditmemoMock);
 
-        foreach ($adyenCreditmemos as $adyenCreditmemo) {
-            $currAdyenCreditmemoMock = $this->createPartialMock(AbstractModel::class, []);
-            $currAdyenCreditmemoMock->setData($adyenCreditmemo);
-            $currAdyenCreditmemoMock->setEntityId($magentoCreditmemoMock->getEntityId());
-            $currAdyenCreditmemoMock->setCreditmemoId($magentoCreditmemoMock->getEntityId());
-            $adyenCreditmemoResourceModelMock->save($currAdyenCreditmemoMock);
-        }
+        $magentoCreditmemoMock = $this->createConfiguredMock(\Magento\Sales\Model\Order\Creditmemo::class, [
+            'getEntityId' => $magentoCreditmemoId,
+            'getGrandTotal' => 10.00
+        ]);
 
         $creditmemoHelper = $this->createCreditmemoHelper(
             null,
             null,
-            $adyenCreditmemoFactoryMock,
-            $adyenCreditmemoResourceModelMock
+            null,
+            null,
+            null,
+            $adyenCreditmemoRepositoryMock
         );
 
         $creditmemoHelper->linkAndUpdateAdyenCreditmemos($adyenOrderPaymentMock, $magentoCreditmemoMock);
