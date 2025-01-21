@@ -16,7 +16,7 @@ use Adyen\Payment\Api\Repository\AdyenCreditmemoRepositoryInterface;
 use Adyen\Payment\Model\Order\Payment;
 use Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo as CreditMemoResourceModel;
 use Adyen\Payment\Model\CreditmemoFactory;
-use Adyen\Payment\Model\Creditmemo as AdyenCreditmemoModel;
+use Adyen\Payment\Api\Data\CreditmemoInterface as AdyenCreditmemoInterface;
 use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Model\Order;
@@ -57,14 +57,14 @@ class Creditmemo extends AbstractHelper
      * @param string $pspReference
      * @param string $originalReference
      * @param float $refundAmount
-     * @return AdyenCreditmemoModel
+     * @return AdyenCreditmemoInterface
      */
     public function createAdyenCreditMemo(
         Order\Payment $payment,
         string $pspReference,
         string $originalReference,
         float $refundAmount
-    ): AdyenCreditmemoModel {
+    ): AdyenCreditmemoInterface {
         // get adyen_order_payment record
         /** @var OrderPaymentInterface $adyenOrderPayment */
         $adyenOrderPayment = $this->orderPaymentResourceModel->getOrderPaymentDetails(
@@ -73,7 +73,7 @@ class Creditmemo extends AbstractHelper
         );
 
         // create adyen_credit_memo record
-        /** @var AdyenCreditmemoModel $adyenCreditmemo */
+        /** @var AdyenCreditmemoInterface $adyenCreditmemo */
         $adyenCreditmemo = $this->adyenCreditmemoFactory->create();
         $adyenCreditmemo->setPspreference($pspReference);
         $adyenCreditmemo->setOriginalReference($originalReference);
@@ -81,7 +81,7 @@ class Creditmemo extends AbstractHelper
             $adyenOrderPayment[OrderPaymentInterface::ENTITY_ID]
         );
         $adyenCreditmemo->setAmount($refundAmount);
-        $adyenCreditmemo->setStatus(AdyenCreditmemoModel::WAITING_FOR_WEBHOOK_STATUS);
+        $adyenCreditmemo->setStatus(AdyenCreditmemoInterface::WAITING_FOR_WEBHOOK_STATUS);
 
         $this->adyenCreditmemoRepository->save($adyenCreditmemo);
 
@@ -116,11 +116,11 @@ class Creditmemo extends AbstractHelper
     }
 
     /**
-     * @param AdyenCreditmemoModel $adyenCreditmemo
+     * @param AdyenCreditmemoInterface $adyenCreditmemo
      * @param string $status
      * @return void
      */
-    public function updateAdyenCreditmemosStatus(AdyenCreditmemoModel $adyenCreditmemo, string $status)
+    public function updateAdyenCreditmemosStatus(AdyenCreditmemoInterface $adyenCreditmemo, string $status)
     {
         $adyenCreditmemo->setStatus($status);
         $this->adyenCreditmemoRepository->save($adyenCreditmemo);
@@ -130,10 +130,10 @@ class Creditmemo extends AbstractHelper
      * @deprecated Use AdyenCreditmemoRepositoryInterface::getByRefundWebhook() instead.
      *
      * @param string $pspreference
-     * @return AdyenCreditmemoModel|null
+     * @return AdyenCreditmemoInterface|null
      * @throws NoSuchEntityException
      */
-    public function getAdyenCreditmemoByPspreference(string $pspreference): ?AdyenCreditmemoModel {
+    public function getAdyenCreditmemoByPspreference(string $pspreference): ?AdyenCreditmemoInterface {
         $results = $this->adyenCreditmemoResourceModel->getAdyenCreditmemoByPspreference($pspreference);
 
         if (is_null($results)) {
