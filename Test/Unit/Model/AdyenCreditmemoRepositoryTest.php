@@ -9,6 +9,8 @@
  * Author: Adyen <magento@adyen.com>
  */
 
+namespace Adyen\Payment\Test\Helper\Unit\Model;
+
 use Adyen\AdyenException;
 use Adyen\Payment\Api\Data\CreditmemoInterface;
 use Adyen\Payment\Api\Data\NotificationInterface;
