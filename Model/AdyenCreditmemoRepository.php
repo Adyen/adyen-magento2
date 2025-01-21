@@ -52,7 +52,7 @@ class AdyenCreditmemoRepository implements AdyenCreditmemoRepositoryInterface
     public function get(int $entityId): CreditmemoInterface
     {
         $entity = $this->adyenCreditmemoFactory->create();
-        $this->resourceModel->load($entity, $entity, 'entity_id');
+        $this->resourceModel->load($entity, $entityId, CreditmemoInterface::ENTITY_ID);
 
         return $entity;
     }
@@ -116,7 +116,7 @@ class AdyenCreditmemoRepository implements AdyenCreditmemoRepositoryInterface
             return null;
         } else {
             $entity = $this->adyenCreditmemoFactory->create();
-            $this->resourceModel->load($entity, $entityId, 'entity_id');
+            $this->resourceModel->load($entity, $entityId, CreditmemoInterface::ENTITY_ID);
 
             return $entity;
         }
