@@ -55,5 +55,14 @@
                 ]]>
             </comment>
         </field>
+        <field id="cleanup_old_webhooks" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Clean-up old webhooks</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_abstract/cleanup_old_webhooks</config_path>
+            <tooltip>
+                Webhooks older than certain days will be removed from the database by a cronjob if this feature is enabled.
+                The default value is 90 days and this can be configured by overriding `payment/adyen_abstract/required_days_old_webhooks` configuration path.
+            </tooltip>
+        </field>
     </group>
 </include>
