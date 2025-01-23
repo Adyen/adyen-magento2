@@ -17,6 +17,7 @@ use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\App\RequestInterface;
+use Magento\Framework\App\Request\Http;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Asset\File;
@@ -47,6 +48,7 @@ class AdyenCcConfigProviderTest extends AbstractAdyenTestCase
     {
         $this->adyenHelperMock = $this->createMock(Data::class);
         $this->requestMock = $this->createMock(RequestInterface::class);
+        $this->requestHttpMock = $this->createMock(Http::class);
         $this->urlBuilderMock = $this->createMock(UrlInterface::class);
         $this->assetSourceMock = $this->createMock(Source::class);
         $this->storeManagerMock = $this->createMock(StoreManagerInterface::class);
@@ -58,7 +60,7 @@ class AdyenCcConfigProviderTest extends AbstractAdyenTestCase
 
         $this->adyenCcConfigProvider = new AdyenCcConfigProvider(
             $this->adyenHelperMock,
-            $this->requestMock,
+            $this->requestHttpMock,
             $this->urlBuilderMock,
             $this->assetSourceMock,
             $this->storeManagerMock,
@@ -90,6 +92,7 @@ class AdyenCcConfigProviderTest extends AbstractAdyenTestCase
         $store = $this->createMock(StoreInterface::class);
         $store->method('getId')->willReturn($storeId);
         $this->storeManagerMock->method('getStore')->willReturn($store);
+        $controllerName = 'index';
 
         $this->configHelperMock->method('getAdyenCcConfigData')
             ->willReturnMap([
@@ -120,6 +123,14 @@ class AdyenCcConfigProviderTest extends AbstractAdyenTestCase
 
         $this->ccConfigMock->expects($this->once())
             ->method('getCvvImageUrl');
+
+        $this->requestHttpMock->expects(
+            $this->once()
+        )->method(
+            'getControllerName'
+        )->willReturn(
+            $controllerName
+        );
 
         $configObject = $this->adyenCcConfigProvider->getConfig();
 
