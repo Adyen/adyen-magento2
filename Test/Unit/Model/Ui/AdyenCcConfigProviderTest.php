@@ -60,7 +60,7 @@ class AdyenCcConfigProviderTest extends AbstractAdyenTestCase
 
         $this->adyenCcConfigProvider = new AdyenCcConfigProvider(
             $this->adyenHelperMock,
-            $this->requestHttpMock,
+            $this->requestMock,
             $this->urlBuilderMock,
             $this->assetSourceMock,
             $this->storeManagerMock,
@@ -68,7 +68,8 @@ class AdyenCcConfigProviderTest extends AbstractAdyenTestCase
             $this->serializerMock,
             $this->configHelperMock,
             $this->paymentMethodsHelperMock,
-            $this->vaultHelperMock
+            $this->vaultHelperMock,
+            $this->requestHttpMock,
         );
     }
 
