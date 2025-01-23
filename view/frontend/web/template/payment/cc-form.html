@@ -46,8 +46,7 @@
         <form class="form" id="adyen-cc-form" data-role="adyen-cc-form" action="#" method="post" data-bind="mageInit: {
             'transparent':{
                 'context': context(),
-                'controller': '<?= $block->escapeHtml($block->getRequest()->getControllerName()) ?>',
-                'orderSaveUrl': '<?= $block->escapeUrl($block->getOrderUrl()) ?>',
+                'controller': getControllerName()
             }, 'validation':[]}">
 
             <!-- ko foreach: getRegion('messages') -->

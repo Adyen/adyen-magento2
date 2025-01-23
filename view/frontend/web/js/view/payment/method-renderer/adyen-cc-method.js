@@ -532,6 +532,9 @@ define(
             isActive: function() {
                 return true;
             },
+            getControllerName: function() {
+                return window.checkoutConfig.payment.adyenCc.controllerName;
+            },
             grandTotal: function () {
                 for (const totalsegment of quote.getTotals()()['total_segments']) {
                     if (totalsegment.code === 'grand_total') {

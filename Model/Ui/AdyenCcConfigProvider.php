@@ -111,6 +111,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         $config['payment']['adyenCc']['isCardRecurringEnabled'] = $cardRecurringEnabled;
         $config['payment']['adyenCc']['icons'] = $this->getIcons();
         $config['payment']['adyenCc']['isClickToPayEnabled'] = $this->configHelper->isClickToPayEnabled($storeId);
+        $config['payment']['adyenCc']['controllerName'] = $this->request->getControllerName();
 
         // has installments by default false
         $config['payment']['adyenCc']['hasInstallments'] = false;
