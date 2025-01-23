@@ -125,6 +125,7 @@ class AdyenCcConfigProviderTest extends AbstractAdyenTestCase
 
         $this->assertArrayHasKey('installments', $configObject['payment']['adyenCc']);
         $this->assertArrayHasKey('isClickToPayEnabled', $configObject['payment']['adyenCc']);
+        $this->assertArrayHasKey('controllerName', $configObject['payment']['adyenCc']);
         $this->assertArrayHasKey('icons', $configObject['payment']['adyenCc']);
         $this->assertArrayHasKey('isCardRecurringEnabled', $configObject['payment']['adyenCc']);
         $this->assertArrayHasKey('locale', $configObject['payment']['adyenCc']);
