@@ -213,10 +213,12 @@ class Index extends Action
     {
         // Add CGI support
         $this->fixCgiHttpAuthentication();
+        $merchantAccount = $this->configHelper->getMerchantAccount()
+            ?? $this->configHelper->getMotoMerchantAccounts();
 
         $authResult = $this->notificationReceiver->isAuthenticated(
             $response,
-            $this->configHelper->getMerchantAccount(),
+            $merchantAccount,
             $this->configHelper->getNotificationsUsername(),
             $this->configHelper->getNotificationsPassword()
         );
