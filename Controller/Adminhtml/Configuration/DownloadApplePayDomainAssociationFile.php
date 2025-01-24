@@ -13,9 +13,7 @@ namespace Adyen\Payment\Controller\Adminhtml\Configuration;
 
 use Adyen\Payment\Logger\AdyenLogger;
 use Exception;
-use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultInterface;
-use Magento\Framework\Exception\FileSystemException;
 use Magento\Framework\Filesystem\DirectoryList;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Controller\ResultFactory;
@@ -30,7 +28,7 @@ class DownloadApplePayDomainAssociationFile extends Action
     const WELL_KNOWN_PATH = '.well-known';
 
     public function __construct(
-        private readonly Context $context,
+        Context $context,
         private readonly DirectoryList $directoryList,
         private readonly File $fileIo,
         private readonly AdyenLogger $adyenLogger
@@ -39,10 +37,9 @@ class DownloadApplePayDomainAssociationFile extends Action
     }
 
     /**
-     * @return ResultInterface|ResponseInterface
-     * @throws FileSystemException
+     * @return ResultInterface
      */
-    public function execute(): ResultInterface|ResponseInterface
+    public function execute(): ResultInterface
     {
         $redirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
         $redirect->setUrl($this->_redirect->getRefererUrl());
