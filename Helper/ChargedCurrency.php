@@ -17,6 +17,7 @@ use Magento\Sales\Api\Data\CreditmemoInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Api\Data\CreditmemoItemInterface;
+use Magento\Tax\Block\Item\Price\RendererFactory;
 
 class ChargedCurrency
 {
@@ -26,16 +27,10 @@ class ChargedCurrency
      */
     const BASE = "base";
 
-    /**
-     * @var Config
-     */
-    private $config;
-
     public function __construct(
-        Config $config
-    ) {
-        $this->config = $config;
-    }
+        private readonly Config $config,
+        private readonly RendererFactory $priceRendererFactory
+    ) { }
 
     /**
      * @param Order $order
@@ -44,7 +39,7 @@ class ChargedCurrency
      *
      * @return AdyenAmountCurrency
      */
-    public function getOrderAmountCurrency(Order $order, bool $orderPlacement = true)
+    public function getOrderAmountCurrency(Order $order, bool $orderPlacement = true): AdyenAmountCurrency
     {
         $chargedCurrency = $orderPlacement
             ? $this->config->getChargedCurrency($order->getStoreId())
@@ -71,7 +66,7 @@ class ChargedCurrency
      * @param Quote $quote
      * @return AdyenAmountCurrency
      */
-    public function getQuoteAmountCurrency(Quote $quote)
+    public function getQuoteAmountCurrency(Quote $quote): AdyenAmountCurrency
     {
         $chargedCurrency = $this->config->getChargedCurrency($quote->getStoreId());
         if ($chargedCurrency == self::BASE) {
@@ -83,6 +78,7 @@ class ChargedCurrency
     public function getQuoteItemAmountCurrency(Quote\Item $item): AdyenAmountCurrency
     {
         $chargedCurrency = $this->config->getChargedCurrency($item->getStoreId());
+        $priceRenderer = $this->priceRendererFactory->create();
 
         if ($chargedCurrency == self::BASE) {
             return new AdyenAmountCurrency(
@@ -91,8 +87,7 @@ class ChargedCurrency
                 $item->getBaseDiscountAmount() / $item->getQty(),
                 $item->getBaseTaxAmount() / $item->getQty(),
                 null,
-                $item->getBaseRowTotalInclTax() / $item->getQty(),
-                $item->getBaseDiscountTaxCompensationAmount() / $item->getQty()
+                $priceRenderer->getBaseTotalAmount($item) / $item->getQty()
             );
         }
 
@@ -102,14 +97,14 @@ class ChargedCurrency
             $item->getDiscountAmount() / $item->getQty(),
             $item->getTaxAmount() / $item->getQty(),
             null,
-            $item->getRowTotalInclTax() / $item->getQty(),
-            $item->getDiscountTaxCompensationAmount() / $item->getQty()
+            $priceRenderer->getTotalAmount($item) / $item->getQty()
         );
     }
 
     public function getInvoiceItemAmountCurrency(Invoice\Item $item): AdyenAmountCurrency
     {
         $chargedCurrency = $item->getInvoice()->getOrder()->getAdyenChargedCurrency();
+        $priceRenderer = $this->priceRendererFactory->create();
 
         if ($chargedCurrency == self::BASE) {
             return new AdyenAmountCurrency(
@@ -118,8 +113,7 @@ class ChargedCurrency
                 $item->getBaseDiscountAmount() / $item->getQty(),
                 $item->getBaseTaxAmount() / $item->getQty(),
                 null,
-                $item->getBaseRowTotalInclTax() / $item->getQty(),
-                $item->getBaseDiscountTaxCompensationAmount() / $item->getQty()
+                $priceRenderer->getBaseTotalAmount($item)
             );
         }
 
@@ -129,8 +123,7 @@ class ChargedCurrency
             $item->getDiscountAmount() / $item->getQty(),
             $item->getTaxAmount() / $item->getQty(),
             null,
-            $item->getRowTotalInclTax() / $item->getQty(),
-            $item->getDiscountTaxCompensationAmount() / $item->getQty()
+            $priceRenderer->getTotalAmount($item)
         );
     }
 
@@ -138,7 +131,7 @@ class ChargedCurrency
      * @param CreditmemoInterface $creditMemo
      * @return AdyenAmountCurrency
      */
-    public function getCreditMemoAmountCurrency(CreditmemoInterface $creditMemo)
+    public function getCreditMemoAmountCurrency(CreditmemoInterface $creditMemo): AdyenAmountCurrency
     {
         $chargedCurrency = $creditMemo->getOrder()->getAdyenChargedCurrency();
         if ($chargedCurrency == self::BASE) {
@@ -162,7 +155,7 @@ class ChargedCurrency
      * @param CreditmemoInterface $creditMemo
      * @return AdyenAmountCurrency
      */
-    public function getCreditMemoAdjustmentAmountCurrency(CreditmemoInterface $creditMemo)
+    public function getCreditMemoAdjustmentAmountCurrency(CreditmemoInterface $creditMemo): AdyenAmountCurrency
     {
         $chargedCurrency = $creditMemo->getOrder()->getAdyenChargedCurrency();
         if ($chargedCurrency == self::BASE) {
@@ -188,8 +181,7 @@ class ChargedCurrency
                 null,
                 $creditMemo->getBaseShippingTaxAmount(),
                 null,
-                $creditMemo->getBaseShippingInclTax(),
-                $creditMemo->getBaseShippingDiscountTaxCompensationAmnt()
+                $creditMemo->getBaseShippingInclTax()
             );
         }
         return new AdyenAmountCurrency(
@@ -198,14 +190,14 @@ class ChargedCurrency
             null,
             $creditMemo->getShippingTaxAmount(),
             null,
-            $creditMemo->getShippingInclTax(),
-            $creditMemo->getShippingDiscountTaxCompensationAmount()
+            $creditMemo->getShippingInclTax()
         );
     }
 
     public function getCreditMemoItemAmountCurrency(CreditmemoItemInterface $item): AdyenAmountCurrency
     {
         $chargedCurrency = $item->getCreditMemo()->getOrder()->getAdyenChargedCurrency();
+        $priceRenderer = $this->priceRendererFactory->create();
 
         if ($chargedCurrency == self::BASE) {
             return new AdyenAmountCurrency(
@@ -214,8 +206,7 @@ class ChargedCurrency
                 $item->getBaseDiscountAmount() / $item->getQty(),
                 $item->getBaseTaxAmount() / $item->getQty(),
                 null,
-                $item->getBaseRowTotalInclTax() / $item->getQty(),
-                $item->getBaseDiscountTaxCompensationAmount() / $item->getQty()
+                $priceRenderer->getBaseTotalAmount($item)
             );
         }
         return new AdyenAmountCurrency(
@@ -224,8 +215,7 @@ class ChargedCurrency
             $item->getDiscountAmount() / $item->getQty(),
             $item->getTaxAmount() / $item->getQty(),
             null,
-            $item->getRowTotalInclTax() / $item->getQty(),
-            $item->getDiscountTaxCompensationAmount() / $item->getQty()
+            $priceRenderer->getTotalAmount($item)
         );
     }
 
@@ -240,8 +230,7 @@ class ChargedCurrency
                 $quote->getShippingAddress()->getBaseShippingDiscountAmount(),
                 $quote->getShippingAddress()->getBaseShippingTaxAmount(),
                 null,
-                $quote->getShippingAddress()->getBaseShippingInclTax(),
-                $quote->getShippingAddress()->getBaseShippingDiscountTaxCompensationAmnt()
+                $quote->getShippingAddress()->getBaseShippingInclTax()
             );
         }
 
@@ -251,8 +240,7 @@ class ChargedCurrency
             $quote->getShippingAddress()->getShippingDiscountAmount(),
             $quote->getShippingAddress()->getShippingTaxAmount(),
             null,
-            $quote->getShippingAddress()->getShippingInclTax(),
-            $quote->getShippingAddress()->getShippingDiscountTaxCompensationAmount()
+            $quote->getShippingAddress()->getShippingInclTax()
         );
     }
 
@@ -267,8 +255,7 @@ class ChargedCurrency
                 null,
                 $invoice->getBaseShippingTaxAmount(),
                 null,
-                $invoice->getBaseShippingInclTax(),
-                $invoice->getBaseShippingDiscountTaxCompensationAmnt()
+                $invoice->getBaseShippingInclTax()
             );
         }
 
@@ -278,8 +265,7 @@ class ChargedCurrency
             null,
             $invoice->getShippingTaxAmount(),
             null,
-            $invoice->getShippingInclTax(),
-            $invoice->getShippingDiscountTaxCompensationAmount()
+            $invoice->getShippingInclTax()
         );
     }
 
