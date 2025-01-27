@@ -86,7 +86,9 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
         /** @var Shipment $shipment */
         $shipment = $observer->getEvent()->getData('shipment');
         $order = $shipment->getOrder();
-        $paymentMethod = $order->getPayment()->getMethod();
+        $payment = $order->getPayment();
+        $paymentMethod = $payment->getMethod();
+        $paymentMethodInstance = $payment->getMethodInstance();
 
         if (!$this->paymentMethodsHelper->isAdyenPayment($paymentMethod)) {
             $this->logger->info(
@@ -111,10 +113,7 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
             return;
         }
 
-        $payment = $order->getPayment();
-        $brandCode = $payment->getAdditionalInformation(AdyenPaymentMethodDataAssignObserver::BRAND_CODE);
-
-        if (!$this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) {
+        if (!$this->paymentMethodsHelper->isOpenInvoice($paymentMethodInstance)) {
             $this->logger->info(
                 "Payment method is from Adyen but isn't OpenInvoice for order id {$order->getId()}",
                 ['observer' => 'BeforeShipmentObserver']

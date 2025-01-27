@@ -23,7 +23,6 @@ use Adyen\Webhook\Exception\InvalidDataException;
 use Adyen\Webhook\Notification as WebhookNotification;
 use Adyen\Webhook\PaymentStates;
 use Adyen\Webhook\Processor\ProcessorFactory;
-use DateTime;
 use Exception;
 use Adyen\Payment\Model\Notification as NotificationEntity;
 use Magento\Framework\Serialize\SerializerInterface;
@@ -52,59 +51,37 @@ class Webhook
         'payment_authorized' => [Order::STATE_PROCESSING]
     ];
 
-    /**
-     * @var AdyenLogger
-     */
-    private $logger;
-    /** @var OrderHelper */
-    private $orderHelper;
-    /** @var OrderRepository */
-    private $orderRepository;
-    /**
-     * @var Data
-     */
-    private $adyenHelper;
-    /**
-     * @var SerializerInterface
-     */
-    private $serializer;
-    /**
-     * @var TimezoneInterface
-     */
-    private $timezone;
-    /**
-     * @var ConfigHelper
-     */
-    private $configHelper;
-    /**
-     * @var ChargedCurrency
-     */
-    private $chargedCurrency;
+    // TODO::This property is not written but only is read. Check the usage.
     private $boletoPaidAmount;
-    private $klarnaReservationNumber;
-    private $ratepayDescriptor;
-    private $webhookHandlerFactory;
+    private ?string $klarnaReservationNumber;
+    private ?string $ratepayDescriptor;
 
+    /**
+     * @param Data $adyenHelper
+     * @param SerializerInterface $serializer
+     * @param TimezoneInterface $timezone
+     * @param Config $configHelper
+     * @param ChargedCurrency $chargedCurrency
+     * @param AdyenLogger $logger
+     * @param WebhookHandlerFactory $webhookHandlerFactory
+     * @param OrderHelper $orderHelper
+     * @param OrderRepository $orderRepository
+     * @param PaymentMethods $paymentMethodsHelper
+     */
     public function __construct(
-        Data $adyenHelper,
-        SerializerInterface $serializer,
-        TimezoneInterface $timezone,
-        ConfigHelper $configHelper,
-        ChargedCurrency $chargedCurrency,
-        AdyenLogger $logger,
-        WebhookHandlerFactory $webhookHandlerFactory,
-        OrderHelper $orderHelper,
-        OrderRepository $orderRepository
+        private readonly Data $adyenHelper,
+        private readonly SerializerInterface $serializer,
+        private readonly TimezoneInterface $timezone,
+        private readonly ConfigHelper $configHelper,
+        private readonly ChargedCurrency $chargedCurrency,
+        private readonly AdyenLogger $logger,
+        private readonly WebhookHandlerFactory $webhookHandlerFactory,
+        private readonly OrderHelper $orderHelper,
+        private readonly OrderRepository $orderRepository,
+        private readonly PaymentMethods $paymentMethodsHelper
     ) {
-        $this->adyenHelper = $adyenHelper;
-        $this->serializer = $serializer;
-        $this->timezone = $timezone;
-        $this->configHelper = $configHelper;
-        $this->chargedCurrency = $chargedCurrency;
-        $this->logger = $logger;
-        $this->orderHelper = $orderHelper;
-        $this->orderRepository = $orderRepository;
-        $this->webhookHandlerFactory = $webhookHandlerFactory;
+        $this->klarnaReservationNumber = null;
+        $this->ratepayDescriptor = null;
     }
 
     /**
@@ -314,6 +291,9 @@ class Webhook
         $reason = $notification->getReason();
         $success = (!empty($reason)) ? "$successResult <br />reason:$reason" : $successResult;
 
+        $payment = $order->getPayment();
+        $paymentMethodInstance = $payment->getMethodInstance();
+
         $eventCode = $notification->getEventCode();
         if ($eventCode == Notification::REFUND || $eventCode == Notification::CAPTURE) {
             // check if it is a full or partial refund
@@ -342,9 +322,8 @@ class Webhook
         }
 
         // if payment method is klarna, ratepay or openinvoice/afterpay show the reservartion number
-        if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod(
-            $notification->getPaymentMethod()
-        ) && !empty($this->klarnaReservationNumber)) {
+        if ($this->paymentMethodsHelper->isOpenInvoice($paymentMethodInstance) &&
+            !empty($this->klarnaReservationNumber)) {
             $klarnaReservationNumberText = "<br /> reservationNumber: " . $this->klarnaReservationNumber;
         } else {
             $klarnaReservationNumberText = "";

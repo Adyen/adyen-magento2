@@ -15,9 +15,10 @@ use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\OpenInvoice;
+use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Model\ResourceModel\Invoice\CollectionFactory;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as PaymentCollectionFactory;
-use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Sales\Model\Order\Payment;
@@ -31,26 +32,28 @@ class RefundDataBuilder implements BuilderInterface
     const REFUND_STRATEGY_DESCENDING_ORDER = '2';
     const REFUND_STRATEGY_BASED_ON_RATIO = '3';
 
-    private Data $adyenHelper;
-    private Config $configHelper;
-    private PaymentCollectionFactory $orderPaymentCollectionFactory;
-    private ChargedCurrency $chargedCurrency;
-    private OpenInvoice $openInvoiceHelper;
-
+    /**
+     * @param Data $adyenHelper
+     * @param PaymentCollectionFactory $orderPaymentCollectionFactory
+     * @param ChargedCurrency $chargedCurrency
+     * @param Config $configHelper
+     * @param OpenInvoice $openInvoiceHelper
+     * @param PaymentMethods $paymentMethodsHelper
+     */
     public function __construct(
-        Data $adyenHelper,
-        PaymentCollectionFactory   $orderPaymentCollectionFactory,
-        ChargedCurrency            $chargedCurrency,
-        Config                     $configHelper,
-        OpenInvoice                $openInvoiceHelper
-    ) {
-        $this->adyenHelper = $adyenHelper;
-        $this->orderPaymentCollectionFactory = $orderPaymentCollectionFactory;
-        $this->chargedCurrency = $chargedCurrency;
-        $this->configHelper = $configHelper;
-        $this->openInvoiceHelper = $openInvoiceHelper;
-    }
+        private readonly Data $adyenHelper,
+        private readonly PaymentCollectionFactory $orderPaymentCollectionFactory,
+        private readonly ChargedCurrency $chargedCurrency,
+        private readonly Config $configHelper,
+        private readonly OpenInvoice $openInvoiceHelper,
+        private readonly PaymentMethods $paymentMethodsHelper
+    ) { }
 
+    /**
+     * @param array $buildSubject
+     * @return array
+     * @throws LocalizedException
+     */
     public function build(array $buildSubject): array
     {
         $paymentDataObject = SubjectReader::readPayment($buildSubject);
@@ -58,6 +61,7 @@ class RefundDataBuilder implements BuilderInterface
         $order = $paymentDataObject->getOrder();
         /** @var  Payment $payment */
         $payment = $paymentDataObject->getPayment();
+        $paymentMethodInstance = $payment->getMethodInstance();
         $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($payment->getOrder(), false);
 
         // Construct AdyenAmountCurrency from creditmemo
@@ -160,11 +164,7 @@ class RefundDataBuilder implements BuilderInterface
                 ]
             ];
 
-            $brandCode = $payment->getAdditionalInformation(
-                AdyenPaymentMethodDataAssignObserver::BRAND_CODE
-            );
-
-            if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) {
+            if ($this->paymentMethodsHelper->isOpenInvoice($paymentMethodInstance)) {
                 $openInvoiceFieldsCreditMemo = $this->openInvoiceHelper->getOpenInvoiceDataForCreditMemo($creditMemo);
                 //There is only one payment, so we add the fields to the first(and only) result
                 $requestBody[0] =  array_merge($requestBody[0], $openInvoiceFieldsCreditMemo);
@@ -182,5 +182,4 @@ class RefundDataBuilder implements BuilderInterface
 
         return $request;
     }
-
 }
