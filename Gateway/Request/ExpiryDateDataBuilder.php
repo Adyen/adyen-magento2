@@ -39,9 +39,10 @@ class ExpiryDateDataBuilder implements BuilderInterface
      * @param array $buildSubject
      * @return array
      */
-    public function build(array $buildSubject)
+    public function build(array $buildSubject): array
     {
         $expiryDate = null;
+        $request = [];
         $paymentFormFields = $this->request->getParam('payment');
         $paymentExpiryDate = $buildSubject['payment']->getPayment()->getAdditionalInformation()
         [AdyenPayByLinkDataAssignObserver::PBL_EXPIRY_DATE];
@@ -60,7 +61,8 @@ class ExpiryDateDataBuilder implements BuilderInterface
             );
 
             $request['body']['expiresAt'] = $expiryDateTime->format(DATE_ATOM);
-            return $request;
         }
+
+        return $request;
     }
 }

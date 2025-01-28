@@ -18,7 +18,7 @@ use Magento\Framework\Data\Form\Element\AbstractElement;
 
 class ApplePayDomainAssociationFileButton extends Field
 {
-    const APPLEPAY_BUTTON = 'Adyen_Payment::config/applepay_domain_association_file_button.phtml';
+    protected $_template = 'Adyen_Payment::config/applepay_domain_association_file_button.phtml';
 
     /**
      * @var Data
@@ -39,18 +39,9 @@ class ApplePayDomainAssociationFileButton extends Field
         parent::__construct($context, $data);
     }
 
-    /**
-     * @return $this|ApplePayDomainAssociationFileButton
-     */
-    protected function _prepareLayout(): ApplePayDomainAssociationFileButton|static
+    public function _construct()
     {
-        parent::_prepareLayout();
-
-        if (!$this->getTemplate()) {
-            $this->setTemplate(static::APPLEPAY_BUTTON);
-        }
-
-        return $this;
+        parent::_construct();
     }
 
     /**
