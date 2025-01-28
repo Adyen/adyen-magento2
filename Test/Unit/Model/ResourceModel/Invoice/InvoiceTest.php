@@ -16,16 +16,16 @@ use Adyen\Payment\Model\ResourceModel\Invoice\Invoice;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DB\Adapter\AdapterInterface;
+use Magento\Framework\DB\Select;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Model\ResourceModel\Db\Context;
 use PHPUnit\Framework\MockObject\MockObject;
-use Zend_Db_Select;
 
 class InvoiceTest extends AbstractAdyenTestCase
 {
     private ?Invoice $invoiceResourceModel;
     private Context|MockObject $contextMock;
-    private Zend_Db_Select|MockObject $zendSelectMock;
+    private Select|MockObject $dbSelectMock;
     private AdapterInterface|MockObject $connectionMock;
 
     /**
@@ -33,10 +33,10 @@ class InvoiceTest extends AbstractAdyenTestCase
      */
     protected function setUp(): void
     {
-        $this->zendSelectMock = $this->createMock(Zend_Db_Select::class);
+        $this->dbSelectMock = $this->createMock(Select::class);
 
         $this->connectionMock = $this->createMock(AdapterInterface::class);
-        $this->connectionMock->method('select')->willReturn($this->zendSelectMock);
+        $this->connectionMock->method('select')->willReturn($this->dbSelectMock);
 
         $resourceConnectionMock = $this->createMock(ResourceConnection::class);
         $resourceConnectionMock->method('getConnection')->willReturn($this->connectionMock);
@@ -65,15 +65,15 @@ class InvoiceTest extends AbstractAdyenTestCase
         $pspreference = 'abc_123456789';
         $invoiceId = '1';
 
-        $this->zendSelectMock->method('from')
+        $this->dbSelectMock->method('from')
             ->with('adyen_invoice', InvoiceInterface::ENTITY_ID)
             ->willReturnSelf();
-        $this->zendSelectMock->method('where')
+        $this->dbSelectMock->method('where')
             ->with('pspreference = :pspreference')
             ->willReturnSelf();
 
         $this->connectionMock->method('fetchOne')
-            ->with($this->zendSelectMock, [':pspreference' => $pspreference])
+            ->with($this->dbSelectMock, [':pspreference' => $pspreference])
             ->willReturn($invoiceId);
 
         $result = $this->invoiceResourceModel->getIdByPspreference($pspreference);
