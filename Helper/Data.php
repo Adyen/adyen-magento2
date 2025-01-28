@@ -14,25 +14,33 @@ namespace Adyen\Payment\Helper;
 use Adyen\AdyenException;
 use Adyen\Client;
 use Adyen\Environment;
-use Adyen\Payment\Gateway\Request\HeaderDataBuilder;
+use Adyen\Model\Checkout\ApplicationInfo;
+use Adyen\Model\Checkout\CommonField;
+use Adyen\Model\Checkout\UtilityRequest;
+use Adyen\Payment\Gateway\Request\Header\HeaderDataBuilderInterface;
+use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Service\Checkout;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Config\Source\RenderMode;
 use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
-use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
-use Adyen\Service\CheckoutUtility;
+use Adyen\Service\Checkout\ModificationsApi;
+use Adyen\Service\Checkout\OrdersApi;
+use Adyen\Service\Checkout\PaymentLinksApi;
+use Adyen\Service\Checkout\PaymentsApi;
+use Adyen\Service\Checkout\UtilityApi;
 use Adyen\Service\PosPayment;
 use Adyen\Service\Recurring;
+use Adyen\Service\RecurringApi;
 use DateTime;
 use Exception;
 use Magento\Backend\Helper\Data as BackendHelper;
 use Magento\Directory\Model\Config\Source\Country;
 use Magento\Framework\App\CacheInterface;
+use Magento\Framework\App\Cache\Type\Config as ConfigCache;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
-use Magento\Framework\App\Cache\Type\Config as ConfigCache;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ProductMetadataInterface;
@@ -264,7 +272,8 @@ class Data extends AbstractHelper
             'eu' => 'Default (EU - Europe)',
             'au' => 'AU - Australasia',
             'us' => 'US - United States',
-            'in' => 'IN - India'
+            'in' => 'IN - India',
+            'apse' => 'APSE - Asia Pacific Southeast'
         ];
     }
 
@@ -1166,19 +1175,43 @@ class Data extends AbstractHelper
     {
         $magentoDetails = $this->getMagentoDetails();
         $headers = [
-            'external-platform-name' => $magentoDetails['name'],
-            'external-platform-version' => $magentoDetails['version'],
-            'external-platform-edition' => $magentoDetails['edition'],
-            'merchant-application-name' => $this->getModuleName(),
-            'merchant-application-version' => $this->getModuleVersion()
+            HeaderDataBuilderInterface::EXTERNAL_PLATFORM_NAME => $magentoDetails['name'],
+            HeaderDataBuilderInterface::EXTERNAL_PLATFORM_VERSION => $magentoDetails['version'],
+            HeaderDataBuilderInterface::EXTERNAL_PLATFORM_EDITION => $magentoDetails['edition'],
+            HeaderDataBuilderInterface::MERCHANT_APPLICATION_NAME => $this->getModuleName(),
+            HeaderDataBuilderInterface::MERCHANT_APPLICATION_VERSION  => $this->getModuleVersion()
         ];
 
-        if(isset($payment) && !is_null($payment->getAdditionalInformation(HeaderDataBuilder::FRONTENDTYPE))) {
-            $headers[HeaderDataBuilder::FRONTENDTYPE] =
-                $payment->getAdditionalInformation(HeaderDataBuilder::FRONTENDTYPE);
+        if(isset($payment) && !is_null($payment->getAdditionalInformation(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY))) {
+            $headers[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE] =
+                $payment->getAdditionalInformation(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY);
         }
 
         return $headers;
+    }
+
+    public function buildApplicationInfo(Client $client) :ApplicationInfo
+    {
+        $applicationInfo =  new ApplicationInfo();
+
+        $adyenLibrary['name'] = $client->getLibraryName(); // deprecated but no alternative was given.
+        $adyenLibrary['version'] = $client->getLibraryVersion(); // deprecated but no alternative was given.
+
+        $applicationInfo->setAdyenLibrary(new CommonField($adyenLibrary));
+
+        if ($adyenPaymentSource = $client->getConfig()->getAdyenPaymentSource()) {
+           $applicationInfo->setAdyenPaymentSource(new CommonField($adyenPaymentSource));
+        }
+
+        if ($externalPlatform = $client->getConfig()->getExternalPlatform()) {
+            $applicationInfo->setExternalPlatform($externalPlatform);
+        }
+
+        if ($merchantApplication = $client->getConfig()->getMerchantApplication()) {
+            $applicationInfo->setMerchantApplication(new CommonField($merchantApplication));
+        }
+
+        return $applicationInfo;
     }
 
     /**
@@ -1195,6 +1228,31 @@ class Data extends AbstractHelper
         }
 
         return $this->initializeAdyenClient($storeId, null, $motoMerchantAccount);
+    }
+
+    public function initializePaymentsApi(Client $client):PaymentsApi
+    {
+        return new PaymentsApi($client);
+    }
+
+    public function initializeModificationsApi(Client $client):ModificationsApi
+    {
+        return new ModificationsApi($client);
+    }
+
+    public function initializeRecurringApi(Client $client):RecurringApi
+    {
+        return new RecurringApi($client);
+    }
+
+    public function initializeOrdersApi(Client $client): OrdersApi
+    {
+        return new OrdersApi($client);
+    }
+
+    public function initializePaymentLinksApi(Client $client):PaymentLinksApi
+    {
+        return new PaymentLinksApi($client);
     }
 
     /**
@@ -1281,8 +1339,9 @@ class Data extends AbstractHelper
         $client = $this->initializeAdyenClient($storeId);
 
         try {
-            $service = $this->createAdyenCheckoutUtilityService($client);
-            $response = $service->originKeys($params);
+            $service = new UtilityApi($client);
+            $responseObj = $service->originKeys(new UtilityRequest($params));
+            $response = json_decode(json_encode($responseObj->jsonSerialize()), true);
         } catch (Exception $e) {
             $this->adyenLogger->error($e->getMessage());
         }
@@ -1316,16 +1375,6 @@ class Data extends AbstractHelper
             default:
                 return self::LIVE;
         }
-    }
-
-    /**
-     * @param Client $client
-     * @return CheckoutUtility
-     * @throws AdyenException
-     */
-    private function createAdyenCheckoutUtilityService($client)
-    {
-        return new CheckoutUtility($client);
     }
 
     /**
@@ -1376,6 +1425,7 @@ class Data extends AbstractHelper
      * @return Checkout
      * @throws AdyenException
      * @throws NoSuchEntityException
+     * @deprecared use `initializePaymentsApi`, or `initializeModificationsApi` based on your case
      */
     public function createAdyenCheckoutService(Client $client = null): Checkout
     {
@@ -1390,6 +1440,7 @@ class Data extends AbstractHelper
      * @param $client
      * @return Recurring
      * @throws AdyenException
+     * @deprecared use `initializeRecurringApi()`
      */
     public function createAdyenRecurringService($client)
     {
@@ -1514,6 +1565,14 @@ class Data extends AbstractHelper
         }
 
         $this->adyenLogger->info('Response from Adyen API', $context);
+    }
+
+    public function logAdyenException(AdyenException $e)
+    {
+        $responseArray = [];
+        $responseArray['error'] = $e->getMessage();
+        $responseArray['errorCode'] = $e->getAdyenErrorCode();
+        $this->logResponse($responseArray);
     }
 
     private function filterReferences(array $data): array

@@ -51,7 +51,7 @@ class PaymentMethodTokenUiComponentProvider implements TokenUiComponentProviderI
                     TokenUiComponentProviderInterface::COMPONENT_DETAILS => $details,
                     TokenUiComponentProviderInterface::COMPONENT_PUBLIC_HASH => $paymentToken->getPublicHash()
                 ],
-                'name' => 'Adyen_Payment/js/view/payment/method-renderer/payment_method_vault'
+                'name' => 'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-vault-method'
             ]
         );
     }

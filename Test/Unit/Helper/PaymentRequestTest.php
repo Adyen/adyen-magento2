@@ -12,12 +12,18 @@
 namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Client;
+use Adyen\Model\Checkout\PaymentDetailsResponse;
+use Adyen\Model\Recurring\DisableResult;
+use Adyen\Model\Recurring\RecurringDetailsRequest;
+use Adyen\Model\Recurring\RecurringDetailsResult;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Model\Api\PaymentRequest;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Service\Checkout;
+use Adyen\Service\Checkout\PaymentsApi;
 use Adyen\Service\Recurring;
+use Adyen\Service\RecurringApi;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Sales\Model\Order;
@@ -55,14 +61,14 @@ class PaymentRequestTest extends AbstractAdyenTestCase
         $paymentMock = $this->createMock(Payment::class);
         $paymentMock->method('getOrder')->willReturn($orderMock);
 
-        $checkoutServiceMock = $this->createMock(Checkout::class);
-        $checkoutServiceMock->method('paymentsDetails')->willReturn([]);
+        $paymentsApiMock = $this->createMock(PaymentsApi::class);
+        $paymentsApiMock->method('paymentsDetails')->willReturn(new PaymentDetailsResponse([]));
 
         $this->adyenHelper
             ->method('initializeAdyenClient')
             ->willReturn($this->createMock(Client::class));
 
-        $this->adyenHelper->method('createAdyenCheckoutService')->willReturn($checkoutServiceMock);
+        $this->adyenHelper->method('initializePaymentsApi')->willReturn($paymentsApiMock);
 
         $result = $this->paymentRequest->authorise3d($paymentMock);
         $this->assertIsArray($result);
@@ -70,13 +76,13 @@ class PaymentRequestTest extends AbstractAdyenTestCase
 
     public function testListRecurringContractByType()
     {
-        $recurringServiceMock = $this->createMock(Recurring::class);
-        $recurringServiceMock->method('listRecurringDetails')->willReturn([]);
+        $recurringServiceMock = $this->createMock(RecurringApi::class);
+        $recurringServiceMock->method('listRecurringDetails')->willReturn(new RecurringDetailsResult([]));
 
         $this->adyenHelper
             ->method('initializeAdyenClient')
             ->willReturn($this->createMock(Client::class));
-        $this->adyenHelper->method('createAdyenRecurringService')->willReturn($recurringServiceMock);
+        $this->adyenHelper->method('initializeRecurringApi')->willReturn($recurringServiceMock);
 
         $this->assertIsArray($this->paymentRequest->listRecurringContractByType('001', 1, 'CardOnFile'));
     }
@@ -90,17 +96,15 @@ class PaymentRequestTest extends AbstractAdyenTestCase
             $this->expectException(LocalizedException::class);
         }
 
-        $result = [
-            'response' => $response
-        ];
+        $result = new DisableResult(['response' => $response]);
 
-        $recurringServiceMock = $this->createMock(Recurring::class);
+        $recurringServiceMock = $this->createMock(RecurringApi::class);
         $recurringServiceMock->method('disable')->willReturn($result);
 
         $this->adyenHelper
             ->method('initializeAdyenClient')
             ->willReturn($this->createMock(Client::class));
-        $this->adyenHelper->method('createAdyenRecurringService')->willReturn($recurringServiceMock);
+        $this->adyenHelper->method('initializeRecurringApi')->willReturn($recurringServiceMock);
 
         $apiResponse = $this->paymentRequest->disableRecurringContract('TOKEN_PLACEHOLDER', '001', 1);
 

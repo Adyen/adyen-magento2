@@ -58,6 +58,7 @@ class GetAdyenPaymentMethods implements ResolverInterface
         $maskedCartId = $args['cart_id'];
         $shopperLocale = $args['shopper_locale'] ?? null;
         $country = $args['country'] ?? null;
+        $channel = $args['channel'] ?? null;
 
         $currentUserId = $context->getUserId();
         $storeId = (int)$context->getExtensionAttributes()->getStore()->getId();
@@ -68,7 +69,8 @@ class GetAdyenPaymentMethods implements ResolverInterface
             $adyenPaymentMethodsResponse = $this->paymentMethodsHelper->getPaymentMethods(
                 intval($cart->getId()),
                 $country,
-                $shopperLocale
+                $shopperLocale,
+                $channel
             );
 
             return $adyenPaymentMethodsResponse ? $this->preparePaymentMethodGraphQlResponse($adyenPaymentMethodsResponse) : [];

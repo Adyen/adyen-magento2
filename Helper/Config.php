@@ -56,6 +56,7 @@ class Config
     const AUTO_CAPTURE_OPENINVOICE = 'auto';
     const XML_RECURRING_CONFIGURATION = 'recurring_configuration';
     const XML_ALLOW_MULTISTORE_TOKENS = 'allow_multistore_tokens';
+    const XML_THREEDS_FLOW = 'threeds_flow';
 
     protected ScopeConfigInterface $scopeConfig;
     private EncryptorInterface $encryptor;
@@ -571,6 +572,31 @@ class Config
         return $this->getConfigData(
             self::XML_ALLOW_MULTISTORE_TOKENS,
             self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId,
+            true
+        );
+    }
+
+    /**
+     * Returns the preferred ThreeDS authentication type for card and card vault payments.
+     *
+     * @param int|null $storeId
+     * @return string
+     */
+    public function getThreeDSFlow(int $storeId = null): string
+    {
+        return $this->getConfigData(
+            self::XML_THREEDS_FLOW,
+            self::XML_ADYEN_CC,
+            $storeId
+        );
+    }
+
+    public function getIsCvcRequiredForRecurringCardPayments(int $storeId = null): bool
+    {
+         return (bool) $this->getConfigData(
+            'require_cvc',
+            Config::XML_ADYEN_CC_VAULT,
             $storeId,
             true
         );

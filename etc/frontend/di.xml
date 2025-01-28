@@ -106,6 +106,23 @@
                 <item name="adyen_vipps" xsi:type="string">vipps</item>
                 <item name="adyen_bizum" xsi:type="string">bizum</item>
                 <item name="adyen_ach" xsi:type="string">ach</item>
+                <item name="adyen_wallet_IN" xsi:type="string">wallet_IN</item>
+                <item name="adyen_onlinebanking_IN" xsi:type="string">onlinebanking_IN</item>
+                <item name="adyen_paypo" xsi:type="string">paypo</item>
+                <item name="adyen_upi" xsi:type="string">upi</item>
+                <item name="adyen_dana" xsi:type="string">dana</item>
+                <item name="adyen_kcp_naverpay" xsi:type="string">kcp_naverpay</item>
+                <item name="adyen_kcp_payco" xsi:type="string">kcp_payco</item>
+                <item name="adyen_kcp_creditcard" xsi:type="string">kcp_creditcard</item>
+                <item name="adyen_doku_alfamart" xsi:type="string">doku_alfamart</item>
+                <item name="adyen_doku_permata_lite_atm" xsi:type="string">doku_permata_lite_atm</item>
+                <item name="adyen_doku_bca_va" xsi:type="string">doku_bca_va</item>
+                <item name="adyen_doku_bni_va" xsi:type="string">doku_bni_va</item>
+                <item name="adyen_doku_bri_va" xsi:type="string">doku_bri_va</item>
+                <item name="adyen_doku_cimb_va" xsi:type="string">doku_cimb_va</item>
+                <item name="adyen_doku_danamon_va" xsi:type="string">doku_danamon_va</item>
+                <item name="adyen_doku_indomaret" xsi:type="string">doku_indomaret</item>
+                <item name="adyen_doku_mandiri_va" xsi:type="string">doku_mandiri_va</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
@@ -113,6 +130,10 @@
                 <item name="adyen_applepay" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-applepay-method</item>
                 <item name="adyen_boleto" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-boleto-method</item>
                 <item name="adyen_facilypay_3x" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-facilypay-3x-method</item>
+                <item name="adyen_facilypay_4x" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-facilypay-method</item>
+                <item name="adyen_facilypay_6x" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-facilypay-method</item>
+                <item name="adyen_facilypay_10x" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-facilypay-method</item>
+                <item name="adyen_facilypay_12x" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-facilypay-method</item>
                 <item name="adyen_googlepay" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-googlepay-method</item>
                 <item name="adyen_paypal" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-paypal-method</item>
                 <item name="adyen_giftcard" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-giftcard-method</item>
@@ -150,6 +171,7 @@
                 <item name="adyen_bcmc" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
                 <item name="adyen_cashapp" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
                 <item name="adyen_ach" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
+                <item name="adyen_dana" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
             </argument>
         </arguments>
     </type>

@@ -42,6 +42,9 @@ define(
             getCustomerStreetLinesEnabled: function () {
                 return window.checkoutConfig.payment.customerStreetLinesEnabled;
             },
+            getAgreementsConfig: function () {
+                return window.checkoutConfig.payment.adyen.agreementsConfig;
+            }
         };
     },
 );

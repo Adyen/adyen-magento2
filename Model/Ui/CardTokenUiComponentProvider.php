@@ -59,7 +59,7 @@ class CardTokenUiComponentProvider implements TokenUiComponentProviderInterface
                         ['_secure' => $this->request->isSecure()]
                     )
                 ],
-                'name' => 'Adyen_Payment/js/view/payment/method-renderer/vault'
+                'name' => 'Adyen_Payment/js/view/payment/method-renderer/adyen-cc-vault-method'
             ]
         );
     }

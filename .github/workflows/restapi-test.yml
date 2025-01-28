@@ -7,8 +7,8 @@ jobs:
     environment: ${{ (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) && 'external' || 'internal' }}
     strategy:
       matrix:
-        php-version: ["8.1"]
-        magento-version: ["2.4.5"]
+        php-version: [8.3]
+        magento-version: [2.4.7-p2]
     runs-on: ubuntu-latest
     env:
       PHP_VERSION: ${{ matrix.php-version }}
@@ -23,12 +23,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
 
       - name: Install Magento
-        run: docker-compose -f .github/docker-compose.yml run --rm web make magento
+        run: docker compose -f .github/docker-compose.yml run --rm web make magento
 
       - name: Start web server in background
-        run: docker-compose -f .github/docker-compose.yml up -d web
+        run: docker compose -f .github/docker-compose.yml up -d web
 
       - name: Setup permissions
         run: docker exec magento2-container make fs
