@@ -12,6 +12,7 @@
 
 namespace Adyen\Payment\Model\ResourceModel\Invoice;
 
+use Adyen\Payment\Api\Data\InvoiceInterface;
 use Adyen\Payment\Model\Notification;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
@@ -89,7 +90,7 @@ class Invoice extends AbstractDb
         $connection = $this->getConnection();
 
         $select = $connection->select()
-            ->from($this->getMainTable(), 'entity_id')
+            ->from($this->getMainTable(), InvoiceInterface::ENTITY_ID)
             ->where('pspreference = :pspreference');
 
         $bind = [':pspreference' => $pspreference];
