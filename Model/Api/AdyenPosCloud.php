@@ -15,6 +15,7 @@ use Adyen\Payment\Api\AdyenPosCloudInterface;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Sales\OrderRepository;
 use Exception;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObjectFactoryInterface;
@@ -57,6 +58,6 @@ class AdyenPosCloud implements AdyenPosCloudInterface
 
         // Pending POS payment, add a short delay to avoid a flood of requests
         sleep(2);
-        throw new Exception('In Progress');
+        throw new LocalizedException(__('Status: %1', 'In Progress'));
     }
 }
