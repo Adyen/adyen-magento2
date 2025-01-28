@@ -126,7 +126,7 @@ class AdyenOrderPaymentRepository implements AdyenOrderPaymentRepositoryInterfac
     private function validateCaptureStatuses(array $captureStatuses): void
     {
         foreach ($captureStatuses as $captureStatus) {
-            if (!array_contains(self::AVAILABLE_CAPTURE_STATUSES, $captureStatus)) {
+            if (!in_array($captureStatus, self::AVAILABLE_CAPTURE_STATUSES)) {
                 $message = sprintf(
                     "Invalid capture status %s has been provided for adyen_order_payment repository!",
                     $captureStatus
