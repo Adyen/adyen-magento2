@@ -14,6 +14,7 @@ namespace Adyen\Payment\Model\Api;
 use Adyen\Payment\Api\AdyenPosCloudInterface;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Sales\OrderRepository;
+use Exception;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObjectFactoryInterface;
@@ -50,5 +51,12 @@ class AdyenPosCloud implements AdyenPosCloudInterface
         $paymentDataObject = $this->paymentDataObjectFactory->create($payment);
         $posCommand = $this->commandPool->get('authorize');
         $posCommand->execute(['payment' => $paymentDataObject]);
+        if (!$payment->hasAdditionalInformation('pos_request')) {
+            return;
+        }
+
+        // Pending POS payment, add a short delay to avoid a flood of requests
+        sleep(2);
+        throw new Exception('In Progress');
     }
 }
