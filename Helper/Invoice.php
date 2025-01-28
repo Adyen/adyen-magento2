@@ -334,9 +334,11 @@ class Invoice extends AbstractHelper
             }
         }
 
+        $invoiceChargedCurrency = $this->chargedCurrencyHelper->getInvoiceAmountCurrency($invoice);
+
         $invoiceAmountCents = $this->adyenDataHelper->formatAmount(
-            $invoice->getGrandTotal(),
-            $invoice->getOrderCurrencyCode()
+            $invoiceChargedCurrency->getAmount(),
+            $invoiceChargedCurrency->getCurrencyCode()
         );
 
         $invoiceCapturedAmountCents = $this->adyenDataHelper->formatAmount(
