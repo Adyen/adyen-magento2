@@ -159,8 +159,11 @@ class InvoiceTest extends AbstractAdyenTestCase
         $adyenAmountCurrencyMock->method('getAmount')->willReturn(10);
         $adyenAmountCurrencyMock->method('getCurrencyCode')->willReturn('EUR');
 
+        $invoiceAmountCurrency = $this->createMock(AdyenAmountCurrency::class);
+
         $chargedCurrencyMock = $this->createMock(ChargedCurrency::class);
         $chargedCurrencyMock->method('getOrderAmountCurrency')->willReturn($adyenAmountCurrencyMock);
+        $chargedCurrencyMock->method('getInvoiceAmountCurrency')->willReturn($invoiceAmountCurrency);
 
         $invoiceHelper = $this->createInvoiceHelper(
             $contextMock,
@@ -255,6 +258,17 @@ class InvoiceTest extends AbstractAdyenTestCase
             ],
         ]);
 
+        $invoiceAmountCurrency = $this->createMock(AdyenAmountCurrency::class);
+        $invoiceAmountCurrency->expects($this->once())
+            ->method('getAmount')
+            ->willReturn(1000);
+        $invoiceAmountCurrency->expects($this->once())
+            ->method('getCurrencyCode')
+            ->willReturn('EUR');
+
+        $chargedCurrencyMock = $this->createMock(ChargedCurrency::class);
+        $chargedCurrencyMock->method('getInvoiceAmountCurrency')->willReturn($invoiceAmountCurrency);
+
         $invoiceHelper = $this->createInvoiceHelper(
             null,
             null,
@@ -262,7 +276,13 @@ class InvoiceTest extends AbstractAdyenTestCase
             null,
             null,
             null,
-            $adyenInvoiceCollectionMock
+            $adyenInvoiceCollectionMock,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $chargedCurrencyMock
         );
 
         $invoiceMock = $this->createConfiguredMock(InvoiceModel::class, [
