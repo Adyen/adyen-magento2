@@ -56,6 +56,8 @@ class TransactionRefund implements TransactionRefundInterface
     {
         $requests = $transferObject->getBody();
         $headers = $transferObject->getHeaders();
+        $idempotencyKeyExtraData = $headers['idempotencyExtraData'];
+        unset($headers['idempotencyExtraData']);
         $clientConfig = $transferObject->getClientConfig();
 
         $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
@@ -66,10 +68,11 @@ class TransactionRefund implements TransactionRefundInterface
             $responseData = [];
             $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
                 $request,
-                $headers['idempotencyExtraData'] ?? null
+                $idempotencyKeyExtraData ?? null
             );
             $requestOptions['idempotencyKey'] = $idempotencyKey;
-            $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
+            $requestOptions['headers'] = $headers;
+
             $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/refunds');
             $request['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($client);
             $paymentRefundRequest = new PaymentRefundRequest($request);
@@ -88,6 +91,8 @@ class TransactionRefund implements TransactionRefundInterface
                 $this->adyenHelper->logResponse($responseData);
             } catch (AdyenException $e) {
                 $this->adyenHelper->logAdyenException($e);
+                $responseData['error'] = $e->getMessage();
+                $responseData['errorCode'] = $e->getAdyenErrorCode();
             }
             $responses[] = $responseData;
         }

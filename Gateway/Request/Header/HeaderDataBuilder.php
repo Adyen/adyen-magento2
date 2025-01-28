@@ -9,18 +9,15 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Gateway\Request;
+namespace Adyen\Payment\Gateway\Request\Header;
 
 use Adyen\Payment\Helper\Data;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
-class HeaderDataBuilder implements BuilderInterface
+class HeaderDataBuilder implements BuilderInterface, HeaderDataBuilderInterface
 {
-    const FRONTENDTYPE = 'external-platform-frontendtype';
-    const FRONTENDTYPE_HEADLESS = 'headless';
-
     /**
      * @var Data
      */

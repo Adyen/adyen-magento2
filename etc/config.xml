@@ -61,12 +61,17 @@
                 <can_authorize_vault>1</can_authorize_vault>
                 <can_capture_vault>1</can_capture_vault>
                 <supports_recurring>1</supports_recurring>
+                <threeds_flow>native</threeds_flow>
                 <group>adyen</group>
             </adyen_cc>
             <adyen_cc_vault>
                 <title>Stored Cards (Adyen)</title>
                 <model>AdyenPaymentCardVaultFacade</model>
                 <require_cvc>1</require_cvc>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\Card\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\Card\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_cc_vault>
             <adyen_oneclick>
                 <active>0</active>
@@ -170,6 +175,10 @@
             <adyen_klarna_vault>
                 <title>Stored Klarna</title>
                 <model>AdyenPaymentKlarnaVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_klarna_vault>
             <adyen_paypal>
                 <active>0</active>
@@ -199,6 +208,10 @@
             <adyen_paypal_vault>
                 <title>Stored PayPal</title>
                 <model>AdyenPaymentPaypalVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_paypal_vault>
             <adyen_bcmc_mobile>
                 <active>0</active>
@@ -275,6 +288,10 @@
             <adyen_amazonpay_vault>
                 <title>Stored Amazon Pay</title>
                 <model>AdyenPaymentAmazonpayVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\Card\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\Card\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_amazonpay_vault>
             <adyen_googlepay>
                 <active>0</active>
@@ -304,6 +321,10 @@
             <adyen_googlepay_vault>
                 <title>Stored GooglePay</title>
                 <model>AdyenPaymentGooglepayVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\Card\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\Card\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_googlepay_vault>
             <adyen_multibanco>
                 <active>0</active>
@@ -382,6 +403,10 @@
             <adyen_sepadirectdebit_vault>
                 <title>Stored SEPA Direct Debit</title>
                 <model>AdyenPaymentSepadirectdebitVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_sepadirectdebit_vault>
             <adyen_pos_cloud>
                 <active>0</active>
@@ -497,6 +522,10 @@
             <adyen_applepay_vault>
                 <title>Stored Apple Pay</title>
                 <model>AdyenPaymentApplePayVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\Card\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\Card\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_applepay_vault>
             <adyen_giftcard>
                 <active>0</active>
@@ -895,6 +924,10 @@
             <adyen_directEbanking_vault>
                 <title>Stored Klarna Debit Risk</title>
                 <model>AdyenPaymentDirectEbankingVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_directEbanking_vault>
             <adyen_ebanking_FI>
                 <active>0</active>
@@ -1053,6 +1086,10 @@
             <adyen_eps_vault>
                 <title>Stored EPS</title>
                 <model>AdyenPaymentEpsVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_eps_vault>
             <adyen_facilypay_4x>
                 <active>0</active>
@@ -1167,6 +1204,10 @@
             <adyen_giropay_vault>
                 <title>Stored Giropay</title>
                 <model>AdyenPaymentGiropayVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_giropay_vault>
             <adyen_grabpay_MY>
                 <active>0</active>
@@ -1285,6 +1326,10 @@
             <adyen_klarna_account_vault>
                 <title>Stored Klarna Pay over Time</title>
                 <model>AdyenPaymentKlarnaAccountVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_klarna_account_vault>
             <adyen_klarna_paynow>
                 <active>0</active>
@@ -1311,6 +1356,10 @@
             <adyen_klarna_paynow_vault>
                 <title>Stored Klarna Pay Now</title>
                 <model>AdyenPaymentKlarnaPaynowVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_klarna_paynow_vault>
             <adyen_mbway>
                 <active>0</active>
@@ -1513,6 +1562,10 @@
             <adyen_paybybank_vault>
                 <title>Stored Open banking</title>
                 <model>AdyenPaymentPaybybankVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_paybybank_vault>
             <adyen_pix>
                 <active>0</active>
@@ -1650,6 +1703,10 @@
             <adyen_twint_vault>
                 <title>Stored TWINT</title>
                 <model>AdyenPaymentTwintVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\Card\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\Card\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_twint_vault>
             <adyen_walley>
                 <active>0</active>
@@ -1742,6 +1799,10 @@
             <adyen_zip_vault>
                 <title>Stored Zip</title>
                 <model>AdyenPaymentZipVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\Card\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\Card\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_zip_vault>
             <adyen_gcash>
                 <active>0</active>
@@ -1768,6 +1829,10 @@
             <adyen_gcash_vault>
                 <title>Stored GCash</title>
                 <model>AdyenPaymentGcashVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\Card\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\Card\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_gcash_vault>
             <adyen_oxxo>
                 <active>0</active>
@@ -1838,6 +1903,10 @@
             <adyen_carnet_vault>
                 <title>Stored Carnet</title>
                 <model>AdyenPaymentCarnetVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_carnet_vault>
             <adyen_walley_b2b>
                 <active>0</active>
@@ -1908,6 +1977,10 @@
             <adyen_momo_vault>
                 <title>Stored MoMo Wallet</title>
                 <model>AdyenPaymentMomoWalletVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\Card\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\Card\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_momo_vault>
             <adyen_touchngo>
                 <active>0</active>
@@ -1956,6 +2029,10 @@
             <adyen_bcmc_vault>
                 <title>Stored Bancontact</title>
                 <model>AdyenPaymentBcmcVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_bcmc_vault>
             <adyen_cashapp>
                 <active>0</active>
@@ -1982,6 +2059,10 @@
             <adyen_cashapp_vault>
                 <title>Stored Cash App Pay</title>
                 <model>AdyenPaymentCashappVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_cashapp_vault>
             <adyen_klarna_b2b>
                 <active>0</active>
@@ -2206,6 +2287,10 @@
             <adyen_dana_vault>
                 <title>Stored DANA</title>
                 <model>AdyenPaymentDanaVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\Card\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\Card\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_dana_vault>
             <adyen_kcp_naverpay>
                 <active>0</active>
@@ -2273,6 +2358,204 @@
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_kcp_creditcard>
+            <adyen_doku_alfamart>
+                <active>0</active>
+                <model>AdyenPaymentDokuAlfamartFacade</model>
+                <title>Alfamart via DOKU</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>0</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_doku_alfamart>
+            <adyen_doku_permata_lite_atm>
+                <active>0</active>
+                <model>AdyenPaymentDokuPermataLiteAtmFacade</model>
+                <title>ATM Permata VA LITE via DOKU</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>0</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_doku_permata_lite_atm>
+            <adyen_doku_bca_va>
+                <active>0</active>
+                <model>AdyenPaymentDokuBcaVaFacade</model>
+                <title>ATM BCA VA via DOKU</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>0</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_doku_bca_va>
+            <adyen_doku_bni_va>
+                <active>0</active>
+                <model>AdyenPaymentDokuBniVaFacade</model>
+                <title>BNI VA via DOKU</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>0</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_doku_bni_va>
+            <adyen_doku_bri_va>
+                <active>0</active>
+                <model>AdyenPaymentDokuBriVaFacade</model>
+                <title>BRI VA via DOKU</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>0</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_doku_bri_va>
+            <adyen_doku_cimb_va>
+                <active>0</active>
+                <model>AdyenPaymentDokuCimbVaFacade</model>
+                <title>CIMB VA via DOKU</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>0</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_doku_cimb_va>
+            <adyen_doku_danamon_va>
+                <active>0</active>
+                <model>AdyenPaymentDokuDanamonVaFacade</model>
+                <title>Danamon VA via DOKU</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>0</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_doku_danamon_va>
+            <adyen_doku_indomaret>
+                <active>0</active>
+                <model>AdyenPaymentDokuIndomaretFacade</model>
+                <title>Indomaret via DOKU</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>0</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_doku_indomaret>
+            <adyen_doku_mandiri_va>
+                <active>0</active>
+                <model>AdyenPaymentDokuMandiriVaFacade</model>
+                <title>Mandiri VA via DOKU</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>0</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_doku_mandiri_va>
         </payment>
     </default>
 </config>

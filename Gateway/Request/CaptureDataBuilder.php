@@ -109,7 +109,10 @@ class CaptureDataBuilder implements BuilderInterface
         $requestBody = [
             "amount" => $modificationAmount,
             "reference" => $payment->getOrder()->getIncrementId(),
-            "paymentPspReference" => $pspReference
+            "paymentPspReference" => $pspReference,
+            "idempotencyExtraData" => [
+                'totalInvoiced' => $payment->getOrder()->getTotalInvoiced() ?? 0
+            ]
         ];
 
         //Check additionaldata
@@ -119,11 +122,6 @@ class CaptureDataBuilder implements BuilderInterface
         }
         $request['body'] = $requestBody;
         $request['clientConfig'] = ["storeId" => $payment->getOrder()->getStoreId()];
-        $request['headers'] = [
-            'idempotencyExtraData' => [
-                'totalInvoiced' => $payment->getOrder()->getTotalInvoiced() ?? 0
-            ]
-        ];
 
         return $request;
     }

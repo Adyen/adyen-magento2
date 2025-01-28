@@ -12,7 +12,6 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Model\Checkout\CancelOrderRequest;
-use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\ResourceModel\PaymentResponse\CollectionFactory as PaymentResponseCollectionFactory;
 use Exception;
@@ -24,7 +23,6 @@ use Magento\Sales\Model\Order\Status\HistoryFactory;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\ResourceModel\Order;
 use Magento\Sales\Model\Order as OrderModel;
-use Adyen\Payment\Helper\Data;
 use Magento\Framework\Mail\Exception\InvalidArgumentException;
 use Adyen\Client;
 
@@ -65,6 +63,7 @@ class PaymentResponseHandler
     private StateData $stateDataHelper;
     private PaymentResponseCollectionFactory $paymentResponseCollectionFactory;
     private Config $configHelper;
+    private PaymentMethods $paymentMethodsHelper;
 
     public function __construct(
         AdyenLogger $adyenLogger,
@@ -77,7 +76,8 @@ class PaymentResponseHandler
         HistoryFactory $orderHistoryFactory,
         StateData $stateDataHelper,
         PaymentResponseCollectionFactory $paymentResponseCollectionFactory,
-        Config $configHelper
+        Config $configHelper,
+        PaymentMethods $paymentMethodsHelper
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->vaultHelper = $vaultHelper;
@@ -90,6 +90,7 @@ class PaymentResponseHandler
         $this->stateDataHelper = $stateDataHelper;
         $this->paymentResponseCollectionFactory = $paymentResponseCollectionFactory;
         $this->configHelper = $configHelper;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
 
     public function formatPaymentResponse(
@@ -159,6 +160,12 @@ class PaymentResponseHandler
         $this->adyenLogger->addAdyenResult('Updating the order');
         $payment = $order->getPayment();
 
+        //Check magento Payment Method
+        $paymentMethodInstance = $payment->getMethodInstance();
+        $isWalletPaymentMethod = $this->paymentMethodsHelper->isWalletPaymentMethod($paymentMethodInstance);
+        $isCardPaymentMethod = $payment->getMethod() === PaymentMethods::ADYEN_CC ||
+            $payment->getMethod() === PaymentMethods::ADYEN_CC_VAULT;
+
         $authResult = $paymentsDetailsResponse['authResult'] ?? $paymentsDetailsResponse['resultCode'] ?? null;
         if (is_null($authResult)) {
             // In case the result is unknown we log the request and don't update the history
@@ -209,6 +216,17 @@ class PaymentResponseHandler
 
         if (!empty($paymentsDetailsResponse['donationToken'])) {
             $payment->setAdditionalInformation('donationToken', $paymentsDetailsResponse['donationToken']);
+        }
+
+        $ccType = $payment->getAdditionalInformation('cc_type');
+
+        if (!empty($paymentsDetailsResponse['additionalData']['paymentMethod']) &&
+            is_null($ccType) &&
+            ($isWalletPaymentMethod || $isCardPaymentMethod)
+        ) {
+            $ccType = $paymentsDetailsResponse['additionalData']['paymentMethod'];
+            $payment->setAdditionalInformation('cc_type', $ccType);
+            $payment->setCcType($ccType);
         }
 
         // Handle recurring details

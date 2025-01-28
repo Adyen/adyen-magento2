@@ -143,17 +143,19 @@ define(
                     this.renderCheckoutComponent();
                 }
             },
-            
+
             handleOnError: function (error, component) {
                 this.handleOnFailure(error, component);
             },
 
             handleOnFailure: function(error, component) {
-                this.isPlaceOrderAllowed(true);
+
+                paymentComponentStates().setIsPlaceOrderAllowed(this.getMethodCode(), true);
+
                 fullScreenLoader.stopLoader();
                 errorProcessor.process(error, this.currentMessageContainer);
             },
-            
+
             renderCheckoutComponent: function() {
                 let methodCode = this.getMethodCode();
                 let configuration = this.buildComponentConfiguration(this.paymentMethod(), this.paymentMethodsExtraInfo());
@@ -261,8 +263,6 @@ define(
                     request = state.data;
                 }
 
-                request.cancelled = true;
-
                 adyenPaymentService.paymentDetails(request, self.orderId).done(function() {
                     $.mage.redirect(
                         window.checkoutConfig.payment.adyen.successPage
@@ -292,7 +292,7 @@ define(
 
                     let additionalData = {};
                     additionalData.brand_code = this.paymentMethod().type;
-                    additionalData.frontendType = 'luma';
+                    additionalData.frontendType = 'default';
 
                     let stateData;
                     if (this.paymentComponent) {

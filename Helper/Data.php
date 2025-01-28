@@ -17,8 +17,8 @@ use Adyen\Environment;
 use Adyen\Model\Checkout\ApplicationInfo;
 use Adyen\Model\Checkout\CommonField;
 use Adyen\Model\Checkout\UtilityRequest;
+use Adyen\Payment\Gateway\Request\Header\HeaderDataBuilderInterface;
 use Adyen\Payment\Helper\Config as ConfigHelper;
-use Adyen\Payment\Gateway\Request\HeaderDataBuilder;
 use Adyen\Service\Checkout;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Config\Source\RenderMode;
@@ -27,6 +27,7 @@ use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as Notifica
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Adyen\Service\Checkout\ModificationsApi;
 use Adyen\Service\Checkout\OrdersApi;
+use Adyen\Service\Checkout\PaymentLinksApi;
 use Adyen\Service\Checkout\PaymentsApi;
 use Adyen\Service\Checkout\UtilityApi;
 use Adyen\Service\PosPayment;
@@ -271,7 +272,8 @@ class Data extends AbstractHelper
             'eu' => 'Default (EU - Europe)',
             'au' => 'AU - Australasia',
             'us' => 'US - United States',
-            'in' => 'IN - India'
+            'in' => 'IN - India',
+            'apse' => 'APSE - Asia Pacific Southeast'
         ];
     }
 
@@ -1173,16 +1175,16 @@ class Data extends AbstractHelper
     {
         $magentoDetails = $this->getMagentoDetails();
         $headers = [
-            'external-platform-name' => $magentoDetails['name'],
-            'external-platform-version' => $magentoDetails['version'],
-            'external-platform-edition' => $magentoDetails['edition'],
-            'merchant-application-name' => $this->getModuleName(),
-            'merchant-application-version' => $this->getModuleVersion()
+            HeaderDataBuilderInterface::EXTERNAL_PLATFORM_NAME => $magentoDetails['name'],
+            HeaderDataBuilderInterface::EXTERNAL_PLATFORM_VERSION => $magentoDetails['version'],
+            HeaderDataBuilderInterface::EXTERNAL_PLATFORM_EDITION => $magentoDetails['edition'],
+            HeaderDataBuilderInterface::MERCHANT_APPLICATION_NAME => $this->getModuleName(),
+            HeaderDataBuilderInterface::MERCHANT_APPLICATION_VERSION  => $this->getModuleVersion()
         ];
 
-        if(isset($payment) && !is_null($payment->getAdditionalInformation(HeaderDataBuilder::FRONTENDTYPE))) {
-            $headers[HeaderDataBuilder::FRONTENDTYPE] =
-                $payment->getAdditionalInformation(HeaderDataBuilder::FRONTENDTYPE);
+        if(isset($payment) && !is_null($payment->getAdditionalInformation(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY))) {
+            $headers[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE] =
+                $payment->getAdditionalInformation(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY);
         }
 
         return $headers;
@@ -1246,6 +1248,11 @@ class Data extends AbstractHelper
     public function initializeOrdersApi(Client $client): OrdersApi
     {
         return new OrdersApi($client);
+    }
+
+    public function initializePaymentLinksApi(Client $client):PaymentLinksApi
+    {
+        return new PaymentLinksApi($client);
     }
 
     /**
