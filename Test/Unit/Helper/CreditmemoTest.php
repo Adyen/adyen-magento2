@@ -17,9 +17,11 @@ use Adyen\Payment\Api\Repository\AdyenCreditmemoRepositoryInterface;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Creditmemo;
 use Adyen\Payment\Model\CreditmemoFactory;
+use Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo as CreditmemoResourceModel;
 use Adyen\Payment\Model\ResourceModel\Order\Payment;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Model\AbstractModel;
 
 class CreditmemoTest extends AbstractAdyenTestCase
@@ -123,7 +125,7 @@ class CreditmemoTest extends AbstractAdyenTestCase
     public function testSaveMethodIsCalledCorrectNumberOfTimes()
     {
         $adyenCreditmemoResourceModelMock = $this->createMock(
-            \Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo::class
+            CreditmemoResourceModel::class
         );
         $magentoCreditmemoMock = $this->createMock(\Magento\Sales\Model\Order\Creditmemo::class);
         $magentoCreditmemoId = 1;
@@ -150,11 +152,94 @@ class CreditmemoTest extends AbstractAdyenTestCase
     }
 
     /**
+     * @return void
+     */
+    public function testUpdateAdyenCreditmemosStatus()
+    {
+        $adyenCreditmemoMock = $this->createMock(CreditmemoInterface::class);
+        $status = 'refunded';
+
+        $adyenCreditmemoMock->expects($this->once())
+            ->method('setStatus')
+            ->with($status);
+
+        $adyenCreditmemoRepositoryMock = $this->createMock(AdyenCreditmemoRepositoryInterface::class);
+        $adyenCreditmemoRepositoryMock->expects($this->once())
+            ->method('save')
+            ->with($adyenCreditmemoMock);
+
+        $creditmemoHelper = $this->createCreditmemoHelper(
+            null,
+            null,
+            null,
+            null,
+            null,
+            $adyenCreditmemoRepositoryMock
+        );
+
+        $creditmemoHelper->updateAdyenCreditmemosStatus($adyenCreditmemoMock, $status);
+    }
+
+    /**
+     * @return array
+     */
+    private static function dataproviderGetAdyenCreditmemoByPspreference(): array
+    {
+        return [
+            ['result' => ['entity_id' => 1]],
+            ['result' => null]
+        ];
+    }
+
+    /**
+     * @dataProvider dataproviderGetAdyenCreditmemoByPspreference
+     *
+     * @param $result
+     * @return void
+     * @throws NoSuchEntityException
+     */
+    public function testGetAdyenCreditmemoByPspreference($result)
+    {
+        $pspreference = '123_abcdef';
+
+        $creditmemoResourceModel = $this->createMock(CreditmemoResourceModel::class);
+        $creditmemoResourceModel->expects($this->once())
+            ->method('getAdyenCreditmemoByPspreference')
+            ->with($pspreference)
+            ->willReturn($result);
+
+        $creditmemoRepository = $this->createMock(AdyenCreditmemoRepositoryInterface::class);
+
+        $creditmemoHelper = $this->createCreditmemoHelper(
+            null,
+            null,
+            null,
+            $creditmemoResourceModel,
+            null,
+            $creditmemoRepository
+        );
+
+        if (is_null($result)) {
+            $this->assertNull($creditmemoHelper->getAdyenCreditmemoByPspreference($pspreference));
+        } else {
+            $creditmemoRepository->expects($this->once())
+                ->method('get')
+                ->with($result['entity_id']);
+
+            $this->assertInstanceOf(
+                CreditmemoInterface::class,
+                $creditmemoHelper->getAdyenCreditmemoByPspreference($pspreference)
+            );
+        }
+    }
+
+    /**
      * @param null $context
      * @param null $adyenDataHelper
      * @param null $adyenCreditmemoFactory
      * @param null $adyenCreditmemoResourceModel
      * @param null $orderPaymentResourceModel
+     * @param null $adyenCreditmemoRepositoryMock
      * @return Creditmemo
      */
     protected function createCreditmemoHelper(
@@ -164,8 +249,7 @@ class CreditmemoTest extends AbstractAdyenTestCase
         $adyenCreditmemoResourceModel = null,
         $orderPaymentResourceModel = null,
         $adyenCreditmemoRepositoryMock = null
-    ): Creditmemo
-    {
+    ): Creditmemo {
         if (is_null($context)) {
             $context = $this->createMock(Context::class);
         }
@@ -180,7 +264,7 @@ class CreditmemoTest extends AbstractAdyenTestCase
 
         if (is_null($adyenCreditmemoResourceModel)) {
             $adyenCreditmemoResourceModel = $this->createMock(
-                \Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo::class
+                CreditmemoResourceModel::class
             );
         }
 
