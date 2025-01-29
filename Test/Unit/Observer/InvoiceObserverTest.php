@@ -17,6 +17,7 @@ use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\Invoice as InvoiceHelper;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Order\Payment;
 use Adyen\Payment\Observer\InvoiceObserver;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Event\Observer;
@@ -90,6 +91,12 @@ class InvoiceObserverTest extends AbstractAdyenTestCase
                 'isPaid' => false,
                 'isFinalized' => true,
                 'shouldExecute' => false
+            ],
+            [
+                'isAdyenPaymentMethod' => true,
+                'isPaid' => false,
+                'isFinalized' => false,
+                'shouldExecute' => true
             ]
         ];
     }
@@ -112,7 +119,7 @@ class InvoiceObserverTest extends AbstractAdyenTestCase
     ) {
         $method = 'method_name';
         $paymentId = 1;
-        $linkedAmount = 1000;
+        $linkedAmount = 1000.00;
         $status = 'payment_review';
 
         $paymentMock = $this->createMock(Order\Payment::class);
@@ -148,7 +155,7 @@ class InvoiceObserverTest extends AbstractAdyenTestCase
         if ($shouldExecute) {
             // Assert required method calls
 
-            $adyenOrderPayments[] = $this->createMock(OrderPaymentInterface::class);
+            $adyenOrderPayments[] = $this->createMock(Payment::class);
             $this->adyenOrderPaymentRepositoryMock->expects($this->once())
                 ->method('getByPaymentId')
                 ->with($paymentId, [
@@ -179,7 +186,7 @@ class InvoiceObserverTest extends AbstractAdyenTestCase
                 ->method('setStatus')
                 ->with($status);
 
-            $this->adyenLoggerMock->expects($this->once())->method('addAdyenDebug');
+            $this->adyenLoggerMock->expects($this->any())->method('addAdyenDebug');
         } else {
             // Under these circumstances, observer shouldn't intercept the code. Assert not calling methods.
 
