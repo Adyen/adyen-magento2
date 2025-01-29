@@ -279,9 +279,6 @@ class InvoiceTest extends AbstractAdyenTestCase
             $adyenInvoiceCollectionMock,
             null,
             null,
-            null,
-            null,
-            null,
             $chargedCurrencyMock
         );
 
