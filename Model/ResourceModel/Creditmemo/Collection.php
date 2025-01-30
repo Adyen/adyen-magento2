@@ -29,6 +29,8 @@ class Collection extends AbstractCollection
     /**
      * Get all the adyen_creditmemo linked to a magento invoice
      *
+     * @deprecated
+     *
      * @param int $creditMemoId
      * @return array
      */
