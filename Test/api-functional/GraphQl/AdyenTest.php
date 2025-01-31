@@ -36,7 +36,7 @@ class AdyenTest extends GraphQlAbstract
     protected function setUp(): void
     {
         $objectManager = Bootstrap::getObjectManager();
-        /** @phpstan-ignore class.notFound */
+        // @phpstan-ignore class.notFound
         $this->getMaskedQuoteIdByReservedOrderId = $objectManager->get(GetMaskedQuoteIdByReservedOrderId::class);
         $this->customerTokenService = $objectManager->get(CustomerTokenServiceInterface::class);
     }
