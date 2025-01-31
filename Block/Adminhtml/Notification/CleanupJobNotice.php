@@ -20,7 +20,7 @@ class CleanupJobNotice extends Notices
     public function __construct(
         Context $context,
         private readonly Config $configHelper,
-        array $data = null
+        array $data = []
     ) {
         parent::__construct($context, $data);
     }
