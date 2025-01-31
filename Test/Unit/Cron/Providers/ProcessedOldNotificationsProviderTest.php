@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Test\Cron\Providers;
 
+use Adyen\Payment\Api\Data\NotificationInterface;
 use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
 use Adyen\Payment\Cron\Providers\ProcessedOldNotificationsProvider;
 use Adyen\Payment\Helper\Config;
@@ -88,17 +89,21 @@ class ProcessedOldNotificationsProviderTest extends AbstractAdyenTestCase
             ->method('create')
             ->willReturn($searchCriteriaMock);
 
+        $searchResults[] = $this->createMock(NotificationInterface::class);
+
         $searchResultsMock = $this->createMock(SearchResultsInterface::class);
         $searchResultsMock->expects($this->once())
             ->method('getItems')
-            ->willReturn([]);
+            ->willReturn($searchResults);
 
         $this->adyenNotificationRepositoryMock->expects($this->once())
             ->method('getList')
             ->with($searchCriteriaMock)
             ->willReturn($searchResultsMock);
 
-        $this->notificationsProvider->provide();
+        $result = $this->notificationsProvider->provide();
+        $this->assertIsArray($result);
+        $this->assertInstanceOf(NotificationInterface::class, $result[0]);
     }
 
     public function testProvideFailure()
