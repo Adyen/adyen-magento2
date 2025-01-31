@@ -56,6 +56,8 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
     private Collection $paymentResponseMockForFactory;
     private CollectionFactory $paymentResponseCollectionFactoryMock;
     private OrderStatusHistoryRepositoryInterface|MockObject $historyRepositoryMock;
+    private Adapter|MockObject $paymentMethodInstanceMock;
+    private PaymentMethods|MockObject $paymentMethodsHelperMock;
 
     protected function setUp(): void
     {
