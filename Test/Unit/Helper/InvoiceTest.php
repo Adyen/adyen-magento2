@@ -74,6 +74,64 @@ class InvoiceTest extends AbstractAdyenTestCase
         $this->assertInstanceOf(InvoiceModel::class, $invoice);
     }
 
+    private static function notificationAmountDataProvider(): array
+    {
+        return [
+            ['notificationAmount' => 0],
+            ['notificationAmount' => 1000]
+        ];
+    }
+
+    /**
+     * @dataProvider notificationAmountDataProvider
+     *
+     * @throws LocalizedException
+     */
+    public function testCreateInvoiceManualCapture($notificationAmount = 1000)
+    {
+        $invoiceMock = $this->createGeneratedMock(InvoiceModel::class, [
+            'setRequestedCaptureCase',
+            'getOrder',
+            'register'
+        ]);
+        $invoiceMock->method('getOrder')->willReturn($this->createMock(Order::class));
+        $invoiceMock->method('register')->willReturn($this->createMock(InvoiceModel::class));
+
+        $orderMock = $this->createConfiguredMock(MagentoOrder::class, [
+            'prepareInvoice' => $invoiceMock,
+            'canInvoice' => true,
+        ]);
+
+        $scopeConfigMock = $this->createConfiguredMock(ScopeConfigInterface::class, [
+            'isSetFlag' => false
+        ]);
+        $contextMock = $this->createConfiguredMock(Context::class, [
+            'getScopeConfig' => $scopeConfigMock
+        ]);
+
+        $invoiceHelper = $this->createInvoiceHelper($contextMock);
+
+        $notificationMock = $this->createWebhook(null, null, $notificationAmount);
+
+        if ($notificationAmount == 0) {
+            $invoiceMock->expects($this->once())
+                ->method('setRequestedCaptureCase')
+                ->with(InvoiceModel::CAPTURE_OFFLINE);
+        } else {
+            $invoiceMock->expects($this->once())
+                ->method('setRequestedCaptureCase')
+                ->with(InvoiceModel::NOT_CAPTURE);
+        }
+
+        $invoice = $invoiceHelper->createInvoice(
+            $orderMock,
+            $notificationMock,
+            false
+        );
+
+        $this->assertInstanceOf(InvoiceModel::class, $invoice);
+    }
+
     public function testCreateAdyenInvoice()
     {
         $adyenInvoiceMockForFactory = $this->createMock(AdyenInvoice::class);
