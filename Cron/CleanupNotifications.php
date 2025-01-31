@@ -16,6 +16,7 @@ use Adyen\Payment\Cron\Providers\NotificationsProviderInterface;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
+use Exception;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\StoreManagerInterface;
 
@@ -41,20 +42,35 @@ class CleanupNotifications
         $storeId = $this->storeManager->getStore()->getId();
         $isWebhookCleanupEnabled = $this->configHelper->getIsWebhookCleanupEnabled($storeId);
 
-        if ($isWebhookCleanupEnabled) {
+        if ($isWebhookCleanupEnabled === true) {
             $numberOfItemsRemoved = 0;
 
             foreach ($this->providers as $provider) {
                 /** @var Notification $notificationToCleanup */
                 foreach ($provider->provide() as $notificationToCleanup) {
-                    $isSuccessfullyDeleted = $this->adyenNotificationRepository->delete($notificationToCleanup);
+                    try {
+                        $isSuccessfullyDeleted = $this->adyenNotificationRepository->delete($notificationToCleanup);
 
-                    if ($isSuccessfullyDeleted) {
-                        $message = __('%1: Notification with entityId %2 has been deleted.',
-                            $provider->getProviderName(), $notificationToCleanup->getEntityId());
-                        $this->adyenLogger->addAdyenNotification($message);
+                        if ($isSuccessfullyDeleted) {
+                            $message = __(
+                                '%1: Notification with entity_id %2 has been deleted because it was processed %3 days ago.',
+                                $provider->getProviderName(),
+                                $notificationToCleanup->getEntityId(),
+                                $this->configHelper->getRequiredDaysForOldWebhooks($storeId)
+                            );
+                            $this->adyenLogger->addAdyenNotification($message);
 
-                        $numberOfItemsRemoved++;
+                            $numberOfItemsRemoved++;
+                        }
+                    } catch (Exception $e) {
+                        $message = __(
+                            '%1: An error occurred while deleting the notification with entity_id %2: %3',
+                            $provider->getProviderName(),
+                            $notificationToCleanup->getEntityId(),
+                            $e->getMessage()
+                        );
+
+                        $this->adyenLogger->error($message);
                     }
                 }
             }

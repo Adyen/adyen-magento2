@@ -18,6 +18,7 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Magento\Framework\DB\Adapter\DeadlockException;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -95,6 +96,28 @@ class CleanupNotificationsTest extends AbstractAdyenTestCase
         $this->notificationsProvider->expects($this->never())->method('provide');
         $this->adyenNotificationRepositoryMock->expects($this->never())->method('delete');
         $this->adyenLoggerMock->expects($this->once())->method('addAdyenDebug');
+
+        $this->cleanupNotifications->execute();
+    }
+
+    public function testExecuteException()
+    {
+        $this->configHelperMock->expects($this->once())
+            ->method('getIsWebhookCleanupEnabled')
+            ->with(self::STORE_ID)
+            ->willReturn(true);
+
+        $notificationMock = $this->createMock(Notification::class);
+        $providerResult[] = $notificationMock;
+
+        $this->notificationsProvider->method('provide')->willReturn($providerResult);
+
+        $this->adyenNotificationRepositoryMock->expects($this->once())
+            ->method('delete')
+            ->with($notificationMock)
+            ->willThrowException(new DeadlockException());
+
+        $this->adyenLoggerMock->expects($this->once())->method('error');
 
         $this->cleanupNotifications->execute();
     }
