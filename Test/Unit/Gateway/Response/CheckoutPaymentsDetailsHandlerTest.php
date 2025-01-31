@@ -109,13 +109,15 @@ class CheckoutPaymentsDetailsHandlerTest extends AbstractAdyenTestCase
                 ]
             ],
             1 => [
-                'additionalData' => [],
+                'additionalData' => [
+                    'paymentMethod' => 'VI',
+                ],
                 'amount' => [],
                 'resultCode' => 'Authorised',
                 'pspReference' => 'ABC12345',
                 'paymentMethod' => [
                     'name' => 'card',
-                    'type' => 'CreditCard',
+                    'type' => 'VI',
                 ]
             ]
         ];
@@ -145,6 +147,22 @@ class CheckoutPaymentsDetailsHandlerTest extends AbstractAdyenTestCase
             ->expects($this->once())
             ->method('setTransactionId')
             ->with('ABC12345');
+
+        $this->paymentMock
+            ->expects($this->once())
+            ->method('getAdditionalInformation')
+            ->with('cc_type')
+            ->willReturn(null);
+
+        $this->paymentMock
+            ->expects($this->once())
+            ->method('setAdditionalInformation')
+            ->with('cc_type', 'VI');
+
+        $this->paymentMock
+            ->expects($this->once())
+            ->method('setCcType')
+            ->with('VI');
 
         $this->applyGenericMockExpectations();
 

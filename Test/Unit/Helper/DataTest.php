@@ -202,7 +202,8 @@ class DataTest extends AbstractAdyenTestCase
             'eu' => 'Default (EU - Europe)',
             'au' => 'AU - Australasia',
             'us' => 'US - United States',
-            'in' => 'IN - India'
+            'in' => 'IN - India',
+            'apse' => 'APSE - Asia Pacific Southeast'
         ];
 
         $actualResult = $this->dataHelper->getCheckoutFrontendRegions();
@@ -1803,7 +1804,8 @@ class DataTest extends AbstractAdyenTestCase
             'eu' => 'Default (EU - Europe)',
             'au' => 'AU - Australasia',
             'us' => 'US - United States',
-            'in' => 'IN - India'
+            'in' => 'IN - India',
+            'apse' => 'APSE - Asia Pacific Southeast'
         ], $this->dataHelper->getRecurringTypes());
     }
 

@@ -56,6 +56,15 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
             $payment->setCcTransId($response['pspReference']);
             $payment->setLastTransId($response['pspReference']);
 
+            //set CC Type
+            $ccType = $payment->getAdditionalInformation('cc_type');
+
+            if (!empty($response['additionalData']['paymentMethod']) && $ccType == null) {
+                $ccType = $response['additionalData']['paymentMethod'];
+                $payment->setAdditionalInformation('cc_type', $ccType);
+                $payment->setCcType($ccType);
+            }
+
             // set transaction
             $payment->setTransactionId($response['pspReference']);
         }

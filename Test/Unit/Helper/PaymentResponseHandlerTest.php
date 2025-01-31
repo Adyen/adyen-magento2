@@ -17,6 +17,7 @@ use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Quote;
 use Adyen\Payment\Helper\Order as OrderHelper;
+use Adyen\Payment\Model\Method\Adapter;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Exception;
 use Magento\Framework\Exception\AlreadyExistsException;
@@ -31,6 +32,7 @@ use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Model\ResourceModel\PaymentResponse\Collection;
 use Adyen\Payment\Model\ResourceModel\PaymentResponse\CollectionFactory;
 use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\PaymentMethods;
 use ReflectionClass;
 
 class PaymentResponseHandlerTest extends AbstractAdyenTestCase
@@ -51,6 +53,9 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
     protected function setUp(): void
     {
         $this->paymentMock  = $this->createMock(Payment::class);
+        // Mock the payment method
+        $this->paymentMethodInstanceMock = $this->createMock(Adapter::class);
+
         $this->orderMock = $this->createMock(\Magento\Sales\Model\Order::class);
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
         $this->vaultHelperMock = $this->createMock(Vault::class);
@@ -64,6 +69,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         ]);
         $this->stateDataHelperMock = $this->createMock(StateData::class);
         $this->configHelperMock = $this->createMock(Config::class);
+        $this->paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
 
         $this->paymentResponseMockForFactory = $this->createMock(Collection::class);
 
@@ -80,6 +86,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         $this->orderMock->method('getPayment')->willReturn($this->paymentMock);
         $this->orderMock->method('getStatus')->willReturn('pending');
         $this->orderMock->method('getIncrementId')->willReturn('00123456');
+        $this->paymentMock->method('getMethodInstance')->willReturn($this->paymentMethodInstanceMock);
 
         $this->orderHelperMock->method('setStatusOrderCreation')->willReturn($this->orderMock);
 
@@ -94,7 +101,8 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
             $this->orderHistoryFactoryMock,
             $this->stateDataHelperMock,
             $this->paymentResponseCollectionFactoryMock,
-            $this->configHelperMock
+            $this->configHelperMock,
+            $this->paymentMethodsHelperMock
         );
     }
 
@@ -597,4 +605,38 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
 
         $this->paymentResponseHandler->handlePaymentsDetailsResponse($paymentsDetailsResponse, $this->orderMock);
     }
+
+    public function testHandlePaymentsDetailsResponseSetsCcType()
+    {
+
+        // Mock the method `isWalletPaymentMethod` in your helper if it's being checked
+        $this->paymentMethodsHelperMock->method('isWalletPaymentMethod')
+            ->with($this->paymentMethodInstanceMock)
+            ->willReturn(false); // Assuming false for this test case
+
+        // Payment details response with a payment method brand
+        $paymentsDetailsResponse = [
+            'resultCode' => PaymentResponseHandler::AUTHORISED,
+            'paymentMethod' => [
+                'brand' => 'VI'
+            ],
+            'merchantReference' => '00123456'
+        ];
+
+        // Expect the `setCcType` method to be called on the payment object with the correct value
+        $this->paymentMock
+            ->method('setCcType')
+            ->with($this->equalTo('VI'));
+
+        // Call the method under test
+        $result = $this->paymentResponseHandler->handlePaymentsDetailsResponse(
+            $paymentsDetailsResponse,
+            $this->orderMock
+        );
+
+        // Assert the response is as expected
+        $this->assertTrue($result);
+    }
+
+
 }
