@@ -25,7 +25,7 @@ class ChannelParameterTest extends WebapiAbstract
     protected function setUp(): void
     {
         $objectManager = Bootstrap::getObjectManager();
-        // @phpstan-ignore class.notFound
+        /** @phpstan-ignore-next-line */
         $this->getMaskedQuoteIdByReservedOrderId = $objectManager->get(GetMaskedQuoteIdByReservedOrderId::class);
         $this->customerTokenService = $objectManager->get(CustomerTokenServiceInterface::class);
     }
