@@ -48,7 +48,7 @@ class GuestPaymentInformationResetOrderId
             $quote = $this->quoteRepository->get($quoteId);
             $method = $quote->getPayment()->getMethod();
 
-            if ($this->paymentMethodsHelper->isAdyenPayment($method)) {
+            if (isset($method) && $this->paymentMethodsHelper->isAdyenPayment($method)) {
                 $quote->setReservedOrderId(null);
             }
         } catch (Exception $e) {
