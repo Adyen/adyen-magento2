@@ -1,0 +1,22 @@
+<?php
+ /**
+ * @var \Adyen\Payment\Block\Adminhtml\Notification\CleanupJobNotice $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+?>
+
+<?php if ($block->isAutoNotificationCleanupEnabled()): ?>
+    <div id="messages">
+        <div class="messages">
+            <div class="message message-notice notice">
+                <div data-ui-id="messages-message-notice">
+                    <?= $escaper->escapeHtml(__(
+                        'Notification clean-up is enabled from the plugin configuration. 
+                        Processed notifications older than %1 days will be cleaned-up by the cronjob!',
+                        $block->getNumberOfDays()
+                    )); ?>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
