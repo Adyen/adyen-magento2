@@ -21,8 +21,6 @@ use Magento\Framework\Api\SearchCriteria;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SearchResultsInterface;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Store\Api\Data\StoreInterface;
-use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 
 class ProcessedOldNotificationsProviderTest extends AbstractAdyenTestCase
@@ -31,10 +29,7 @@ class ProcessedOldNotificationsProviderTest extends AbstractAdyenTestCase
     protected AdyenNotificationRepositoryInterface|MockObject $adyenNotificationRepositoryMock;
     protected SearchCriteriaBuilder|MockObject $searchCriteriaBuilderMock;
     protected Config|MockObject $configHelperMock;
-    protected StoreManagerInterface|MockObject $storeManagerMock;
     protected AdyenLogger|MockObject $adyenLoggerMock;
-
-    const STORE_ID = PHP_INT_MAX;
 
     protected function setUp(): void
     {
@@ -42,18 +37,12 @@ class ProcessedOldNotificationsProviderTest extends AbstractAdyenTestCase
             $this->createMock(AdyenNotificationRepositoryInterface::class);
         $this->searchCriteriaBuilderMock = $this->createMock(SearchCriteriaBuilder::class);
         $this->configHelperMock = $this->createMock(Config::class);
-        $this->storeManagerMock = $this->createMock(StoreManagerInterface::class);
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
-
-        $storeMock = $this->createMock(StoreInterface::class);
-        $storeMock->method('getId')->willReturn(self::STORE_ID);
-        $this->storeManagerMock->method('getStore')->willReturn($storeMock);
 
         $this->notificationsProvider = new ProcessedOldNotificationsProvider(
             $this->adyenNotificationRepositoryMock,
             $this->searchCriteriaBuilderMock,
             $this->configHelperMock,
-            $this->storeManagerMock,
             $this->adyenLoggerMock
         );
     }
@@ -69,7 +58,6 @@ class ProcessedOldNotificationsProviderTest extends AbstractAdyenTestCase
 
         $this->configHelperMock->expects($this->once())
             ->method('getRequiredDaysForOldWebhooks')
-            ->with(self::STORE_ID)
             ->willReturn($expiryDays);
 
         $dateMock = date('Y-m-d H:i:s', time() - $expiryDays * 24 * 60 * 60);
@@ -112,7 +100,6 @@ class ProcessedOldNotificationsProviderTest extends AbstractAdyenTestCase
 
         $this->configHelperMock->expects($this->once())
             ->method('getRequiredDaysForOldWebhooks')
-            ->with(self::STORE_ID)
             ->willReturn($expiryDays);
 
         $dateMock = date('Y-m-d H:i:s', time() - $expiryDays * 24 * 60 * 60);

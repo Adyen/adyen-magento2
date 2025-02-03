@@ -19,8 +19,6 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\DB\Adapter\DeadlockException;
-use Magento\Store\Api\Data\StoreInterface;
-use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 
 class CleanupNotificationsTest extends AbstractAdyenTestCase
@@ -28,33 +26,24 @@ class CleanupNotificationsTest extends AbstractAdyenTestCase
     protected ?CleanupNotifications $cleanupNotifications;
     protected AdyenLogger|MockObject $adyenLoggerMock;
     protected Config|MockObject $configHelperMock;
-    protected StoreManagerInterface|MockObject $storeManagerMock;
     protected AdyenNotificationRepositoryInterface|MockObject  $adyenNotificationRepositoryMock;
     protected NotificationsProviderInterface|MockObject $notificationsProvider;
     protected array $providers;
-
-    const STORE_ID = PHP_INT_MAX;
 
     protected function setUp(): void
     {
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
         $this->configHelperMock = $this->createMock(Config::class);
-        $this->storeManagerMock = $this->createMock(StoreManagerInterface::class);
         $this->adyenNotificationRepositoryMock =
             $this->createMock(AdyenNotificationRepositoryInterface::class);
         $this->notificationsProvider = $this->createMock(NotificationsProviderInterface::class);
 
         $this->providers[] = $this->notificationsProvider;
 
-        $storeMock = $this->createMock(StoreInterface::class);
-        $storeMock->method('getId')->willReturn(self::STORE_ID);
-        $this->storeManagerMock->method('getStore')->willReturn($storeMock);
-
         $this->cleanupNotifications = new CleanupNotifications(
             $this->providers,
             $this->adyenLoggerMock,
             $this->configHelperMock,
-            $this->storeManagerMock,
             $this->adyenNotificationRepositoryMock
         );
     }
@@ -68,7 +57,6 @@ class CleanupNotificationsTest extends AbstractAdyenTestCase
     {
         $this->configHelperMock->expects($this->once())
             ->method('getIsWebhookCleanupEnabled')
-            ->with(self::STORE_ID)
             ->willReturn(true);
 
         $notificationMock = $this->createMock(Notification::class);
@@ -90,7 +78,6 @@ class CleanupNotificationsTest extends AbstractAdyenTestCase
     {
         $this->configHelperMock->expects($this->once())
             ->method('getIsWebhookCleanupEnabled')
-            ->with(self::STORE_ID)
             ->willReturn(false);
 
         $this->notificationsProvider->expects($this->never())->method('provide');
@@ -104,7 +91,6 @@ class CleanupNotificationsTest extends AbstractAdyenTestCase
     {
         $this->configHelperMock->expects($this->once())
             ->method('getIsWebhookCleanupEnabled')
-            ->with(self::STORE_ID)
             ->willReturn(true);
 
         $notificationMock = $this->createMock(Notification::class);

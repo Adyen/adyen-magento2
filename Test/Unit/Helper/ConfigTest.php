@@ -172,8 +172,6 @@ class ConfigTest extends AbstractAdyenTestCase
 
     public function testGetIsWebhookCleanupEnabled()
     {
-        $storeId = PHP_INT_MAX;
-
         $path = sprintf(
             "%s/%s/%s",
             Config::XML_PAYMENT_PREFIX,
@@ -183,17 +181,15 @@ class ConfigTest extends AbstractAdyenTestCase
 
         $this->scopeConfigMock->expects($this->once())
             ->method('isSetFlag')
-            ->with($this->equalTo($path), $this->equalTo(ScopeInterface::SCOPE_STORE), $this->equalTo($storeId))
+            ->with($this->equalTo($path), $this->equalTo(ScopeInterface::SCOPE_STORE), $this->equalTo(null))
             ->willReturn(true);
 
-        $result = $this->configHelper->getIsWebhookCleanupEnabled($storeId);
+        $result = $this->configHelper->getIsWebhookCleanupEnabled();
         $this->assertTrue($result);
     }
 
     public function testGetRequiredDaysForOldWebhooks()
     {
-        $storeId = PHP_INT_MAX;
-
         $path = sprintf(
             "%s/%s/%s",
             Config::XML_PAYMENT_PREFIX,
@@ -203,10 +199,10 @@ class ConfigTest extends AbstractAdyenTestCase
 
         $this->scopeConfigMock->expects($this->once())
             ->method('getValue')
-            ->with($this->equalTo($path), $this->equalTo(ScopeInterface::SCOPE_STORE), $this->equalTo($storeId))
+            ->with($this->equalTo($path), $this->equalTo(ScopeInterface::SCOPE_STORE), $this->equalTo(null))
             ->willReturn("90");
 
-        $result = $this->configHelper->getRequiredDaysForOldWebhooks($storeId);
+        $result = $this->configHelper->getRequiredDaysForOldWebhooks();
         $this->assertIsInt($result);
         $this->assertEquals(90, $result);
     }
