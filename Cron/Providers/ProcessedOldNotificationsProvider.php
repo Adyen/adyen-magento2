@@ -16,7 +16,6 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Store\Model\StoreManagerInterface;
 
 class ProcessedOldNotificationsProvider implements NotificationsProviderInterface
 {
@@ -24,14 +23,12 @@ class ProcessedOldNotificationsProvider implements NotificationsProviderInterfac
         private readonly AdyenNotificationRepositoryInterface $adyenNotificationRepository,
         private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
         private readonly Config $configHelper,
-        private readonly StoreManagerInterface $storeManager,
         private readonly AdyenLogger $adyenLogger
     ) { }
 
     public function provide(): array
     {
-        $storeId = $this->storeManager->getStore()->getId();
-        $numberOfDays = $this->configHelper->getRequiredDaysForOldWebhooks($storeId);
+        $numberOfDays = $this->configHelper->getRequiredDaysForOldWebhooks();
 
         $dateFrom = date('Y-m-d H:i:s', time() - $numberOfDays * 24 * 60 * 60);
 

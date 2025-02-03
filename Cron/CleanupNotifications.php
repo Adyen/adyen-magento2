@@ -17,8 +17,6 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Exception;
-use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Store\Model\StoreManagerInterface;
 
 class CleanupNotifications
 {
@@ -29,18 +27,15 @@ class CleanupNotifications
         private readonly array $providers,
         private readonly AdyenLogger $adyenLogger,
         private readonly Config $configHelper,
-        private readonly StoreManagerInterface $storeManager,
         private readonly AdyenNotificationRepositoryInterface $adyenNotificationRepository
     ) { }
 
     /**
      * @return void
-     * @throws NoSuchEntityException
      */
     public function execute(): void
     {
-        $storeId = $this->storeManager->getStore()->getId();
-        $isWebhookCleanupEnabled = $this->configHelper->getIsWebhookCleanupEnabled($storeId);
+        $isWebhookCleanupEnabled = $this->configHelper->getIsWebhookCleanupEnabled();
 
         if ($isWebhookCleanupEnabled === true) {
             $numberOfItemsRemoved = 0;
@@ -56,7 +51,7 @@ class CleanupNotifications
                                 '%1: Notification with entity_id %2 has been deleted because it was processed %3 days ago.',
                                 $provider->getProviderName(),
                                 $notificationToCleanup->getEntityId(),
-                                $this->configHelper->getRequiredDaysForOldWebhooks($storeId)
+                                $this->configHelper->getRequiredDaysForOldWebhooks()
                             );
                             $this->adyenLogger->addAdyenNotification($message);
 
