@@ -594,22 +594,38 @@ class Config
         );
     }
 
-    public function getIsWebhookCleanupEnabled(int $storeId = null): bool
+    /**
+     * Returns whether if the webhook clean-up by cronjob is enabled or not.
+     *
+     * This field can only be configured on default scope level as
+     * the notification table doesn't have nay relation with the stores.
+     *
+     * @return bool
+     */
+    public function getIsWebhookCleanupEnabled(): bool
     {
         return $this->getConfigData(
             self::XML_CLEANUP_OLD_WEBHOOKS,
             self::XML_ADYEN_ABSTRACT_PREFIX,
-            $storeId,
+            null,
             true
         );
     }
 
-    public function getRequiredDaysForOldWebhooks(int $storeId = null): int
+    /**
+     * Returns the required number of days to clean-up notification by cronjob.
+     *
+     * This field can only be configured on default scope level as
+     * the notification table doesn't have nay relation with the stores.
+     *
+     * @return int
+     */
+    public function getRequiredDaysForOldWebhooks(): int
     {
         return (int) $this->getConfigData(
             self::XML_REQUIRED_DAYS_OLD_WEBHOOKS,
             self::XML_ADYEN_ABSTRACT_PREFIX,
-            $storeId
+            null
         );
     }
 

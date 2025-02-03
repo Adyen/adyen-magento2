@@ -55,7 +55,7 @@
                 ]]>
             </comment>
         </field>
-        <field id="cleanup_old_webhooks" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+        <field id="cleanup_old_webhooks" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0">
             <label>Clean-up old webhooks</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_abstract/cleanup_old_webhooks</config_path>
