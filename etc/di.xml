@@ -1737,7 +1737,7 @@
         <arguments>
             <argument name="providers" xsi:type="array">
                 <item name="processedOldNotifications" xsi:type="object">
-                    Adyen\Payment\Cron\Providers\ProcessedOldNotificationsProvider
+                    Adyen\Payment\Cron\Providers\ProcessedNotificationsProvider
                 </item>
             </argument>
         </arguments>

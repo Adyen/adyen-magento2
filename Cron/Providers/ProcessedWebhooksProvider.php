@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2024 Adyen N.V. (https://www.adyen.com/)
+ * Copyright (c) 2025 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -17,7 +17,7 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Exception\LocalizedException;
 
-class ProcessedOldNotificationsProvider implements NotificationsProviderInterface
+class ProcessedWebhooksProvider implements WebhooksProviderInterface
 {
     public function __construct(
         private readonly AdyenNotificationRepositoryInterface $adyenNotificationRepository,
@@ -28,7 +28,7 @@ class ProcessedOldNotificationsProvider implements NotificationsProviderInterfac
 
     public function provide(): array
     {
-        $numberOfDays = $this->configHelper->getRequiredDaysForOldWebhooks();
+        $numberOfDays = $this->configHelper->getProcessedWebhookRemovalTime();
 
         $dateFrom = date('Y-m-d H:i:s', time() - $numberOfDays * 24 * 60 * 60);
 
@@ -43,7 +43,7 @@ class ProcessedOldNotificationsProvider implements NotificationsProviderInterfac
             return $items->getItems();
         } catch (LocalizedException $e) {
             $errorMessage = sprintf(
-                __('An error occurred while providing notifications older than %s days!'),
+                __('An error occurred while providing webhooks older than %s days!'),
                 $numberOfDays
             );
 
@@ -55,6 +55,6 @@ class ProcessedOldNotificationsProvider implements NotificationsProviderInterfac
 
     public function getProviderName(): string
     {
-        return "Adyen processed old webhook notifications";
+        return "Adyen processed webhooks provider";
     }
 }

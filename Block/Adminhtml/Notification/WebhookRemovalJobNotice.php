@@ -15,7 +15,7 @@ use Adyen\Payment\Helper\Config;
 use Magento\Framework\View\Element\Template\Context;
 use Magento\Theme\Block\Html\Notices;
 
-class CleanupJobNotice extends Notices
+class WebhookRemovalJobNotice extends Notices
 {
     public function __construct(
         Context $context,
@@ -26,13 +26,11 @@ class CleanupJobNotice extends Notices
     }
 
     /**
-     * Determines the visibility of the auto notification notice on Adyen Notifications Overview page.
-     *
      * @return bool
      */
-    public function isAutoNotificationCleanupEnabled(): bool
+    public function isProcessedWebhookRemovalEnabled(): bool
     {
-        return $this->configHelper->getIsWebhookCleanupEnabled();
+        return $this->configHelper->getIsProcessedWebhookRemovalEnabled();
     }
 
     /**
@@ -42,6 +40,6 @@ class CleanupJobNotice extends Notices
      */
     public function getNumberOfDays(): int
     {
-        return $this->configHelper->getRequiredDaysForOldWebhooks();
+        return $this->configHelper->getProcessedWebhookRemovalTime();
     }
 }

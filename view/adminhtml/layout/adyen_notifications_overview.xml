@@ -8,9 +8,9 @@
     </head>
     <body>
         <referenceContainer name="content">
-            <block class="Adyen\Payment\Block\Adminhtml\Notification\CleanupJobNotice"
-                   name="adyen_notification_cleanup_job_notice"
-                   template="Adyen_Payment::notification/cleanup_job_notice.phtml" />
+            <block class="Adyen\Payment\Block\Adminhtml\Notification\WebhookRemovalJobNotice"
+                   name="adyen_notification_webhook_removal_job_notice"
+                   template="Adyen_Payment::notification/webhook_removal_job_notice.phtml" />
             <uiComponent name="adyen_notifications_overview"/>
         </referenceContainer>
     </body>

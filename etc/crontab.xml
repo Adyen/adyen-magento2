@@ -24,7 +24,7 @@
         <job name="adyen_payment_state_data_clean_up" instance="Adyen\Payment\Cron\StateDataCleanUp" method="execute">
             <schedule>0 0 * * *</schedule>
         </job>
-        <job name="adyen_payment_cleanup_notification" instance="Adyen\Payment\Cron\CleanupNotifications" method="execute">
+        <job name="adyen_payment_cleanup_notification" instance="Adyen\Payment\Cron\RemoveProcessedWebhooks" method="execute">
             <schedule>0 0 * * *</schedule>
         </job>
     </group>

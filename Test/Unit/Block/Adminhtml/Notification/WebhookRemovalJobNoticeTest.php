@@ -11,15 +11,15 @@
 
 namespace Adyen\Payment\Test\Unit\Block\Checkout;
 
-use Adyen\Payment\Block\Adminhtml\Notification\CleanupJobNotice;
+use Adyen\Payment\Block\Adminhtml\Notification\WebhookRemovalJobNotice;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\View\Element\Template\Context;
 use PHPUnit\Framework\MockObject\MockObject;
 
-class CleanupJobNoticeTest extends AbstractAdyenTestCase
+class WebhookRemovalJobNoticeTest extends AbstractAdyenTestCase
 {
-    protected ?CleanupJobNotice $cleanupJobNotice;
+    protected ?WebhookRemovalJobNotice $cleanupJobNotice;
     protected Context|MockObject $contextMock;
     protected Config|MockObject $configHelperMock;
 
@@ -30,7 +30,7 @@ class CleanupJobNoticeTest extends AbstractAdyenTestCase
     {
         $this->contextMock = $this->createMock(Context::class);
         $this->configHelperMock = $this->createMock(Config::class);
-        $this->cleanupJobNotice = new CleanupJobNotice($this->contextMock, $this->configHelperMock);
+        $this->cleanupJobNotice = new WebhookRemovalJobNotice($this->contextMock, $this->configHelperMock);
     }
 
     /**
@@ -44,14 +44,14 @@ class CleanupJobNoticeTest extends AbstractAdyenTestCase
     /**
      * @return void
      */
-    public function testIsAutoNotificationCleanupEnabled()
+    public function testIsProcessedWebhookRemovalEnabled()
     {
         $this->configHelperMock->expects($this->once())
-            ->method('getIsWebhookCleanupEnabled')
+            ->method('getIsProcessedWebhookRemovalEnabled')
             ->willReturn(true);
 
         $this->assertTrue(
-            $this->cleanupJobNotice->isAutoNotificationCleanupEnabled()
+            $this->cleanupJobNotice->isProcessedWebhookRemovalEnabled()
         );
     }
 
@@ -63,7 +63,7 @@ class CleanupJobNoticeTest extends AbstractAdyenTestCase
         $days = 90;
 
         $this->configHelperMock->expects($this->once())
-            ->method('getRequiredDaysForOldWebhooks')
+            ->method('getProcessedWebhookRemovalTime')
             ->willReturn($days);
 
         $this->assertEquals($days, $this->cleanupJobNotice->getNumberOfDays());

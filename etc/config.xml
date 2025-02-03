@@ -34,8 +34,8 @@
                 <payment_cancelled>canceled</payment_cancelled>
                 <capture_for_openinvoice>manual</capture_for_openinvoice>
                 <allow_multistore_tokens>1</allow_multistore_tokens>
-                <cleanup_old_webhooks>0</cleanup_old_webhooks>
-                <required_days_old_webhooks>90</required_days_old_webhooks>
+                <remove_processed_webhooks>0</remove_processed_webhooks>
+                <processed_webhook_removal_time>90</processed_webhook_removal_time>
             </adyen_abstract>
             <adyen_cc>
                 <active>0</active>

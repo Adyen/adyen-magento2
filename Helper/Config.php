@@ -57,8 +57,8 @@ class Config
     const XML_RECURRING_CONFIGURATION = 'recurring_configuration';
     const XML_ALLOW_MULTISTORE_TOKENS = 'allow_multistore_tokens';
     const XML_THREEDS_FLOW = 'threeds_flow';
-    const XML_CLEANUP_OLD_WEBHOOKS = 'cleanup_old_webhooks';
-    const XML_REQUIRED_DAYS_OLD_WEBHOOKS = 'required_days_old_webhooks';
+    const XML_REMOVE_PROCESSED_WEBHOOKS = 'remove_processed_webhooks';
+    const XML_PROCESSED_WEBHOOK_REMOVAL_TIME = 'processed_webhook_removal_time';
 
     protected ScopeConfigInterface $scopeConfig;
     private EncryptorInterface $encryptor;
@@ -595,17 +595,17 @@ class Config
     }
 
     /**
-     * Returns whether if the webhook clean-up by cronjob is enabled or not.
+     * Indicates whether if the processed webhook removal cronjob is enabled or not.
      *
      * This field can only be configured on default scope level as
      * the notification table doesn't have nay relation with the stores.
      *
      * @return bool
      */
-    public function getIsWebhookCleanupEnabled(): bool
+    public function getIsProcessedWebhookRemovalEnabled(): bool
     {
         return $this->getConfigData(
-            self::XML_CLEANUP_OLD_WEBHOOKS,
+            self::XML_REMOVE_PROCESSED_WEBHOOKS,
             self::XML_ADYEN_ABSTRACT_PREFIX,
             null,
             true
@@ -613,17 +613,17 @@ class Config
     }
 
     /**
-     * Returns the required number of days to clean-up notification by cronjob.
+     * Returns the required number of days to remove processed webhooks.
      *
      * This field can only be configured on default scope level as
      * the notification table doesn't have nay relation with the stores.
      *
      * @return int
      */
-    public function getRequiredDaysForOldWebhooks(): int
+    public function getProcessedWebhookRemovalTime(): int
     {
         return (int) $this->getConfigData(
-            self::XML_REQUIRED_DAYS_OLD_WEBHOOKS,
+            self::XML_PROCESSED_WEBHOOK_REMOVAL_TIME,
             self::XML_ADYEN_ABSTRACT_PREFIX,
             null
         );

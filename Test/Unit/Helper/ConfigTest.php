@@ -176,7 +176,7 @@ class ConfigTest extends AbstractAdyenTestCase
             "%s/%s/%s",
             Config::XML_PAYMENT_PREFIX,
             Config::XML_ADYEN_ABSTRACT_PREFIX,
-            Config::XML_CLEANUP_OLD_WEBHOOKS
+            Config::XML_REMOVE_PROCESSED_WEBHOOKS
         );
 
         $this->scopeConfigMock->expects($this->once())
@@ -184,7 +184,7 @@ class ConfigTest extends AbstractAdyenTestCase
             ->with($this->equalTo($path), $this->equalTo(ScopeInterface::SCOPE_STORE), $this->equalTo(null))
             ->willReturn(true);
 
-        $result = $this->configHelper->getIsWebhookCleanupEnabled();
+        $result = $this->configHelper->getIsProcessedWebhookRemovalEnabled();
         $this->assertTrue($result);
     }
 
@@ -194,7 +194,7 @@ class ConfigTest extends AbstractAdyenTestCase
             "%s/%s/%s",
             Config::XML_PAYMENT_PREFIX,
             Config::XML_ADYEN_ABSTRACT_PREFIX,
-            Config::XML_REQUIRED_DAYS_OLD_WEBHOOKS
+            Config::XML_PROCESSED_WEBHOOK_REMOVAL_TIME
         );
 
         $this->scopeConfigMock->expects($this->once())
@@ -202,7 +202,7 @@ class ConfigTest extends AbstractAdyenTestCase
             ->with($this->equalTo($path), $this->equalTo(ScopeInterface::SCOPE_STORE), $this->equalTo(null))
             ->willReturn("90");
 
-        $result = $this->configHelper->getRequiredDaysForOldWebhooks();
+        $result = $this->configHelper->getProcessedWebhookRemovalTime();
         $this->assertIsInt($result);
         $this->assertEquals(90, $result);
     }

@@ -13,7 +13,7 @@ namespace Adyen\Payment\Test\Cron\Providers;
 
 use Adyen\Payment\Api\Data\NotificationInterface;
 use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
-use Adyen\Payment\Cron\Providers\ProcessedOldNotificationsProvider;
+use Adyen\Payment\Cron\Providers\ProcessedWebhooksProvider;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
@@ -23,9 +23,9 @@ use Magento\Framework\Api\SearchResultsInterface;
 use Magento\Framework\Exception\LocalizedException;
 use PHPUnit\Framework\MockObject\MockObject;
 
-class ProcessedOldNotificationsProviderTest extends AbstractAdyenTestCase
+class ProcessedNotificationsProviderTest extends AbstractAdyenTestCase
 {
-    protected ?ProcessedOldNotificationsProvider $notificationsProvider;
+    protected ?ProcessedWebhooksProvider $notificationsProvider;
     protected AdyenNotificationRepositoryInterface|MockObject $adyenNotificationRepositoryMock;
     protected SearchCriteriaBuilder|MockObject $searchCriteriaBuilderMock;
     protected Config|MockObject $configHelperMock;
@@ -39,7 +39,7 @@ class ProcessedOldNotificationsProviderTest extends AbstractAdyenTestCase
         $this->configHelperMock = $this->createMock(Config::class);
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
 
-        $this->notificationsProvider = new ProcessedOldNotificationsProvider(
+        $this->notificationsProvider = new ProcessedWebhooksProvider(
             $this->adyenNotificationRepositoryMock,
             $this->searchCriteriaBuilderMock,
             $this->configHelperMock,
@@ -57,7 +57,7 @@ class ProcessedOldNotificationsProviderTest extends AbstractAdyenTestCase
         $expiryDays = 90;
 
         $this->configHelperMock->expects($this->once())
-            ->method('getRequiredDaysForOldWebhooks')
+            ->method('getProcessedWebhookRemovalTime')
             ->willReturn($expiryDays);
 
         $dateMock = date('Y-m-d H:i:s', time() - $expiryDays * 24 * 60 * 60);
@@ -99,7 +99,7 @@ class ProcessedOldNotificationsProviderTest extends AbstractAdyenTestCase
         $expiryDays = 90;
 
         $this->configHelperMock->expects($this->once())
-            ->method('getRequiredDaysForOldWebhooks')
+            ->method('getProcessedWebhookRemovalTime')
             ->willReturn($expiryDays);
 
         $dateMock = date('Y-m-d H:i:s', time() - $expiryDays * 24 * 60 * 60);

@@ -12,16 +12,16 @@
 namespace Adyen\Payment\Cron;
 
 use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
-use Adyen\Payment\Cron\Providers\NotificationsProviderInterface;
+use Adyen\Payment\Cron\Providers\WebhooksProviderInterface;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Exception;
 
-class CleanupNotifications
+class RemoveProcessedWebhooks
 {
     /**
-     * @param NotificationsProviderInterface[] $providers
+     * @param WebhooksProviderInterface[] $providers
      */
     public function __construct(
         private readonly array $providers,
@@ -35,7 +35,7 @@ class CleanupNotifications
      */
     public function execute(): void
     {
-        $isWebhookCleanupEnabled = $this->configHelper->getIsWebhookCleanupEnabled();
+        $isWebhookCleanupEnabled = $this->configHelper->getIsProcessedWebhookRemovalEnabled();
 
         if ($isWebhookCleanupEnabled === true) {
             $numberOfItemsRemoved = 0;
@@ -51,7 +51,7 @@ class CleanupNotifications
                                 '%1: Notification with entity_id %2 has been deleted because it was processed %3 days ago.',
                                 $provider->getProviderName(),
                                 $notificationToCleanup->getEntityId(),
-                                $this->configHelper->getRequiredDaysForOldWebhooks()
+                                $this->configHelper->getProcessedWebhookRemovalTime()
                             );
                             $this->adyenLogger->addAdyenNotification($message);
 

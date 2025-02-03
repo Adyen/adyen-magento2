@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2024 Adyen N.V. (https://www.adyen.com/)
+ * Copyright (c) 2025 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -11,7 +11,7 @@
 
 namespace Adyen\Payment\Cron\Providers;
 
-interface NotificationsProviderInterface
+interface WebhooksProviderInterface
 {
     /**
      * @return array
