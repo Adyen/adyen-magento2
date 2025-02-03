@@ -132,7 +132,7 @@ class ProcessedNotificationsProviderTest extends AbstractAdyenTestCase
     public function testGetProviderName()
     {
         $this->assertEquals(
-            'Adyen processed old webhook notifications',
+            'Adyen processed webhooks provider',
             $this->notificationsProvider->getProviderName()
         );
     }

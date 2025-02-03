@@ -69,7 +69,7 @@
             <depends>
                 <field id="remove_processed_webhooks">1</field>
             </depends>
-            <label>Number of days to remove processed webhooks</label>
+            <label>Days required to remove processed webhooks</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_abstract/processed_webhook_removal_time</config_path>
         </field>
