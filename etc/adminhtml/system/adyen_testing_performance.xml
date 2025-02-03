@@ -57,6 +57,7 @@
         </field>
         <field id="remove_processed_webhooks" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0">
             <label>Remove processed webhooks</label>
+            <backend_model>Adyen\Payment\Model\Config\Backend\ProcessedWebhookRemoval</backend_model>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_abstract/remove_processed_webhooks</config_path>
             <comment model="Adyen\Payment\Model\Comment\WebhookRemovalNotice"/>
