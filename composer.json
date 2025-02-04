@@ -18,7 +18,7 @@
     "magento/module-vault": ">=101.2.4",
     "magento/module-multishipping": ">=100.4.4",
     "magento/module-graph-ql": ">=100.4.4",
-    "magento/module-instant-purchase": ">=100.4.4",
+    "magento/module-instant-purchase": ">=100.4.3",
     "ext-json": "*"
   },
   "require-dev": {
