@@ -95,7 +95,7 @@ define(
                 fullScreenLoader.startLoader();
                 let giftcards = [];
 
-                let paymentMethods = paymentMethodsResponse.paymentMethodsResponse.paymentMethods;
+                let paymentMethods = paymentMethodsResponse.paymentMethodsResponse?.paymentMethods;
 
                 if (!!paymentMethods && paymentMethods.length > 0) {
                     giftcards.push({
