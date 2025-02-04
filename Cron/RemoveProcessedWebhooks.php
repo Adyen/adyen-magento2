@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2024 Adyen N.V. (https://www.adyen.com/)
+ * Copyright (c) 2025 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -22,6 +22,9 @@ class RemoveProcessedWebhooks
 {
     /**
      * @param WebhooksProviderInterface[] $providers
+     * @param AdyenLogger $adyenLogger
+     * @param Config $configHelper
+     * @param AdyenNotificationRepositoryInterface $adyenNotificationRepository
      */
     public function __construct(
         private readonly array $providers,
@@ -70,13 +73,13 @@ class RemoveProcessedWebhooks
                 }
             }
 
-            $successMessage = sprintf(
-                __('%s webhook notifications have been cleaned-up by the CleanupNotifications job.'),
+            $successMessage = __(
+                '%1 processed webhooks have been removed by the RemoveProcessedWebhooks cronjob.',
                 $numberOfItemsRemoved
             );
-            $this->adyenLogger->addAdyenDebug($successMessage);
+            $this->adyenLogger->addAdyenNotification($successMessage);
         } else {
-            $message = __('Webhook notification clean-up feature is disabled. The job has been skipped!');
+            $message = __('Processed webhook removal feature is disabled. The cronjob has been skipped!');
             $this->adyenLogger->addAdyenDebug($message);
         }
     }
