@@ -1733,11 +1733,11 @@
             <argument name="resourceModel" xsi:type="string">Adyen\Payment\Model\ResourceModel\Notification</argument>
         </arguments>
     </type>
-    <type name="Adyen\Payment\Cron\CleanupNotifications">
+    <type name="Adyen\Payment\Cron\RemoveProcessedWebhooks">
         <arguments>
             <argument name="providers" xsi:type="array">
-                <item name="processedOldNotifications" xsi:type="object">
-                    Adyen\Payment\Cron\Providers\ProcessedNotificationsProvider
+                <item name="processedWebhooks" xsi:type="object">
+                    Adyen\Payment\Cron\Providers\ProcessedWebhooksProvider
                 </item>
             </argument>
         </arguments>
