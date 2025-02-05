@@ -533,10 +533,7 @@ define(
                 return true;
             },
             getControllerName: function() {
-                return window.checkoutConfig.payment.iframe.controllerName[this.getCode()];
-            },
-            getPlaceOrderUrl: function() {
-                return window.checkoutConfig.payment.iframe.placeOrderUrl[this.getCode()];
+                return window.checkoutConfig.payment.adyenCc.controllerName;
             },
             grandTotal: function () {
                 for (const totalsegment of quote.getTotals()()['total_segments']) {
