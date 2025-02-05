@@ -54,6 +54,15 @@ define([
          */
         getIcons: function (type) {
             return this.details.icon;
+        },
+        getData: function () {
+            return {
+                method: this.code,
+                additional_data: {
+                    public_hash: this.publicHash,
+                    frontendType: 'default'
+                },
+            };
         }
     });
 });
