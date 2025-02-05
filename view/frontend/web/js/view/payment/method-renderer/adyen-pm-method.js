@@ -143,7 +143,7 @@ define(
                     this.renderCheckoutComponent();
                 }
             },
-            
+
             handleOnError: function (error, component) {
                 this.handleOnFailure(error, component);
             },
@@ -262,8 +262,6 @@ define(
                 if (!!state.data) {
                     request = state.data;
                 }
-
-                request.cancelled = true;
 
                 adyenPaymentService.paymentDetails(request, self.orderId).done(function() {
                     $.mage.redirect(

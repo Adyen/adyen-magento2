@@ -7,6 +7,8 @@
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
+ * @deprecated This class is deprecated and will be removed in a future release.
+ *              Use an alternative service or class for similar requests.
  */
 
 namespace Adyen\Payment\Model\Api;
@@ -87,8 +89,10 @@ class PaymentRequest extends DataObject
     }
 
     /**
+     * @deprecated This method is deprecated and will be removed in a future release.
+     *
      * @param Payment $payment
-     * @return mixed
+     * @return array
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
@@ -134,6 +138,7 @@ class PaymentRequest extends DataObject
     }
 
     /**
+     * @deprecated This method is redundant and no more used with the current flow. Will be deleted in the future releases.
      * @param string $shopperReference
      * @param int $storeId
      * @return array
@@ -182,6 +187,7 @@ class PaymentRequest extends DataObject
     }
 
     /**
+     * @deprecated This method is a part of deprecated parent and will be removed in the future releases.
      * @param string $shopperReference
      * @param int $storeId
      * @param string $recurringType
@@ -208,6 +214,7 @@ class PaymentRequest extends DataObject
     }
 
     /**
+     * @deprecated This method is redundant and will be removed in the coming major release.
      * @param string $recurringDetailReference
      * @param string $shopperReference
      * @param int $storeId
