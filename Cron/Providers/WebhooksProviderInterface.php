@@ -13,6 +13,8 @@ namespace Adyen\Payment\Cron\Providers;
 
 interface WebhooksProviderInterface
 {
+    const BATCH_SIZE = 1000;
+
     /**
      * @return array
      */

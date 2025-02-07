@@ -36,6 +36,7 @@ class ProcessedWebhooksProvider implements WebhooksProviderInterface
             ->addFilter('done', 1)
             ->addFilter('processing', 0)
             ->addFilter('created_at', $dateFrom, 'lteq')
+            ->setPageSize(self::BATCH_SIZE)
             ->create();
 
         try {
