@@ -15,7 +15,7 @@ define(
     function (
         $,
         adyenConfiguration,
-        AdyenWeb,
+        AdyenWeb
     ) {
         'use strict';
         return {
