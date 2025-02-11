@@ -70,4 +70,12 @@ class SuccessTest extends AbstractAdyenTestCase
         $result = $this->successBlock->renderAction();
         $this->assertTrue($result);
     }
+
+    public function testBillingCountryCodeSetterGetter()
+    {
+        $countryCode = "TR";
+        $this->successBlock->setBillingCountryCode($countryCode);
+
+        $this->assertEquals($countryCode, $this->successBlock->getBillingCountryCode());
+    }
 }
