@@ -193,16 +193,15 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
     public function testFormatPaymentResponseForOfflinePayments()
     {
         $resultCode = PaymentResponseHandler::RECEIVED;
-        $additionalData = ['action' => ['voucher']];
-
+        $action = ['type' => 'voucher'];
         $expectedResult = [
             "isFinal" => true,
             "resultCode" => $resultCode,
-            "additionalData" => $additionalData
+            "action" => $action
         ];
 
         // Execute method of the tested class
-        $result = $this->paymentResponseHandler->formatPaymentResponse($resultCode, null, $additionalData);
+        $result = $this->paymentResponseHandler->formatPaymentResponse($resultCode, $action);
 
         // Assert conditions
         $this->assertEquals($expectedResult, $result);
