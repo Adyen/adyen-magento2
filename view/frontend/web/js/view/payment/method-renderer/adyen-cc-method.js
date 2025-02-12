@@ -107,7 +107,7 @@ define(
 
                 // Check the paymentMethods response to enable Credit Card payments
                 if (!!paymentMethodsResponse &&
-                    !paymentMethodsResponse.paymentMethodsResponse.paymentMethods.find(self.isSchemePaymentsEnabled)) {
+                    !paymentMethodsResponse.paymentMethodsResponse?.paymentMethods.find(self.isSchemePaymentsEnabled)) {
                     return;
                 }
 
@@ -533,10 +533,7 @@ define(
                 return true;
             },
             getControllerName: function() {
-                return window.checkoutConfig.payment.iframe.controllerName[this.getCode()];
-            },
-            getPlaceOrderUrl: function() {
-                return window.checkoutConfig.payment.iframe.placeOrderUrl[this.getCode()];
+                return window.checkoutConfig.payment.adyenCc.controllerName;
             },
             grandTotal: function () {
                 for (const totalsegment of quote.getTotals()()['total_segments']) {
