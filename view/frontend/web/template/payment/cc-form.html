@@ -43,19 +43,15 @@
             <!--/ko-->
         </div>
 
-
         <form class="form" id="adyen-cc-form" data-role="adyen-cc-form" action="#" method="post" data-bind="mageInit: {
             'transparent':{
                 'context': context(),
-                'controller': getControllerName(),
-                'orderSaveUrl':getPlaceOrderUrl(),
+                'controller': getControllerName()
             }, 'validation':[]}">
-
 
             <!-- ko foreach: getRegion('messages') -->
             <!-- ko template: getTemplate() --><!-- /ko -->
             <!--/ko-->
-
 
             <fieldset
                     data-bind="attr: {class: 'fieldset payment items ccard ' + getCode(), id: 'payment_form_' + getCode()}">
@@ -94,7 +90,6 @@
                     </div>
                 </div>
 
-
                 <!-- ko if: (hasInstallments())-->
 
                 <div class="field required"
@@ -118,7 +113,6 @@
                         </select>
                     </div>
                 </div>
-
 
                 <!-- /ko -->
             </fieldset>
@@ -145,4 +139,3 @@
     </div>
 </div>
 <!--/ko-->
-
