@@ -201,7 +201,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         ];
 
         // Execute method of the tested class
-        $result = $this->paymentResponseHandler->formatPaymentResponse($resultCode, $action, null);
+        $result = $this->paymentResponseHandler->formatPaymentResponse($resultCode, $action);
 
         // Assert conditions
         $this->assertEquals($expectedResult, $result);

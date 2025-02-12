@@ -95,8 +95,7 @@ class PaymentResponseHandler
 
     public function formatPaymentResponse(
         string $resultCode,
-        array $action = null,
-        array $additionalData = null
+        array $action = null
     ): array {
         switch ($resultCode) {
             case self::AUTHORISED:
