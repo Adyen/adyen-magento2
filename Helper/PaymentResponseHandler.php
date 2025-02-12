@@ -117,16 +117,11 @@ class PaymentResponseHandler
                     "action" => $action
                 ];
             case self::PRESENT_TO_SHOPPER:
-                return [
-                    "isFinal" => true,
-                    "resultCode" => $resultCode,
-                    "action" => $action
-                ];
             case self::RECEIVED:
                 return [
                     "isFinal" => true,
                     "resultCode" => $resultCode,
-                    "additionalData" => $additionalData
+                    "action" => $action
                 ];
             default:
                 return [
