@@ -12,23 +12,30 @@
 
 namespace Adyen\Payment\Model\Comment;
 
-use Adyen\Payment\Cron\Providers\ProcessedWebhooksProvider;
+use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Model\ResourceModel\Notification\Collection;
+use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory;
 use Magento\Config\Model\Config\CommentInterface;
 
 class WebhookRemovalNotice implements CommentInterface
 {
     public function __construct(
-        private readonly ProcessedWebhooksProvider $processedNotificationProvider
+        private readonly CollectionFactory $notificationCollectionFactory,
+        private readonly Config $configHelper
     ) { }
 
     public function getCommentText($elementValue)
     {
         if ($elementValue === '0') {
-            $numberOfNotificationsToBeRemoved = count($this->processedNotificationProvider->provide());
+            /** @var Collection $notificationCollection */
+            $notificationCollection = $this->notificationCollectionFactory->create();
+            $notificationCollection->getProcessedWebhookIdsByTimeLimit(
+                $this->configHelper->getProcessedWebhookRemovalTime()
+            );
 
             return __(
                 'Enabling this feature will remove %1 processed webhooks from the database!',
-                $numberOfNotificationsToBeRemoved
+                $notificationCollection->getSize()
             );
         }
     }

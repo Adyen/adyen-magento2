@@ -11,26 +11,32 @@
 
 namespace Adyen\Payment\Test\Helper\Unit\Model\Comment;
 
-use Adyen\Payment\Api\Data\NotificationInterface;
-use Adyen\Payment\Cron\Providers\ProcessedWebhooksProvider;
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Model\Comment\WebhookRemovalNotice;
+use Adyen\Payment\Model\ResourceModel\Notification\Collection;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Phrase;
 use PHPUnit\Framework\MockObject\MockObject;
+use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory;
 
 class WebhookRemovalNoticeTest extends AbstractAdyenTestCase
 {
     protected ?WebhookRemovalNotice $webhookRemovalNotice;
-    protected ProcessedWebhooksProvider|MockObject $processedWebhooksProviderMock;
+    protected CollectionFactory|MockObject $notificationCollectionFactoryMock;
+    private Config|MockObject $configHelperMock;
 
     /**
      * @return void
      */
     protected function setUp(): void
     {
-        $this->processedWebhooksProviderMock = $this->createMock(ProcessedWebhooksProvider::class);
+        $this->notificationCollectionFactoryMock =
+            $this->createGeneratedMock(CollectionFactory::class, ['create']);
+        $this->configHelperMock = $this->createMock(Config::class);
+
         $this->webhookRemovalNotice = new WebhookRemovalNotice(
-            $this->processedWebhooksProviderMock
+            $this->notificationCollectionFactoryMock,
+            $this->configHelperMock
         );
     }
 
@@ -48,14 +54,23 @@ class WebhookRemovalNoticeTest extends AbstractAdyenTestCase
     public function testGetCommentText()
     {
         $elementValue = '0';
+        $numberOfItems = 10;
 
-        $providerResult[] = $this->createMock(NotificationInterface::class);
-        $this->processedWebhooksProviderMock->expects($this->once())
-            ->method('provide')
-            ->willReturn($providerResult);
+        $this->configHelperMock->expects($this->once())
+            ->method('getProcessedWebhookRemovalTime')
+            ->willReturn(90);
+
+        $collectionMock = $this->createMock(Collection::class);
+        $collectionMock->expects($this->atLeastOnce())
+            ->method('getSize')
+            ->willReturn($numberOfItems);
+
+        $this->notificationCollectionFactoryMock->expects($this->once())
+            ->method('create')
+            ->willReturn($collectionMock);
 
         $result = $this->webhookRemovalNotice->getCommentText($elementValue);
         $this->assertInstanceOf(Phrase::class, $result);
-        $this->stringContains($result, sprintf("%s processed webhooks", count($providerResult)));
+        $this->stringContains($result, sprintf("%s processed webhooks", $numberOfItems));
     }
 }
