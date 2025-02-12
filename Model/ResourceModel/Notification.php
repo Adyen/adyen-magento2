@@ -56,13 +56,13 @@ class Notification extends AbstractDb
     /**
      * Deletes the rows corresponding to the given `entity_id`s
      *
-     * @param array $entitiyIds
+     * @param array $entityIds
      * @return void
      * @throws LocalizedException
      */
-    public function deleteByIds(array $entitiyIds): void
+    public function deleteByIds(array $entityIds): void
     {
-        if (empty($entitiyIds)) {
+        if (empty($entityIds)) {
             return;
         }
 
@@ -71,7 +71,7 @@ class Notification extends AbstractDb
         $connection = $this->getConnection();
         $select = $connection->select()
             ->from(['notification' => $tableName])
-            ->where('notification.entity_id IN (?)', $entitiyIds);
+            ->where('notification.entity_id IN (?)', $entityIds);
 
         $connection->query($select->deleteFromSelect('notification'));
     }

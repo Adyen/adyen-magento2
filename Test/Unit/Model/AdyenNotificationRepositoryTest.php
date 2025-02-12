@@ -12,16 +12,11 @@
 namespace Adyen\Payment\Test\Helper\Unit\Model;
 
 use Adyen\Payment\Model\AdyenNotificationRepository;
-use Adyen\Payment\Model\Notification as NotificationEntity;
 use Adyen\Payment\Model\ResourceModel\Notification;
-use Adyen\Payment\Model\ResourceModel\Notification\Collection;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Api\Search\SearchResultFactory;
-use Magento\Framework\Api\Search\SearchResultInterface;
 use Magento\Framework\Api\SearchCriteria\CollectionProcessor;
-use Magento\Framework\Api\SearchCriteriaInterface;
-use Magento\Framework\Api\SearchResultsInterface;
 use Magento\Framework\ObjectManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -46,9 +41,6 @@ class AdyenNotificationRepositoryTest extends AbstractAdyenTestCase
         $this->objectManagerMock = $this->createMock(ObjectManagerInterface::class);
 
         $this->adyenNotificationRepository = new AdyenNotificationRepository(
-            $this->searchResultFactoryMock,
-            $this->collectionFactoryMock,
-            $this->collectionProcessorMock,
             $this->objectManagerMock,
             self::RESOURCE_MODEL
         );
@@ -59,44 +51,33 @@ class AdyenNotificationRepositoryTest extends AbstractAdyenTestCase
         $this->adyenNotificationRepository = null;
     }
 
-    public function testGetList()
+    public function testDeleteByIds()
     {
-        $searchResult = $this->createMock(SearchResultInterface::class);
-        $searchResult->expects($this->once())->method('setItems');
-        $searchResult->expects($this->once())->method('setTotalCount');
+        $entityIds = ['1', '2', '3'];
 
-        $this->searchResultFactoryMock->expects($this->once())
-            ->method('create')
-            ->willReturn($searchResult);
+        $resourceModel = $this->createMock(Notification::class);
 
-        $collection = $this->createMock(Collection::class);
-        $this->collectionFactoryMock->expects($this->once())
-            ->method('create')
-            ->willReturn($collection);
-
-        $searchCriteria = $this->createMock(SearchCriteriaInterface::class);
-        $this->collectionProcessorMock->expects($this->once())
-            ->method('process')
-            ->with($searchCriteria, $collection);
-
-
-        $result = $this->adyenNotificationRepository->getList($searchCriteria);
-        $this->assertInstanceOf(SearchResultsInterface::class, $result);
-    }
-
-    public function testDelete()
-    {
-        $entityMock = $this->createMock(NotificationEntity::class);
-
-        $resourceModelMock = $this->createMock(Notification::class);
-        $resourceModelMock->expects($this->once())->method('delete')->with($entityMock);
+        // Assert method call `deleteByIds()`
+        $resourceModel->expects($this->once())->method('deleteByIds')->with($entityIds);
 
         $this->objectManagerMock->expects($this->once())
             ->method('get')
-            ->willReturn($resourceModelMock);
+            ->with(self::RESOURCE_MODEL)
+            ->willReturn($resourceModel);
 
-        $result = $this->adyenNotificationRepository->delete($entityMock);
+        $this->adyenNotificationRepository->deleteByIds($entityIds);
+    }
 
-        $this->assertTrue($result);
+    public function testDeleteByIdsEmptyValues()
+    {
+        $entityIds = [];
+
+        $resourceModel = $this->createMock(Notification::class);
+
+        // Assert method not call `deleteByIds()`
+        $resourceModel->expects($this->never())->method('deleteByIds');
+        $this->objectManagerMock->expects($this->never())->method('get');
+
+        $this->adyenNotificationRepository->deleteByIds($entityIds);
     }
 }

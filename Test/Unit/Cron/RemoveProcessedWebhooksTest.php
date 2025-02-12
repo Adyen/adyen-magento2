@@ -59,15 +59,28 @@ class RemoveProcessedWebhooksTest extends AbstractAdyenTestCase
             ->method('getIsProcessedWebhookRemovalEnabled')
             ->willReturn(true);
 
-        $notificationMock = $this->createMock(Notification::class);
-        $providerResult[] = $notificationMock;
-
+        $providerResult = [1,2,3];
         $this->notificationsProvider->method('provide')->willReturn($providerResult);
 
         $this->adyenNotificationRepositoryMock->expects($this->once())
-            ->method('delete')
-            ->with($notificationMock)
+            ->method('deleteByIds')
+            ->with($providerResult);
+
+        $this->adyenLoggerMock->expects($this->once())->method('addAdyenNotification');
+
+        $this->cleanupNotifications->execute();
+    }
+
+    public function testExecuteConfigEnabledProcessEmptyResult()
+    {
+        $this->configHelperMock->expects($this->once())
+            ->method('getIsProcessedWebhookRemovalEnabled')
             ->willReturn(true);
+
+        $providerResult = [];
+        $this->notificationsProvider->method('provide')->willReturn($providerResult);
+
+        $this->adyenNotificationRepositoryMock->expects($this->never())->method('deleteByIds');
 
         $this->adyenLoggerMock->expects($this->once())->method('addAdyenDebug');
 
@@ -81,7 +94,7 @@ class RemoveProcessedWebhooksTest extends AbstractAdyenTestCase
             ->willReturn(false);
 
         $this->notificationsProvider->expects($this->never())->method('provide');
-        $this->adyenNotificationRepositoryMock->expects($this->never())->method('delete');
+        $this->adyenNotificationRepositoryMock->expects($this->never())->method('deleteByIds');
         $this->adyenLoggerMock->expects($this->once())->method('addAdyenDebug');
 
         $this->cleanupNotifications->execute();
@@ -93,14 +106,13 @@ class RemoveProcessedWebhooksTest extends AbstractAdyenTestCase
             ->method('getIsProcessedWebhookRemovalEnabled')
             ->willReturn(true);
 
-        $notificationMock = $this->createMock(Notification::class);
-        $providerResult[] = $notificationMock;
+        $providerResult = ['1', '2', '3'];
 
         $this->notificationsProvider->method('provide')->willReturn($providerResult);
 
         $this->adyenNotificationRepositoryMock->expects($this->once())
-            ->method('delete')
-            ->with($notificationMock)
+            ->method('deleteByIds')
+            ->with($providerResult)
             ->willThrowException(new DeadlockException());
 
         $this->adyenLoggerMock->expects($this->once())->method('error');

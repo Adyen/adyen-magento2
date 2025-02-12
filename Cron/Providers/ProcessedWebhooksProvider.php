@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Cron\Providers;
 
+use Adyen\Payment\Api\Data\NotificationInterface;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Model\ResourceModel\Notification\Collection;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory;
@@ -40,7 +41,7 @@ class ProcessedWebhooksProvider implements WebhooksProviderInterface
         $notificationCollection->getProcessedWebhookIdsByTimeLimit($numberOfDays, self::BATCH_SIZE);
 
         if ($notificationCollection->getSize() > 0) {
-            return $notificationCollection->getColumnValues('entity_id');
+            return $notificationCollection->getColumnValues(NotificationInterface::ENTITY_ID);
         } else {
             return [];
         }
