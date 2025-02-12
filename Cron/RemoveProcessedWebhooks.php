@@ -77,8 +77,6 @@ class RemoveProcessedWebhooks
 
                 $this->adyenLogger->addAdyenDebug($debugMessage);
             }
-
-
         } else {
             $message = __('Processed webhook removal feature is disabled. The cronjob has been skipped!');
             $this->adyenLogger->addAdyenDebug($message);
