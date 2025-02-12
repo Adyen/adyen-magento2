@@ -7,6 +7,7 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Order;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Method\Adapter;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel;
 use Magento\Sales\Model\Order as MagentoOrder;
@@ -67,20 +68,27 @@ class OfferClosedWebhookHandlerTest extends AbstractAdyenTestCase
     {
         // Create a sample MagentoOrder and Notification
         $order = $this->createMock(MagentoOrder::class);
-        $order->method('getPayment')->willReturn($this->createPartialMock(Payment::class, ['getMethod']));
+        $paymentMethodInstanceMock = $this->createMock(Adapter::class);
+        $order->method('getPayment')->willReturn($this->createPartialMock(Payment::class, ['getMethod','getMethodInstance']));
         $order->getPayment()->method('getMethod')->willReturn('adyen_cc');
+        $order->getPayment()->method('getMethodInstance')->willReturn($paymentMethodInstanceMock);
         $notification = $this->createMock(Notification::class);
 
-        // Mock payment method mismatch
-        $this->paymentMethodsHelper->method('compareOrderAndWebhookPaymentMethods')->with($order,$notification)->willReturn(false);
+        // Mock payment method comparison behavior
+        $this->paymentMethodsHelper->method('compareOrderAndWebhookPaymentMethods')
+            ->with($order, $notification)
+            ->willReturn(false);
 
         // Create an instance of the OfferClosedWebhookHandler
-        $webhookHandler = $this->createOfferClosedWebhookHandler($this->paymentMethodsHelper,null,null,null,null);
+        $webhookHandler = $this->createOfferClosedWebhookHandler($this->paymentMethodsHelper, null, null, null, null);
 
         // Call the handleWebhook method to trigger the exception
         $result = $webhookHandler->handleWebhook($order, $notification, 'PAYMENT_REVIEW');
+
+        // Verify the expected result
         $this->assertEquals($order, $result);
     }
+
 
     public function testHandleWebhookReturnsOrderWhenCapturedPaymentsExist()
     {
