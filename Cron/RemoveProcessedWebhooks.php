@@ -15,7 +15,6 @@ use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
 use Adyen\Payment\Cron\Providers\WebhooksProviderInterface;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\Notification;
 use Exception;
 
 class RemoveProcessedWebhooks
@@ -44,27 +43,17 @@ class RemoveProcessedWebhooks
             $numberOfItemsRemoved = 0;
 
             foreach ($this->providers as $provider) {
-                /** @var Notification $notificationToCleanup */
-                foreach ($provider->provide() as $notificationToCleanup) {
+                $webhookIdsToRemove = $provider->provide();
+                $numberOfWebhooksProvided = count($webhookIdsToRemove);
+
+                if ($numberOfWebhooksProvided > 0) {
                     try {
-                        $isSuccessfullyDeleted = $this->adyenNotificationRepository->delete($notificationToCleanup);
-
-                        if ($isSuccessfullyDeleted) {
-                            $message = __(
-                                '%1: Notification with entity_id %2 has been deleted because it was processed %3 days ago.',
-                                $provider->getProviderName(),
-                                $notificationToCleanup->getEntityId(),
-                                $this->configHelper->getProcessedWebhookRemovalTime()
-                            );
-                            $this->adyenLogger->addAdyenNotification($message);
-
-                            $numberOfItemsRemoved++;
-                        }
+                        $this->adyenNotificationRepository->deleteByIds($webhookIdsToRemove);
+                        $numberOfItemsRemoved += $numberOfWebhooksProvided;
                     } catch (Exception $e) {
                         $message = __(
-                            '%1: An error occurred while deleting the notification with entity_id %2: %3',
+                            '%1: An error occurred while deleting webhooks! %2',
                             $provider->getProviderName(),
-                            $notificationToCleanup->getEntityId(),
                             $e->getMessage()
                         );
 
@@ -73,11 +62,23 @@ class RemoveProcessedWebhooks
                 }
             }
 
-            $successMessage = __(
-                '%1 processed webhooks have been removed by the RemoveProcessedWebhooks cronjob.',
-                $numberOfItemsRemoved
-            );
-            $this->adyenLogger->addAdyenNotification($successMessage);
+            if ($numberOfItemsRemoved > 0) {
+                $successMessage = __(
+                    '%1 processed webhooks have been removed by the RemoveProcessedWebhooks cronjob.',
+                    $numberOfItemsRemoved
+                );
+
+                $this->adyenLogger->addAdyenNotification($successMessage);
+            } else {
+                $debugMessage = __(
+                    'There is no webhooks to be removed by RemoveProcessedWebhooks cronjob.',
+                    $numberOfItemsRemoved
+                );
+
+                $this->adyenLogger->addAdyenDebug($debugMessage);
+            }
+
+
         } else {
             $message = __('Processed webhook removal feature is disabled. The cronjob has been skipped!');
             $this->adyenLogger->addAdyenDebug($message);

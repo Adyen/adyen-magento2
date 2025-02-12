@@ -11,49 +11,46 @@
 
 namespace Adyen\Payment\Cron\Providers;
 
-use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
 use Adyen\Payment\Helper\Config;
-use Adyen\Payment\Logger\AdyenLogger;
-use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\Exception\LocalizedException;
+use Adyen\Payment\Model\ResourceModel\Notification\Collection;
+use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory;
 
 class ProcessedWebhooksProvider implements WebhooksProviderInterface
 {
+    /**
+     * @param CollectionFactory $notificationCollectionFactory
+     * @param Config $configHelper
+     */
     public function __construct(
-        private readonly AdyenNotificationRepositoryInterface $adyenNotificationRepository,
-        private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
-        private readonly Config $configHelper,
-        private readonly AdyenLogger $adyenLogger
+        private readonly CollectionFactory $notificationCollectionFactory,
+        private readonly Config $configHelper
     ) { }
 
+    /**
+     * Provides the `entity_id`s of the processed webhooks limited by the removal time
+     *
+     * @return array
+     */
     public function provide(): array
     {
         $numberOfDays = $this->configHelper->getProcessedWebhookRemovalTime();
 
-        $dateFrom = date('Y-m-d H:i:s', time() - $numberOfDays * 24 * 60 * 60);
+        /** @var Collection $notificationCollection */
+        $notificationCollection = $this->notificationCollectionFactory->create();
+        $notificationCollection->getProcessedWebhookIdsByTimeLimit($numberOfDays, self::BATCH_SIZE);
 
-        $searchCriteria = $this->searchCriteriaBuilder
-            ->addFilter('done', 1)
-            ->addFilter('processing', 0)
-            ->addFilter('created_at', $dateFrom, 'lteq')
-            ->setPageSize(self::BATCH_SIZE)
-            ->create();
-
-        try {
-            $items = $this->adyenNotificationRepository->getList($searchCriteria);
-            return $items->getItems();
-        } catch (LocalizedException $e) {
-            $errorMessage = sprintf(
-                __('An error occurred while providing webhooks older than %s days!'),
-                $numberOfDays
-            );
-
-            $this->adyenLogger->error($errorMessage);
-
+        if ($notificationCollection->getSize() > 0) {
+            return $notificationCollection->getColumnValues('entity_id');
+        } else {
             return [];
         }
     }
 
+    /**
+     * Returns the provider name
+     *
+     * @return string
+     */
     public function getProviderName(): string
     {
         return "Adyen processed webhooks provider";

@@ -11,7 +11,10 @@
 
 namespace Adyen\Payment\Model\ResourceModel;
 
-class Notification extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
+
+class Notification extends AbstractDb
 {
     /**
      * Construct
@@ -48,5 +51,28 @@ class Notification extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         }
 
         return $this->getConnection()->fetchAll($select);
+    }
+
+    /**
+     * Deletes the rows corresponding to the given `entity_id`s
+     *
+     * @param array $entitiyIds
+     * @return void
+     * @throws LocalizedException
+     */
+    public function deleteByIds(array $entitiyIds): void
+    {
+        if (empty($entitiyIds)) {
+            return;
+        }
+
+        $tableName = $this->getMainTable();
+
+        $connection = $this->getConnection();
+        $select = $connection->select()
+            ->from(['notification' => $tableName])
+            ->where('notification.entity_id IN (?)', $entitiyIds);
+
+        $connection->query($select->deleteFromSelect('notification'));
     }
 }
