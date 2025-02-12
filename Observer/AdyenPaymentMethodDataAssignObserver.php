@@ -119,10 +119,5 @@ class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
             $paymentInfo->setAdditionalInformation($key, $data);
         }
 
-        // Set ccType. If payment method is tokenizable, update additional information
-        if (!empty($additionalData[self::BRAND_CODE])) {
-            $paymentMethod = $additionalData[self::BRAND_CODE];
-            $paymentInfo->setCcType($paymentMethod);
-        }
     }
 }
