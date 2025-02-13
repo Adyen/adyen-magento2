@@ -76,6 +76,11 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
      */
     private $ordersInfo;
 
+    /**
+     * @var
+     */
+    private $billingCountryCode = null;
+
     public function __construct(
         Collection $paymentResponseCollection,
         Data $adyenHelper,
@@ -175,6 +180,7 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
                     default:
                         $this->ordersInfo[$order->getEntityId()]['buttonLabel'] = $this->getCompletePaymentLabel();
                 }
+                $this->setBillingCountryCode($order->getBillingAddress()->getCountryId());
             }
         }
     }
@@ -213,5 +219,15 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
     public function setIsAdyenPayment(bool $isAdyenPayment)
     {
         $this->isAdyenPayment = $isAdyenPayment;
+    }
+
+    public function setBillingCountryCode(string $countryCode): void
+    {
+        $this->billingCountryCode = $countryCode;
+    }
+
+    public function getBillingCountryCode(): ?string
+    {
+        return $this->billingCountryCode;
     }
 }
