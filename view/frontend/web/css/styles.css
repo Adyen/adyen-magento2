@@ -8,10 +8,6 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-.adyen-checkout__dropdown__button {
-    width: auto;
-}
-
 .payment-method+#hpp_actionModalWrapper {
     border-bottom: 1px solid #ccc;
 }
@@ -20,16 +16,6 @@
 #adyen_pos_cloud_funding_source_div,
 #adyen_pos_cloud_installments_div {
     margin-bottom: 15px;
-}
-
-.adyen-checkout-ctp__card-image {
-    height: 24px;
-    width: auto;
-}
-
-.adyen-checkout-ctp__card-image {
-    height: 24px;
-    width: auto;
 }
 
 #adyen_giftcard_new_giftcard_wrapper {
@@ -72,10 +58,6 @@
 .adyen-giftcard-remove-single {
     margin-top: 25px;
     background-color: #999;
-}
-
-.adyen-checkout__input {
-    width: unset;
 }
 
 .adyen-giftcard-header {

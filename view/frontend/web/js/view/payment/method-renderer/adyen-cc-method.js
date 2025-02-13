@@ -143,9 +143,11 @@ define(
             createCheckoutComponent: async function () {
                 if (!this.checkoutComponent) {
                     const paymentMethodsResponse = adyenPaymentService.getPaymentMethods();
+                    const countryCode = quote.billingAddress().countryId;
 
                     this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
                         paymentMethodsResponse(),
+                        countryCode,
                         this.handleOnAdditionalDetails.bind(this)
                     )
                 }
@@ -194,6 +196,7 @@ define(
                     hasHolderName: adyenConfiguration.getHasHolderName(),
                     holderNameRequired: adyenConfiguration.getHasHolderName() &&
                         adyenConfiguration.getHolderNameRequired(),
+                    showPayButton: false,
                     onChange: function(state, component) {
                         self.placeOrderAllowed(!!state.isValid);
                         self.storeCc = !!state.data.storePaymentMethod;

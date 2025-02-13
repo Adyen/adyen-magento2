@@ -10,9 +10,7 @@ define(
         'Magento_Customer/js/model/customer',
         'Magento_Checkout/js/model/url-builder',
         'mage/storage',
-        'Adyen_Payment/js/adyen',
-        'ko',
-        'mage/cookies'
+        'ko'
     ],
     function(
         $,
@@ -21,7 +19,6 @@ define(
         customer,
         urlBuilder,
         storage,
-        adyenComponent,
         ko
     ) {
         'use strict';

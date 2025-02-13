@@ -117,9 +117,11 @@ define([
         createCheckoutComponent: async function() {
             if (!this.checkoutComponent) {
                 const paymentMethodsResponse = adyenPaymentService.getPaymentMethods();
+                const countryCode = quote.billingAddress().countryId;
 
                 this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
                     paymentMethodsResponse(),
+                    countryCode,
                     this.handleOnAdditionalDetails.bind(this)
                 );
             }
@@ -164,6 +166,8 @@ define([
                 storedPaymentMethodId: this.getGatewayToken(),
                 expiryMonth: this.getExpirationMonth(),
                 expiryYear: this.getExpirationYear(),
+                supportedShopperInteractions: ["Ecommerce"],
+                showPayButton: false,
                 onChange: this.handleOnChange.bind(this),
                 onBrand: function(state) {
                     let creditCardType = self.getCcCodeByAltCode(
