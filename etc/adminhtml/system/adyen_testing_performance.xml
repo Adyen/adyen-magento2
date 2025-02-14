@@ -63,7 +63,7 @@
             <comment model="Adyen\Payment\Model\Comment\WebhookRemovalNotice"/>
             <tooltip>
                 Processed webhooks older than a configured number of days will be removed from the database by a cronjob if this feature is enabled.
-                The default value is 90 days and this can be configured from the `Number of days to remove processed webhooks` configuration field.
+                The default value is 90 days and this can be configured in the `Number of days to remove processed webhooks` configuration field.
             </tooltip>
         </field>
         <field id="processed_webhook_removal_time" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0">
