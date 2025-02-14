@@ -616,7 +616,7 @@ class Config
      * Returns the configured amount of days a webhook has to be older than in order to be removed.
      *
      * This field can only be configured on default scope level as
-     * the notification table doesn't have nay relation with the stores.
+     * the notification table doesn't have any relation with the stores.
      *
      * @return int
      */
