@@ -410,7 +410,7 @@ class Invoice extends AbstractHelper
             $notification->getAmountValue(),
             $invoice->getId()
         );
-        $this->adyenLogger->addAdyenWarning(sprintf(
+        $this->adyenLogger->addAdyenInfoLog(sprintf(
             'Created new adyen_invoice linked to original reference %s, psp reference %s, and order %s.',
             $notification->getOriginalReference(),
             $notification->getPspreference(),
