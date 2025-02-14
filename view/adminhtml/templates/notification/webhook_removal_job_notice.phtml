@@ -12,7 +12,7 @@
                 <div data-ui-id="messages-message-notice">
                     <p>
                         <?= $escaper->escapeHtml(__(
-                            'Showing Adyen webhooks received in the last %1 days, processed older webhooks are being cleaned-up by a scheduled tasks.',
+                            'Showing Adyen webhooks received in the last %1 days, older webhooks that have been processed are being cleaned-up by a scheduled task.',
                             $block->getNumberOfDays()
                         )); ?>
                     </p>
