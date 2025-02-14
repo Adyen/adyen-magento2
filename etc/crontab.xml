@@ -25,7 +25,7 @@
             <schedule>0 0 * * *</schedule>
         </job>
         <job name="adyen_payment_remove_processed_webhooks" instance="Adyen\Payment\Cron\RemoveProcessedWebhooks" method="execute">
-            <schedule>0 0 * * *</schedule>
+            <schedule>*/5 0 * * *</schedule>
         </job>
     </group>
 </config>

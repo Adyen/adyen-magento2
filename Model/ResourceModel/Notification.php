@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Model\ResourceModel;
 
+use Adyen\Payment\Api\Data\NotificationInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
 
@@ -70,9 +71,16 @@ class Notification extends AbstractDb
 
         $connection = $this->getConnection();
         $select = $connection->select()
-            ->from(['notification' => $tableName])
-            ->where('notification.entity_id IN (?)', $entityIds);
+            ->from([NotificationInterface::TABLE_NAME_ALIAS => $tableName])
+            ->where(
+                sprintf(
+                    "%s.%s IN (?)",
+                    NotificationInterface::TABLE_NAME_ALIAS,
+                    NotificationInterface::ENTITY_ID
+                ),
+                $entityIds
+            );
 
-        $connection->query($select->deleteFromSelect('notification'));
+        $connection->query($select->deleteFromSelect(NotificationInterface::TABLE_NAME_ALIAS));
     }
 }

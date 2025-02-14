@@ -82,7 +82,7 @@ class ProcessedWebhookRemovalTest extends AbstractAdyenTestCase
         // Set old value as `0` to mimic the disabled feature
         $this->configMock->method('getValue')->willReturn('0');
         $expectedMessage =
-            'You enabled processed webhook removal cronjob. Processed webhooks older than 45 days will be removed.';
+            'You enabled the automatic removal of Adyen\'s processed webhooks. Processed webhooks older than 45 days will be removed.';
 
         $this->messageManagerMock->expects($this->once())
             ->method('addWarningMessage')

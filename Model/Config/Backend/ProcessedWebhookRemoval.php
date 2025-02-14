@@ -49,7 +49,7 @@ class ProcessedWebhookRemoval extends Value
         if ($this->isValueChanged() && $this->getValue() === '1') {
             $numberOfDays = $this->getFieldsetDataValue('processed_webhook_removal_time');
             $message = __(
-                'You enabled the automatic removal of Adyen's processed webhooks. Processed webhooks older than %1 days will be removed.',
+                'You enabled the automatic removal of Adyen\'s processed webhooks. Processed webhooks older than %1 days will be removed.',
                 $numberOfDays
             );
 
