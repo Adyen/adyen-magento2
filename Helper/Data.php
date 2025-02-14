@@ -680,6 +680,8 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @deprecated Use Adyen\Payment\Helper\PaymentMethods::isOpenInvoice() instead.
+     *
      * @param $paymentMethod
      * @return bool
      */
