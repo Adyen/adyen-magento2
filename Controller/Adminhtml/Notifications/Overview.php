@@ -11,18 +11,26 @@
 
 namespace Adyen\Payment\Controller\Adminhtml\Notifications;
 
-class Overview extends \Magento\Backend\App\Action
+use Magento\Backend\App\Action;
+use Magento\Framework\Controller\ResultFactory;
+use Magento\Framework\View\Result\Page;
+
+class Overview extends Action
 {
     /**
      * Load the page defined in corresponding layout XML
      *
-     * @return \Magento\Framework\View\Result\Page
+     * @return Page
      */
-    public function execute()
+    public function execute(): Page
     {
-        $resultPage = $this->resultFactory->create(\Magento\Framework\Controller\ResultFactory::TYPE_PAGE);
+        /** @var Page $resultPage */
+        $resultPage = $this->resultFactory->create(ResultFactory::TYPE_PAGE);
         $resultPage->setActiveMenu('Adyen_Payment::notifications_overview')
-            ->getConfig()->getTitle()->prepend(__('Adyen Notifications Overview'));
+            ->getConfig()
+            ->getTitle()
+            ->prepend(__('Adyen Webhooks Overview'));
+
         return $resultPage;
     }
 }

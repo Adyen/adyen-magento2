@@ -57,6 +57,8 @@ class Config
     const XML_RECURRING_CONFIGURATION = 'recurring_configuration';
     const XML_ALLOW_MULTISTORE_TOKENS = 'allow_multistore_tokens';
     const XML_THREEDS_FLOW = 'threeds_flow';
+    const XML_REMOVE_PROCESSED_WEBHOOKS = 'remove_processed_webhooks';
+    const XML_PROCESSED_WEBHOOK_REMOVAL_TIME = 'processed_webhook_removal_time';
 
     protected ScopeConfigInterface $scopeConfig;
     private EncryptorInterface $encryptor;
@@ -589,6 +591,41 @@ class Config
             self::XML_THREEDS_FLOW,
             self::XML_ADYEN_CC,
             $storeId
+        );
+    }
+
+    /**
+     * Indicates whether if the processed webhook removal cronjob is enabled or not.
+     *
+     * This field can only be configured on default scope level as
+     * the notification table doesn't have nay relation with the stores.
+     *
+     * @return bool
+     */
+    public function getIsProcessedWebhookRemovalEnabled(): bool
+    {
+        return $this->getConfigData(
+            self::XML_REMOVE_PROCESSED_WEBHOOKS,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            null,
+            true
+        );
+    }
+
+    /**
+     * Returns the configured amount of days a webhook has to be older than in order to be removed.
+     *
+     * This field can only be configured on default scope level as
+     * the notification table doesn't have any relation with the stores.
+     *
+     * @return int
+     */
+    public function getProcessedWebhookRemovalTime(): int
+    {
+        return (int) $this->getConfigData(
+            self::XML_PROCESSED_WEBHOOK_REMOVAL_TIME,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            null
         );
     }
 
