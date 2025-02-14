@@ -40,9 +40,9 @@ class ApplePayDomainAssociationFileButton extends Field
     }
 
     /**
-     * @return $this|ApplePayDomainAssociationFileButton
+     * @return ApplePayDomainAssociationFileButton
      */
-    protected function _prepareLayout(): ApplePayDomainAssociationFileButton|static
+    protected function _prepareLayout(): ApplePayDomainAssociationFileButton
     {
         parent::_prepareLayout();
 
