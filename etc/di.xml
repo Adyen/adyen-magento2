@@ -1707,6 +1707,8 @@
     <preference for="Adyen\Payment\Api\Data\NotificationInterface" type="Adyen\Payment\Model\Notification" />
     <preference for="Adyen\Payment\Api\AdyenPaymentMethodsBalanceInterface" type="Adyen\Payment\Model\Api\AdyenPaymentMethodsBalance" />
     <preference for="Adyen\Payment\Api\TokenDeactivateInterface" type="Adyen\Payment\Model\Api\TokenDeactivate" />
+    <preference for="Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface"
+                type="Adyen\Payment\Model\AdyenNotificationRepository" />
     <type name="Magento\Vault\Api\PaymentTokenRepositoryInterface">
         <plugin name="AdyenPaymentVaultDeleteToken" type="Adyen\Payment\Plugin\PaymentVaultDeleteToken" sortOrder="10" />
     </type>
@@ -1733,6 +1735,20 @@
     </type>
     <type name="Magento\InstantPurchase\PaymentMethodIntegration\Integration">
         <plugin name="InstantPurchateIntegration" type="Adyen\Payment\Plugin\InstantPurchaseIntegration" sortOrder="10" />
+    </type>
+    <type name="Adyen\Payment\Model\AdyenNotificationRepository">
+        <arguments>
+            <argument name="resourceModel" xsi:type="string">Adyen\Payment\Model\ResourceModel\Notification</argument>
+        </arguments>
+    </type>
+    <type name="Adyen\Payment\Cron\RemoveProcessedWebhooks">
+        <arguments>
+            <argument name="providers" xsi:type="array">
+                <item name="processedWebhooks" xsi:type="object">
+                    Adyen\Payment\Cron\Providers\ProcessedWebhooksProvider
+                </item>
+            </argument>
+        </arguments>
     </type>
     <virtualType name="AdyenCancelOrders" type="Adyen\Payment\Cron\CancelOrders">
         <arguments>
