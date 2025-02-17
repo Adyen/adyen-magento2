@@ -131,9 +131,14 @@ jobs:
           WEBHOOK_PASSWORD: 1234
           CI: TRUE
 
+      - name: Delete Webhook
+        run: |
+          echo "Running DeleteWebhook command after E2E tests for clean-up"
+          docker exec -u www-data magento2-container php bin/magento adyen:management:delete-webhook
+
       - name: Archive test result artifacts
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: html-report
           path: test-report
