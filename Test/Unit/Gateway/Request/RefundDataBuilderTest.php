@@ -23,7 +23,6 @@ use Adyen\Payment\Model\Order\Payment as AdyenOrderPayment;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\Collection;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as PaymentCollectionFactory;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
-use ArrayObject;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Model\MethodInterface;
@@ -253,8 +252,8 @@ class RefundDataBuilderTest extends AbstractAdyenTestCase
                 ]);
             }
 
-            $orderPaymentCollectionMock->method('getIterator')
-                ->willReturn(new ArrayObject($objectArray));
+            // @codingStandardsIgnoreLine
+            $orderPaymentCollectionMock->method('getIterator')->willReturn(new \ArrayObject($objectArray));
         }
 
         $this->orderPaymentCollectionFactoryMock->method('create')->willReturn($orderPaymentCollectionMock);
