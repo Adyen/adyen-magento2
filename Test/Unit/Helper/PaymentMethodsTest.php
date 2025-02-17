@@ -1315,4 +1315,15 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
 
         $this->paymentMethodsHelper->removePaymentMethodsActivation('default', 0);
     }
+
+    public function testIsOpenInvoice()
+    {
+        $paymentMethodInstaceMock = $this->createMock(MethodInterface::class);
+        $paymentMethodInstaceMock->method('getConfigData')
+            ->with(PaymentMethods::CONFIG_FIELD_IS_OPEN_INVOICE)
+            ->willReturn(true);
+
+        $result = $this->paymentMethodsHelper->isOpenInvoice($paymentMethodInstaceMock);
+        $this->assertTrue($result);
+    }
 }
