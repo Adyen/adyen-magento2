@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
@@ -19,6 +20,7 @@ use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Model\ResourceModel\Invoice\CollectionFactory;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as PaymentCollectionFactory;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Sales\Model\Order\Payment;
@@ -56,17 +58,18 @@ class RefundDataBuilder implements BuilderInterface
      */
     public function build(array $buildSubject): array
     {
+        /** @var PaymentDataObject $paymentDataObject */
         $paymentDataObject = SubjectReader::readPayment($buildSubject);
 
-        $order = $paymentDataObject->getOrder();
-        /** @var  Payment $payment */
+        /** @var Payment $payment */
         $payment = $paymentDataObject->getPayment();
+        $order = $payment->getOrder();
         $paymentMethodInstance = $payment->getMethodInstance();
-        $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($payment->getOrder(), false);
+        $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order, false);
 
         // Construct AdyenAmountCurrency from creditmemo
         $creditMemo = $payment->getCreditMemo();
-        $creditMemoAmountCurrency = $this->chargedCurrency->getCreditMemoAmountCurrency($creditMemo, false);
+        $creditMemoAmountCurrency = $this->chargedCurrency->getCreditMemoAmountCurrency($creditMemo);
 
         $pspReference = $payment->getCcTransId();
         $currency = $creditMemoAmountCurrency->getCurrencyCode();
@@ -74,7 +77,7 @@ class RefundDataBuilder implements BuilderInterface
 
 
         //Get Merchant Account
-        $storeId = $order ->getStoreId();
+        $storeId = $order->getStoreId();
         $method = $payment->getMethod();
 
         if (isset($method) && $method === 'adyen_moto') {
@@ -86,10 +89,10 @@ class RefundDataBuilder implements BuilderInterface
         // check if it contains a partial payment
         $orderPaymentCollection = $this->orderPaymentCollectionFactory
             ->create()
-            ->addFieldToFilter('payment_id', $payment->getId());
+            ->addFieldToFilter(OrderPaymentInterface::PAYMENT_ID, $payment->getId());
 
         // partial refund if multiple payments check refund strategy
-        if ($orderPaymentCollection->getSize() > self::REFUND_STRATEGY_ASCENDING_ORDER) {
+        if ($orderPaymentCollection->getSize() > 1) {
             $refundStrategy = $this->configHelper->getAdyenAbstractConfigData(
                 'partial_payments_refund_strategy',
                 $storeId
@@ -145,7 +148,7 @@ class RefundDataBuilder implements BuilderInterface
                     $requestBody[] = [
                         "merchantAccount" => $merchantAccount,
                         "amount" => $modificationAmountObject,
-                        "reference" => $payment->getOrder()->getIncrementId(),
+                        "reference" => $order->getIncrementId(),
                         "paymentPspReference" => $partialPayment->getPspreference(),
                     ];
                 }
@@ -159,7 +162,7 @@ class RefundDataBuilder implements BuilderInterface
                 [
                     "merchantAccount" => $merchantAccount,
                     "amount" => $modificationAmount,
-                    "reference" => $payment->getOrder()->getIncrementId(),
+                    "reference" => $order->getIncrementId(),
                     "paymentPspReference" => $pspReference,
                 ]
             ];
@@ -167,16 +170,16 @@ class RefundDataBuilder implements BuilderInterface
             if ($this->paymentMethodsHelper->isOpenInvoice($paymentMethodInstance)) {
                 $openInvoiceFieldsCreditMemo = $this->openInvoiceHelper->getOpenInvoiceDataForCreditMemo($creditMemo);
                 //There is only one payment, so we add the fields to the first(and only) result
-                $requestBody[0] =  array_merge($requestBody[0], $openInvoiceFieldsCreditMemo);
+                $requestBody[0] = array_merge($requestBody[0], $openInvoiceFieldsCreditMemo);
             }
         }
 
-        $request['clientConfig'] = ["storeId" => $payment->getOrder()->getStoreId()];
+        $request['clientConfig'] = ["storeId" => $storeId];
         $request['body'] = $requestBody;
 
         $request['headers'] = [
             'idempotencyExtraData' => [
-                'totalRefunded' => $payment->getOrder()->getTotalRefunded() ?? 0
+                'totalRefunded' => $order->getTotalRefunded() ?? 0
             ]
         ];
 
