@@ -30,6 +30,8 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
     const ONSHIPMENT_CAPTURE_OPENINVOICE = 'onshipment';
 
     /**
+     * @deprecated This property is not being used and will be removed on V10.
+     *
      * @var AdyenHelper
      */
     private AdyenHelper $adyenHelper;

@@ -639,7 +639,7 @@ class PaymentMethods extends AbstractHelper
 
             $paymentMethodsExtraDetails[$paymentMethodCode]['icon'] = $icon;
 
-            // TODO::This field is not relevant anymore and can be removed during cleaning-up deprecated methods.
+            // TODO::This field is not relevant anymore and can be removed during cleaning-up deprecated methods on V10.
             // check if payment method is an open invoice method
             $paymentMethodsExtraDetails[$paymentMethodCode]['isOpenInvoice'] =
                 $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethodCode);

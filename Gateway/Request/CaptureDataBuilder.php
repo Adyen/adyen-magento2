@@ -21,13 +21,11 @@ use Adyen\Payment\Helper\OpenInvoice;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\ResourceModel\Order\Payment;
-use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
-use Magento\Payment\Model\MethodInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice;
 
