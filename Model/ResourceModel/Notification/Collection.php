@@ -65,4 +65,28 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
 
         return $this;
     }
+
+    /**
+     * Returns the `entity_id`s of the processed webhooks with the given time limit.
+     *
+     * @param int $processedWebhookRemovalTime
+     * @param int|null $batchSize
+     * @return $this
+     */
+    public function getProcessedWebhookIdsByTimeLimit(
+        int $processedWebhookRemovalTime,
+        ?int $batchSize = null
+    ): Collection {
+        $dateFrom = date('Y-m-d H:i:s', time() - $processedWebhookRemovalTime * 24 * 60 * 60);
+
+        $this->addFieldToFilter('created_at', ['lteq' => $dateFrom]);
+        $this->addFieldToFilter('done', 1);
+        $this->addFieldToFilter('processing', 0);
+
+        if (isset($batchSize)) {
+            $this->setPageSize($batchSize);
+        }
+
+        return $this;
+    }
 }
