@@ -21,13 +21,17 @@ use Magento\Sales\Model\Order;
 
 class LineItemsDataBuilder implements BuilderInterface
 {
+    /**
+     * @param PaymentMethods $paymentMethodsHelper
+     * @param OpenInvoice $openInvoiceHelper
+     */
     public function __construct(
         private readonly PaymentMethods $paymentMethodsHelper,
         private readonly OpenInvoice $openInvoiceHelper
     ) { }
 
     /**
-     * Add delivery\billing details into request
+     * Add `lineItems` to the request if the payment method requires this field
      *
      * @param array $buildSubject
      * @return array
