@@ -172,6 +172,7 @@
                 <supports_manual_capture>1</supports_manual_capture>
                 <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
+                <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
             </adyen_klarna>
             <adyen_klarna_vault>
@@ -374,6 +375,7 @@
                 <supports_manual_capture>1</supports_manual_capture>
                 <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
+                <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
             </adyen_facilypay_3x>
             <adyen_sepadirectdebit>
@@ -569,6 +571,7 @@
                 <supports_manual_capture>1</supports_manual_capture>
                 <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
+                <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
             </adyen_affirm>
             <adyen_afterpaytouch>
@@ -591,6 +594,7 @@
                 <supports_manual_capture>1</supports_manual_capture>
                 <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
+                <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
             </adyen_afterpaytouch>
             <adyen_alipay>
@@ -679,6 +683,7 @@
                 <supports_manual_capture>0</supports_manual_capture>
                 <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
+                <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
             </adyen_atome>
             <adyen_afterpay_default>
@@ -701,6 +706,7 @@
                 <supports_manual_capture>1</supports_manual_capture>
                 <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
+                <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
             </adyen_afterpay_default>
             <adyen_bankTransfer_BE>
@@ -877,6 +883,7 @@
                 <supports_manual_capture>1</supports_manual_capture>
                 <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
+                <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
             </adyen_clearpay>
             <adyen_directdebit_GB>
@@ -1113,6 +1120,7 @@
                 <supports_manual_capture>1</supports_manual_capture>
                 <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
+                <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
             </adyen_facilypay_4x>
             <adyen_facilypay_6x>
@@ -1135,6 +1143,7 @@
                 <supports_manual_capture>1</supports_manual_capture>
                 <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
+                <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
             </adyen_facilypay_6x>
             <adyen_facilypay_10x>
@@ -1157,6 +1166,7 @@
                 <supports_manual_capture>1</supports_manual_capture>
                 <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
+                <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
             </adyen_facilypay_10x>
             <adyen_facilypay_12x>
@@ -1179,6 +1189,7 @@
                 <supports_manual_capture>1</supports_manual_capture>
                 <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
+                <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
             </adyen_facilypay_12x>
             <adyen_giropay>
@@ -1323,6 +1334,7 @@
                 <supports_manual_capture>1</supports_manual_capture>
                 <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
+                <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
             </adyen_klarna_account>
             <adyen_klarna_account_vault>
@@ -1353,6 +1365,7 @@
                 <supports_manual_capture>1</supports_manual_capture>
                 <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
+                <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
             </adyen_klarna_paynow>
             <adyen_klarna_paynow_vault>
@@ -1537,6 +1550,7 @@
                 <supports_manual_capture>1</supports_manual_capture>
                 <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
+                <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
             </adyen_paybright>
             <adyen_paybybank>
@@ -1612,6 +1626,7 @@
                 <supports_manual_capture>1</supports_manual_capture>
                 <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
+                <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
             </adyen_ratepay>
             <adyen_ratepay_directdebit>
@@ -1634,6 +1649,7 @@
                 <supports_manual_capture>1</supports_manual_capture>
                 <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
+                <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
             </adyen_ratepay_directdebit>
             <adyen_swish>
@@ -1730,6 +1746,7 @@
                 <supports_manual_capture>1</supports_manual_capture>
                 <supports_auto_capture>0</supports_auto_capture>
                 <is_wallet>0</is_wallet>
+                <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
             </adyen_walley>
             <adyen_wechatpayWeb>
@@ -1796,6 +1813,7 @@
                 <supports_manual_capture>1</supports_manual_capture>
                 <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>1</is_wallet>
+                <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
             </adyen_zip>
             <adyen_zip_vault>
@@ -1930,6 +1948,7 @@
                 <supports_manual_capture>1</supports_manual_capture>
                 <supports_auto_capture>0</supports_auto_capture>
                 <is_wallet>0</is_wallet>
+                <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
             </adyen_walley_b2b>
             <adyen_paysafecard>
@@ -2086,6 +2105,7 @@
                 <supports_manual_capture>1</supports_manual_capture>
                 <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
+                <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
             </adyen_klarna_b2b>
             <adyen_mobilepay>

@@ -20,6 +20,7 @@ use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Data as DataHelper;
 use Adyen\Payment\Helper\OpenInvoice;
+use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\AdyenAmountCurrency;
 use Adyen\Payment\Model\ResourceModel\Order\Payment;
@@ -27,6 +28,7 @@ use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
+use Magento\Payment\Model\MethodInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\ResourceModel\Order\Invoice\Collection as InvoiceCollection;
@@ -79,8 +81,7 @@ class CaptureDataBuilderTest extends AbstractAdyenTestCase
     */
     public function testBuildCaptureRequest($adyenOrderPayments, $fullAmountAuthorized)
     {
-        $adyenHelperMock = $this->createPartialMock(Data::class, ['isPaymentMethodOpenInvoiceMethod']);
-        $adyenHelperMock->method('isPaymentMethodOpenInvoiceMethod')->willReturn(true);
+        $adyenHelperMock = $this->createPartialMock(Data::class, []);
 
         $lineItems = [
             'id' => PHP_INT_MAX
@@ -100,13 +101,22 @@ class CaptureDataBuilderTest extends AbstractAdyenTestCase
             'getIncrementId' => '00000000001',
             'getTotalInvoiced' => 0
         ]);
+
+        $paymentMethodInstanceMock = $this->createMock(MethodInterface::class);
+
         $paymentMock = $this->createConfiguredMock(\Magento\Sales\Model\Order\Payment::class, [
             'getOrder' => $orderMock,
+            'getMethodInstance' => $paymentMethodInstanceMock,
             'getCcTransId' => 'ABC123456789XYZ'
         ]);
         $paymentDataObjectMock = $this->createConfiguredMock(PaymentDataObject::class, [
             'getPayment' => $paymentMock
         ]);
+
+        $paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
+        $paymentMethodsHelperMock->method('isOpenInvoice')
+            ->with($paymentMethodInstanceMock)
+            ->willReturn(true);
 
         $chargedCurrencyHelperMock = $this->createConfiguredMock(ChargedCurrency::class, [
             'getInvoiceAmountCurrency' => $this->createConfiguredMock(AdyenAmountCurrency::class, [
@@ -137,7 +147,8 @@ class CaptureDataBuilderTest extends AbstractAdyenTestCase
             $adyenOrderPaymentHelperMock,
             null,
             null,
-            $openInvoiceHelperMock
+            $openInvoiceHelperMock,
+            $paymentMethodsHelperMock
         );
 
         $request = $captureDataBuilder->build($buildSubject);
@@ -173,7 +184,8 @@ class CaptureDataBuilderTest extends AbstractAdyenTestCase
         $adyenOrderPaymentHelperMock = null,
         $adyenLoggerMock = null,
         $contextMock = null,
-        $openInvoiceHelperMock = null
+        $openInvoiceHelperMock = null,
+        $paymentMethodsHelperMock = null
     ): CaptureDataBuilder {
         if (is_null($adyenHelperMock)) {
             $adyenHelperMock = $this->createPartialMock(DataHelper::class, []);
@@ -205,6 +217,10 @@ class CaptureDataBuilderTest extends AbstractAdyenTestCase
             $openInvoiceHelperMock = $this->createMock(OpenInvoice::class);
         }
 
+        if (is_null($paymentMethodsHelperMock)) {
+            $paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
+        }
+
         return new CaptureDataBuilder(
             $adyenHelperMock,
             $chargedCurrencyMock,
@@ -212,7 +228,8 @@ class CaptureDataBuilderTest extends AbstractAdyenTestCase
             $adyenLoggerMock,
             $contextMock,
             $orderPaymentResourceModelMock,
-            $openInvoiceHelperMock
+            $openInvoiceHelperMock,
+            $paymentMethodsHelperMock
         );
     }
 }
