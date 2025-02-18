@@ -66,6 +66,7 @@ class PaymentMethods extends AbstractHelper
     const FUNDING_SOURCE_CREDIT = 'credit';
 
     const ADYEN_GROUP_ALTERNATIVE_PAYMENT_METHODS = 'adyen-alternative-payment-method';
+    const CONFIG_FIELD_REQUIRES_LINE_ITEMS = 'requires_line_items';
 
     const VALID_CHANNELS = ["iOS", "Android", "Web"];
 
@@ -1060,5 +1061,20 @@ class PaymentMethods extends AbstractHelper
         }
 
         return ['url' => $url, 'width' => 77, 'height' => 50];
+    }
+
+    /**
+     * Checks the requirement of line items for the given payment method
+     *
+     * @param MethodInterface $paymentMethodInstance
+     * @param int $storeId
+     * @return bool
+     */
+    public function getRequiresLineItems(MethodInterface $paymentMethodInstance, int $storeId): bool
+    {
+        $isOpenInvoice = false; // will be replaced after merging ECP-9078
+        $requiresLineItems = $paymentMethodInstance->getConfigData(self::CONFIG_FIELD_REQUIRES_LINE_ITEMS, $storeId);
+
+        return ($isOpenInvoice === true || boolval($requiresLineItems) === true);
     }
 }
