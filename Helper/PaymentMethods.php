@@ -1071,7 +1071,7 @@ class PaymentMethods extends AbstractHelper
 
         return ['url' => $url, 'width' => 77, 'height' => 50];
     }
-    
+
     /**
      * Checks whether if the payment method is open invoice or not based on `is_open_invoice` configuration field.
      *
@@ -1082,19 +1082,18 @@ class PaymentMethods extends AbstractHelper
     {
         return boolval($paymentMethodInstance->getConfigData(self::CONFIG_FIELD_IS_OPEN_INVOICE));
     }
-  
+
     /**
      * Checks the requirement of line items for the given payment method
      *
      * @param MethodInterface $paymentMethodInstance
-     * @param int $storeId
      * @return bool
      */
-    public function getRequiresLineItems(MethodInterface $paymentMethodInstance, int $storeId): bool
+    public function getRequiresLineItems(MethodInterface $paymentMethodInstance): bool
     {
-        $isOpenInvoice = false; // will be replaced after merging ECP-9078
-        $requiresLineItems = $paymentMethodInstance->getConfigData(self::CONFIG_FIELD_REQUIRES_LINE_ITEMS, $storeId);
+        $isOpenInvoice = $this->isOpenInvoice($paymentMethodInstance);
+        $requiresLineItems = boolval($paymentMethodInstance->getConfigData(self::CONFIG_FIELD_REQUIRES_LINE_ITEMS));
 
-        return ($isOpenInvoice === true || boolval($requiresLineItems) === true);
+        return ($isOpenInvoice === true || $requiresLineItems === true);
     }
 }

@@ -41,11 +41,10 @@ class LineItemsDataBuilder implements BuilderInterface
         $paymentMethodInstance = $payment->getMethodInstance();
         /** @var Order $order */
         $order = $payment->getOrder();
-        $storeId = $order->getStoreId();
 
         $requestBody = [];
 
-        $isLineItemsRequired = $this->paymentMethodsHelper->getRequiresLineItems($paymentMethodInstance, $storeId);
+        $isLineItemsRequired = $this->paymentMethodsHelper->getRequiresLineItems($paymentMethodInstance);
         if ($isLineItemsRequired === true) {
             $requestLineItems = $this->openInvoiceHelper->getOpenInvoiceDataForOrder($order);
             $requestBody = array_merge($requestBody, $requestLineItems);
