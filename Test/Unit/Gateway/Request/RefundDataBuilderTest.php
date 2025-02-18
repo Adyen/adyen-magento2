@@ -252,7 +252,7 @@ class RefundDataBuilderTest extends AbstractAdyenTestCase
                 ]);
             }
 
-            // @codingStandardsIgnoreLine
+            // phpcs:ignore
             $orderPaymentCollectionMock->method('getIterator')->willReturn(new \ArrayObject($objectArray));
         }
 
