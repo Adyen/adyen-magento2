@@ -67,6 +67,7 @@ class PaymentMethods extends AbstractHelper
 
     const ADYEN_GROUP_ALTERNATIVE_PAYMENT_METHODS = 'adyen-alternative-payment-method';
     const CONFIG_FIELD_REQUIRES_LINE_ITEMS = 'requires_line_items';
+    const CONFIG_FIELD_IS_OPEN_INVOICE = 'is_open_invoice';
 
     const VALID_CHANNELS = ["iOS", "Android", "Web"];
 
@@ -639,7 +640,7 @@ class PaymentMethods extends AbstractHelper
 
             $paymentMethodsExtraDetails[$paymentMethodCode]['icon'] = $icon;
 
-            //todo check if it is needed
+            // TODO::This field is not relevant anymore and can be removed during cleaning-up deprecated methods on V10.
             // check if payment method is an open invoice method
             $paymentMethodsExtraDetails[$paymentMethodCode]['isOpenInvoice'] =
                 $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethodCode);
@@ -768,12 +769,20 @@ class PaymentMethods extends AbstractHelper
     }
 
     /**
-     * @param Order $order
-     * @param string $notificationPaymentMethod
+     * Checks whether if the capture mode is auto on an order with the given notification `paymentMethod`.
+     * Note that, only a `notificationPaymentMethod` related to the order should be provided.
+     *
+     * @param Order $order Order object
+     * @param string $notificationPaymentMethod `paymentMethod` provided on the webhook of the given order
      * @return bool
      */
     public function isAutoCapture(Order $order, string $notificationPaymentMethod): bool
     {
+        // TODO::Add a validation checking `$notificationPaymentMethod` belongs to the correct order (webhook) or not.
+
+        $payment = $order->getPayment();
+        $paymentMethodInstance = $payment->getMethodInstance();
+
         // validate if payment methods allows manual capture
         if (PaymentMethodUtil::isManualCaptureSupported($notificationPaymentMethod)) {
             $captureMode = trim(
@@ -855,7 +864,7 @@ class PaymentMethods extends AbstractHelper
             }
 
             // if auto capture mode for openinvoice is turned on then use auto capture
-            if ($autoCaptureOpenInvoice && $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($notificationPaymentMethod)) {
+            if ($autoCaptureOpenInvoice && $this->isOpenInvoice($paymentMethodInstance)) {
                 $this->adyenLogger->addAdyenNotification(
                     'This payment method is configured to be working as auto capture ',
                     array_merge(
@@ -906,7 +915,7 @@ class PaymentMethods extends AbstractHelper
              * online capture after delivery, use Magento backend to online invoice
              * (if the option auto capture mode for openinvoice is not set)
              */
-            if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($notificationPaymentMethod)) {
+            if ($this->isOpenInvoice($paymentMethodInstance)) {
                 $this->adyenLogger->addAdyenNotification(
                     'Capture mode for klarna is by default set to manual',
                     array_merge(
@@ -1062,7 +1071,18 @@ class PaymentMethods extends AbstractHelper
 
         return ['url' => $url, 'width' => 77, 'height' => 50];
     }
-
+    
+    /**
+     * Checks whether if the payment method is open invoice or not based on `is_open_invoice` configuration field.
+     *
+     * @param MethodInterface $paymentMethodInstance
+     * @return bool
+     */
+    public function isOpenInvoice(MethodInterface $paymentMethodInstance): bool
+    {
+        return boolval($paymentMethodInstance->getConfigData(self::CONFIG_FIELD_IS_OPEN_INVOICE));
+    }
+  
     /**
      * Checks the requirement of line items for the given payment method
      *

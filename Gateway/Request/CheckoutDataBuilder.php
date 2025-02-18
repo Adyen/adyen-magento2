@@ -14,12 +14,14 @@ namespace Adyen\Payment\Gateway\Request;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\OpenInvoice;
 use Adyen\Payment\Model\Config\Source\ThreeDSFlow;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
@@ -37,37 +39,8 @@ class CheckoutDataBuilder implements BuilderInterface
     ];
 
     /**
-     * @var Data
-     */
-    private Data $adyenHelper;
-
-    /**
-     * @var CartRepositoryInterface
-     */
-    private CartRepositoryInterface $cartRepository;
-
-    /**
-     * @var ChargedCurrency
-     */
-    private ChargedCurrency $chargedCurrency;
-
-    /**
-     * @var StateData
-     */
-    private StateData $stateData;
-
-    /**
-     * @var Config
-     */
-    private Config $configHelper;
-
-    /**
-     * @var OpenInvoice
-     */
-    private OpenInvoice $openInvoiceHelper;
-
-    /**
      * CheckoutDataBuilder constructor.
+     *
      * @param Data $adyenHelper
      * @param StateData $stateData
      * @param CartRepositoryInterface $cartRepository
@@ -76,31 +49,26 @@ class CheckoutDataBuilder implements BuilderInterface
      * @param OpenInvoice $openInvoiceHelper
      */
     public function __construct(
-        Data $adyenHelper,
-        StateData $stateData,
-        CartRepositoryInterface $cartRepository,
-        ChargedCurrency $chargedCurrency,
-        Config $configHelper,
-        OpenInvoice $openInvoiceHelper
-    ) {
-        $this->adyenHelper = $adyenHelper;
-        $this->stateData = $stateData;
-        $this->cartRepository = $cartRepository;
-        $this->chargedCurrency = $chargedCurrency;
-        $this->configHelper = $configHelper;
-        $this->openInvoiceHelper = $openInvoiceHelper;
-    }
+        private readonly Data $adyenHelper,
+        private readonly StateData $stateData,
+        private readonly CartRepositoryInterface $cartRepository,
+        private readonly ChargedCurrency $chargedCurrency,
+        private readonly Config $configHelper,
+        private readonly OpenInvoice $openInvoiceHelper,
+        private readonly PaymentMethods $paymentMethodsHelper
+    ) { }
 
     /**
      * @param array $buildSubject
      * @return array
-     * @throws NoSuchEntityException
+     * @throws NoSuchEntityException|LocalizedException
      */
     public function build(array $buildSubject): array
     {
         /** @var PaymentDataObject $paymentDataObject */
         $paymentDataObject = SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
+        $paymentMethodInstance = $payment->getMethodInstance();
         /** @var Order $order */
         $order = $payment->getOrder();
         $storeId = $order->getStoreId();
@@ -130,7 +98,7 @@ class CheckoutDataBuilder implements BuilderInterface
 
         $brandCode = $payment->getAdditionalInformation(AdyenPaymentMethodDataAssignObserver::BRAND_CODE);
         if (
-            (isset($brandCode) && $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) ||
+            $this->paymentMethodsHelper->isOpenInvoice($paymentMethodInstance) ||
             $payment->getMethod() === AdyenPayByLinkConfigProvider::CODE
         ) {
             $openInvoiceFields = $this->openInvoiceHelper->getOpenInvoiceDataForOrder($order);
