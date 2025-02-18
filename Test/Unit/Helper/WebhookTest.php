@@ -4,6 +4,7 @@ namespace Adyen\Payment\Test\Unit\Helper;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\Webhook;
 use Adyen\Payment\Helper\Webhook\WebhookHandlerInterface;
+use Adyen\Payment\Model\AdyenAmountCurrency;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Serialize\Serializer\Json;
@@ -450,14 +451,10 @@ class WebhookTest extends AbstractAdyenTestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $orderAmountCurrencyObject = new class {
-            public function getAmount() {
-                return 100;
-            }
-            public function getCurrencyCode() {
-                return 'EUR';
-            }
-        };
+        $orderAmountCurrencyObject = $this->createConfiguredMock(AdyenAmountCurrency::class, [
+            'getAmount' => 100,
+            'getCurrencyCode' => 'EUR'
+        ]);
 
         $chargedCurrencyMock = $this->createMock(ChargedCurrency::class);
         $chargedCurrencyMock->method('getOrderAmountCurrency')

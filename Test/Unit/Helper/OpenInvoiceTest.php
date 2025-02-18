@@ -71,8 +71,7 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
         );
 
         $itemAmountCurrencyMock = $this->createMock(AdyenAmountCurrency::class);
-        $itemAmountCurrencyMock->method('getAmountWithDiscount')->willReturn(100.00);
-        $itemAmountCurrencyMock->method('getAmountIncludingTaxWithDiscount')->willReturn(100.00);
+        $itemAmountCurrencyMock->method('getAmountIncludingTax')->willReturn(100.00);
         $itemAmountCurrencyMock->method('getTaxAmount')->willReturn(0.00);
         $itemAmountCurrencyMock->method('getCurrencyCode')->willReturn('EUR');
 
@@ -102,18 +101,15 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
         $this->imageHelperMock->method('setImageFile')->willReturnSelf();
         $this->imageHelperMock->method('getUrl')->willReturn('https://localhost.store/media/catalog/product/cache/3d0891988c4d57b25ce48fde378871d2/w/b/wb04-blue-0.jpg');
 
-        $this->shippingAmountCurrencyMock->method('getAmountWithDiscount')->willReturn(500);
-        $this->shippingAmountCurrencyMock->method('getAmountIncludingTaxWithDiscount')->willReturn(550);
+        $this->shippingAmountCurrencyMock->method('getAmountIncludingTax')->willReturn(550);
         $this->shippingAmountCurrencyMock->method('getTaxAmount')->willReturn(50);
-        $this->shippingAmountCurrencyMock->method('getCalculatedTaxPercentage')->willReturn(10);
 
         $this->chargedCurrencyMock->method('getQuoteShippingAmountCurrency')->willReturn($this->shippingAmountCurrencyMock);
 
         $this->shippingAddressMock->method('__call')->willReturnMap([
             ['getShippingAmount', [], 500.0],
-            ['getShippingTaxAmount', [], 0.0],
+            ['getShippingTaxAmount', [], 50.0],
             ['getShippingDescription', [], 'Flat Rate - Fixed'],
-            ['getShippingAmountCurrency', [], 'EUR'],
             ['getShippingAmountCurrency', [], 'EUR'],
         ]);
 
@@ -121,7 +117,6 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
             'lineItems' => [
                 [
                     'id' => '14',
-                    'amountExcludingTax' => 10000,
                     'amountIncludingTax' => 10000,
                     'taxAmount' => 0,
                     'description' => 'Push It Messenger Bag',
@@ -132,28 +127,23 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
                 ],
                 [
                     'id' => 'shippingCost',
-                    'amountExcludingTax' => 50000,
                     'amountIncludingTax' => 55000,
                     'taxAmount' => 5000,
                     'description' => 'Flat Rate - Fixed',
-                    'quantity' => 1,
-                    'taxPercentage' => 1000
+                    'quantity' => 1
                 ]
             ]
         ];
 
-        // Act: Call the method with the mocked parameters
         $result = $openInvoice->getOpenInvoiceDataForOrder($this->orderMock);
 
-        // Assert: Verify that the output matches your expectations
         $this->assertEquals($expectedResult, $result);
     }
 
     public function testGetOpenInvoiceDataForLastInvoice(): void
     {
         $itemAmountCurrencyMock = $this->createMock(AdyenAmountCurrency::class);
-        $itemAmountCurrencyMock->method('getAmountWithDiscount')->willReturn(100.00);
-        $itemAmountCurrencyMock->method('getAmountIncludingTaxWithDiscount')->willReturn(121.00);
+        $itemAmountCurrencyMock->method('getAmountIncludingTax')->willReturn(121.00);
         $itemAmountCurrencyMock->method('getTaxAmount')->willReturn(21.00);
 
         $this->productMock->method('getId')->willReturn('14');
@@ -180,10 +170,8 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
 
         $this->orderMock->method('getShippingDescription')->willReturn('Flat Rate - Fixed');
 
-        $this->shippingAmountCurrencyMock->method('getAmountWithDiscount')->willReturn(500);
-        $this->shippingAmountCurrencyMock->method('getAmountIncludingTaxWithDiscount')->willReturn(550);
+        $this->shippingAmountCurrencyMock->method('getAmountIncludingTax')->willReturn(550);
         $this->shippingAmountCurrencyMock->method('getTaxAmount')->willReturn(50);
-        $this->shippingAmountCurrencyMock->method('getCalculatedTaxPercentage')->willReturn(10);
 
         $openInvoice = new OpenInvoice(
             $this->adyenHelperMock,
@@ -197,7 +185,6 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
             'lineItems' => [
                 [
                     'id' => '14',
-                    'amountExcludingTax' => 10000,
                     'amountIncludingTax' => 12100,
                     'taxAmount' => 2100,
                     'description' => 'Push It Messenger Bag',
@@ -208,12 +195,10 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
                 ],
                 [
                     'id' => 'shippingCost',
-                    'amountExcludingTax' => 50000,
                     'amountIncludingTax' => 55000,
                     'taxAmount' => 5000,
                     'description' => 'Flat Rate - Fixed',
                     'quantity' => 1,
-                    'taxPercentage' => 1000
                 ]
             ]
         ];
@@ -237,17 +222,14 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
         $this->orderItemMock->method('getTaxPercent')->willReturn(0);
 
         $itemAmountCurrencyMock = $this->createMock(AdyenAmountCurrency::class);
-        $itemAmountCurrencyMock->method('getAmountWithDiscount')->willReturn(45);
-        $itemAmountCurrencyMock->method('getAmountIncludingTaxWithDiscount')->willReturn(45);
+        $itemAmountCurrencyMock->method('getAmountIncludingTax')->willReturn(45);
         $itemAmountCurrencyMock->method('getTaxAmount')->willReturn(0);
         $itemAmountCurrencyMock->method('getCurrencyCode')->willReturn('EUR');
 
         $this->chargedCurrencyMock->method('getCreditMemoItemAmountCurrency')->willReturn($itemAmountCurrencyMock);
 
-        $this->shippingAmountCurrencyMock->method('getAmountWithDiscount')->willReturn(500);
-        $this->shippingAmountCurrencyMock->method('getAmountIncludingTaxWithDiscount')->willReturn(550);
+        $this->shippingAmountCurrencyMock->method('getAmountIncludingTax')->willReturn(550);
         $this->shippingAmountCurrencyMock->method('getTaxAmount')->willReturn(50);
-        $this->shippingAmountCurrencyMock->method('getCalculatedTaxPercentage')->willReturn(10);
 
         $this->chargedCurrencyMock->method('getCreditMemoShippingAmountCurrency')->willReturn($this->shippingAmountCurrencyMock);
 
@@ -273,7 +255,6 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
             'lineItems' => [
                 [
                     'id' => '14',
-                    'amountExcludingTax' => 4500,
                     'amountIncludingTax' => 4500,
                     'taxAmount' => 0,
                     'description' => 'Push It Messenger Bag',
@@ -284,12 +265,10 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
                 ],
                 [
                     'id' => 'shippingCost',
-                    'amountExcludingTax' => 50000,
                     'amountIncludingTax' => 55000,
                     'taxAmount' => 5000,
                     'description' => 'Flat Rate - Fixed',
-                    'quantity' => 1,
-                    'taxPercentage' => 1000
+                    'quantity' => 1
                 ]
             ]
         ];
