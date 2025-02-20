@@ -1094,6 +1094,6 @@ class PaymentMethods extends AbstractHelper
         $isOpenInvoice = $this->isOpenInvoice($paymentMethodInstance);
         $requiresLineItemsConfig = boolval($paymentMethodInstance->getConfigData(self::CONFIG_FIELD_REQUIRES_LINE_ITEMS));
 
-        return ($isOpenInvoice || $requiresLineItemsConfig);
+        return $isOpenInvoice || $requiresLineItemsConfig;
     }
 }
