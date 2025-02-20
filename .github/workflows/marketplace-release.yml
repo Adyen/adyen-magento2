@@ -8,7 +8,7 @@ on:
 jobs:
   marketplace-automation:
     runs-on: ubuntu-latest
-    # environment: internal
+    timeout-minutes: 25
 
     steps:
       - name: Checkout repository
