@@ -48,10 +48,14 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
 
         # Other mock property definitions
         $this->orderMock = $this->createMock(Order::class);
-        $this->itemMock = $this->createMock(Item::class);
+        $this->itemMock = $this->createGeneratedMock(Item::class,
+            ['getIsVirtual', 'getQty', 'getProduct', 'getName', 'getSku', 'getTaxPercent']
+        );
         $this->productMock = $this->createMock(Product::class);
         $this->invoiceMock = $this->createMock(Invoice::class);
-        $this->orderItemMock = $this->createMock(Order\Item::class);
+        $this->orderItemMock = $this->createGeneratedMock(Order\Item::class,
+            ['getIsVirtual', 'getQty', 'getProduct', 'getName', 'getSku', 'getTaxPercent']
+        );
         $this->invoiceItemMock = $this->createMock(Invoice\Item::class);
         $this->creditmemoMock = $this->createMock(Creditmemo::class);
         $this->creditmemoItemMock = $this->createMock(Creditmemo\Item::class);
@@ -60,7 +64,13 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
         $this->shippingAmountCurrencyMock = $this->createMock(AdyenAmountCurrency::class);
     }
 
-    public function testGetOpenInvoiceDataFomOrder(): void
+    /**
+     * @dataProvider isVirtualDataProvider()
+     *
+     * @param bool $isVirtual
+     * @return void
+     */
+    public function testGetOpenInvoiceDataFomOrder(bool $isVirtual): void
     {
         $openInvoice = new OpenInvoice(
             $this->adyenHelperMock,
@@ -80,6 +90,8 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
         $this->itemMock->method('getQty')->willReturn(1);
         $this->itemMock->method('getProduct')->willReturn($this->productMock);
         $this->itemMock->method('getName')->willReturn('Push It Messenger Bag');
+        $this->itemMock->method('getSku')->willReturn('24-WB04');
+        $this->itemMock->method('getIsVirtual')->willReturn($isVirtual);
 
         $this->cartMock->method('getShippingAddress')->willReturn($this->shippingAddressMock);
         $this->cartMock->method('getAllVisibleItems')->willReturn([$this->itemMock]);
@@ -118,10 +130,15 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
                 [
                     'id' => '14',
                     'amountIncludingTax' => 10000,
+                    'amountExcludingTax' => 10000,
                     'taxAmount' => 0,
-                    'description' => 'Push It Messenger Bag',
-                    'quantity' => 1,
                     'taxPercentage' => 0,
+                    'description' => 'Push It Messenger Bag',
+                    'sku' => '24-WB04',
+                    'itemCategory' => $isVirtual ?
+                        OpenInvoice::ITEM_CATEGORY_DIGITAL_GOODS :
+                        OpenInvoice::ITEM_CATEGORY_PHYSICAL_GOODS,
+                    'quantity' => 1,
                     'productUrl' => 'https://localhost.store/index.php/push-it-messenger-bag.html',
                     'imageUrl' => '',
                 ],
@@ -140,7 +157,13 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
         $this->assertEquals($expectedResult, $result);
     }
 
-    public function testGetOpenInvoiceDataForLastInvoice(): void
+    /**
+     * @dataProvider isVirtualDataProvider()
+     *
+     * @param bool $isVirtual
+     * @return void
+     */
+    public function testGetOpenInvoiceDataForLastInvoice(bool $isVirtual): void
     {
         $itemAmountCurrencyMock = $this->createMock(AdyenAmountCurrency::class);
         $itemAmountCurrencyMock->method('getAmountIncludingTax')->willReturn(121.00);
@@ -157,6 +180,8 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
         $this->orderItemMock->method('getProduct')->willReturn($this->productMock);
         $this->orderItemMock->method('getName')->willReturn('Push It Messenger Bag');
         $this->orderItemMock->method('getTaxPercent')->willReturn(21);
+        $this->orderItemMock->method('getSku')->willReturn('24-WB04');
+        $this->orderItemMock->method('getIsVirtual')->willReturn($isVirtual);
 
         $this->invoiceItemMock->method('getOrderItem')->willReturn($this->orderItemMock);
         $this->invoiceItemMock->method('getQty')->willReturn(1);
@@ -186,10 +211,15 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
                 [
                     'id' => '14',
                     'amountIncludingTax' => 12100,
+                    'amountExcludingTax' => 10000,
                     'taxAmount' => 2100,
-                    'description' => 'Push It Messenger Bag',
-                    'quantity' => 1,
                     'taxPercentage' => 2100,
+                    'description' => 'Push It Messenger Bag',
+                    'sku' => '24-WB04',
+                    'itemCategory' => $isVirtual ?
+                        OpenInvoice::ITEM_CATEGORY_DIGITAL_GOODS :
+                        OpenInvoice::ITEM_CATEGORY_PHYSICAL_GOODS,
+                    'quantity' => 1,
                     'productUrl' => 'https://localhost.store/index.php/push-it-messenger-bag.html',
                     'imageUrl' => '',
                 ],
@@ -208,7 +238,13 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
         $this->assertEquals($expectedResult, $result);
     }
 
-    public function testGetOpenInvoiceDataForCreditMemo(): void
+    /**
+     * @dataProvider isVirtualDataProvider()
+     *
+     * @param bool $isVirtual
+     * @return void
+     */
+    public function testGetOpenInvoiceDataForCreditMemo(bool $isVirtual): void
     {
         $this->creditmemoMock->method('getItems')->willReturn([$this->creditmemoItemMock]);
         $this->creditmemoMock->method('getShippingAmount')->willReturn(50);
@@ -220,6 +256,8 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
         $this->orderItemMock->method('getName')->willReturn('Push It Messenger Bag');
         $this->orderItemMock->method('getProduct')->willReturn($this->productMock);
         $this->orderItemMock->method('getTaxPercent')->willReturn(0);
+        $this->orderItemMock->method('getSku')->willReturn('24-WB04');
+        $this->orderItemMock->method('getIsVirtual')->willReturn($isVirtual);
 
         $itemAmountCurrencyMock = $this->createMock(AdyenAmountCurrency::class);
         $itemAmountCurrencyMock->method('getAmountIncludingTax')->willReturn(45);
@@ -256,10 +294,15 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
                 [
                     'id' => '14',
                     'amountIncludingTax' => 4500,
+                    'amountExcludingTax' => 4500,
                     'taxAmount' => 0,
-                    'description' => 'Push It Messenger Bag',
-                    'quantity' => 1,
                     'taxPercentage' => 0,
+                    'description' => 'Push It Messenger Bag',
+                    'sku' => '24-WB04',
+                    'itemCategory' => $isVirtual ?
+                        OpenInvoice::ITEM_CATEGORY_DIGITAL_GOODS :
+                        OpenInvoice::ITEM_CATEGORY_PHYSICAL_GOODS,
+                    'quantity' => 1,
                     'productUrl' => 'https://localhost.store/index.php/push-it-messenger-bag.html',
                     'imageUrl' => ''
                 ],
@@ -276,5 +319,16 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
         $result = $openInvoice->getOpenInvoiceDataForCreditMemo($this->creditmemoMock);
 
         $this->assertEquals($expectedResult, $result);
+    }
+
+    /**
+     * @return array
+     */
+    private static function isVirtualDataProvider(): array
+    {
+        return [
+            ['isVirtual' => true],
+            ['isVirtual' => false]
+        ];
     }
 }
