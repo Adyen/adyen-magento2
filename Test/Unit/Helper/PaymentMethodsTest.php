@@ -1328,12 +1328,49 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
 
     public function testIsOpenInvoice()
     {
-        $paymentMethodInstaceMock = $this->createMock(MethodInterface::class);
-        $paymentMethodInstaceMock->method('getConfigData')
+        $paymentMethodInstanceMock = $this->createMock(MethodInterface::class);
+        $paymentMethodInstanceMock->method('getConfigData')
             ->with(PaymentMethods::CONFIG_FIELD_IS_OPEN_INVOICE)
             ->willReturn(true);
 
-        $result = $this->paymentMethodsHelper->isOpenInvoice($paymentMethodInstaceMock);
+        $result = $this->paymentMethodsHelper->isOpenInvoice($paymentMethodInstanceMock);
         $this->assertTrue($result);
+    }
+
+    /**
+     * @return array
+     */
+    private static function getRequiresLineItemsDataProvider(): array
+    {
+        return [
+            ['isOpenInvoice' => true, 'isRequiresOpenInvoiceConfigSet' => false, 'requiresLineItems' => true],
+            ['isOpenInvoice' => false, 'isRequiresOpenInvoiceConfigSet' => true, 'requiresLineItems' => true],
+            ['isOpenInvoice' => false, 'isRequiresOpenInvoiceConfigSet' => false, 'requiresLineItems' => false],
+            ['isOpenInvoice' => true, 'isRequiresOpenInvoiceConfigSet' => true, 'requiresLineItems' => true]
+        ];
+    }
+
+    /**
+     * @dataProvider getRequiresLineItemsDataProvider()
+     *
+     * @param bool $isOpenInvoice
+     * @param bool $isRequiresOpenInvoiceConfigSet
+     * @param bool $requiresLineItems
+     * @return void
+     */
+    public function testGetRequiresLineItems(
+        bool $isOpenInvoice,
+        bool $isRequiresOpenInvoiceConfigSet,
+        bool $requiresLineItems
+    ) {
+        $paymentMethodInstanceMock = $this->createMock(MethodInterface::class);
+        $paymentMethodInstanceMock->method('getConfigData')
+            ->willReturnMap([
+                [PaymentMethods::CONFIG_FIELD_IS_OPEN_INVOICE, null, $isOpenInvoice],
+                [PaymentMethods::CONFIG_FIELD_REQUIRES_LINE_ITEMS, null, $isRequiresOpenInvoiceConfigSet]
+            ]);
+
+        $result = $this->paymentMethodsHelper->getRequiresLineItems($paymentMethodInstanceMock);
+        $this->assertEquals($requiresLineItems, $result);
     }
 }
