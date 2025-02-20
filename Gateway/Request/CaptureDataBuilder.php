@@ -111,8 +111,7 @@ class CaptureDataBuilder implements BuilderInterface
             ]
         ];
 
-        //Check additionaldata
-        if ($this->paymentMethodsHelper->isOpenInvoice($paymentMethodInstance)) {
+        if ($this->paymentMethodsHelper->getRequiresLineItems($paymentMethodInstance)) {
             $openInvoiceFields = $this->openInvoiceHelper->getOpenInvoiceDataForInvoice($latestInvoice);
             $requestBody = array_merge($requestBody, $openInvoiceFields);
         }
@@ -171,7 +170,7 @@ class CaptureDataBuilder implements BuilderInterface
                     "paymentPspReference" => $adyenOrderPayment[OrderPaymentInterface::PSPREFRENCE]
                 ];
 
-                if ($this->paymentMethodsHelper->isOpenInvoice($paymentMethodInstance)) {
+                if ($this->paymentMethodsHelper->getRequiresLineItems($paymentMethodInstance)) {
                     $order = $payment->getOrder();
                     $invoices = $order->getInvoiceCollection();
                     // The latest invoice will contain only the selected items(and quantities) for the (partial) capture
