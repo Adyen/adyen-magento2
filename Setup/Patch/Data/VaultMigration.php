@@ -61,9 +61,7 @@ class VaultMigration implements DataPatchInterface
             return;
         }
 
-        $paypalTableName = $setup->getConnection()->getTableName('paypal_billing_agreement');
-        $columns = $setup->getConnection()->describeTable($paypalTableName);
-
+        $columns = $setup->getConnection()->describeTable('paypal_billing_agreement');
         if (!isset($columns['method_code']) || !isset($columns['status'])) {
             $this->adyenLogger->addAdyenInfoLog('Columns method_code and status do not exist, skipping migration');
             return;
