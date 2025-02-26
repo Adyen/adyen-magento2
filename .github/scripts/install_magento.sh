@@ -30,7 +30,6 @@ if [ "$OPENSEARCH_SERVER" != "<will be defined>" ]; then
             --opensearch-timeout="$OPENSEARCH_TIMEOUT")
     else
         MAGENTO_INSTALL_ARGS=$(echo \
-            --search-engine="opensearch" \
             --elasticsearch-host="$OPENSEARCH_SERVER" \
             --elasticsearch-port="$OPENSEARCH_PORT" \
             --elasticsearch-index-prefix="$OPENSEARCH_INDEX_PREFIX" \
