@@ -226,7 +226,7 @@ class OpenInvoice
             }
         } catch (Exception $e) {
             $this->adyenLogger->error(
-                __('An error occurred while fetching the `itemCategory`: %1', $e->getMessage())
+                __('An error occurred while building the line item field `itemCategory`: %1', $e->getMessage())
             );
         }
 
