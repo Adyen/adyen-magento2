@@ -12,7 +12,7 @@ services:
       MARIADB_USER: magento
       MARIADB_PASSWORD: magento
   opensearch:
-    image: bitnami/opensearch:2
+    image: bitnami/opensearch:${OPENSEARCH_VERSION}
     container_name: opensearch-container
     networks:
       - backend

@@ -14,6 +14,7 @@ jobs:
     env:
       PHP_VERSION: ${{ matrix.php-version }}
       MAGENTO_VERSION: ${{ matrix.magento-version }}
+      OPENSEARCH_VERSION: 2
       ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
       ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
       DONATION_ACCOUNT: ${{secrets.DONATION_ACCOUNT}}

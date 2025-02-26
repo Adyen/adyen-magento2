@@ -32,8 +32,8 @@ jobs:
     environment: ${{ (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) && 'external' || 'internal' }}
     strategy:
       matrix:
-        php-version: ["8.3"]
-        magento-version: ["2.4.7-p2"]
+        php-version: ["8.1"]
+        magento-version: ["2.4.4-p12","2.4.7-p4"]
     runs-on:
       group: larger-runners
       labels: ubuntu-latest-8-cores
@@ -41,6 +41,7 @@ jobs:
     env:
       PHP_VERSION: ${{ matrix.php-version }}
       MAGENTO_VERSION: ${{ matrix.magento-version }}
+
       ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
       ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
       ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
@@ -54,6 +55,7 @@ jobs:
       - run: echo "TEST_GROUP=${{ env.IS_RELEASE == 'TRUE' && 'all' || (inputs.testGroup || 'standard') }}" >> $GITHUB_ENV
       - run: echo "TEST_BRANCH=${{ (env.IS_RELEASE == 'TRUE' || !inputs.testBranch)  && 'develop' || inputs.testBranch }}" >> $GITHUB_ENV
       - run: echo "EXPRESS_BRANCH=${{ contains(fromJSON('["all", "express-checkout"]'), env.TEST_GROUP) && (inputs.expressBranch || 'main') || '' }}" >> $GITHUB_ENV
+      - run: echo "OPENSEARCH_VERSION=${{ matrix.magento-version == '2.4.4-p12' && '1' || '2' }}" >> $GITHUB_ENV
 
       - name: Information
         run: echo "E2E testing against test suite branch ${{env.TEST_BRANCH}} using group ${{env.TEST_GROUP}} ${{ env.EXPRESS_BRANCH && 'with express module branch' || '' }} ${{ env.EXPRESS_BRANCH || '' }}"
