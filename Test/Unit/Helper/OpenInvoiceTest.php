@@ -2,15 +2,18 @@
 
 namespace Adyen\Payment\Test\Unit\Helper;
 
+use Adyen\AdyenException;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\AdyenAmountCurrency;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Payment\Helper\OpenInvoice;
 use Magento\Catalog\Helper\Image;
 use Magento\Catalog\Model\Product;
+use Magento\Framework\Exception\NotFoundException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address;
@@ -82,7 +85,7 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
      * @param bool $isVirtual
      * @return void
      */
-    public function testGetOpenInvoiceDataFomOrder(bool $isVirtual): void
+    public function testGetOpenInvoiceDataForOrder(bool $isVirtual): void
     {
         $openInvoice = new OpenInvoice(
             $this->adyenHelperMock,
@@ -106,6 +109,8 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
         $this->quoteItemMock->method('getSku')->willReturn('24-WB04');
         $this->quoteItemMock->method('getIsVirtual')->willReturn($isVirtual);
         $this->quoteItemMock->method('getQuote')->willReturn($this->quoteMock);
+
+        $this->quotePaymentMock->method('getMethod')->willReturn(PaymentMethods::ADYEN_PAYPAL);
 
         $this->cartMock->method('getShippingAddress')->willReturn($this->shippingAddressMock);
         $this->cartMock->method('getAllVisibleItems')->willReturn([$this->quoteItemMock]);
@@ -152,6 +157,9 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
                     'quantity' => 1,
                     'productUrl' => 'https://localhost.store/index.php/push-it-messenger-bag.html',
                     'imageUrl' => '',
+                    'itemCategory' => $isVirtual ?
+                        OpenInvoice::ITEM_CATEGORY_DIGITAL_GOODS :
+                        OpenInvoice::ITEM_CATEGORY_PHYSICAL_GOODS
                 ],
                 [
                     'id' => 'shippingCost',
@@ -166,6 +174,31 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
         $result = $openInvoice->getOpenInvoiceDataForOrder($this->orderMock);
 
         $this->assertEquals($expectedResult, $result);
+    }
+
+    /**
+     * @return void
+     */
+    public function testBuildItemCategoryException(): void
+    {
+        $openInvoice = new OpenInvoice(
+            $this->adyenHelperMock,
+            $this->cartRepositoryMock,
+            $this->chargedCurrencyMock,
+            $this->configHelperMock,
+            $this->imageHelperMock,
+            $this->adyenLoggerMock
+        );
+
+        $itemAmountCurrencyMock = $this->createMock(AdyenAmountCurrency::class);
+        $this->chargedCurrencyMock->method('getQuoteItemAmountCurrency')->willReturn($itemAmountCurrencyMock);
+        $this->quoteItemMock->method('getQuote')->willThrowException(new AdyenException());
+        $this->cartRepositoryMock->method('get')->willReturn($this->cartMock);
+        $this->cartMock->method('getAllVisibleItems')->willReturn([$this->quoteItemMock]);
+        $this->cartMock->method('getShippingAddress')->willReturn($this->shippingAddressMock);
+
+        $result = $openInvoice->getOpenInvoiceDataForOrder($this->orderMock);
+        $this->assertArrayNotHasKey('itemCategory', $result);
     }
 
     /**
