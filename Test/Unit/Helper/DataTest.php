@@ -1088,8 +1088,10 @@ class DataTest extends AbstractAdyenTestCase
             ->with(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY)
             ->willReturn(null);
 
-        $this->request->method('getPathInfo')
+        $this->request->method('getOriginalPathInfo')
             ->willReturn('/graphql');
+        $this->request->method('getMethod')
+            ->willReturn('POST');
 
         $headers = $this->dataHelper->buildRequestHeaders($this->paymentMock);
 

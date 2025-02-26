@@ -1196,8 +1196,9 @@ class Data extends AbstractHelper
             $frontendType = $payment->getAdditionalInformation(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY);
             if (is_null($frontendType)) {
                 // Check the request URI
-                $requestUri = $this->request->getPathInfo();
-                if (str_contains($requestUri, '/graphql')) {
+                $requestPath = $this->request->getOriginalPathInfo();
+                $requestMethod = $this->request->getMethod();
+                if ($requestPath === '/graphql' && $requestMethod === 'POST') {
                     $frontendType = 'headless-graphql';
                 } else {
                     $frontendType = 'headless-rest';
