@@ -21,19 +21,19 @@ else
 fi
 
 if [ "$OPENSEARCH_SERVER" != "<will be defined>" ]; then
-    if [ "$OPENSEARCH_VERSION" -eq 2]; then
-        MAGENTO_INSTALL_ARGS=$(echo \
+    if [ "$OPENSEARCH_VERSION" -eq 2 ]; then
+        MAGENTO_INSTALL_ARGS=\
             --search-engine="opensearch" \
             --opensearch-host="$OPENSEARCH_SERVER" \
             --opensearch-port="$OPENSEARCH_PORT" \
             --opensearch-index-prefix="$OPENSEARCH_INDEX_PREFIX" \
-            --opensearch-timeout="$OPENSEARCH_TIMEOUT")
+            --opensearch-timeout="$OPENSEARCH_TIMEOUT"
     else
-        MAGENTO_INSTALL_ARGS=$(echo \
+        MAGENTO_INSTALL_ARGS=\
             --elasticsearch-host="$OPENSEARCH_SERVER" \
             --elasticsearch-port="$OPENSEARCH_PORT" \
             --elasticsearch-index-prefix="$OPENSEARCH_INDEX_PREFIX" \
-            --elasticsearch-timeout="$OPENSEARCH_TIMEOUT")
+            --elasticsearch-timeout="$OPENSEARCH_TIMEOUT"
     fi
 	RET=1
 	while [ $RET -ne 0 ]; do
