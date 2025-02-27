@@ -26,7 +26,7 @@ dev-module:
 	bin/magento setup:upgrade
 
 # Configuration
-configure: build-n98-magerun2
+configure:
 	bin/magento config:set payment/adyen_abstract/demo_mode 1
 	bin/magento adyen:enablepaymentmethods:run
 	bin/magento config:set payment/adyen_abstract/has_holder_name 1
