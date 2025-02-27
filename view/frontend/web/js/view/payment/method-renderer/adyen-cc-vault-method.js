@@ -316,15 +316,6 @@ define([
             return window.checkoutConfig.payment.adyenCc.methodCode;
         },
 
-        getCcCodeByAltCode: function(altCode) {
-            let ccTypes = window.checkoutConfig.payment.ccform.availableTypesByAlt[this.getCode()];
-            if (ccTypes.hasOwnProperty(altCode)) {
-                return ccTypes[altCode];
-            }
-
-            return '';
-        },
-
         getAllInstallments: function() {
             return window.checkoutConfig.payment.adyenCc.installments;
         },
