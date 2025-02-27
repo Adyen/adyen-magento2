@@ -24,7 +24,8 @@ define(
         'Adyen_Payment/js/model/adyen-payment-service',
         'Adyen_Payment/js/model/adyen-configuration',
         'Adyen_Payment/js/model/adyen-payment-modal',
-        'Adyen_Payment/js/model/adyen-checkout'
+        'Adyen_Payment/js/model/adyen-checkout',
+        'Adyen_Payment/js/helper/currencyHelper'
     ],
     function(
         $,
@@ -42,7 +43,8 @@ define(
         adyenPaymentService,
         adyenConfiguration,
         AdyenPaymentModal,
-        adyenCheckout
+        adyenCheckout,
+        currencyHelper
     ) {
         'use strict';
         return Component.extend({
@@ -62,7 +64,6 @@ define(
             initObservable: function() {
                 this._super().observe([
                     'creditCardType',
-                    'installments',
                     'placeOrderAllowed',
                     'adyenCCMethod',
                     'logo'
@@ -185,12 +186,17 @@ define(
                     return false;
                 }
 
-                this.installments(0);
                 let allInstallments = this.getAllInstallments();
-
+                let currency = quote.totals().quote_currency_code;
                 let componentConfig = {
                     enableStoreDetails: this.getEnableStoreDetails(),
                     brands: this.getBrands(),
+                    amount: {
+                        value: currencyHelper.formatAmount(
+                            self.grandTotal(),
+                            currency),
+                        currency: currency
+                    },
                     hasHolderName: adyenConfiguration.getHasHolderName(),
                     holderNameRequired: adyenConfiguration.getHasHolderName() &&
                         adyenConfiguration.getHolderNameRequired(),
@@ -210,13 +216,9 @@ define(
                         let creditCardType = self.getCcCodeByAltCode(
                             state.brand);
                         if (creditCardType) {
-                            // If the credit card type is already set, check if it changed or not
-
-
                             self.creditCardType(creditCardType);
                         } else {
                             self.creditCardType('');
-                            self.installments(0);
                         }
                     }
                 }
@@ -276,7 +278,6 @@ define(
                         'combo_card_type': this.comboCardOption(),
                         //This is required by magento to store the token
                         'is_active_payment_token_enabler' : this.storeCc,
-                        //'number_of_installments': this.installment(),
                         'frontendType': 'default'
                     }
                 };
@@ -459,10 +460,6 @@ define(
                     type)
                     ? window.checkoutConfig.payment.adyenCc.icons[type]
                     : false;
-            },
-            hasInstallments: function() {
-                return this.comboCardOption() === 'credit' &&
-                    window.checkoutConfig.payment.adyenCc.hasInstallments;
             },
             getAllInstallments: function() {
                 return window.checkoutConfig.payment.adyenCc.installments;
