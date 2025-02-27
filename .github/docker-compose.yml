@@ -38,6 +38,7 @@ services:
     environment:
       DB_SERVER: mariadb
       OPENSEARCH_SERVER: opensearch-container
+      OPENSEARCH_VERSION: ${OPENSEARCH_VERSION}
       MAGENTO_HOST: magento2.test.com
       VIRTUAL_HOST: magento2.test.com
       COMPOSER_MEMORY_LIMIT: -1
