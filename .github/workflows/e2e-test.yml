@@ -54,7 +54,7 @@ jobs:
       - run: echo "TEST_GROUP=${{ env.IS_RELEASE == 'TRUE' && 'all' || (inputs.testGroup || 'standard') }}" >> $GITHUB_ENV
       - run: echo "TEST_BRANCH=${{ (env.IS_RELEASE == 'TRUE' || !inputs.testBranch)  && 'develop' || inputs.testBranch }}" >> $GITHUB_ENV
       - run: echo "EXPRESS_BRANCH=${{ contains(fromJSON('["all", "express-checkout"]'), env.TEST_GROUP) && (inputs.expressBranch || 'main') || '' }}" >> $GITHUB_ENV
-      - run: echo "OPENSEARCH_VERSION=${{ contains(matrix.magento-version, "2.4.4") && '1' || '2' }}" >> $GITHUB_ENV
+      - run: echo "OPENSEARCH_VERSION=${{ contains(matrix.magento-version, "2.4.4") && "1" || "2" }}" >> $GITHUB_ENV
       - run: echo "N98_MAGERUN_VERSION=${{ contains(matrix.magento-version, "2.4.4") && "7.5.0" || "latest" }}" >> $GITHUB_ENV
 
       - name: Information
