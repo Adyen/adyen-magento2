@@ -145,10 +145,3 @@ jobs:
         with:
           name: html-report
           path: test-report
-
-      - name: Archive application logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-logs
-          path: app-logs
