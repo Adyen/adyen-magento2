@@ -10,7 +10,7 @@ jobs:
     if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) || (github.event_name == 'workflow_dispatch')
     environment: ${{ (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) && 'external' || 'internal' }}
     runs-on: ubuntu-latest
-
+    timeout-minutes: 25
     strategy:
       matrix:
         php-version: [8.2,8.3]
@@ -47,7 +47,7 @@ jobs:
 
       - name: SonarCloud Scan
         if: ${{ env.SONAR_TOKEN }}
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarqube-scan-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
