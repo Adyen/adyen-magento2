@@ -29,8 +29,6 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class Index extends Action
 {
-    const BRAND_CODE_DOTPAY = 'dotpay';
-    const RESULT_CODE_RECEIVED = 'Received';
     const DETAILS_ALLOWED_PARAM_KEYS = [
         'MD',
         'PaReq',
