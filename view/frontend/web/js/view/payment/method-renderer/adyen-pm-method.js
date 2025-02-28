@@ -290,9 +290,9 @@ define(
                         'method': methodCode
                     };
 
-                    let additionalData = {};
-                    additionalData.brand_code = this.paymentMethod().type;
-                    additionalData.frontendType = 'default';
+                    let additionalData = {
+                        frontendType: 'default'
+                    };
 
                     let stateData;
                     if (this.paymentComponent) {
