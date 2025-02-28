@@ -23,7 +23,6 @@ use Magento\Quote\Api\Data\PaymentInterface;
 
 class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
 {
-    const BRAND_CODE = 'brand_code';
     const DF_VALUE = 'df_value';
     const GUEST_EMAIL = 'guestEmail';
     const STATE_DATA = 'stateData';
