@@ -2,9 +2,9 @@ name: Functional Tests
 on:
   workflow_dispatch:
   pull_request:
-    branches: [main]
+    branches: [main,develop-10]
   pull_request_target:
-    branches: [main]
+    branches: [main,develop-10]
 
 jobs:
   build:

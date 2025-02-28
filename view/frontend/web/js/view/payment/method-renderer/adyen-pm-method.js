@@ -131,9 +131,11 @@ define(
             createCheckoutComponent: async function(forceCreate = false) {
                 if (!this.checkoutComponent || forceCreate) {
                     const paymentMethodsResponse = adyenPaymentService.getPaymentMethods();
+                    const countryCode = quote.billingAddress().countryId;
 
                     this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
                         paymentMethodsResponse(),
+                        countryCode,
                         this.handleOnAdditionalDetails.bind(this),
                         this.handleOnCancel.bind(this),
                         this.handleOnSubmit.bind(this),

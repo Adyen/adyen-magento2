@@ -12,6 +12,7 @@
 
 namespace Adyen\Payment\Helper\Webhook;
 
+use Adyen\AdyenException;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Order;
 use Adyen\Payment\Helper\PaymentMethods;
@@ -55,6 +56,7 @@ class OfferClosedWebhookHandler implements WebhookHandlerInterface
 
     /**
      * @throws LocalizedException
+     * @throws AdyenException
      */
     public function handleWebhook(MagentoOrder $order, Notification $notification, string $transitionState): MagentoOrder
     {
@@ -88,12 +90,14 @@ class OfferClosedWebhookHandler implements WebhookHandlerInterface
         );
 
         if (!$identicalPaymentMethods) {
+            $paymentMethodInstance = $order->getPayment()->getMethodInstance();
             $this->adyenLogger->addAdyenNotification(sprintf(
                 'Payment method of notification %s (%s) does not match the payment method (%s) of order %s',
                 $notification->getId(),
                 $notification->getPaymentMethod(),
                 $order->getIncrementId(),
-                $order->getPayment()->getCcType()
+                $this->paymentMethodsHelper->getAlternativePaymentMethodTxVariant(
+                    $paymentMethodInstance)
             ),
                 [
                     'pspReference' => $notification->getPspreference(),
