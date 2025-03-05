@@ -71,9 +71,7 @@ $_isDemoMode = $block->isDemoMode();
         </div>
     <?php endif; ?>
 
-    <?php if ($_brandCode = $_info->getAdditionalInformation('brand_code')): ?>
-        <div><?= $block->escapeHtml(__('Payment Method: %1', $_brandCode)); ?></div>
-    <?php endif; ?>
+    <?php /** TODO:: ECP-9636 Indicate the gift card brand on single gift card payments (ie: METHOD_TITLE: SVS) */ ?>
 <?php endif; ?>
 
 <?= $block->escapeHtml($block->getChildHtml()); ?>

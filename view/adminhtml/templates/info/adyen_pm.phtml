@@ -41,10 +41,6 @@ $_isDemoMode = $block->isDemoMode();
     </div>
 <?php endif; ?>
 
-<?php if ($_brandCode = $_info->getAdditionalInformation('brand_code')): ?>
-    <div><?= $block->escapeHtml(__('Payment Method: %1', $_brandCode)); ?></div>
-<?php endif; ?>
-
 <?php if (!empty($block->getBankTransferData())): ?>
 
     <?php
