@@ -174,6 +174,16 @@ class Moto extends \Magento\Payment\Block\Form\Cc
     }
 
     /**
+     * Returns the country code required for checkout component
+     *
+     * @return string
+     */
+    public function getCountryId(): string
+    {
+        return $this->backendSession->getQuote()->getBillingAddress()->getCountryId();
+    }
+
+    /**
      * @return array
      */
     public function getMotoMerchantAccounts() : array
