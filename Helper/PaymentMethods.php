@@ -46,6 +46,7 @@ use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\Store;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Checkout\Model\Session as CheckoutSession;
 
 class PaymentMethods extends AbstractHelper
 {
@@ -172,6 +173,16 @@ class PaymentMethods extends AbstractHelper
     private SearchCriteriaBuilder $searchCriteriaBuilder;
 
     /**
+     * @var GenerateShopperConversionId
+     */
+    private GenerateShopperConversionId $generateShopperConversionId;
+
+    /**
+     * @var CheckoutSession
+     */
+    private CheckoutSession $checkoutSession;
+
+    /**
      * @param Context $context
      * @param CartRepositoryInterface $quoteRepository
      * @param ScopeConfigInterface $config
@@ -190,6 +201,8 @@ class PaymentMethods extends AbstractHelper
      * @param Data $adyenDataHelper
      * @param PaymentTokenRepositoryInterface $paymentTokenRepository
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param GenerateShopperConversionId $generateShopperConversionId
+     * @param CheckoutSession $checkoutSession
      */
     public function __construct(
         Context $context,
@@ -209,7 +222,9 @@ class PaymentMethods extends AbstractHelper
         SerializerInterface $serializer,
         AdyenDataHelper $adyenDataHelper,
         PaymentTokenRepositoryInterface $paymentTokenRepository,
-        SearchCriteriaBuilder $searchCriteriaBuilder
+        SearchCriteriaBuilder $searchCriteriaBuilder,
+        GenerateShopperConversionId $generateShopperConversionId,
+        CheckoutSession $checkoutSession,
     ) {
         parent::__construct($context);
         $this->quoteRepository = $quoteRepository;
@@ -229,6 +244,8 @@ class PaymentMethods extends AbstractHelper
         $this->adyenDataHelper = $adyenDataHelper;
         $this->paymentTokenRepository = $paymentTokenRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->generateShopperConversionId = $generateShopperConversionId;
+        $this->checkoutSession = $checkoutSession;
     }
 
     /**
@@ -580,6 +597,17 @@ class PaymentMethods extends AbstractHelper
             $paymentMethodRequest["shopperReference"] =
                 $this->adyenDataHelper->padShopperReference($this->getCurrentShopperReference());
         }
+
+        $quote = $this->checkoutSession->getQuote();
+
+        // Retrieve shopperConversionId from payment-information or generate a new one
+        $shopperConversionId = $quote->getPayment()->getAdditionalInformation('shopper_conversion_id') ??
+            $this->generateShopperConversionId->getShopperConversionId();
+
+        if(!empty($shopperConversionId)) {
+            $paymentMethodRequest["shopperConversionId"] = $shopperConversionId;
+        }
+
 
         $amountValue = $this->adyenHelper->formatAmount($this->getCurrentPaymentAmount(), $currencyCode);
 
