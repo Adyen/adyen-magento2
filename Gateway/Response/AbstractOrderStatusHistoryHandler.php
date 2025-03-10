@@ -48,7 +48,7 @@ class AbstractOrderStatusHistoryHandler implements HandlerInterface
         }
 
         foreach ($responseCollection as $response) {
-            $comment = $this->orderStatusHistoryHelper->buildComment($response, $this->eventType);
+            $comment = $this->orderStatusHistoryHelper->buildApiResponseComment($response, $this->eventType);
             $order->addCommentToStatusHistory($comment, $order->getStatus());
         }
     }
