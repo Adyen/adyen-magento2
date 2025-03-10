@@ -44,6 +44,7 @@ use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\Store;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Checkout\Model\Session as CheckoutSession;
 
 class PaymentMethods extends AbstractHelper
 {
@@ -102,6 +103,8 @@ class PaymentMethods extends AbstractHelper
      * @param PaymentTokenRepositoryInterface $paymentTokenRepository
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param Locale $localeHelper
+     * @param GenerateShopperConversionId $generateShopperConversionId
+     * @param CheckoutSession $checkoutSession
      */
     public function __construct(
         Context $context,
@@ -119,7 +122,9 @@ class PaymentMethods extends AbstractHelper
         protected readonly SerializerInterface $serializer,
         protected readonly PaymentTokenRepositoryInterface $paymentTokenRepository,
         protected readonly SearchCriteriaBuilder $searchCriteriaBuilder,
-        protected readonly Locale $localeHelper
+        protected readonly Locale $localeHelper,
+        protected readonly GenerateShopperConversionId $generateShopperConversionId,
+        protected readonly CheckoutSession $checkoutSession
     ) {
         parent::__construct($context);
     }
@@ -473,6 +478,17 @@ class PaymentMethods extends AbstractHelper
             $paymentMethodRequest["shopperReference"] =
                 $this->adyenHelper->padShopperReference($this->getCurrentShopperReference());
         }
+
+        $quote = $this->checkoutSession->getQuote();
+
+        // Retrieve shopperConversionId from payment-information or generate a new one
+        $shopperConversionId = $quote->getPayment()->getAdditionalInformation('shopper_conversion_id') ??
+            $this->generateShopperConversionId->getShopperConversionId();
+
+        if(!empty($shopperConversionId)) {
+            $paymentMethodRequest["shopperConversionId"] = $shopperConversionId;
+        }
+
 
         $amountValue = $this->adyenHelper->formatAmount($this->getCurrentPaymentAmount(), $currencyCode);
 
