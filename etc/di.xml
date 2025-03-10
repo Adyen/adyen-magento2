@@ -1379,7 +1379,7 @@
         <arguments>
             <argument name="handlers" xsi:type="array">
                 <item name="capture" xsi:type="string">Adyen\Payment\Gateway\Response\PaymentCaptureDetailsHandler</item>
-                <item name="order_comment_history" xsi:type="string">AdyenPaymentCaptureOrderStatusHistoryHandler</item>
+                <item name="payment_comments" xsi:type="string">Adyen\Payment\Gateway\Response\PaymentCommentHistoryHandler</item>
             </argument>
         </arguments>
     </virtualType>
