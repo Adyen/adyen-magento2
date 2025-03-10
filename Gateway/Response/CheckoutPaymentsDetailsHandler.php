@@ -69,6 +69,10 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
             $payment->setTransactionId($response['pspReference']);
         }
 
+        if (isset($response['resultCode'])) {
+            $payment->getOrder()->setAdyenResulturlEventCode($response['resultCode']);
+        }
+
         // do not close transaction, so you can do a cancel() and void
         $payment->setIsTransactionClosed(false);
         $payment->setShouldCloseParentTransaction(false);
