@@ -51,34 +51,28 @@ class Webhook
         'payment_authorized' => [Order::STATE_PROCESSING]
     ];
 
-    // TODO::This property is not written but only is read. Check the usage.
-    private $boletoPaidAmount;
     private ?string $klarnaReservationNumber;
     private ?string $ratepayDescriptor;
 
     /**
-     * @param Data $adyenHelper
      * @param SerializerInterface $serializer
      * @param TimezoneInterface $timezone
      * @param Config $configHelper
-     * @param ChargedCurrency $chargedCurrency
      * @param AdyenLogger $logger
      * @param WebhookHandlerFactory $webhookHandlerFactory
      * @param OrderHelper $orderHelper
      * @param OrderRepository $orderRepository
-     * @param PaymentMethods $paymentMethodsHelper
+     * @param OrderStatusHistory $orderStatusHistoryHelper
      */
     public function __construct(
-        private readonly Data $adyenHelper,
         private readonly SerializerInterface $serializer,
         private readonly TimezoneInterface $timezone,
         private readonly ConfigHelper $configHelper,
-        private readonly ChargedCurrency $chargedCurrency,
         private readonly AdyenLogger $logger,
         private readonly WebhookHandlerFactory $webhookHandlerFactory,
         private readonly OrderHelper $orderHelper,
         private readonly OrderRepository $orderRepository,
-        private readonly PaymentMethods $paymentMethodsHelper
+        private readonly OrderStatusHistory $orderStatusHistoryHelper
     ) {
         $this->klarnaReservationNumber = null;
         $this->ratepayDescriptor = null;
@@ -287,76 +281,17 @@ class Webhook
 
     private function addNotificationDetailsHistoryComment(Order $order, Notification $notification): Order
     {
-        $successResult = $notification->isSuccessful() ? 'true' : 'false';
-        $reason = $notification->getReason();
-        $success = (!empty($reason)) ? "$successResult <br />reason:$reason" : $successResult;
-
-        $payment = $order->getPayment();
-        $paymentMethodInstance = $payment->getMethodInstance();
-
-        $eventCode = $notification->getEventCode();
-        if ($eventCode == Notification::REFUND || $eventCode == Notification::CAPTURE) {
-            // check if it is a full or partial refund
-            $amount = $notification->getAmountValue();
-            $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order, false);
-            $formattedOrderAmount = $this->adyenHelper
-                ->formatAmount($orderAmountCurrency->getAmount(), $orderAmountCurrency->getCurrencyCode());
-
-            if ($amount == $formattedOrderAmount) {
-                $order->setData(
-                    'adyen_notification_event_code',
-                    $eventCode . " : " . strtoupper($successResult)
-                );
-            } else {
-                $order->setData(
-                    'adyen_notification_event_code',
-                    "(PARTIAL) " .
-                    $eventCode . " : " . strtoupper($successResult)
-                );
-            }
-        } else {
-            $order->setData(
-                'adyen_notification_event_code',
-                $eventCode . " : " . strtoupper($successResult)
-            );
-        }
-
-        // if payment method is klarna, ratepay or openinvoice/afterpay show the reservartion number
-        if ($this->paymentMethodsHelper->isOpenInvoice($paymentMethodInstance) &&
-            !empty($this->klarnaReservationNumber)) {
-            $klarnaReservationNumberText = "<br /> reservationNumber: " . $this->klarnaReservationNumber;
-        } else {
-            $klarnaReservationNumberText = "";
-        }
-
-        if ($this->boletoPaidAmount != null && $this->boletoPaidAmount != "") {
-            $boletoPaidAmountText = "<br /> Paid amount: " . $this->boletoPaidAmount;
-        } else {
-            $boletoPaidAmountText = "";
-        }
-
-        $type = 'Adyen HTTP Notification(s):';
-        $comment = __(
-            '%1 <br /> eventCode: %2 <br /> pspReference: %3 <br /> paymentMethod: %4 <br />' .
-            ' success: %5 %6 %7',
-            $type,
-            $eventCode,
-            $notification->getPspreference(),
-            $notification->getPaymentMethod(),
-            $success,
-            $klarnaReservationNumberText,
-            $boletoPaidAmountText
-        );
+        $comment = $this->orderStatusHistoryHelper->buildWebhookComment($order, $notification);
 
         // If notification is pending status and pending status is set add the status change to the comment history
-        if ($eventCode == Notification::PENDING) {
+        if ($notification->getEventCode() == Notification::PENDING) {
             $pendingStatus = $this->configHelper->getConfigData(
                 'pending_status',
                 'adyen_abstract',
                 $order->getStoreId()
             );
             if ($pendingStatus != "") {
-                $order->addStatusHistoryComment($comment, $pendingStatus);
+                $order->addCommentToStatusHistory($comment, $pendingStatus);
                 $this->logger->addAdyenNotification(
                     'Created comment history for this notification with status change to: ' . $pendingStatus,
                     array_merge(
@@ -368,7 +303,7 @@ class Webhook
             }
         }
 
-        $order->addStatusHistoryComment($comment, $order->getStatus());
+        $order->addCommentToStatusHistory($comment, $order->getStatus());
         $this->logger->addAdyenNotification(
             'Created comment history for this notification',
             [
@@ -465,10 +400,6 @@ class Webhook
             );
         }
 
-        if ($this->boletoPaidAmount != "") {
-            $payment->setAdditionalInformation('adyen_boleto_paid_amount', $this->boletoPaidAmount);
-        }
-
         if ($this->ratepayDescriptor !== "") {
             $payment->setAdditionalInformation(
                 'adyen_ratepay_descriptor',
@@ -521,7 +452,7 @@ class Webhook
     private function addNotificationErrorComment(Order $order, string $errorMessage): Order
     {
         $comment = __('The order failed to update: %1', $errorMessage);
-        $order->addStatusHistoryComment($comment, $order->getStatus());
+        $order->addCommentToStatusHistory($comment, $order->getStatus());
         $this->orderRepository->save($order);
         return $order;
     }

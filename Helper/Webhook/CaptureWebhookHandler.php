@@ -93,10 +93,9 @@ class CaptureWebhookHandler implements WebhookHandlerInterface
             return $order;
         }
 
-        // TODO Get functionality out of the invoiceHelper function, so we don't have to fetch the order from the db
-        $adyenInvoice = $this->invoiceHelper->handleCaptureWebhook($order, $notification);
-        // Refresh the order by fetching it from the db
-        $order = $this->orderHelper->fetchOrderByIncrementId($notification);
+        list($adyenInvoice, $magentoInvoice, $order) =
+            $this->invoiceHelper->handleCaptureWebhook($order, $notification);
+
         $adyenOrderPayment = $this->adyenOrderPaymentFactory->create()->load($adyenInvoice->getAdyenPaymentOrderId(), OrderPaymentInterface::ENTITY_ID);
         $this->adyenOrderPaymentHelper->refreshPaymentCaptureStatus($adyenOrderPayment, $notification->getAmountCurrency());
         $this->adyenLogger->addAdyenNotification(
@@ -112,7 +111,6 @@ class CaptureWebhookHandler implements WebhookHandlerInterface
             ]
         );
 
-        $magentoInvoice = $this->magentoInvoiceFactory->create()->load($adyenInvoice->getInvoiceId(), MagentoInvoice::ENTITY_ID);
         $this->adyenLogger->addAdyenNotification(
             sprintf('Notification %s updated invoice {invoiceId}', $notification->getEntityId()),
             array_merge(
