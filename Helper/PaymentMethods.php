@@ -481,11 +481,12 @@ class PaymentMethods extends AbstractHelper
 
         $quote = $this->checkoutSession->getQuote();
 
-        // Retrieve shopperConversionId from payment-information or generate a new one
-        $shopperConversionId = $quote->getPayment()->getAdditionalInformation('shopper_conversion_id') ??
-            $this->generateShopperConversionId->getShopperConversionId();
+        $shopperConversionIdData = $quote->getPayment()->getAdditionalInformation('shopper_conversion_id');
+
+        $shopperConversionId = !empty($shopperConversionIdData) ? (string) json_decode($shopperConversionIdData, true) : '';
 
         if(!empty($shopperConversionId)) {
+            $shopperConversionId = $this->generateShopperConversionId->getShopperConversionId();
             $paymentMethodRequest["shopperConversionId"] = $shopperConversionId;
         }
 

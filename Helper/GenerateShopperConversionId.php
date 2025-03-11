@@ -41,7 +41,7 @@ class GenerateShopperConversionId extends AbstractHelper
         $payment = $quote->getPayment();
 
         // Store shopperConversionId in additional information
-        $payment->setAdditionalInformation(self::SHOPPER_CONVERSION_ID, $shopperConversionId);
+        $payment->setAdditionalInformation(self::SHOPPER_CONVERSION_ID, json_encode($shopperConversionId));
 
         // Save the quote to persist additional_information
         $quote->setPayment($payment);

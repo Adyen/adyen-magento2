@@ -2,6 +2,8 @@
 
 namespace Adyen\Payment\Helper\Util;
 
+use RuntimeException;
+
 /**
  * Class Uuid
  *
@@ -18,14 +20,14 @@ class Uuid
      * random numbers. It follows the RFC 4122 standard.
      *
      * @return string A randomly generated UUID v4.
-     * @throws \RuntimeException If secure random generation fails.
+     * @throws RuntimeException If secure random generation fails.
      */
     public static function generateV4(): string
     {
         try {
             $random = random_bytes(16);
         } catch (\Exception $e) {
-            throw new \RuntimeException('Failed to generate a secure UUID: ' . $e->getMessage(), 0, $e);
+            throw new RuntimeException('Failed to generate a secure UUID: ' . $e->getMessage(), 0, $e);
         }
 
         // Set the version to 4 (0100)

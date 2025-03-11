@@ -71,7 +71,10 @@ class PaymentDataBuilder implements BuilderInterface
         $currencyCode = $amountCurrency->getCurrencyCode();
         $amount = $amountCurrency->getAmount();
         $reference = $fullOrder->getIncrementId();
-        $shopperConversionId = $quote->getPayment()->getAdditionalInformation('shopper_conversion_id');
+
+        $shopperConversionIdData = $quote->getPayment()->getAdditionalInformation('shopper_conversion_id');
+
+        $shopperConversionId = !empty($shopperConversionIdData) ? (string) json_decode($shopperConversionIdData, true) : '';
 
         $request['body'] = $this->adyenRequestsHelper->buildPaymentData(
             $amount,
