@@ -887,7 +887,7 @@
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPayment</argument>
             <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\CheckoutResponseValidator</argument>
-            <argument name="handler" xsi:type="object">AdyenPaymentVaultResponseHandlerComposite</argument>
+            <argument name="handler" xsi:type="object">AdyenPaymentResponseHandlerComposite</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentPosCloudCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
@@ -1168,14 +1168,6 @@
                 <item name="giftcard" xsi:type="string">Adyen\Payment\Gateway\Request\GiftcardDataBuilder</item>
                 <item name="company" xsi:type="string">Adyen\Payment\Gateway\Request\CompanyDataBuilder</item>
                 <item name="line_items" xsi:type="string">Adyen\Payment\Gateway\Request\LineItemsDataBuilder</item>
-            </argument>
-        </arguments>
-    </virtualType>
-    <virtualType name="AdyenPaymentVaultResponseHandlerComposite" type="Magento\Payment\Gateway\Response\HandlerChain">
-        <arguments>
-            <argument name="handlers" xsi:type="array">
-                <item name="payment_details" xsi:type="string">Adyen\Payment\Gateway\Response\PaymentAuthorisationDetailsHandler</item>
-                <item name="payment_comments" xsi:type="string">Adyen\Payment\Gateway\Response\PaymentCommentHistoryHandler</item>
             </argument>
         </arguments>
     </virtualType>
