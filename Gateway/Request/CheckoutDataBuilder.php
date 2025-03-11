@@ -101,9 +101,6 @@ class CheckoutDataBuilder implements BuilderInterface
             $this->paymentMethodsHelper->isOpenInvoice($paymentMethodInstance) ||
             $payment->getMethod() === AdyenPayByLinkConfigProvider::CODE
         ) {
-            $openInvoiceFields = $this->openInvoiceHelper->getOpenInvoiceDataForOrder($order);
-            $requestBody = array_merge($requestBody, $openInvoiceFields);
-
             if (isset($brandCode) &&
                 $this->adyenHelper->isPaymentMethodOfType($brandCode, Data::KLARNA) &&
                 $this->configHelper->getAutoCaptureOpenInvoice($storeId)) {
@@ -129,18 +126,6 @@ class CheckoutDataBuilder implements BuilderInterface
         }
 
         //Boleto data
-        if ($payment->getAdditionalInformation("social_security_number")) {
-            $requestBody['socialSecurityNumber'] = $payment->getAdditionalInformation("social_security_number");
-        }
-
-        if ($payment->getAdditionalInformation("firstname")) {
-            $requestBody['shopperName']['firstName'] = $payment->getAdditionalInformation("firstname");
-        }
-
-        if ($payment->getAdditionalInformation("lastname")) {
-            $requestBody['shopperName']['lastName'] = $payment->getAdditionalInformation("lastname");
-        }
-
         if ($payment->getMethod() == self::ADYEN_BOLETO) {
             $deliveryDays = (int)$this->configHelper->getAdyenBoletoConfigData("delivery_days", $storeId);
             $deliveryDays = (!empty($deliveryDays)) ? $deliveryDays : 5;
@@ -223,6 +208,8 @@ class CheckoutDataBuilder implements BuilderInterface
     }
 
     /**
+     * @deprecated Use Adyen\Payment\Helper\OpenInvoice::getOpenInvoiceDataForOrder() instead.
+     *
      * @param Order $order
      *
      * @return array

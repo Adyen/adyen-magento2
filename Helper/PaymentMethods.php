@@ -53,6 +53,7 @@ class PaymentMethods extends AbstractHelper
     const ADYEN_CC = 'adyen_cc';
     const ADYEN_ONE_CLICK = 'adyen_oneclick';
     const ADYEN_PAY_BY_LINK = 'adyen_pay_by_link';
+    const ADYEN_PAYPAL = 'adyen_paypal';
     const ADYEN_PREFIX = 'adyen_';
     const ADYEN_CC_VAULT = 'adyen_cc_vault';
     const METHODS_WITH_BRAND_LOGO = [
@@ -66,6 +67,7 @@ class PaymentMethods extends AbstractHelper
     const FUNDING_SOURCE_CREDIT = 'credit';
 
     const ADYEN_GROUP_ALTERNATIVE_PAYMENT_METHODS = 'adyen-alternative-payment-method';
+    const CONFIG_FIELD_REQUIRES_LINE_ITEMS = 'requires_line_items';
     const CONFIG_FIELD_IS_OPEN_INVOICE = 'is_open_invoice';
 
     const VALID_CHANNELS = ["iOS", "Android", "Web"];
@@ -1080,5 +1082,19 @@ class PaymentMethods extends AbstractHelper
     public function isOpenInvoice(MethodInterface $paymentMethodInstance): bool
     {
         return boolval($paymentMethodInstance->getConfigData(self::CONFIG_FIELD_IS_OPEN_INVOICE));
+    }
+
+    /**
+     * Checks the requirement of line items for the given payment method
+     *
+     * @param MethodInterface $paymentMethodInstance
+     * @return bool
+     */
+    public function getRequiresLineItems(MethodInterface $paymentMethodInstance): bool
+    {
+        $isOpenInvoice = $this->isOpenInvoice($paymentMethodInstance);
+        $requiresLineItemsConfig = boolval($paymentMethodInstance->getConfigData(self::CONFIG_FIELD_REQUIRES_LINE_ITEMS));
+
+        return $isOpenInvoice || $requiresLineItemsConfig;
     }
 }
