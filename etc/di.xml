@@ -1056,16 +1056,25 @@
     <virtualType name="AdyenPaymentCaptureResponseValidator" type="Adyen\Payment\Gateway\Response\AbstractModificationResponseValidator">
         <arguments>
             <argument name="modificationType" xsi:type="string">capture</argument>
+            <argument name="validStatuses" xsi:type="array">
+                <item name="received" xsi:type="const">Adyen\Model\Checkout\PaymentCaptureResponse\PaymentCaptureResponse::STATUS_RECEIVED</item>
+            </argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentRefundResponseValidator" type="Adyen\Payment\Gateway\Response\AbstractModificationResponseValidator">
         <arguments>
             <argument name="modificationType" xsi:type="string">refund</argument>
+            <argument name="validStatuses" xsi:type="array">
+                <item name="received" xsi:type="const">Adyen\Model\Checkout\PaymentRefundResponse\PaymentRefundResponse::STATUS_RECEIVED</item>
+            </argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentCancelResponseValidator" type="Adyen\Payment\Gateway\Response\AbstractModificationResponseValidator">
         <arguments>
             <argument name="modificationType" xsi:type="string">cancel</argument>
+            <argument name="validStatuses" xsi:type="array">
+                <item name="received" xsi:type="const">Adyen\Model\Checkout\PaymentCancelResponse\PaymentCancelResponse::STATUS_RECEIVED</item>
+            </argument>
         </arguments>
     </virtualType>
     <!-- End Modification Repsonse Validators -->
