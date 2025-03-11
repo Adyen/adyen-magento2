@@ -917,8 +917,8 @@
             <argument name="requestBuilder" xsi:type="object">AdyenPaymentPayByLinkInitializeRequest</argument>
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPaymentLinks</argument>
-            <argument name="validator" xsi:type="object">PaymentLinksResponseValidator</argument>
-            <argument name="handler" xsi:type="object">Adyen\Payment\Gateway\Response\PayByLinkResponseHandler</argument>
+            <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\PaymentLinksResponseValidator</argument>
+            <argument name="handler" xsi:type="object">Adyen\Payment\Gateway\Response\PaymentLinksResponseHandler</argument>
         </arguments>
     </virtualType>
     <!-- Authorization command  -->
@@ -1438,12 +1438,6 @@
             <argument name="validators" xsi:type="array">
                 <item name="global" xsi:type="string">Adyen\Payment\Gateway\Validator\PaymentLinksRequestValidator</item>
             </argument>
-        </arguments>
-    </virtualType>
-    <!--Payment Links Response Validator-->
-    <virtualType name="PaymentLinksResponseValidator" type="Adyen\Payment\Gateway\Validator\PaymentLinksResponseValidator">
-        <arguments>
-            <argument name="loggerInterface" xsi:type="object">Adyen\Payment\Logger\AdyenLogger</argument>
         </arguments>
     </virtualType>
     <virtualType name="PosCloudResponseValidator" type="Adyen\Payment\Gateway\Validator\PosCloudResponseValidator">
