@@ -58,7 +58,7 @@ class TransactionCancel implements ClientInterface
 
         $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
         $service = $this->adyenHelper->initializeModificationsApi($client);
-        $responseData = [];
+        $responseCollection = [];
 
         foreach ($requests as $request) {
             $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
@@ -83,8 +83,10 @@ class TransactionCancel implements ClientInterface
                 $responseData['error'] = $e->getMessage();
                 $this->adyenHelper->logAdyenException($e);
             }
+
+            $responseCollection[] = $responseData;
         }
 
-        return $responseData;
+        return $responseCollection;
     }
 }

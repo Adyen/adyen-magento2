@@ -19,17 +19,18 @@ class ModificationsCancelsResponseHandler implements HandlerInterface
 {
     /**
      * @param array $handlingSubject
-     * @param array $response
+     * @param array $responseCollection
      * @return void
      */
-    public function handle(array $handlingSubject, array $response): void
+    public function handle(array $handlingSubject, array $responseCollection): void
     {
         $payment = SubjectReader::readPayment($handlingSubject);
         /** @var Payment $payment */
         $payment = $payment->getPayment();
 
-        // set pspReference as lastTransId only!
-        $payment->setLastTransId($response['pspReference']);
+        foreach ($responseCollection as $response) {
+            $payment->setLastTransId($response['pspReference']);
+        }
 
         // close transaction because you have cancelled the transaction
         $payment->setIsTransactionClosed(true);
