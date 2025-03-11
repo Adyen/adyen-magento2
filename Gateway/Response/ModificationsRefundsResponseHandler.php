@@ -25,6 +25,7 @@ class ModificationsRefundsResponseHandler implements HandlerInterface
     /**
      * @param Creditmemo $creditmemoHelper
      * @param Data $adyenDataHelper
+     * @param AdyenLogger $adyenLogger
      */
     public function __construct(
         private readonly Creditmemo $creditmemoHelper,
@@ -69,7 +70,6 @@ class ModificationsRefundsResponseHandler implements HandlerInterface
          * but only on full refund close the authorisation
          */
         $payment->setIsTransactionClosed(true);
-        $closeParent = !$payment->getCreditmemo()->getInvoice()->canRefund();
-        $payment->setShouldCloseParentTransaction($closeParent);
+        $payment->setShouldCloseParentTransaction(!$payment->getCreditmemo()->getInvoice()->canRefund());
     }
 }
