@@ -1429,7 +1429,7 @@
         <arguments>
             <argument name="validators" xsi:type="array">
                 <item name="country" xsi:type="string">AdyenCcCountryValidator</item>
-                <item name="global" xsi:type="string">Adyen\Payment\Gateway\Validator\InstallmentValidator</item>
+                <item name="global" xsi:type="string">Adyen\Payment\Gateway\Validator\InstallmentRequestValidator</item>
             </argument>
         </arguments>
     </virtualType>
@@ -1437,7 +1437,7 @@
         <arguments>
             <argument name="validators" xsi:type="array">
                 <item name="country" xsi:type="string">AdyenCcCountryValidator</item>
-                <item name="global" xsi:type="string">Adyen\Payment\Gateway\Validator\InstallmentValidator</item>
+                <item name="global" xsi:type="string">Adyen\Payment\Gateway\Validator\InstallmentRequestValidator</item>
             </argument>
         </arguments>
     </virtualType>
@@ -1450,7 +1450,7 @@
         <arguments>
             <argument name="validators" xsi:type="array">
                 <item name="country" xsi:type="string">AdyenOneclickCountryValidator</item>
-                <item name="global" xsi:type="string">Adyen\Payment\Gateway\Validator\InstallmentValidator</item>
+                <item name="global" xsi:type="string">Adyen\Payment\Gateway\Validator\InstallmentRequestValidator</item>
             </argument>
         </arguments>
     </virtualType>
@@ -1593,7 +1593,7 @@
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
     </type>
-    <type name="Adyen\Payment\Gateway\Validator\InstallmentValidator">
+    <type name="Adyen\Payment\Gateway\Validator\InstallmentRequestValidator">
         <arguments>
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
