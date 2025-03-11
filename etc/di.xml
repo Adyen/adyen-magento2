@@ -1037,7 +1037,7 @@
         <arguments>
             <argument name="modificationType" xsi:type="string">capture</argument>
             <argument name="validStatuses" xsi:type="array">
-                <item name="received" xsi:type="const">Adyen\Model\Checkout\PaymentCaptureResponse\PaymentCaptureResponse::STATUS_RECEIVED</item>
+                <item name="received" xsi:type="const">Adyen\Model\Checkout\PaymentCaptureResponse::STATUS_RECEIVED</item>
             </argument>
         </arguments>
     </virtualType>
@@ -1045,7 +1045,7 @@
         <arguments>
             <argument name="modificationType" xsi:type="string">refund</argument>
             <argument name="validStatuses" xsi:type="array">
-                <item name="received" xsi:type="const">Adyen\Model\Checkout\PaymentRefundResponse\PaymentRefundResponse::STATUS_RECEIVED</item>
+                <item name="received" xsi:type="const">Adyen\Model\Checkout\PaymentRefundResponse::STATUS_RECEIVED</item>
             </argument>
         </arguments>
     </virtualType>
@@ -1053,7 +1053,7 @@
         <arguments>
             <argument name="modificationType" xsi:type="string">cancel</argument>
             <argument name="validStatuses" xsi:type="array">
-                <item name="received" xsi:type="const">Adyen\Model\Checkout\PaymentCancelResponse\PaymentCancelResponse::STATUS_RECEIVED</item>
+                <item name="received" xsi:type="const">Adyen\Model\Checkout\PaymentCancelResponse::STATUS_RECEIVED</item>
             </argument>
         </arguments>
     </virtualType>
