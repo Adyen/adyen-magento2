@@ -1498,7 +1498,7 @@
     <virtualType name="AdyenPaymentPayByLinkValidatorPool" type="Magento\Payment\Gateway\Validator\ValidatorPool">
         <arguments>
             <argument name="validators" xsi:type="array">
-                <item name="global" xsi:type="string">Adyen\Payment\Gateway\Validator\PayByLinkValidator</item>
+                <item name="global" xsi:type="string">Adyen\Payment\Gateway\Validator\PaymentLinksRequestValidator</item>
             </argument>
         </arguments>
     </virtualType>
