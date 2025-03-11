@@ -1345,7 +1345,7 @@
     <virtualType name="AdyenPaymentCaptureResponseHandlerComposite" type="Magento\Payment\Gateway\Response\HandlerChain">
         <arguments>
             <argument name="handlers" xsi:type="array">
-                <item name="capture" xsi:type="string">Adyen\Payment\Gateway\Response\PaymentCaptureDetailsHandler</item>
+                <item name="capture" xsi:type="string">Adyen\Payment\Gateway\Response\ModificationsCapturesResponseHandler</item>
                 <item name="payment_comments" xsi:type="string">Adyen\Payment\Gateway\Response\PaymentCommentHistoryHandler</item>
             </argument>
         </arguments>
