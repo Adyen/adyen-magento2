@@ -21,30 +21,39 @@ class AbstractOrderStatusHistoryHandler implements HandlerInterface
     /**
      * @param string $eventType Indicates the API call event type (authorization, capture etc.)
      * @param OrderStatusHistory $orderStatusHistoryHelper
+     * @throws AdyenException
      */
     public function __construct(
         protected readonly string $eventType,
         protected readonly OrderStatusHistory $orderStatusHistoryHelper
-    ) { }
+    ) {
+        if (empty($eventType)) {
+            throw new AdyenException(
+                __('Order status history can not be handled due to missing constructor argument!')
+            );
+        }
+    }
 
     /**
      * @throws AdyenException
      */
     public function handle(array $handlingSubject, array $responseCollection): void
     {
-        if (empty($this->eventType)) {
-            throw new AdyenException(
-                __('Order status history can not be handled due to missing event type!')
-            );
-        }
-
         $readPayment = SubjectReader::readPayment($handlingSubject);
         $payment = $readPayment->getPayment();
         $order = $payment->getOrder();
 
         foreach ($responseCollection as $response) {
-            $comment = $this->orderStatusHistoryHelper->buildApiResponseComment($response, $this->eventType);
+            $comment = $this->orderStatusHistoryHelper->buildApiResponseComment($response, $this->getEventType());
             $order->addCommentToStatusHistory($comment, $order->getStatus());
         }
+    }
+
+    /**
+     * @return string
+     */
+    private function getEventType(): string
+    {
+        return $this->eventType;
     }
 }

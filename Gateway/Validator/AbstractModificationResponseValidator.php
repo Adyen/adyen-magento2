@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Gateway\Validator;
 
+use Adyen\AdyenException;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\Exception\ValidatorException;
 use Magento\Payment\Gateway\Helper\SubjectReader;
@@ -25,6 +26,7 @@ abstract class AbstractModificationResponseValidator extends AbstractValidator
      * @param AdyenLogger $adyenLogger
      * @param string $modificationType
      * @param array $validStatuses
+     * @throws AdyenException
      */
     public function __construct(
         ResultInterfaceFactory $resultFactory,
@@ -32,6 +34,12 @@ abstract class AbstractModificationResponseValidator extends AbstractValidator
         private readonly string $modificationType,
         private readonly array $validStatuses
     ) {
+        if (empty($modificationType) || empty($validStatuses)) {
+            throw new AdyenException(
+                __('Modification response can not be handled due to missing constructor arguments!')
+            );
+        }
+
         parent::__construct($resultFactory);
     }
 
