@@ -15,7 +15,7 @@ use Adyen\Payment\Gateway\Http\Client\TransactionCapture;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 
-class PaymentCommentHistoryHandler implements HandlerInterface
+class CaptureCommentHistoryHandler implements HandlerInterface
 {
     /** @var AdyenLogger $adyenLogger */
     private $adyenLogger;
