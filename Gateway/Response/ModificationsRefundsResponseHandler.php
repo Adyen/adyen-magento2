@@ -14,6 +14,7 @@ namespace Adyen\Payment\Gateway\Response;
 use Adyen\Payment\Gateway\Http\Client\TransactionRefundInterface as TransactionRefund;
 use Adyen\Payment\Helper\Creditmemo;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Response\HandlerInterface;
@@ -27,7 +28,8 @@ class ModificationsRefundsResponseHandler implements HandlerInterface
      */
     public function __construct(
         private readonly Creditmemo $creditmemoHelper,
-        private readonly Data $adyenDataHelper
+        private readonly Data $adyenDataHelper,
+        private readonly AdyenLogger $adyenLogger
     ) { }
 
     /**
@@ -42,7 +44,14 @@ class ModificationsRefundsResponseHandler implements HandlerInterface
         $payment = $payment->getPayment();
 
         foreach ($responseCollection as $response) {
-            $payment->setLastTransId($response['pspReference']);
+            if (count($responseCollection) > 1) {
+                $this->adyenLogger->info(sprintf(
+                    'Handling partial or multiple refund response for order %s',
+                    $payment->getOrder()->getIncrementId()
+                ));
+            }
+
+            $payment->setLastTransId($response[TransactionRefund::PSPREFERENCE]);
 
             $this->creditmemoHelper->createAdyenCreditMemo(
                 $payment,

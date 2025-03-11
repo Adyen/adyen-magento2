@@ -44,15 +44,12 @@ class ModificationsCapturesResponseHandler implements HandlerInterface
         foreach ($responseCollection as $response) {
             if (count($responseCollection) > 1) {
                 $this->adyenLogger->info(sprintf(
-                    'Handling partial OR multiple capture response in details handler for order %s',
+                    'Handling partial or multiple capture response for order %s',
                     $payment->getOrder()->getIncrementId()
                 ));
             }
 
-            if (!empty($response['pspReference'])) {
-                // Set transId to the last capture request
-                $payment->setLastTransId($response['pspReference']);
-            }
+            $payment->setLastTransId($response['pspReference']);
 
             $this->invoiceHelper->createAdyenInvoice(
                 $payment,
