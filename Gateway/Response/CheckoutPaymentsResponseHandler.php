@@ -82,7 +82,6 @@ class CheckoutPaymentsResponseHandler implements HandlerInterface
         // Handle recurring payment details
         $this->vaultHelper->handlePaymentResponseRecurringDetails($payment, $response);
 
-        // Do not send order confirmation email for Boleto payments
         if ($payment->getMethod() != PaymentMethods::ADYEN_BOLETO) {
             $payment->getOrder()->setCanSendNewEmailFlag(false);
         }
