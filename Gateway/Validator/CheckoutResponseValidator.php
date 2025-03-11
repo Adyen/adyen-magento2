@@ -84,7 +84,7 @@ class CheckoutResponseValidator extends AbstractValidator
     /**
      * @throws ValidatorException
      */
-    private function handleEmptyResultCode($response): void
+    private function handleEmptyResultCode(array $response): void
     {
         if (!empty($response['error'])) {
             $this->adyenLogger->error($response['error']);
