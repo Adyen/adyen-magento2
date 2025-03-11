@@ -19,7 +19,7 @@ use Magento\Payment\Gateway\Validator\AbstractValidator;
 use Magento\Payment\Gateway\Validator\ResultInterface;
 use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
 
-abstract class AbstractModificationResponseValidator extends AbstractValidator
+class AbstractModificationResponseValidator extends AbstractValidator
 {
     const REQUIRED_RESPONSE_FIELDS = [
         'status',

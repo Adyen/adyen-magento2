@@ -16,7 +16,7 @@ use Adyen\Payment\Helper\OrderStatusHistory;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 
-abstract class AbstractOrderStatusHistoryHandler implements HandlerInterface
+class AbstractOrderStatusHistoryHandler implements HandlerInterface
 {
     /**
      * @param string $eventType Indicates the API call event type (authorization, capture etc.)
