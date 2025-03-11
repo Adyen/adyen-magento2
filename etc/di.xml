@@ -1033,7 +1033,7 @@
         </arguments>
     </virtualType>
     <!-- Modification Response Validators -->
-    <virtualType name="AdyenPaymentCaptureResponseValidator" type="Adyen\Payment\Gateway\Response\AbstractModificationResponseValidator">
+    <virtualType name="AdyenPaymentCaptureResponseValidator" type="Adyen\Payment\Gateway\Validator\AbstractModificationsResponseValidator">
         <arguments>
             <argument name="modificationType" xsi:type="string">capture</argument>
             <argument name="validStatuses" xsi:type="array">
@@ -1041,7 +1041,7 @@
             </argument>
         </arguments>
     </virtualType>
-    <virtualType name="AdyenPaymentRefundResponseValidator" type="Adyen\Payment\Gateway\Response\AbstractModificationResponseValidator">
+    <virtualType name="AdyenPaymentRefundResponseValidator" type="Adyen\Payment\Gateway\Validator\AbstractModificationsResponseValidator">
         <arguments>
             <argument name="modificationType" xsi:type="string">refund</argument>
             <argument name="validStatuses" xsi:type="array">
@@ -1049,7 +1049,7 @@
             </argument>
         </arguments>
     </virtualType>
-    <virtualType name="AdyenPaymentCancelResponseValidator" type="Adyen\Payment\Gateway\Response\AbstractModificationResponseValidator">
+    <virtualType name="AdyenPaymentCancelResponseValidator" type="Adyen\Payment\Gateway\Validator\AbstractModificationsResponseValidator">
         <arguments>
             <argument name="modificationType" xsi:type="string">cancel</argument>
             <argument name="validStatuses" xsi:type="array">
