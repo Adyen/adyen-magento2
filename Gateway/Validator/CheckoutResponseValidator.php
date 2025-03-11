@@ -15,6 +15,7 @@ use Adyen\Model\Checkout\PaymentResponse;
 use Adyen\Payment\Exception\AbstractAdyenException;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\Exception\ValidatorException;
+use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Validator\AbstractValidator;
 use Magento\Payment\Gateway\Validator\ResultInterface;
 use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
@@ -49,7 +50,7 @@ class CheckoutResponseValidator extends AbstractValidator
      */
     public function validate(array $validationSubject): ResultInterface
     {
-        $responseCollection = $validationSubject['response'];
+        $responseCollection = SubjectReader::readResponse($validationSubject);
 
         if (empty($responseCollection)) {
             throw new ValidatorException(__("No responses were provided"));
