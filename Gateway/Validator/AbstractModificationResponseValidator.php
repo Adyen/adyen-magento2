@@ -21,6 +21,11 @@ use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
 
 abstract class AbstractModificationResponseValidator extends AbstractValidator
 {
+    const REQUIRED_RESPONSE_FIELDS = [
+        'status',
+        'pspReference'
+    ];
+
     /**
      * @param ResultInterfaceFactory $resultFactory
      * @param AdyenLogger $adyenLogger
@@ -60,7 +65,24 @@ abstract class AbstractModificationResponseValidator extends AbstractValidator
         $errorMessages = [];
 
         foreach ($responseCollection as $response) {
-            if (empty($response['status']) || !in_array($response['status'], $this->getValidStatuses())) {
+            foreach (self::REQUIRED_RESPONSE_FIELDS as $requiredField) {
+                if (!array_key_exists($requiredField, $response)) {
+                    $errorMessage = __(
+                        '%1 field is missing in %2 response.',
+                        $requiredField,
+                        $this->getModificationType()
+                    );
+
+                    $this->adyenLogger->error($errorMessage);
+
+                    $isValid = false;
+                    $errorMessages[] = $errorMessage;
+
+                    break;
+                }
+            }
+
+            if (!in_array($response['status'], $this->getValidStatuses())) {
                 $errorMessage = __(
                     'An error occurred while validating the %1 response',
                     $this->getModificationType()
