@@ -918,7 +918,7 @@
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPaymentLinks</argument>
             <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\PaymentLinksResponseValidator</argument>
-            <argument name="handler" xsi:type="object">Adyen\Payment\Gateway\Response\PaymentLinksResponseHandler</argument>
+            <argument name="handler" xsi:type="object">Adyen\Payment\Gateway\Response\CheckoutPaymentLinksResponseHandler</argument>
         </arguments>
     </virtualType>
     <!-- Authorization command  -->

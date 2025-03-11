@@ -18,7 +18,7 @@ use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 use Magento\Sales\Model\Order\Payment;
 
-class PaymentLinksResponseHandler implements HandlerInterface
+class CheckoutPaymentLinksResponseHandler implements HandlerInterface
 {
     /**
      * @param Data $adyenHelper
