@@ -1353,7 +1353,7 @@
     <virtualType name="AdyenPaymentRefundResponseHandlerComposite" type="Magento\Payment\Gateway\Response\HandlerChain">
         <arguments>
             <argument name="handlers" xsi:type="array">
-                <item name="capture" xsi:type="string">Adyen\Payment\Gateway\Response\PaymentRefundDetailsHandler</item>
+                <item name="capture" xsi:type="string">Adyen\Payment\Gateway\Response\ModificationsRefundsResponseHandler</item>
                 <item name="order_comment_history" xsi:type="string">AdyenPaymentRefundOrderStatusHistoryHandler</item>
             </argument>
         </arguments>
