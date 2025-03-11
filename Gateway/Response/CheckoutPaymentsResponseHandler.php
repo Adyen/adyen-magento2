@@ -11,8 +11,8 @@
 
 namespace Adyen\Payment\Gateway\Response;
 
-use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentMethods;
+use Adyen\Payment\Helper\Vault;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Response\HandlerInterface;
@@ -21,7 +21,7 @@ use Magento\Sales\Model\Order\Payment;
 class CheckoutPaymentsResponseHandler implements HandlerInterface
 {
     public function __construct(
-        protected readonly Data $adyenHelper
+        private readonly Vault $vaultHelper
     ) { }
 
     /**
@@ -78,6 +78,9 @@ class CheckoutPaymentsResponseHandler implements HandlerInterface
         if (!empty($response['donationToken'])) {
             $payment->setAdditionalInformation('donationToken', $response['donationToken']);
         }
+
+        // Handle recurring payment details
+        $this->vaultHelper->handlePaymentResponseRecurringDetails($payment, $response);
 
         // Do not send order confirmation email for Boleto payments
         if ($payment->getMethod() != PaymentMethods::ADYEN_BOLETO) {
