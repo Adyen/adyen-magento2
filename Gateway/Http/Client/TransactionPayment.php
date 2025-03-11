@@ -120,7 +120,6 @@ class TransactionPayment implements ClientInterface
         $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
         $service = $this->adyenHelper->initializePaymentsApi($client);
         $responseCollection = [];
-        $responseCollection['hasOnlyGiftCards'] = false;
 
         try {
             list($requestData, $giftcardResponseCollection) = $this->processGiftcards($requestData, $service);
@@ -130,7 +129,6 @@ class TransactionPayment implements ClientInterface
                 $responseCollection = array_merge($responseCollection, $giftcardResponseCollection);
 
                 if ($this->remainingOrderAmount === 0) {
-                    $responseCollection['hasOnlyGiftCards'] = true;
                     return  $responseCollection;
                 }
             }

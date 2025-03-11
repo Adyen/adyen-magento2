@@ -42,7 +42,6 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
     {
         // prepare Handler input.
         $responseCollection = [
-            'hasOnlyGiftCards' => false,
             0 => [
                 'additionalData' => [],
                 'amount' => [],
@@ -69,7 +68,6 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
     {
         // prepare Handler input.
         $responseCollection = [
-            'hasOnlyGiftCards' => false,
             0 => [
                 'additionalData' => [],
                 'amount' => [],
@@ -98,7 +96,6 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
     {
         // prepare Handler input.
         $responseCollection = [
-            'hasOnlyGiftCards' => false,
             0 => [
                 'additionalData' => [],
                 'amount' => [],
