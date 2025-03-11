@@ -1361,7 +1361,7 @@
     <virtualType name="AdyenPaymentCancelResponseHandlerComposite" type="Magento\Payment\Gateway\Response\HandlerChain">
         <arguments>
             <argument name="handlers" xsi:type="array">
-                <item name="cancel" xsi:type="string">Adyen\Payment\Gateway\Response\PaymentCancelDetailsHandler</item>
+                <item name="cancel" xsi:type="string">Adyen\Payment\Gateway\Response\ModificationsCancelsResponseHandler</item>
                 <item name="order_comment_history" xsi:type="string">AdyenPaymentCancellationOrderStatusHistoryHandler</item>
             </argument>
         </arguments>
