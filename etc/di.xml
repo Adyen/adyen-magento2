@@ -846,7 +846,7 @@
             <argument name="requestBuilder" xsi:type="object">AdyenPaymentCcVaultAuthorizeRequest</argument>
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPayment</argument>
-            <argument name="validator" xsi:type="object">CheckoutResponseValidator</argument>
+            <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\CheckoutResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentResponseHandlerComposite</argument>
         </arguments>
     </virtualType>
@@ -886,7 +886,7 @@
             <argument name="requestBuilder" xsi:type="object">AdyenPaymentVaultAuthorizeRequest</argument>
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPayment</argument>
-            <argument name="validator" xsi:type="object">CheckoutResponseValidator</argument>
+            <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\CheckoutResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentVaultResponseHandlerComposite</argument>
         </arguments>
     </virtualType>
@@ -938,7 +938,7 @@
             <argument name="requestBuilder" xsi:type="object">AdyenPaymentCcAuthorizeRequest</argument>
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPayment</argument>
-            <argument name="validator" xsi:type="object">CheckoutResponseValidator</argument>
+            <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\CheckoutResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentResponseHandlerComposite</argument>
         </arguments>
     </virtualType>
@@ -947,7 +947,7 @@
             <argument name="requestBuilder" xsi:type="object">AdyenPaymentMotoAuthorizeRequest</argument>
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPayment</argument>
-            <argument name="validator" xsi:type="object">CheckoutResponseValidator</argument>
+            <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\CheckoutResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentResponseHandlerComposite</argument>
         </arguments>
     </virtualType>
@@ -956,7 +956,7 @@
             <argument name="requestBuilder" xsi:type="object">AdyenPaymentOneclickAuthorizeRequest</argument>
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPayment</argument>
-            <argument name="validator" xsi:type="object">CheckoutResponseValidator</argument>
+            <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\CheckoutResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentResponseHandlerComposite</argument>
         </arguments>
     </virtualType>
@@ -965,7 +965,7 @@
             <argument name="requestBuilder" xsi:type="object">AdyenPaymentAuthorizeRequest</argument>
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPayment</argument>
-            <argument name="validator" xsi:type="object">CheckoutResponseValidator</argument>
+            <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\CheckoutResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentResponseHandlerComposite</argument>
         </arguments>
     </virtualType>
@@ -974,7 +974,7 @@
             <argument name="requestBuilder" xsi:type="object">AdyenPaymentGiftcardAuthorizeRequest</argument>
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPayment</argument>
-            <argument name="validator" xsi:type="object">CheckoutResponseValidator</argument>
+            <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\CheckoutResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentResponseHandlerComposite</argument>
         </arguments>
     </virtualType>
@@ -983,7 +983,7 @@
             <argument name="requestBuilder" xsi:type="object">AdyenPaymentBoletoAuthorizeRequest</argument>
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPayment</argument>
-            <argument name="validator" xsi:type="object">CheckoutResponseValidator</argument>
+            <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\CheckoutResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentBoletoResponseHandlerComposite</argument>
         </arguments>
     </virtualType>
@@ -1474,12 +1474,6 @@
             <argument name="validators" xsi:type="array">
                 <item name="global" xsi:type="string">Adyen\Payment\Gateway\Validator\PayByLinkValidator</item>
             </argument>
-        </arguments>
-    </virtualType>
-    <!--Checkout Response validator-->
-    <virtualType name="CheckoutResponseValidator" type="Adyen\Payment\Gateway\Validator\CheckoutResponseValidator">
-        <arguments>
-            <argument name="loggerInterface" xsi:type="object">Adyen\Payment\Logger\AdyenLogger</argument>
         </arguments>
     </virtualType>
     <!--Payment Links Response Validator-->
