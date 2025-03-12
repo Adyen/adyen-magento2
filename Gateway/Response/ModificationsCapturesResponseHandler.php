@@ -55,7 +55,7 @@ class ModificationsCapturesResponseHandler implements HandlerInterface
                 $payment,
                 $response['pspReference'] ?? '',
                 $response[TransactionCapture::ORIGINAL_REFERENCE],
-                $response[TransactionCapture::CAPTURE_AMOUNT]
+                $response[TransactionCapture::CAPTURE_AMOUNT][TransactionCapture::CAPTURE_VALUE]
             );
         }
 

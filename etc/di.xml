@@ -1255,7 +1255,6 @@
     <virtualType name="AdyenPaymentCaptureRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
         <arguments>
             <argument name="builders" xsi:type="array">
-                <item name="merchantaccount" xsi:type="string">Adyen\Payment\Gateway\Request\MerchantAccountDataBuilder</item>
                 <item name="capture" xsi:type="string">Adyen\Payment\Gateway\Request\CaptureDataBuilder</item>
                 <item name="header" xsi:type="string">Adyen\Payment\Gateway\Request\Header\HeaderDataBuilder</item>
             </argument>
@@ -1264,7 +1263,6 @@
     <virtualType name="AdyenPaymentMotoCaptureRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
         <arguments>
             <argument name="builders" xsi:type="array">
-                <item name="moto_merchant_account" xsi:type="string">Adyen\Payment\Gateway\Request\MotoMerchantAccountDataBuilder</item>
                 <item name="moto_client" xsi:type="string">Adyen\Payment\Gateway\Request\MotoClientConfigBuilder</item>
                 <item name="capture" xsi:type="string">Adyen\Payment\Gateway\Request\CaptureDataBuilder</item>
             </argument>
