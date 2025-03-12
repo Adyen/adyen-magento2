@@ -21,6 +21,7 @@ use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
 
 class AbstractModificationsResponseValidator extends AbstractValidator
 {
+    const FORMATTED_MODIFICATIONS_AMOUNT = 'formattedModificationAmount';
     const REQUIRED_RESPONSE_FIELDS = [
         'status',
         'pspReference'
@@ -113,9 +114,9 @@ class AbstractModificationsResponseValidator extends AbstractValidator
             $logMessage = sprintf(
                 "An error occurred while validating the %s response%s. %s",
                 $this->getModificationType(),
-                isset($response['formattedModificationAmount']) ?
+                isset($response[self::FORMATTED_MODIFICATIONS_AMOUNT]) ?
                     ' with amount ' .
-                    $response['formattedModificationAmount'] : '',
+                    $response[self::FORMATTED_MODIFICATIONS_AMOUNT] : '',
                 $response['error'] ?? ''
             );
 
