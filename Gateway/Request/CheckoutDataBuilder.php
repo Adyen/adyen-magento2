@@ -121,18 +121,6 @@ class CheckoutDataBuilder implements BuilderInterface
         }
 
         //Boleto data
-        if ($payment->getAdditionalInformation("social_security_number")) {
-            $requestBody['socialSecurityNumber'] = $payment->getAdditionalInformation("social_security_number");
-        }
-
-        if ($payment->getAdditionalInformation("firstname")) {
-            $requestBody['shopperName']['firstName'] = $payment->getAdditionalInformation("firstname");
-        }
-
-        if ($payment->getAdditionalInformation("lastname")) {
-            $requestBody['shopperName']['lastName'] = $payment->getAdditionalInformation("lastname");
-        }
-
         if ($payment->getMethod() == self::ADYEN_BOLETO) {
             $deliveryDays = (int)$this->configHelper->getAdyenBoletoConfigData("delivery_days", $storeId);
             $deliveryDays = (!empty($deliveryDays)) ? $deliveryDays : 5;
@@ -151,14 +139,7 @@ class CheckoutDataBuilder implements BuilderInterface
             $requestBody['deliveryDate'] = $deliveryDate;
         }
 
-        // if installments is set and card type is credit card add it into the request
-        $numberOfInstallments = $payment->getAdditionalInformation(
-            AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS
-        ) ?: 0;
         $comboCardType = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::COMBO_CARD_TYPE) ?: 'credit';
-        if ($numberOfInstallments > 0) {
-            $requestBody['installments']['value'] = $numberOfInstallments;
-        }
 
         /*
          * if the combo card type is debit then add the funding source
@@ -167,7 +148,6 @@ class CheckoutDataBuilder implements BuilderInterface
         if ($comboCardType == 'debit') {
             $requestBody['paymentMethod']['fundingSource'] = 'debit';
             unset($requestBody['paymentMethod']['brand']);
-            unset($requestBody['installments']);
         }
 
         $threeDSFlow = $this->configHelper->getThreeDSFlow($order->getStoreId());
