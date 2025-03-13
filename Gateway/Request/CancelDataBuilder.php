@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2025 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -16,31 +16,20 @@ use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Adyen\Payment\Model\ResourceModel\Order\Payment;
 use Adyen\Payment\Helper\Data;
-use Adyen\Payment\Helper\Config;
 
 /**
  * Class CustomerDataBuilder
  */
 class CancelDataBuilder implements BuilderInterface
 {
-    /** @var Payment $adyenPaymentResourceModel */
-    private $adyenPaymentResourceModel;
-
-    /** @var Config $configHelper */
-    private $configHelper;
-
-    /** @var Data $adyenHelper */
-    private $adyenHelper;
-
+    /**
+     * @param Payment $adyenPaymentResourceModel
+     * @param Data $adyenHelper
+     */
     public function __construct(
-        Payment      $adyenPaymentResourceModel,
-        Data         $adyenHelper,
-        Config $configHelper
-    ){
-        $this->adyenPaymentResourceModel = $adyenPaymentResourceModel;
-        $this->adyenHelper = $adyenHelper;
-        $this->configHelper = $configHelper;
-    }
+        private readonly Payment $adyenPaymentResourceModel,
+        private readonly Data $adyenHelper
+    ){ }
 
     /**
      * Create cancel_or_refund request

@@ -219,11 +219,11 @@ class Invoice extends AbstractHelper
      *
      * @param Order $order
      * @param Notification $notification
-     * @return AdyenInvoice
+     * @return array
+     * @throws AdyenWebhookException
      * @throws AlreadyExistsException
-     * @throws Exception
      */
-    public function handleCaptureWebhook(Order $order, Notification $notification): AdyenInvoice
+    public function handleCaptureWebhook(Order $order, Notification $notification): array
     {
         $invoiceFactory = $this->adyenInvoiceFactory->create();
         $adyenInvoice = $this->adyenInvoiceResourceModel->getAdyenInvoiceByCaptureWebhook($order, $notification);
@@ -280,12 +280,19 @@ class Invoice extends AbstractHelper
         $magentoInvoice = $this->magentoInvoiceFactory->create()->load($adyenInvoiceObject->getInvoiceId());
 
         if ($this->isFullInvoiceAmountManuallyCaptured($magentoInvoice)) {
+            /*
+             * Magento Invoice updates the Order object while paying the invoice. This creates two divergent
+             * Order objects. In the downstream, some information might be missing due to setting them on the
+             * wrong order object as the Order might be already updated in the upstream without persisting
+             * it to the database. Setting the order again on the Invoice makes sure we are dealing
+             * with the same order object always.
+             */
+            $magentoInvoice->setOrder($order);
             $magentoInvoice->pay();
             $this->invoiceRepository->save($magentoInvoice);
-            $this->magentoOrderResourceModel->save($magentoInvoice->getOrder());
         }
 
-        return $adyenInvoiceObject;
+        return [$adyenInvoiceObject, $magentoInvoice, $order];
     }
 
     /**
