@@ -20,7 +20,12 @@ if (!isset($escaper)) {
 }
 ?>
 
-<script>
+<?php
+$minData = $escaper->escapeHtml($block->getMinExpiryTimestamp());
+$maxData = $escaper->escapeHtml($block->getMaxExpiryTimestamp());
+$defaultExpiry = $block->escapeJs($block->getDefaultExpiryDate());
+
+$scriptString = <<<script
     require(["jquery", "mage/calendar"],
         function ($) {
             $("#adyen_pbl_expires_at").calendar({
@@ -28,12 +33,14 @@ if (!isset($escaper)) {
                 changeMonth: true,
                 buttonText: 'Select Expiry Date',
                 dateFormat: 'dd-mm-yy',
-                minDate: new Date(<?=$escaper->escapeHtml($block->getMinExpiryTimestamp())?>),
-                maxDate: new Date(<?=$escaper->escapeHtml($block->getMaxExpiryTimestamp())?>)
-            }).val('<?= $block->escapeJs($block->getDefaultExpiryDate()) ?>');
-
+                minDate: new Date($minData),
+                maxDate: new Date($maxData)
+            }).val('$defaultExpiry');
         });
-</script>
+script;
+?>
+
+<?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptString, false) ?>
 
 <fieldset
         class="admin__fieldset payment-method"

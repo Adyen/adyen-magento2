@@ -30,7 +30,7 @@ use Adyen\Payment\Block\Info\Giftcard;
         <?php endforeach; ?>
     <?php else: ?>
         <dt class="title">
-            <?= $block->escapeHtml(sprintf("%s: %s", $_info->getMethodInstance()->getTitle(), ucwords($_info->getAdditionalInformation('brand_code')))); ?>
+            <?php /** TODO:: ECP-9636 Indicate the gift card brand on single gift card payments (ie: METHOD_TITLE: SVS) */ ?>
         </dt>
     <?php endif; ?>
 </dl>
