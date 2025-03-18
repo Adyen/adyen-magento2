@@ -18,6 +18,7 @@ use Magento\Payment\Model\Method\Adapter;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Sales\Model\Order\Address;
+use Magento\Framework\App\RequestInterface;
 
 class PaymentMethodsFilterTest extends AbstractAdyenTestCase
 {
@@ -175,17 +176,20 @@ class PaymentMethodsFilterTest extends AbstractAdyenTestCase
             ])
         ]);
 
-        $cartRepositoryInterfaceMock = $this->createConfiguredMock(CartRepositoryInterface::class, [
-            'get' => $quoteMock
-        ]);
+        $channel = 'iOS';
 
         $paymentMethodsHelperMock = $this->createConfiguredMock(PaymentMethods::class, [
             'getPaymentMethods' => self::PAYMENT_METHODS_RESPONSE
         ]);
 
+        $RequestInterfaceMock = $this->getMockBuilder(RequestInterface::class)
+            ->getMockForAbstractClass();
+
+        $RequestInterfaceMock->method('getParam')->with('channel')->willReturn($channel);
+
         $paymentMethodsFilterHelper = $this->createPaymentMethodsFilterHelper(
             $paymentMethodsHelperMock,
-            $cartRepositoryInterfaceMock
+            $RequestInterfaceMock
         );
 
         $sortedMagentoPaymentMethods =
@@ -201,16 +205,16 @@ class PaymentMethodsFilterTest extends AbstractAdyenTestCase
 
     protected function createPaymentMethodsFilterHelper(
         $paymentMethodsHelperMock = null,
-        $cartRepositoryInterfaceMock = null
+        $RequestInterfaceMock = null
     ): PaymentMethodsFilter {
         if (is_null($paymentMethodsHelperMock)) {
             $paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
         }
 
-        if (is_null($cartRepositoryInterfaceMock)) {
-            $cartRepositoryInterfaceMock = $this->createMock(CartRepositoryInterface::class);
+        if (is_null($RequestInterfaceMock)) {
+            $RequestInterfaceMock = $this->createMock(RequestInterface::class);
         }
 
-        return new PaymentMethodsFilter($paymentMethodsHelperMock, $cartRepositoryInterfaceMock);
+        return new PaymentMethodsFilter($paymentMethodsHelperMock, $RequestInterfaceMock);
     }
 }

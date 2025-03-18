@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
+use Adyen\Model\Checkout\PaymentDetailsRequest;
 use Adyen\Payment\Helper\Util\DataArrayValidator;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Checkout\Model\Session;
@@ -33,11 +34,32 @@ class PaymentsDetails
         'merchantReference'
     ];
 
+    /**
+     * @var Session
+     */
     private Session $checkoutSession;
+
+    /**
+     * @var Data
+     */
     private Data $adyenHelper;
+
+    /**
+     * @var AdyenLogger
+     */
     private AdyenLogger $adyenLogger;
+
+    /**
+     * @var Idempotency
+     */
     private Idempotency $idempotencyHelper;
 
+    /**
+     * @param Session $checkoutSession
+     * @param Data $adyenHelper
+     * @param AdyenLogger $adyenLogger
+     * @param Idempotency $idempotencyHelper
+     */
     public function __construct(
         Session $checkoutSession,
         Data $adyenHelper,
@@ -58,15 +80,15 @@ class PaymentsDetails
     public function initiatePaymentDetails(OrderInterface $order, array $payload): array
     {
         $request = $this->cleanUpPaymentDetailsPayload($payload);
-
         try {
             $client = $this->adyenHelper->initializeAdyenClient($order->getStoreId());
-            $service = $this->adyenHelper->createAdyenCheckoutService($client);
+            $service = $this->adyenHelper->initializePaymentsApi($client);
 
             $requestOptions['idempotencyKey'] = $this->idempotencyHelper->generateIdempotencyKey($request);
             $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
 
-            $response = $service->paymentsDetails($request, $requestOptions);
+            $paymentDetailsObj = $service->paymentsDetails(new PaymentDetailsRequest($request), $requestOptions);
+            $response = $paymentDetailsObj->toArray();
         } catch (AdyenException $e) {
             $this->adyenLogger->error("Payment details call failed: " . $e->getMessage());
             $this->checkoutSession->restoreQuote();
@@ -77,6 +99,10 @@ class PaymentsDetails
         return $response;
     }
 
+    /**
+     * @param array $payload
+     * @return array
+     */
     private function cleanUpPaymentDetailsPayload(array $payload): array
     {
         $payload = DataArrayValidator::getArrayOnlyWithApprovedKeys(
@@ -85,7 +111,7 @@ class PaymentsDetails
         );
 
         foreach (self::REQUEST_HELPER_PARAMETERS as $helperParam) {
-            if (array_key_exists($helperParam, $payload['details'])) {
+            if (isset($payload['details']) && array_key_exists($helperParam, $payload['details'])) {
                 unset($payload['details'][$helperParam]);
             }
         }

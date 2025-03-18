@@ -20,7 +20,8 @@ define(
         'Magento_Checkout/js/model/error-processor',
         'Adyen_Payment/js/model/adyen-configuration',
         'Adyen_Payment/js/model/adyen-payment-modal',
-        'Adyen_Payment/js/model/adyen-checkout'
+        'Adyen_Payment/js/model/adyen-checkout',
+        'Adyen_Payment/js/model/payment-component-states',
     ],
     function(
         ko,
@@ -34,21 +35,22 @@ define(
         errorProcessor,
         adyenConfiguration,
         adyenPaymentModal,
-        adyenCheckout
+        adyenCheckout,
+        paymentComponentStates
     ) {
         'use strict';
         let popupModal;
 
         return Component.extend({
-            self: this,
-            isAvailable: ko.observable(true),
-
+            placeOrderButtonVisible: true,
+            checkoutComponent: null,
+            paymentComponent: null,
             defaults: {
                 template: 'Adyen_Payment/payment/pm-form',
                 orderId: null,
                 modalLabel: 'hpp_actionModal'
             },
-            placeOrderButtonVisible: true,
+
             initObservable: function() {
                 this._super().observe([
                     'paymentMethod',
@@ -57,6 +59,7 @@ define(
                     'isPlaceOrderActionAllowed',
                     'placeOrderAllowed'
                 ]);
+
                 return this;
             },
 
@@ -64,126 +67,100 @@ define(
                 this._super();
                 let self = this;
 
-                this.isPlaceOrderAllowed(true);
-
                 let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
                 paymentMethodsObserver.subscribe(
                     function(paymentMethodsResponse) {
-                        self.createCheckoutComponent(paymentMethodsResponse);
+                        self.enablePaymentMethod(paymentMethodsResponse);
                     }
                 );
 
                 if(!!paymentMethodsObserver()) {
-                    self.createCheckoutComponent(paymentMethodsObserver());
+                    self.enablePaymentMethod(paymentMethodsObserver());
+                }
+
+                paymentComponentStates().initializeState(this.getMethodCode());
+            },
+
+            enablePaymentMethod: function (paymentMethodsResponse) {
+                if (this.checkBrowserCompatibility() && !!paymentMethodsResponse.paymentMethodsResponse) {
+                    this.paymentMethod(
+                        adyenPaymentService.getPaymentMethodFromResponse(
+                            this.getTxVariant(),
+                            paymentMethodsResponse.paymentMethodsResponse.paymentMethods
+                        )
+                    );
+
+                    if (!!this.paymentMethod()) {
+                        this.paymentMethodsExtraInfo(paymentMethodsResponse.paymentMethodsExtraDetails);
+                        // Setting the icon and method txvariant as an accessible field if it is available
+                        this.adyenPaymentMethod({
+                            icon: !!paymentMethodsResponse.paymentMethodsExtraDetails[this.getTxVariant()]
+                                ? paymentMethodsResponse.paymentMethodsExtraDetails[this.getTxVariant()].icon
+                                : undefined,
+                            method: this.getTxVariant()
+                        });
+                    }
+
+                    fullScreenLoader.stopLoader();
                 }
             },
 
-            createCheckoutComponent: async function(paymentMethodsResponse) {
-                // Set to null by default and modify depending on the paymentMethods response
-                this.adyenPaymentMethod(null);
-                if (this.checkBrowserCompatibility() && !!paymentMethodsResponse.paymentMethodsResponse) {
+            /*
+             * Create generic AdyenCheckout library and mount payment method component
+             * after selecting the payment method via overriding parent `selectPaymentMethod()` function.
+             */
+            selectPaymentMethod: function () {
+                this._super();
+                this.createCheckoutComponent();
+                return true;
+            },
+
+            /*
+             * Pre-selected payment methods don't trigger parent's `selectPaymentMethod()` function.
+             *
+             * This function is triggered via `afterRender` attribute of the html template
+             * and creates checkout component for pre-selected payment method.
+             */
+            renderPreSelected: async function () {
+                if (this.isChecked() === this.getCode()) {
+                    await this.createCheckoutComponent();
+                }
+            },
+
+            // Build AdyenCheckout library and creates the payment method component
+            createCheckoutComponent: async function(forceCreate = false) {
+                if (!this.checkoutComponent || forceCreate) {
+                    const paymentMethodsResponse = adyenPaymentService.getPaymentMethods();
+
                     this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
-                        paymentMethodsResponse,
+                        paymentMethodsResponse(),
                         this.handleOnAdditionalDetails.bind(this),
                         this.handleOnCancel.bind(this),
-                        this.handleOnSubmit.bind(this)
+                        this.handleOnSubmit.bind(this),
+                        this.handleOnError.bind(this)
                     );
 
-                    if (!!this.checkoutComponent) {
-                        this.paymentMethod(
-                            adyenPaymentService.getPaymentMethodFromResponse(
-                                this.getTxVariant(),
-                                paymentMethodsResponse.paymentMethodsResponse.paymentMethods
-                            )
-                        );
-
-                        if (!!this.paymentMethod()) {
-                            this.paymentMethodsExtraInfo(paymentMethodsResponse.paymentMethodsExtraDetails);
-                            // Setting the icon and method txvariant as an accessible field if it is available
-                            this.adyenPaymentMethod({
-                                icon: !!paymentMethodsResponse.paymentMethodsExtraDetails[this.getTxVariant()]
-                                    ? paymentMethodsResponse.paymentMethodsExtraDetails[this.getTxVariant()].icon
-                                    : undefined,
-                                method: this.getTxVariant()
-                            });
-                        }
-                    }
+                    this.renderCheckoutComponent();
                 }
+            },
+
+            handleOnError: function (error, component) {
+                this.handleOnFailure(error, component);
+            },
+
+            handleOnFailure: function(error, component) {
+
+                paymentComponentStates().setIsPlaceOrderAllowed(this.getMethodCode(), true);
 
                 fullScreenLoader.stopLoader();
-            },
-
-            handleOnSubmit: async function(state, component) {
-                if (this.validate()) {
-                    let data = {};
-                    data.method = this.getCode();
-
-                    let additionalData = {};
-                    let stateData = component.data;
-                    additionalData.stateData = JSON.stringify(stateData);
-                    data.additional_data = additionalData;
-
-                    await this.placeRedirectOrder(data, component);
-                }
-
-                return false;
-            },
-
-            handleOnCancel: function(state, component) {
-                const self = this;
-
-                // call endpoint with state.data if available
-                let request = {};
-                if (!!state.data) {
-                    request = state.data;
-                }
-
-                request.cancelled = true;
-
-                adyenPaymentService.paymentDetails(request, self.orderId).done(function() {
-                    $.mage.redirect(
-                        window.checkoutConfig.payment.adyen.successPage
-                    );
-                }).fail(function(response) {
-                    fullScreenLoader.stopLoader();
-                    if (self.popupModal) {
-                        self.closeModal(self.popupModal);
-                    }
-                    errorProcessor.process(response,
-                        self.currentMessageContainer);
-                    self.isPlaceOrderAllowed(true);
-                    self.showErrorMessage(response);
-                });
-            },
-
-            handleOnAdditionalDetails: function(state, component) {
-                const self = this;
-                // call endpoint with state.data if available
-                let request = {};
-                if (!!state.data) {
-                    request = state.data;
-                }
-
-                adyenPaymentService.paymentDetails(request, self.orderId).done(function() {
-                    $.mage.redirect(
-                        window.checkoutConfig.payment.adyen.successPage,
-                    );
-                }).fail(function(response) {
-                    fullScreenLoader.stopLoader();
-                    if (self.popupModal) {
-                        self.closeModal(self.popupModal);
-                    }
-                    errorProcessor.process(response,
-                        self.currentMessageContainer);
-                    self.isPlaceOrderAllowed(true);
-                });
+                errorProcessor.process(error, this.currentMessageContainer);
             },
 
             renderCheckoutComponent: function() {
-                this.isPlaceOrderAllowed(false);
+                let methodCode = this.getMethodCode();
                 let configuration = this.buildComponentConfiguration(this.paymentMethod(), this.paymentMethodsExtraInfo());
 
-                this.mountPaymentMethodComponent(this.paymentMethod(), configuration);
+                this.mountPaymentMethodComponent(this.paymentMethod(), configuration, methodCode);
             },
 
             buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo) {
@@ -207,74 +184,115 @@ define(
                         countryCode: formattedShippingAddress.country ? formattedShippingAddress.country : formattedBillingAddress.country, // Use shipping address details as default and fall back to billing address if missing
                         data: {},
                         onChange: function (state) {
-                            self.isPlaceOrderAllowed(state.isValid);
+                            paymentComponentStates().setIsPlaceOrderAllowed(self.getMethodCode(), state.isValid);
                         },
                     });
 
                 return configuration;
             },
 
-            getTxVariant: function () {
-                return window.checkoutConfig.payment.adyen.txVariants[this.getCode()];
-            },
-
-            getMethodCode: function () {
-                return this.item.method;
-            },
-
-            mountPaymentMethodComponent(paymentMethod, configuration)
-            {
-                let self = this;
-
+            mountPaymentMethodComponent: function(paymentMethod, configuration, methodCode) {
                 try {
                     const containerId = '#' + paymentMethod.type + 'Container';
 
                     this.paymentComponent = adyenCheckout.mountPaymentMethodComponent(
-                        self.checkoutComponent,
-                        self.getTxVariant(),
+                        this.checkoutComponent,
+                        this.getTxVariant(),
                         configuration,
                         containerId
                     );
+
+                    if (this.paymentComponent) {
+                        paymentComponentStates().setIsPlaceOrderAllowed(
+                            methodCode,
+                            this.paymentComponent.isValid
+                        );
+                    }
                 } catch (err) {
-                    // The component does not exist yet
                     if ('test' === adyenConfiguration.getCheckoutEnvironment()) {
-                        console.log(err);
+                        console.error(err);
                     }
                 }
             },
 
-            validate: function() {
-                const form = '#adyen-' + this.getTxVariant() + '-form';
-                const validate = $(form).validation() && $(form).validation('isValid');
-                return validate && additionalValidators.validate();
+            handleOnSubmit: async function(state, component) {
+                if (this.validate()) {
+                    let data = {};
+                    data.method = this.getCode();
+
+                    let additionalData = {};
+                    let stateData = component.data;
+                    additionalData.stateData = JSON.stringify(stateData);
+                    data.additional_data = additionalData;
+
+                    await this.placeRedirectOrder(data, component);
+                }
+
+                return false;
             },
 
-            isPlaceOrderAllowed: function(bool) {
-                this.isPlaceOrderActionAllowed(bool);
-                return this.isPlaceOrderActionAllowed(bool);
+            handleOnAdditionalDetails: function(state, component) {
+                const self = this;
+                // call endpoint with state.data if available
+                let request = {};
+                if (!!state.data) {
+                    request = state.data;
+                }
+
+                adyenPaymentService.paymentDetails(request, self.orderId).done(function() {
+                    $.mage.redirect(
+                        window.checkoutConfig.payment.adyen.successPage,
+                    );
+                }).fail(function(response) {
+                    fullScreenLoader.stopLoader();
+                    if (self.popupModal) {
+                        self.closeModal(self.popupModal);
+                    }
+                    errorProcessor.process(response,
+                        self.currentMessageContainer);
+                    paymentComponentStates().setIsPlaceOrderAllowed(self.getMethodCode(), true);
+                });
             },
 
-            showPlaceOrderButton: function() {
-                return this.placeOrderButtonVisible;
+            handleOnCancel: function(state, component) {
+                const self = this;
+
+                // call endpoint with state.data if available
+                let request = {};
+                if (!!state.data) {
+                    request = state.data;
+                }
+
+                adyenPaymentService.paymentDetails(request, self.orderId).done(function() {
+                    $.mage.redirect(
+                        window.checkoutConfig.payment.adyen.successPage
+                    );
+                }).fail(function(response) {
+                    fullScreenLoader.stopLoader();
+                    if (self.popupModal) {
+                        self.closeModal(self.popupModal);
+                    }
+                    errorProcessor.process(response, self.currentMessageContainer);
+                    paymentComponentStates().setIsPlaceOrderAllowed(self.getMethodCode(), true);
+                    self.showErrorMessage(response);
+                });
             },
 
             placeOrder: function() {
-                if (this.paymentComponent) {
+                let methodCode = this.getMethodCode();
 
+                if (this.paymentComponent) {
                     this.paymentComponent.showValidation();
-                    if (this.paymentComponent.state.isValid === false) {
-                        return false;
-                    }
                 }
 
                 if (this.validate()) {
                     let data = {
-                        'method': this.item.method
+                        'method': methodCode
                     };
 
                     let additionalData = {};
                     additionalData.brand_code = this.paymentMethod().type;
-                    additionalData.frontendType = 'luma';
+                    additionalData.frontendType = 'default';
 
                     let stateData;
                     if (this.paymentComponent) {
@@ -291,6 +309,8 @@ define(
                     data.additional_data = additionalData;
 
                     this.placeRedirectOrder(data, this.paymentComponent);
+                } else {
+                    paymentComponentStates().setIsPlaceOrderAllowed(methodCode, true);
                 }
 
                 return false;
@@ -299,25 +319,41 @@ define(
             placeRedirectOrder: async function(data, component) {
                 const self = this;
 
-                // Place Order but use our own redirect url after
                 fullScreenLoader.startLoader();
                 $('.hpp-message').slideUp();
-                self.isPlaceOrderAllowed(false);
+                paymentComponentStates().setIsPlaceOrderAllowed(this.getMethodCode(), false);
 
-                await $.when(placeOrderAction(data, self.currentMessageContainer)).fail(
-                    function(response) {
-                        self.isPlaceOrderAllowed(true);
-                        fullScreenLoader.stopLoader();
-                        component.handleReject(response);
-                    }
-                ).done(
-                    function(orderId) {
-                        self.afterPlaceOrder();
-                        adyenPaymentService.getOrderPaymentStatus(orderId).done(function(responseJSON) {
-                            self.validateActionOrPlaceOrder(responseJSON, orderId, component);
-                        });
-                    }
-                );
+                try {
+                    const orderId = await placeOrderAction(data, self.currentMessageContainer);
+                    const responseJSON = await adyenPaymentService.getOrderPaymentStatus(orderId);
+                    self.validateActionOrPlaceOrder(responseJSON, orderId, component);
+                } catch (response) {
+                    self.handleOnFailure(response, component);
+                }
+            },
+
+            getTxVariant: function () {
+                return window.checkoutConfig.payment.adyen.txVariants[this.getCode()];
+            },
+
+            getMethodCode: function () {
+                return this.item.method;
+            },
+
+            validate: function() {
+                const form = '#adyen-' + this.getTxVariant() + '-form';
+                const validate = $(form).validation() && $(form).validation('isValid');
+                return validate && additionalValidators.validate();
+            },
+
+            showErrorMessage: function(message) {
+                messageList.addErrorMessage({
+                    message: message
+                });
+            },
+
+            showPlaceOrderButton: function() {
+                return this.placeOrderButtonVisible;
             },
 
             /**
@@ -363,7 +399,7 @@ define(
 
 
             isButtonActive: function() {
-                return this.isPlaceOrderActionAllowed();
+                return paymentComponentStates().getIsPlaceOrderAllowed(this.getMethodCode());
             },
 
             /**
@@ -432,6 +468,10 @@ define(
 
             checkBrowserCompatibility: function () {
                 return true;
+            },
+
+            getPaymentMethodComponent: function () {
+                return this.paymentComponent;
             }
         });
     },

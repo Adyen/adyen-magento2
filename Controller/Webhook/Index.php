@@ -28,7 +28,7 @@ use DateTime;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\CsrfAwareActionInterface;
-use Magento\Framework\App\Request\Http as Http;
+use Magento\Framework\App\Request\Http;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
@@ -89,6 +89,8 @@ class Index extends Action
      */
     private $remoteAddress;
 
+    private Http $request;
+
     /**
      * Json constructor.
      *
@@ -114,7 +116,8 @@ class Index extends Action
         RateLimiter $rateLimiterHelper,
         HmacSignature $hmacSignature,
         NotificationReceiver $notificationReceiver,
-        RemoteAddress $remoteAddress
+        RemoteAddress $remoteAddress,
+        Http $request
     ) {
         parent::__construct($context);
         $this->notificationFactory = $notificationFactory;
@@ -127,6 +130,7 @@ class Index extends Action
         $this->hmacSignature = $hmacSignature;
         $this->notificationReceiver = $notificationReceiver;
         $this->remoteAddress = $remoteAddress;
+        $this->request = $request;
 
         // Fix for Magento2.3 adding isAjax to the request params
         if (interface_exists(CsrfAwareActionInterface::class)) {
@@ -209,10 +213,12 @@ class Index extends Action
     {
         // Add CGI support
         $this->fixCgiHttpAuthentication();
+        $merchantAccount = $this->configHelper->getMerchantAccount()
+            ?? $this->configHelper->getMotoMerchantAccounts();
 
         $authResult = $this->notificationReceiver->isAuthenticated(
             $response,
-            $this->configHelper->getMerchantAccount(),
+            $merchantAccount,
             $this->configHelper->getNotificationsUsername(),
             $this->configHelper->getNotificationsPassword()
         );
@@ -376,36 +382,33 @@ class Index extends Action
      */
     private function fixCgiHttpAuthentication()
     {
-        // do nothing if values are already there
+        // Exit if authentication values are already set
         if (!empty($_SERVER['PHP_AUTH_USER']) && !empty($_SERVER['PHP_AUTH_PW'])) {
             return;
-        } elseif (isset($_SERVER['REDIRECT_REMOTE_AUTHORIZATION']) &&
-            $_SERVER['REDIRECT_REMOTE_AUTHORIZATION'] != ''
-        ) {
-            list(
-                $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']
-                ) =
-                explode(':', base64_decode((string) $_SERVER['REDIRECT_REMOTE_AUTHORIZATION']), 2);
-        } elseif (!empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
-            list(
-                $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']
-                ) =
-                explode(':', base64_decode(substr((string) $_SERVER['REDIRECT_HTTP_AUTHORIZATION'], 6)), 2);
-        } elseif (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
-            list(
-                $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']
-                ) =
-                explode(':', base64_decode(substr((string) $_SERVER['HTTP_AUTHORIZATION'], 6)), 2);
-        } elseif (!empty($_SERVER['REMOTE_USER'])) {
-            list(
-                $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']
-                ) =
-                explode(':', base64_decode(substr((string) $_SERVER['REMOTE_USER'], 6)), 2);
-        } elseif (!empty($_SERVER['REDIRECT_REMOTE_USER'])) {
-            list(
-                $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']
-                ) =
-                explode(':', base64_decode(substr((string) $_SERVER['REDIRECT_REMOTE_USER'], 6)), 2);
+        }
+
+        // Define potential authorization headers to check
+        $authHeaders = [
+            'REDIRECT_REMOTE_AUTHORIZATION',
+            'REDIRECT_HTTP_AUTHORIZATION',
+            'HTTP_AUTHORIZATION',
+            'REMOTE_USER',
+            'REDIRECT_REMOTE_USER'
+        ];
+
+        // Check each header, decode and assign credentials if found
+        foreach ($authHeaders as $header) {
+            if (!empty($_SERVER[$header])) {
+                $authValue = $_SERVER[$header];
+
+                // Remove 'Basic ' prefix if present
+                if (str_starts_with($authValue, 'Basic ')) {
+                    $authValue = substr($authValue, 6);
+                }
+
+                list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) = explode(':', base64_decode($authValue), 2);
+                return;
+            }
         }
     }
 

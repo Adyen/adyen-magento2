@@ -18,6 +18,7 @@ use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\UrlInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\CheckoutAgreements\Model\AgreementsConfigProvider;
 
 class AdyenGenericConfigProvider implements ConfigProviderInterface
 {
@@ -28,16 +29,17 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
     protected RequestInterface $request;
     protected UrlInterface $url;
     private Config $adyenConfigHelper;
+    private AgreementsConfigProvider $agreementsConfigProvider;
     /**
      * This data member will be passed to the js frontend. It will be used to map the method code (adyen_ideal) to the
      * corresponding txVariant (ideal). The txVariant will then be used to instantiate the component
      */
-    private array $txVariants;
+    protected array $txVariants;
     /**
      * These payment methods have a custom method render file. This array has been used in the adyen-method.js
      * file to push correct payment method renderer.
      */
-    private array $customMethodRenderers;
+    protected array $customMethodRenderers;
 
     public function __construct(
         Data $adyenHelper,
@@ -45,6 +47,7 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
         StoreManagerInterface $storeManager,
         RequestInterface $request,
         UrlInterface $url,
+        AgreementsConfigProvider $agreementsConfigProvider,
         array $txVariants = [],
         array $customMethodRenderers = []
     ) {
@@ -53,6 +56,7 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
         $this->storeManager = $storeManager;
         $this->request = $request;
         $this->url = $url;
+        $this->agreementsConfigProvider = $agreementsConfigProvider;
         $this->txVariants = $txVariants;
         $this->customMethodRenderers = $customMethodRenderers;
     }
@@ -88,6 +92,7 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
             'checkout/onepage/success',
             ['_secure' => $this->request->isSecure()]
         );
+        $config['payment']['adyen']['agreementsConfig'] = $this->agreementsConfigProvider->getConfig();
 
         return $config;
     }

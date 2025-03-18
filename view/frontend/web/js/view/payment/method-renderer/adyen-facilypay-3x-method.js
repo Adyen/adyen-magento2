@@ -6,6 +6,9 @@
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
+ *
+ * @deprecated This file will be removed on V10. Use `adyen-facilypay-method.js` instead.
+ *
  */
 define(
     [

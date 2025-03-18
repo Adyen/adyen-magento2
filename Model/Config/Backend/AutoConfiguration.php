@@ -11,12 +11,14 @@
 
 namespace Adyen\Payment\Model\Config\Backend;
 
+use Adyen\AdyenException;
 use Adyen\Payment\Helper\BaseUrlHelper;
 use Adyen\Payment\Helper\ManagementHelper;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Value;
 use Magento\Framework\Data\Collection\AbstractDb;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
 use Magento\Framework\Registry;
@@ -27,16 +29,30 @@ class AutoConfiguration extends Value
     /**
      * @var ManagementHelper
      */
-    private $managementApiHelper;
+    private ManagementHelper $managementApiHelper;
+
     /**
      * @var UrlInterface
      */
-    private $url;
+    private UrlInterface $url;
+
     /**
      * @var BaseUrlHelper
      */
-    private $baseUrlHelper;
+    private BaseUrlHelper $baseUrlHelper;
 
+    /**
+     * @param Context $context
+     * @param Registry $registry
+     * @param ScopeConfigInterface $config
+     * @param TypeListInterface $cacheTypeList
+     * @param ManagementHelper $managementApiHelper
+     * @param UrlInterface $url
+     * @param BaseUrlHelper $baseUrlHelper
+     * @param AbstractResource|null $resource
+     * @param AbstractDb|null $resourceCollection
+     * @param array $data
+     */
     public function __construct(
         Context $context,
         Registry $registry,
@@ -55,23 +71,37 @@ class AutoConfiguration extends Value
         $this->baseUrlHelper = $baseUrlHelper;
     }
 
-    public function beforeSave()
+    /**
+     * @return AutoConfiguration
+     * @throws AdyenException
+     * @throws NoSuchEntityException
+     */
+    public function beforeSave(): AutoConfiguration
     {
         if ('auto' === $this->getValue()) {
-            $demoMode = (int)$this->getFieldsetDataValue('demo_mode');
-            $environment = $demoMode ? 'test' : 'live';
-
-            $apiKey = $this->getFieldsetDataValue('api_key_' . $environment);
-
-            $managementApiService = $this->managementApiHelper->getManagementApiService($apiKey, $demoMode);
-            $configuredOrigins = $this->managementApiHelper->getAllowedOrigins($managementApiService);
-
-            $domain = $this->baseUrlHelper->getDomainFromUrl($this->url->getBaseUrl());
-            if (!in_array($domain, $configuredOrigins)) {
-                $managementApiService = $this->managementApiHelper->getManagementApiService($apiKey, $demoMode);
-                $this->managementApiHelper->saveAllowedOrigin($managementApiService, $domain);
-            }
+            $this->saveAllowedOrigins();
         }
         return parent::beforeSave();
+    }
+
+    /**
+     * @return void
+     * @throws AdyenException
+     * @throws NoSuchEntityException
+     */
+    private function saveAllowedOrigins(): void
+    {
+        $demoMode = (int)$this->getFieldsetDataValue('demo_mode');
+        $environment = $demoMode ? 'test' : 'live';
+
+        $apiKey = $this->getFieldsetDataValue('api_key_' . $environment);
+        $client = $this->managementApiHelper->getAdyenApiClient($apiKey, $demoMode);
+        $service = $this->managementApiHelper->getMyAPICredentialApi($client);
+        $configuredOrigins = $this->managementApiHelper->getAllowedOrigins($service);
+
+        $domain = $this->baseUrlHelper->getDomainFromUrl($this->url->getBaseUrl());
+        if (!in_array($domain, $configuredOrigins)) {
+            $this->managementApiHelper->saveAllowedOrigin($service, $domain);
+        }
     }
 }

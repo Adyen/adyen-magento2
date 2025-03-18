@@ -1,23 +1,46 @@
-name: Magento 2 E2E Pipeline
-run-name: Adyen Magento 2 Payment Plugin E2E tests
+name: E2E test workflow
+run-name: E2E test workflow with test suite branch ${{inputs.testBranch || 'main'}}
 
 on:
   pull_request:
-    types: [opened, synchronize, ready_for_review]
+    branches: [main]
   pull_request_target:
-    types: [opened, synchronize, ready_for_review]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      testBranch:
+        description: "Integration Test Repository branch"
+        required: true
+        default: "develop"
+      testGroup:
+        description: "Test group"
+        required: true
+        default: "standard"
+        type: choice
+        options:
+          - all
+          - standard
+          - express-checkout
+      expressBranch:
+        description: "Express Checkout repository branch"
+        required: true
+        default: "main"
 
 jobs:
   build:
-    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository)
+    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) || (github.event_name == 'workflow_dispatch')
     environment: ${{ (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) && 'external' || 'internal' }}
+    strategy:
+      matrix:
+        php-version: ["8.3"]
+        magento-version: ["2.4.7-p2"]
     runs-on:
       group: larger-runners
       labels: ubuntu-latest-8-cores
     timeout-minutes: 25
     env:
-      PHP_VERSION: "8.1"
-      MAGENTO_VERSION: "2.4.5"
+      PHP_VERSION: ${{ matrix.php-version }}
+      MAGENTO_VERSION: ${{ matrix.magento-version }}
       ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
       ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
       ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
@@ -26,13 +49,24 @@ jobs:
       DONATION_ACCOUNT: ${{secrets.DONATION_ACCOUNT}}
       DEPLOY_SAMPLEDATA: 1
     steps:
+      # Define variables for the test case
+      - run: echo "IS_RELEASE=${{ contains(github.event.pull_request.title, 'Release v9.') && 'TRUE' || 'FALSE' }}" >> $GITHUB_ENV
+      - run: echo "TEST_GROUP=${{ env.IS_RELEASE == 'TRUE' && 'all' || (inputs.testGroup || 'standard') }}" >> $GITHUB_ENV
+      - run: echo "TEST_BRANCH=${{ (env.IS_RELEASE == 'TRUE' || !inputs.testBranch)  && 'develop' || inputs.testBranch }}" >> $GITHUB_ENV
+      - run: echo "EXPRESS_BRANCH=${{ contains(fromJSON('["all", "express-checkout"]'), env.TEST_GROUP) && (inputs.expressBranch || 'main') || '' }}" >> $GITHUB_ENV
+
+      - name: Information
+        run: echo "E2E testing against test suite branch ${{env.TEST_BRANCH}} using group ${{env.TEST_GROUP}} ${{ env.EXPRESS_BRANCH && 'with express module branch' || '' }} ${{ env.EXPRESS_BRANCH || '' }}"
+
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
 
       - name: Install Magento
-        run: docker-compose -f .github/docker-compose.yml run --rm web make magento
+        run: docker compose -f .github/docker-compose.yml run --rm web make magento
 
       - name: Start web server in background
-        run: docker-compose -f .github/docker-compose.yml up -d web
+        run: docker compose -f .github/docker-compose.yml up -d web
 
       - name: Setup permissions
         run: docker exec magento2-container make fs
@@ -65,6 +99,15 @@ jobs:
 
       - name: Enable developer module
         run: docker exec -u www-data magento2-container make dev-module
+
+      - name: Install Express module
+        if: ${{ env.EXPRESS_BRANCH }}
+        run: docker exec -u www-data magento2-container composer require adyen/adyen-magento2-expresscheckout:dev-${{ env.EXPRESS_BRANCH }}
+
+      - name: Enable Express module
+        if: ${{ env.EXPRESS_BRANCH }}
+        run: docker exec -u www-data magento2-container make enable-express
+
       - name: Switch to production mode
         run: docker exec -u www-data magento2-container make production
 
@@ -72,20 +115,30 @@ jobs:
         run: docker exec magento2-container make fs
 
       - name: Run E2E tests
-        run: docker-compose -f .github/docker-compose.e2e.yml run --rm playwright /e2e.sh standard
+        run: docker compose -f .github/docker-compose.e2e.yml run --rm playwright /e2e.sh ${{ env.TEST_GROUP }}
         env:
-          INTEGRATION_TESTS_BRANCH: develop
+          INTEGRATION_TESTS_BRANCH: ${{ env.TEST_BRANCH }}
           MAGENTO_ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
           MAGENTO_ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
           MAGENTO_BASE_URL: ${{secrets.MAGENTO_BASE_URL}}
           PAYPAL_USERNAME: ${{secrets.PLAYWRIGHT_PAYPAL_USERNAME}}
           PAYPAL_PASSWORD: ${{secrets.PLAYWRIGHT_PAYPAL_PASSWORD}}
+          GOOGLE_USERNAME: ${{secrets.PLAYWRIGHT_GOOGLE_USERNAME}}
+          GOOGLE_PASSWORD: ${{secrets.PLAYWRIGHT_GOOGLE_PASSWORD}}
+          AMAZON_USERNAME: ${{secrets.AMAZON_USERNAME}}
+          AMAZON_PASSWORD: ${{secrets.AMAZON_PASSWORD}}
           WEBHOOK_USERNAME: admin
           WEBHOOK_PASSWORD: 1234
+          CI: TRUE
+
+      - name: Delete Webhook
+        run: |
+          echo "Running DeleteWebhook command after E2E tests for clean-up"
+          docker exec -u www-data magento2-container php bin/magento adyen:management:delete-webhook
 
       - name: Archive test result artifacts
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: html-report
           path: test-report

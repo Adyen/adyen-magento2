@@ -287,4 +287,55 @@
     <event name="payment_method_assign_data_adyen_ach">
         <observer name="adyen_ach_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_wallet_IN">
+        <observer name="adyen_wallet_IN_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
+    <event name="payment_method_assign_data_adyen_onlinebanking_IN">
+        <observer name="adyen_onlinebanking_IN_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
+    <event name="payment_method_assign_data_adyen_paypo">
+        <observer name="adyen_paypo_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
+    <event name="payment_method_assign_data_adyen_upi">
+        <observer name="adyen_upi_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
+    <event name="payment_method_assign_data_adyen_dana">
+        <observer name="adyen_dana_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
+    <event name="payment_method_assign_data_adyen_kcp_naverpay">
+        <observer name="adyen_kcp_naverpay_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
+    <event name="payment_method_assign_data_adyen_kcp_payco">
+        <observer name="adyen_kcp_payco_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
+    <event name="payment_method_assign_data_adyen_kcp_creditcard">
+        <observer name="adyen_kcp_creditcard_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
+    <event name="payment_method_assign_data_adyen_doku_alfamart">
+        <observer name="adyen_doku_alfamart_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
+    <event name="payment_method_assign_data_adyen_doku_permata_lite_atm">
+        <observer name="adyen_doku_permata_lite_atm_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
+    <event name="payment_method_assign_data_adyen_doku_bca_va">
+        <observer name="adyen_doku_bca_va_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
+    <event name="payment_method_assign_data_adyen_doku_bni_va">
+        <observer name="adyen_doku_bni_va_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
+    <event name="payment_method_assign_data_adyen_doku_bri_va">
+        <observer name="adyen_doku_bri_va_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
+    <event name="payment_method_assign_data_adyen_doku_cimb_va">
+        <observer name="adyen_doku_cimb_va_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
+    <event name="payment_method_assign_data_adyen_doku_danamon_va">
+        <observer name="adyen_doku_danamon_va_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
+    <event name="payment_method_assign_data_adyen_doku_indomaret">
+        <observer name="adyen_doku_indomaret_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
+    <event name="payment_method_assign_data_adyen_doku_mandiri_va">
+        <observer name="adyen_doku_mandiri_va_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
 </config>

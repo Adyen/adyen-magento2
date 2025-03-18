@@ -74,9 +74,50 @@ class PaymentMethodUtil
         'elo_amazonpay',
         'jcb_amazonpay',
         'bcmc',
-        'bcmc_mobile'
+        'bcmc_mobile',
+        'affirm',
+        'afterpay',
+        'afterpay_b2b',
+        'afterpay_default',
+        'afterpay_directdebit',
+        'afterpaytouch',
+        'afterpaytouch_AU',
+        'afterpaytouch_CA',
+        'afterpaytouch_NZ',
+        'afterpaytouch_US',
+        'clearpay',
+        'facilypay',
+        'facilypay_10x',
+        'facilypay_10x_merchant_pays',
+        'facilypay_10x_withfees',
+        'facilypay_12x',
+        'facilypay_12x_merchant_pays',
+        'facilypay_12x_withfees',
+        'facilypay_3x',
+        'facilypay_3x_merchant_pays',
+        'facilypay_3x_withfees',
+        'facilypay_4x',
+        'facilypay_4x_merchant_pays',
+        'facilypay_4x_withfees',
+        'facilypay_6x',
+        'facilypay_6x_merchant_pays',
+        'facilypay_6x_withfees',
+        'facilypay_fr',
+        'klarna',
+        'klarna_b2b',
+        'klarna_paynow',
+        'klarna_account',
+        'ratepay',
+        'ratepay_directdebit',
+        'walley',
+        'walley_b2b'
     ];
 
+    /**
+     * @deprecated Use payment method configuration field `is_open_invoice` defined in `Adyen\Payment\etc\config.xml`.
+     *
+     * @var string[]
+     */
     const OPEN_INVOICE_PAYMENT_METHODS = [
         'affirm',
         'afterpay',
@@ -116,12 +157,12 @@ class PaymentMethodUtil
         'walley_b2b'
     ];
 
-    public static function isManualCaptureSupported($paymentMethod): bool
+    /**
+     * @param string $paymentMethod
+     * @return bool
+     */
+    public static function isManualCaptureSupported(string $paymentMethod): bool
     {
-        if (self::isOpenInvoicePaymentMethod($paymentMethod)) {
-            return true;
-        }
-
         // Check for payment methods with no variants
         if (in_array($paymentMethod, self::MANUAL_CAPTURE_SUPPORTED_PAYMENT_METHODS)) {
             return true;
@@ -139,6 +180,8 @@ class PaymentMethodUtil
     }
 
     /**
+     * @deprecated Use Adyen\Payment\Helper\PaymentMethods::isOpenInvoice() method instead.
+     *
      * @param $paymentMethod
      * @return bool
      */
