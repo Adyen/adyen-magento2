@@ -13,18 +13,23 @@ namespace Adyen\Payment\Gateway\Response;
 
 use Adyen\AdyenException;
 use Adyen\Payment\Helper\OrderStatusHistory;
+use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 
 class AbstractOrderStatusHistoryHandler implements HandlerInterface
 {
     /**
-     * @param string $eventType Indicates the API call event type (authorization, capture etc.)
+     * @param string $actionName Indicates the API call event type (authorization, capture etc.)
+     * @param string $apiEndpoint
      * @param OrderStatusHistory $orderStatusHistoryHelper
+     * @param AdyenLogger $adyenLogger
      */
     public function __construct(
-        protected readonly string $eventType,
-        protected readonly OrderStatusHistory $orderStatusHistoryHelper
+        private readonly string $actionName,
+        private readonly string $apiEndpoint,
+        private readonly OrderStatusHistory $orderStatusHistoryHelper,
+        private readonly AdyenLogger $adyenLogger
     ) { }
 
     /**
@@ -32,10 +37,12 @@ class AbstractOrderStatusHistoryHandler implements HandlerInterface
      */
     public function handle(array $handlingSubject, array $responseCollection): void
     {
-        if (empty($this->eventType)) {
-            throw new AdyenException(
-                __('Order status history can not be handled due to missing event type!')
+        if (empty($this->actionName)) {
+            $this->adyenLogger->error(
+                __('Order status history can not be handled due to missing action name!')
             );
+
+            return;
         }
 
         $readPayment = SubjectReader::readPayment($handlingSubject);
@@ -48,7 +55,11 @@ class AbstractOrderStatusHistoryHandler implements HandlerInterface
         }
 
         foreach ($responseCollection as $response) {
-            $comment = $this->orderStatusHistoryHelper->buildApiResponseComment($response, $this->eventType);
+            $comment = $this->orderStatusHistoryHelper->buildApiResponseComment(
+                $response,
+                $this->actionName,
+                $this->apiEndpoint
+            );
             $order->addCommentToStatusHistory($comment, $order->getStatus());
         }
     }

@@ -1299,22 +1299,26 @@
     </virtualType>
     <virtualType name="AdyenPaymentAuthorisationOrderStatusHistoryHandler" type="Adyen\Payment\Gateway\Response\AbstractOrderStatusHistoryHandler">
         <arguments>
-            <argument name="eventType" xsi:type="string">authorisation</argument>
+            <argument name="actionName" xsi:type="string">Start Adyen transaction</argument>
+            <argument name="apiEndpoint" xsi:type="string">/payments</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentCaptureOrderStatusHistoryHandler" type="Adyen\Payment\Gateway\Response\AbstractOrderStatusHistoryHandler">
         <arguments>
-            <argument name="eventType" xsi:type="string">capture</argument>
+            <argument name="actionName" xsi:type="string">Capture authorised Adyen payment</argument>
+            <argument name="apiEndpoint" xsi:type="string">/captures</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentRefundOrderStatusHistoryHandler" type="Adyen\Payment\Gateway\Response\AbstractOrderStatusHistoryHandler">
         <arguments>
-            <argument name="eventType" xsi:type="string">refund</argument>
+            <argument name="actionName" xsi:type="string">Refund captured Adyen payment</argument>
+            <argument name="apiEndpoint" xsi:type="string">/refunds</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentCancellationOrderStatusHistoryHandler" type="Adyen\Payment\Gateway\Response\AbstractOrderStatusHistoryHandler">
         <arguments>
-            <argument name="eventType" xsi:type="string">cancellation</argument>
+            <argument name="actionName" xsi:type="string">Cancel authorised Adyen payment</argument>
+            <argument name="apiEndpoint" xsi:type="string">/cancels</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentPosCloudResponseHandlerComposite" type="Magento\Payment\Gateway\Response\HandlerChain">
