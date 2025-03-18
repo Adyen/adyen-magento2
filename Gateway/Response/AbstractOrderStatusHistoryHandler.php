@@ -37,30 +37,28 @@ class AbstractOrderStatusHistoryHandler implements HandlerInterface
      */
     public function handle(array $handlingSubject, array $responseCollection): void
     {
-        if (empty($this->actionName)) {
+        if (empty($this->actionName) || empty($this->apiEndpoint)) {
             $this->adyenLogger->error(
-                __('Order status history can not be handled due to missing action name!')
+                __('Order status history can not be handled due to properties!')
             );
+        } else {
+            $readPayment = SubjectReader::readPayment($handlingSubject);
+            $payment = $readPayment->getPayment();
+            $order = $payment->getOrder();
 
-            return;
-        }
+            // Temporary workaround to clean-up `hasOnlyGiftCards` key. It needs to be handled separately.
+            if (isset($responseCollection['hasOnlyGiftCards'])) {
+                unset($responseCollection['hasOnlyGiftCards']);
+            }
 
-        $readPayment = SubjectReader::readPayment($handlingSubject);
-        $payment = $readPayment->getPayment();
-        $order = $payment->getOrder();
-
-        // Temporary workaround to clean-up `hasOnlyGiftCards` key. It needs to be handled separately.
-        if (isset($responseCollection['hasOnlyGiftCards'])) {
-            unset($responseCollection['hasOnlyGiftCards']);
-        }
-
-        foreach ($responseCollection as $response) {
-            $comment = $this->orderStatusHistoryHelper->buildApiResponseComment(
-                $response,
-                $this->actionName,
-                $this->apiEndpoint
-            );
-            $order->addCommentToStatusHistory($comment, $order->getStatus());
+            foreach ($responseCollection as $response) {
+                $comment = $this->orderStatusHistoryHelper->buildApiResponseComment(
+                    $response,
+                    $this->actionName,
+                    $this->apiEndpoint
+                );
+                $order->addCommentToStatusHistory($comment, $order->getStatus());
+            }
         }
     }
 }
