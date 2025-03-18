@@ -20,7 +20,6 @@ use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Api\Data\OrderInterface;
-use Magento\Sales\Model\Order\Status\HistoryFactory;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\ResourceModel\Order;
 use Magento\Sales\Model\Order as OrderModel;
@@ -43,6 +42,9 @@ class PaymentResponseHandler
     const VAULT = 'Magento Vault';
     const POS_SUCCESS = 'Success';
 
+    const PAYMENTS_DETAILS_API_COMMENT_ACTION_NAME = 'Submit details for Adyen payment';
+    const PAYMENTS_DETAILS_API_COMMENT_ENDPOINT = '/payments/details';
+
     const ACTION_REQUIRED_STATUSES = [
         self::REDIRECT_SHOPPER,
         self::IDENTIFY_SHOPPER,
@@ -58,7 +60,6 @@ class PaymentResponseHandler
      * @param Quote $quoteHelper
      * @param AdyenOrderHelper $orderHelper
      * @param OrderRepository $orderRepository
-     * @param HistoryFactory $orderHistoryFactory
      * @param StateData $stateDataHelper
      * @param PaymentResponseCollectionFactory $paymentResponseCollectionFactory
      * @param Config $configHelper
@@ -73,7 +74,6 @@ class PaymentResponseHandler
         private readonly Quote                            $quoteHelper,
         private readonly AdyenOrderHelper                 $orderHelper,
         private readonly OrderRepository                  $orderRepository,
-        private readonly HistoryFactory                   $orderHistoryFactory,
         private readonly StateData                        $stateDataHelper,
         private readonly PaymentResponseCollectionFactory $paymentResponseCollectionFactory,
         private readonly Config                           $configHelper,
@@ -210,7 +210,8 @@ class PaymentResponseHandler
         // Add order status history comment for /payments/details API response
         $comment = $this->orderStatusHistoryHelper->buildApiResponseComment(
             $paymentsDetailsResponse,
-            'payments/details'
+            self::PAYMENTS_DETAILS_API_COMMENT_ACTION_NAME,
+            self::PAYMENTS_DETAILS_API_COMMENT_ENDPOINT
         );
         $order->addCommentToStatusHistory($comment, $order->getStatus());
 
