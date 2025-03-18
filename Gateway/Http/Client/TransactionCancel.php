@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
+ * Copyright (c) 2025 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -23,26 +23,13 @@ use Magento\Payment\Gateway\Http\TransferInterface;
 class TransactionCancel implements ClientInterface
 {
     /**
-     * @var Data
-     */
-    private Data $adyenHelper;
-
-    /**
-     * @var Idempotency
-     */
-    private Idempotency $idempotencyHelper;
-
-    /**
      * @param Data $adyenHelper
      * @param Idempotency $idempotencyHelper
      */
     public function __construct(
-        Data        $adyenHelper,
-        Idempotency $idempotencyHelper
-    ) {
-        $this->adyenHelper = $adyenHelper;
-        $this->idempotencyHelper = $idempotencyHelper;
-    }
+        private readonly Data $adyenHelper,
+        private readonly Idempotency $idempotencyHelper
+    ) { }
 
     /**
      * @param TransferInterface $transferObject
@@ -58,7 +45,7 @@ class TransactionCancel implements ClientInterface
 
         $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
         $service = $this->adyenHelper->initializeModificationsApi($client);
-        $responseData = [];
+        $responseCollection = [];
 
         foreach ($requests as $request) {
             $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
@@ -83,8 +70,10 @@ class TransactionCancel implements ClientInterface
                 $responseData['error'] = $e->getMessage();
                 $this->adyenHelper->logAdyenException($e);
             }
+
+            $responseCollection[] = $responseData;
         }
 
-        return $responseData;
+        return $responseCollection;
     }
 }
