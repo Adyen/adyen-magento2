@@ -1340,7 +1340,7 @@
         <arguments>
             <argument name="handlers" xsi:type="array">
                 <item name="capture" xsi:type="string">Adyen\Payment\Gateway\Response\PaymentRefundDetailsHandler</item>
-                <item name="order_comment_history" xsi:type="string">AdyenPaymentRefundOrderStatusHistoryHandler</item>
+                <item name="order_status_history" xsi:type="string">AdyenPaymentRefundOrderStatusHistoryHandler</item>
             </argument>
         </arguments>
     </virtualType>
@@ -1348,7 +1348,7 @@
         <arguments>
             <argument name="handlers" xsi:type="array">
                 <item name="cancel" xsi:type="string">Adyen\Payment\Gateway\Response\PaymentCancelDetailsHandler</item>
-                <item name="order_comment_history" xsi:type="string">AdyenPaymentCancellationOrderStatusHistoryHandler</item>
+                <item name="order_status_history" xsi:type="string">AdyenPaymentCancellationOrderStatusHistoryHandler</item>
             </argument>
         </arguments>
     </virtualType>
