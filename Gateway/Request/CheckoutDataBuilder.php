@@ -16,7 +16,6 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\StateData;
-use Adyen\Payment\Helper\OpenInvoice;
 use Adyen\Payment\Model\Config\Source\ThreeDSFlow;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
@@ -46,7 +45,7 @@ class CheckoutDataBuilder implements BuilderInterface
      * @param CartRepositoryInterface $cartRepository
      * @param ChargedCurrency $chargedCurrency
      * @param Config $configHelper
-     * @param OpenInvoice $openInvoiceHelper
+     * @param PaymentMethods $paymentMethodsHelper
      */
     public function __construct(
         private readonly Data $adyenHelper,
@@ -54,7 +53,6 @@ class CheckoutDataBuilder implements BuilderInterface
         private readonly CartRepositoryInterface $cartRepository,
         private readonly ChargedCurrency $chargedCurrency,
         private readonly Config $configHelper,
-        private readonly OpenInvoice $openInvoiceHelper,
         private readonly PaymentMethods $paymentMethodsHelper
     ) { }
 
@@ -96,19 +94,16 @@ class CheckoutDataBuilder implements BuilderInterface
             $requestBody['bankAccount']['ownerName'] = $payment->getAdditionalInformation("bankAccountOwnerName");
         }
 
-        $brandCode = $payment->getAdditionalInformation(AdyenPaymentMethodDataAssignObserver::BRAND_CODE);
         if (
             $this->paymentMethodsHelper->isOpenInvoice($paymentMethodInstance) ||
             $payment->getMethod() === AdyenPayByLinkConfigProvider::CODE
         ) {
-            if (isset($brandCode) &&
-                $this->adyenHelper->isPaymentMethodOfType($brandCode, Data::KLARNA) &&
+            if ($this->adyenHelper->isPaymentMethodOfType($payment->getMethod(), Data::KLARNA) &&
                 $this->configHelper->getAutoCaptureOpenInvoice($storeId)) {
                 $requestBody['captureDelayHours'] = 0;
             }
 
-            if (
-                (isset($brandCode) && $this->adyenHelper->isPaymentMethodOfType($brandCode, Data::KLARNA)) ||
+            if ($this->adyenHelper->isPaymentMethodOfType($payment->getMethod(), Data::KLARNA) ||
                 $payment->getMethod() === AdyenPayByLinkConfigProvider::CODE
             ) {
                 $otherDeliveryInformation = $this->getOtherDeliveryInformation($order);
@@ -121,7 +116,7 @@ class CheckoutDataBuilder implements BuilderInterface
 
         // Ratepay specific Fingerprint
         $deviceFingerprint = $payment->getAdditionalInformation(AdyenPaymentMethodDataAssignObserver::DF_VALUE);
-        if ($deviceFingerprint && $this->adyenHelper->isPaymentMethodOfType($brandCode, Data::RATEPAY)) {
+        if ($deviceFingerprint && $this->adyenHelper->isPaymentMethodOfType($payment->getMethod(), Data::RATEPAY)) {
             $requestBody['deviceFingerprint'] = $deviceFingerprint;
         }
 
@@ -144,14 +139,7 @@ class CheckoutDataBuilder implements BuilderInterface
             $requestBody['deliveryDate'] = $deliveryDate;
         }
 
-        // if installments is set and card type is credit card add it into the request
-        $numberOfInstallments = $payment->getAdditionalInformation(
-            AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS
-        ) ?: 0;
         $comboCardType = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::COMBO_CARD_TYPE) ?: 'credit';
-        if ($numberOfInstallments > 0) {
-            $requestBody['installments']['value'] = $numberOfInstallments;
-        }
 
         /*
          * if the combo card type is debit then add the funding source
@@ -160,7 +148,6 @@ class CheckoutDataBuilder implements BuilderInterface
         if ($comboCardType == 'debit') {
             $requestBody['paymentMethod']['fundingSource'] = 'debit';
             unset($requestBody['paymentMethod']['brand']);
-            unset($requestBody['installments']);
         }
 
         $threeDSFlow = $this->configHelper->getThreeDSFlow($order->getStoreId());

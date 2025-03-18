@@ -30,12 +30,14 @@ class OrderStatusHistory
      * Builds the order status history comment based on the Checkout API response
      *
      * @param array $response
-     * @param string $actionName
+     * @param string $actionDescription
+     * @param string $apiEndpoint
      * @return string
      */
-    public function buildApiResponseComment(array $response, string $actionName): string
+    public function buildApiResponseComment(array $response, string $actionDescription, string $apiEndpoint): string
     {
-        $comment = '<strong>' . __("Adyen %1 response", $actionName) . '</strong><br />';
+        $comment = '<strong>' . __($actionDescription) . '</strong><br />';
+        $comment .= __("API endpoint: %1", $apiEndpoint) . '<br />';
 
         if (isset($response['resultCode'])) {
             $comment .= __("Result code: %1", $response['resultCode']) . '<br />';
@@ -48,6 +50,10 @@ class OrderStatusHistory
 
         if (isset($response['pspReference'])) {
             $comment .= __("PSP reference: %1", $response['pspReference']) . '<br />';
+        }
+
+        if (isset($response['paymentPspReference'])) {
+            $comment .= __("Original PSP reference: %1", $response['paymentPspReference']) . '<br />';
         }
 
         if ($paymentMethod = $response['paymentMethod']['brand'] ?? $response['paymentMethod']['type'] ?? null) {
@@ -81,11 +87,15 @@ class OrderStatusHistory
         $comment = '<strong>' . __(
             "Adyen %1%2 webhook",
             $this->getIsWebhookForPartialPayment($order, $notification) ? 'partial ': '',
-            $notification->getEventCode()
+            strtoupper($notification->getEventCode())
         ) . '</strong><br />';
 
         if (!empty($notification->getPspreference())) {
             $comment .= __("PSP reference: %1", $notification->getPspreference()) . '<br />';
+        }
+
+        if (!empty($notification->getOriginalReference())) {
+            $comment .= __("Original PSP reference: %1", $notification->getOriginalReference()) . '<br />';
         }
 
         if (!empty($notification->getPaymentMethod())) {

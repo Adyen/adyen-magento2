@@ -13,47 +13,52 @@ namespace Adyen\Payment\Gateway\Response;
 
 use Adyen\AdyenException;
 use Adyen\Payment\Helper\OrderStatusHistory;
+use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 
 class AbstractOrderStatusHistoryHandler implements HandlerInterface
 {
     /**
-     * @param string $eventType Indicates the API call event type (authorization, capture etc.)
+     * @param string $actionDescription Indicates the API call event type (authorization, capture etc.)
+     * @param string $apiEndpoint
      * @param OrderStatusHistory $orderStatusHistoryHelper
-     * @throws AdyenException
+     * @param AdyenLogger $adyenLogger
      */
     public function __construct(
-        protected readonly string $eventType,
-        protected readonly OrderStatusHistory $orderStatusHistoryHelper
-    ) {
-        if (empty($eventType)) {
-            throw new AdyenException(
-                __('Order status history can not be handled due to missing constructor argument!')
-            );
-        }
-    }
+        private readonly string $actionDescription,
+        private readonly string $apiEndpoint,
+        private readonly OrderStatusHistory $orderStatusHistoryHelper,
+        private readonly AdyenLogger $adyenLogger
+    ) { }
 
     /**
      * @throws AdyenException
      */
     public function handle(array $handlingSubject, array $responseCollection): void
     {
-        $readPayment = SubjectReader::readPayment($handlingSubject);
-        $payment = $readPayment->getPayment();
-        $order = $payment->getOrder();
+        if (empty($this->actionDescription) || empty($this->apiEndpoint)) {
+            $this->adyenLogger->error(
+                __('Order status history can not be handled due to properties!')
+            );
+        } else {
+            $readPayment = SubjectReader::readPayment($handlingSubject);
+            $payment = $readPayment->getPayment();
+            $order = $payment->getOrder();
 
-        foreach ($responseCollection as $response) {
-            $comment = $this->orderStatusHistoryHelper->buildApiResponseComment($response, $this->getEventType());
-            $order->addCommentToStatusHistory($comment, $order->getStatus());
+            // Temporary workaround to clean-up `hasOnlyGiftCards` key. It needs to be handled separately.
+            if (isset($responseCollection['hasOnlyGiftCards'])) {
+                unset($responseCollection['hasOnlyGiftCards']);
+            }
+
+            foreach ($responseCollection as $response) {
+                $comment = $this->orderStatusHistoryHelper->buildApiResponseComment(
+                    $response,
+                    $this->actionDescription,
+                    $this->apiEndpoint
+                );
+                $order->addCommentToStatusHistory($comment, $order->getStatus());
+            }
         }
-    }
-
-    /**
-     * @return string
-     */
-    private function getEventType(): string
-    {
-        return $this->eventType;
     }
 }
