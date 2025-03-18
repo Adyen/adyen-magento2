@@ -30,13 +30,13 @@ class OrderStatusHistory
      * Builds the order status history comment based on the Checkout API response
      *
      * @param array $response
-     * @param string $actionName
+     * @param string $actionDescription
      * @param string $apiEndpoint
      * @return string
      */
-    public function buildApiResponseComment(array $response, string $actionName, string $apiEndpoint): string
+    public function buildApiResponseComment(array $response, string $actionDescription, string $apiEndpoint): string
     {
-        $comment = '<strong>' . __($actionName) . '</strong><br />';
+        $comment = '<strong>' . __($actionDescription) . '</strong><br />';
         $comment .= __("API endpoint: %1", $apiEndpoint) . '<br />';
 
         if (isset($response['resultCode'])) {

@@ -20,13 +20,13 @@ use Magento\Payment\Gateway\Response\HandlerInterface;
 class AbstractOrderStatusHistoryHandler implements HandlerInterface
 {
     /**
-     * @param string $actionName Indicates the API call event type (authorization, capture etc.)
+     * @param string $actionDescription Indicates the API call event type (authorization, capture etc.)
      * @param string $apiEndpoint
      * @param OrderStatusHistory $orderStatusHistoryHelper
      * @param AdyenLogger $adyenLogger
      */
     public function __construct(
-        private readonly string $actionName,
+        private readonly string $actionDescription,
         private readonly string $apiEndpoint,
         private readonly OrderStatusHistory $orderStatusHistoryHelper,
         private readonly AdyenLogger $adyenLogger
@@ -37,7 +37,7 @@ class AbstractOrderStatusHistoryHandler implements HandlerInterface
      */
     public function handle(array $handlingSubject, array $responseCollection): void
     {
-        if (empty($this->actionName) || empty($this->apiEndpoint)) {
+        if (empty($this->actionDescription) || empty($this->apiEndpoint)) {
             $this->adyenLogger->error(
                 __('Order status history can not be handled due to properties!')
             );
@@ -54,7 +54,7 @@ class AbstractOrderStatusHistoryHandler implements HandlerInterface
             foreach ($responseCollection as $response) {
                 $comment = $this->orderStatusHistoryHelper->buildApiResponseComment(
                     $response,
-                    $this->actionName,
+                    $this->actionDescription,
                     $this->apiEndpoint
                 );
                 $order->addCommentToStatusHistory($comment, $order->getStatus());

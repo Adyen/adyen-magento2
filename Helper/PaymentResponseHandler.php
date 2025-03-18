@@ -42,7 +42,7 @@ class PaymentResponseHandler
     const VAULT = 'Magento Vault';
     const POS_SUCCESS = 'Success';
 
-    const PAYMENTS_DETAILS_API_COMMENT_ACTION_NAME = 'Submit details for Adyen payment';
+    const PAYMENTS_DETAILS_API_COMMENT_ACTION_DESCRIPTION = 'Submit details for Adyen payment';
     const PAYMENTS_DETAILS_API_COMMENT_ENDPOINT = '/payments/details';
 
     const ACTION_REQUIRED_STATUSES = [
@@ -210,7 +210,7 @@ class PaymentResponseHandler
         // Add order status history comment for /payments/details API response
         $comment = $this->orderStatusHistoryHelper->buildApiResponseComment(
             $paymentsDetailsResponse,
-            self::PAYMENTS_DETAILS_API_COMMENT_ACTION_NAME,
+            self::PAYMENTS_DETAILS_API_COMMENT_ACTION_DESCRIPTION,
             self::PAYMENTS_DETAILS_API_COMMENT_ENDPOINT
         );
         $order->addCommentToStatusHistory($comment, $order->getStatus());
