@@ -128,4 +128,82 @@ class ConfigTest extends AbstractAdyenTestCase
 
         $this->configHelper->removeConfigData($field, $xml_prefix);
     }
+
+    public function testGetThreeDSModes()
+    {
+        $storeId = PHP_INT_MAX;
+        $expectedResult = MethodInterface::ACTION_ORDER;
+        $path = sprintf(
+            "%s/%s/%s",
+            Config::XML_PAYMENT_PREFIX,
+            Config::XML_ADYEN_CC,
+            Config::XML_THREEDS_FLOW
+        );
+
+        $this->scopeConfigMock->expects($this->once())
+            ->method('getValue')
+            ->with($this->equalTo($path), $this->equalTo(ScopeInterface::SCOPE_STORE), $this->equalTo($storeId))
+            ->willReturn($expectedResult);
+
+        $result = $this->configHelper->getThreeDSFlow($storeId);
+        $this->assertEquals($expectedResult, $result);
+    }
+
+    public function testGetIsCvcRequiredForRecurringCardPayments()
+    {
+        $storeId = PHP_INT_MAX;
+        $expectedResult = true;
+
+        $path = sprintf(
+            "%s/%s/%s",
+            Config::XML_PAYMENT_PREFIX,
+            Config::XML_ADYEN_CC_VAULT,
+            'require_cvc'
+        );
+
+        $this->scopeConfigMock->expects($this->once())
+            ->method('isSetFlag')
+            ->with($this->equalTo($path), $this->equalTo(ScopeInterface::SCOPE_STORE), $this->equalTo($storeId))
+            ->willReturn($expectedResult);
+
+        $result = $this->configHelper->getIsCvcRequiredForRecurringCardPayments($storeId);
+        $this->assertEquals($expectedResult, $result);
+    }
+
+    public function testGetIsWebhookCleanupEnabled()
+    {
+        $path = sprintf(
+            "%s/%s/%s",
+            Config::XML_PAYMENT_PREFIX,
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            Config::XML_REMOVE_PROCESSED_WEBHOOKS
+        );
+
+        $this->scopeConfigMock->expects($this->once())
+            ->method('isSetFlag')
+            ->with($this->equalTo($path), $this->equalTo(ScopeInterface::SCOPE_STORE), $this->equalTo(null))
+            ->willReturn(true);
+
+        $result = $this->configHelper->getIsProcessedWebhookRemovalEnabled();
+        $this->assertTrue($result);
+    }
+
+    public function testGetRequiredDaysForOldWebhooks()
+    {
+        $path = sprintf(
+            "%s/%s/%s",
+            Config::XML_PAYMENT_PREFIX,
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            Config::XML_PROCESSED_WEBHOOK_REMOVAL_TIME
+        );
+
+        $this->scopeConfigMock->expects($this->once())
+            ->method('getValue')
+            ->with($this->equalTo($path), $this->equalTo(ScopeInterface::SCOPE_STORE), $this->equalTo(null))
+            ->willReturn("90");
+
+        $result = $this->configHelper->getProcessedWebhookRemovalTime();
+        $this->assertIsInt($result);
+        $this->assertEquals(90, $result);
+    }
 }

@@ -14,47 +14,87 @@ define([
     'ko',
     'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-method',
     'Adyen_Payment/js/helper/configHelper',
-    'Adyen_Payment/js/model/adyen-payment-service'
+    'Adyen_Payment/js/model/adyen-payment-service',
+    'Magento_Checkout/js/model/full-screen-loader'
 ], function (
     $,
     ko,
     Component,
     configHelper,
-    adyenPaymentService
+    adyenPaymentService,
+    fullScreenLoader
 ) {
     'use strict';
 
     return Component.extend({
+        paymentMethodReady: ko.observable(false),
+        isTemplateRendered: ko.observable(false),
         defaults: {
             template: 'Adyen_Payment/payment/multishipping/pm-form'
         },
 
-        paymentMethodReady: ko.observable(false),
-
-        initialize: function() {
-            let self = this;
+        enablePaymentMethod: function (paymentMethodsResponse) {
             this._super();
-
-            let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
-            paymentMethodsObserver.subscribe(
-                function(paymentMethods) {
-                    self.paymentMethodReady(paymentMethods);
-                }
-            );
-
-            this.paymentMethodReady(paymentMethodsObserver());
+            this.paymentMethodReady(paymentMethodsResponse);
         },
 
         selectPaymentMethod: function () {
-            if (!!this.paymentComponent && this.paymentComponent.isValid) {
-                $('#stateData').val(JSON.stringify(this.paymentComponent.data));
+            fullScreenLoader.startLoader();
+            let self = this;
+
+            // Only try to mount component if HTML template is rendered.
+            this.isTemplateRendered.subscribe(function (response) {
+                self.initializeMultishippingPaymentMethod();
+            });
+            if (this.isTemplateRendered()) {
+                self.initializeMultishippingPaymentMethod();
             }
 
-            return this._super();
+            return true;
+        },
+
+        // This will return a promise once the payment component is created and mounted.
+        createMultishippingCheckoutComponent: async function () {
+            await this.createCheckoutComponent();
+            return true;
+        },
+
+        initializeMultishippingPaymentMethod: function () {
+            let self = this;
+
+            /*
+             * Wait until payment component is created and mounted.
+             * Then, handle the promise, fetch the stateData and fill out the hidden input field.
+             */
+            this.createMultishippingCheckoutComponent().then(function (status) {
+                if (status) {
+                    let paymentComponent = self.getPaymentMethodComponent();
+
+                    if (paymentComponent && paymentComponent.isValid) {
+                        $('#stateData').val(JSON.stringify(paymentComponent.data));
+                    }
+
+                    // Remove previously assigned event listeners
+                    $("#payment-continue").off();
+                    // Assign event listener for component validation
+                    $("#payment-continue").on("click", function () {
+                        paymentComponent.showValidation();
+                    });
+                } else {
+                    console.warn('Payment component could not be generated!');
+                }
+
+                fullScreenLoader.stopLoader();
+            });
         },
 
         buildComponentConfiguration: function(paymentMethod, paymentMethodsExtraInfo) {
             return configHelper.buildMultishippingComponentConfiguration(paymentMethod, paymentMethodsExtraInfo);
+        },
+
+        // Observable is set to true after div element in `pm-form.html` template is rendered
+        setIsTemplateRendered: function () {
+            this.isTemplateRendered(true);
         }
     });
 });

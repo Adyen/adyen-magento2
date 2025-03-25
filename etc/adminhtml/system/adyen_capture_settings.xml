@@ -26,7 +26,7 @@
         </field>
         <field id="capture_for_openinvoice" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Capture for OpenInvoice Methods</label>
-            <tooltip>Applicable for Klarna, Afterpay Touch, Ratepay, FacilyPay/Oney, Affirm, Clearpay, Zip and PayBright. Open invoice methods are set to manual capture by default. If you want auto capture, please contact magento@adyen.com. After approval, set this field to 'Immediate'. If you want to do a request capture on shipment, set this field to 'On shipment’.</tooltip>
+            <tooltip>Applicable for Klarna, Afterpay Touch, Ratepay, FacilyPay/Oney, Affirm, Clearpay, Zip and PayBright. Open invoice methods are set to manual capture by default. If you want auto capture, please contact support@adyen.com. After approval, set this field to 'Immediate'. If you want to do a request capture on shipment, set this field to 'On shipment’.</tooltip>
             <source_model>Adyen\Payment\Model\Config\Source\OpenInvoiceCaptureMode</source_model>
             <config_path>payment/adyen_abstract/capture_for_openinvoice</config_path>
         </field>

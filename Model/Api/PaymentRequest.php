@@ -7,11 +7,16 @@
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
+ * @deprecated This class is deprecated and will be removed in a future release.
+ *              Use an alternative service or class for similar requests.
  */
 
 namespace Adyen\Payment\Model\Api;
 
 use Adyen\AdyenException;
+use Adyen\Model\Checkout\PaymentDetailsRequest;
+use Adyen\Model\Recurring\DisableRequest;
+use Adyen\Model\Recurring\RecurringDetailsRequest;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
@@ -27,16 +32,34 @@ use Magento\Sales\Model\Order\Payment;
 
 class PaymentRequest extends DataObject
 {
+    /**
+     * @var EncryptorInterface
+     */
     protected EncryptorInterface $encryptor;
 
+    /**
+     * @var Data
+     */
     protected Data $adyenHelper;
 
+    /**
+     * @var AdyenLogger
+     */
     protected AdyenLogger $adyenLogger;
 
+    /**
+     * @var Config
+     */
     protected Config $configHelper;
 
+    /**
+     * @var RecurringType
+     */
     protected RecurringType $recurringType;
 
+    /**
+     * @var State
+     */
     protected State $appState;
 
     /**
@@ -44,6 +67,7 @@ class PaymentRequest extends DataObject
      * @param EncryptorInterface $encryptor
      * @param Data $adyenHelper
      * @param AdyenLogger $adyenLogger
+     * @param Config $configHelper
      * @param RecurringType $recurringType
      * @param array $data
      */
@@ -65,12 +89,14 @@ class PaymentRequest extends DataObject
     }
 
     /**
+     * @deprecated This method is deprecated and will be removed in a future release.
+     *
      * @param Payment $payment
-     * @return mixed
+     * @return array
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function authorise3d(Payment $payment): mixed
+    public function authorise3d(Payment $payment): array
     {
         $order = $payment->getOrder();
         $storeId = $order->getStoreId();
@@ -102,16 +128,17 @@ class PaymentRequest extends DataObject
 
         try {
             $client = $this->adyenHelper->initializeAdyenClient($storeId);
-            $service = $this->adyenHelper->createAdyenCheckoutService($client);
-            $result = $service->paymentsDetails($request);
+            $service = $this->adyenHelper->initializePaymentsApi($client);
+            $response = $service->paymentsDetails(new PaymentDetailsRequest($request));
         } catch (AdyenException $e) {
             throw new LocalizedException(__('3D secure failed'));
         }
 
-        return $result;
+        return $response->toArray();
     }
 
     /**
+     * @deprecated This method is redundant and no more used with the current flow. Will be deleted in the future releases.
      * @param string $shopperReference
      * @param int $storeId
      * @return array
@@ -160,6 +187,7 @@ class PaymentRequest extends DataObject
     }
 
     /**
+     * @deprecated This method is a part of deprecated parent and will be removed in the future releases.
      * @param string $shopperReference
      * @param int $storeId
      * @param string $recurringType
@@ -179,13 +207,14 @@ class PaymentRequest extends DataObject
 
         // call lib
         $client = $this->adyenHelper->initializeAdyenClient($storeId);
-        $service = $this->adyenHelper->createAdyenRecurringService($client);
-        $result = $service->listRecurringDetails($request);
+        $service = $this->adyenHelper->initializeRecurringApi($client);
+        $response = $service->listRecurringDetails(new RecurringDetailsRequest($request));
 
-        return $result;
+        return (array)$response->jsonSerialize();
     }
 
     /**
+     * @deprecated This method is redundant and will be removed in the coming major release.
      * @param string $recurringDetailReference
      * @param string $shopperReference
      * @param int $storeId
@@ -209,10 +238,11 @@ class PaymentRequest extends DataObject
 
         // call lib
         $client = $this->adyenHelper->initializeAdyenClient($storeId);
-        $service = $this->adyenHelper->createAdyenRecurringService($client);
+        $service = $this->adyenHelper->initializeRecurringApi($client);
 
         try {
-            $result = $service->disable($request);
+            $response = $service->disable(new DisableRequest($request));
+            $result = (array) $response->jsonSerialize();
         } catch (Exception $e) {
             $this->adyenLogger->info($e->getMessage());
         }
