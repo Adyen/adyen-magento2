@@ -14,7 +14,7 @@ namespace Adyen\Payment\Helper;
 use Adyen\Payment\Model\Config\Source\CcType;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
-use Adyen\Util\Uuid;
+use Adyen\Payment\Helper\Util\Uuid;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Request\Http as Http;
 
@@ -276,20 +276,23 @@ class Requests extends AbstractHelper
     }
 
     /**
-     * @param array $request
      * @param $amount
      * @param $currencyCode
      * @param $reference
+     * @param $shopperConversionId
+     * @param array $request
      * @return array
      */
-    public function buildPaymentData($amount, $currencyCode, $reference, array $request = [])
+    public function buildPaymentData($amount, $currencyCode, $reference, $shopperConversionId,array $request = []): array
     {
+        var_dump($amount);
         $request['amount'] = [
             'currency' => $currencyCode,
             'value' => $this->adyenHelper->formatAmount($amount, $currencyCode)
         ];
 
         $request["reference"] = $reference;
+        $request["shopperConversionId"] = $shopperConversionId;
 
         return $request;
     }
