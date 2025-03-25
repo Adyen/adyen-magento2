@@ -438,6 +438,28 @@ define(
             getCode: function() {
                 return window.checkoutConfig.payment.adyenCc.methodCode;
             },
+
+            getTitle: function () {
+                const paymentMethodsObservable = adyenPaymentService.getPaymentMethods();
+
+                if (
+                    typeof paymentMethodsObservable === 'function' &&
+                    paymentMethodsObservable() &&
+                    paymentMethodsObservable().paymentMethodsResponse &&
+                    Array.isArray(paymentMethodsObservable().paymentMethodsResponse.paymentMethods)
+                ) {
+                    const schemeMethod = paymentMethodsObservable().paymentMethodsResponse.paymentMethods.find(function (pm) {
+                        return pm.type === 'scheme';
+                    });
+
+                    if (schemeMethod && schemeMethod.name) {
+                        return schemeMethod.name;
+                    }
+                }
+
+                return this.getCode(); // fallback if not found
+            },
+
             isCardRecurringEnabled: function () {
                 if (customer.isLoggedIn()) {
                     return window.checkoutConfig.payment.adyenCc.isCardRecurringEnabled;

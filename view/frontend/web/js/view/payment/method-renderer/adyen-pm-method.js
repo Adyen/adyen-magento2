@@ -81,6 +81,29 @@ define(
                 paymentComponentStates().initializeState(this.getMethodCode());
             },
 
+            getTitle: function () {
+                const paymentMethodsObservable = adyenPaymentService.getPaymentMethods();
+                const methodCode = this.getTxVariant();
+
+                if (
+                    paymentMethodsObservable &&
+                    typeof paymentMethodsObservable === 'function' &&
+                    paymentMethodsObservable() &&
+                    paymentMethodsObservable().paymentMethodsResponse &&
+                    Array.isArray(paymentMethodsObservable().paymentMethodsResponse.paymentMethods)
+                ) {
+                    const matchedMethod = paymentMethodsObservable().paymentMethodsResponse.paymentMethods.find(function (pm) {
+                        return pm.type === methodCode;
+                    });
+
+                    if (matchedMethod && matchedMethod.name) {
+                        return matchedMethod.name;
+                    }
+                }
+
+                return this.getCode();
+            },
+
             enablePaymentMethod: function (paymentMethodsResponse) {
                 if (this.checkBrowserCompatibility() && !!paymentMethodsResponse.paymentMethodsResponse) {
                     this.paymentMethod(
