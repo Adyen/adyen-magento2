@@ -457,7 +457,7 @@ define(
                     }
                 }
 
-                return this.getCode(); // fallback if not found
+                return this._super ? this._super() : this.getCode();
             },
 
             isCardRecurringEnabled: function () {
