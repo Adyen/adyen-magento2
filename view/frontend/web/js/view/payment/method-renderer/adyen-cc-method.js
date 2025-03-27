@@ -457,7 +457,7 @@ define(
                     }
                 }
 
-                return this._super;
+                return this._super();
             },
 
             isCardRecurringEnabled: function () {
