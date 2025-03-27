@@ -101,7 +101,7 @@ define(
                     }
                 }
 
-                return this._super ? this._super() : this.getCode();
+                return this._super();
             },
 
             enablePaymentMethod: function (paymentMethodsResponse) {
