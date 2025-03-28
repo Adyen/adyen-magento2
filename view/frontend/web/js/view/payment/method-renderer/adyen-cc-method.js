@@ -189,6 +189,7 @@ define(
                 let allInstallments = this.getAllInstallments();
 
                 let componentConfig = {
+                    showPayButton: false,
                     enableStoreDetails: this.getEnableStoreDetails(),
                     brands: this.getBrands(),
                     hasHolderName: adyenConfiguration.getHasHolderName(),
@@ -197,6 +198,10 @@ define(
                     onChange: function(state, component) {
                         self.placeOrderAllowed(!!state.isValid);
                         self.storeCc = !!state.data.storePaymentMethod;
+                    },
+                    // Required for Click to Pay
+                    onSubmit: function () {
+                        self.placeOrder();
                     },
                     // Keep onBrand as is until checkout component supports installments
                     onBrand: function(state) {
