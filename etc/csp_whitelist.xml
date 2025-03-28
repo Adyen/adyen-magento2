@@ -9,6 +9,8 @@
                 <value id="paypal" type="host">*.paypal.com</value>
                 <value id="ratepay" type="host">*.ratepay.com</value>
                 <value id="cashapp" type="host">*.cash.app</value>
+                <value id="visa" type="host">*.visa.com</value>
+                <value id="mastercard" type="host">*.mastercard.com</value>
             </values>
         </policy>
         <policy id="font-src">
