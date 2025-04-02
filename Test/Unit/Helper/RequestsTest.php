@@ -9,9 +9,12 @@ use Adyen\Payment\Helper\Requests;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Magento\Customer\Api\CustomerRepositoryInterface;
+use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
 use Magento\Framework\App\Request\Http;
+use PHPUnit\Framework\MockObject\MockObject;
 
 class RequestsTest extends AbstractAdyenTestCase
 {
@@ -20,6 +23,8 @@ class RequestsTest extends AbstractAdyenTestCase
 
     /** @var Payment $paymentMock */
     private $paymentMock;
+
+    private CustomerRepositoryInterface|MockObject $customerRepositoryMock;
 
     /**
      * @var Data $adyenHelperMock
@@ -49,6 +54,7 @@ class RequestsTest extends AbstractAdyenTestCase
         $this->requestInterfaceMock = $this->createGeneratedMock(Http::class, [
                      'getServer'
                     ]);
+        $this->customerRepositoryMock = $this->createMock(CustomerRepositoryInterface::class);
 
         // Initialize the subject under test
         $this->sut = new Requests(
@@ -57,7 +63,8 @@ class RequestsTest extends AbstractAdyenTestCase
             $this->addressHelperMock,
             $stateDataHelperMock,
             $vaultHelperMock,
-            $this->requestInterfaceMock
+            $this->requestInterfaceMock,
+            $this->customerRepositoryMock
         );
     }
 
@@ -312,6 +319,51 @@ class RequestsTest extends AbstractAdyenTestCase
         $this->assertEquals('en_US', $request['shopperLocale']);
     }
 
+    public function testBuildCustomerDataWithDob(): void
+    {
+        $this->payment->method('getOrder')->willReturn($this->order);
+        $this->order->method('getIncrementId')->willReturn('12345');
+        $this->methodInstance->method('getCode')->willReturn('adyen_cc');
+        $this->adyenHelperMock->method('getStoreLocale')->with(1)->willReturn('en_US');
+
+        $customerId = 3;
+        $mockDob = '1990-01-01';
+
+        $customerMock = $this->createMock(CustomerInterface::class);
+        $customerMock->expects($this->once())->method('getDob')->willReturn($mockDob);
+
+        $this->customerRepositoryMock->expects($this->once())
+            ->method('getById')
+            ->with($customerId)
+            ->willReturn($customerMock);
+
+        $request = $this->sut->buildCustomerData($this->billingAddressMock, 1, $customerId, $this->payment);
+
+        $this->assertEquals($mockDob, $request['dateOfBirth']);
+    }
+
+    public function testBuildCustomerDataWithDobInvalidFormat(): void
+    {
+        $this->payment->method('getOrder')->willReturn($this->order);
+        $this->order->method('getIncrementId')->willReturn('12345');
+        $this->methodInstance->method('getCode')->willReturn('adyen_cc');
+        $this->adyenHelperMock->method('getStoreLocale')->with(1)->willReturn('en_US');
+
+        $customerId = 3;
+        $mockDob = '01/01/2025';
+
+        $customerMock = $this->createMock(CustomerInterface::class);
+        $customerMock->expects($this->once())->method('getDob')->willReturn($mockDob);
+
+        $this->customerRepositoryMock->expects($this->once())
+            ->method('getById')
+            ->with($customerId)
+            ->willReturn($customerMock);
+
+        $request = $this->sut->buildCustomerData($this->billingAddressMock, 1, $customerId, $this->payment);
+        $this->assertArrayNotHasKey('dateOfBirth', $request);
+    }
+
     public function testBuildCustomerIpData(): void
     {
         // Define test IP address
@@ -557,7 +609,8 @@ class RequestsTest extends AbstractAdyenTestCase
             $this->createMock(Address::class),
             $stateDataMock,
             $vaultHelperMock,
-            $this->createMock(http::class)
+            $this->createMock(http::class),
+            $this->customerRepositoryMock
         );
 
         $orderMock = $this->createConfiguredMock(Order::class, [
