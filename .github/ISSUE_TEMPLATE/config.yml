@@ -1,5 +1,8 @@
-blank_issues_enabled: false
+# This configuration file manages issue template settings for the repository.
+
+blank_issues_enabled: false  # Disables blank issues to encourage use of templates.
+
 contact_links:
   - name: Adyen Support
     url: https://support.adyen.com/hc/en-us/requests/new?ticket_form_id=360000705420
-    about: For other questions, contact our support team
+    about: For other questions, contact our support team.
