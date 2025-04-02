@@ -64,6 +64,7 @@ use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Tax\Model\Calculation;
 use Magento\Tax\Model\Config;
+use Magento\Framework\App\Request\Http;
 
 /**
  * @SuppressWarnings(PHPMD.LongVariable)
@@ -199,6 +200,11 @@ class Data extends AbstractHelper
      */
     private $backendHelper;
 
+    /**
+     * @var Http
+     */
+    private Http $request;
+
     public function __construct(
         Context $context,
         EncryptorInterface $encryptor,
@@ -221,7 +227,8 @@ class Data extends AbstractHelper
         Locale $localeHelper,
         OrderManagementInterface $orderManagement,
         HistoryFactory $orderStatusHistoryFactory,
-        ConfigHelper $configHelper
+        ConfigHelper $configHelper,
+        HTTP $request
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
@@ -245,6 +252,7 @@ class Data extends AbstractHelper
         $this->orderManagement = $orderManagement;
         $this->orderStatusHistoryFactory = $orderStatusHistoryFactory;
         $this->configHelper = $configHelper;
+        $this->request = $request;
     }
 
     /**
@@ -680,6 +688,8 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @deprecated Use Adyen\Payment\Helper\PaymentMethods::isOpenInvoice() instead.
+     *
      * @param $paymentMethod
      * @return bool
      */
@@ -774,6 +784,7 @@ class Data extends AbstractHelper
      * Format Magento locale codes with undersocre to ISO locale codes with dash
      *
      * @param $localeCode
+     * @return array|string|string[]
      */
     public function formatLocaleCode($localeCode)
     {
@@ -787,223 +798,6 @@ class Data extends AbstractHelper
         return $notifications->getSize();
     }
 
-    /**
-     * @param $formFields
-     * @param $count
-     * @param $name
-     * @param $price
-     * @param $currency
-     * @param $taxAmount
-     * @param $priceInclTax
-     * @param $taxPercent
-     * @param $numberOfItems
-     * @param $payment
-     * @param null $itemId
-     * @return mixed
-     */
-    public function createOpenInvoiceLineItem(
-        $formFields,
-        $count,
-        $name,
-        $price,
-        $currency,
-        $taxAmount,
-        $priceInclTax,
-        $taxPercent,
-        $numberOfItems,
-        $payment,
-        $itemId = null
-    ) {
-        $description = str_replace("\n", '', trim((string) $name));
-        $itemAmount = $this->formatAmount($price, $currency);
-
-        $itemVatAmount = $this->getItemVatAmount(
-            $taxAmount,
-            $priceInclTax,
-            $price,
-            $currency
-        );
-
-        // Calculate vat percentage
-        $itemVatPercentage = $this->getMinorUnitTaxPercent($taxPercent);
-
-        return $this->getOpenInvoiceLineData(
-            $formFields,
-            $count,
-            $currency,
-            $description,
-            $itemAmount,
-            $itemVatAmount,
-            $itemVatPercentage,
-            $numberOfItems,
-            $payment,
-            $itemId
-        );
-    }
-
-    /**
-     * @param $formFields
-     * @param $count
-     * @param $order
-     * @param $shippingAmount
-     * @param $shippingTaxAmount
-     * @param $currency
-     * @param $payment
-     * @return mixed
-     */
-    public function createOpenInvoiceLineShipping(
-        $formFields,
-        $count,
-        $order,
-        $shippingAmount,
-        $shippingTaxAmount,
-        $currency,
-        $payment
-    ) {
-        $description = $order->getShippingDescription();
-        $itemAmount = $this->formatAmount($shippingAmount, $currency);
-        $itemVatAmount = $this->formatAmount($shippingTaxAmount, $currency);
-
-        // Create RateRequest to calculate the Tax class rate for the shipping method
-        $rateRequest = $this->_taxCalculation->getRateRequest(
-            $order->getShippingAddress(),
-            $order->getBillingAddress(),
-            null,
-            $order->getStoreId(),
-            $order->getCustomerId()
-        );
-
-        $taxClassId = $this->_taxConfig->getShippingTaxClass($order->getStoreId());
-        $rateRequest->setProductClassId($taxClassId);
-        $rate = $this->_taxCalculation->getRate($rateRequest);
-
-        $itemVatPercentage = $this->getMinorUnitTaxPercent($rate);
-        $numberOfItems = 1;
-
-        return $this->getOpenInvoiceLineData(
-            $formFields,
-            $count,
-            $currency,
-            $description,
-            $itemAmount,
-            $itemVatAmount,
-            $itemVatPercentage,
-            $numberOfItems,
-            $payment,
-            "shippingCost"
-        );
-    }
-
-    /**
-     * Add a line to the openinvoice data containing the details regarding an adjustment in the refund
-     *
-     * @param $formFields
-     * @param $count
-     * @param $description
-     * @param $adjustmentAmount
-     * @param $currency
-     * @param $payment
-     * @return mixed
-     */
-    public function createOpenInvoiceLineAdjustment(
-        $formFields,
-        $count,
-        $description,
-        $adjustmentAmount,
-        $currency,
-        $payment
-    ) {
-        $itemAmount = $this->formatAmount($adjustmentAmount, $currency);
-        $itemVatAmount = 0;
-        $itemVatPercentage = 0;
-        $numberOfItems = 1;
-
-        return $this->getOpenInvoiceLineData(
-            $formFields,
-            $count,
-            $currency,
-            $description,
-            $itemAmount,
-            $itemVatAmount,
-            $itemVatPercentage,
-            $numberOfItems,
-            $payment,
-            "adjustment"
-        );
-    }
-
-    /**
-     * @param $taxAmount
-     * @param $priceInclTax
-     * @param $price
-     * @param $currency
-     * @return string
-     */
-    public function getItemVatAmount(
-        $taxAmount,
-        $priceInclTax,
-        $price,
-        $currency
-    ) {
-        if ($taxAmount > 0 && $priceInclTax > 0) {
-            return $this->formatAmount($priceInclTax, $currency) - $this->formatAmount($price, $currency);
-        }
-        return $this->formatAmount($taxAmount, $currency);
-    }
-
-    /**
-     * Set the openinvoice line
-     *
-     * @param $formFields
-     * @param $count
-     * @param $currencyCode
-     * @param $description
-     * @param $itemAmount
-     * @param $itemVatAmount
-     * @param $itemVatPercentage
-     * @param $numberOfItems
-     * @param $payment
-     * @param null|int $itemId optional
-     * @return mixed
-     */
-    public function getOpenInvoiceLineData(
-        $formFields,
-        $count,
-        $currencyCode,
-        $description,
-        $itemAmount,
-        $itemVatAmount,
-        $itemVatPercentage,
-        $numberOfItems,
-        $payment,
-        $itemId = null
-    ) {
-        $linename = "line" . $count;
-
-        // item id is optional
-        if ($itemId) {
-            $formFields['openinvoicedata.' . $linename . '.itemId'] = $itemId;
-        }
-
-        $formFields['openinvoicedata.' . $linename . '.currencyCode'] = $currencyCode;
-        $formFields['openinvoicedata.' . $linename . '.description'] = $description;
-        $formFields['openinvoicedata.' . $linename . '.itemAmount'] = $itemAmount;
-        $formFields['openinvoicedata.' . $linename . '.itemVatAmount'] = $itemVatAmount;
-        $formFields['openinvoicedata.' . $linename . '.itemVatPercentage'] = $itemVatPercentage;
-        $formFields['openinvoicedata.' . $linename . '.numberOfItems'] = $numberOfItems;
-
-        if ($this->isVatCategoryHigh(
-            $payment->getAdditionalInformation(
-                AdyenPaymentMethodDataAssignObserver::BRAND_CODE
-            )
-        )
-        ) {
-            $formFields['openinvoicedata.' . $linename . '.vatCategory'] = "High";
-        } else {
-            $formFields['openinvoicedata.' . $linename . '.vatCategory'] = "None";
-        }
-        return $formFields;
-    }
 
     /**
      * @param null|int|string $storeId
@@ -1182,9 +976,19 @@ class Data extends AbstractHelper
             HeaderDataBuilderInterface::MERCHANT_APPLICATION_VERSION  => $this->getModuleVersion()
         ];
 
-        if(isset($payment) && !is_null($payment->getAdditionalInformation(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY))) {
-            $headers[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE] =
-                $payment->getAdditionalInformation(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY);
+        if (isset($payment)) {
+            $frontendType = $payment->getAdditionalInformation(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY);
+            if (is_null($frontendType)) {
+                // Check the request URI
+                $requestPath = $this->request->getOriginalPathInfo();
+                $requestMethod = $this->request->getMethod();
+                if ($requestPath === '/graphql' && $requestMethod === 'POST') {
+                    $frontendType = 'headless-graphql';
+                } else {
+                    $frontendType = 'headless-rest';
+                }
+            }
+            $headers[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE] = $frontendType;
         }
 
         return $headers;

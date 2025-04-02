@@ -99,8 +99,7 @@ class PaymentResponseHandler
 
     public function formatPaymentResponse(
         string $resultCode,
-        array $action = null,
-        array $additionalData = null
+        array $action = null
     ): array {
         switch ($resultCode) {
             case self::AUTHORISED:
@@ -121,16 +120,11 @@ class PaymentResponseHandler
                     "action" => $action
                 ];
             case self::PRESENT_TO_SHOPPER:
-                return [
-                    "isFinal" => true,
-                    "resultCode" => $resultCode,
-                    "action" => $action
-                ];
             case self::RECEIVED:
                 return [
                     "isFinal" => true,
                     "resultCode" => $resultCode,
-                    "additionalData" => $additionalData
+                    "action" => $action
                 ];
             default:
                 return [

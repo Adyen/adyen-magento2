@@ -55,5 +55,27 @@
                 ]]>
             </comment>
         </field>
+        <field id="remove_processed_webhooks" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0">
+            <label>Remove processed webhooks</label>
+            <backend_model>Adyen\Payment\Model\Config\Backend\ProcessedWebhookRemoval</backend_model>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_abstract/remove_processed_webhooks</config_path>
+            <comment model="Adyen\Payment\Model\Comment\WebhookRemovalNotice"/>
+            <tooltip>
+                Processed webhooks older than a configured number of days will be removed from the database by a cronjob if this feature is enabled.
+                The default value is 90 days and this can be configured in the `Number of days to remove processed webhooks` configuration field.
+            </tooltip>
+        </field>
+        <field id="processed_webhook_removal_time" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0">
+            <depends>
+                <field id="remove_processed_webhooks">1</field>
+            </depends>
+            <label>Days required to remove processed webhooks</label>
+            <frontend_class>validate-number</frontend_class>
+            <config_path>payment/adyen_abstract/processed_webhook_removal_time</config_path>
+            <tooltip>
+                This field determines the number of days after which processed webhooks will be removed by a cronjob. Note: Setting less than a reasonable number of days might reduce the desired visibility of webhooks in the Webhooks Overview.
+            </tooltip>
+        </field>
     </group>
 </include>

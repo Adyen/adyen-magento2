@@ -3,9 +3,9 @@ run-name: E2E test workflow with test suite branch ${{inputs.testBranch || 'main
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main,develop-10]
   pull_request_target:
-    branches: [main]
+    branches: [main, develop-10]
   workflow_dispatch:
     inputs:
       testBranch:
@@ -130,6 +130,11 @@ jobs:
           WEBHOOK_USERNAME: admin
           WEBHOOK_PASSWORD: 1234
           CI: TRUE
+
+      - name: Delete Webhook
+        run: |
+          echo "Running DeleteWebhook command after E2E tests for clean-up"
+          docker exec -u www-data magento2-container php bin/magento adyen:management:delete-webhook
 
       - name: Archive test result artifacts
         if: always()

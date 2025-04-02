@@ -25,6 +25,9 @@ class AdyenAmountCurrency
 
     protected $amountDue;
 
+    /**
+     * @deprecated
+     */
     protected $discountTaxCompensationAmount;
 
     public function __construct(
@@ -75,11 +78,17 @@ class AdyenAmountCurrency
         return $this->amountDue;
     }
 
+    /**
+     * @deprecated
+     */
     public function getDiscountTaxCompensationAmount()
     {
         return $this->discountTaxCompensationAmount;
     }
 
+    /**
+     * @deprecated
+     */
     public function getAmountIncludingTaxWithDiscount()
     {
         if ($this->getDiscountTaxCompensationAmount() > 0) {
@@ -90,11 +99,17 @@ class AdyenAmountCurrency
         }
     }
 
+    /**
+     * @deprecated
+     */
     public function getAmountWithDiscount()
     {
         return $this->getAmount() - $this->getDiscountAmount() + $this->getDiscountTaxCompensationAmount();
     }
 
+    /**
+     * @deprecated
+     */
     public function getCalculatedTaxPercentage()
     {
         if ($this->getAmountWithDiscount() > 0) {

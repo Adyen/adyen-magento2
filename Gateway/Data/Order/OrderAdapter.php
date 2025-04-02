@@ -33,6 +33,11 @@ class OrderAdapter extends \Magento\Payment\Gateway\Data\Order\OrderAdapter
         parent::__construct($order, $addressAdapterFactory);
     }
 
+    /**
+     * @deprecated Use Magento\Sales\Api\Data\OrderInterface::getQuoteId() instead
+     *
+     * @return float|int|null
+     */
     public function getQuoteId()
     {
         return $this->order->getQuoteId();

@@ -46,6 +46,7 @@ use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Asset\Repository;
 use Magento\Framework\View\Asset\Source;
+use Magento\Payment\Model\InfoInterface;
 use Magento\Quote\Model\Quote\Address\RateRequest;
 use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Model\Order\Payment;
@@ -57,6 +58,7 @@ use Magento\Tax\Model\Config;
 use Magento\Sales\Model\Order;
 use ReflectionClass;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
+use Magento\Framework\App\Request\Http;
 
 class DataTest extends AbstractAdyenTestCase
 {
@@ -86,6 +88,7 @@ class DataTest extends AbstractAdyenTestCase
     private $localeHelper;
     private $orderManagement;
     private $orderStatusHistoryFactory;
+    private $request;
 
     public function setUp(): void
     {
@@ -148,6 +151,13 @@ class DataTest extends AbstractAdyenTestCase
             ->with('adyen_credit_cards')
             ->willReturn($this->ccTypesAltData);
 
+        $this->request = $this->createMock(Http::class);
+
+        $this->paymentMock = $this->getMockBuilder(InfoInterface::class)
+            ->disableOriginalConstructor()
+            ->setMethods(null)
+            ->getMock();
+
         // Partial mock builder is being used for mocking the methods in the class being tested.
         $this->dataHelper = $this->getMockBuilder(Data::class)
             ->setMethods(['getModuleVersion'])
@@ -173,7 +183,8 @@ class DataTest extends AbstractAdyenTestCase
                 $this->localeHelper,
                 $this->orderManagement,
                 $this->orderStatusHistoryFactory,
-                $this->configHelper
+                $this->configHelper,
+                $this->request
             ])
             ->getMock();
 
@@ -1055,6 +1066,39 @@ class DataTest extends AbstractAdyenTestCase
         $this->assertEquals($expectedHeaders, $headers);
     }
 
+    public function testBuildRequestHeadersWithFrontendTypeSet(): void
+    {
+        // Mock dependencies as needed
+        $payment = $this->createMock(Payment::class);
+
+        // Set up expectations for the getAdditionalInformation method
+        $payment->method('getAdditionalInformation')
+            ->with(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY)
+            ->willReturn(null);
+
+        $headers = $this->dataHelper->buildRequestHeaders($this->paymentMock);
+
+        $this->assertArrayHasKey(HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE, $headers);
+        $this->assertEquals('headless-rest', $headers[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE]);
+    }
+
+    public function testBuildRequestHeadersWithNullFrontendTypeGraphQL(): void
+    {
+        $this->paymentMock->method('getAdditionalInformation')
+            ->with(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY)
+            ->willReturn(null);
+
+        $this->request->method('getOriginalPathInfo')
+            ->willReturn('/graphql');
+        $this->request->method('getMethod')
+            ->willReturn('POST');
+
+        $headers = $this->dataHelper->buildRequestHeaders($this->paymentMock);
+
+        $this->assertArrayHasKey(HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE, $headers);
+        $this->assertEquals('headless-graphql', $headers[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE]);
+    }
+
     public function testBuildApplicationInfo()
     {
         $expectedApplicationInfo =  new ApplicationInfo();
@@ -1093,14 +1137,14 @@ class DataTest extends AbstractAdyenTestCase
         // Set up expectations for the getAdditionalInformation method
         $payment->method('getAdditionalInformation')
             ->with(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY)
-            ->willReturn('some_frontend_type');
+            ->willReturn('default');
 
         // Call the method under test
         $result = $this->dataHelper->buildRequestHeaders($payment);
 
         // Assert that the 'frontend-type' header is correctly set
         $this->assertArrayHasKey(HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE, $result);
-        $this->assertEquals('some_frontend_type', $result[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE]);
+        $this->assertEquals('default', $result[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE]);
 
         // Assert other headers as needed
     }
@@ -1631,159 +1675,6 @@ class DataTest extends AbstractAdyenTestCase
 
         // Assert the result
         $this->assertEquals($decryptedApiKey, $result);
-    }
-
-    public function testGetOpenInvoiceLineData()
-    {
-        // Mock dependencies as needed
-        $formFields = [];
-        $count = 1;
-        $currencyCode = "EUR";
-        $description = "Product Description";
-        $itemAmount = "10000";
-        $itemVatAmount = "1000";
-        $itemVatPercentage = 1000;
-        $numberOfItems = 1;
-        $payment = $this->createMock(Payment::class);
-        $itemId = "item_1";
-
-        $payment->expects($this->once())
-            ->method('getAdditionalInformation')
-            ->with(AdyenPaymentMethodDataAssignObserver::BRAND_CODE)
-            ->willReturn('adyen_brand_code');
-
-        // Call the method under test
-        $result = $this->dataHelper->getOpenInvoiceLineData(
-            $formFields,
-            $count,
-            $currencyCode,
-            $description,
-            $itemAmount,
-            $itemVatAmount,
-            $itemVatPercentage,
-            $numberOfItems,
-            $payment,
-            $itemId
-        );
-
-        // Assert that the formFields array is correctly populated
-        $this->assertArrayHasKey('openinvoicedata.line1.itemId', $result);
-        $this->assertEquals($itemId, $result['openinvoicedata.line1.itemId']);
-        $this->assertArrayHasKey('openinvoicedata.line1.currencyCode', $result);
-        $this->assertEquals($currencyCode, $result['openinvoicedata.line1.currencyCode']);
-        $this->assertArrayHasKey('openinvoicedata.line1.description', $result);
-        $this->assertEquals($description, $result['openinvoicedata.line1.description']);
-        $this->assertArrayHasKey('openinvoicedata.line1.itemAmount', $result);
-        $this->assertEquals($itemAmount, $result['openinvoicedata.line1.itemAmount']);
-        $this->assertArrayHasKey('openinvoicedata.line1.itemVatAmount', $result);
-        $this->assertEquals($itemVatAmount, $result['openinvoicedata.line1.itemVatAmount']);
-        $this->assertArrayHasKey('openinvoicedata.line1.itemVatPercentage', $result);
-        $this->assertEquals($itemVatPercentage, $result['openinvoicedata.line1.itemVatPercentage']);
-        $this->assertArrayHasKey('openinvoicedata.line1.numberOfItems', $result);
-        $this->assertEquals($numberOfItems, $result['openinvoicedata.line1.numberOfItems']);
-        $this->assertArrayHasKey('openinvoicedata.line1.vatCategory', $result);
-    }
-
-
-    public function testCreateOpenInvoiceLineItem()
-    {
-        // Mock any dependencies as needed
-        $formFields = [];
-        $count = 1;
-        $name = "Product Name";
-        $price = 100.00;
-        $currency = "EUR";
-        $taxAmount = 10.00;
-        $priceInclTax = 110.00;
-        $taxPercent = 10.0;
-        $numberOfItems = 1;
-        $itemId = "item_1";
-        $payment = $this->createMock(Payment::class);
-        $expectedResult = [
-            'openinvoicedata.line1.itemId' => 'item_1',
-            'openinvoicedata.line1.description' => 'Product Name',
-            'openinvoicedata.line1.itemAmount' => 10000,
-            'openinvoicedata.line1.itemVatAmount' => 1000,
-            'openinvoicedata.line1.itemVatPercentage' => 1000,
-            'openinvoicedata.line1.currencyCode' => 'EUR',
-            'openinvoicedata.line1.numberOfItems' => 1,
-            'openinvoicedata.line1.vatCategory' => 'None'
-        ];
-
-        $payment->expects($this->once())
-            ->method('getAdditionalInformation')
-            ->with(AdyenPaymentMethodDataAssignObserver::BRAND_CODE)
-            ->willReturn('adyen_brand_code');
-
-        // Call the method under test
-        $result = $this->dataHelper->createOpenInvoiceLineItem(
-            $formFields,
-            $count,
-            $name,
-            $price,
-            $currency,
-            $taxAmount,
-            $priceInclTax,
-            $taxPercent,
-            $numberOfItems,
-            $payment,
-            $itemId
-        );
-
-        // Assert that the result matches the expected data
-        $this->assertEquals($expectedResult, $result);
-    }
-
-    public function testCreateOpenInvoiceLineShipping()
-    {
-        $formFields = [];
-        $count = 1;
-        $order = $this->createMock(Order::class);
-        $shippingAmount = 10.00;
-        $shippingTaxAmount = 2.00;
-        $currency = "USD";
-        $class= 2;
-        $payment = $this->createMock(Payment::class);
-        $storeId = 1;
-        // Mock order methods to return required data
-        $order->expects($this->once())
-            ->method('getShippingDescription')
-            ->willReturn("Shipping Description");
-        $order->expects($this->once())
-            ->method('getShippingAddress')
-            ->willReturn($this->createMock(Address::class));
-        $order->expects($this->once())
-            ->method('getBillingAddress')
-            ->willReturn($this->createMock(Address::class));
-        $order->method('getStoreId')
-            ->willReturn(1);
-        $order->expects($this->once())
-            ->method('getCustomerId')
-            ->willReturn(1);
-
-        // Mock tax calculation methods
-        $this->taxConfig->expects($this->once())
-            ->method('getShippingTaxClass')
-            ->with($storeId)
-            ->willReturn($class);
-        $this->taxCalculation->expects($this->once())
-            ->method('getRateRequest')
-            ->willReturn($this->createMock(RateRequest::class));
-
-        // Call the method under test
-        $result = $this->dataHelper->createOpenInvoiceLineShipping(
-            $formFields,
-            $count,
-            $order,
-            $shippingAmount,
-            $shippingTaxAmount,
-            $currency,
-            $payment
-        );
-
-        // Assert that the formFields array is correctly populated
-        $this->assertArrayHasKey('openinvoicedata.line1.itemId', $result);
-        $this->assertEquals("shippingCost", $result['openinvoicedata.line1.itemId']);
     }
 
     /**
