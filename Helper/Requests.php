@@ -124,7 +124,7 @@ class Requests extends AbstractHelper
         }
 
         // TODO:: Can be implemented for guests after https://github.com/magento/magento2/issues/14509 is resolved.
-        if ($customerId !== 0) {
+        if ($customerId) {
             $customer = $this->customerRepository->getById($customerId);
             $dob = $customer->getDob();
 
