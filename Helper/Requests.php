@@ -16,10 +16,13 @@ use Adyen\Payment\Model\Config\Source\CcType;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Util\Uuid;
+use DateTime;
+use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\App\Request\Http as Http;
 
 class Requests extends AbstractHelper
 {
@@ -33,7 +36,21 @@ class Requests extends AbstractHelper
         'paywithgoogle' => 'scheme',
         'applepay' => 'scheme'
     ];
+    const SHOPPER_INTERACTION_CONTAUTH = 'ContAuth';
 
+    /**
+     * @param Context $context
+     * @param Data $adyenHelper
+     * @param Config $adyenConfig
+     * @param Address $addressHelper
+     * @param StateData $stateData
+     * @param Vault $vaultHelper
+     * @param ChargedCurrency $chargedCurrency
+     * @param PaymentMethods $paymentMethodsHelper
+     * @param Locale $localeHelper
+     * @param Http $request
+     * @param CustomerRepositoryInterface $customerRepository
+     */
     public function __construct(
         Context $context,
         protected readonly Data $adyenHelper,
@@ -43,7 +60,9 @@ class Requests extends AbstractHelper
         protected readonly Vault $vaultHelper,
         protected readonly ChargedCurrency $chargedCurrency,
         protected readonly PaymentMethods $paymentMethodsHelper,
-        protected readonly Locale $localeHelper
+        protected readonly Locale $localeHelper,
+        private readonly Http $request,
+        private readonly CustomerRepositoryInterface $customerRepository
     ) {
         parent::__construct($context);
     }
@@ -119,6 +138,17 @@ class Requests extends AbstractHelper
             $request['shopperLocale'] = $this->localeHelper->getStoreLocale($storeId);
         }
 
+        // TODO:: Can be implemented for guests after https://github.com/magento/magento2/issues/14509 is resolved.
+        if ($customerId) {
+            $customer = $this->customerRepository->getById($customerId);
+            $dob = $customer->getDob();
+
+            // Magento already returns ISO-8601, validate the required format YYYY-MM-DD.
+            if (!empty($dob) && DateTime::createFromFormat('Y-m-d', $dob)) {
+                $request['dateOfBirth'] = $dob;
+            }
+        }
+
         return $request;
     }
 
@@ -139,6 +169,7 @@ class Requests extends AbstractHelper
      * @param $shippingAddress
      * @param $storeId
      * @param array $request
+     * @return array
      */
     public function buildAddressData($billingAddress, $shippingAddress, $storeId, $request = [])
     {
