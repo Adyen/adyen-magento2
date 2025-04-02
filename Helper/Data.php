@@ -561,8 +561,9 @@ class Data extends AbstractHelper
      * Cancels the order
      *
      * @param $order
+     * @param null $reason
      */
-    public function cancelOrder($order)
+    public function cancelOrder($order, $reason = null)
     {
         $orderStatus = $this->configHelper->getAdyenAbstractConfigData('payment_cancelled');
         $order->setActionFlag($orderStatus, true);
@@ -577,12 +578,11 @@ class Data extends AbstractHelper
                 if ($order->canCancel()) {
                     if ($this->orderManagement->cancel($order->getEntityId())) { //new canceling process
                         try {
-                            $orderStatusHistory = $this->orderStatusHistoryFactory->create()
-                                ->setParentId($order->getEntityId())
-                                ->setEntityName('order')
-                                ->setStatus(Order::STATE_CANCELED)
-                                ->setComment(__('Order has been cancelled by "%1" payment response.', $order->getPayment()->getMethod()));
-                            $this->orderManagement->addComment($order->getEntityId(), $orderStatusHistory);
+                            $comment = __('Order has been cancelled.', $order->getPayment()->getMethod());
+                            if ($reason) {
+                                $comment .= '<br />' . __("Reason: %1", $reason) . '<br />';
+                            }
+                            $order->addCommentToStatusHistory($comment, $order->getStatus());
                         } catch (Exception $e) {
                             $this->adyenLogger->addAdyenDebug(
                                 __('Order cancel history comment error: %1', $e->getMessage()),
