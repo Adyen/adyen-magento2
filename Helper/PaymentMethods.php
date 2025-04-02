@@ -54,6 +54,7 @@ class PaymentMethods extends AbstractHelper
     const ADYEN_ONE_CLICK = 'adyen_oneclick';
     const ADYEN_PAY_BY_LINK = 'adyen_pay_by_link';
     const ADYEN_PAYPAL = 'adyen_paypal';
+    const ADYEN_BOLETO = 'adyen_boleto';
     const ADYEN_PREFIX = 'adyen_';
     const ADYEN_CC_VAULT = 'adyen_cc_vault';
     const METHODS_WITH_BRAND_LOGO = [
