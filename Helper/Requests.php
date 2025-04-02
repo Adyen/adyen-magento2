@@ -15,6 +15,8 @@ use Adyen\Payment\Model\Config\Source\CcType;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Util\Uuid;
+use DateTime;
+use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Request\Http as Http;
 
@@ -32,28 +34,24 @@ class Requests extends AbstractHelper
     ];
     const SHOPPER_INTERACTION_CONTAUTH = 'ContAuth';
 
-    private Data $adyenHelper;
-    private Config $adyenConfig;
-    private Address $addressHelper;
-    private StateData $stateData;
-    private Vault $vaultHelper;
-    private Http $request;
-
+    /**
+     * @param Data $adyenHelper
+     * @param Config $adyenConfig
+     * @param Address $addressHelper
+     * @param StateData $stateData
+     * @param Vault $vaultHelper
+     * @param Http $request
+     * @param CustomerRepositoryInterface $customerRepository
+     */
     public function __construct(
-        Data $adyenHelper,
-        Config $adyenConfig,
-        Address $addressHelper,
-        StateData $stateData,
-        Vault $vaultHelper,
-        Http $request
-    ) {
-        $this->adyenHelper = $adyenHelper;
-        $this->adyenConfig = $adyenConfig;
-        $this->addressHelper = $addressHelper;
-        $this->stateData = $stateData;
-        $this->vaultHelper = $vaultHelper;
-        $this->request = $request;
-    }
+        private readonly Data $adyenHelper,
+        private readonly Config $adyenConfig,
+        private readonly Address $addressHelper,
+        private readonly StateData $stateData,
+        private readonly Vault $vaultHelper,
+        private readonly Http $request,
+        private readonly CustomerRepositoryInterface $customerRepository
+    ) { }
 
     /**
      * @param $request
@@ -123,6 +121,17 @@ class Requests extends AbstractHelper
             }
 
             $request['shopperLocale'] = $this->adyenHelper->getStoreLocale($storeId);
+        }
+
+        // TODO:: Can be implemented for guests after https://github.com/magento/magento2/issues/14509 is resolved.
+        if ($customerId !== 0) {
+            $customer = $this->customerRepository->getById($customerId);
+            $dob = $customer->getDob();
+
+            // Magento already returns ISO-8601, validate the required format YYYY-MM-DD.
+            if (!empty($dob) && DateTime::createFromFormat('Y-m-d', $dob)) {
+                $request['dateOfBirth'] = $dob;
+            }
         }
 
         return $request;
