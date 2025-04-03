@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         #### Thank you for reporting this issue. Please provide all the required information to help us understand and resolve the issue.
-        Making your own contribution is easy, encouraged, and greatly appreciated! For more info, please refer to the [contribution guidelines](https://github.com/Adyen/adyen-magento2/blob/develop/CONTRIBUTING.md).
+        Making your own contribution is easy, encouraged, and greatly appreciated! For more info, please refer to the [contribution guidelines](https://github.com/Adyen/adyen-magento2/blob/main/CONTRIBUTING.md).
 
   - type: input
     id: bug-description
