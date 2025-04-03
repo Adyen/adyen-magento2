@@ -233,7 +233,7 @@ class Vault
             $paymentToken->setType(PaymentTokenFactoryInterface::TOKEN_TYPE_ACCOUNT);
             $today = new DateTime();
             $details = [
-                'type' => $payment->getCcType(),
+                'type' => $this->paymentMethodsHelper->getAlternativePaymentMethodTxVariant($paymentMethodInstance),
                 self::TOKEN_LABEL => sprintf(
                     "%s %s %s",
                     $paymentMethodInstance->getTitle(),
