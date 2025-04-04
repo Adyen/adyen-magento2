@@ -67,7 +67,6 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
         }
 
         $config['payment']['adyen']['clientKey'] = $this->adyenConfigHelper->getClientKey($environment);
-        $config['payment']['adyen']['cspNonce'] = $this->cspNonceProvider->generateNonce();
         $config['payment']['adyen']['merchantAccount'] = $this->adyenConfigHelper->getMerchantAccount($storeId);
         $config['payment']['adyen']['checkoutEnvironment'] = $this->adyenHelper->getCheckoutEnvironment($storeId);
         $config['payment']['adyen']['locale'] = $this->adyenHelper->getStoreLocale($storeId);
@@ -85,6 +84,7 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
             ['_secure' => $this->request->isSecure()]
         );
         $config['payment']['adyen']['agreementsConfig'] = $this->agreementsConfigProvider->getConfig();
+        $config['payment']['adyen']['cspNonce'] = $this->cspNonceProvider->generateNonce();
 
         return $config;
     }
