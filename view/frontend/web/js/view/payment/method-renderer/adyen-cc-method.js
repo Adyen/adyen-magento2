@@ -444,7 +444,7 @@ define(
                 const methods = paymentMethodsObservable?.()?.paymentMethodsResponse?.paymentMethods;
 
                 if (Array.isArray(methods)) {
-                    const schemeMethod = paymentMethodsObservable().paymentMethodsResponse.paymentMethods.find(function (pm) {
+                    const schemeMethod = methods.find(function (pm) {
                         return pm.type === 'scheme';
                     });
                     if (schemeMethod && schemeMethod.name) {
