@@ -443,6 +443,23 @@ define(
             getCode: function() {
                 return window.checkoutConfig.payment.adyenCc.methodCode;
             },
+
+            getTitle: function () {
+                const paymentMethodsObservable = adyenPaymentService.getPaymentMethods();
+                const methods = paymentMethodsObservable?.()?.paymentMethodsResponse?.paymentMethods;
+
+                if (Array.isArray(methods)) {
+                    const schemeMethod = methods.find(function (pm) {
+                        return pm.type === 'scheme';
+                    });
+                    if (schemeMethod && schemeMethod.name) {
+                        return schemeMethod.name;
+                    }
+                }
+
+                return this._super();
+            },
+
             isCardRecurringEnabled: function () {
                 if (customer.isLoggedIn()) {
                     return window.checkoutConfig.payment.adyenCc.isCardRecurringEnabled;
