@@ -12,12 +12,14 @@ define(
         'Magento_Checkout/js/model/quote',
         'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-method',
         'Adyen_Payment/js/model/adyen-checkout',
+        'Adyen_Payment/js/model/adyen-configuration',
         'mage/url'
     ],
     function(
         quote,
         adyenPaymentMethod,
         adyenCheckout,
+        adyenConfiguration,
         urlBuilder
     ) {
         const amazonSessionKey = 'amazonCheckoutSessionId';
@@ -55,6 +57,7 @@ define(
                 baseComponentConfiguration.productType = 'PayAndShip';
                 baseComponentConfiguration.checkoutMode = 'ProcessOrder';
                 baseComponentConfiguration.showPayButton = true;
+                baseComponentConfiguration.locale = adyenConfiguration.getLocale();
 
                 // Redirect shoppers to the cart page if they cancel the payment on Amazon Pay hosted page.
                 baseComponentConfiguration.cancelUrl = urlBuilder.build('checkout/cart');
