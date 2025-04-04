@@ -441,17 +441,12 @@ define(
 
             getTitle: function () {
                 const paymentMethodsObservable = adyenPaymentService.getPaymentMethods();
+                const methods = paymentMethodsObservable?.()?.paymentMethodsResponse?.paymentMethods;
 
-                if (
-                    typeof paymentMethodsObservable === 'function' &&
-                    paymentMethodsObservable() &&
-                    paymentMethodsObservable().paymentMethodsResponse &&
-                    Array.isArray(paymentMethodsObservable().paymentMethodsResponse.paymentMethods)
-                ) {
+                if (Array.isArray(methods)) {
                     const schemeMethod = paymentMethodsObservable().paymentMethodsResponse.paymentMethods.find(function (pm) {
                         return pm.type === 'scheme';
                     });
-
                     if (schemeMethod && schemeMethod.name) {
                         return schemeMethod.name;
                     }

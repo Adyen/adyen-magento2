@@ -84,19 +84,11 @@ define(
             getTitle: function () {
                 const paymentMethodsObservable = adyenPaymentService.getPaymentMethods();
                 const methodCode = this.getTxVariant();
+                const methods = paymentMethodsObservable?.()?.paymentMethodsResponse?.paymentMethods;
 
-                if (
-                    paymentMethodsObservable &&
-                    typeof paymentMethodsObservable === 'function' &&
-                    paymentMethodsObservable() &&
-                    paymentMethodsObservable().paymentMethodsResponse &&
-                    Array.isArray(paymentMethodsObservable().paymentMethodsResponse.paymentMethods)
-                ) {
-                    const matchedMethod = paymentMethodsObservable().paymentMethodsResponse.paymentMethods.find(function (pm) {
-                        return pm.type === methodCode;
-                    });
-
-                    if (matchedMethod && matchedMethod.name) {
+                if (Array.isArray(methods)) {
+                    const matchedMethod = methods.find(pm => pm.type === methodCode);
+                    if (matchedMethod?.name) {
                         return matchedMethod.name;
                     }
                 }
