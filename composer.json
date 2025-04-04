@@ -19,6 +19,7 @@
     "magento/module-multishipping": ">=100.4.4",
     "magento/module-graph-ql": ">=100.4.4",
     "magento/module-instant-purchase": ">=100.4.3",
+    "magento/module-checkout-agreements": ">=100.4.3",
     "ext-json": "*"
   },
   "require-dev": {
