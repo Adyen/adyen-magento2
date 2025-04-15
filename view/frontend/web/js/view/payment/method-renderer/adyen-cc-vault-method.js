@@ -259,8 +259,9 @@ define([
                 additional_data: {
                     stateData: stateData,
                     public_hash: this.publicHash,
-                    numberOfInstallments: this.installment(),
-                    frontendType: 'default'
+                    'number_of_installments': self.installment(),
+                    frontendType: 'default',
+                    'cc_type': self.getCcCodeByAltCode(self.getCardType())
                 },
             };
         },
