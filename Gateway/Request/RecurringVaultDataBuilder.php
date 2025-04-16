@@ -20,6 +20,7 @@ use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
+use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 
 class RecurringVaultDataBuilder implements BuilderInterface
 {
@@ -95,6 +96,14 @@ class RecurringVaultDataBuilder implements BuilderInterface
                 $paymentMethod->getProviderCode(),
                 $order->getStoreId()
             );
+        }
+
+        $numberOfInstallments = $payment->getAdditionalInformation(
+            AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS
+        );
+
+        if (!empty($numberOfInstallments)) {
+            $requestBody['installments']['value'] = (int) $numberOfInstallments;
         }
 
         return [
