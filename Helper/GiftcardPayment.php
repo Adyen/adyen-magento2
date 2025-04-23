@@ -82,6 +82,10 @@ class GiftcardPayment
 
     public function getQuoteGiftcardDiscount(CartInterface $quote): int
     {
+        if ($quote->getId() === null) {
+            return 0;
+        }
+
         $formattedOrderAmount = $this->adyenHelper->formatAmount(
             $quote->getGrandTotal(),
             $quote->getCurrency()
