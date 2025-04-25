@@ -22,12 +22,12 @@ use Monolog\LoggerFactory;
 
 class AdyenLogger
 {
-    const int ADYEN_DEBUG = 101;
-    const int ADYEN_NOTIFICATION = 201;
-    const int ADYEN_RESULT = 202;
-    const int ADYEN_INFO = 203;
-    const int ADYEN_WARNING = 301;
-    const int ADYEN_ERROR = 401;
+    const ADYEN_DEBUG = 101;
+    const ADYEN_NOTIFICATION = 201;
+    const ADYEN_RESULT = 202;
+    const ADYEN_INFO = 203;
+    const ADYEN_WARNING = 301;
+    const ADYEN_ERROR = 401;
 
     /**
      * @param Config $config
