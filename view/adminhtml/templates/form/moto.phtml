@@ -61,33 +61,22 @@ $motoMerchantAccounts = $block->getMotoMerchantAccounts();
             'renderCheckoutComponent',
             [
                 'jquery',
-                'Magento_Sales/order/create/scripts',
-                'Magento_Sales/order/create/form',
                 'Adyen_Payment/js/adyen'
             ],
-            function($, scripts, form, AdyenCheckout) {
-                var card = null;
+            function($, AdyenWeb) {
+                let card = null;
                 return {
                     status: function () {
                         return card;
                     },
                     init: function (clientKey, amount, installmentAmounts) {
                         (async function () {
-                            var ccTypes = $availableCcTypesByAlt;
+                            let ccTypes = $availableCcTypesByAlt;
+                            let cardNode = document.getElementById("cardContainer-adyen_moto");
 
-                            // Get cc type by adyen cc type
-                            var getCcCodeByAltCode = function (altCode) {
-                                if (ccTypes.hasOwnProperty(altCode)) {
-                                    return ccTypes[altCode];
-                                }
-
-                                return "";
-                            }
-
-                            var cardNode = document.getElementById("cardContainer-adyen_moto");
-
-                            var checkout = await AdyenCheckout({
+                            let checkoutComponent = await window.AdyenWeb.AdyenCheckout({
                                 clientKey: clientKey,
+                                countryCode: "$countryCode",
                                 environment: "$environment",
                                 locale: "$locale",
                                 risk: {
@@ -95,21 +84,29 @@ $motoMerchantAccounts = $block->getMotoMerchantAccounts();
                                 },
                             });
 
-                            try {
-                                card = checkout.create('card', {
-                                    brands: Object.keys(ccTypes),
-                                    hideCVC: true,
-                                    enableStoreDetails: false,
-                                    hasHolderName: true,
-                                    installmentOptions: installmentAmounts,
-                                    showInstallmentAmounts: true,
-                                    amount: amount,
-                                    onChange: function (state) {
-                                        if (state.isValid) {
-                                            $('#adyen_moto-statedata').val(JSON.stringify(state.data));
-                                        }
+                            let cardComponentConfiguration = {
+                                brands: Object.keys(ccTypes),
+                                hideCVC: true,
+                                enableStoreDetails: false,
+                                hasHolderName: true,
+                                installmentOptions: installmentAmounts,
+                                showInstallmentAmounts: true,
+                                showPayButton: false,
+                                amount: amount,
+                                onChange: function (state) {
+                                    if (state.isValid) {
+                                        $('#adyen_moto-statedata').val(JSON.stringify(state.data));
                                     }
-                                });
+                                }
+                            };
+
+                            try {
+                                card = window.AdyenWeb.createComponent(
+                                    'card',
+                                    checkoutComponent,
+                                    cardComponentConfiguration
+                                );
+
                                 card.mount(cardNode);
                             } catch (e) {
                                 console.log(e);
