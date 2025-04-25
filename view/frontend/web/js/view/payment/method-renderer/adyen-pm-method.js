@@ -250,6 +250,8 @@ define(
 
             handleOnAdditionalDetails: function(state, component) {
                 const self = this;
+                adyenPaymentModal.hideModalLabel(this.modalLabel);
+                fullScreenLoader.startLoader();
                 // call endpoint with state.data if available
                 let request = {};
                 if (!!state.data) {
@@ -391,9 +393,7 @@ define(
 
                 if (!!response.isFinal) {
                     // Status is final redirect to the success page
-                    $.mage.redirect(
-                        window.checkoutConfig.payment.adyen.successPage
-                    );
+                    $.mage.redirect(window.checkoutConfig.payment.adyen.successPage);
                 } else {
                     // render component
                     self.orderId = orderId;
@@ -404,16 +404,38 @@ define(
             renderActionComponent: function(resultCode, action, component) {
                 let self = this;
                 let actionNode = document.getElementById(this.modalLabel + 'Content');
-                fullScreenLoader.stopLoader();
 
                 if (resultCode !== 'RedirectShopper') {
-                    self.popupModal = adyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.modalLabel, this.isPlaceOrderActionAllowed)
+                    let isModalVisible = true;
+
+                    if (action.type === 'threeDS2') {
+                        isModalVisible = false;
+                    } else {
+                        fullScreenLoader.stopLoader();
+                    }
+
+                    self.popupModal = adyenPaymentModal.showModal(
+                        adyenPaymentService,
+                        fullScreenLoader,
+                        this.messageContainer,
+                        this.orderId,
+                        this.modalLabel,
+                        this.isPlaceOrderActionAllowed,
+                        isModalVisible
+                    );
+
                     $("." + this.modalLabel + " .action-close").hide();
                 }
 
-                self.actionComponent = self.checkoutComponent.createFromAction(action).mount(actionNode);
+                self.actionComponent = self.checkoutComponent.createFromAction(action, {
+                    onActionHandled: function (event) {
+                        if (event.componentType === "3DS2Challenge") {
+                            fullScreenLoader.stopLoader();
+                            self.popupModal.modal('openModal');
+                        }
+                    }
+                }).mount(actionNode);
             },
-
 
             isButtonActive: function() {
                 return paymentComponentStates().getIsPlaceOrderAllowed(this.getMethodCode());
