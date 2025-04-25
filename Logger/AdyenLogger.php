@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2025 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -12,55 +12,37 @@
 namespace Adyen\Payment\Logger;
 
 use Adyen\Payment\Helper\Config;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Phrase;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Store\Model\StoreManagerInterface;
+use Monolog\Level;
 use Monolog\Logger;
+use Monolog\LoggerFactory;
 
-class AdyenLogger extends Logger
+class AdyenLogger
 {
-    /**
-     * Detailed debug information
-     */
-    const ADYEN_DEBUG = 101;
-    const ADYEN_NOTIFICATION = 201;
-    const ADYEN_RESULT = 202;
-    /**
-     * Logging levels from syslog protocol defined in RFC 5424
-     * Overrule the default to add Adyen specific loggers to log into seperate files
-     *
-     * @var array $levels Logging levels
-     */
-    protected static $levels = [
-        100 => 'DEBUG',
-        101 => 'ADYEN_DEBUG',
-        200 => 'INFO',
-        201 => 'ADYEN_NOTIFICATION',
-        202 => 'ADYEN_RESULT',
-        250 => 'NOTICE',
-        300 => 'WARNING',
-        400 => 'ERROR',
-        500 => 'CRITICAL',
-        550 => 'ALERT',
-        600 => 'EMERGENCY',
-    ];
+    const int ADYEN_DEBUG = 101;
+    const int ADYEN_NOTIFICATION = 201;
+    const int ADYEN_RESULT = 202;
+    const int ADYEN_INFO = 203;
+    const int ADYEN_WARNING = 301;
+    const int ADYEN_ERROR = 401;
 
     /**
-     * @var Config
+     * @param Config $config
+     * @param StoreManagerInterface $storeManager
+     * @param LoggerFactory $loggerFactory
+     * @param array $handlers
+     * @param array $processors
      */
-    private $config;
-
-    /**
-     * @var StoreManagerInterface
-     */
-    private $storeManager;
-
-    public function __construct(Config $config, StoreManagerInterface $storeManager, $name, array $handlers = array(), array $processors = array())
-    {
-        parent::__construct($name, $handlers, $processors);
-        $this->config = $config;
-        $this->storeManager = $storeManager;
-    }
+    public function __construct(
+        private readonly Config $config,
+        private readonly StoreManagerInterface $storeManager,
+        private readonly LoggerFactory $loggerFactory,
+        private array $handlers = [],
+        private array $processors = []
+    ) { }
 
     /**
      * Adds a webhook notification log record.
@@ -71,27 +53,49 @@ class AdyenLogger extends Logger
      * @param array $context The log context
      * @return Boolean Whether the record has been processed
      */
-    public function addAdyenNotification($message, array $context = [])
+    public function addAdyenNotification(string $message, array $context = []): bool
     {
-        return $this->addRecord(static::ADYEN_NOTIFICATION, $message, $context);
+        $logger = $this->generateLogger(self::ADYEN_NOTIFICATION);
+        return $logger->addRecord(Level::Info, $message, $context);
     }
 
-    public function addAdyenDebug($message, array $context = [])
+    /**
+     * @param string $message
+     * @param array $context
+     * @return bool
+     * @throws NoSuchEntityException
+     */
+    public function addAdyenDebug(string $message, array $context = []): bool
     {
         $storeId = $this->storeManager->getStore()->getId();
         if ($this->config->debugLogsEnabled($storeId)) {
-            return $this->addRecord(static::ADYEN_DEBUG, $message, $context);
+            $logger = $this->generateLogger(self::ADYEN_DEBUG);
+            return $logger->addRecord(Level::Debug, $message, $context);
+        } else {
+            return false;
         }
     }
 
-    public function addAdyenWarning($message, array $context = []): bool
+    /**
+     * @param string $message
+     * @param array $context
+     * @return bool
+     */
+    public function addAdyenWarning(string $message, array $context = []): bool
     {
-        return $this->addRecord(static::WARNING, $message, $context);
+        $logger = $this->generateLogger(self::ADYEN_WARNING);
+        return $logger->addRecord(Level::Warning, $message, $context);
     }
 
-    public function addAdyenResult($message, array $context = [])
+    /**
+     * @param string $message
+     * @param array $context
+     * @return bool
+     */
+    public function addAdyenResult(string $message, array $context = []): bool
     {
-        return $this->addRecord(static::ADYEN_RESULT, $message, $context);
+        $logger = $this->generateLogger(self::ADYEN_RESULT);
+        return $logger->addRecord(Level::Info, $message, $context);
     }
 
     /**
@@ -103,9 +107,21 @@ class AdyenLogger extends Logger
      * @param array $context The log context
      * @return Boolean Whether the record has been processed
      */
-    public function addAdyenInfoLog($message, array $context = [])
+    public function addAdyenInfoLog(string $message, array $context = []): bool
     {
-        return $this->addRecord(static::INFO, $message, $context);
+        $logger = $this->generateLogger(self::ADYEN_INFO);
+        return $logger->addRecord(Level::Info, $message, $context);
+    }
+
+    /**
+     * @param string $message
+     * @param array $context
+     * @return bool
+     */
+    public function error(string $message, array $context = []): bool
+    {
+        $logger = $this->generateLogger(self::ADYEN_ERROR);
+        return $logger->addRecord(Level::Error, $message, $context);
     }
 
     public function getOrderContext(MagentoOrder $order): array
@@ -133,5 +149,43 @@ class AdyenLogger extends Logger
             'invoiceCanVoid' => $invoice->canVoid(),
             'invoiceCanRefund' => $invoice->canRefund()
         ];
+    }
+
+    /**
+     * @param int $handler
+     * @return Logger
+     */
+    private function generateLogger(int $handler): Logger
+    {
+        /** @var Logger $logger */
+        $logger = $this->loggerFactory->create(['name' => 'Adyen Logger']);
+
+        foreach ($this->processors as $processor) {
+            $logger->pushProcessor($processor);
+        }
+
+        switch ($handler) {
+            case self::ADYEN_NOTIFICATION:
+                $logger->pushHandler($this->handlers['adyenNotification']);
+                break;
+            case self::ADYEN_WARNING:
+                $logger->pushHandler($this->handlers['adyenWarning']);
+                break;
+            case self::ADYEN_RESULT:
+                $logger->pushHandler($this->handlers['adyenResult']);
+                break;
+            case self::ADYEN_INFO:
+                $logger->pushHandler($this->handlers['adyenInfo']);
+                break;
+            case self::ADYEN_ERROR:
+                $logger->pushHandler($this->handlers['adyenError']);
+                break;
+            case self::ADYEN_DEBUG:
+            default:
+                $logger->pushHandler($this->handlers['adyenDebug']);
+                break;
+        }
+
+        return $logger;
     }
 }
