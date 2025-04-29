@@ -1641,6 +1641,8 @@
     <preference for="Adyen\Payment\Api\GuestAdyenGiftcardInterface" type="Adyen\Payment\Model\Api\GuestAdyenGiftcard" />
     <preference for="Adyen\Payment\Api\AdyenDonationsInterface" type="Adyen\Payment\Model\Api\AdyenDonations" />
     <preference for="Adyen\Payment\Api\GuestAdyenDonationsInterface" type="Adyen\Payment\Model\Api\GuestAdyenDonations" />
+    <preference for="Adyen\Payment\Api\AdyenDonationCampaignsInterface" type="Adyen\Payment\Model\Api\AdyenDonationCampaigns" />
+    <preference for="Adyen\Payment\Api\GuestAdyenDonationCampaignsInterface" type="Adyen\Payment\Model\Api\GuestAdyenDonationCampaigns" />
     <preference for="Adyen\Payment\Api\AdyenPosCloudInterface" type="Adyen\Payment\Model\Api\AdyenPosCloud" />
     <preference for="Adyen\Payment\Api\GuestAdyenPosCloudInterface" type="Adyen\Payment\Model\Api\GuestAdyenPosCloud" />
     <preference for="Adyen\Payment\Api\Data\NotificationInterface" type="Adyen\Payment\Model\Notification" />

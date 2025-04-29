@@ -86,18 +86,6 @@ class AdyenDonations implements AdyenDonationsInterface
             throw new LocalizedException(__('Donation failed!'));
         }
 
-        $donationAmounts = explode(',', $this->config->getAdyenGivingDonationAmounts($order->getStoreId()));
-        $formatter = $this->dataHelper;
-        $donationAmountsMinorUnits = array_map(
-            function ($amount) use ($formatter, $currencyCode) {
-                return $formatter->formatAmount($amount, $currencyCode);
-            },
-            $donationAmounts
-        );
-        if (!in_array($payload['amount']['value'], $donationAmountsMinorUnits)) {
-            throw new LocalizedException(__('Donation failed!'));
-        }
-
         $payload['donationToken'] = $donationToken;
         $payload['donationOriginalPspReference'] = $order->getPayment()->getAdditionalInformation('pspReference');
 

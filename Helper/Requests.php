@@ -411,8 +411,8 @@ class Requests extends AbstractHelper
                 'type' => $paymentMethodCode
             ],
             'donationToken' => $buildSubject['donationToken'],
+            'donationCampaignId' => $buildSubject['id'],
             'donationOriginalPspReference' => $buildSubject['donationOriginalPspReference'],
-            'donationAccount' => $this->adyenConfig->getCharityMerchantAccount($storeId),
             'returnUrl' => $buildSubject['returnUrl'],
             'merchantAccount' => $this->adyenHelper->getAdyenMerchantAccount('adyen_giving', $storeId),
             'shopperInteraction' => self::SHOPPER_INTERACTION_CONTAUTH

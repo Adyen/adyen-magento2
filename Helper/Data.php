@@ -28,6 +28,7 @@ use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Adyen\Service\Checkout\ModificationsApi;
 use Adyen\Service\Checkout\OrdersApi;
 use Adyen\Service\Checkout\PaymentLinksApi;
+use Adyen\Service\Checkout\DonationsApi;
 use Adyen\Service\Checkout\PaymentsApi;
 use Adyen\Service\Checkout\UtilityApi;
 use Adyen\Service\PosPayment;
@@ -939,10 +940,10 @@ class Data extends AbstractHelper
         $client->setApplicationName(self::APPLICATION_NAME);
         $client->setXApiKey($apiKey);
 
-        $checkoutFrontendRegion = $this->configHelper->getCheckoutFrontendRegion($storeId);
-        if (isset($checkoutFrontendRegion)) {
-            $client->setRegion($checkoutFrontendRegion);
-        }
+//        $checkoutFrontendRegion = $this->configHelper->getCheckoutFrontendRegion($storeId);
+//        if (isset($checkoutFrontendRegion)) {
+//            $client->setRegion($checkoutFrontendRegion);
+//        }
 
         $client->setMerchantApplication($this->getModuleName(), $this->getModuleVersion());
         $platformData = $this->getMagentoDetails();
@@ -1057,6 +1058,11 @@ class Data extends AbstractHelper
     public function initializePaymentLinksApi(Client $client):PaymentLinksApi
     {
         return new PaymentLinksApi($client);
+    }
+
+    public function initializeDonationsApi(Client $client):DonationsApi
+    {
+        return new DonationsApi($client);
     }
 
     /**

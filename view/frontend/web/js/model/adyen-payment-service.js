@@ -139,6 +139,28 @@ define(
                 );
             },
 
+            donationCampaigns: function (data, isLoggedIn, orderId, maskedQuoteId) {
+                let serviceUrl;
+                let request = {
+                    payload: JSON.stringify(data)
+                };
+
+                if (isLoggedIn) {
+                    serviceUrl =  urlBuilder.createUrl('/adyen/orders/carts/mine/donation-campaigns', {});
+                    request.orderId = orderId;
+                } else {
+                    serviceUrl =  urlBuilder.createUrl('/adyen/orders/guest-carts/:cartId/donation-campaigns', {
+                        cartId: maskedQuoteId
+                    });
+                }
+debugger;
+                return storage.post(
+                    serviceUrl,
+                    JSON.stringify(request),
+                    true
+                );
+            },
+
             posPayment: function (orderId) {
                 let url = urlBuilder.createUrl('/adyen/orders/carts/mine/pos-payment', {})
                 if (!customer.isLoggedIn()) {

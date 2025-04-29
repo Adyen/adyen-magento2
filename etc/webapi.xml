@@ -109,7 +109,7 @@
             <resource ref="anonymous"/>
         </resources>
     </route>
-  
+
     <route url="/V1/adyen/orders/guest-carts/:cartId/donations" method="POST">
         <service class="Adyen\Payment\Api\GuestAdyenDonationsInterface" method="donate"/>
         <resources>
@@ -123,6 +123,26 @@
             <resource ref="self"/>
         </resources>
     </route>
+
+
+
+
+
+    <route url="/V1/adyen/orders/carts/mine/donation-campaigns" method="POST">
+        <service class="Adyen\Payment\Api\AdyenDonationCampaignsInterface" method="getCampaigns"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+    </route>
+
+    <route url="/V1/adyen/orders/guest-carts/:cartId/donation-campaigns" method="POST">
+        <service class="Adyen\Payment\Api\GuestAdyenDonationCampaignsInterface" method="getCampaigns"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
+
 
     <route url="/V1/adyen/payment-methods/balance" method="POST">
         <service class="Adyen\Payment\Api\AdyenPaymentMethodsBalanceInterface" method="getBalance"/>

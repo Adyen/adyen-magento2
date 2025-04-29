@@ -114,25 +114,6 @@ class Success extends Template
         return json_encode($this->getOrder()->getPayment()->getAdditionalInformation('donationToken'));
     }
 
-    public function getDonationComponentConfiguration(): array
-    {
-        $storeId = $this->storeManager->getStore()->getId();
-        $imageBaseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA).'adyen/';
-        $donationAmounts = explode(',', (string) $this->configHelper->getAdyenGivingDonationAmounts($storeId));
-        $donationAmounts = array_map(function ($amount) {
-            return $this->adyenHelper->formatAmount($amount, $this->getOrder()->getOrderCurrencyCode());
-        }, $donationAmounts);
-
-        return [
-            'name' => $this->configHelper->getAdyenGivingCharityName($storeId),
-            'description' => $this->configHelper->getAdyenGivingCharityDescription($storeId),
-            'backgroundUrl' => $imageBaseUrl . $this->configHelper->getAdyenGivingBackgroundImage($storeId),
-            'logoUrl' => $imageBaseUrl . $this->configHelper->getAdyenGivingCharityLogo($storeId),
-            'website' => $this->configHelper->getAdyenGivingCharityWebsite($storeId),
-            'donationAmounts' => implode(',', $donationAmounts)
-        ];
-    }
-
     public function getSerializedCheckoutConfig()
     {
         return $this->serializerInterface->serialize($this->configProvider->getConfig());
@@ -143,6 +124,11 @@ class Success extends Template
         return $this->adyenHelper->getCurrentLocaleCode(
             $this->storeManager->getStore()->getId()
         );
+    }
+
+    public function getMerchantAccount()
+    {
+        return $this->configHelper->getMerchantAccount($this->storeManager->getStore()->getId());
     }
 
     public function getClientKey()
