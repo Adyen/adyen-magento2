@@ -17,23 +17,19 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\OpenInvoice;
 use Adyen\Payment\Helper\PaymentMethods;
+use Adyen\Payment\Model\AdyenAmountCurrency;
 use Adyen\Payment\Model\ResourceModel\Invoice\CollectionFactory;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as PaymentCollectionFactory;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
-use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Sales\Model\Order\Payment;
 
 /**
  * Class CustomerDataBuilder
  */
-class RefundDataBuilder implements BuilderInterface
+class RefundDataBuilder implements RefundDataBuilderInterface
 {
-    const REFUND_STRATEGY_ASCENDING_ORDER = '1';
-    const REFUND_STRATEGY_DESCENDING_ORDER = '2';
-    const REFUND_STRATEGY_BASED_ON_RATIO = '3';
-
     /**
      * @param Data $adyenHelper
      * @param PaymentCollectionFactory $orderPaymentCollectionFactory
@@ -74,7 +70,6 @@ class RefundDataBuilder implements BuilderInterface
         $pspReference = $payment->getCcTransId();
         $currency = $creditMemoAmountCurrency->getCurrencyCode();
         $amount = $creditMemoAmountCurrency->getAmount();
-
 
         //Get Merchant Account
         $storeId = $order->getStoreId();
