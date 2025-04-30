@@ -65,6 +65,10 @@ define([
                     $("#payment-continue").on("click", function () {
                         paymentComponent.showValidation();
                     });
+
+                    if (paymentComponent.isValid) {
+                        self.assignStateData(paymentComponent);
+                    }
                 } else {
                     console.warn('Payment component could not be generated!');
                 }
@@ -78,12 +82,16 @@ define([
             let baseComponentConfiguration = this._super();
 
             baseComponentConfiguration.onChange = function (state) {
-                $('#stateData').val(state.isValid ? JSON.stringify(state.data) : '');
-                self.placeOrderAllowed(!!state.isValid);
-                self.storeCc = !!state.data.storePaymentMethod;
+                self.assignStateData(state);
             };
 
             return baseComponentConfiguration;
+        },
+
+        assignStateData: function (state) {
+            $('#stateData').val(state.isValid ? JSON.stringify(state.data) : '');
+            this.placeOrderAllowed(!!state.isValid);
+            this.storeCc = !!state.data.storePaymentMethod;
         },
 
         // Observable is set to true after div element in `cc-form.html` template is rendered
