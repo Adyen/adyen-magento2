@@ -70,7 +70,7 @@ class Success extends Template
      * Received e.g. Bank Transfer IBAN
      * @return bool
      */
-    public function renderAction()
+    public function renderAction(): bool
     {
         if (
             !empty($this->getOrder()->getPayment()->getAdditionalInformation('resultCode')) &&
@@ -89,12 +89,12 @@ class Success extends Template
         return false;
     }
 
-    public function getAction()
+    public function getAction(): bool|string
     {
         return json_encode($this->getOrder()->getPayment()->getAdditionalInformation('action'));
     }
 
-    public function showAdyenGiving()
+    public function showAdyenGiving(): bool
     {
         return $this->adyenGivingEnabled() && $this->hasDonationToken();
     }
@@ -104,17 +104,17 @@ class Success extends Template
         return (bool) $this->configHelper->adyenGivingEnabled($this->storeManager->getStore()->getId());
     }
 
-    public function hasDonationToken()
+    public function hasDonationToken(): bool
     {
         return $this->getDonationToken() && 'null' !== $this->getDonationToken();
     }
 
-    public function getDonationToken()
+    public function getDonationToken(): bool|string
     {
         return json_encode($this->getOrder()->getPayment()->getAdditionalInformation('donationToken'));
     }
 
-    public function getSerializedCheckoutConfig()
+    public function getSerializedCheckoutConfig(): bool|string
     {
         return $this->serializerInterface->serialize($this->configProvider->getConfig());
     }
@@ -126,18 +126,18 @@ class Success extends Template
         );
     }
 
-    public function getMerchantAccount()
+    public function getMerchantAccount(): ?string
     {
         return $this->configHelper->getMerchantAccount($this->storeManager->getStore()->getId());
     }
 
-    public function getClientKey()
+    public function getClientKey(): ?string
     {
         $environment = $this->configHelper->isDemoMode() ? 'test' : 'live';
         return $this->configHelper->getClientKey($environment);
     }
 
-    public function getEnvironment()
+    public function getEnvironment(): string
     {
         return $this->adyenHelper->getCheckoutEnvironment(
             $this->storeManager->getStore()->getId()
@@ -147,7 +147,7 @@ class Success extends Template
     /**
      * @return Order
      */
-    public function getOrder()
+    public function getOrder(): Order
     {
         if ($this->order == null) {
             $this->order = $this->orderFactory->create()->load($this->checkoutSession->getLastOrderId());

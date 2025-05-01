@@ -7,21 +7,25 @@ use Adyen\Payment\Helper\DonationsHelper;
 use Magento\Quote\Model\QuoteIdMaskFactory;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Quote\Api\CartRepositoryInterface;
 
 class GuestAdyenDonationCampaigns implements GuestAdyenDonationCampaignsInterface
 {
     private QuoteIdMaskFactory $quoteIdMaskFactory;
     private DonationsHelper $donationsHelper;
     private OrderCollectionFactory $orderCollectionFactory;
+    private CartRepositoryInterface $quoteRepository;
 
     public function __construct(
         QuoteIdMaskFactory $quoteIdMaskFactory,
         DonationsHelper $donationsHelper,
-        OrderCollectionFactory $orderCollectionFactory
+        OrderCollectionFactory $orderCollectionFactory,
+        CartRepositoryInterface $quoteRepository,
     ) {
         $this->quoteIdMaskFactory = $quoteIdMaskFactory;
         $this->donationsHelper = $donationsHelper;
         $this->orderCollectionFactory = $orderCollectionFactory;
+        $this->quoteRepository = $quoteRepository;
     }
 
     /**
@@ -36,20 +40,12 @@ class GuestAdyenDonationCampaigns implements GuestAdyenDonationCampaignsInterfac
             throw new LocalizedException(__('Invalid cart ID.'));
         }
 
-        // Fetch the latest order by quote ID
-        $order = $this->orderCollectionFactory->create()
-            ->addFieldToFilter('quote_id', $quoteId)
-            ->setOrder('entity_id', 'DESC')
-            ->getFirstItem();
-
-        if (!$order->getEntityId()) {
-            throw new LocalizedException(__('Order not found for this cart.'));
-        }
+        $quote = $this->quoteRepository->get($quoteId);
 
         $payloadData = json_decode($payload, true);
         $this->donationsHelper->validatePayload($payloadData);
 
-        $donationCampaignsResponse = $this->donationsHelper->fetchDonationCampaigns($payloadData, $order->getStoreId());
+        $donationCampaignsResponse = $this->donationsHelper->fetchDonationCampaigns($payloadData, $quote->getStoreId());
         $campaignsData = $this->donationsHelper->formatCampaign($donationCampaignsResponse);
 
         return json_encode($campaignsData);

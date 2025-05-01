@@ -131,7 +131,6 @@ define(
                         cartId: maskedQuoteId
                     });
                 }
-
                 return storage.post(
                     serviceUrl,
                     JSON.stringify(request),
@@ -149,11 +148,10 @@ define(
                     serviceUrl =  urlBuilder.createUrl('/adyen/orders/carts/mine/donation-campaigns', {});
                     request.orderId = orderId;
                 } else {
-                    serviceUrl =  urlBuilder.createUrl('/adyen/orders/guest-carts/:cartId/donation-campaigns', {
-                        cartId: maskedQuoteId
-                    });
+                    serviceUrl =  urlBuilder.createUrl('/adyen/orders/guest-carts/donation-campaigns', {});
+                    request.cartId = maskedQuoteId;
                 }
-debugger;
+
                 return storage.post(
                     serviceUrl,
                     JSON.stringify(request),

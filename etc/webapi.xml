@@ -135,7 +135,7 @@
         </resources>
     </route>
 
-    <route url="/V1/adyen/orders/guest-carts/:cartId/donation-campaigns" method="POST">
+    <route url="/V1/adyen/orders/guest-carts/donation-campaigns" method="POST">
         <service class="Adyen\Payment\Api\GuestAdyenDonationCampaignsInterface" method="getCampaigns"/>
         <resources>
             <resource ref="anonymous"/>

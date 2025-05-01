@@ -25,6 +25,7 @@ use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Adyen\Service\Checkout\DonationsApi;
 use Adyen\Service\Checkout\ModificationsApi;
 use Adyen\Service\Checkout\OrdersApi;
 use Adyen\Service\Checkout\PaymentLinksApi;
@@ -1790,6 +1791,12 @@ class DataTest extends AbstractAdyenTestCase
     {
         $service = $this->dataHelper->initializePaymentLinksApi($this->clientMock);
         $this->assertInstanceOf(PaymentLinksApi::class, $service);
+    }
+
+    public function testInitializeDonationsApi()
+    {
+        $service = $this->dataHelper->initializeDonationsApi($this->clientMock);
+        $this->assertInstanceOf(DonationsApi::class, $service);
     }
 
     public function testLogAdyenException()
