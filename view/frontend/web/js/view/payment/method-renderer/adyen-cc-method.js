@@ -166,16 +166,16 @@ define(
              * set up the installments
              */
             renderCCPaymentMethod: function() {
-                let componentConfig = this.buildComponentConfiguration();
+                if (!this.cardComponent) {
+                    let componentConfig = this.buildComponentConfiguration();
 
-                this.cardComponent = adyenCheckout.mountPaymentMethodComponent(
-                    this.checkoutComponent,
-                    'card',
-                    componentConfig,
-                    '#cardContainer'
-                )
-
-                return true
+                    this.cardComponent = adyenCheckout.mountPaymentMethodComponent(
+                        this.checkoutComponent,
+                        'card',
+                        componentConfig,
+                        '#cardContainer'
+                    )
+                }
             },
 
             buildComponentConfiguration: function () {
