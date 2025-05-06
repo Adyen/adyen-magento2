@@ -13,12 +13,19 @@ class DonationsHelper extends AbstractHelper
 {
     private Data $adyenHelper;
 
+    /**
+     * @var Config
+     */
+    private Config $configHelper;
+
     public function __construct(
         Context $context,
-        Data $adyenHelper
+        Data $adyenHelper,
+        Config $configHelper
     ) {
         parent::__construct($context);
         $this->adyenHelper = $adyenHelper;
+        $this->configHelper = $configHelper;
     }
 
     /**
@@ -37,6 +44,7 @@ class DonationsHelper extends AbstractHelper
      */
     public function fetchDonationCampaigns(array $payloadData, int $storeId): array
     {
+        $payloadData['merchantAccount'] = $this->configHelper->getMerchantAccount($storeId);
         $request = new DonationCampaignsRequest($payloadData);
 
         try {

@@ -46,9 +46,14 @@
     <div id="ActionContainer"></div>
 <?php endif; ?>
 
-<?php if ($block->showAdyenGiving()): ?>
+<?php if ($block->showAdyenGiving()):
+    $checkoutConfig = /* @noEscape */
+    $block->getSerializedCheckoutConfig();
+    $scriptString = __('window.checkoutConfig = %1;', $checkoutConfig);
+    ?>
     <div id="donation-container"></div>
     <script>
+        <?= /* @noEscape */ $scriptString ?>
         require([
             'jquery',
             'mage/storage',
@@ -56,7 +61,6 @@
             'Adyen_Payment/js/model/adyen-payment-service'
         ], function ($, storage, AdyenWeb, adyenPaymentService) {
             (async function () {
-                const merchantAccount = '<?= $block->escapeJs($block->getMerchantAccount()) ?>';
                 const currency = '<?= $block->escapeJs($block->getOrder()->getOrderCurrencyCode()) ?>';
                 const locale = '<?= $block->escapeJs($block->getLocale()) ?>';
                 const environment = '<?= $block->escapeJs($block->getEnvironment()) ?>';
@@ -65,14 +69,8 @@
                 const isLoggedIn = Boolean(<?= $block->escapeJs($block->getIsCustomerLoggedIn()) ?>);
                 const maskedQuoteId = '<?= $block->escapeJs($block->getMaskedQuoteId()) ?>';
 
-                if (!merchantAccount || !currency) {
-                    console.warn('Missing merchant account or currency for donation component.');
-                    return;
-                }
-
                 try {
                     const payload = {
-                        merchantAccount: merchantAccount,
                         currency: currency,
                         locale: locale
                     };
