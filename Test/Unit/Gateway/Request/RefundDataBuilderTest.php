@@ -20,6 +20,7 @@ use Adyen\Payment\Helper\OpenInvoice;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Model\AdyenAmountCurrency;
 use Adyen\Payment\Model\Order\Payment as AdyenOrderPayment;
+use Adyen\Payment\Model\ResourceModel\Invoice\Collection as AdyenInvoiceCollection;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\Collection;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as PaymentCollectionFactory;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
@@ -38,6 +39,7 @@ class RefundDataBuilderTest extends AbstractAdyenTestCase
     protected Config $configHelperMock;
     protected OpenInvoice $openInvoiceHelperMock;
     protected PaymentMethods $paymentMethodsHelperMock;
+    protected AdyenInvoiceCollection $adyenInvoiceCollection;
 
     /**
      * @return void
@@ -53,6 +55,7 @@ class RefundDataBuilderTest extends AbstractAdyenTestCase
         $this->configHelperMock = $this->createMock(Config::class);
         $this->openInvoiceHelperMock = $this->createMock(OpenInvoice::class);
         $this->paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
+        $this->adyenInvoiceCollection = $this->createMock(AdyenInvoiceCollection::class);
 
         $this->refundDataBuilder = new RefundDataBuilder(
             $this->adyenHelperMock,
@@ -60,7 +63,8 @@ class RefundDataBuilderTest extends AbstractAdyenTestCase
             $this->chargedCurrencyMock,
             $this->configHelperMock,
             $this->openInvoiceHelperMock,
-            $this->paymentMethodsHelperMock
+            $this->paymentMethodsHelperMock,
+            $this->adyenInvoiceCollection
         );
     }
 
