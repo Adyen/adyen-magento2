@@ -177,11 +177,12 @@ class RefundDataBuilder implements BuilderInterface
                 );
                 $firstAdyenInvoice = reset($adyenInvoices);
 
-                $isPaypalManualCapture = boolval(trim((string) $this->configHelper->getConfigData(
+                $isPaypalManualCapture = $this->configHelper->getConfigData(
                     'paypal_capture_mode',
                     'adyen_abstract',
-                    $storeId
-                )));
+                    $storeId,
+                    true
+                );
 
                 if (!empty($adyenInvoices) && $isPaypalManualCapture) {
                     $requestBody[0]['capturePspReference'] = $firstAdyenInvoice[InvoiceInterface::PSPREFERENCE];
