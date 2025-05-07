@@ -1446,7 +1446,6 @@
     </type>
     <type name="Adyen\Payment\Logger\AdyenLogger">
         <arguments>
-            <argument name="name" xsi:type="string">AdyenLoggerTest</argument>
             <argument name="handlers" xsi:type="array">
                 <item name="adyenDebug" xsi:type="object">Adyen\Payment\Logger\Handler\AdyenDebug</item>
                 <item name="adyenNotification" xsi:type="object">Adyen\Payment\Logger\Handler\AdyenNotification</item>
