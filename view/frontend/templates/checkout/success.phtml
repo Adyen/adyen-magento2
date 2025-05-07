@@ -114,7 +114,6 @@
                         const payload = state.data;
                         payload.returnUrl = window.location.href;
                         payload.id = component.props.reference;
-                        debugger;
                         adyenPaymentService.donate(payload, isLoggedIn, orderId, maskedQuoteId)
                             .done(function () {
                                 component.setStatus('success');
