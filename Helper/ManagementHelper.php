@@ -269,7 +269,7 @@ class ManagementHelper
         $response = null;
         try {
             $response = $service->testWebhook($merchantId, $webhookId, $testWebhookRequest);
-            $this->adyenLogger->info(sprintf('response from webhook test %s', $response));
+            $this->adyenLogger->addAdyenInfoLog(sprintf('response from webhook test %s', $response));
         } catch (AdyenException $exception) {
             $this->adyenLogger->error($exception->getMessage());
         }

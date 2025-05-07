@@ -77,7 +77,7 @@ class PaymentCaptureDetailsHandler implements HandlerInterface
     public function handlePartialOrMultipleCaptureRequests(Order\Payment $payment, $responseContainer)
     {
         $lastTransId = null;
-        $this->adyenLogger->info(sprintf(
+        $this->adyenLogger->addAdyenInfoLog(sprintf(
             'Handling partial OR multiple capture response in details handler for order %s',
             $payment->getOrder()->getIncrementId()
         ));

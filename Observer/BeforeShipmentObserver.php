@@ -93,7 +93,7 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
         $paymentMethodInstance = $payment->getMethodInstance();
 
         if (!$this->paymentMethodsHelper->isAdyenPayment($paymentMethod)) {
-            $this->logger->info(
+            $this->logger->addAdyenInfoLog(
                 "Payment method is not from Adyen for order id {$order->getId()}",
                 ['observer' => 'BeforeShipmentObserver']
             );
@@ -108,7 +108,7 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
 
         if (strcmp((string) $openInvoiceCapture, self::ONSHIPMENT_CAPTURE_OPENINVOICE) !== 0)
         {
-            $this->logger->info(
+            $this->logger->addAdyenInfoLog(
                 "Capture on shipment not configured for order id {$order->getId()}",
                 ['observer' => 'BeforeShipmentObserver']
             );
@@ -116,7 +116,7 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
         }
 
         if (!$this->paymentMethodsHelper->isOpenInvoice($paymentMethodInstance)) {
-            $this->logger->info(
+            $this->logger->addAdyenInfoLog(
                 "Payment method is from Adyen but isn't OpenInvoice for order id {$order->getId()}",
                 ['observer' => 'BeforeShipmentObserver']
             );
@@ -124,7 +124,7 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
         }
 
         if (!$order->canInvoice()) {
-            $this->logger->info(
+            $this->logger->addAdyenInfoLog(
                 "Cannot invoice order with id {$order->getId()}",
                 ['observer' => 'BeforeShipmentObserver']
             );

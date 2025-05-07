@@ -1360,7 +1360,7 @@ class Data extends AbstractHelper
             $context['body'] = $this->filterReferences($request);
         }
 
-        $this->adyenLogger->info('Request to Adyen API ' . $endpoint, $context);
+        $this->adyenLogger->addAdyenInfoLog('Request to Adyen API ' . $endpoint, $context);
     }
 
     public function logResponse(array $response)
@@ -1374,7 +1374,7 @@ class Data extends AbstractHelper
             $context['body'] = $this->filterReferences($response);
         }
 
-        $this->adyenLogger->info('Response from Adyen API', $context);
+        $this->adyenLogger->addAdyenInfoLog('Response from Adyen API', $context);
     }
 
     public function logAdyenException(AdyenException $e)
