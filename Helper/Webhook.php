@@ -137,19 +137,21 @@ class Webhook
 
         $payment = $order->getPayment();
         if ($payment instanceof OrderPaymentInterface) {
-            if (!str_starts_with($payment->getMethod(), PaymentMethodsFilter::ADYEN_PREFIX)) {
+            $isAdyenPaymentMethod = $this->paymentMethodsHelper->isAdyenPayment($payment->getMethod());
+
+            if (!$isAdyenPaymentMethod) {
                 $errorMessage = sprintf(
                     'Invalid order payment method "%s" for notification with the event code %s (id %s)',
-                    $order->getPayment()->getMethod(),
+                    $payment->getMethod(),
                     $notification->getEventCode(),
-                    (string) $notification->getEntityId(),
+                    $notification->getEntityId(),
                 );
 
                 $this->logger->addAdyenNotification($errorMessage);
                 $this->updateNotification($notification, false, true);
                 $this->setNotificationError($notification, $errorMessage);
-                return false;
 
+                return false;
             }
         }
 
