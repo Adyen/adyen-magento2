@@ -3,17 +3,15 @@
 namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Client;
-use Adyen\Config as AdyenConfig;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\DonationsHelper;
-use Adyen\Model\Checkout\DonationCampaigns;
 use Adyen\Model\Checkout\DonationCampaignsResponse;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Exception\LocalizedException;
 use Adyen\Service\Checkout;
-use Magento\Framework\Exception\NoSuchEntityException;
+use Adyen\Payment\Logger\AdyenLogger;
 
 class DonationsHelperTest extends AbstractAdyenTestCase
 {
@@ -25,24 +23,24 @@ class DonationsHelperTest extends AbstractAdyenTestCase
      */
     private Config $configHelperMock;
 
+    private AdyenLogger $adyenLoggerMock;
+
     protected function setUp(): void
     {
         $contextMock = $this->createMock(Context::class);
         $this->adyenHelperMock = $this->createMock(Data::class);
         $this->configHelperMock = $this->createMock(Config::class);
+        $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
 
         $this->donationsHelper = new DonationsHelper(
             $contextMock,
             $this->adyenHelperMock,
-            $this->configHelperMock
+            $this->configHelperMock,
+            $this->adyenLoggerMock
         );
 
     }
 
-    /**
-     * @throws NoSuchEntityException
-     * @throws LocalizedException
-     */
     public function testFetchDonationCampaignsSuccess(): void
     {
         $payload = [
@@ -69,13 +67,12 @@ class DonationsHelperTest extends AbstractAdyenTestCase
         $this->assertEquals($expectedArray, $result);
     }
 
-    public function testFetchDonationCampaignsThrowsAdyenException(): void
+    public function testFetchDonationCampaignsThrowsLocalizedExceptionWithGenericMessage(): void
     {
         $this->expectException(LocalizedException::class);
-        $this->expectExceptionMessageMatches('/^Error fetching donation campaigns:/');
+        $this->expectExceptionMessage('Unable to retrieve donation campaigns. Please try again later.');
 
         $payload = [
-            'merchantAccount' => 'TestMerchant',
             'currency' => 'EUR',
             'locale' => 'en-US'
         ];
@@ -88,8 +85,18 @@ class DonationsHelperTest extends AbstractAdyenTestCase
             new \Adyen\AdyenException('Something went wrong')
         );
 
+        $this->configHelperMock->method('getMerchantAccount')->with($storeId)->willReturn('TestMerchant');
+
+        // Optionally assert logging (if you mock $adyenLogger and inject it)
+         $this->adyenLoggerMock->expects($this->once())
+             ->method('error')
+             ->with('Error fetching donation campaigns', $this->callback(function ($context) {
+                 return isset($context['exception']) && $context['exception'] instanceof \Adyen\AdyenException;
+             }));
+
         $this->donationsHelper->fetchDonationCampaigns($payload, $storeId);
     }
+
 
     public function testFormatCampaignReturnsFormattedFirstCampaign(): void
     {

@@ -3,6 +3,7 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Model\Checkout\DonationCampaignsRequest;
+use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Adyen\Payment\Helper\Data;
@@ -17,15 +18,21 @@ class DonationsHelper extends AbstractHelper
      * @var Config
      */
     private Config $configHelper;
+    /**
+     * @var AdyenLogger
+     */
+    protected $adyenLogger;
 
     public function __construct(
         Context $context,
         Data $adyenHelper,
-        Config $configHelper
+        Config $configHelper,
+        AdyenLogger $adyenLogger
     ) {
         parent::__construct($context);
         $this->adyenHelper = $adyenHelper;
         $this->configHelper = $configHelper;
+        $this->adyenLogger = $adyenLogger;
     }
 
     /**
@@ -42,7 +49,8 @@ class DonationsHelper extends AbstractHelper
             $service = $this->adyenHelper->initializeDonationsApi($client);
             return $service->donationCampaigns($request)->toArray();
         } catch (\Adyen\AdyenException $e) {
-            throw new LocalizedException(__('Error fetching donation campaigns: %1', $e->getMessage()));
+            $this->adyenLogger->error('Error fetching donation campaigns', ['exception' => $e]);
+            throw new LocalizedException(__('Unable to retrieve donation campaigns. Please try again later.'));
         }
     }
 

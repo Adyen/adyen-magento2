@@ -148,8 +148,9 @@ define(
                     serviceUrl =  urlBuilder.createUrl('/adyen/orders/carts/mine/donation-campaigns', {});
                     request.orderId = orderId;
                 } else {
-                    serviceUrl =  urlBuilder.createUrl('/adyen/orders/guest-carts/donation-campaigns', {});
-                    request.cartId = maskedQuoteId;
+                    serviceUrl =  urlBuilder.createUrl('/adyen/orders/guest-carts/:cartId/donation-campaigns', {
+                        cartId: maskedQuoteId
+                    });
                 }
 
                 return storage.post(

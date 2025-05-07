@@ -112,7 +112,7 @@ class AdyenDonations implements AdyenDonationsInterface
             $donationsCaptureCommand = $this->commandPool->get('capture');
             $donationsCaptureCommand->execute(['payment' => $payload]);
 
-            // Remove donation token after a successfull donation.
+            // Remove donation token after a successful donation.
             $this->removeDonationToken($order);
         }
         catch (LocalizedException $e) {

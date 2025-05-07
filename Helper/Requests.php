@@ -30,7 +30,6 @@ class Requests extends AbstractHelper
         'paywithgoogle' => 'scheme',
         'applepay' => 'scheme'
     ];
-    const SHOPPER_INTERACTION_CONTAUTH = 'ContAuth';
 
     private Data $adyenHelper;
     private Config $adyenConfig;
@@ -415,7 +414,6 @@ class Requests extends AbstractHelper
             'donationOriginalPspReference' => $buildSubject['donationOriginalPspReference'],
             'returnUrl' => $buildSubject['returnUrl'],
             'merchantAccount' => $this->adyenHelper->getAdyenMerchantAccount('adyen_giving', $storeId),
-            'shopperInteraction' => self::SHOPPER_INTERACTION_CONTAUTH
         ];
     }
 

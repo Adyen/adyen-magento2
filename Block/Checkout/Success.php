@@ -89,7 +89,7 @@ class Success extends Template
         return false;
     }
 
-    public function getAction(): bool|string
+    public function getAction()
     {
         return json_encode($this->getOrder()->getPayment()->getAdditionalInformation('action'));
     }
@@ -124,11 +124,6 @@ class Success extends Template
         return $this->adyenHelper->getCurrentLocaleCode(
             $this->storeManager->getStore()->getId()
         );
-    }
-
-    public function getMerchantAccount(): ?string
-    {
-        return $this->configHelper->getMerchantAccount($this->storeManager->getStore()->getId());
     }
 
     public function getClientKey(): ?string
