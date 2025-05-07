@@ -12,20 +12,17 @@ use Magento\Quote\Api\CartRepositoryInterface;
 class GuestAdyenDonationCampaigns implements GuestAdyenDonationCampaignsInterface
 {
     private QuoteIdMaskFactory $quoteIdMaskFactory;
-    private DonationsHelper $donationsHelper;
-    private CartRepositoryInterface $quoteRepository;
+    private AdyenDonationCampaigns $adyenDonationCampaigns;
     private OrderRepository $orderRepository;
 
     public function __construct(
         QuoteIdMaskFactory $quoteIdMaskFactory,
-        DonationsHelper $donationsHelper,
-        CartRepositoryInterface $quoteRepository,
-        OrderRepository $orderRepository
+        OrderRepository $orderRepository,
+        AdyenDonationCampaigns $adyenDonationCampaigns
     ) {
         $this->quoteIdMaskFactory = $quoteIdMaskFactory;
-        $this->donationsHelper = $donationsHelper;
-        $this->quoteRepository = $quoteRepository;
         $this->orderRepository = $orderRepository;
+        $this->adyenDonationCampaigns = $adyenDonationCampaigns;
     }
 
     /**
@@ -40,23 +37,8 @@ class GuestAdyenDonationCampaigns implements GuestAdyenDonationCampaignsInterfac
             throw new LocalizedException(__('Invalid cart ID.'));
         }
 
-        $quote = $this->quoteRepository->get($quoteId);
-
         $order = $this->orderRepository->getOrderByQuoteId($quoteId);
 
-        $donationToken = $order->getPayment()->getAdditionalInformation('donationToken');
-
-
-        if (!$donationToken) {
-            throw new LocalizedException(__('Donation failed!'));
-        }
-
-        $payloadData = json_decode($payload, true);
-        $this->donationsHelper->validatePayload($payloadData);
-
-        $donationCampaignsResponse = $this->donationsHelper->fetchDonationCampaigns($payloadData, $quote->getStoreId());
-        $campaignsData = $this->donationsHelper->formatCampaign($donationCampaignsResponse);
-
-        return json_encode($campaignsData);
+        return $this->adyenDonationCampaigns->getCampaignData($order, $payload);
     }
 }

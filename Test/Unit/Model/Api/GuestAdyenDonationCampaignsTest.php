@@ -2,96 +2,72 @@
 
 namespace Adyen\Payment\Test\Unit\Model\Api;
 
-use Adyen\Payment\Helper\DonationsHelper;
-use Adyen\Payment\Helper\StateData;
+use Adyen\Payment\Model\Api\AdyenDonationCampaigns;
 use Adyen\Payment\Model\Api\GuestAdyenDonationCampaigns;
+use Adyen\Payment\Model\Sales\OrderRepository;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\QuoteIdMask;
 use Magento\Quote\Model\QuoteIdMaskFactory;
-use Magento\Sales\Model\ResourceModel\Order\CollectionFactory;
+use Magento\Sales\Model\Order;
 
 class GuestAdyenDonationCampaignsTest extends AbstractAdyenTestCase
 {
+    private $quoteIdMaskFactoryMock;
+    private $adyenDonationCampaignsMock;
+    private $orderRepositoryMock;
+    private $guestDonationCampaigns;
+
     protected function setUp(): void
     {
-        $this->quoteIdMaskFactoryMock = $this->createGeneratedMock(QuoteIdMaskFactory::class, [
-            'create'
-        ]);
-        $this->donationsHelperMock = $this->createMock(DonationsHelper::class);
-        $this->orderCollectionFactoryMock = $this->createMock(CollectionFactory::class);
-        $this->quoteRepositoryMock = $this->createMock(CartRepositoryInterface::class);
+        $this->quoteIdMaskFactoryMock = $this->createMock(QuoteIdMaskFactory::class);
+        $this->adyenDonationCampaignsMock = $this->createMock(AdyenDonationCampaigns::class);
+        $this->orderRepositoryMock = $this->createMock(OrderRepository::class);
 
         $this->guestDonationCampaigns = new GuestAdyenDonationCampaigns(
             $this->quoteIdMaskFactoryMock,
-            $this->donationsHelperMock,
-            $this->orderCollectionFactoryMock,
-            $this->quoteRepositoryMock
+            $this->orderRepositoryMock,
+            $this->adyenDonationCampaignsMock
         );
     }
 
-    /**
-     * @throws LocalizedException
-     */
     public function testGetCampaignsSuccess(): void
     {
-        $cartId = 'abc123';
-        $payloadData = [
-            'merchantAccount' => 'TestMerchant',
-            'currency' => 'EUR',
-            'locale' => 'en-US'
-        ];
-        $payloadJson = json_encode($payloadData);
+        $cartId = '123';
         $quoteId = 42;
-        $storeId = 1;
+        $payload = json_encode(['currency' => 'EUR']);
 
+        // Mock QuoteIdMask and its factory
         $quoteIdMaskMock = $this->createGeneratedMock(QuoteIdMask::class, ['load', 'getQuoteId']);
         $quoteIdMaskMock->method('load')->willReturn($quoteIdMaskMock);
         $quoteIdMaskMock->method('getQuoteId')->willReturn($quoteId);
 
-        $this->quoteIdMaskFactoryMock->method('create')
-            ->willReturn($quoteIdMaskMock);
+        $this->quoteIdMaskFactoryMock->method('create')->willReturn($quoteIdMaskMock);
 
-        // Mock Quote
-        $quoteMock = $this->createMock(Quote::class);
-        $quoteMock->method('getStoreId')->willReturn($storeId);
-        $this->quoteRepositoryMock->method('get')->with($quoteId)->willReturn($quoteMock);
+        // Mock Order object
+        $orderMock = $this->createMock(Order::class);
+        $this->orderRepositoryMock->method('getOrderByQuoteId')->with($quoteId)->willReturn($orderMock);
 
-        // Expectations on DonationsHelper
-        $this->donationsHelperMock->expects($this->once())
-            ->method('validatePayload')->with($payloadData);
+        $expectedResponse = json_encode(['donationCampaigns' => [['reference' => 'abc']]]);
 
-        $campaignResponse = ['donationCampaigns' => [['id' => 'abc']]];
-        $formattedResponse = ['donationCampaigns' => [['reference' => 'abc']]];
+        // Mock call to getCampaignData
+        $this->adyenDonationCampaignsMock->expects($this->once())
+            ->method('getCampaignData')
+            ->with($orderMock, $payload)
+            ->willReturn($expectedResponse);
 
-        $this->donationsHelperMock->expects($this->once())
-            ->method('fetchDonationCampaigns')
-            ->with($payloadData, $storeId)
-            ->willReturn($campaignResponse);
+        $result = $this->guestDonationCampaigns->getCampaigns($cartId, $payload);
 
-        $this->donationsHelperMock->expects($this->once())
-            ->method('formatCampaign')
-            ->with($campaignResponse)
-            ->willReturn($formattedResponse);
-
-        $result = $this->guestDonationCampaigns->getCampaigns($cartId, $payloadJson);
-
-        $this->assertEquals(json_encode($formattedResponse), $result);
+        $this->assertEquals($expectedResponse, $result);
     }
 
-    public function testGetCampaignsThrowsExceptionWhenQuoteIdNotFound(): void
+    public function testGetCampaignsThrowsIfQuoteIdMissing(): void
     {
         $this->expectException(LocalizedException::class);
         $this->expectExceptionMessage('Invalid cart ID.');
 
-        $cartId = 'invalid123';
-        $payloadJson = json_encode([
-            'merchantAccount' => 'TestMerchant',
-            'currency' => 'EUR',
-            'locale' => 'en-US'
-        ]);
+        $cartId = 'badcartid';
+        $payload = json_encode(['currency' => 'EUR']);
 
         $quoteIdMaskMock = $this->createGeneratedMock(QuoteIdMask::class, ['load', 'getQuoteId']);
         $quoteIdMaskMock->method('load')->willReturn($quoteIdMaskMock);
@@ -99,6 +75,6 @@ class GuestAdyenDonationCampaignsTest extends AbstractAdyenTestCase
 
         $this->quoteIdMaskFactoryMock->method('create')->willReturn($quoteIdMaskMock);
 
-        $this->guestDonationCampaigns->getCampaigns($cartId, $payloadJson);
+        $this->guestDonationCampaigns->getCampaigns($cartId, $payload);
     }
 }

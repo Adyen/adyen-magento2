@@ -4,6 +4,7 @@ namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Client;
 use Adyen\Config as AdyenConfig;
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\DonationsHelper;
 use Adyen\Model\Checkout\DonationCampaigns;
@@ -17,40 +18,25 @@ use Magento\Framework\Exception\NoSuchEntityException;
 class DonationsHelperTest extends AbstractAdyenTestCase
 {
     private DonationsHelper $donationsHelper;
-    private $adyenHelperMock;
+    private Data $adyenHelperMock;
+
+    /**
+     * @var Config
+     */
+    private Config $configHelperMock;
 
     protected function setUp(): void
     {
         $contextMock = $this->createMock(Context::class);
         $this->adyenHelperMock = $this->createMock(Data::class);
-
+        $this->configHelperMock = $this->createMock(Config::class);
 
         $this->donationsHelper = new DonationsHelper(
             $contextMock,
-            $this->adyenHelperMock
+            $this->adyenHelperMock,
+            $this->configHelperMock
         );
 
-    }
-
-    public function testValidatePayloadSuccess(): void
-    {
-        $validPayload = [
-            'merchantAccount' => 'TestMerchant',
-            'currency' => 'EUR',
-            'locale' => 'en-US'
-        ];
-
-        $this->donationsHelper->validatePayload($validPayload);
-        $this->assertTrue(true); // If no exception is thrown, test passes
-    }
-
-    public function testValidatePayloadThrowsException(): void
-    {
-        $this->expectException(LocalizedException::class);
-        $this->expectExceptionMessage('Invalid donation campaigns request payload.');
-
-        $invalidPayload = ['merchantAccount' => '', 'currency' => '', 'locale' => ''];
-        $this->donationsHelper->validatePayload($invalidPayload);
     }
 
     /**

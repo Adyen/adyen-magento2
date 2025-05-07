@@ -2,58 +2,130 @@
 
 namespace Adyen\Payment\Test\Unit\Model\Api;
 
+use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\DonationsHelper;
+use Adyen\Payment\Model\AdyenAmountCurrency;
 use Adyen\Payment\Model\Api\AdyenDonationCampaigns;
 use Adyen\Payment\Model\Sales\OrderRepository;
-use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Sales\Model\Order;
+use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Model\Order\Payment;
+use PHPUnit\Framework\TestCase;
 
-class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
+class AdyenDonationCampaignsTest extends TestCase
 {
-    private DonationsHelper $donationsHelperMock;
-    private OrderRepository $orderRepositoryMock;
-    private AdyenDonationCampaigns $adyenDonationCampaigns;
+    private $donationsHelperMock;
+    private $orderRepositoryMock;
+    private $chargedCurrencyMock;
+    private $adyenDonationCampaigns;
 
     protected function setUp(): void
     {
+        $this->paymentMock = $this->createMock(Payment::class);
         $this->donationsHelperMock = $this->createMock(DonationsHelper::class);
         $this->orderRepositoryMock = $this->createMock(OrderRepository::class);
+        $this->chargedCurrencyMock = $this->createMock(ChargedCurrency::class);
 
         $this->adyenDonationCampaigns = new AdyenDonationCampaigns(
             $this->donationsHelperMock,
-            $this->orderRepositoryMock
+            $this->orderRepositoryMock,
+            $this->chargedCurrencyMock
         );
     }
 
-    /**
-     * @throws LocalizedException
-     */
     public function testGetCampaignsSuccess(): void
     {
-        $orderId = 123;
-        $payloadArray = [
-            'merchantAccount' => 'TestMerchant',
-            'currency' => 'EUR',
-            'locale' => 'en-US'
-        ];
-        $payloadJson = json_encode($payloadArray);
+        $orderId = 100;
+        $payload = json_encode([
+            'currency' => 'EUR'
+        ]);
 
-        $orderMock = $this->createMock(Order::class);
-        $orderMock->method('getEntityId')->willReturn($orderId);
-        $orderMock->method('getStoreId')->willReturn(1);
-
-        $campaignResponse = ['donationCampaigns' => [['id' => '123']]];
-        $formattedResponse = ['donationCampaigns' => [['reference' => '123']]];
+        $orderMock = $this->createConfiguredMock(OrderInterface::class, [
+            'getEntityId' => $orderId
+        ]);
 
         $this->orderRepositoryMock->expects($this->once())
             ->method('get')
             ->with($orderId)
             ->willReturn($orderMock);
 
-        $this->donationsHelperMock->expects($this->once())
-            ->method('validatePayload')
-            ->with($payloadArray);
+        // Delegate to getCampaignData — mock with real test instead
+        $campaignDataMock = '{"donationCampaigns":[{"reference":"abc"}]}';
+
+        $adyenMock = $this->getMockBuilder(AdyenDonationCampaigns::class)
+            ->setConstructorArgs([
+                $this->donationsHelperMock,
+                $this->orderRepositoryMock,
+                $this->chargedCurrencyMock
+            ])
+            ->onlyMethods(['getCampaignData'])
+            ->getMock();
+
+        $adyenMock->expects($this->once())
+            ->method('getCampaignData')
+            ->with($orderMock, $payload)
+            ->willReturn($campaignDataMock);
+
+        $result = $adyenMock->getCampaigns($orderId, $payload);
+        $this->assertEquals($campaignDataMock, $result);
+    }
+
+    public function testGetCampaignsThrowsIfOrderNotFound(): void
+    {
+        $this->expectException(LocalizedException::class);
+        $this->expectExceptionMessage('Order not found.');
+
+        $orderId = 200;
+        $payload = '{}';
+
+        $orderMock = $this->createConfiguredMock(OrderInterface::class, [
+            'getEntityId' => null
+        ]);
+
+        $this->orderRepositoryMock->method('get')->with($orderId)->willReturn($orderMock);
+
+        $this->adyenDonationCampaigns->getCampaigns($orderId, $payload);
+    }
+
+    public function testGetCampaignDataThrowsIfNoDonationToken(): void
+    {
+        $this->expectException(LocalizedException::class);
+        $this->expectExceptionMessage('Donation failed!');
+
+        $payload = json_encode(['currency' => 'EUR']);
+
+
+        $this->paymentMock->method('getAdditionalInformation')->with('donationToken')->willReturn(null);
+
+        $orderMock = $this->createConfiguredMock(OrderInterface::class, [
+            'getPayment' => $this->paymentMock
+        ]);
+
+        $this->adyenDonationCampaigns->getCampaignData($orderMock, $payload);
+    }
+
+    public function testGetCampaignDataSuccess(): void
+    {
+        $payloadArray = ['currency' => 'EUR'];
+        $payload = json_encode($payloadArray);
+
+        $this->paymentMock->method('getAdditionalInformation')
+            ->with('donationToken')
+            ->willReturn('valid_token');
+
+        $orderMock = $this->createMock(\Magento\Sales\Model\Order::class);
+        $orderMock->method('getPayment')->willReturn($this->paymentMock);
+        $orderMock->method('getStoreId')->willReturn(1);
+
+        $adyenAmountCurrencyMock = $this->createMock(AdyenAmountCurrency::class);
+        $adyenAmountCurrencyMock->method('getCurrencyCode')->willReturn('EUR');
+
+        $this->chargedCurrencyMock->method('getOrderAmountCurrency')
+            ->with($orderMock, false)
+            ->willReturn($adyenAmountCurrencyMock);
+
+        $campaignResponse = ['donationCampaigns' => [['id' => 'abc']]];
+        $formattedResponse = ['donationCampaigns' => [['reference' => 'abc']]];
 
         $this->donationsHelperMock->expects($this->once())
             ->method('fetchDonationCampaigns')
@@ -65,27 +137,34 @@ class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
             ->with($campaignResponse)
             ->willReturn($formattedResponse);
 
-        $result = $this->adyenDonationCampaigns->getCampaigns($orderId, $payloadJson);
+        $result = $this->adyenDonationCampaigns->getCampaignData($orderMock, $payload);
+
         $this->assertEquals(json_encode($formattedResponse), $result);
     }
 
-    public function testGetCampaignsThrowsIfOrderNotFound(): void
+    public function testGetCampaignDataThrowsIfCurrencyMismatch(): void
     {
         $this->expectException(LocalizedException::class);
-        $this->expectExceptionMessage('Order not found.');
+        $this->expectExceptionMessage('Donation failed!');
 
-        $orderId = 123;
-        $payloadJson = json_encode([
-            'merchantAccount' => 'TestMerchant',
-            'currency' => 'EUR',
-            'locale' => 'en-US'
-        ]);
+        $payload = json_encode(['currency' => 'USD']);
 
-        $orderMock = $this->createMock(Order::class);
-        $orderMock->method('getEntityId')->willReturn(null); // Order not found
+        $this->paymentMock->method('getAdditionalInformation')
+            ->with('donationToken')
+            ->willReturn('valid_token');
 
-        $this->orderRepositoryMock->method('get')->with($orderId)->willReturn($orderMock);
+        $orderMock = $this->createMock(\Magento\Sales\Model\Order::class);
+        $orderMock->method('getPayment')->willReturn($this->paymentMock);
+        $orderMock->method('getStoreId')->willReturn(1);
 
-        $this->adyenDonationCampaigns->getCampaigns($orderId, $payloadJson);
+        $adyenAmountCurrencyMock = $this->createMock(AdyenAmountCurrency::class);
+        $adyenAmountCurrencyMock->method('getCurrencyCode')->willReturn('EUR');
+
+        $this->chargedCurrencyMock->method('getOrderAmountCurrency')
+            ->with($orderMock, false)
+            ->willReturn($adyenAmountCurrencyMock);
+
+        $this->adyenDonationCampaigns->getCampaignData($orderMock, $payload);
     }
+
 }

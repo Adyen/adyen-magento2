@@ -29,16 +29,6 @@ class DonationsHelper extends AbstractHelper
     }
 
     /**
-     * @throws LocalizedException
-     */
-    public function validatePayload(array $payloadData): void
-    {
-        if (empty($payloadData['merchantAccount']) || empty($payloadData['currency']) || empty($payloadData['locale'])) {
-            throw new LocalizedException(__('Invalid donation campaigns request payload.'));
-        }
-    }
-
-    /**
      * @throws NoSuchEntityException
      * @throws LocalizedException
      */
