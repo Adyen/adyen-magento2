@@ -35,7 +35,14 @@ class WebhookTest extends AbstractAdyenTestCase
             ->method('addAdyenNotification')
             ->with($this->stringContains('Invalid merchant reference'));
 
-        $webhookHandler = $this->createWebhookHelper(null,null,null,null,null,$logger,null,null,null);
+        $webhookHandler = $this->createWebhookHelper(
+            null,
+            null,
+            null,
+            null,
+            null,
+            $logger
+        );
 
         $result = $webhookHandler->processNotification($notification);
 
@@ -53,7 +60,16 @@ class WebhookTest extends AbstractAdyenTestCase
 
         $logger = $this->createMock(AdyenLogger::class);
 
-        $webhookHandler = $this->createWebhookHelper(null, null, null, null, null, $logger, null, $orderHelper, null);
+        $webhookHandler = $this->createWebhookHelper(
+            null,
+            null,
+            null,
+            null,
+            null,
+            $logger,
+            null,
+            $orderHelper
+        );
 
         $result = $webhookHandler->processNotification($notification);
 
@@ -63,7 +79,7 @@ class WebhookTest extends AbstractAdyenTestCase
     public function testGetCurrentStateWithValidOrderState()
     {
         $orderState = Order::STATE_NEW;
-        $webhookHandler = $this->createWebhookHelper(null,null,null,null,null,null,null,null,null);
+        $webhookHandler = $this->createWebhookHelper();
         $currentState = $this->invokeMethod($webhookHandler,'getCurrentState',[$orderState]);
         $this->assertEquals(Webhook::WEBHOOK_ORDER_STATE_MAPPING[$orderState], $currentState);
     }
@@ -151,7 +167,7 @@ class WebhookTest extends AbstractAdyenTestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $webhook = $this->createWebhookHelper(null,null,null,null,null,null,null,null,null);
+        $webhook = $this->createWebhookHelper();
 
         $result = $this->invokeMethod($webhook,'addNotificationDetailsHistoryComment',[$orderMock, $notificationMock]);
 
@@ -164,7 +180,7 @@ class WebhookTest extends AbstractAdyenTestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $webhook = $this->createWebhookHelper(null, null, null, null, null, null, null, null, null);
+        $webhook = $this->createWebhookHelper();
 
         $method = new ReflectionMethod(Webhook::class, 'getTransitionState');
         $method->setAccessible(true);
@@ -501,11 +517,7 @@ class WebhookTest extends AbstractAdyenTestCase
             null,
             null,
             null,
-            $chargedCurrencyMock,
-            null,
-            null,
-            null,
-            null
+            $chargedCurrencyMock
         );
 
         $notificationMock->method('getEventCode')
@@ -552,11 +564,7 @@ class WebhookTest extends AbstractAdyenTestCase
             null,
             null,
             $configHelperMock,
-            $chargedCurrencyMock,
-            null,
-            null,
-            null,
-            null
+            $chargedCurrencyMock
         );
 
         $notificationMock->method('getEventCode')
@@ -596,7 +604,7 @@ class WebhookTest extends AbstractAdyenTestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $webhook = $this->createWebhookHelper(null,null,null,null,null,null,null,null,null);
+        $webhook = $this->createWebhookHelper();
 
         $additionalData = [
             'avsResult' => 'avs_result_value',
@@ -675,8 +683,7 @@ class WebhookTest extends AbstractAdyenTestCase
         $mockOrderHelper = null,
         $mockOrderRepository = null,
         $paymentMethodsHelperMock = null
-    ): Webhook
-    {
+    ): Webhook {
         if (is_null($mockAdyenHelper)) {
             $mockAdyenHelper = $this->createMock(Data::class);
         }
