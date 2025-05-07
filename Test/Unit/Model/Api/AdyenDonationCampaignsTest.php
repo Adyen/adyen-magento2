@@ -73,7 +73,7 @@ class AdyenDonationCampaignsTest extends TestCase
     public function testGetCampaignsThrowsIfOrderNotFound(): void
     {
         $this->expectException(LocalizedException::class);
-        $this->expectExceptionMessage('Order not found.');
+        $this->expectExceptionMessage('Donation failed!');
 
         $orderId = 200;
         $payload = '{}';

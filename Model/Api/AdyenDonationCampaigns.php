@@ -35,7 +35,7 @@ class AdyenDonationCampaigns implements AdyenDonationCampaignsInterface
         $order = $this->orderRepository->get($orderId);
 
         if (!$order->getEntityId()) {
-            throw new LocalizedException(__('Order not found.'));
+            throw new LocalizedException(__('Donation failed!'));
         }
 
         return $this->getCampaignData($order, $payload);
