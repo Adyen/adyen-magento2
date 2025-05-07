@@ -140,7 +140,7 @@ class Webhook
             if (!str_starts_with($payment->getMethod(), PaymentMethodsFilter::ADYEN_PREFIX)) {
                 $errorMessage = sprintf(
                     'Invalid order payment method "%s" for notification with the event code %s (id %s)',
-                    $order->getPayment()->getMethod(),
+                    $payment->getMethod(),
                     $notification->getEventCode(),
                     (string) $notification->getEntityId(),
                 );
