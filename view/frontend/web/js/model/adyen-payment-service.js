@@ -177,12 +177,12 @@ define(
             saveStateData: function (stateData) {
                 let urlPath = '/adyen/guest-carts/:cartId/state-data';
                 let urlParams = {cartId: quote.getQuoteId()};
-                
+
                 if (customer.isLoggedIn()) {
                     urlPath = '/adyen/carts/mine/state-data';
                     urlParams = {};
-                } 
-                
+                }
+
                 let serviceUrl = urlBuilder.createUrl(urlPath, urlParams);
                 let request = {
                     stateData: JSON.stringify(stateData)
