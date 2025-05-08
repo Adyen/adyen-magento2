@@ -14,6 +14,14 @@ Inside Adyen toggle the following settings on inside the API and Responses secti
 
 ## Requirements
 This plugin supports Magento 2 version 2.4.4 and higher.
+> ⚠️ Note: To support enhanced security via CSP (Content Security Policy) nonces, the plugin depends on functionality introduced in the following Magento versions:
+>
+> - Magento 2.4.4-p9 and above
+> - Magento 2.4.5-p8 and above
+> - Magento 2.4.6-p6 and above
+>
+> These versions introduce `NonceProviderInterface`, which is used to secure PayPal SDK integration in compliance with CSP. Plugin installation will be blocked on lower versions using Composer `conflict` rules.
+
 
 ## Releases
 
