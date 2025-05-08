@@ -57,7 +57,8 @@ class PartialPayments extends Template
         if ($infoBlock instanceof AbstractInfo) {
             return $this->getInfoBlock()->isDemoMode();
         } else {
-            return false;
+            // Fallback to demo mode if the info block is missing
+            return true;
         }
     }
 }
