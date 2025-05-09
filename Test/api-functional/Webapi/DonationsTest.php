@@ -21,7 +21,6 @@ class DonationsTest extends WebapiAbstract
 
     private $maskedQuoteId;
 
-
     protected function setUp(): void
     {
         $objectManager = Bootstrap::getObjectManager();

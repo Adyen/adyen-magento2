@@ -10,6 +10,7 @@
  */
 namespace Adyen\Payment\Test\Model\Resolver;
 
+use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Api\AdyenStateData;
 use Adyen\Payment\Model\Resolver\SaveAdyenStateData;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
@@ -18,42 +19,35 @@ use Magento\Catalog\Model\Layer\ContextInterface;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
-use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
-use Magento\Quote\Model\QuoteIdMask;
-use Magento\Quote\Model\QuoteIdMaskFactory;
+use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 
 class SaveAdyenStateDataTest extends AbstractAdyenTestCase
 {
-    private $saveAdyenStateDataResolver;
-    private $adyenStateDataHelperMock;
-    private $quoteIdMaskFactoryMock;
-    private $quoteIdMaskMock;
-    private $fieldMock;
-    private $contextMock;
-    private $infoMock;
+    private SaveAdyenStateData $saveAdyenStateDataResolver;
+    private AdyenStateData|MockObject $adyenStateDataHelperMock;
+    private Field|MockObject $fieldMock;
+    private ContextInterface|MockObject $contextMock;
+    private ResolveInfo|MockObject $infoMock;
+    private MaskedQuoteIdToQuoteIdInterface|MockObject $maskedQuoteIdToQuoteIdMock;
+    private AdyenLogger|MockObject $adyenLoggerMock;
 
     public function setUp(): void
     {
-        $this->objectManager = new ObjectManager($this);
-
         $this->adyenStateDataHelperMock = $this->createMock(AdyenStateData::class);
         $this->fieldMock = $this->createMock(Field::class);
         $this->contextMock = $this->createMock(ContextInterface::class);
         $this->infoMock = $this->createMock(ResolveInfo::class);
+        $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
 
-        $this->quoteIdMaskMock = $this->createGeneratedMock(QuoteIdMask::class, ['load', 'getQuoteId']);
-        $this->quoteIdMaskMock->method('load')->willReturn($this->quoteIdMaskMock);
-        $this->quoteIdMaskMock->method('getQuoteId')->willReturn(1);
+        $this->maskedQuoteIdToQuoteIdMock = $this->createMock(MaskedQuoteIdToQuoteIdInterface::class);
+        $this->maskedQuoteIdToQuoteIdMock->method('execute')->willReturn(1);
 
-        $this->quoteIdMaskFactoryMock = $this->createGeneratedMock(QuoteIdMaskFactory::class, [
-            'create'
-        ]);
-        $this->quoteIdMaskFactoryMock->method('create')->willReturn($this->quoteIdMaskMock);
-
-        $this->saveAdyenStateDataResolver = $this->objectManager->getObject(SaveAdyenStateData::class, [
-            'adyenStateData' => $this->adyenStateDataHelperMock,
-            'quoteIdMaskFactory' => $this->quoteIdMaskFactoryMock
-        ]);
+        $this->saveAdyenStateDataResolver = new SaveAdyenStateData(
+            $this->adyenStateDataHelperMock,
+            $this->maskedQuoteIdToQuoteIdMock,
+            $this->adyenLoggerMock,
+        );
     }
 
     public function testResolve()
@@ -63,7 +57,7 @@ class SaveAdyenStateDataTest extends AbstractAdyenTestCase
 
         $args = [
             'stateData' => $stateData,
-            'cartId' => 1
+            'cartId' => '1'
         ];
 
         $this->adyenStateDataHelperMock->expects($this->once())->method('save')->willReturn($stateDataId);
@@ -86,7 +80,7 @@ class SaveAdyenStateDataTest extends AbstractAdyenTestCase
 
         $args = [
             'stateData' => "{}",
-            'cartId' => 1
+            'cartId' => '1'
         ];
 
         $this->adyenStateDataHelperMock->expects($this->once())
@@ -133,7 +127,7 @@ class SaveAdyenStateDataTest extends AbstractAdyenTestCase
         return [
             [
                 'stateData' => '',
-                'cartId' => 1
+                'cartId' => '1'
             ],
             [
                 'stateData' => "{}",
@@ -145,7 +139,7 @@ class SaveAdyenStateDataTest extends AbstractAdyenTestCase
             ],
             [
                 'stateData' => null,
-                'cartId' => 1
+                'cartId' => '1'
             ]
         ];
     }

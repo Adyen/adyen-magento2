@@ -623,7 +623,7 @@ class ManagementHelperTest extends AbstractAdyenTestCase
         $helper = $this->createManagementHelper(null,null,null,null,$adyenLogger);
         $service = $this->createMock(WebhooksMerchantLevelApi::class);
         $service->expects($this->once())->method('testWebhook')->willThrowException(new AdyenException());
-        $adyenLogger->expects($this->never())->method('info');
+        $adyenLogger->expects($this->never())->method('addAdyenInfoLog');
         $adyenLogger->expects($this->once())->method('error');
         $helper->webhookTest($webhookId, $merchantId, $service);
     }

@@ -15,7 +15,6 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Adyen\Payment\Observer\BeforeShipmentObserver;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Exception;
@@ -88,7 +87,7 @@ class BeforeShipmentObserverTest extends AbstractAdyenTestCase
 
         $this->paymentMock->method('getMethod')->willReturn($randomPaymentMethod);
 
-        $this->adyenLoggerMock->expects($this->once())->method('info');
+        $this->adyenLoggerMock->expects($this->once())->method('addAdyenInfoLog');
         $this->configHelperMock->expects($this->never())->method('getConfigData');
 
         $this->beforeShipmentObserver->execute($this->observerMock);
@@ -108,7 +107,7 @@ class BeforeShipmentObserverTest extends AbstractAdyenTestCase
             ->with('capture_for_openinvoice', BeforeShipmentObserver::XML_ADYEN_ABSTRACT_PREFIX, 1)
             ->willReturn('manual');
 
-        $this->adyenLoggerMock->expects($this->once())->method('info');
+        $this->adyenLoggerMock->expects($this->once())->method('addAdyenInfoLog');
         $this->paymentMock->expects($this->never())->method('getAdditionalInformation');
 
         $this->beforeShipmentObserver->execute($this->observerMock);
@@ -132,7 +131,7 @@ class BeforeShipmentObserverTest extends AbstractAdyenTestCase
             ->with('capture_for_openinvoice', BeforeShipmentObserver::XML_ADYEN_ABSTRACT_PREFIX, 1)
             ->willReturn(BeforeShipmentObserver::ONSHIPMENT_CAPTURE_OPENINVOICE);
 
-        $this->adyenLoggerMock->expects($this->once())->method('info');
+        $this->adyenLoggerMock->expects($this->once())->method('addAdyenInfoLog');
         $this->orderMock->expects($this->never())->method('canInvoice');
 
         $this->beforeShipmentObserver->execute($this->observerMock);
@@ -158,7 +157,7 @@ class BeforeShipmentObserverTest extends AbstractAdyenTestCase
 
         $this->orderMock->method('canInvoice')->willReturn(false);
 
-        $this->adyenLoggerMock->expects($this->once())->method('info');
+        $this->adyenLoggerMock->expects($this->once())->method('addAdyenInfoLog');
 
         $this->beforeShipmentObserver->execute($this->observerMock);
     }

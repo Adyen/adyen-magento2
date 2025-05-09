@@ -12,6 +12,7 @@
 
 namespace Adyen\Payment\Helper\Webhook;
 
+use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\CaseManagement;
 use Adyen\Payment\Helper\ChargedCurrency;
@@ -41,6 +42,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
      * @param Invoice $invoiceHelper
      * @param PaymentMethods $paymentMethodsHelper
      * @param CartRepositoryInterface $cartRepository
+     * @param AdyenNotificationRepositoryInterface $notificationRepository
      */
     public function __construct(
         private readonly AdyenOrderPayment $adyenOrderPaymentHelper,
@@ -52,7 +54,8 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         private readonly Config $configHelper,
         private readonly Invoice $invoiceHelper,
         private readonly PaymentMethods $paymentMethodsHelper,
-        private readonly CartRepositoryInterface $cartRepository
+        private readonly CartRepositoryInterface $cartRepository,
+        private readonly AdyenNotificationRepositoryInterface $notificationRepository
     ) { }
 
     /**
@@ -254,7 +257,8 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
 
         $notification->setDone(true);
         $notification->setProcessing(false);
-        $notification->save();
+
+        $this->notificationRepository->save($notification);
 
         $order->addStatusHistoryComment(__(sprintf(
             "Order wasn't cancelled by this webhook notification. Pay by Link failure count: %s/%s",

@@ -37,6 +37,8 @@ class WebhookRemovalNotice implements CommentInterface
                 'Enabling this feature will remove %1 processed webhooks from the database!',
                 $notificationCollection->getSize()
             );
+        } else {
+            return '';
         }
     }
 }

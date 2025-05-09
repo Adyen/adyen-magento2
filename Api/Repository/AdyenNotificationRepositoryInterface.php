@@ -12,8 +12,18 @@
 
 namespace Adyen\Payment\Api\Repository;
 
+use Adyen\Payment\Api\Data\NotificationInterface;
+
 interface AdyenNotificationRepositoryInterface
 {
+    /**
+     * Performs persist operations for a specified adyen_notification.
+     *
+     * @param NotificationInterface $entity adyen_notification entity
+     * @return NotificationInterface
+     */
+    public function save(NotificationInterface $entity): NotificationInterface;
+
     /**
      * @param array $entityIds
      * @return void

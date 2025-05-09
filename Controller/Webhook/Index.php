@@ -13,6 +13,7 @@ namespace Adyen\Payment\Controller\Webhook;
 
 use Adyen\Exception\AuthenticationException;
 use Adyen\Exception\MerchantAccountCodeException;
+use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\IpAddress;
@@ -24,7 +25,6 @@ use Adyen\Webhook\Exception\HMACKeyValidationException;
 use Adyen\Webhook\Exception\InvalidDataException;
 use Adyen\Webhook\Receiver\HmacSignature;
 use Adyen\Webhook\Receiver\NotificationReceiver;
-use DateTime;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\CsrfAwareActionInterface;
@@ -40,61 +40,10 @@ use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 class Index extends Action
 {
     /**
-     * @var NotificationFactory
-     */
-    private $notificationFactory;
-
-    /**
-     * @var Data
-     */
-    private $adyenHelper;
-
-    /**
-     * @var AdyenLogger
-     */
-    private $adyenLogger;
-
-    /**
-     * @var SerializerInterface
-     */
-    private $serializer;
-
-    /**
-     * @var Config
-     */
-    private $configHelper;
-
-    /**
-     * @var IpAddress
-     */
-    private $ipAddressHelper;
-
-    /**
-     * @var RateLimiter
-     */
-    private $rateLimiterHelper;
-
-    /**
-     * @var HmacSignature
-     */
-    private $hmacSignature;
-
-    /**
-     * @var NotificationReceiver
-     */
-    private $notificationReceiver;
-
-    /**
-     * @var RemoteAddress
-     */
-    private $remoteAddress;
-
-    private Http $request;
-
-    /**
      * Json constructor.
      *
      * @param Context $context
+     * @param NotificationFactory $notificationFactory
      * @param Data $adyenHelper
      * @param AdyenLogger $adyenLogger
      * @param SerializerInterface $serializer
@@ -104,33 +53,23 @@ class Index extends Action
      * @param HmacSignature $hmacSignature
      * @param NotificationReceiver $notificationReceiver
      * @param RemoteAddress $remoteAddress
+     * @param AdyenNotificationRepositoryInterface $notificationRepository
      */
     public function __construct(
         Context $context,
-        NotificationFactory $notificationFactory,
-        Data $adyenHelper,
-        AdyenLogger $adyenLogger,
-        SerializerInterface $serializer,
-        Config $configHelper,
-        IpAddress $ipAddressHelper,
-        RateLimiter $rateLimiterHelper,
-        HmacSignature $hmacSignature,
-        NotificationReceiver $notificationReceiver,
-        RemoteAddress $remoteAddress,
-        Http $request
+        private readonly NotificationFactory $notificationFactory,
+        private readonly Data $adyenHelper,
+        private readonly AdyenLogger $adyenLogger,
+        private readonly SerializerInterface $serializer,
+        private readonly Config $configHelper,
+        private readonly IpAddress $ipAddressHelper,
+        private readonly RateLimiter $rateLimiterHelper,
+        private readonly HmacSignature $hmacSignature,
+        private readonly NotificationReceiver $notificationReceiver,
+        private readonly RemoteAddress $remoteAddress,
+        private readonly AdyenNotificationRepositoryInterface $notificationRepository
     ) {
         parent::__construct($context);
-        $this->notificationFactory = $notificationFactory;
-        $this->adyenHelper = $adyenHelper;
-        $this->adyenLogger = $adyenLogger;
-        $this->serializer = $serializer;
-        $this->configHelper = $configHelper;
-        $this->ipAddressHelper = $ipAddressHelper;
-        $this->rateLimiterHelper = $rateLimiterHelper;
-        $this->hmacSignature = $hmacSignature;
-        $this->notificationReceiver = $notificationReceiver;
-        $this->remoteAddress = $remoteAddress;
-        $this->request = $request;
 
         // Fix for Magento2.3 adding isAjax to the request params
         if (interface_exists(CsrfAwareActionInterface::class)) {
@@ -289,7 +228,8 @@ class Index extends Action
         $notification = $this->notificationFactory->create();
         $this->loadNotificationFromRequest($notification, $response);
         $notification->setLive($notificationMode);
-        $notification->save();
+
+        $this->notificationRepository->save($notification);
 
         $this->adyenLogger->addAdyenResult(sprintf("Notification %s is accepted", $notification->getId()));
 
