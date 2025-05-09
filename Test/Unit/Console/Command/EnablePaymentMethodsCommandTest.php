@@ -3,8 +3,6 @@
 namespace Adyen\Payment\Test\Unit\Console\Command;
 
 use Adyen\Payment\Console\Command\EnablePaymentMethodsCommand;
-use Adyen\Payment\Helper\Config;
-use Adyen\Payment\Helper\ConfigFactory;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\PaymentMethodsFactory;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
@@ -30,17 +28,11 @@ class EnablePaymentMethodsCommandTest extends AbstractAdyenTestCase
         );
         $paymentMethodsFactoryMock->method('create')->willReturn($paymentMethodMock);
 
-        $configHelperMock = $this->createMock(Config::class);
-
-        /** @phpstan-ignore-next-line */
-        $configHelperFactoryMock = $this->createGeneratedMock(ConfigFactory::class, ['create']);
-        $configHelperFactoryMock->method('create')->willReturn($configHelperMock);
-
         $inputMock = $this->createMock(InputInterface::class);
         $outputMock = $this->createMock(OutputInterface::class);
 
         // Create the command instance
-        $command = new EnablePaymentMethodsCommand($paymentMethodsFactoryMock, $configHelperFactoryMock);
+        $command = new EnablePaymentMethodsCommand($paymentMethodsFactoryMock);
 
         // Execute the command
         $result = $command->run($inputMock, $outputMock);
