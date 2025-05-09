@@ -9,24 +9,23 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-// @codingStandardsIgnoreFile
+/**
+ * @var Boleto $block
+ */
+
+use Adyen\Payment\Block\Info\Boleto;
 
 ?>
-<?php
-$_info = $block->getInfo();
-?>
+
 <dl class="payment-method adyen_cc">
     <dt class="title"><?= $block->escapeHtml($block->getMethod()->getTitle()) ?></dt>
     <dt class="title"><a target="_blank" href="<?= $block->escapeHtml(
         $block->getPaymentActionData('downloadUrl')
     ); ?>"><?= $block->escapeHtml(__("Click here to download Boleto PDF.")); ?></a></dt>
 
-    <?php if ($block->getPartialPayments()): ?>
-        <dt class="title"><b><?= $block->escapeHtml(__("Partial Payments")) ?></b></dt>
-        <?php foreach ($block->getPartialPayments() as $payment): ?>
-            <dt class="title">
-                <?= $block->escapeHtml(sprintf("%s - %s", ucwords($payment->getPaymentMethod()), $payment->getFormattedAmountWithCurrency())) ?>
-            </dt>
-        <?php endforeach; ?>
-    <?php endif; ?>
+    <?php
+        if ($block->getPartialPayments()->getSize() > 1) {
+            echo $block->renderPartialPaymentsHtml();
+        }
+    ?>
 </dl>
