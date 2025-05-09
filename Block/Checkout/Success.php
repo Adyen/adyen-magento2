@@ -109,7 +109,7 @@ class Success extends Template
         return $this->getDonationToken() && 'null' !== $this->getDonationToken();
     }
 
-    public function getDonationToken(): bool|string
+    public function getDonationToken()
     {
         return json_encode($this->getOrder()->getPayment()->getAdditionalInformation('donationToken'));
     }
