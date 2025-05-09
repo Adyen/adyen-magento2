@@ -244,7 +244,7 @@ class PaymentRequest extends DataObject
             $response = $service->disable(new DisableRequest($request));
             $result = (array) $response->jsonSerialize();
         } catch (Exception $e) {
-            $this->adyenLogger->info($e->getMessage());
+            $this->adyenLogger->addAdyenInfoLog($e->getMessage());
         }
 
         if (isset($result['response']) && $result['response'] == '[detail-successfully-disabled]') {

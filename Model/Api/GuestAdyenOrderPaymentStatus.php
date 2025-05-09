@@ -56,7 +56,7 @@ class GuestAdyenOrderPaymentStatus implements GuestAdyenOrderPaymentStatusInterf
         $additionalInformation = $payment->getAdditionalInformation();
 
         if (empty($additionalInformation['resultCode'])) {
-            $this->adyenLogger->info('resultCode is empty in the payment\'s additional information');
+            $this->adyenLogger->addAdyenInfoLog('resultCode is empty in the payment\'s additional information');
             return json_encode(
                 $this->paymentResponseHandler->formatPaymentResponse(PaymentResponseHandler::ERROR)
             );
