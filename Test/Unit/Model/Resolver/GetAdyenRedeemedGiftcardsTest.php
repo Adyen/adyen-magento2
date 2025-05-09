@@ -12,6 +12,7 @@ namespace Adyen\Payment\Test\Model\Resolver;
 
 use Adyen\Payment\Exception\GraphQlAdyenException;
 use Adyen\Payment\Helper\GiftcardPayment;
+use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Resolver\GetAdyenRedeemedGiftcards;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Exception;
@@ -32,12 +33,14 @@ class GetAdyenRedeemedGiftcardsTest extends AbstractAdyenTestCase
     private ContextInterface|MockObject $contextMock;
     private ResolveInfo|MockObject $resolveInfoMock;
     private MaskedQuoteIdToQuoteIdInterface|MockObject $maskedQuoteIdToQuoteIdMock;
+    private AdyenLogger|MockObject $adyenLoggerMock;
 
     protected function setUp(): void
     {
         $this->giftcardPaymentMock = $this->createMock(GiftcardPayment::class);
         $this->jsonSerializerMock = $this->createMock(Json::class);
         $this->maskedQuoteIdToQuoteIdMock = $this->createMock(MaskedQuoteIdToQuoteIdInterface::class);
+        $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
 
         $this->fieldMock = $this->createMock(Field::class);
         $this->contextMock = $this->createMock(ContextInterface::class);
@@ -46,7 +49,8 @@ class GetAdyenRedeemedGiftcardsTest extends AbstractAdyenTestCase
         $this->getAdyenRedeemedGiftcards = new GetAdyenRedeemedGiftcards(
             $this->giftcardPaymentMock,
             $this->jsonSerializerMock,
-            $this->maskedQuoteIdToQuoteIdMock
+            $this->maskedQuoteIdToQuoteIdMock,
+            $this->adyenLoggerMock
         );
     }
 

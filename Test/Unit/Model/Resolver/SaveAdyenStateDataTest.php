@@ -10,6 +10,7 @@
  */
 namespace Adyen\Payment\Test\Model\Resolver;
 
+use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Api\AdyenStateData;
 use Adyen\Payment\Model\Resolver\SaveAdyenStateData;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
@@ -29,6 +30,7 @@ class SaveAdyenStateDataTest extends AbstractAdyenTestCase
     private ContextInterface|MockObject $contextMock;
     private ResolveInfo|MockObject $infoMock;
     private MaskedQuoteIdToQuoteIdInterface|MockObject $maskedQuoteIdToQuoteIdMock;
+    private AdyenLogger|MockObject $adyenLoggerMock;
 
     public function setUp(): void
     {
@@ -36,13 +38,15 @@ class SaveAdyenStateDataTest extends AbstractAdyenTestCase
         $this->fieldMock = $this->createMock(Field::class);
         $this->contextMock = $this->createMock(ContextInterface::class);
         $this->infoMock = $this->createMock(ResolveInfo::class);
+        $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
 
         $this->maskedQuoteIdToQuoteIdMock = $this->createMock(MaskedQuoteIdToQuoteIdInterface::class);
         $this->maskedQuoteIdToQuoteIdMock->method('execute')->willReturn(1);
 
         $this->saveAdyenStateDataResolver = new SaveAdyenStateData(
             $this->adyenStateDataHelperMock,
-            $this->maskedQuoteIdToQuoteIdMock
+            $this->maskedQuoteIdToQuoteIdMock,
+            $this->adyenLoggerMock,
         );
     }
 

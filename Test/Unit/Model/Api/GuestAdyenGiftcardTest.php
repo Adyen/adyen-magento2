@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Test\Unit\Model\Api;
 
 use Adyen\Payment\Helper\GiftcardPayment;
+use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Api\GuestAdyenGiftcard;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -23,6 +24,7 @@ class GuestAdyenGiftcardTest extends AbstractAdyenTestCase
     protected ?GuestAdyenGiftcard $guestAdyenGiftcard;
     protected MockObject|GiftcardPayment $giftcardPaymentHelperMock;
     protected MockObject|MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId;
+    protected MockObject|AdyenLogger $adyenLoggerMock;
 
     /**
      * @return void
@@ -31,10 +33,12 @@ class GuestAdyenGiftcardTest extends AbstractAdyenTestCase
     {
         $this->giftcardPaymentHelperMock = $this->createMock(GiftcardPayment::class);
         $this->maskedQuoteIdToQuoteId = $this->createMock(MaskedQuoteIdToQuoteIdInterface::class);
+        $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
 
         $this->guestAdyenGiftcard = new GuestAdyenGiftcard(
             $this->giftcardPaymentHelperMock,
-            $this->maskedQuoteIdToQuoteId
+            $this->maskedQuoteIdToQuoteId,
+            $this->adyenLoggerMock
         );
     }
 

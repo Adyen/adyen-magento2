@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Test\Unit\Model\Api;
 
+use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Api\AdyenPaymentsDetails;
 use Adyen\Payment\Model\Api\GuestAdyenPaymentsDetails;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
@@ -26,17 +27,20 @@ class GuestAdyenPaymentsDetailsTest extends AbstractAdyenTestCase
     private OrderRepositoryInterface|MockObject $orderRepositoryMock;
     private AdyenPaymentsDetails|MockObject $adyenPaymentsDetailsMock;
     private MaskedQuoteIdToQuoteIdInterface|MockObject $maskedQuoteIdToQuoteIdMock;
+    private AdyenLogger|MockObject $adyenLoggerMock;
 
     protected function setUp(): void
     {
         $this->orderRepositoryMock = $this->createMock(OrderRepositoryInterface::class);
         $this->adyenPaymentsDetailsMock = $this->createMock(AdyenPaymentsDetails::class);
         $this->maskedQuoteIdToQuoteIdMock = $this->createMock(MaskedQuoteIdToQuoteIdInterface::class);
+        $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
 
         $this->guestAdyenPaymentsDetails = new GuestAdyenPaymentsDetails(
             $this->orderRepositoryMock,
             $this->adyenPaymentsDetailsMock,
-            $this->maskedQuoteIdToQuoteIdMock
+            $this->maskedQuoteIdToQuoteIdMock,
+            $this->adyenLoggerMock
         );
     }
 
@@ -78,7 +82,7 @@ class GuestAdyenPaymentsDetailsTest extends AbstractAdyenTestCase
         $orderQuoteId = 200;
 
         $this->maskedQuoteIdToQuoteIdMock->expects($this->once())->method('execute')->willReturn($cartId);
-        
+
         $orderMock = $this->createMock(OrderInterface::class);
         $orderMock->method('getQuoteId')->willReturn($orderQuoteId);
 

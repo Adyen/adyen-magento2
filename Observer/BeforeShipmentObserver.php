@@ -42,9 +42,9 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
     private ConfigHelper $configHelper;
 
     /**
-     * @var LoggerInterface
+     * @var AdyenLogger
      */
-    private LoggerInterface $logger;
+    private AdyenLogger $logger;
 
     /**
      * @var InvoiceRepository

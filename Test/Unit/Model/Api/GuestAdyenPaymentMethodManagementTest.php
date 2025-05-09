@@ -2,6 +2,7 @@
 
 namespace Adyen\Payment\Test\Unit\Model\Api;
 
+use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Api\GuestAdyenPaymentMethodManagement;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
@@ -19,14 +20,21 @@ class GuestAdyenPaymentMethodManagementTest extends AbstractAdyenTestCase
     /** @var GuestAdyenPaymentMethodManagement */
     private GuestAdyenPaymentMethodManagement $guestAdyenPaymentMethodManagement;
 
+    /**
+     * @var AdyenLogger
+     */
+    private AdyenLogger $adyenLoggerMock;
+
     protected function setUp(): void
     {
         $this->maskedQuoteIdToQuoteIdMock = $this->createMock(MaskedQuoteIdToQuoteIdInterface::class);
         $this->paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
+        $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
 
         $this->guestAdyenPaymentMethodManagement = new GuestAdyenPaymentMethodManagement(
             $this->paymentMethodsHelperMock,
-            $this->maskedQuoteIdToQuoteIdMock
+            $this->maskedQuoteIdToQuoteIdMock,
+            $this->adyenLoggerMock
         );
     }
 

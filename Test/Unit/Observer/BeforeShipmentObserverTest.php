@@ -15,7 +15,6 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Adyen\Payment\Observer\BeforeShipmentObserver;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Exception;

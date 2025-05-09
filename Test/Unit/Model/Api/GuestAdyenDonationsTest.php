@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Test\Unit\Model\Api;
 
 use Adyen\AdyenException;
+use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Api\AdyenDonations;
 use Adyen\Payment\Model\Api\GuestAdyenDonations;
 use Adyen\Payment\Model\Sales\OrderRepository;
@@ -34,10 +35,13 @@ class GuestAdyenDonationsTest extends AbstractAdyenTestCase
 
         $orderRepositoryMock = $this->createMock(OrderRepository::class);
 
+        $adyenLoggerMock = $this->createMock(AdyenLogger::class);
+
         $guestAdyenDonations = new GuestAdyenDonations(
             $adyenDonationsModelMock,
             $orderRepositoryMock,
-            $maskedQuoteIdToQuoteIdMock
+            $maskedQuoteIdToQuoteIdMock,
+            $adyenLoggerMock
         );
 
         $guestAdyenDonations->donate(1, '');
@@ -54,10 +58,13 @@ class GuestAdyenDonationsTest extends AbstractAdyenTestCase
             'getOrderByQuoteId' => $this->createMock(OrderInterface::class)
         ]);
 
+        $adyenLoggerMock = $this->createMock(AdyenLogger::class);
+
         $guestAdyenDonations = new GuestAdyenDonations(
             $adyenDonationsModelMock,
             $orderRepositoryMock,
-            $maskedQuoteIdToQuoteIdMock
+            $maskedQuoteIdToQuoteIdMock,
+            $adyenLoggerMock
         );
 
         $guestAdyenDonations->donate(1, '');
