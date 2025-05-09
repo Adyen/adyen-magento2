@@ -73,7 +73,7 @@ class GetAdyenRedeemedGiftcards implements ResolverInterface
             $redeemedGiftcardsJson = $this->giftcardPayment->fetchRedeemedGiftcards($quoteId);
         } catch (\Exception $e) {
             $errorMessage = sprintf(
-                "An error occurred while fetching redeemed gift cards: %1",
+                "An error occurred while fetching redeemed gift cards: %s",
                 $e->getMessage()
             );
             $this->adyenLogger->error($errorMessage);

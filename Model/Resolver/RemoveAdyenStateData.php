@@ -75,7 +75,7 @@ class RemoveAdyenStateData implements ResolverInterface
             $result = $this->adyenStateData->remove((int) $args['stateDataId'], $quoteId);
         } catch (Exception $e) {
             $this->adyenLogger->error(sprintf(
-                "An error occurred while removing the state data: %1",
+                "An error occurred while removing the state data: %s",
                 $e->getMessage()
             ));
             throw new GraphQlAdyenException(__('An error occurred while removing the state data.'));
