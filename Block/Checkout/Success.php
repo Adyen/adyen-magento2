@@ -17,6 +17,7 @@ use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Model\Ui\AdyenCheckoutSuccessConfigProvider;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Customer\Model\Session as CustomerSession;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\QuoteIdToMaskedQuoteId;
 use Magento\Framework\Serialize\SerializerInterface;
@@ -141,6 +142,7 @@ class Success extends Template
 
     /**
      * @return Order
+     * @throws LocalizedException
      */
     public function getOrder(): Order
     {
@@ -148,6 +150,20 @@ class Success extends Template
             $this->order = $this->orderFactory->create()->load($this->checkoutSession->getLastOrderId());
         }
         return $this->order;
+    }
+
+    /**
+     * @return int
+     * @throws LocalizedException
+     */
+    public function getOrderAmount()
+    {
+        if ($this->order == null) {
+            $this->order = $this->orderFactory->create()->load($this->checkoutSession->getLastOrderId());
+        }
+        $amount = $this->order->getGrandTotal();
+        $currency = $this->order->getOrderCurrencyCode();
+        return $this->adyenHelper->formatAmount($amount, $currency);
     }
 
     /**

@@ -91,7 +91,7 @@ class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
             ->with($this->stringContains("Failed to load order with ID $orderId"));
 
         $result = $this->adyenDonationCampaigns->getCampaigns($orderId);
-        $this->assertEquals(json_encode([]), $result);
+        $this->assertEquals('null', $result);
     }
 
     public function testGetCampaignsWithEmptyEntityId(): void
@@ -106,7 +106,7 @@ class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
             ->with($this->stringContains("Order ID $orderId has no entity ID"));
 
         $result = $this->adyenDonationCampaigns->getCampaigns($orderId);
-        $this->assertEquals(json_encode([]), $result);
+        $this->assertEquals('null', $result);
     }
 
     public function testGetCampaignDataSuccess(): void
@@ -153,7 +153,7 @@ class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
             ->with($this->stringContains('Missing donation token'));
 
         $result = $this->adyenDonationCampaigns->getCampaignData($this->orderMock);
-        $this->assertEquals(json_encode([]), $result);
+        $this->assertEquals('null', $result);
     }
 
     public function testGetCampaignDataThrowsException(): void
@@ -179,6 +179,6 @@ class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
             ->with($this->stringContains('Failed to fetch donation campaigns'));
 
         $result = $this->adyenDonationCampaigns->getCampaignData($this->orderMock);
-        $this->assertEquals(json_encode([]), $result);
+        $this->assertEquals('null', $result);
     }
 }

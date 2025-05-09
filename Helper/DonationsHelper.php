@@ -59,14 +59,18 @@ class DonationsHelper extends AbstractHelper
 
         $firstCampaign = $campaignList[0];
 
+        //Doing this workaround for now, Will be fixed with next API Library version
+        //RoundUp works with donation.type and not with donation.donationType
+        $firstCampaign['donation']['type'] = $firstCampaign['donation']['donationType'] ?? '';
         return [
                 'nonprofitName' => $firstCampaign['nonprofitName'] ?? '',
-                'description' => $firstCampaign['nonprofitDescription'] ?? '',
+                'nonprofitDescription' => $firstCampaign['nonprofitDescription'] ?? '',
                 'nonprofitUrl' => $firstCampaign['nonprofitUrl'] ?? '',
                 'logoUrl' => $firstCampaign['logoUrl'] ?? '',
                 'bannerUrl' => $firstCampaign['bannerUrl'] ?? '',
                 'termsAndConditionsUrl' => $firstCampaign['termsAndConditionsUrl'] ?? '',
-                'donation' => $firstCampaign['donation'] ?? []
+                'donation' => $firstCampaign['donation'] ?? [],
+                'causeName' => $firstCampaign['causeName'] ?? '',
             ];
     }
 

@@ -138,11 +138,9 @@ define(
                 );
             },
 
-            donationCampaigns: function (data, isLoggedIn, orderId, maskedQuoteId) {
+            donationCampaigns: function (isLoggedIn, orderId, maskedQuoteId) {
                 let serviceUrl;
-                let request = {
-                    payload: JSON.stringify(data)
-                };
+                let request = {};
 
                 if (isLoggedIn) {
                     serviceUrl =  urlBuilder.createUrl('/adyen/orders/carts/mine/donation-campaigns', {});

@@ -77,6 +77,7 @@ script;
     $environment = $block->escapeJs($block->getEnvironment());
     $clientKey = $block->escapeJs($block->getClientKey());
     $countryCode = $block->escapeJs($block->getOrder()->getBillingAddress()->getCountryId());
+    $orderAmount = $block->escapeJs($block->getOrderAmount());
 
     $scriptGiving = <<<script
         require([
@@ -95,12 +96,8 @@ script;
                 const maskedQuoteId = '$maskedQuoteId';
 
                 try {
-                    const payload = {
-                        locale: locale
-                    };
-
-                    const campaignResponse = JSON.parse(await adyenPaymentService.donationCampaigns(payload, isLoggedIn, orderId, maskedQuoteId));
-                    if (campaignResponse != []) {
+                    const campaignResponse = JSON.parse(await adyenPaymentService.donationCampaigns(isLoggedIn, orderId, maskedQuoteId));
+                    if (campaignResponse != null) {
                         await mountAdyenGivingComponent(campaignResponse);
                     }
                 } catch (error) {
@@ -115,12 +112,14 @@ script;
                             environment: environment,
                             clientKey: clientKey
                         });
-
                         const donationConfig = {
                             ...campaign,
                             onDonate: handleOnDonate,
                             onCancel: handleOnCancel
                         };
+                        if(campaign.donation.type == 'roundup') {
+                            donationConfig.commercialTxAmount = '$orderAmount'
+                        }
                         adyenGivingComponent = new window.AdyenWeb.Donation(
                             checkoutComponent,
                             donationConfig

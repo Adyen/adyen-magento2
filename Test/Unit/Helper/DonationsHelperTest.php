@@ -100,18 +100,20 @@ class DonationsHelperTest extends AbstractAdyenTestCase
                 'logoUrl' => 'https://example.com/logo.png',
                 'bannerUrl' => 'https://example.com/banner.png',
                 'termsAndConditionsUrl' => 'https://example.com/terms',
-                'donation' => ['amount' => 500]
+                'donation' => ['amount' => 500, 'type' => 'roundup'],
+                'causeName' => 'Adyen Giving'
             ]]
         ];
 
         $expected = [
             'nonprofitName' => 'Red Cross',
-            'description' => 'Helping people',
+            'nonprofitDescription' => 'Helping people',
             'nonprofitUrl' => 'https://example.com',
             'logoUrl' => 'https://example.com/logo.png',
             'bannerUrl' => 'https://example.com/banner.png',
             'termsAndConditionsUrl' => 'https://example.com/terms',
-            'donation' => ['amount' => 500]
+            'donation' => ['amount' => 500, 'type' => ''],
+            'causeName' => 'Adyen Giving'
         ];
 
         $result = $this->donationsHelper->formatCampaign($response);

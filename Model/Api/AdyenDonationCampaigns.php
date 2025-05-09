@@ -48,12 +48,12 @@ class AdyenDonationCampaigns implements AdyenDonationCampaignsInterface
             $this->adyenLogger->error(
                 'Cannot fetch donation campaigns.Failed to load order with ID ' . $orderId . ': ' . $e->getMessage()
             );
-            return json_encode([]);
+            return 'null';
         }
 
         if (!$order->getEntityId()) {
             $this->adyenLogger->error("Order ID $orderId has no entity ID. Cannot fetch donation campaigns.");
-            return json_encode([]);
+            return 'null';
         }
 
         return $this->getCampaignData($order);
@@ -68,7 +68,7 @@ class AdyenDonationCampaigns implements AdyenDonationCampaignsInterface
         $donationToken = $order->getPayment()->getAdditionalInformation('donationToken');
         if (!$donationToken) {
             $this->adyenLogger->error('Missing donation token in payment additional information.');
-            return json_encode([]);
+            return 'null';
         }
 
         $payloadData = [];
@@ -88,7 +88,7 @@ class AdyenDonationCampaigns implements AdyenDonationCampaignsInterface
             return json_encode($campaignsData);
         } catch (\Exception $e) {
             $this->adyenLogger->error('Failed to fetch donation campaigns: ' . $e->getMessage());
-            return json_encode([]);
+            return 'null';
         }
     }
 
