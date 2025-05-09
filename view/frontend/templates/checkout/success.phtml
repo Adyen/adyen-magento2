@@ -96,14 +96,12 @@ script;
 
                 try {
                     const payload = {
-                        currency: currency,
                         locale: locale
                     };
 
-                    const response = JSON.parse(await adyenPaymentService.donationCampaigns(payload, isLoggedIn, orderId, maskedQuoteId));
-                    if (response?.donationCampaigns?.length > 0) {
-                        const campaign = response.donationCampaigns[0];
-                        await mountAdyenGivingComponent(campaign);
+                    const campaignResponse = JSON.parse(await adyenPaymentService.donationCampaigns(payload, isLoggedIn, orderId, maskedQuoteId));
+                    if (campaignResponse != []) {
+                        await mountAdyenGivingComponent(campaignResponse);
                     }
                 } catch (error) {
                     console.error('Failed to fetch donation campaigns:', error);
@@ -135,9 +133,9 @@ script;
 
                 function handleOnDonate(state, component) {
                     if (state.isValid) {
+                        console.log(state.data)
                         const payload = state.data;
                         payload.returnUrl = window.location.href;
-                        payload.id = component.props.reference;
                         adyenPaymentService.donate(payload, isLoggedIn, orderId, maskedQuoteId)
                             .done(function () {
                                 component.setStatus('success');

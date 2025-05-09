@@ -28,7 +28,7 @@ class GuestAdyenDonationCampaigns implements GuestAdyenDonationCampaignsInterfac
     /**
      * {@inheritdoc}
      */
-    public function getCampaigns(string $cartId, string $payload): string
+    public function getCampaigns(string $cartId): string
     {
         $quoteIdMask = $this->quoteIdMaskFactory->create()->load($cartId, 'masked_id');
         $quoteId = $quoteIdMask->getQuoteId();
@@ -39,6 +39,6 @@ class GuestAdyenDonationCampaigns implements GuestAdyenDonationCampaignsInterfac
 
         $order = $this->orderRepository->getOrderByQuoteId($quoteId);
 
-        return $this->adyenDonationCampaigns->getCampaignData($order, $payload);
+        return $this->adyenDonationCampaigns->getCampaignData($order);
     }
 }

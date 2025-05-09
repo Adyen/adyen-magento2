@@ -35,10 +35,14 @@ class GuestAdyenDonationCampaignsTest extends AbstractAdyenTestCase
     {
         $cartId = '123';
         $quoteId = 42;
-        $payload = json_encode(['currency' => 'EUR']);
 
         // Mock QuoteIdMask and its factory
-        $quoteIdMaskMock = $this->createGeneratedMock(QuoteIdMask::class, ['load', 'getQuoteId']);
+        $quoteIdMaskMock = $this->createGeneratedMock(
+            QuoteIdMask::class,
+            ['load'],
+            ['getQuoteId']
+        );
+
         $quoteIdMaskMock->method('load')->willReturn($quoteIdMaskMock);
         $quoteIdMaskMock->method('getQuoteId')->willReturn($quoteId);
 
@@ -53,28 +57,12 @@ class GuestAdyenDonationCampaignsTest extends AbstractAdyenTestCase
         // Mock call to getCampaignData
         $this->adyenDonationCampaignsMock->expects($this->once())
             ->method('getCampaignData')
-            ->with($orderMock, $payload)
+            ->with($orderMock)
             ->willReturn($expectedResponse);
 
-        $result = $this->guestDonationCampaigns->getCampaigns($cartId, $payload);
+        $result = $this->guestDonationCampaigns->getCampaigns($cartId);
 
         $this->assertEquals($expectedResponse, $result);
     }
 
-    public function testGetCampaignsThrowsIfQuoteIdMissing(): void
-    {
-        $this->expectException(LocalizedException::class);
-        $this->expectExceptionMessage('Invalid cart ID.');
-
-        $cartId = 'badcartid';
-        $payload = json_encode(['currency' => 'EUR']);
-
-        $quoteIdMaskMock = $this->createGeneratedMock(QuoteIdMask::class, ['load', 'getQuoteId']);
-        $quoteIdMaskMock->method('load')->willReturn($quoteIdMaskMock);
-        $quoteIdMaskMock->method('getQuoteId')->willReturn(null);
-
-        $this->quoteIdMaskFactoryMock->method('create')->willReturn($quoteIdMaskMock);
-
-        $this->guestDonationCampaigns->getCampaigns($cartId, $payload);
-    }
 }

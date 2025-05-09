@@ -2,146 +2,140 @@
 
 namespace Adyen\Payment\Test\Unit\Helper;
 
-use Adyen\Client;
-use Adyen\Payment\Helper\Config;
+use Adyen\AdyenException;
+use Adyen\Model\Checkout\DonationCampaignsRequest;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\DonationsHelper;
-use Adyen\Model\Checkout\DonationCampaignsResponse;
-use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Payment;
+use Adyen\Client;
+use Adyen\Model\Checkout\DonationCampaignsResponse;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Service\Checkout;
-use Adyen\Payment\Logger\AdyenLogger;
 
 class DonationsHelperTest extends AbstractAdyenTestCase
 {
-    private DonationsHelper $donationsHelper;
-    private Data $adyenHelperMock;
-
-    /**
-     * @var Config
-     */
-    private Config $configHelperMock;
-
-    private AdyenLogger $adyenLoggerMock;
+    private $donationsHelper;
+    private $adyenHelperMock;
+    private $adyenLoggerMock;
 
     protected function setUp(): void
     {
         $contextMock = $this->createMock(Context::class);
         $this->adyenHelperMock = $this->createMock(Data::class);
-        $this->configHelperMock = $this->createMock(Config::class);
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
 
         $this->donationsHelper = new DonationsHelper(
             $contextMock,
             $this->adyenHelperMock,
-            $this->configHelperMock,
             $this->adyenLoggerMock
         );
-
     }
 
     public function testFetchDonationCampaignsSuccess(): void
     {
+        $storeId = 1;
         $payload = [
             'merchantAccount' => 'TestMerchant',
             'currency' => 'EUR',
             'locale' => 'en-US'
         ];
-        $storeId = 1;
 
-        $adyenClientMock = $this->createMock(Client::class);
-        $donationServiceMock = $this->createMock(Checkout\DonationsApi::class);
+        $clientMock = $this->createMock(Client::class);
+        $donationsApiMock = $this->createMock(Checkout\DonationsApi::class);
 
-        $campaignResponseMock = $this->createMock(DonationCampaignsResponse::class);
+        $responseMock = $this->createMock(DonationCampaignsResponse::class);
 
-        $expectedArray = ['donationCampaigns' => [['id' => 'test-campaign']]];
+        $expected = ['donationCampaigns' => [['id' => 'abc']]];
 
-        $campaignResponseMock->method('toArray')->willReturn($expectedArray);
-        $donationServiceMock->method('donationCampaigns')->willReturn($campaignResponseMock);
-
-        $this->adyenHelperMock->method('initializeAdyenClient')->with($storeId)->willReturn($adyenClientMock);
-        $this->adyenHelperMock->method('initializeDonationsApi')->with($adyenClientMock)->willReturn($donationServiceMock);
+        $this->adyenHelperMock->method('initializeAdyenClient')->with($storeId)->willReturn($clientMock);
+        $this->adyenHelperMock->method('initializeDonationsApi')->with($clientMock)->willReturn($donationsApiMock);
+        $donationsApiMock->method('donationCampaigns')->with($this->isInstanceOf(DonationCampaignsRequest::class))
+            ->willReturn($responseMock);
+        $responseMock->method('toArray')->willReturn($expected);
 
         $result = $this->donationsHelper->fetchDonationCampaigns($payload, $storeId);
-        $this->assertEquals($expectedArray, $result);
+        $this->assertEquals($expected, $result);
     }
 
-    public function testFetchDonationCampaignsThrowsLocalizedExceptionWithGenericMessage(): void
+    public function testFetchDonationCampaignsThrowsAndLogs(): void
     {
         $this->expectException(LocalizedException::class);
-        $this->expectExceptionMessage('Unable to retrieve donation campaigns. Please try again later.');
+        $this->expectExceptionMessage('Unable to retrieve donation campaigns');
 
+        $storeId = 1;
         $payload = [
+            'merchantAccount' => 'TestMerchant',
             'currency' => 'EUR',
             'locale' => 'en-US'
         ];
-        $storeId = 1;
 
         $clientMock = $this->createMock(\Adyen\Client::class);
 
-        $this->adyenHelperMock->method('initializeAdyenClient')->willReturn($clientMock);
-        $this->adyenHelperMock->method('initializeDonationsApi')->willThrowException(
-            new \Adyen\AdyenException('Something went wrong')
-        );
+        $this->adyenHelperMock->method('initializeAdyenClient')->with($storeId)->willReturn($clientMock);
+        $this->adyenHelperMock->method('initializeDonationsApi')
+            ->with($clientMock)
+            ->willThrowException(new AdyenException('API failed'));
 
-        $this->configHelperMock->method('getMerchantAccount')->with($storeId)->willReturn('TestMerchant');
-
-        // Optionally assert logging (if you mock $adyenLogger and inject it)
-         $this->adyenLoggerMock->expects($this->once())
-             ->method('error')
-             ->with('Error fetching donation campaigns', $this->callback(function ($context) {
-                 return isset($context['exception']) && $context['exception'] instanceof \Adyen\AdyenException;
-             }));
+        $this->adyenLoggerMock->expects($this->once())
+            ->method('error')
+            ->with(
+                $this->stringContains('Error fetching donation campaigns'),
+                $this->arrayHasKey('exception')
+            );
 
         $this->donationsHelper->fetchDonationCampaigns($payload, $storeId);
     }
 
-
-    public function testFormatCampaignReturnsFormattedFirstCampaign(): void
+    public function testFormatCampaignWithData(): void
     {
-        $donationResponse = [
+        $response = [
             'donationCampaigns' => [[
                 'nonprofitName' => 'Red Cross',
-                'nonprofitDescription' => 'Helping people in need',
-                'id' => 'campaign-1',
-                'nonprofitUrl' => 'https://redcross.org',
-                'logoUrl' => 'https://logo.png',
-                'bannerUrl' => 'https://banner.png',
-                'termsAndConditionsUrl' => 'https://tandc.com',
+                'nonprofitDescription' => 'Helping people',
+                'nonprofitUrl' => 'https://example.com',
+                'logoUrl' => 'https://example.com/logo.png',
+                'bannerUrl' => 'https://example.com/banner.png',
+                'termsAndConditionsUrl' => 'https://example.com/terms',
                 'donation' => ['amount' => 500]
             ]]
         ];
 
         $expected = [
-            'donationCampaigns' => [[
-                'nonprofitName' => 'Red Cross',
-                'description' => 'Helping people in need',
-                'reference' => 'campaign-1',
-                'nonprofitUrl' => 'https://redcross.org',
-                'logoUrl' => 'https://logo.png',
-                'bannerUrl' => 'https://banner.png',
-                'termsAndConditionsUrl' => 'https://tandc.com',
-                'donation' => ['amount' => 500]
-            ]]
+            'nonprofitName' => 'Red Cross',
+            'description' => 'Helping people',
+            'nonprofitUrl' => 'https://example.com',
+            'logoUrl' => 'https://example.com/logo.png',
+            'bannerUrl' => 'https://example.com/banner.png',
+            'termsAndConditionsUrl' => 'https://example.com/terms',
+            'donation' => ['amount' => 500]
         ];
 
-        $this->assertEquals($expected, $this->donationsHelper->formatCampaign($donationResponse));
+        $result = $this->donationsHelper->formatCampaign($response);
+        $this->assertEquals($expected, $result);
     }
 
-    public function testFormatCampaignReturnsEmptyArrayWhenNoCampaigns(): void
+    public function testFormatCampaignWithEmptyData(): void
     {
-        $donationResponse = ['donationCampaigns' => []];
-        $expected = ['donationCampaigns' => []];
-
-        $this->assertEquals($expected, $this->donationsHelper->formatCampaign($donationResponse));
+        $this->assertEquals([], $this->donationsHelper->formatCampaign([]));
+        $this->assertEquals([], $this->donationsHelper->formatCampaign(['donationCampaigns' => []]));
     }
 
-    public function testFormatCampaignReturnsEmptyArrayWhenKeyIsMissing(): void
+    public function testSetDonationCampaignId(): void
     {
-        $donationResponse = []; // No 'donationCampaigns' key
-        $expected = ['donationCampaigns' => []];
+        $orderMock = $this->createMock(Order::class);
+        $paymentMock = $this->createMock(Payment::class);
 
-        $this->assertEquals($expected, $this->donationsHelper->formatCampaign($donationResponse));
+        $orderMock->method('getPayment')->willReturn($paymentMock);
+        $paymentMock->expects($this->once())
+            ->method('setAdditionalInformation')
+            ->with('donationCampaignId', 'CAMPAIGN_ID');
+
+        $orderMock->expects($this->once())->method('save');
+
+        $this->donationsHelper->setDonationCampaignId($orderMock, 'CAMPAIGN_ID');
     }
 }

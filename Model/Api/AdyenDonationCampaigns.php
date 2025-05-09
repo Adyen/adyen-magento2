@@ -4,67 +4,92 @@ namespace Adyen\Payment\Model\Api;
 
 use Adyen\Payment\Api\AdyenDonationCampaignsInterface;
 use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\DonationsHelper;
-use Magento\Framework\Exception\LocalizedException;
 use Adyen\Payment\Model\Sales\OrderRepository;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Api\Data\OrderInterface;
+use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Helper\Data;
 
 class AdyenDonationCampaigns implements AdyenDonationCampaignsInterface
 {
     private DonationsHelper $donationsHelper;
     private OrderRepository $orderRepository;
     private ChargedCurrency $chargedCurrency;
+    private AdyenLogger $adyenLogger;
+    private Config $configHelper;
+    private Data $adyenHelper;
 
     public function __construct(
         DonationsHelper $donationsHelper,
         OrderRepository $orderRepository,
-        ChargedCurrency $chargedCurrency
+        ChargedCurrency $chargedCurrency,
+        AdyenLogger $adyenLogger,
+        Config $configHelper,
+        Data $adyenHelper
     ) {
         $this->donationsHelper = $donationsHelper;
         $this->orderRepository = $orderRepository;
         $this->chargedCurrency = $chargedCurrency;
+        $this->adyenLogger = $adyenLogger;
+        $this->configHelper = $configHelper;
+        $this->adyenHelper = $adyenHelper;
     }
 
     /**
      * {@inheritdoc}
      */
 
-    public function getCampaigns(int $orderId, string $payload): string
+    public function getCampaigns(int $orderId): string
     {
-        $order = $this->orderRepository->get($orderId);
-
-        if (!$order->getEntityId()) {
-            throw new LocalizedException(__('Donation failed!'));
+        try {
+            $order = $this->orderRepository->get($orderId);
+        } catch (\Exception $e) {
+            $this->adyenLogger->error(
+                'Cannot fetch donation campaigns.Failed to load order with ID ' . $orderId . ': ' . $e->getMessage()
+            );
+            return json_encode([]);
         }
 
-        return $this->getCampaignData($order, $payload);
+        if (!$order->getEntityId()) {
+            $this->adyenLogger->error("Order ID $orderId has no entity ID. Cannot fetch donation campaigns.");
+            return json_encode([]);
+        }
+
+        return $this->getCampaignData($order);
     }
 
     /**
-     * @throws NoSuchEntityException
-     * @throws LocalizedException
+     * @param OrderInterface $order
+     * @return string
      */
-    public function getCampaignData(OrderInterface $order, string $payload): string
+    public function getCampaignData(OrderInterface $order): string
     {
         $donationToken = $order->getPayment()->getAdditionalInformation('donationToken');
-
         if (!$donationToken) {
-            throw new LocalizedException(__('Donation failed!'));
+            $this->adyenLogger->error('Missing donation token in payment additional information.');
+            return json_encode([]);
         }
 
-        $payloadData = json_decode($payload, true);
-
+        $payloadData = [];
         $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order, false);
         $currencyCode = $orderAmountCurrency->getCurrencyCode();
-        if ($payloadData['currency'] !== $currencyCode) {
-            throw new LocalizedException(__('Donation failed!'));
+
+        //Creating payload
+        $payloadData['currency'] = $currencyCode;
+        $payloadData['merchantAccount'] = $this->configHelper->getMerchantAccount($order->getStoreId());
+        $payloadData['locale'] = $this->adyenHelper->getCurrentLocaleCode($order->getStoreId());
+
+        try {
+            $donationCampaignsResponse = $this->donationsHelper->fetchDonationCampaigns($payloadData, $order->getStoreId());
+            $campaignId = $donationCampaignsResponse['donationCampaigns'][0]['id'];
+            $this->donationsHelper->setDonationCampaignId($order, $campaignId);
+            $campaignsData = $this->donationsHelper->formatCampaign($donationCampaignsResponse);
+            return json_encode($campaignsData);
+        } catch (\Exception $e) {
+            $this->adyenLogger->error('Failed to fetch donation campaigns: ' . $e->getMessage());
+            return json_encode([]);
         }
-
-        $donationCampaignsResponse = $this->donationsHelper->fetchDonationCampaigns($payloadData, $order->getStoreId());
-        $campaignsData = $this->donationsHelper->formatCampaign($donationCampaignsResponse);
-
-        return json_encode($campaignsData);
     }
 
 }
