@@ -40,6 +40,7 @@ class AdyenCcConfigProviderTest extends AbstractAdyenTestCase
     protected Config|MockObject $configHelperMock;
     protected PaymentMethods|MockObject $paymentMethodsHelperMock;
     protected Vault|MockObject $vaultHelperMock;
+    protected Http|MockObject $requestHttpMock;
 
     /**
      * @return void

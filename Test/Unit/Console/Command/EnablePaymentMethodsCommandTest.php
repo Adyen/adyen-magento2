@@ -32,10 +32,8 @@ class EnablePaymentMethodsCommandTest extends AbstractAdyenTestCase
 
         $configHelperMock = $this->createMock(Config::class);
 
-        $configHelperFactoryMock = $this->createGeneratedMock(
-            ConfigFactory::class,
-            ['create']
-        );
+        /** @phpstan-ignore-next-line */
+        $configHelperFactoryMock = $this->createGeneratedMock(ConfigFactory::class, ['create']);
         $configHelperFactoryMock->method('create')->willReturn($configHelperMock);
 
         $inputMock = $this->createMock(InputInterface::class);

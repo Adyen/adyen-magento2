@@ -18,3 +18,5 @@ parameters:
         - Test
         - Ui
         - view
+    scanDirectories:
+        - ../../../dev/tests

@@ -89,6 +89,7 @@ class DataTest extends AbstractAdyenTestCase
     private $orderManagement;
     private $orderStatusHistoryFactory;
     private $request;
+    private $paymentMock;
 
     public function setUp(): void
     {
