@@ -39,8 +39,8 @@ RUN apt-get update \
         cron \
         unzip
 
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg
-RUN docker-php-ext-install -j$(nproc) bcmath gd intl pdo_mysql simplexml soap sockets xsl zip
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg ftp --with-openssl-dir=/usr
+RUN docker-php-ext-install -j$(nproc) bcmath gd intl pdo_mysql simplexml soap sockets xsl zip ftp
 RUN a2enmod ssl
 RUN a2ensite default-ssl.conf #can be removed if not needed
 WORKDIR /var/www/html
