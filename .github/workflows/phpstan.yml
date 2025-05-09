@@ -3,9 +3,9 @@ run-name: PHPStan analysis workflow
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, develop-10]
   pull_request_target:
-    branches: [main]
+    branches: [main, develop-10]
 
 jobs:
   build:
