@@ -382,16 +382,11 @@ class RequestsTest extends AbstractAdyenTestCase
             'shopperReference' => 'shopper123',
             'donationToken' => 'donationToken123',
             'donationOriginalPspReference' => 'originalPspReference123',
-            'returnUrl' => 'https://example.com/return'
+            'returnUrl' => 'https://example.com/return',
+            'id' => 12
         ];
 
         $storeId = 1;
-
-        // Mock the charity merchant account return
-        $this->adyenConfigMock
-            ->method('getCharityMerchantAccount')
-            ->with($storeId)
-            ->willReturn('charityMerchantAccount123');
 
         // Mock the merchant account return
         $this->adyenHelperMock
@@ -410,7 +405,7 @@ class RequestsTest extends AbstractAdyenTestCase
         $this->assertArrayHasKey('paymentMethod', $result);
         $this->assertArrayHasKey('donationToken', $result);
         $this->assertArrayHasKey('donationOriginalPspReference', $result);
-        $this->assertArrayHasKey('donationAccount', $result);
+        $this->assertArrayHasKey('donationCampaignId', $result);
         $this->assertArrayHasKey('returnUrl', $result);
         $this->assertArrayHasKey('merchantAccount', $result);
         $this->assertArrayHasKey('shopperInteraction', $result);
@@ -432,7 +427,8 @@ class RequestsTest extends AbstractAdyenTestCase
             'shopperReference' => 'shopper456',
             'donationToken' => 'donationToken456',
             'donationOriginalPspReference' => 'originalPspReference456',
-            'returnUrl' => 'https://example.com/return'
+            'returnUrl' => 'https://example.com/return',
+            'id' => 12
         ];
 
         $storeId = 2;

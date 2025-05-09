@@ -76,6 +76,7 @@ class AdyenDonations implements AdyenDonationsInterface
 
         $paymentMethodInstance = $order->getPayment()->getMethodInstance();
         $donationToken = $order->getPayment()->getAdditionalInformation('donationToken');
+        $donationCampaignId = $order->getPayment()->getAdditionalInformation('donationCampaignId');
 
         if (!$donationToken) {
             throw new LocalizedException(__('Donation failed!'));
@@ -86,20 +87,9 @@ class AdyenDonations implements AdyenDonationsInterface
             throw new LocalizedException(__('Donation failed!'));
         }
 
-        $donationAmounts = explode(',', $this->config->getAdyenGivingDonationAmounts($order->getStoreId()));
-        $formatter = $this->dataHelper;
-        $donationAmountsMinorUnits = array_map(
-            function ($amount) use ($formatter, $currencyCode) {
-                return $formatter->formatAmount($amount, $currencyCode);
-            },
-            $donationAmounts
-        );
-        if (!in_array($payload['amount']['value'], $donationAmountsMinorUnits)) {
-            throw new LocalizedException(__('Donation failed!'));
-        }
-
         $payload['donationToken'] = $donationToken;
         $payload['donationOriginalPspReference'] = $order->getPayment()->getAdditionalInformation('pspReference');
+        $payload['donationCampaignId'] = $donationCampaignId;
 
         // Override payment method object with payment method code
         if ($order->getPayment()->getMethod() === AdyenCcConfigProvider::CODE) {
@@ -124,15 +114,17 @@ class AdyenDonations implements AdyenDonationsInterface
             $donationsCaptureCommand = $this->commandPool->get('capture');
             $donationsCaptureCommand->execute(['payment' => $payload]);
 
-            // Remove donation token after a successfull donation.
+            // Remove donation token & DonationCampaignId after a successful donation.
             $this->removeDonationToken($order);
+            $this->removeDonationCampaignId($order);
         }
         catch (LocalizedException $e) {
             $this->donationTryCount = $order->getPayment()->getAdditionalInformation('donationTryCount');
 
             if ($this->donationTryCount >= 5) {
-                // Remove donation token after 5 try and throw a exception.
+                // Remove donation token and DonationCampaignId after 5 try and throw a exception.
                 $this->removeDonationToken($order);
+                $this->removeDonationCampaignId($order);
             }
 
             $this->incrementTryCount($order);
@@ -156,6 +148,12 @@ class AdyenDonations implements AdyenDonationsInterface
     private function removeDonationToken(Order $order): void
     {
         $order->getPayment()->unsAdditionalInformation('donationToken');
+        $order->save();
+    }
+
+    private function removeDonationCampaignId(Order $order): void
+    {
+        $order->getPayment()->unsAdditionalInformation('donationCampaignId');
         $order->save();
     }
 }

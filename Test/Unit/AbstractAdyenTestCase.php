@@ -52,15 +52,26 @@ abstract class AbstractAdyenTestCase extends TestCase
      *
      * @psalm-return MockObject&RealInstanceType
      */
-    protected function createGeneratedMock(string $originalClassName, array $additionalMethods = []): MockObject
+    protected function createGeneratedMock(string $originalClassName, array $existingMethods = [], array $virtualMethods = []): MockObject
     {
-        return $this->getMockBuilder($originalClassName)
-            ->setMethods($additionalMethods)
+        $builder = $this->getMockBuilder($originalClassName)
             ->disableOriginalConstructor()
             ->disableOriginalClone()
-            ->disableArgumentCloning()
-            ->getMock();
+            ->disableArgumentCloning();
+
+        if (!empty($existingMethods)) {
+            $builder->onlyMethods($existingMethods);
+        }
+
+        if (!empty($virtualMethods)) {
+            $builder->addMethods($virtualMethods);
+        }
+
+        return $builder->getMock();
     }
+
+
+
 
     protected function createOrder(?string $status = null)
     {

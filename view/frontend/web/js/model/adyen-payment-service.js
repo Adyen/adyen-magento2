@@ -131,6 +131,25 @@ define(
                         cartId: maskedQuoteId
                     });
                 }
+                return storage.post(
+                    serviceUrl,
+                    JSON.stringify(request),
+                    true
+                );
+            },
+
+            donationCampaigns: function (isLoggedIn, orderId, maskedQuoteId) {
+                let serviceUrl;
+                let request = {};
+
+                if (isLoggedIn) {
+                    serviceUrl =  urlBuilder.createUrl('/adyen/orders/carts/mine/donation-campaigns', {});
+                    request.orderId = orderId;
+                } else {
+                    serviceUrl =  urlBuilder.createUrl('/adyen/orders/guest-carts/:cartId/donation-campaigns', {
+                        cartId: maskedQuoteId
+                    });
+                }
 
                 return storage.post(
                     serviceUrl,

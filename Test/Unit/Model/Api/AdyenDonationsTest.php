@@ -40,7 +40,7 @@ class AdyenDonationsTest extends AbstractAdyenTestCase
             ->willReturn($this->createMock(OrderInterface::class));
 
         $adyenDonationsMock = $this->getMockBuilder(AdyenDonations::class)
-            ->setMethods(['makeDonation'])
+            ->onlyMethods(['makeDonation'])
             ->setConstructorArgs([
                 $this->createMock(CommandPoolInterface::class),
                 $this->createMock(Json::class),

@@ -2607,6 +2607,9 @@
                 <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
             </adyen_afterpaytouch_US>
+            <adyen_giving>
+                <active>1</active>
+            </adyen_giving>
         </payment>
     </default>
 </config>
