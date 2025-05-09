@@ -14,15 +14,22 @@ namespace Adyen\Payment\Model\Api;
 use Adyen\AdyenException;
 use Adyen\Payment\Api\GuestAdyenPaymentMethodManagementInterface;
 use Adyen\Payment\Helper\PaymentMethods;
+use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 
 class GuestAdyenPaymentMethodManagement implements GuestAdyenPaymentMethodManagementInterface
 {
+    /**
+     * @param PaymentMethods $paymentMethodsHelper
+     * @param MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
+     * @param AdyenLogger $adyenLogger
+     */
     public function __construct(
         private readonly PaymentMethods $paymentMethodsHelper,
-        private readonly MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
+        private readonly MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
+        private readonly AdyenLogger $adyenLogger
     ) { }
 
     /**
@@ -41,7 +48,12 @@ class GuestAdyenPaymentMethodManagement implements GuestAdyenPaymentMethodManage
         ?string $country = null,
         ?string $channel = null
     ): string {
-        $quoteId = $this->maskedQuoteIdToQuoteId->execute($cartId);
+        try {
+            $quoteId = $this->maskedQuoteIdToQuoteId->execute($cartId);
+        } catch (NoSuchEntityException $e) {
+            $this->adyenLogger->error(sprintf("Quote with masked ID %s not found!", $cartId));
+            throw new AdyenException(__('Error with payment method please select different payment method.'));
+        }
 
         return $this->paymentMethodsHelper->getPaymentMethods($quoteId, $country, $shopperLocale, $channel);
     }

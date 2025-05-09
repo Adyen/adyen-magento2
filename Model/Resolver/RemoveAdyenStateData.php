@@ -14,9 +14,11 @@ declare(strict_types=1);
 namespace Adyen\Payment\Model\Resolver;
 
 use Adyen\Payment\Exception\GraphQlAdyenException;
+use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Api\AdyenStateData;
 use Exception;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
@@ -28,10 +30,12 @@ class RemoveAdyenStateData implements ResolverInterface
     /**
      * @param AdyenStateData $adyenStateData
      * @param MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
+     * @param AdyenLogger $adyenLogger
      */
     public function __construct(
         private readonly AdyenStateData $adyenStateData,
-        private readonly MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
+        private readonly MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
+        private readonly AdyenLogger $adyenLogger
     ) { }
 
     /**
@@ -60,12 +64,21 @@ class RemoveAdyenStateData implements ResolverInterface
             throw new GraphQlInputException(__('Required parameter "cartId" is missing'));
         }
 
-        $quoteId = $this->maskedQuoteIdToQuoteId->execute($args['cartId']);
+        try {
+            $quoteId = $this->maskedQuoteIdToQuoteId->execute($args['cartId']);
+        } catch (NoSuchEntityException $e) {
+            $this->adyenLogger->error(sprintf("Quote with masked ID %s not found!", $args['cartId']));
+            throw new GraphQlAdyenException(__("An error occurred while removing the state data."));
+        }
 
         try {
             $result = $this->adyenStateData->remove((int) $args['stateDataId'], $quoteId);
         } catch (Exception $e) {
-            throw new GraphQlAdyenException(__('An error occurred while removing the state data.'), $e);
+            $this->adyenLogger->error(sprintf(
+                "An error occurred while removing the state data: %1",
+                $e->getMessage()
+            ));
+            throw new GraphQlAdyenException(__('An error occurred while removing the state data.'));
         }
 
         if (!$result) {

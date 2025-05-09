@@ -16,6 +16,7 @@ use Adyen\Payment\Api\GuestAdyenOrderPaymentStatusInterface;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Logger\AdyenLogger;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\NotFoundException;
 use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
@@ -37,9 +38,21 @@ class GuestAdyenOrderPaymentStatus implements GuestAdyenOrderPaymentStatusInterf
         private readonly MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
     ) { }
 
+    /**
+     * @throws NotFoundException
+     */
     public function getOrderPaymentStatus(string $orderId, string $cartId): string
     {
-        $quoteId = $this->maskedQuoteIdToQuoteId->execute($cartId);
+        try {
+            $quoteId = $this->maskedQuoteIdToQuoteId->execute($cartId);
+        } catch (NoSuchEntityException $e) {
+            $errorMessage = sprintf("Quote with masked ID %s not found!", $cartId);
+            $this->adyenLogger->error($errorMessage);
+
+            throw new NotFoundException(
+                __("The entity that was requested doesn't exist. Verify the entity and try again.")
+            );
+        }
 
         $order = $this->orderRepository->get($orderId);
 

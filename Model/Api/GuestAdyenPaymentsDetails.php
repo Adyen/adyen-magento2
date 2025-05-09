@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Model\Api;
 
 use Adyen\Payment\Api\GuestAdyenPaymentsDetailsInterface;
+use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -25,11 +26,13 @@ class GuestAdyenPaymentsDetails implements GuestAdyenPaymentsDetailsInterface
      * @param OrderRepositoryInterface $orderRepository
      * @param AdyenPaymentsDetails $adyenPaymentsDetails
      * @param MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
+     * @param AdyenLogger $adyenLogger
      */
     public function __construct(
         private readonly OrderRepositoryInterface $orderRepository,
         private readonly AdyenPaymentsDetails $adyenPaymentsDetails,
-        private readonly MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
+        private readonly MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
+        private readonly AdyenLogger $adyenLogger
     ) { }
 
     /**
@@ -44,8 +47,27 @@ class GuestAdyenPaymentsDetails implements GuestAdyenPaymentsDetailsInterface
      */
     public function initiate(string $payload, string $orderId, string $cartId): string
     {
-        $order = $this->orderRepository->get(intval($orderId));
-        $quoteId = $this->maskedQuoteIdToQuoteId->execute($cartId);
+        try {
+            $quoteId = $this->maskedQuoteIdToQuoteId->execute($cartId);
+        } catch (NoSuchEntityException $e) {
+            $errorMessage = sprintf("Quote with masked ID %s not found!", $cartId);
+            $this->adyenLogger->error($errorMessage);
+
+            throw new NotFoundException(
+                __("The entity that was requested doesn't exist. Verify the entity and try again.")
+            );
+        }
+
+        try {
+            $order = $this->orderRepository->get(intval($orderId));
+        } catch (NoSuchEntityException $e) {
+            $errorMessage = sprintf("Order with ID %s not found!", $orderId);
+            $this->adyenLogger->error($errorMessage);
+
+            throw new NotFoundException(
+                __("The entity that was requested doesn't exist. Verify the entity and try again.")
+            );
+        }
 
         if ($order->getQuoteId() != $quoteId) {
             throw new NotFoundException(

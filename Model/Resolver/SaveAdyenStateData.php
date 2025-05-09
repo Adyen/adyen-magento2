@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Adyen\Payment\Model\Resolver;
 
 use Adyen\Payment\Exception\GraphQlAdyenException;
+use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Api\AdyenStateData;
 use Exception;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -28,10 +29,12 @@ class SaveAdyenStateData implements ResolverInterface
     /**
      * @param AdyenStateData $adyenStateData
      * @param MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
+     * @param AdyenLogger $adyenLogger
      */
     public function __construct(
         private readonly AdyenStateData $adyenStateData,
-        private readonly MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
+        private readonly MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
+        private readonly AdyenLogger $adyenLogger
     ) { }
 
     /**
@@ -43,7 +46,6 @@ class SaveAdyenStateData implements ResolverInterface
      * @return array
      * @throws GraphQlAdyenException
      * @throws GraphQlInputException
-     * @throws NoSuchEntityException
      */
     public function resolve(
         Field $field,
@@ -60,7 +62,12 @@ class SaveAdyenStateData implements ResolverInterface
             throw new GraphQlInputException(__('Required parameter "cartId" is missing'));
         }
 
-        $quoteId = $this->maskedQuoteIdToQuoteId->execute($args['cartId']);
+        try {
+            $quoteId = $this->maskedQuoteIdToQuoteId->execute($args['cartId']);
+        } catch (NoSuchEntityException $e) {
+            $this->adyenLogger->error(sprintf("Quote with masked ID %s not found!", $args['cartId']));
+            throw new GraphQlAdyenException(__("An error occurred while saving the state data."));
+        }
 
         try {
             $stateDataId = $this->adyenStateData->save($args['stateData'], $quoteId);

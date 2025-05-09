@@ -15,6 +15,7 @@ namespace Adyen\Payment\Model\Resolver;
 
 use Adyen\Payment\Exception\GraphQlAdyenException;
 use Adyen\Payment\Helper\GiftcardPayment;
+use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use Magento\Framework\GraphQl\Config\Element\Field;
@@ -29,11 +30,13 @@ class GetAdyenRedeemedGiftcards implements ResolverInterface
      * @param GiftcardPayment $giftcardPayment
      * @param Json $jsonSerializer
      * @param MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
+     * @param AdyenLogger $adyenLogger
      */
     public function __construct(
         private readonly GiftcardPayment $giftcardPayment,
         private readonly Json $jsonSerializer,
-        private readonly MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
+        private readonly MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
+        private readonly AdyenLogger $adyenLogger
     ) { }
 
     /**
@@ -45,7 +48,6 @@ class GetAdyenRedeemedGiftcards implements ResolverInterface
      * @return array
      * @throws GraphQlAdyenException
      * @throws GraphQlInputException
-     * @throws NoSuchEntityException
      */
     public function resolve(
         Field       $field,
@@ -58,13 +60,26 @@ class GetAdyenRedeemedGiftcards implements ResolverInterface
             throw new GraphQlInputException(__('Required parameter "cartId" is missing'));
         }
 
-        $quoteId = $this->maskedQuoteIdToQuoteId->execute($args['cartId']);
+        try {
+            $quoteId = $this->maskedQuoteIdToQuoteId->execute($args['cartId']);
+        } catch (NoSuchEntityException $e) {
+            $this->adyenLogger->error(sprintf("Quote with masked ID %s not found!", $args['cartId']));
+            throw new GraphQlAdyenException(
+                __("An error occurred while fetching redeemed gift cards!")
+            );
+        }
 
         try {
             $redeemedGiftcardsJson = $this->giftcardPayment->fetchRedeemedGiftcards($quoteId);
         } catch (\Exception $e) {
+            $errorMessage = sprintf(
+                "An error occurred while fetching redeemed gift cards: %1",
+                $e->getMessage()
+            );
+            $this->adyenLogger->error($errorMessage);
+
             throw new GraphQlAdyenException(
-                __('An error occurred while fetching redeemed gift cards: %1', $e->getMessage())
+                __('An error occurred while fetching redeemed gift cards!')
             );
         }
 

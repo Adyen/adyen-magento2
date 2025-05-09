@@ -15,6 +15,7 @@ use Adyen\Payment\Api\GuestAdyenPosCloudInterface;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Sales\OrderRepository;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Exception\NotFoundException;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObjectFactoryInterface;
 use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
@@ -46,11 +47,21 @@ class GuestAdyenPosCloud extends AdyenPosCloud implements GuestAdyenPosCloudInte
     /**
      * @param string $cartId
      * @return void
-     * @throws NoSuchEntityException
+     * @throws NotFoundException
      */
     public function payByCart(string $cartId): void
     {
-        $quoteId = $this->maskedQuoteIdToQuoteId->execute($cartId);
+        try {
+            $quoteId = $this->maskedQuoteIdToQuoteId->execute($cartId);
+        } catch (NoSuchEntityException $e) {
+            $errorMessage = sprintf("Quote with masked ID %s not found!", $cartId);
+            $this->adyenLogger->error($errorMessage);
+
+            throw new NotFoundException(
+                __("The entity that was requested doesn't exist. Verify the entity and try again.")
+            );
+        }
+
         $order = $this->orderRepository->getOrderByQuoteId($quoteId);
         $this->execute($order);
     }

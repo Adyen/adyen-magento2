@@ -14,8 +14,10 @@ namespace Adyen\Payment\Model\Api;
 
 use Adyen\AdyenException;
 use Adyen\Payment\Api\GuestAdyenDonationsInterface;
+use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Sales\OrderRepository;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 
 class GuestAdyenDonations implements GuestAdyenDonationsInterface
@@ -24,11 +26,13 @@ class GuestAdyenDonations implements GuestAdyenDonationsInterface
      * @param AdyenDonations $adyenDonationsModel
      * @param OrderRepository $orderRepository
      * @param MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
+     * @param AdyenLogger $adyenLogger
      */
     public function __construct(
         private readonly AdyenDonations $adyenDonationsModel,
         private readonly OrderRepository $orderRepository,
-        private readonly MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
+        private readonly MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
+        private readonly AdyenLogger $adyenLogger
     ) { }
 
     /**
@@ -40,12 +44,19 @@ class GuestAdyenDonations implements GuestAdyenDonationsInterface
      */
     public function donate(string $cartId, string $payload): void
     {
-        $quoteId = $this->maskedQuoteIdToQuoteId->execute($cartId);
+        try {
+            $quoteId = $this->maskedQuoteIdToQuoteId->execute($cartId);
+        } catch (NoSuchEntityException $e) {
+            $errorMessage = sprintf("Quote with masked ID %s not found!", $cartId);
+            $this->adyenLogger->error($errorMessage);
+
+            throw new AdyenException(__('Donation Failed!'));
+        }
 
         $order = $this->orderRepository->getOrderByQuoteId($quoteId);
 
         if (!$order) {
-            throw new AdyenException('Donation Failed!');
+            throw new AdyenException(__('Donation Failed!'));
         }
 
         $this->adyenDonationsModel->makeDonation($payload, $order);
