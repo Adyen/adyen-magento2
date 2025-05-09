@@ -114,7 +114,7 @@ class Success extends Template
         return json_encode($this->getOrder()->getPayment()->getAdditionalInformation('donationToken'));
     }
 
-    public function getSerializedCheckoutConfig(): bool|string
+    public function getSerializedCheckoutConfig()
     {
         return $this->serializerInterface->serialize($this->configProvider->getConfig());
     }
@@ -126,7 +126,7 @@ class Success extends Template
         );
     }
 
-    public function getClientKey(): ?string
+    public function getClientKey()
     {
         $environment = $this->configHelper->isDemoMode() ? 'test' : 'live';
         return $this->configHelper->getClientKey($environment);
