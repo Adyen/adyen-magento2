@@ -8,12 +8,12 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-// phpcs:disable Generic.CodeAnalysis.UselessOverridingMethod.Found
+
 namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Api\Data\NotificationInterface;
+use Adyen\Payment\Model\ResourceModel\Notification as NotificationResourceModel;
 use DateTime;
-use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Data\Collection\AbstractDb;
 use Magento\Framework\Model\AbstractModel;
 use Magento\Framework\Model\Context;
@@ -55,6 +55,7 @@ class Notification extends AbstractModel implements NotificationInterface
     public function __construct(
         Context $context,
         Registry $registry,
+        private readonly NotificationResourceModel $notificationResourceModel,
         AbstractResource $resource = null,
         AbstractDb $resourceCollection = null,
         array $data = []
@@ -75,14 +76,7 @@ class Notification extends AbstractModel implements NotificationInterface
      */
     public function isDuplicate($done = null): bool
     {
-        /*
-         * Load resource model Adyen\Payment\Model\ResourceModel\Notification manually
-         * as Magento\Framework\Model\AbstractModel::_getResource() method has been deprecated.
-         * ObjectManager has been used due to dependencies not being loaded timely manner on entity classes.
-         */
-        $notificationResourceModel = ObjectManager::getInstance()->get($this->getResourceName());
-
-        $result = $notificationResourceModel->getNotification(
+        $result = $this->notificationResourceModel->getNotification(
             $this->getPspreference(),
             $this->getEventCode(),
             $this->getSuccess(),
