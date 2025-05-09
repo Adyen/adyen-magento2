@@ -20,3 +20,4 @@ parameters:
         - view
     scanDirectories:
         - ../../../dev/tests
+        - ../../magento
