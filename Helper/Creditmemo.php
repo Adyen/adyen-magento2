@@ -105,6 +105,11 @@ class Creditmemo extends AbstractHelper
 
         if (isset($adyenCreditmemos)) {
             foreach ($adyenCreditmemos as $adyenCreditmemo) {
+                // Skip if the Adyen creditmemo has already been linked to Magento creditmemo
+                if ($adyenCreditmemo->getCreditmemoId() !== null) {
+                    continue;
+                }
+
                 if ($adyenCreditmemo->getAmount() == $magentoCreditmemo->getGrandTotal()) {
                     $adyenCreditmemo->setCreditmemoId($magentoCreditmemo->getEntityId());
                     $this->adyenCreditmemoRepository->save($adyenCreditmemo);
