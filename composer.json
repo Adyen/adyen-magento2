@@ -54,8 +54,6 @@
     }
   },
     "conflict": {
-        "conflict": {
-            "magento/module-csp": "100.4.3|100.4.4|100.4.5"
-        }
+        "magento/module-csp": "100.4.3|100.4.4|100.4.5"
     }
 }
