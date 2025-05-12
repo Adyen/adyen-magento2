@@ -49,9 +49,6 @@ jobs:
       - name: Install plugin
         run: docker exec -u www-data magento2-container make plugin
 
-#      - name: Install PHPStan dependencies
-#        run: docker compose -f .github/docker-compose.yml run --rm web make phpstan-install
-
       - name: Kill Cron Jobs
         run: docker exec magento2-container /etc/init.d/cron stop
 
