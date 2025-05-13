@@ -102,7 +102,10 @@ class AdyenPaymentMethodDataAssignObserverTest extends AbstractAdyenTestCase
 
         $this->paymentInfo->expects($this->atLeastOnce())
             ->method('unsAdditionalInformation')
-            ->withConsecutive(['cc_type'], ['recurringProcessingModel']);
+            ->willReturnMap([
+                ['cc_type', $this->paymentInfo],
+                ['recurringProcessingModel', $this->paymentInfo]
+            ]);
 
         $this->paymentInfo->expects($this->any())->method('getData')
             ->with('quote_id')->willReturn(123);
