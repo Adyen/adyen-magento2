@@ -54,6 +54,9 @@ jobs:
       - name: Code Sniffer
         run: cd TestMain && vendor/bin/phpcs .
 
+      - name: Move test files into TestMain
+        run: cp -r Test TestMain/
+
       - name: Run PHPUnit
         run: cd TestMain && vendor/bin/phpunit --coverage-clover=build/clover.xml --log-junit=build/tests-log.xml -c ../Test/phpunit.xml ../Test/Unit
 
