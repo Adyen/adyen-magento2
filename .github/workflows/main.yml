@@ -34,7 +34,7 @@ jobs:
           cd TestMain
           composer init --name="dummy/magento-root" --no-interaction
           composer config http-basic.repo.magento.com $MAGENTO_USERNAME $MAGENTO_PASSWORD
-          composer config --json repositories.local '{"type": "path", "url": "/data/extensions/workdir", "options": { "symlink": false } }'
+          composer config --json repositories.local '{"type": "path", "url": "./../", "options": { "symlink": false } }'
           composer require "adyen/module-payment:*"
           composer require --dev \
             phpunit/phpunit:"~9.6.1" \
