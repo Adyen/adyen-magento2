@@ -135,7 +135,7 @@ class AbstractDisputeWebhookHandlerTest extends AbstractAdyenTestCase
 
         $this->adyenLoggerMock->expects($this->once())->method('addAdyenNotification')
             ->with($this->stringContains('The order has been updated by the REFUND notification.'), $this->arrayHasKey('pspReference'))
-            ->willReturn(null);
+            ->willReturn(true);
 
         $result = $this->abstractDisputeWebhookHandler->handleWebhook($orderMock, $notificationMock, $transitionState);
 

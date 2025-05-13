@@ -1,6 +1,7 @@
 <?php
 namespace Adyen\Payment\Test\Unit\Helper;
 
+use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\Webhook;
 use Adyen\Payment\Helper\Webhook\WebhookHandlerInterface;
@@ -601,9 +602,9 @@ class WebhookTest extends AbstractAdyenTestCase
         $mockWebhookHandlerFactory = null,
         $mockOrderHelper = null,
         $mockOrderRepository = null,
-        $paymentMethodsHelperMock = null
-    ): Webhook
-    {
+        $paymentMethodsHelperMock = null,
+        $adyenNotificationRepositoryMock = null
+    ): Webhook {
         if (is_null($mockAdyenHelper)) {
             $mockAdyenHelper = $this->createMock(Data::class);
         }
@@ -634,6 +635,10 @@ class WebhookTest extends AbstractAdyenTestCase
         if (is_null($paymentMethodsHelperMock)) {
             $paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
         }
+        if (is_null($adyenNotificationRepositoryMock)) {
+            $adyenNotificationRepositoryMock = $this->createMock(AdyenNotificationRepositoryInterface::class);
+        }
+
         return new Webhook(
             $mockAdyenHelper,
             $mockSerializer,
@@ -644,7 +649,8 @@ class WebhookTest extends AbstractAdyenTestCase
             $mockWebhookHandlerFactory,
             $mockOrderHelper,
             $mockOrderRepository,
-            $paymentMethodsHelperMock
+            $paymentMethodsHelperMock,
+            $adyenNotificationRepositoryMock
         );
     }
 }
