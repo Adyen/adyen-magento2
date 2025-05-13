@@ -23,6 +23,8 @@ use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\OrderFactory;
 use Magento\Store\Model\StoreManagerInterface;
@@ -58,6 +60,8 @@ class Index extends Action
     private Order\Payment $payment;
     private PaymentsDetails $paymentsDetailsHelper;
     private PaymentResponseHandler $paymentResponseHandler;
+    private CartRepositoryInterface $cartRepository;
+    private OrderRepositoryInterface $orderRepository;
 
     public function __construct(
         Context                  $context,
@@ -68,7 +72,9 @@ class Index extends Action
         Quote                    $quoteHelper,
         Config                   $configHelper,
         PaymentsDetails $paymentsDetailsHelper,
-        PaymentResponseHandler $paymentResponseHandler
+        PaymentResponseHandler $paymentResponseHandler,
+        CartRepositoryInterface $cartRepository,
+        OrderRepositoryInterface $orderRepository
     ) {
         parent::__construct($context);
 
@@ -80,6 +86,8 @@ class Index extends Action
         $this->configHelper = $configHelper;
         $this->paymentsDetailsHelper = $paymentsDetailsHelper;
         $this->paymentResponseHandler = $paymentResponseHandler;
+        $this->cartRepository = $cartRepository;
+        $this->orderRepository = $orderRepository;
     }
 
     /**
@@ -110,7 +118,9 @@ class Index extends Action
             }
 
             if ($result) {
-                $this->session->getQuote()->setIsActive($setQuoteAsActive)->save();
+                $quote = $this->session->getQuote();
+                $quote->setIsActive($setQuoteAsActive);
+                $this->cartRepository->save($quote);
 
                 // Add OrderIncrementId to redirect parameters for headless support.
                 $redirectParams = $this->configHelper->getAdyenAbstractConfigData('custom_success_redirect_path', $storeId)

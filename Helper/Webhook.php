@@ -12,6 +12,7 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
 use Adyen\Payment\Exception\AdyenWebhookException;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\Order as OrderHelper;
@@ -67,6 +68,7 @@ class Webhook
      * @param OrderHelper $orderHelper
      * @param OrderRepository $orderRepository
      * @param PaymentMethods $paymentMethodsHelper
+     * @param AdyenNotificationRepositoryInterface $notificationRepository
      */
     public function __construct(
         private readonly Data $adyenHelper,
@@ -78,7 +80,8 @@ class Webhook
         private readonly WebhookHandlerFactory $webhookHandlerFactory,
         private readonly OrderHelper $orderHelper,
         private readonly OrderRepository $orderRepository,
-        private readonly PaymentMethods $paymentMethodsHelper
+        private readonly PaymentMethods $paymentMethodsHelper,
+        private readonly AdyenNotificationRepositoryInterface $notificationRepository
     ) {
         $this->klarnaReservationNumber = null;
         $this->ratepayDescriptor = null;
@@ -262,7 +265,8 @@ class Webhook
         }
         $notification->setProcessing($processing);
         $notification->setUpdatedAt(date('Y-m-d H:i:s'));
-        $notification->save();
+
+        $this->notificationRepository->save($notification);
     }
 
     private function declareVariables(Notification $notification): void
@@ -515,7 +519,7 @@ class Webhook
             $notification->setDone(true);
         }
 
-        $notification->save();
+        $this->notificationRepository->save($notification);
     }
 
     private function addNotificationErrorComment(Order $order, string $errorMessage): Order
