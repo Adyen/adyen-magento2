@@ -40,10 +40,10 @@ jobs:
             phpunit/phpunit:"~9.6.1" \
             magento/magento-coding-standard:"*" \
             squizlabs/php_codesniffer:"~3.12.0"
-          composer require "magento/framework:>=103.0.4"
+
           composer install --prefer-dist
-          composer config --json repositories.local '{"type": "path", "url": "./../", "options": { "symlink": false } }'
-          composer require "adyen/module-payment:*"
+
+          composer require "adyen/module-payment:dev-ECP-9690"
 
         env:
           CI: true
