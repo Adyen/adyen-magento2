@@ -42,6 +42,8 @@ class OrderClosedWebhookHandlerTest extends AbstractAdyenTestCase
         $this->configHelperMock = $this->createMock(Config::class);
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
         $this->adyenOrderPaymentCollectionFactoryMock = $this->createGeneratedMock(OrderPaymentCollectionFactory::class, ['create']);
+
+
         $this->adyenOrderPaymentMock = $this->createConfiguredMock(Order\Payment::class, [
             'getId' => 123
         ]);

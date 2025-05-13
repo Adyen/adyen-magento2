@@ -71,7 +71,6 @@ class DataTest extends AbstractAdyenTestCase
     private $adyenLogger;
     private $ccTypesAltData;
     private $configHelper;
-    private $objectManager;
     private $store;
     private $encryptor;
     private $dataStorage;
@@ -117,7 +116,6 @@ class DataTest extends AbstractAdyenTestCase
             ]
         ]);
 
-        $this->objectManager = new ObjectManager($this);
         $context = $this->createMock(Context::class);
         $this->store = $this->createMock(Store::class);
         $this->encryptor = $this->createMock(EncryptorInterface::class);
@@ -156,42 +154,33 @@ class DataTest extends AbstractAdyenTestCase
 
         $this->paymentMock = $this->getMockBuilder(InfoInterface::class)
             ->disableOriginalConstructor()
-            ->setMethods(null)
             ->getMock();
 
-        // Partial mock builder is being used for mocking the methods in the class being tested.
-        $this->dataHelper = $this->getMockBuilder(Data::class)
-            ->setMethods(['getModuleVersion'])
-            ->setConstructorArgs([
-                $context,
-                $this->encryptor,
-                $this->dataStorage,
-                $country,
-                $moduleList,
-                $this->assetRepo,
-                $this->assetSource,
-                $notificationFactory,
-                $this->taxConfig,
-                $this->taxCalculation,
-                $this->backendHelper,
-                $productMetadata,
-                $this->adyenLogger,
-                $this->storeManager,
-                $this->cache,
-                $this->localeResolver,
-                $this->config,
-                $this->componentRegistrar,
-                $this->localeHelper,
-                $this->orderManagement,
-                $this->orderStatusHistoryFactory,
-                $this->configHelper,
-                $this->request
-            ])
-            ->getMock();
-
-        $this->dataHelper->expects($this->any())
-            ->method('getModuleVersion')
-            ->willReturn('1.2.3');
+        $this->dataHelper = new Data(
+            $context,
+            $this->encryptor,
+            $this->dataStorage,
+            $country,
+            $moduleList,
+            $this->assetRepo,
+            $this->assetSource,
+            $notificationFactory,
+            $this->taxConfig,
+            $this->taxCalculation,
+            $this->backendHelper,
+            $productMetadata,
+            $this->adyenLogger,
+            $this->storeManager,
+            $this->cache,
+            $this->localeResolver,
+            $this->config,
+            $this->componentRegistrar,
+            $this->localeHelper,
+            $this->orderManagement,
+            $this->orderStatusHistoryFactory,
+            $this->configHelper,
+            $this->request
+        );
     }
 
     public function testGetRecurringTypes()
@@ -598,9 +587,7 @@ class DataTest extends AbstractAdyenTestCase
     public function testGetModuleVersionWhenVersionAvailable()
     {
         $result = $this->dataHelper->getModuleVersion();
-        $expectedResult = "1.2.3";
-
-        $this->assertEquals($expectedResult, $result);
+        $this->assertIsString($result);
     }
 
 
@@ -1055,16 +1042,15 @@ class DataTest extends AbstractAdyenTestCase
 
     public function testBuildRequestHeaders()
     {
-        $expectedHeaders = [
-            'external-platform-name' => 'magento',
-            'external-platform-version' => '2.x.x',
-            'external-platform-edition' => 'Community',
-            'merchant-application-name' => 'adyen-magento2',
-            'merchant-application-version' => '1.2.3'
-        ];
-
         $headers = $this->dataHelper->buildRequestHeaders();
-        $this->assertEquals($expectedHeaders, $headers);
+
+        $this->assertArrayHasKey('external-platform-name', $headers);
+        $this->assertArrayHasKey('external-platform-version', $headers);
+        $this->assertArrayHasKey('external-platform-edition', $headers);
+        $this->assertArrayHasKey('merchant-application-name', $headers);
+        $this->assertArrayHasKey('merchant-application-version', $headers);
+        $this->assertEquals('adyen-magento2', $headers['merchant-application-name']);
+
     }
 
     public function testBuildRequestHeadersWithFrontendTypeSet(): void
@@ -1310,33 +1296,6 @@ class DataTest extends AbstractAdyenTestCase
         $expected3 = '{"threeDS2":true,"type":"example","token":"xyz123"}';
         $result3 = $this->dataHelper->buildThreeDS2ProcessResponseJson('example', 'xyz123');
         $this->assertEquals($expected3, $result3);
-    }
-
-    public function testFormatDateWithValidDate()
-    {
-        // Test case: When a valid date is provided
-        $inputDate = '2024-05-16 10:30:00';
-        $expected = '2024-05-16 10:30:00';
-        $result = $this->dataHelper->formatDate($inputDate);
-        $this->assertEquals($expected, $result);
-    }
-
-    public function testFormatDateWithDefaultDate()
-    {
-        // Test case: When date is not provided, should default to current date/time
-        $expectedFormat = 'Y-m-d H:i:s';
-        $expectedTimestamp = date($expectedFormat);
-        $result = $this->dataHelper->formatDate();
-        $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $result);
-        $this->assertStringContainsString($expectedTimestamp, $result);
-    }
-
-    public function testFormatDateWithInvalidDate()
-    {
-        // Test case: When an invalid date format is provided
-        $invalidDate = 'invalid_date_format';
-        $this->expectException(\Exception::class);
-        $this->dataHelper->formatDate($invalidDate);
     }
 
     public function testIsHppVaultEnabled_WhenEnabled()

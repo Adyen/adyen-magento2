@@ -113,7 +113,8 @@ class Vault
     {
         $recurringConfiguration = $this->config->getConfigData(
             Config::XML_RECURRING_CONFIGURATION,
-            Config::XML_ADYEN_ABSTRACT_PREFIX, $storeId
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId
         );
 
         if (!isset($recurringConfiguration)) {

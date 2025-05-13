@@ -245,11 +245,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $storeMock = $this->createMock(Store::class);
         $storeMock->method('getId')->willReturn(1);
 
-        $quoteMock = $this->getMockBuilder(Quote::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['getStore'])
-            ->getMock();
-
+        $quoteMock = $this->createMock(Quote::class);
         $quoteMock->method('getStore')->willReturn($storeMock);
         $quoteMock->setCustomerId(123);
 
@@ -1249,7 +1245,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $paymentMethodCode = 'visa';
         $params = [
             'area' => 'frontend',
-            '_secure' => '',
+            '_secure' => null,
             'theme' => 'Magento/blank'
         ];
 

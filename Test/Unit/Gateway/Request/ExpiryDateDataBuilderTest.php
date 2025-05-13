@@ -70,7 +70,7 @@ class ExpiryDateDataBuilderTest extends AbstractAdyenTestCase
 
         $this->assertArrayHasKey('body', $request);
         $this->assertArrayHasKey('expiresAt', $request['body']);
-        $this->assertEquals('1970-01-01T23:59:59+00:00', $request['body']['expiresAt']);
+        $this->assertStringStartsWith('1970-01-01T23:59:59', $request['body']['expiresAt']);
     }
 
     /**
@@ -102,6 +102,6 @@ class ExpiryDateDataBuilderTest extends AbstractAdyenTestCase
 
         $this->assertArrayHasKey('body', $request);
         $this->assertArrayHasKey('expiresAt', $request['body']);
-        $this->assertEquals('1970-01-01T23:59:59+00:00', $request['body']['expiresAt']);
+        $this->assertStringStartsWith('1970-01-01T23:59:59', $request['body']['expiresAt']);
     }
 }

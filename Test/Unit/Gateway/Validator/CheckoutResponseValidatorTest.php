@@ -26,10 +26,7 @@ class CheckoutResponseValidatorTest extends AbstractAdyenTestCase
     {
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
         $this->adyenHelperMock = $this->createMock(Data::class);
-        $this->resultFactoryMock = $this->getMockBuilder(ResultInterfaceFactory::class)
-            ->setMethods(['create'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->resultFactoryMock = $this->createMock(ResultInterfaceFactory::class);
         $orderAdapterMock = $this->createMock(OrderAdapterInterface::class);
         $paymentMock = $this->createMock(Payment::class);
         $this->paymentDataObject = new PaymentDataObject($orderAdapterMock, $paymentMock);

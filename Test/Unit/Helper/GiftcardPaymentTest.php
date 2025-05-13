@@ -390,8 +390,10 @@ class GiftcardPaymentTest extends AbstractAdyenTestCase
             ])
         ]);
 
-        $pricingHelper = $this->createConfiguredMock(PricingData::class, []);
-        $pricingHelper->method('currency')->willReturnOnConsecutiveCalls('€50.00', '€25.00');
+        $pricingHelper = $this->createMock(PricingData::class);
+        $pricingHelper->method('currency')->willReturnOnConsecutiveCalls(
+            '€50.00', '€25.00', null
+        );
 
         $giftcardPaymentHelper = $this->createGiftcardPaymentHelper(
             $adyenStateDataMock,
