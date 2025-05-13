@@ -17,7 +17,15 @@ define(
         'use strict';
 
         return {
-            showModal: function(adyenPaymentService, fullScreenLoader, messageContainer, orderId, modalLabel, callback=(ko.observable(true))) {
+            showModal: function(
+                adyenPaymentService,
+                fullScreenLoader,
+                messageContainer,
+                orderId,
+                modalLabel,
+                callback=(ko.observable(true)),
+                openDefault = true
+            ) {
                 let popupModal = $('#' + modalLabel).modal({
                     // disable user to hide popup
                     clickableOverlay: false,
@@ -32,7 +40,10 @@ define(
                     modalClass: modalLabel
                 });
 
-                popupModal.modal('openModal');
+                if (openDefault) {
+                    popupModal.modal('openModal');
+                }
+
                 return popupModal;
             },
             /**

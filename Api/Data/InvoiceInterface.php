@@ -75,7 +75,7 @@ interface InvoiceInterface
     public function getAmount(): ?float;
 
     /**
-     * @param float float
+     * @param float $amount
      * @return InvoiceInterface
      */
     public function setAmount(float $amount): InvoiceInterface;

@@ -1476,8 +1476,7 @@
     </virtualType>
     <preference for="Magento\Payment\Gateway\Data\Order\AddressAdapter" type="Adyen\Payment\Gateway\Data\Order\AddressAdapter" />
     <preference for="Magento\Payment\Gateway\Data\Order\OrderAdapter" type="Adyen\Payment\Gateway\Data\Order\OrderAdapter" />
-    <preference for="Adyen\Payment\Api\InstantPurchase\PaymentMethodIntegration\AdyenAvailabilityCheckerInterface"
-                type="Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker" />
+    <preference for="Adyen\Payment\Api\InstantPurchase\PaymentMethodIntegration\AdyenAvailabilityCheckerInterface" type="Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker" />
     <type name="Adyen\Payment\Logger\Handler\AdyenDebug">
         <arguments>
             <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
@@ -1710,8 +1709,7 @@
     <preference for="Adyen\Payment\Api\Data\NotificationInterface" type="Adyen\Payment\Model\Notification" />
     <preference for="Adyen\Payment\Api\AdyenPaymentMethodsBalanceInterface" type="Adyen\Payment\Model\Api\AdyenPaymentMethodsBalance" />
     <preference for="Adyen\Payment\Api\TokenDeactivateInterface" type="Adyen\Payment\Model\Api\TokenDeactivate" />
-    <preference for="Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface"
-                type="Adyen\Payment\Model\AdyenNotificationRepository" />
+    <preference for="Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface" type="Adyen\Payment\Model\AdyenNotificationRepository" />
     <type name="Magento\Vault\Api\PaymentTokenRepositoryInterface">
         <plugin name="AdyenPaymentVaultDeleteToken" type="Adyen\Payment\Plugin\PaymentVaultDeleteToken" sortOrder="10" />
     </type>
@@ -1747,9 +1745,7 @@
     <type name="Adyen\Payment\Cron\RemoveProcessedWebhooks">
         <arguments>
             <argument name="providers" xsi:type="array">
-                <item name="processedWebhooks" xsi:type="object">
-                    Adyen\Payment\Cron\Providers\ProcessedWebhooksProvider
-                </item>
+                <item name="processedWebhooks" xsi:type="object">Adyen\Payment\Cron\Providers\ProcessedWebhooksProvider</item>
             </argument>
         </arguments>
     </type>
@@ -4593,6 +4589,33 @@
     <virtualType name="AdyenPaymentDokuMandiriVaConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
             <argument name="methodCode" xsi:type="string">adyen_doku_mandiri_va</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentAfterpaytouchUSFacade" type="Adyen\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="string">adyen_afterpaytouch_US</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\PaymentMethodInfo</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentAfterpaytouchUSValueHandlerPool</argument>
+            <argument name="validatorPool" xsi:type="object">AdyenPaymentValidatorPool</argument>
+            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentAfterpaytouchUSValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AdyenPaymentAfterpaytouchUSConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentAfterpaytouchUSConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AdyenPaymentAfterpaytouchUSConfig</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentAfterpaytouchUSConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="string">adyen_afterpaytouch_US</argument>
         </arguments>
     </virtualType>
 </config>

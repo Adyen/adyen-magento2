@@ -12,10 +12,8 @@
 
 namespace Adyen\Payment\Helper\Webhook;
 
-
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\CaseManagement;
-use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Invoice;
 use Adyen\Payment\Helper\Order as OrderHelper;
@@ -26,59 +24,33 @@ use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Webhook\PaymentStates;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Model\Order;
 
 class AuthorisationWebhookHandler implements WebhookHandlerInterface
 {
-    /** @var AdyenOrderPayment */
-    private $adyenOrderPaymentHelper;
-
-    /** @var OrderHelper */
-    private $orderHelper;
-
-    /** @var CaseManagement */
-    private $caseManagementHelper;
-
-    /** @var SerializerInterface */
-    private $serializer;
-
-    /** @var AdyenLogger */
-    private $adyenLogger;
-
-    /** @var ChargedCurrency */
-    private $chargedCurrency;
-
-    /** @var Config */
-    private $configHelper;
-
-    /** @var Invoice */
-    private $invoiceHelper;
-
-    /** @var PaymentMethods */
-    private $paymentMethodsHelper;
-
+    /**
+     * @param AdyenOrderPayment $adyenOrderPaymentHelper
+     * @param OrderHelper $orderHelper
+     * @param CaseManagement $caseManagementHelper
+     * @param SerializerInterface $serializer
+     * @param AdyenLogger $adyenLogger
+     * @param Config $configHelper
+     * @param Invoice $invoiceHelper
+     * @param PaymentMethods $paymentMethodsHelper
+     * @param CartRepositoryInterface $cartRepository
+     */
     public function __construct(
-        AdyenOrderPayment $adyenOrderPayment,
-        OrderHelper $orderHelper,
-        CaseManagement $caseManagementHelper,
-        SerializerInterface $serializer,
-        AdyenLogger $adyenLogger,
-        ChargedCurrency $chargedCurrency,
-        Config $configHelper,
-        Invoice $invoiceHelper,
-        PaymentMethods $paymentMethodsHelper
-    )
-    {
-        $this->adyenOrderPaymentHelper = $adyenOrderPayment;
-        $this->orderHelper = $orderHelper;
-        $this->caseManagementHelper = $caseManagementHelper;
-        $this->serializer = $serializer;
-        $this->adyenLogger = $adyenLogger;
-        $this->chargedCurrency = $chargedCurrency;
-        $this->configHelper = $configHelper;
-        $this->invoiceHelper = $invoiceHelper;
-        $this->paymentMethodsHelper = $paymentMethodsHelper;
-    }
+        private readonly AdyenOrderPayment $adyenOrderPaymentHelper,
+        private readonly OrderHelper $orderHelper,
+        private readonly CaseManagement $caseManagementHelper,
+        private readonly SerializerInterface $serializer,
+        private readonly AdyenLogger $adyenLogger,
+        private readonly Config $configHelper,
+        private readonly Invoice $invoiceHelper,
+        private readonly PaymentMethods $paymentMethodsHelper,
+        private readonly CartRepositoryInterface $cartRepository
+    ) { }
 
     /**
      * @param Order $order
@@ -134,19 +106,25 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
             if ($notification->getPaymentMethod() != "adyen_boleto" && !$order->getEmailSent()) {
                 $this->orderHelper->sendOrderMail($order);
             }
+
+            // Set authorized amount in sales_order_payment
+            $order->getPayment()->setAmountAuthorized($order->getGrandTotal());
+            $order->getPayment()->setBaseAmountAuthorized($order->getBaseGrandTotal());
         } else {
             $this->orderHelper->addWebhookStatusHistoryComment($order, $notification);
         }
-
-        // Set authorized amount in sales_order_payment
-        $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order, false);
-        $orderAmount = $orderAmountCurrency->getAmount();
-        $order->getPayment()->setAmountAuthorized($orderAmount);
 
         if ($notification->getPaymentMethod() == "c_cash" &&
             $this->configHelper->getConfigData('create_shipment', 'adyen_cash', $order->getStoreId())
         ) {
             $this->orderHelper->createShipment($order);
+        }
+
+        // Disable the quote if it's still active
+        $quote = $this->cartRepository->get($order->getQuoteId());
+        if ($quote->getIsActive()) {
+            $quote->setIsActive(false);
+            $this->cartRepository->save($quote);
         }
 
         return $order;

@@ -147,12 +147,12 @@ interface OrderPaymentInterface
     public function setCaptureStatus(string $captureStatus): OrderPaymentInterface;
 
     /**
-     * @return int|null
+     * @return float|null
      */
     public function getTotalCaptured(): ?float;
 
     /**
-     * @param int $totalCaptured
+     * @param float $totalCaptured
      * @return OrderPaymentInterface
      */
     public function setTotalCaptured(float $totalCaptured): OrderPaymentInterface;

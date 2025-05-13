@@ -1,0 +1,111 @@
+name: Bug report
+description: Create a report to help us improve. See closed issues before reporting to confirm the issue has not been reported or resolved.
+title: "[Bug]: "
+labels: ["Bug report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        #### Thank you for reporting this issue. Please provide all the required information to help us understand and resolve the issue.
+        Making your own contribution is easy, encouraged, and greatly appreciated! For more info, please refer to the [contribution guidelines](https://github.com/Adyen/adyen-magento2/blob/main/CONTRIBUTING.md).
+
+  - type: input
+    id: bug-description
+    attributes:
+      label: "Description"
+      description: "Provide a clear and concise description of the bug."
+      placeholder: "Example: Ideal Payment Options are not visible on..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce-steps
+    attributes:
+      label: "Steps to reproduce"
+      description: "List necessary steps to help us reproduce the issue."
+      placeholder: |
+        1. Install Adyen plugin "v..." in Magento "v..."
+        2. Add items to the cart
+        3. Select the payment method "..."
+        4. Proceed to checkout
+        5. Check the payment methods
+        6. Observe error "..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: "Actual behavior"
+      description: "Describe what happened - the error or unexpected behavior you see."
+      placeholder: "Example: Ideal Payment method is not visible..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: "Expected behavior"
+      description: "Describe what you expected to happen."
+      placeholder: "Example: Ideal Payment method should be visible..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: code-snippet
+    attributes:
+      label: "Code snippet or screenshots (if applicable)"
+      description: "Provide relevant code snippets or screenshots to illustrate the issue."
+      placeholder: "```php\n// Your code here\n```"
+
+  - type: input
+    id: adyen-magento-plugin-version
+    attributes:
+      label: "Adyen Magento Plugin version"
+      description: "Specify the version of the Adyen Magento plugin you're using."
+      placeholder: "Example: 9.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: magento-version
+    attributes:
+      label: "Magento version"
+      description: "Specify the version of Magento you're using."
+      placeholder: "Example: 2.4.7-p1"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: operating-system
+    attributes:
+      label: "Operating System"
+      description: "Select your operating system."
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - Other
+    validations:
+      required: false
+
+  - type: input
+    id: browser
+    attributes:
+      label: "Browser (if applicable)"
+      description: "Specify the browser and version you're using."
+      placeholder: "Example: Chrome 112.0.5615.49"
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context-and-logs
+    attributes:
+      label: "Additional context and logs"
+      description: "Provide any other relevant details or paste relevant logs."
+      placeholder: |
+        Example: This issue started after updating to version X.
+        Logs:
+        ```
+        [2025-04-02 10:00:00] main.ERROR: Exception message...
+        ```

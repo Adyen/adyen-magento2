@@ -27,6 +27,8 @@ use Exception;
 use Adyen\Payment\Model\Notification as NotificationEntity;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
+use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\OrderRepository;
 
@@ -119,7 +121,7 @@ class Webhook
             );
 
         $order = $this->orderHelper->getOrderByIncrementId($notification->getMerchantReference());
-        if (!$order) {
+        if (!$order instanceof OrderInterface) {
             $errorMessage = sprintf(
                 'Order w/merchant reference %s not found',
                 $notification->getMerchantReference()
@@ -131,6 +133,26 @@ class Webhook
             $this->setNotificationError($notification, $errorMessage);
 
             return false;
+        }
+
+        $payment = $order->getPayment();
+        if ($payment instanceof OrderPaymentInterface) {
+            $isAdyenPaymentMethod = $this->paymentMethodsHelper->isAdyenPayment($payment->getMethod());
+
+            if (!$isAdyenPaymentMethod) {
+                $errorMessage = sprintf(
+                    'Invalid order payment method "%s" for notification with the event code %s (id %s)',
+                    $payment->getMethod(),
+                    $notification->getEventCode(),
+                    $notification->getEntityId(),
+                );
+
+                $this->logger->addAdyenNotification($errorMessage);
+                $this->updateNotification($notification, false, true);
+                $this->setNotificationError($notification, $errorMessage);
+
+                return false;
+            }
         }
 
         try {

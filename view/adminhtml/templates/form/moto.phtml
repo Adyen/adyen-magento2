@@ -13,7 +13,6 @@
 /**
  * @var \Adyen\Payment\Block\Form\Moto $block
  */
-$code = $block->escapeHtml($block->getMethodCode());
 $ccType = $block->getInfoData('cc_type');
 $ccExpMonth = $block->getInfoData('cc_exp_month');
 $ccExpYear = $block->getInfoData('cc_exp_year');
@@ -22,20 +21,20 @@ $motoMerchantAccounts = $block->getMotoMerchantAccounts();
 ?>
 
 <fieldset class="admin__fieldset payment-method"
-          id="payment_form_<?= /* @noEscape */ $code; ?>"
+          id="payment_form_adyen_moto"
           style="display:none">
 
-    <input name="payment[stateData]" id="<?= /* @noEscape */ $code; ?>-statedata" type="hidden">
-    <input name="payment[motoMerchantAccount]" id="<?= /* @noEscape */ $code; ?>-merchant-account" type="hidden">
+    <input name="payment[stateData]" id="adyen_moto-statedata" type="hidden">
+    <input name="payment[motoMerchantAccount]" id="adyen_moto-merchant-account" type="hidden">
 
-    <label for="<?= /* @noEscape */ $code; ?>_merchant_accounts" class="admin__field-label">
+    <label for="adyen_moto_merchant_accounts" class="admin__field-label">
        <span>
            <?= $escaper->escapeHtml(__('MOTO Merchant Account')) ?>
        </span>
     </label>
     <?php if ($motoMerchantAccounts): ?>
     <div class="admin__field-control">
-        <select id="<?= /* @noEscape */ $code; ?>_merchant_accounts" class="required-entry admin__control-select">
+        <select id="adyen_moto_merchant_accounts" class="required-entry admin__control-select">
             <option value=""><?= $escaper->escapeHtml(__('Please select...')) ?></option>
             <?php foreach ($motoMerchantAccounts as $key => $value): ?>
                 <option value="<?= $escaper->escapeHtmlAttr($key) ?>" data-adyen-client-key="<?= $escaper->escapeHtmlAttr($value['clientkey']) ?>"><?= $escaper->escapeHtml($key) ?></option>
@@ -47,9 +46,17 @@ $motoMerchantAccounts = $block->getMotoMerchantAccounts();
             <?= $escaper->escapeHtml(__('No Adyen MOTO merchant account found. Please configure MOTO merchant accounts in the plugin configuration page.')) ?>
         </p>
     <?php endif ?>
-    <div id="cardContainer-<?= /* @noEscape */ $code; ?>" style=""></div>
+    <div id="cardContainer-adyen_moto" style=""></div>
 
-    <script>
+    <?php
+    $availableCcTypesByAlt = json_encode($block->getCcAvailableTypesByAlt());
+    $countryCode = $block->getCountryId();
+    $environment = $block->getCheckoutEnvironment();
+    $locale = $block->getLocale();
+    $amount = $block->getAmount();
+    $formattedInstallments = $block->getFormattedInstallments();
+
+    $scriptString = <<<script
         define(
             'renderCheckoutComponent',
             [
@@ -65,8 +72,8 @@ $motoMerchantAccounts = $block->getMotoMerchantAccounts();
                         return card;
                     },
                     init: function (clientKey, amount, installmentAmounts) {
-                        (async function () { // RequireJS does not support async callback
-                            var ccTypes = <?= /* @noEscape */ json_encode($block->getCcAvailableTypesByAlt()); ?>;
+                        (async function () {
+                            var ccTypes = $availableCcTypesByAlt;
 
                             // Get cc type by adyen cc type
                             var getCcCodeByAltCode = function (altCode) {
@@ -77,12 +84,12 @@ $motoMerchantAccounts = $block->getMotoMerchantAccounts();
                                 return "";
                             }
 
-                            var cardNode = document.getElementById("cardContainer-<?= /* @noEscape */ $code; ?>");
+                            var cardNode = document.getElementById("cardContainer-adyen_moto");
 
                             var checkout = await AdyenCheckout({
                                 clientKey: clientKey,
-                                environment: "<?= /* @noEscape */ $block->getCheckoutEnvironment(); ?>",
-                                locale: "<?= /* @noEscape */ $block->getLocale(); ?>",
+                                environment: "$environment",
+                                locale: "$locale",
                                 risk: {
                                     enabled: false
                                 },
@@ -99,7 +106,7 @@ $motoMerchantAccounts = $block->getMotoMerchantAccounts();
                                     amount: amount,
                                     onChange: function (state) {
                                         if (state.isValid) {
-                                            $('#<?= /* @noEscape */ $code; ?>-statedata').val(JSON.stringify(state.data));
+                                            $('#adyen_moto-statedata').val(JSON.stringify(state.data));
                                         }
                                     }
                                 });
@@ -123,13 +130,13 @@ $motoMerchantAccounts = $block->getMotoMerchantAccounts();
                 'renderCheckoutComponent',
             ],
             function ($, renderCheckoutComponent) {
-                $("#<?= /* @noEscape */ $code; ?>_merchant_accounts").on("change", function () {
+                $("#adyen_moto_merchant_accounts").on("change", function () {
                     if (renderCheckoutComponent.status() !== null) {
                         renderCheckoutComponent.unmount();
                     }
 
-                    let amount = <?= /* @noEscape */ $block->getAmount(); ?>;
-                    let installmentAmounts = <?= /* @noEscape */ $block->getFormattedInstallments(); ?>;
+                    let amount = $amount;
+                    let installmentAmounts = $formattedInstallments;
 
                     let clientKey = $(this).find("option:selected").attr('data-adyen-client-key');
                     let merchantAccount = $(this).find("option:selected").val();
@@ -138,10 +145,13 @@ $motoMerchantAccounts = $block->getMotoMerchantAccounts();
                         return;
                     }
 
-                    $("#<?= /* @noEscape */ $code; ?>-merchant-account").val(merchantAccount);
+                    $("#adyen_moto-merchant-account").val(merchantAccount);
                     renderCheckoutComponent.init(clientKey, amount, installmentAmounts);
                 });
             }
         );
-    </script>
+    script;
+    ?>
+
+    <?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptString, false) ?>
 </fieldset>
