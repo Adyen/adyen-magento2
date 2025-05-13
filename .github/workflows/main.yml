@@ -33,6 +33,7 @@ jobs:
           mkdir TestMain
           cd TestMain
           composer init --name="dummy/magento-root" --no-interaction
+          composer dump-autoload
           composer config repositories.magento composer https://repo.magento.com/
           composer config http-basic.repo.magento.com $MAGENTO_USERNAME $MAGENTO_PASSWORD
           composer config allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
