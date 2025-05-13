@@ -34,6 +34,8 @@ jobs:
           cd TestMain
           composer init --name="dummy/magento-root" --no-interaction
           composer config http-basic.repo.magento.com $MAGENTO_USERNAME $MAGENTO_PASSWORD
+          composer config allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
+          composer config allow-plugins.magento/composer-dependency-version-audit-plugin true
           composer require --dev \
             phpunit/phpunit:"~9.6.1" \
             magento/magento-coding-standard:"*" \
