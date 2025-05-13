@@ -54,10 +54,10 @@ jobs:
         run: cd TestMain && vendor/bin/phpcs .
 
       - name: Run PHPUnit
-        run: vendor/bin/phpunit --coverage-clover=build/clover.xml --log-junit=build/tests-log.xml -c Test/phpunit.xml Test/Unit
+        run: cd TestMain && vendor/bin/phpunit --coverage-clover=build/clover.xml --log-junit=build/tests-log.xml -c Test/phpunit.xml Test/Unit
 
       - name: Fix code coverage paths
-        run: cd TestMain sed -i "s;`pwd`/;;g" build/*.xml
+        run: cd TestMain && sed -i "s;`pwd`/;;g" build/*.xml
 
       - name: SonarCloud Scan
         if: ${{ env.SONAR_TOKEN }}
