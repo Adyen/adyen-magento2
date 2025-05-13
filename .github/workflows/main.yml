@@ -32,14 +32,12 @@ jobs:
           echo "{\"http-basic\":{\"repo.magento.com\":{\"username\":\"${MAGENTO_USERNAME}\",\"password\":\"${MAGENTO_PASSWORD}\"}}}" > auth.json
           mkdir TestMain
           cd TestMain
-          composer init
+          composer init --name "dummy-magento" --require-dev phpunit/phpunit:"~9.6.1" \
+            magento/magento-coding-standard:"*" \
+            squizlabs/php_codesniffer:"~3.12.0"
           composer config http-basic.repo.magento.com $MAGENTO_USERNAME $MAGENTO_PASSWORD
           composer config --json repositories.local '{"type": "path", "url": "/data/extensions/workdir", "options": { "symlink": false } }'
           composer require "adyen/module-payment:*"
-          composer require --dev \
-            phpunit/phpunit:"~9.6.1" \
-            magento/magento-coding-standard:"*" \
-            squizlabs/php_codesniffer:"~3.12.0"
           composer install --prefer-dist
         env:
           CI: true
