@@ -42,9 +42,13 @@ RUN apt-get update \
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg
 RUN docker-php-ext-configure ftp --with-openssl-dir=/usr
 RUN docker-php-ext-install -j$(nproc) bcmath gd intl pdo_mysql simplexml soap sockets xsl zip ftp
+RUN pecl install xdebug && docker-php-ext-enable xdebug
+
 RUN a2enmod ssl
-RUN a2ensite default-ssl.conf #can be removed if not needed
+RUN a2ensite default-ssl.conf
+
 WORKDIR /var/www/html
+
 COPY config/php.ini /usr/local/etc/php/
 COPY scripts/install_magento.sh /tmp/install_magento.sh
 
