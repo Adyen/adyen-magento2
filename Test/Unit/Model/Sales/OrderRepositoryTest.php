@@ -91,17 +91,7 @@ class OrderRepositoryTest extends AbstractAdyenTestCase
         $sortOrder = $this->createMock(SortOrder::class);
         $searchCriteria = $this->createMock(SearchCriteria::class);
 
-        $orderExtensionMock = $this->createGeneratedMock(
-            \Magento\Sales\Api\Data\OrderExtensionInterface::class,
-            [],
-            [
-                'getShippingAssignments',
-                'setAppliedTaxes',
-                'setConvertingFromQuote',
-                'setItemAppliedTaxes',
-                'setPaymentAdditionalInfo'
-            ]
-        );
+        $orderExtensionMock = $this->createMock(\Magento\Sales\Api\Data\OrderExtensionInterface::class);
         $orderExtensionMock->method('getShippingAssignments')->willReturn(true);
 
         $orderMock = $this->createMock(OrderInterface::class);
