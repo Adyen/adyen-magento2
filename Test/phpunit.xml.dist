@@ -41,9 +41,4 @@
             <parameter name="config" value="allure/allure.config.php" />
         </bootstrap>
     </extensions>
-    <coverage>
-        <exclude>
-            <directory>../../../vendor/adyen/module-payment/Test/.</directory>
-        </exclude>
-    </coverage>
 </phpunit>
