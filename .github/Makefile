@@ -142,4 +142,8 @@ phpunit-run:
 		../../../vendor/adyen/module-payment/Test/Unit
 
 codesniffer-run:
-	vendor/bin/phpcs vendor/adyen/module-payment
+	vendor/bin/phpcs --standard=Magento2 \
+		--extensions=php,phtml \
+		--error-severity=10 \
+		--ignore-annotations \
+		vendor/adyen/module-payment

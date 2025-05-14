@@ -53,8 +53,8 @@ jobs:
       - name: Setup permissions
         run: docker exec magento2-container make fs
 
-#      - name: Run PHP_Codesniffer
-#        run: docker exec magento2-container make codesniffer-run
+      - name: Run PHP_Codesniffer
+        run: docker exec magento2-container make codesniffer-run
 
       - name: Run PHPUnit
         run: docker exec magento2-container make phpunit-run
