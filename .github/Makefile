@@ -15,7 +15,6 @@ magento:
 install:
 	composer config --json repositories.local '{"type": "path", "url": "/data/extensions/workdir", "options": { "symlink": false } }'
 	composer require "adyen/module-payment:*"
-	vendor/bin/phpcs --standard=Magento2 --extensions=php,phtml --error-severity=10 -n -p vendor/adyen/module-payment
 	bin/magento module:enable Adyen_Payment
 	bin/magento setup:upgrade
 	bin/magento setup:di:compile
@@ -142,8 +141,10 @@ phpunit-run:
 		../../../vendor/adyen/module-payment/Test/Unit
 
 codesniffer-run:
+	vendor/bin/phpcs --standard=Magento2 --extensions=php,phtml --error-severity=10  vendor/adyen/module-payment
 	vendor/bin/phpcs --standard=Magento2 \
 		--extensions=php,phtml \
 		--error-severity=10 \
+		--warning-severity=0 \
 		--ignore-annotations \
-		vendor/adyen/module-payment
+		-p vendor/adyen/module-payment
