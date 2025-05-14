@@ -134,10 +134,10 @@ phpstan-run:
 	vendor/bin/phpstan analyse -c vendor/adyen/module-payment/phpstan.neon
 
 phpunit-run:
-	cd dev/tests/unit
-	../../../vendor/bin/phpunit \
-		--coverage-clover=../../../build/clover.xml \
-		--log-junit=../../../build/tests-log.xml \
+	cd dev/tests/unit; \
+		../../../vendor/bin/phpunit \
+		--coverage-clover=../../../vendor/adyen/module-payment/build/clover.xml \
+		--log-junit=../../../vendor/adyen/module-payment/build/tests-log.xml \
 		-c phpunit.xml.dist \
 		../../../vendor/adyen/module-payment/Test/Unit
 
