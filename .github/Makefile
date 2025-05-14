@@ -145,6 +145,5 @@ codesniffer-run:
 	vendor/bin/phpcs --standard=Magento2 \
 		--extensions=php,phtml \
 		--error-severity=10 \
-		--warning-severity=0 \
 		--ignore-annotations \
-		-p vendor/adyen/module-payment
+		-p -n vendor/adyen/module-payment
