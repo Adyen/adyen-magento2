@@ -41,10 +41,7 @@
             <parameter name="config" value="allure/allure.config.php" />
         </bootstrap>
     </extensions>
-    <coverage processUncoveredFiles="false">
-        <include>
-            <directory suffix=".php">../../../vendor/adyen/module-payment/.</directory>
-        </include>
+    <coverage>
         <exclude>
             <directory>../../../vendor/adyen/module-payment/Test/.</directory>
         </exclude>
