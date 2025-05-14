@@ -90,6 +90,7 @@ class DataTest extends AbstractAdyenTestCase
     private $orderManagement;
     private $orderStatusHistoryFactory;
     private $request;
+    private $paymentMock;
 
     public function setUp(): void
     {
@@ -1174,7 +1175,7 @@ class DataTest extends AbstractAdyenTestCase
 
         // Assert that the logger was called with the correct parameters based on demo mode
         $this->adyenLogger->expects($this->once())
-            ->method('info')
+            ->method('addAdyenInfoLog')
             ->with('Response from Adyen API', ['body' => $response]);
         // Call the method under test
         $this->dataHelper->logResponse($response);
@@ -1201,7 +1202,7 @@ class DataTest extends AbstractAdyenTestCase
         $filteredResponse = $method->invokeArgs($this->dataHelper, [$filteredResponse]);
 
         $this->adyenLogger->expects($this->once())
-            ->method('info')
+            ->method('addAdyenInfoLog')
             ->with('Response from Adyen API', ['body' => $filteredResponse]);
         // Call the method under test
         $this->dataHelper->logResponse($filteredResponse);
@@ -1232,7 +1233,7 @@ class DataTest extends AbstractAdyenTestCase
 
         // Expect info method to be called on adyenLogger with correct context
         $this->adyenLogger->expects($this->once())
-            ->method('info')
+            ->method('addAdyenInfoLog')
             ->with('Request to Adyen API payment/authorise', [
                 'apiVersion' => $apiVersion,
                 'livePrefix' => 'live_prefix',
@@ -1802,7 +1803,7 @@ class DataTest extends AbstractAdyenTestCase
     public function testLogAdyenException()
     {
         $this->store->method('getId')->willReturn(1);
-        $this->adyenLogger->expects($this->once())->method('info');
+        $this->adyenLogger->expects($this->once())->method('addAdyenInfoLog');
         $this->dataHelper->logAdyenException(new AdyenException('error message', 123));
     }
 }

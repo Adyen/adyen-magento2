@@ -13,8 +13,13 @@ namespace Adyen\Payment\Test\Unit\Block\Checkout;
 
 use Adyen\Payment\Block\Checkout\Success;
 use Adyen\Payment\Helper\PaymentResponseHandler;
+use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Model\Ui\AdyenCheckoutSuccessConfigProvider;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
-use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
+use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Framework\View\Element\Template\Context;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\OrderFactory;
 use Magento\Checkout\Model\Session as CheckoutSession;
@@ -26,16 +31,24 @@ use Magento\Store\Model\StoreManagerInterface;
 use Adyen\Payment\Model\Ui\AdyenCheckoutSuccessConfigProvider;
 use Magento\Framework\Serialize\SerializerInterface;
 use Adyen\Payment\Helper\Data;
+use Magento\Store\Model\StoreManagerInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 
 class SuccessTest extends AbstractAdyenTestCase
 {
-    private $objectManager;
-    private $checkoutSessionMock;
-    private $customerSessionMock;
-    private $orderFactoryMock;
-    private $orderMock;
-    private $quoteIdToMaskedQuoteIdMock;
-    private $successBlock;
+    private Success $successBlock;
+    private CheckoutSession|MockObject $checkoutSessionMock;
+    private CustomerSession|MockObject $customerSessionMock;
+    private OrderFactory|MockObject $orderFactoryMock;
+    private Order|MockObject $orderMock;
+    private QuoteIdToMaskedQuoteId|MockObject $quoteIdToMaskedQuoteIdMock;
+    private OrderRepositoryInterface|MockObject $orderRepositoryMock;
+    private Context|MockObject $contextMock;
+    private Data|MockObject $adyenDataHelper;
+    private Config|MockObject $configMock;
+    private AdyenCheckoutSuccessConfigProvider|MockObject $adyenCheckoutSuccessConfigProviderMock;
+    private StoreManagerInterface|MockObject $storeManagerMock;
+    private SerializerInterface|MockObject $serializerMock;
 
     protected function setUp(): void
     {
@@ -77,6 +90,27 @@ class SuccessTest extends AbstractAdyenTestCase
                 'configProvider' => $this->configProviderMock,
                 'adyenHelper' => $this->adyenHelperMock
             ]
+        $this->adyenDataHelper = $this->createMock(Data::class);
+        $this->contextMock = $this->createMock(Context::class);
+        $this->orderRepositoryMock = $this->createMock(OrderRepositoryInterface::class);
+        $this->configMock = $this->createMock(Config::class);
+        $this->adyenCheckoutSuccessConfigProviderMock =
+            $this->createMock(AdyenCheckoutSuccessConfigProvider::class);
+        $this->storeManagerMock = $this->createMock(StoreManagerInterface::class);
+        $this->serializerMock = $this->createMock(SerializerInterface::class);
+
+        $this->successBlock = new Success(
+            $this->contextMock,
+            $this->checkoutSessionMock,
+            $this->customerSessionMock,
+            $this->quoteIdToMaskedQuoteIdMock,
+            $this->orderFactoryMock,
+            $this->adyenDataHelper,
+            $this->configMock,
+            $this->adyenCheckoutSuccessConfigProviderMock,
+            $this->storeManagerMock,
+            $this->serializerMock,
+            $this->orderRepositoryMock
         );
     }
 
@@ -87,8 +121,7 @@ class SuccessTest extends AbstractAdyenTestCase
         $quoteId = 1;
 
         $this->checkoutSessionMock->method('getLastOrderId')->willReturn($orderId);
-        $this->orderFactoryMock->method('create')->willReturn($this->orderMock);
-        $this->orderMock->method('load')->willReturnSelf();
+        $this->orderRepositoryMock->method('get')->with($orderId)->willReturn($this->orderMock);
         $this->orderMock->method('getQuoteId')->willReturn($quoteId);
         $this->quoteIdToMaskedQuoteIdMock->method('execute')->willReturn($maskedQuoteId);
 
@@ -102,7 +135,7 @@ class SuccessTest extends AbstractAdyenTestCase
         $exception = new \Exception('Error during getMaskedQuoteId');
 
         $this->checkoutSessionMock->method('getLastOrderId')->willReturn($orderId);
-        $this->orderFactoryMock->method('create')->willThrowException($exception);
+        $this->orderRepositoryMock->method('get')->with($orderId)->willThrowException($exception);
 
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Error during getMaskedQuoteId');

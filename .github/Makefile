@@ -124,3 +124,6 @@ setup-mftf:
 # Magento Functional Testing Framework
 mftf:
 	vendor/bin/mftf run:group --remove -- AdyenMagentoSuite || vendor/bin/mftf run:failed
+
+phpstan-run:
+	vendor/bin/phpstan analyse -c vendor/adyen/module-payment/phpstan.neon

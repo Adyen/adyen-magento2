@@ -13,6 +13,7 @@ namespace Adyen\Payment\Test\Unit\Model\Api;
 
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Helper\PaymentsDetails;
+use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Api\AdyenPaymentsDetails;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Exception\ValidatorException;
@@ -26,6 +27,7 @@ class AdyenPaymentsDetailsTest extends AbstractAdyenTestCase
     private $orderRepositoryMock;
     private $paymentsDetailsHelperMock;
     private $paymentResponseHandlerHelperMock;
+    private $adyenLoggerMock;
 
     protected function setUp(): void
     {
@@ -35,12 +37,14 @@ class AdyenPaymentsDetailsTest extends AbstractAdyenTestCase
             PaymentResponseHandler::class,
             ['handlePaymentsDetailsResponse']
         );
+        $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
 
         $objectManager = new ObjectManager($this);
         $this->adyenPaymentsDetails = $objectManager->getObject(AdyenPaymentsDetails::class, [
             'orderRepository' => $this->orderRepositoryMock,
             'paymentsDetails' => $this->paymentsDetailsHelperMock,
-            'paymentResponseHandler' => $this->paymentResponseHandlerHelperMock
+            'paymentResponseHandler' => $this->paymentResponseHandlerHelperMock,
+            'adyenLogger' => $this->adyenLoggerMock,
         ]);
     }
 

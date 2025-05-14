@@ -21,10 +21,11 @@ use Magento\Quote\Model\Quote\Payment;
 
 class AdyenPaymentMethodDataAssignObserverTest extends AbstractAdyenTestCase
 {
-    private MockObject $checkoutStateDataValidator;
-    private MockObject $stateDataCollection;
-    private MockObject $stateData;
-    private MockObject $vaultHelper;
+    private MockObject|CheckoutStateDataValidator $checkoutStateDataValidator;
+    private MockObject|Collection $stateDataCollection;
+    private MockObject|StateData $stateData;
+    private MockObject|Vault $vaultHelper;
+    private MockObject|Payment $paymentInfo;
     private AdyenPaymentMethodDataAssignObserver $observer;
 
     protected function setUp(): void
