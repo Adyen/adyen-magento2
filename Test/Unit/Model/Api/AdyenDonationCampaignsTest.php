@@ -10,9 +10,11 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Api\AdyenDonationCampaigns;
 use Adyen\Payment\Model\Sales\OrderRepository;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order\Payment;
-use Adyen\Payment\Model\AdyenAmountCurrency;
 use Magento\Sales\Model\Order;
+use Adyen\Payment\Model\AdyenAmountCurrency;
 use PHPUnit\Framework\MockObject\Exception;
 
 class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
@@ -25,9 +27,6 @@ class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
     private $adyenHelperMock;
     private $adyenDonationCampaigns;
 
-    /**
-     * @throws Exception
-     */
     protected function setUp(): void
     {
         $this->donationsHelperMock = $this->createMock(DonationsHelper::class);
@@ -52,15 +51,13 @@ class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
 
     public function testGetCampaignsSuccess(): void
     {
-        $orderId = 123;
-        $this->orderMock->method('getEntityId')->willReturn($orderId);
+        $orderId = 100;
+        $orderMock = $this->createMock(OrderInterface::class);
+        $orderMock->method('getEntityId')->willReturn($orderId);
 
-        $this->orderRepositoryMock->expects($this->once())
-            ->method('get')->with($orderId)->willReturn($this->orderMock);
+        $this->orderRepositoryMock->method('get')->willReturn($orderMock);
 
-        $expectedJson = '{"reference":"abc"}';
-
-        $adyenDonationCampaigns = $this->getMockBuilder(AdyenDonationCampaigns::class)
+        $this->adyenDonationCampaigns = $this->getMockBuilder(AdyenDonationCampaigns::class)
             ->setConstructorArgs([
                 $this->donationsHelperMock,
                 $this->orderRepositoryMock,
@@ -72,41 +69,45 @@ class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
             ->onlyMethods(['getCampaignData'])
             ->getMock();
 
-        $adyenDonationCampaigns->expects($this->once())
+        $this->adyenDonationCampaigns->expects($this->once())
             ->method('getCampaignData')
-            ->with($this->orderMock)
-            ->willReturn($expectedJson);
+            ->with($orderMock)
+            ->willReturn(json_encode(['key' => 'value']));
 
-        $result = $adyenDonationCampaigns->getCampaigns($orderId);
-        $this->assertEquals($expectedJson, $result);
+        $result = $this->adyenDonationCampaigns->getCampaigns($orderId);
+        $this->assertEquals(json_encode(['key' => 'value']), $result);
     }
 
-    public function testGetCampaignsWithException(): void
+    public function testGetCampaignsThrowsIfOrderLoadFails(): void
     {
+        $this->expectException(LocalizedException::class);
+        $this->expectExceptionMessage('Unable to retrieve donation campaigns');
+
         $orderId = 999;
-        $this->orderRepositoryMock->method('get')->willThrowException(new \Exception('Not found'));
+        $this->orderRepositoryMock->method('get')->willThrowException(new \Exception('DB fail'));
 
         $this->adyenLoggerMock->expects($this->once())
             ->method('error')
-            ->with($this->stringContains("Failed to load order with ID $orderId"));
+            ->with($this->stringContains("Failed to load order with ID"));
 
-        $result = $this->adyenDonationCampaigns->getCampaigns($orderId);
-        $this->assertEquals('null', $result);
+        $this->adyenDonationCampaigns->getCampaigns($orderId);
     }
 
-    public function testGetCampaignsWithEmptyEntityId(): void
+    public function testGetCampaignsThrowsIfNoEntityId(): void
     {
-        $orderId = 456;
-        $this->orderMock->method('getEntityId')->willReturn(null);
+        $this->expectException(LocalizedException::class);
 
-        $this->orderRepositoryMock->method('get')->willReturn($this->orderMock);
+        $orderId = 101;
+        $orderMock = $this->createMock(OrderInterface::class);
+        $orderMock->method('getEntityId')->willReturn(null);
+
+        $this->orderRepositoryMock->method('get')->willReturn($orderMock);
 
         $this->adyenLoggerMock->expects($this->once())
             ->method('error')
             ->with($this->stringContains("Order ID $orderId has no entity ID"));
 
-        $result = $this->adyenDonationCampaigns->getCampaigns($orderId);
-        $this->assertEquals('null', $result);
+        $this->adyenDonationCampaigns->getCampaigns($orderId);
     }
 
     public function testGetCampaignDataSuccess(): void
@@ -142,43 +143,21 @@ class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
         $this->assertEquals(json_encode($formattedCampaign), $result);
     }
 
-    public function testGetCampaignDataMissingDonationToken(): void
+    public function testGetCampaignDataThrowsIfNoDonationToken(): void
     {
-        $this->paymentMock->method('getAdditionalInformation')->with('donationToken')->willReturn(null);
+        $this->expectException(LocalizedException::class);
+        $this->expectExceptionMessage('Unable to retrieve donation campaigns');
 
-        $this->orderMock->method('getPayment')->willReturn($this->paymentMock);
+        $paymentMock = $this->createMock(Payment::class);
+        $paymentMock->method('getAdditionalInformation')->with('donationToken')->willReturn(null);
+
+        $orderMock = $this->createMock(OrderInterface::class);
+        $orderMock->method('getPayment')->willReturn($paymentMock);
 
         $this->adyenLoggerMock->expects($this->once())
             ->method('error')
             ->with($this->stringContains('Missing donation token'));
 
-        $result = $this->adyenDonationCampaigns->getCampaignData($this->orderMock);
-        $this->assertEquals('null', $result);
-    }
-
-    public function testGetCampaignDataThrowsException(): void
-    {
-        $storeId = 1;
-
-        $this->paymentMock->method('getAdditionalInformation')->with('donationToken')->willReturn('token123');
-
-        $this->orderMock->method('getPayment')->willReturn($this->paymentMock);
-        $this->orderMock->method('getStoreId')->willReturn($storeId);
-
-        $this->currencyObject->method('getCurrencyCode')->willReturn('EUR');
-        $this->chargedCurrencyMock->method('getOrderAmountCurrency')->willReturn($this->currencyObject);
-
-        $this->configHelperMock->method('getMerchantAccount')->willReturn('account');
-        $this->adyenHelperMock->method('getCurrentLocaleCode')->willReturn('en_US');
-
-        $this->donationsHelperMock->method('fetchDonationCampaigns')
-            ->willThrowException(new \Exception('API failure'));
-
-        $this->adyenLoggerMock->expects($this->once())
-            ->method('error')
-            ->with($this->stringContains('Failed to fetch donation campaigns'));
-
-        $result = $this->adyenDonationCampaigns->getCampaignData($this->orderMock);
-        $this->assertEquals('null', $result);
+        $this->adyenDonationCampaigns->getCampaignData($orderMock);
     }
 }

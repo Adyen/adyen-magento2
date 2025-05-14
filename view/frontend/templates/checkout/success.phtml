@@ -95,14 +95,18 @@ script;
                 const isLoggedIn = Boolean($isLoggedIn);
                 const maskedQuoteId = '$maskedQuoteId';
 
-                try {
-                    const campaignResponse = JSON.parse(await adyenPaymentService.donationCampaigns(isLoggedIn, orderId, maskedQuoteId));
-                    if (campaignResponse != null) {
-                        await mountAdyenGivingComponent(campaignResponse);
-                    }
-                } catch (error) {
-                    console.error('Failed to fetch donation campaigns:', error);
-                }
+                adyenPaymentService.donationCampaigns(isLoggedIn, orderId, maskedQuoteId)
+                    .done(function (response) {
+                        try {
+                        debugger;
+                            const campaignResponse = JSON.parse(response);
+                            if (campaignResponse && Object.keys(campaignResponse).length > 0) {
+                                mountAdyenGivingComponent(campaignResponse);
+                            }
+                        } catch (parseError) {
+                            console.warn('Error parsing donation campaign response:', parseError);
+                        }
+                    });
 
                 async function mountAdyenGivingComponent(campaign) {
                     try {
@@ -120,6 +124,7 @@ script;
                         if(campaign.donation.type == 'roundup') {
                             donationConfig.commercialTxAmount = '$orderAmount'
                         }
+                        debugger;
                         adyenGivingComponent = new window.AdyenWeb.Donation(
                             checkoutComponent,
                             donationConfig

@@ -24,7 +24,7 @@ abstract class AbstractAdyenTestCase extends TestCase
 {
     /**
      * Create a mock with a mix of methods that already exist and others that do not exist.
-     * If conditions are requireed so that MockBuilder does not set $this->emptyMethodsArray = 1
+     * If conditions are required so that MockBuilder does not set $this->emptyMethodsArray = 1
      * This was done since setMethods is deprecated
      */
     protected function createMockWithMethods(string $originalClassName, array $existingMethods, array $nonExistingMethods): MockObject

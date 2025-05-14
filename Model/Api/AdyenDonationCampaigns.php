@@ -7,6 +7,7 @@ use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\DonationsHelper;
 use Adyen\Payment\Model\Sales\OrderRepository;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\Data\OrderInterface;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Helper\Data;
@@ -38,6 +39,7 @@ class AdyenDonationCampaigns implements AdyenDonationCampaignsInterface
 
     /**
      * {@inheritdoc}
+     * @throws LocalizedException
      */
 
     public function getCampaigns(int $orderId): string
@@ -48,12 +50,12 @@ class AdyenDonationCampaigns implements AdyenDonationCampaignsInterface
             $this->adyenLogger->error(
                 'Cannot fetch donation campaigns.Failed to load order with ID ' . $orderId . ': ' . $e->getMessage()
             );
-            return 'null';
+            throw new LocalizedException(__('Unable to retrieve donation campaigns. Please try again later.'));
         }
 
         if (!$order->getEntityId()) {
             $this->adyenLogger->error("Order ID $orderId has no entity ID. Cannot fetch donation campaigns.");
-            return 'null';
+            throw new LocalizedException(__('Unable to retrieve donation campaigns. Please try again later.'));
         }
 
         return $this->getCampaignData($order);
@@ -62,13 +64,14 @@ class AdyenDonationCampaigns implements AdyenDonationCampaignsInterface
     /**
      * @param OrderInterface $order
      * @return string
+     * @throws LocalizedException
      */
     public function getCampaignData(OrderInterface $order): string
     {
         $donationToken = $order->getPayment()->getAdditionalInformation('donationToken');
         if (!$donationToken) {
             $this->adyenLogger->error('Missing donation token in payment additional information.');
-            return 'null';
+            throw new LocalizedException(__('Unable to retrieve donation campaigns. Please try again later.'));
         }
 
         $payloadData = [];
@@ -88,7 +91,7 @@ class AdyenDonationCampaigns implements AdyenDonationCampaignsInterface
             return json_encode($campaignsData);
         } catch (\Exception $e) {
             $this->adyenLogger->error('Failed to fetch donation campaigns: ' . $e->getMessage());
-            return 'null';
+            throw new LocalizedException(__('Unable to retrieve donation campaigns. Please try again later.'));
         }
     }
 
