@@ -139,8 +139,14 @@ class DataTest extends AbstractAdyenTestCase
         $this->cache = $this->createMock(CacheInterface::class);
         $this->localeResolver = $this->createMock(ResolverInterface::class);
         $this->config = $this->createMock(ScopeConfigInterface::class);
+
+        /* This relative path change can be reverted back after this issue is resolved.
+         * https://github.com/allure-framework/allure-phpunit/pull/107
+         * The changes are related to this recommendation.
+         * https://developer.adobe.com/commerce/testing/guide/unit/command-line/#cli-command-run-with-phpunit-10
+        */
         $this->componentRegistrar = $this->createConfiguredMock(ComponentRegistrarInterface::class, [
-            'getPath' => 'vendor/adyen/module-payment'
+            'getPath' => '../../../vendor/adyen/module-payment'
         ]);
         $this->localeHelper = $this->createMock(Locale::class);
         $this->orderManagement = $this->createMock(OrderManagementInterface::class);
