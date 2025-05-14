@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.4/phpunit.xsd"
+         colors="true"
+         columns="max"
+         beStrictAboutTestsThatDoNotTestAnything="false"
+         bootstrap="./framework/bootstrap.php">
+    <source>
+        <include>
+            <directory suffix=".php">../../../app/code/*</directory>
+            <directory suffix=".php">../../../lib/internal/Magento</directory>
+            <directory suffix=".php">../../../setup/src/*</directory>
+        </include>
+        <exclude>
+            <directory>../../../app/code/*/*/Test</directory>
+            <directory>../../../lib/internal/*/*/Test</directory>
+            <directory>../../../lib/internal/*/*/*/Test</directory>
+            <directory>../../../setup/src/*/*/Test</directory>
+        </exclude>
+    </source>
+    <testsuites>
+        <testsuite name="Adyen_Payment_Unit_Tests">
+            <directory>../../../vendor/adyen/module-payment/Test/Unit</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <includePath>.</includePath>
+        <ini name="memory_limit" value="-1"/>
+        <ini name="date.timezone" value="America/Los_Angeles"/>
+        <ini name="xdebug.max_nesting_level" value="200"/>
+    </php>
+    <extensions>
+        <bootstrap class="Qameta\Allure\PHPUnit\AllureExtension">
+            <!-- Path to config file (default is config/allure.config.php) -->
+            <parameter name="config" value="allure/allure.config.php" />
+        </bootstrap>
+    </extensions>
+    <coverage processUncoveredFiles="false">
+        <include>
+            <directory suffix=".php">../../../vendor/adyen/module-payment/.</directory>
+        </include>
+        <exclude>
+            <directory>../../../vendor/adyen/module-payment/Test/.</directory>
+        </exclude>
+    </coverage>
+</phpunit>

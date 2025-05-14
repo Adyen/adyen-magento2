@@ -133,11 +133,12 @@ phpstan-run:
 	vendor/bin/phpstan analyse -c vendor/adyen/module-payment/phpstan.neon
 
 phpunit-run:
+	cp vendor/adyen/module-payment/Test/phpunit.xml.dist dev/tests/unit/phpunit.xml
 	cd dev/tests/unit; \
 		../../../vendor/bin/phpunit \
 		--coverage-clover=../../../build/clover.xml \
 		--log-junit=../../../build/tests-log.xml \
-		-c phpunit.xml.dist \
+		-c phpunit.xml \
 		../../../vendor/adyen/module-payment/Test/Unit
 
 codesniffer-run:
