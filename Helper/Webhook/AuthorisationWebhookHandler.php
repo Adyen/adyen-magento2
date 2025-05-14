@@ -15,7 +15,6 @@ namespace Adyen\Payment\Helper\Webhook;
 use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\CaseManagement;
-use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Invoice;
 use Adyen\Payment\Helper\Order as OrderHelper;
@@ -37,7 +36,6 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
      * @param CaseManagement $caseManagementHelper
      * @param SerializerInterface $serializer
      * @param AdyenLogger $adyenLogger
-     * @param ChargedCurrency $chargedCurrency
      * @param Config $configHelper
      * @param Invoice $invoiceHelper
      * @param PaymentMethods $paymentMethodsHelper
@@ -50,7 +48,6 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         private readonly CaseManagement $caseManagementHelper,
         private readonly SerializerInterface $serializer,
         private readonly AdyenLogger $adyenLogger,
-        private readonly ChargedCurrency $chargedCurrency,
         private readonly Config $configHelper,
         private readonly Invoice $invoiceHelper,
         private readonly PaymentMethods $paymentMethodsHelper,
@@ -112,14 +109,13 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
             if ($notification->getPaymentMethod() != "adyen_boleto" && !$order->getEmailSent()) {
                 $this->orderHelper->sendOrderMail($order);
             }
+
+            // Set authorized amount in sales_order_payment
+            $order->getPayment()->setAmountAuthorized($order->getGrandTotal());
+            $order->getPayment()->setBaseAmountAuthorized($order->getBaseGrandTotal());
         } else {
             $this->orderHelper->addWebhookStatusHistoryComment($order, $notification);
         }
-
-        // Set authorized amount in sales_order_payment
-        $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order, false);
-        $orderAmount = $orderAmountCurrency->getAmount();
-        $order->getPayment()->setAmountAuthorized($orderAmount);
 
         if ($notification->getPaymentMethod() == "c_cash" &&
             $this->configHelper->getConfigData('create_shipment', 'adyen_cash', $order->getStoreId())
