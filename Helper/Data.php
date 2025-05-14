@@ -940,11 +940,6 @@ class Data extends AbstractHelper
         $client->setApplicationName(self::APPLICATION_NAME);
         $client->setXApiKey($apiKey);
 
-        $checkoutFrontendRegion = $this->configHelper->getCheckoutFrontendRegion($storeId);
-        if (isset($checkoutFrontendRegion)) {
-            $client->setRegion($checkoutFrontendRegion);
-        }
-
         $client->setMerchantApplication($this->getModuleName(), $this->getModuleVersion());
         $platformData = $this->getMagentoDetails();
         $client->setExternalPlatform($platformData['name'], $platformData['version'], 'Adyen');

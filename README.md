@@ -13,7 +13,12 @@ Inside Adyen toggle the following settings on inside the API and Responses secti
 * Variant
 
 ## Requirements
-This plugin supports Magento 2 version 2.4.4 and higher.
+This plugin is compatible with Magento 2.4.4 to 2.4.7 (inclusive).
+> ⚠️ Note: To support enhanced security via CSP (Content Security Policy) nonces, the plugin depends on functionality introduced in the following Magento versions:
+>
+> - Magento 2.4.4-p9 and above
+> - Magento 2.4.5-p8 and above
+> - Magento 2.4.6-p6 and above
 
 ## Releases
 
