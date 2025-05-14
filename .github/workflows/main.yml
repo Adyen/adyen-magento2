@@ -15,10 +15,11 @@ jobs:
       matrix:
         php-version: ["8.3"]
         magento-version: ["2.4.8"]
-    runs-on:
-      group: larger-runners
-      labels: ubuntu-latest-8-cores
-    timeout-minutes: 25
+#    runs-on:
+#      group: larger-runners
+#      labels: ubuntu-latest-8-cores
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       PHP_VERSION: ${{ matrix.php-version }}
       MAGENTO_VERSION: ${{ matrix.magento-version }}
@@ -60,6 +61,13 @@ jobs:
 
       - name: Run PHPUnit
         run: docker exec magento2-container make phpunit-run
+
+      - name: SonarCloud Scan
+        if: ${{ env.SONAR_TOKEN }}
+        uses: SonarSource/sonarqube-scan-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Run PHPStan
         run: docker exec magento2-container make phpstan-run
