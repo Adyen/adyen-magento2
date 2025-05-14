@@ -15,9 +15,6 @@ jobs:
       matrix:
         php-version: ["8.3"]
         magento-version: ["2.4.8"]
-#    runs-on:
-#      group: larger-runners
-#      labels: ubuntu-latest-8-cores
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
