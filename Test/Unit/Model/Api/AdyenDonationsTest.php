@@ -191,6 +191,22 @@ class AdyenDonationsTest extends AbstractAdyenTestCase
 
         $this->commandPoolMock->expects($this->once())
             ->method('get')
+            ->willReturn($this->createMock(OrderInterface::class));
+
+        $adyenDonationsMock = $this->getMockBuilder(AdyenDonations::class)
+            ->onlyMethods(['makeDonation'])
+            ->setConstructorArgs([
+                $this->createMock(CommandPoolInterface::class),
+                $this->createMock(Json::class),
+                $this->createMock(Data::class),
+                $this->createMock(ChargedCurrency::class),
+                $this->createMock(Config::class),
+                $this->createMock(PaymentMethods::class),
+                $orderRepositoryMock
+            ])
+            ->getMock();
+
+        $adyenDonationsMock->donate(1, '');
             ->with('capture')
             ->willReturn($donationCommand);
 

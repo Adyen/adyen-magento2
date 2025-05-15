@@ -32,11 +32,6 @@ configure: n98-magerun2.phar
 	bin/magento config:set payment/adyen_pay_by_link/active 1
 	bin/magento config:set payment/adyen_pay_by_link/days_to_expire 5
 	bin/magento config:set payment/adyen_giving/active 1
-	bin/magento config:set payment/adyen_giving/charity_description 'test'
-	bin/magento config:set payment/adyen_giving/charity_website 'https://adyen.com'
-	bin/magento config:set payment/adyen_giving/charity_merchant_account "${DONATION_ACCOUNT}"
-	bin/magento config:set payment/adyen_giving/donation_amounts '1,5,10'
-	bin/magento config:set payment/adyen_giving/background_image ''
 	bin/magento config:set payment/adyen_abstract/merchant_account "${ADYEN_MERCHANT}"
 	bin/magento config:set payment/adyen_abstract/notifications_ip_check 0
 	bin/magento config:set payment/adyen_abstract/payment_authorized 'processing'
