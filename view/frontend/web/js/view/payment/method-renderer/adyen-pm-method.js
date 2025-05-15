@@ -81,6 +81,21 @@ define(
                 paymentComponentStates().initializeState(this.getMethodCode());
             },
 
+            getTitle: function () {
+                const paymentMethodsObservable = adyenPaymentService.getPaymentMethods();
+                const methodCode = this.getTxVariant();
+                const methods = paymentMethodsObservable?.()?.paymentMethodsResponse?.paymentMethods;
+
+                if (Array.isArray(methods)) {
+                    const matchedMethod = methods.find(pm => pm.type === methodCode);
+                    if (matchedMethod?.name) {
+                        return matchedMethod.name;
+                    }
+                }
+
+                return this._super();
+            },
+
             enablePaymentMethod: function (paymentMethodsResponse) {
                 if (this.checkBrowserCompatibility() && !!paymentMethodsResponse.paymentMethodsResponse) {
                     this.paymentMethod(
@@ -131,9 +146,11 @@ define(
             createCheckoutComponent: async function(forceCreate = false) {
                 if (!this.checkoutComponent || forceCreate) {
                     const paymentMethodsResponse = adyenPaymentService.getPaymentMethods();
+                    const countryCode = quote.billingAddress().countryId;
 
                     this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
                         paymentMethodsResponse(),
+                        countryCode,
                         this.handleOnAdditionalDetails.bind(this),
                         this.handleOnCancel.bind(this),
                         this.handleOnSubmit.bind(this),
@@ -292,9 +309,9 @@ define(
                         'method': methodCode
                     };
 
-                    let additionalData = {};
-                    additionalData.brand_code = this.paymentMethod().type;
-                    additionalData.frontendType = 'default';
+                    let additionalData = {
+                        frontendType: 'default'
+                    };
 
                     let stateData;
                     if (this.paymentComponent) {

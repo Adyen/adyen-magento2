@@ -19,6 +19,7 @@ use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\OrderStatusHistoryRepositoryInterface;
 use Magento\Sales\Model\Order\Status\HistoryFactory;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\ResourceModel\Order;
@@ -64,6 +65,7 @@ class PaymentResponseHandler
     private PaymentResponseCollectionFactory $paymentResponseCollectionFactory;
     private Config $configHelper;
     private PaymentMethods $paymentMethodsHelper;
+    private OrderStatusHistoryRepositoryInterface $orderStatusHistoryRepository;
 
     public function __construct(
         AdyenLogger $adyenLogger,
@@ -77,6 +79,7 @@ class PaymentResponseHandler
         StateData $stateDataHelper,
         PaymentResponseCollectionFactory $paymentResponseCollectionFactory,
         Config $configHelper,
+        OrderStatusHistoryRepositoryInterface $orderStatusHistoryRepository,
         PaymentMethods $paymentMethodsHelper
     ) {
         $this->adyenLogger = $adyenLogger;
@@ -91,12 +94,12 @@ class PaymentResponseHandler
         $this->paymentResponseCollectionFactory = $paymentResponseCollectionFactory;
         $this->configHelper = $configHelper;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
+        $this->orderStatusHistoryRepository = $orderStatusHistoryRepository;
     }
 
     public function formatPaymentResponse(
         string $resultCode,
-        array $action = null,
-        array $additionalData = null
+        array $action = null
     ): array {
         switch ($resultCode) {
             case self::AUTHORISED:
@@ -117,16 +120,11 @@ class PaymentResponseHandler
                     "action" => $action
                 ];
             case self::PRESENT_TO_SHOPPER:
-                return [
-                    "isFinal" => true,
-                    "resultCode" => $resultCode,
-                    "action" => $action
-                ];
             case self::RECEIVED:
                 return [
                     "isFinal" => true,
                     "resultCode" => $resultCode,
-                    "additionalData" => $additionalData
+                    "action" => $action
                 ];
             default:
                 return [
@@ -349,7 +347,7 @@ class PaymentResponseHandler
             ->setEntityName('order')
             ->setOrder($order);
 
-        $history->save();
+        $this->orderStatusHistoryRepository->save($history);
 
         // needed because then we need to save $order objects
         $order->setAdyenResulturlEventCode($authResult);

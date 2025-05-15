@@ -3,9 +3,9 @@ run-name: E2E test workflow with test suite branch ${{inputs.testBranch || 'main
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main,develop-10]
   pull_request_target:
-    branches: [main]
+    branches: [main, develop-10]
   workflow_dispatch:
     inputs:
       testBranch:
@@ -33,7 +33,7 @@ jobs:
     strategy:
       matrix:
         php-version: ["8.3"]
-        magento-version: ["2.4.7-p2"]
+        magento-version: ["2.4.8"]
     runs-on:
       group: larger-runners
       labels: ubuntu-latest-8-cores

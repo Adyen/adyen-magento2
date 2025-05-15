@@ -441,8 +441,11 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
         return $this->mimePartInterfaceFactory->create(
             [
                 'content' => $content,
+                // @phpstan-ignore-next-line
                 'type' => Mime::TYPE_OCTETSTREAM,
+                // @phpstan-ignore-next-line
                 'disposition' => Mime::DISPOSITION_ATTACHMENT,
+                // @phpstan-ignore-next-line
                 'encoding' => Mime::ENCODING_BASE64,
                 'fileName' => $filename
             ]
