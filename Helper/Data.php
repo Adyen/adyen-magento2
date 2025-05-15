@@ -1253,6 +1253,8 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @deprecated
+     *
      * @param string $date
      * @param string $format
      * @return mixed

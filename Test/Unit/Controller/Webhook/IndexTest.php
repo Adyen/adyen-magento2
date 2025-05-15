@@ -2,6 +2,7 @@
 
 namespace Adyen\Payment\Test\Unit\Controller\Webhook;
 
+use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
 use Adyen\Payment\Controller\Webhook\Index;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
@@ -35,20 +36,17 @@ class IndexTest extends AbstractAdyenTestCase
     private SerializerInterface|MockObject $serializerMock;
     private AdyenLogger|MockObject $adyenLoggerMock;
     private Index $indexController;
-    private http|MockObject $httpMock;
     private IpAddress|MockObject $ipAddressHelperMock;
     private Config|MockObject $configHelperMock;
     private RateLimiter|MockObject $rateLimiterHelperMock;
     private HmacSignature|MockObject $hmacSignatureMock;
     private NotificationReceiver|MockObject $notificationReceiverMock;
     private RemoteAddress|MockObject $remoteAddressMock;
+    private AdyenNotificationRepositoryInterface|MockObject $notificationRepositoryMock;
 
     protected function setUp(): void
     {
         $this->contextMock = $this->getMockBuilder(Context::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->httpMock = $this->getMockBuilder(http::class)
             ->disableOriginalConstructor()
             ->getMock();
         $this->requestMock = $this->getMockBuilder(RequestInterface::class)
@@ -93,9 +91,10 @@ class IndexTest extends AbstractAdyenTestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-
         $this->contextMock->method('getRequest')->willReturn($this->requestMock);
         $this->contextMock->method('getResponse')->willReturn($this->responseMock);
+
+        $this->notificationRepositoryMock = $this->createMock(AdyenNotificationRepositoryInterface::class);
         $this->resultJsonFactoryMock->method('create')->willReturn($this->resultJsonMock);
 
         $this->indexController = new Index(
@@ -110,7 +109,7 @@ class IndexTest extends AbstractAdyenTestCase
             $this->hmacSignatureMock,
             $this->notificationReceiverMock,
             $this->remoteAddressMock,
-            $this->httpMock
+            $this->notificationRepositoryMock
         );
     }
 

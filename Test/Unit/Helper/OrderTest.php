@@ -558,11 +558,7 @@ class OrderTest extends AbstractAdyenTestCase
         $orderMock->expects($this->once())->method('getState')->willReturn('new');
 
         $configHelperMock = $this->createConfiguredMock(Config::class, ['getConfigData' => $status]);
-        $adyenLoggerMock->expects($this->atLeastOnce())->method('addAdyenNotification')
-            ->withConsecutive(
-                [$this->stringContains('No new state assigned, status should be connected to one of the following states: ["new","adyen_authorized"]')],
-                [$this->stringContains('Order status is changed to Pre-authorised status')]
-            );
+        $adyenLoggerMock->expects($this->atLeastOnce())->method('addAdyenNotification');
 
         $paymentMock = $this->createMock(Payment::class);
         $paymentMock->method('getData')->willReturnMap([

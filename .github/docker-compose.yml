@@ -58,6 +58,7 @@ services:
       - ./Makefile:/var/www/html/Makefile
       - composer:/usr/local/bin
       - magento:/var/www/html
+      - ../build:/var/www/html/build
 networks:
   backend:
 volumes:
