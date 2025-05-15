@@ -187,12 +187,7 @@ class MagentoPaymentDetailsTest extends AbstractAdyenTestCase
             'get' => $quoteMock
         ]);
 
-        $extensionAttributesMock = $this->createGeneratedMock(PaymentDetailsExtensionInterface::class, [
-            'setAdyenPaymentMethodsResponse',
-            'getAdyenPaymentMethodsResponse',
-            'setAdyenConnectedTerminals',
-            'getAdyenConnectedTerminals'
-        ]);
+        $extensionAttributesMock = $this->createMock(PaymentDetailsExtensionInterface::class);
         $extensionAttributesMock->method('getAdyenPaymentMethodsResponse')
             ->willReturn(self::PAYMENT_METHODS_RESPONSE);
         $extensionAttributesMock->method('getAdyenConnectedTerminals')

@@ -47,6 +47,7 @@ class SuccessTest extends AbstractAdyenTestCase
     {
         $this->checkoutSessionMock = $this->createGeneratedMock(
             CheckoutSession::class,
+            [],
             ['getLastOrderId']
         );
         $this->customerSessionMock = $this->createGeneratedMock(

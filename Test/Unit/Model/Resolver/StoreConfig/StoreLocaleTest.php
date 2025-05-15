@@ -36,10 +36,7 @@ class StoreLocaleTest extends AbstractAdyenTestCase
 
     protected function setUp(): void
     {
-        $this->contextExtensionMock = $this->createGeneratedMock(
-            ContextExtensionInterface::class,
-            ['getStore']
-        );
+        $this->contextExtensionMock = $this->createMock(ContextExtensionInterface::class);
 
         $this->contextMock = $this->getMockBuilder(Context::class)
             ->disableOriginalConstructor()

@@ -15,7 +15,6 @@ magento:
 install:
 	composer config --json repositories.local '{"type": "path", "url": "/data/extensions/workdir", "options": { "symlink": false } }'
 	composer require "adyen/module-payment:*"
-	vendor/bin/phpcs --standard=Magento2 --extensions=php,phtml --error-severity=10 -n -p vendor/adyen/module-payment
 	bin/magento module:enable Adyen_Payment
 	bin/magento setup:upgrade
 	bin/magento setup:di:compile
@@ -132,3 +131,20 @@ mftf:
 
 phpstan-run:
 	vendor/bin/phpstan analyse -c vendor/adyen/module-payment/phpstan.neon
+
+phpunit-run:
+	cp vendor/adyen/module-payment/Test/phpunit.xml.dist dev/tests/unit/phpunit.xml
+	cd dev/tests/unit; \
+		../../../vendor/bin/phpunit \
+		--coverage-clover=../../../build/clover.xml \
+		--log-junit=../../../build/tests-log.xml \
+		-c phpunit.xml \
+		../../../vendor/adyen/module-payment/Test/Unit
+
+codesniffer-run:
+	vendor/bin/phpcs --standard=Magento2 \
+		--extensions=php,phtml \
+		--error-severity=10 \
+		--warning-severity=0 \
+		--ignore-annotations \
+		-p vendor/adyen/module-payment

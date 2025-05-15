@@ -21,8 +21,7 @@ class MerchantAccountsTest extends AbstractAdyenTestCase
         $requestMock = $this->createMock(RequestInterface::class);
         $requestMock->expects($this->exactly(2))
             ->method('getParam')
-            ->withConsecutive(['apiKey', ''], ['demoMode'])
-            ->willReturnOnConsecutiveCalls($apiKey, $demoMode);
+            ->willReturnMap([['apiKey', '', $apiKey], ['demoMode', '', $demoMode]]);
 
         $contextMock = $this->createConfiguredMock(Context::class,
             [
