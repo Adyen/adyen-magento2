@@ -89,11 +89,11 @@ class InvoiceTest extends AbstractAdyenTestCase
      */
     public function testCreateInvoiceManualCapture($notificationAmount = 1000)
     {
-        $invoiceMock = $this->createGeneratedMock(InvoiceModel::class, [
-            'setRequestedCaptureCase',
-            'getOrder',
-            'register'
-        ]);
+        $invoiceMock = $this->createGeneratedMock(
+            InvoiceModel::class,
+            ['getOrder', 'register'],
+            ['setRequestedCaptureCase']
+        );
         $invoiceMock->method('getOrder')->willReturn($this->createMock(Order::class));
         $invoiceMock->method('register')->willReturn($this->createMock(InvoiceModel::class));
 

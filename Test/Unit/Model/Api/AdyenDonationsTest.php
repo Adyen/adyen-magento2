@@ -48,7 +48,9 @@ class AdyenDonationsTest extends AbstractAdyenTestCase
         $this->dataMock = $this->createPartialMock(Data::class, []);
         $this->chargedCurrencyMock = $this->createMock(ChargedCurrency::class);
         $this->configMock = $this->createMock(Config::class);
-        $this->paymentMethodsMock = $this->createPartialMock(PaymentMethods::class, []);
+        $this->paymentMethodsMock = $this->createPartialMock(PaymentMethods::class, [
+            'getAlternativePaymentMethodTxVariant'
+        ]);
         $this->orderRepositoryMock = $this->createMock(OrderRepository::class);
 
         $this->adyenDonations = new AdyenDonations(
@@ -157,6 +159,9 @@ class AdyenDonationsTest extends AbstractAdyenTestCase
 
         $orderAmountCurrencyMock = $this->createMock(AdyenAmountCurrency::class);
         $orderAmountCurrencyMock->method('getCurrencyCode')->willReturn($orderCurrency);
+
+        $this->paymentMethodsMock->method('getAlternativePaymentMethodTxVariant')
+            ->willReturn('tx_variant');
 
         $this->chargedCurrencyMock->expects($this->once())
             ->method('getOrderAmountCurrency')

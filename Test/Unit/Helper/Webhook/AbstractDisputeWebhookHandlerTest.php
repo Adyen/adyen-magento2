@@ -120,8 +120,11 @@ class AbstractDisputeWebhookHandlerTest extends AbstractAdyenTestCase
 
         $orderMock->method('getStoreId')->willReturn($storeId);
         $orderMock->method('getPayment')->willReturnSelf();
-        $orderMock->method('getData')->withConsecutive(['adyen_psp_reference'], ['entity_id'])
-            ->willReturnOnConsecutiveCalls($pspReference, $merchantReference);
+        $orderMock->method('getData')
+            ->willReturnMap([
+                ['adyen_psp_reference', null, $pspReference],
+                ['entity_id', null, $merchantReference]
+            ]);
 
         $notificationMock->method('getEventCode')->willReturn($eventCode);
         $notificationMock->method('getId')->willReturn('1');

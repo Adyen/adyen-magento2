@@ -193,17 +193,10 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
     {
         $this->orderMock->expects($this->atLeastOnce())
             ->method('getData')
-            ->withConsecutive(
-                ['adyen_notification_event_code'],
-                ['adyen_notification_payment_captured']
-            )
-            ->willReturnCallback(function ($arg) {
-                if ($arg === 'adyen_notification_event_code') {
-                    return 'AUTHORISATION : TRUE';
-                } elseif ($arg === 'adyen_notification_payment_captured') {
-                    return false;
-                }
-            });
+            ->willReturnMap([
+                ['adyen_notification_event_code', null, 'AUTHORISATION : TRUE'],
+                ['adyen_notification_payment_captured', null, false]
+            ]);
 
         // Create an instance of AuthorisationWebhookHandler
         $webhookHandler = $this->createAuthorisationWebhookHandler();
