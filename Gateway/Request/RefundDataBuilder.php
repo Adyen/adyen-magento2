@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Adyen\Payment\Api\Data\InvoiceInterface;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
@@ -24,6 +25,7 @@ use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Sales\Model\Order\Payment;
+use Adyen\Payment\Model\ResourceModel\Invoice\Collection as AdyenInvoiceCollection;
 
 /**
  * Class CustomerDataBuilder
@@ -41,6 +43,7 @@ class RefundDataBuilder implements BuilderInterface
      * @param Config $configHelper
      * @param OpenInvoice $openInvoiceHelper
      * @param PaymentMethods $paymentMethodsHelper
+     * @param AdyenInvoiceCollection $adyenInvoiceCollection
      */
     public function __construct(
         private readonly Data $adyenHelper,
@@ -48,7 +51,8 @@ class RefundDataBuilder implements BuilderInterface
         private readonly ChargedCurrency $chargedCurrency,
         private readonly Config $configHelper,
         private readonly OpenInvoice $openInvoiceHelper,
-        private readonly PaymentMethods $paymentMethodsHelper
+        private readonly PaymentMethods $paymentMethodsHelper,
+        private readonly AdyenInvoiceCollection $adyenInvoiceCollection,
     ) { }
 
     /**
@@ -167,7 +171,25 @@ class RefundDataBuilder implements BuilderInterface
                 ]
             ];
 
-            if ($this->paymentMethodsHelper->isOpenInvoice($paymentMethodInstance)) {
+            if ($method === PaymentMethods::ADYEN_PAYPAL) {
+                $adyenInvoices = $this->adyenInvoiceCollection->getAdyenInvoicesLinkedToMagentoInvoice(
+                    $creditMemo->getInvoiceId()
+                );
+                $firstAdyenInvoice = reset($adyenInvoices);
+
+                $isPaypalManualCapture = $this->configHelper->getConfigData(
+                    'paypal_capture_mode',
+                    'adyen_abstract',
+                    $storeId,
+                    true
+                );
+
+                if (!empty($adyenInvoices) && $isPaypalManualCapture) {
+                    $requestBody[0]['capturePspReference'] = $firstAdyenInvoice[InvoiceInterface::PSPREFERENCE];
+                }
+            }
+
+            if ($this->paymentMethodsHelper->getRequiresLineItems($paymentMethodInstance)) {
                 $openInvoiceFieldsCreditMemo = $this->openInvoiceHelper->getOpenInvoiceDataForCreditMemo($creditMemo);
                 //There is only one payment, so we add the fields to the first(and only) result
                 $requestBody[0] = array_merge($requestBody[0], $openInvoiceFieldsCreditMemo);

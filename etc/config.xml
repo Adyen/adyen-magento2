@@ -78,7 +78,7 @@
             <adyen_oneclick>
                 <active>0</active>
                 <model>AdyenPaymentOneclickFacade</model>
-                <title>Adyen Stored Payment Methods</title>
+                <title>Adyen Stored Payment Methods (Deprecated)</title>
                 <allowspecific>0</allowspecific>
                 <sort_order>1</sort_order>
                 <cctypes>AE,VI,MC,DI</cctypes>
@@ -88,7 +88,7 @@
                 <useccv>1</useccv>
                 <is_gateway>1</is_gateway>
                 <can_use_checkout>0</can_use_checkout>
-                <can_authorize>1</can_authorize>
+                <can_authorize>0</can_authorize>
                 <can_authorize_3d>1</can_authorize_3d>
                 <can_capture>1</can_capture>
                 <can_capture_partial>1</can_capture_partial>
@@ -103,13 +103,13 @@
                 <active>0</active>
                 <model>AdyenPaymentHppFacade</model>
                 <order_status>pending</order_status>
-                <title>Alternative payment methods</title>
+                <title>Alternative payment methods (Deprecated)</title>
                 <allowspecific>0</allowspecific>
                 <sort_order>3</sort_order>
                 <payment_action>authorize</payment_action>
-                <can_initialize>1</can_initialize>
+                <can_initialize>0</can_initialize>
                 <is_gateway>1</is_gateway>
-                <can_use_checkout>1</can_use_checkout>
+                <can_use_checkout>0</can_use_checkout>
                 <can_capture>1</can_capture>
                 <can_capture_partial>1</can_capture_partial>
                 <can_use_internal>0</can_use_internal>
@@ -206,6 +206,7 @@
                 <supports_manual_capture>1</supports_manual_capture>
                 <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
+                <requires_line_items>1</requires_line_items>
                 <group>adyen-alternative-payment-method</group>
             </adyen_paypal>
             <adyen_paypal_vault>
@@ -1051,12 +1052,12 @@
             <adyen_entercash>
                 <active>0</active>
                 <model>AdyenPaymentEntercashFacade</model>
-                <title>Entercash</title>
+                <title>Entercash (Deprecated)</title>
                 <allowspecific>0</allowspecific>
                 <sort_order>0</sort_order>
                 <payment_action>authorize</payment_action>
-                <can_initialize>1</can_initialize>
-                <can_use_checkout>1</can_use_checkout>
+                <can_initialize>0</can_initialize>
+                <can_use_checkout>0</can_use_checkout>
                 <can_capture>1</can_capture>
                 <can_capture_partial>0</can_capture_partial>
                 <can_use_internal>0</can_use_internal>
@@ -2578,6 +2579,30 @@
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_doku_mandiri_va>
+            <adyen_afterpaytouch_US>
+                <active>0</active>
+                <model>AdyenPaymentAfterpaytouchUSFacade</model>
+                <title>Afterpay</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <is_gateway>1</is_gateway>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>1</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>1</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <is_open_invoice>1</is_open_invoice>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_afterpaytouch_US>
         </payment>
     </default>
 </config>
