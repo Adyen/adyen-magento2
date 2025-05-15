@@ -16,7 +16,6 @@ use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\PaymentResponseHandler;
-use Adyen\Payment\Model\PaymentResponse;
 use Adyen\Payment\Model\ResourceModel\PaymentResponse\Collection;
 use Adyen\Payment\Model\Ui\AdyenCheckoutSuccessConfigProvider;
 use Magento\Framework\Api\SearchCriteriaBuilder;
@@ -28,53 +27,22 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 
 class Success extends \Magento\Multishipping\Block\Checkout\Success
 {
-    /**
-     * @var bool
-     */
-    private $isAdyenPayment;
+    private bool $isAdyenPayment;
+    private ?array $paymentResponseEntities;
+    private ?array $ordersInfo;
+    private Data $adyenHelper;
+    private StoreManagerInterface $storeManager;
+    private SerializerInterface $serializerInterface;
+    private AdyenCheckoutSuccessConfigProvider $configProvider;
+    private OrderRepositoryInterface $orderRepository;
+    private SearchCriteriaBuilder $searchCriteriaBuilder;
+    private Config $configHelper;
+    private PaymentMethods $paymentMethodsHelper;
 
     /**
-     * @var PaymentResponse[]
+     * @var
      */
-    private $paymentResponseEntities;
-
-    /**
-     * @var Data
-     */
-    private $adyenHelper;
-
-    /**
-     * @var StoreManagerInterface
-     */
-    private $storeManager;
-
-    /**
-     * @var SerializerInterface
-     */
-    private $serializerInterface;
-
-    /**
-     * @var AdyenCheckoutSuccessConfigProvider
-     */
-    private $configProvider;
-
-    /**
-     * @var OrderRepositoryInterface
-     */
-    private $orderRepository;
-
-    /**
-     * @var SearchCriteriaBuilder
-     */
-    private $searchCriteriaBuilder;
-
-
-    private $configHelper;
-
-    /**
-     * @var array
-     */
-    private $ordersInfo;
+    private $billingCountryCode = null;
 
     public function __construct(
         Collection $paymentResponseCollection,
@@ -175,6 +143,7 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
                     default:
                         $this->ordersInfo[$order->getEntityId()]['buttonLabel'] = $this->getCompletePaymentLabel();
                 }
+                $this->setBillingCountryCode($order->getBillingAddress()->getCountryId());
             }
         }
     }
@@ -213,5 +182,15 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
     public function setIsAdyenPayment(bool $isAdyenPayment)
     {
         $this->isAdyenPayment = $isAdyenPayment;
+    }
+
+    public function setBillingCountryCode(string $countryCode): void
+    {
+        $this->billingCountryCode = $countryCode;
+    }
+
+    public function getBillingCountryCode(): ?string
+    {
+        return $this->billingCountryCode;
     }
 }

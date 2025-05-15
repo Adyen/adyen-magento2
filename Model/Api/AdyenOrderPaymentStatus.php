@@ -53,7 +53,7 @@ class AdyenOrderPaymentStatus implements AdyenOrderPaymentStatusInterface
         $additionalInformation = $payment->getAdditionalInformation();
 
         if (empty($additionalInformation['resultCode'])) {
-            $this->adyenLogger->info('resultCode is empty in the payment\'s additional information');
+            $this->adyenLogger->addAdyenInfoLog('resultCode is empty in the payment\'s additional information');
             return json_encode(
                 $this->paymentResponseHandler->formatPaymentResponse(PaymentResponseHandler::ERROR)
             );
@@ -61,8 +61,7 @@ class AdyenOrderPaymentStatus implements AdyenOrderPaymentStatusInterface
 
         return json_encode($this->paymentResponseHandler->formatPaymentResponse(
             $additionalInformation['resultCode'],
-            !empty($additionalInformation['action']) ? $additionalInformation['action'] : null,
-            !empty($additionalInformation['additionalData']) ? $additionalInformation['additionalData'] : null
+            !empty($additionalInformation['action']) ? $additionalInformation['action'] : null
         ));
     }
 }

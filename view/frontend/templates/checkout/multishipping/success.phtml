@@ -102,10 +102,11 @@ $paymentResponseEntities = $block->getPaymentResponseEntities();
             'Magento_Checkout/js/model/error-processor',
             'Magento_Ui/js/model/messages',
             'Adyen_Payment/js/model/adyen-payment-modal'
-        ], function ($, AdyenCheckout, fullScreenLoader, adyenPaymentService, errorProcessor, Messages, adyenPaymentModal) {
+        ], function ($, AdyenWeb, fullScreenLoader, adyenPaymentService, errorProcessor, Messages, adyenPaymentModal) {
         (async function () { // RequireJS does not support async callback
-            let checkoutComponent = await AdyenCheckout({
+            let checkoutComponent = await window.AdyenWeb.AdyenCheckout({
                 locale: '<?= $block->escapeHtml($block->getLocale()); ?>',
+                countryCode: '<?= $block->escapeHtml($block->getBillingCountryCode()); ?>',
                 environment: '<?= $block->escapeHtml($block->getEnvironment()); ?>',
                 clientKey: '<?= $block->escapeHtml($block->getClientKey()); ?>',
                 onAdditionalDetails: handleOnAdditionalDetails.bind(this),
