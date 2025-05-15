@@ -14,6 +14,7 @@ namespace Adyen\Payment\Gateway\Request;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\OpenInvoice;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Model\Config\Source\ThreeDSFlow;
@@ -21,6 +22,7 @@ use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Catalog\Helper\Image;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
@@ -46,6 +48,8 @@ class CheckoutDataBuilder implements BuilderInterface
      * @param ChargedCurrency $chargedCurrency
      * @param Config $configHelper
      * @param PaymentMethods $paymentMethodsHelper
+     * @param OpenInvoice $openInvoiceHelper
+     * @param Image $imageHelper
      */
     public function __construct(
         private readonly Data $adyenHelper,
@@ -53,7 +57,9 @@ class CheckoutDataBuilder implements BuilderInterface
         private readonly CartRepositoryInterface $cartRepository,
         private readonly ChargedCurrency $chargedCurrency,
         private readonly Config $configHelper,
-        private readonly PaymentMethods $paymentMethodsHelper
+        private readonly PaymentMethods $paymentMethodsHelper,
+        private readonly OpenInvoice $openInvoiceHelper,
+        private readonly Image $imageHelper
     ) { }
 
     /**

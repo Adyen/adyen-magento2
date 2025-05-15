@@ -11,8 +11,9 @@
 
 namespace Adyen\Payment\Model;
 
+use Adyen\Payment\Api\Data\NotificationInterface;
 use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
-use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory;
+use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\ObjectManagerInterface;
 
 class AdyenNotificationRepository implements AdyenNotificationRepositoryInterface
@@ -40,5 +41,15 @@ class AdyenNotificationRepository implements AdyenNotificationRepositoryInterfac
 
         $resource = $this->objectManager->get($this->resourceModel);
         $resource->deleteByIds($entityIds);
+    }
+
+    /**
+     * @throws AlreadyExistsException
+     */
+    public function save(NotificationInterface $entity): NotificationInterface
+    {
+        $this->resourceModel->save($entity);
+
+        return $entity;
     }
 }

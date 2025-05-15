@@ -8,10 +8,11 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-// phpcs:disable Generic.CodeAnalysis.UselessOverridingMethod.Found
+
 namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Api\Data\NotificationInterface;
+use Adyen\Payment\Model\ResourceModel\Notification as NotificationResourceModel;
 use DateTime;
 use Magento\Framework\Data\Collection\AbstractDb;
 use Magento\Framework\Model\AbstractModel;
@@ -54,6 +55,7 @@ class Notification extends AbstractModel implements NotificationInterface
     public function __construct(
         Context $context,
         Registry $registry,
+        private readonly NotificationResourceModel $notificationResourceModel,
         AbstractResource $resource = null,
         AbstractDb $resourceCollection = null,
         array $data = []
@@ -74,7 +76,7 @@ class Notification extends AbstractModel implements NotificationInterface
      */
     public function isDuplicate($done = null): bool
     {
-        $result = $this->getResource()->getNotification(
+        $result = $this->notificationResourceModel->getNotification(
             $this->getPspreference(),
             $this->getEventCode(),
             $this->getSuccess(),

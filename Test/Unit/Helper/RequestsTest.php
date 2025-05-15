@@ -9,22 +9,23 @@ use Adyen\Payment\Helper\Requests;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Magento\Payment\Model\MethodInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
 use Magento\Framework\App\Request\Http;
 
 class RequestsTest extends AbstractAdyenTestCase
 {
-    /** @var Requests $sut */
-    private $sut;
-
-    /** @var Payment $paymentMock */
-    private $paymentMock;
-
-    /**
-     * @var Data $adyenHelperMock
-     */
+    private Requests $sut;
+    private Payment $paymentMock;
     private Data $adyenHelperMock;
+    private \Magento\Quote\Model\Quote\Address $billingAddressMock;
+    private Order $order;
+    private MethodInterface $methodInstance;
+    private Payment $payment;
+    private Config $adyenConfigMock;
+    private Address $addressHelperMock;
+    private Http $requestInterfaceMock;
 
     protected function setUp(): void
     {
@@ -34,11 +35,10 @@ class RequestsTest extends AbstractAdyenTestCase
             ->disableOriginalConstructor()
             ->getMock();
         $this->order = $this->createMock(Order::class);
-        $this->methodInstance = $this->createMock(\Magento\Payment\Model\MethodInterface::class);
+        $this->methodInstance = $this->createMock(MethodInterface::class);
         $this->payment = $this->createMock(Payment::class);
         $this->payment->method('getMethodInstance')->willReturn($this->methodInstance);
-        $this->adyenConfigMock = $this->createMock(\Adyen\Payment\Helper\Config::class);
-        $this->vaultHelperMock = $this->createMock(\Adyen\Payment\Helper\Vault::class);
+        $this->adyenConfigMock = $this->createMock(Config::class);
 
         // Mock dependencies
         $this->adyenHelperMock = $this->createMock(Data::class);
@@ -382,16 +382,11 @@ class RequestsTest extends AbstractAdyenTestCase
             'shopperReference' => 'shopper123',
             'donationToken' => 'donationToken123',
             'donationOriginalPspReference' => 'originalPspReference123',
-            'returnUrl' => 'https://example.com/return'
+            'returnUrl' => 'https://example.com/return',
+            'id' => 12
         ];
 
         $storeId = 1;
-
-        // Mock the charity merchant account return
-        $this->adyenConfigMock
-            ->method('getCharityMerchantAccount')
-            ->with($storeId)
-            ->willReturn('charityMerchantAccount123');
 
         // Mock the merchant account return
         $this->adyenHelperMock
@@ -410,7 +405,7 @@ class RequestsTest extends AbstractAdyenTestCase
         $this->assertArrayHasKey('paymentMethod', $result);
         $this->assertArrayHasKey('donationToken', $result);
         $this->assertArrayHasKey('donationOriginalPspReference', $result);
-        $this->assertArrayHasKey('donationAccount', $result);
+        $this->assertArrayHasKey('donationCampaignId', $result);
         $this->assertArrayHasKey('returnUrl', $result);
         $this->assertArrayHasKey('merchantAccount', $result);
         $this->assertArrayHasKey('shopperInteraction', $result);
@@ -432,7 +427,8 @@ class RequestsTest extends AbstractAdyenTestCase
             'shopperReference' => 'shopper456',
             'donationToken' => 'donationToken456',
             'donationOriginalPspReference' => 'originalPspReference456',
-            'returnUrl' => 'https://example.com/return'
+            'returnUrl' => 'https://example.com/return',
+            'id' => 12
         ];
 
         $storeId = 2;

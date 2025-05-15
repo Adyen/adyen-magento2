@@ -52,7 +52,7 @@ class CaseManagementTest extends AbstractAdyenTestCase
         $reviewRequiredStatus = 'fraud_manual_review_status';
         $expectedManualReviewComment = 'Manual review required for order w/pspReference: PSPREFERENCE. Please check the Adyen platform.';
         $order = $this->createMock(Order::class);
-        $payment = $this->createGeneratedMock(Payment::class, ['getData']);
+        $payment = $this->createGeneratedMock(Payment::class, [], ['getData']);
         $configHelper = $this->createMock(Config::class);
         $logger = $this->createMock(AdyenLogger::class);
         $storeId = 1;
@@ -94,7 +94,7 @@ class CaseManagementTest extends AbstractAdyenTestCase
         $reviewRequiredStatus = null;
         $expectedManualReviewComment = 'Manual review required for order w/pspReference: PSPREFERENCE. Please check the Adyen platform.';
         $order = $this->createMock(Order::class);
-        $payment = $this->createGeneratedMock(Payment::class, ['getData']);
+        $payment = $this->createGeneratedMock(Payment::class, [], ['getData']);
         $configHelper = $this->createMock(Config::class);
         $logger = $this->createMock(AdyenLogger::class);
 
@@ -127,7 +127,7 @@ class CaseManagementTest extends AbstractAdyenTestCase
         $reviewAcceptStatus = 'fraud_manual_review_accept_status';
         $storeId = 1;
         $order = $this->createMock(Order::class);
-        $payment = $this->createGeneratedMock(Payment::class, ['getData']);
+        $payment = $this->createGeneratedMock(Payment::class, [], ['getData']);
         $logger = $this->createMock(AdyenLogger::class);
         $configHelper = $this->createMock(Config::class);
         $caseManagementHelper = new CaseManagement($logger, $configHelper);
@@ -160,7 +160,7 @@ class CaseManagementTest extends AbstractAdyenTestCase
         $reviewAcceptStatus = null;
         $storeId = 1;
         $order = $this->createMock(Order::class);
-        $payment = $this->createGeneratedMock(Payment::class, ['getData']);
+        $payment = $this->createGeneratedMock(Payment::class, [], ['getData']);
         $logger = $this->createMock(AdyenLogger::class);
         $configHelper = $this->createMock(Config::class);
         $caseManagementHelper = new CaseManagement($logger, $configHelper);

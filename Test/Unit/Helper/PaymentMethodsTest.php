@@ -73,6 +73,15 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
     private AdyenDataHelper $adyenDataHelperMock;
     private PaymentTokenRepositoryInterface $paymentTokenRepository;
     private SearchCriteriaBuilder $searchCriteriaBuilder;
+    private Address $billingAddressMock;
+    private AdyenAmountCurrency $amountCurrencyMock;
+    private MethodInterface $methodMock;
+    private Order $orderMock;
+    private Notification $notificationMock;
+    private Order\Payment $orderPaymentMock;
+    private Store $storeMock;
+    private Quote $quoteMock;
+    private ObjectManager $objectManager;
 
     protected function setUp(): void
     {
@@ -214,11 +223,11 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $this->configHelperMock
             ->expects($this->exactly(3))
             ->method('setConfigData')
-            ->withConsecutive(
-                ['1', 'active', 'adyen_cc', 'default'],
-                ['1', 'active', 'adyen_oneclick', 'default'],
-                ['1', 'active', 'adyen_cc_vault', 'default']
-            );
+            ->willReturnMap([
+                ['1', 'active', 'adyen_cc', 'default', null, null],
+                ['1', 'active', 'adyen_oneclick', 'default', null, null],
+                ['1', 'active', 'adyen_cc_vault', 'default', null, null]
+            ]);
 
         $paymentMethods = $this->paymentMethodsHelper->togglePaymentMethodsActivation();
         $this->assertSame(
@@ -236,11 +245,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $storeMock = $this->createMock(Store::class);
         $storeMock->method('getId')->willReturn(1);
 
-        $quoteMock = $this->getMockBuilder(Quote::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['getStore'])
-            ->getMock();
-
+        $quoteMock = $this->createMock(Quote::class);
         $quoteMock->method('getStore')->willReturn($storeMock);
         $quoteMock->setCustomerId(123);
 
@@ -1039,11 +1044,10 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $pngAssetMock->method('getUrl')->willReturn($expectedPNGUrl);
 
         $this->assetRepoMock->method('createAsset')
-            ->withConsecutive(
-                ["Adyen_Payment::images/logos/{$paymentMethodCode}.svg", $params],
-                ["Adyen_Payment::images/logos/{$paymentMethodCode}.png", $params]
-            )
-            ->willReturnOnConsecutiveCalls($svgAssetMock, $pngAssetMock);
+            ->willReturnMap([
+                ["Adyen_Payment::images/logos/{$paymentMethodCode}.svg", $params, $svgAssetMock],
+                ["Adyen_Payment::images/logos/{$paymentMethodCode}.png", $params, $pngAssetMock]
+            ]);
 
         // Set up asset source mock for SVG asset
         $this->assetSourceMock->method('findSource')
@@ -1201,13 +1205,12 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
 
         $this->configHelperMock->expects($this->exactly(3))
             ->method('getConfigData')// Expecting 5 calls to getConfigData method
-            ->withConsecutive(
-                ['capture_mode', 'adyen_abstract', $storeId],
-                ['sepa_flow', 'adyen_abstract', $storeId],
-                ['paypal_capture_mode', 'adyen_abstract', $storeId],
-                ['capture_mode_pos', 'adyen_abstract', $storeId]
-            )
-            ->willReturnOnConsecutiveCalls($captureMode, $sepaFlow, '', 'auto', $manualCapturePayPal);
+            ->willReturnMap([
+                ['capture_mode', 'adyen_abstract', $storeId, false, $captureMode],
+                ['sepa_flow', 'adyen_abstract', $storeId, false, $sepaFlow],
+                ['paypal_capture_mode', 'adyen_abstract', $storeId, false, $manualCapturePayPal],
+                ['capture_mode_pos', 'adyen_abstract', $storeId, false, 'auto']
+            ]);
 
         // Mock your other dependencies as needed for your test scenario
 
@@ -1242,7 +1245,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $paymentMethodCode = 'visa';
         $params = [
             'area' => 'frontend',
-            '_secure' => '',
+            '_secure' => null,
             'theme' => 'Magento/blank'
         ];
 
@@ -1272,11 +1275,10 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $pngAssetMock->method('getUrl')->willReturn($expectedPNGUrl);
 
         $this->assetRepoMock->method('createAsset')
-            ->withConsecutive(
-                ["Adyen_Payment::images/logos/{$paymentMethodCode}.svg", $params],
-                ["Adyen_Payment::images/logos/{$paymentMethodCode}.png", $params]
-            )
-            ->willReturnOnConsecutiveCalls($svgAssetMock, $pngAssetMock);
+            ->willReturnMap([
+                ["Adyen_Payment::images/logos/{$paymentMethodCode}.svg", $params, $svgAssetMock],
+                ["Adyen_Payment::images/logos/{$paymentMethodCode}.png", $params, $svgAssetMock]
+            ]);
 
         // Set up asset source mock for SVG asset
         $this->assetSourceMock->method('findSource')

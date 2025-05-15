@@ -12,6 +12,7 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
 use Adyen\Payment\Exception\AdyenWebhookException;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\Order as OrderHelper;
@@ -27,6 +28,8 @@ use Exception;
 use Adyen\Payment\Model\Notification as NotificationEntity;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
+use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\OrderRepository;
 
@@ -67,6 +70,7 @@ class Webhook
      * @param OrderHelper $orderHelper
      * @param OrderRepository $orderRepository
      * @param PaymentMethods $paymentMethodsHelper
+     * @param AdyenNotificationRepositoryInterface $notificationRepository
      */
     public function __construct(
         private readonly Data $adyenHelper,
@@ -78,7 +82,8 @@ class Webhook
         private readonly WebhookHandlerFactory $webhookHandlerFactory,
         private readonly OrderHelper $orderHelper,
         private readonly OrderRepository $orderRepository,
-        private readonly PaymentMethods $paymentMethodsHelper
+        private readonly PaymentMethods $paymentMethodsHelper,
+        private readonly AdyenNotificationRepositoryInterface $notificationRepository
     ) {
         $this->klarnaReservationNumber = null;
         $this->ratepayDescriptor = null;
@@ -119,7 +124,7 @@ class Webhook
             );
 
         $order = $this->orderHelper->getOrderByIncrementId($notification->getMerchantReference());
-        if (!$order) {
+        if (!$order instanceof OrderInterface) {
             $errorMessage = sprintf(
                 'Order w/merchant reference %s not found',
                 $notification->getMerchantReference()
@@ -131,6 +136,26 @@ class Webhook
             $this->setNotificationError($notification, $errorMessage);
 
             return false;
+        }
+
+        $payment = $order->getPayment();
+        if ($payment instanceof OrderPaymentInterface) {
+            $isAdyenPaymentMethod = $this->paymentMethodsHelper->isAdyenPayment($payment->getMethod());
+
+            if (!$isAdyenPaymentMethod) {
+                $errorMessage = sprintf(
+                    'Invalid order payment method "%s" for notification with the event code %s (id %s)',
+                    $payment->getMethod(),
+                    $notification->getEventCode(),
+                    $notification->getEntityId(),
+                );
+
+                $this->logger->addAdyenNotification($errorMessage);
+                $this->updateNotification($notification, false, true);
+                $this->setNotificationError($notification, $errorMessage);
+
+                return false;
+            }
         }
 
         try {
@@ -262,7 +287,8 @@ class Webhook
         }
         $notification->setProcessing($processing);
         $notification->setUpdatedAt(date('Y-m-d H:i:s'));
-        $notification->save();
+
+        $this->notificationRepository->save($notification);
     }
 
     private function declareVariables(Notification $notification): void
@@ -515,7 +541,7 @@ class Webhook
             $notification->setDone(true);
         }
 
-        $notification->save();
+        $this->notificationRepository->save($notification);
     }
 
     private function addNotificationErrorComment(Order $order, string $errorMessage): Order

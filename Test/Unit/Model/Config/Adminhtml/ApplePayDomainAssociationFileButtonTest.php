@@ -8,10 +8,18 @@ use Magento\Backend\Block\Template\Context;
 use Magento\Backend\Helper\Data;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\ObjectManager;
+use Magento\Framework\App\State;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 use Magento\Framework\Event\ManagerInterface;
+use Magento\Framework\Filesystem;
+use Magento\Framework\Filesystem\Directory\ReadInterface;
 use Magento\Framework\ObjectManagerInterface;
+use Magento\Framework\View\Element\Template\File\Resolver;
+use Magento\Framework\View\Element\Template\File\Validator;
 use Magento\Framework\View\LayoutInterface;
+use Magento\Framework\View\TemplateEngineInterface;
+use Magento\Framework\View\TemplateEnginePool;
+use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
 
 class ApplePayDomainAssociationFileButtonTest extends AbstractAdyenTestCase
@@ -25,6 +33,7 @@ class ApplePayDomainAssociationFileButtonTest extends AbstractAdyenTestCase
 
     /**
      * @return void
+     * @throws Exception
      */
     public function setUp(): void
     {
@@ -34,17 +43,45 @@ class ApplePayDomainAssociationFileButtonTest extends AbstractAdyenTestCase
         $this->managerMock = $this->createMock(ManagerInterface::class);
         $this->scopeConfigMock = $this->createMock(ScopeConfigInterface::class);
 
+        $resolverMock = $this->createMock(Resolver::class);
+        $resolverMock->method('getTemplateFileName')->willReturn(
+            'Adyen_Payment::config/applepay_domain_association_file_button.phtml'
+        );
+
+        $readInterfaceMock = $this->createMock(ReadInterface::class);
+
+        $templateEngineMock = $this->createMock( TemplateEngineInterface::class);
+        $templateEngineMock->method('render')->willReturn('<button>Apple Pay</button>');
+        $templateEnginePoolMock = $this->createMock(TemplateEnginePool::class);
+        $templateEnginePoolMock->method('get')->willReturn($templateEngineMock);
+
+        $filesystemMock = $this->createMock(Filesystem::class);
+        $filesystemMock->method('getDirectoryRead')->willReturn($readInterfaceMock);
+
+        $validatorMock = $this->createMock(Validator::class);
+        $validatorMock->method('isValid')->willReturn(true);
+
+        $appStateMock = $this->createMock(State::class);
+
         $this->contextMock = $this->createMock(Context::class);
         $this->contextMock->method('getScopeConfig')->willReturn($this->scopeConfigMock);
         $this->contextMock->method('getEventManager')->willReturn($this->managerMock);
-
+        $this->contextMock->method('getResolver')->willReturn($resolverMock);
+        $this->contextMock->method('getFilesystem')->willReturn($filesystemMock);
+        $this->contextMock->method('getValidator')->willReturn($validatorMock);
+        $this->contextMock->method('getAppState')->willReturn($appStateMock);
+        $this->contextMock->method('getEnginePool')->willReturn($templateEnginePoolMock);
         $this->backendHelperMock = $this->createMock(Data::class);
-        $this->layoutMock = $this->createMock(LayoutInterface::class);
+
+        // Prepare test data argument
+        $data = [
+            'area' => 'backend'
+        ];
 
         $this->applePayDomainAssociationFileButton = new ApplePayDomainAssociationFileButton(
             $this->contextMock,
             $this->backendHelperMock,
-            []
+            $data
         );
     }
 
@@ -60,26 +97,15 @@ class ApplePayDomainAssociationFileButtonTest extends AbstractAdyenTestCase
      * Asserts default HTML template value
      *
      * @return void
+     * @throws Exception
      */
     public function testGetElementHtml()
     {
-        $expected = '<tr id="row_"><td class="label"><label for=""><span></span></label></td><td class="value"></td><td class=""></td></tr>';
+        $expected = '<tr id="row_"><td class="label"><label for=""><span></span></label></td><td class="value"><button>Apple Pay</button></td><td class=""></td></tr>';
 
-        $result = $this->applePayDomainAssociationFileButton
-            ->render($this->createMock(AbstractElement::class));
+        $result = $this->applePayDomainAssociationFileButton->render($this->createMock(AbstractElement::class));
 
         $this->assertEquals($expected, $result);
-    }
-
-    /**
-     * Asserts return type of the button's backend model
-     *
-     * @return void
-     */
-    public function testPrepareLayout()
-    {
-        $result = $this->applePayDomainAssociationFileButton->setLayout($this->layoutMock);
-        $this->assertInstanceOf(ApplePayDomainAssociationFileButton::class, $result);
     }
 
     /**

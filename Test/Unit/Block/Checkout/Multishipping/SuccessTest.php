@@ -40,9 +40,7 @@ class SuccessTest extends AbstractAdyenTestCase
 
     protected function setUp(): void
     {
-        $this->sessionMock = $this->createGeneratedMock(SessionManager::class, [
-            'getOrderIds'
-        ]);
+        $this->sessionMock = $this->createGeneratedMock(SessionManager::class, [], ['getOrderIds']);
         $this->sessionMock->method('getOrderIds')->willReturn(['1' => 1, '2' => 2]);
 
         $this->contextMock = $this->createMock(Context::class);

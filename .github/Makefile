@@ -15,7 +15,6 @@ magento:
 install:
 	composer config --json repositories.local '{"type": "path", "url": "/data/extensions/workdir", "options": { "symlink": false } }'
 	composer require "adyen/module-payment:*"
-	vendor/bin/phpcs --standard=Magento2 --extensions=php,phtml --error-severity=10 -n -p vendor/adyen/module-payment
 	bin/magento module:enable Adyen_Payment
 	bin/magento setup:upgrade
 	bin/magento setup:di:compile
@@ -33,11 +32,6 @@ configure: n98-magerun2.phar
 	bin/magento config:set payment/adyen_pay_by_link/active 1
 	bin/magento config:set payment/adyen_pay_by_link/days_to_expire 5
 	bin/magento config:set payment/adyen_giving/active 1
-	bin/magento config:set payment/adyen_giving/charity_description 'test'
-	bin/magento config:set payment/adyen_giving/charity_website 'https://adyen.com'
-	bin/magento config:set payment/adyen_giving/charity_merchant_account "${DONATION_ACCOUNT}"
-	bin/magento config:set payment/adyen_giving/donation_amounts '1,5,10'
-	bin/magento config:set payment/adyen_giving/background_image ''
 	bin/magento config:set payment/adyen_abstract/merchant_account "${ADYEN_MERCHANT}"
 	bin/magento config:set payment/adyen_abstract/notifications_ip_check 0
 	bin/magento config:set payment/adyen_abstract/payment_authorized 'processing'
@@ -129,3 +123,23 @@ setup-mftf:
 # Magento Functional Testing Framework
 mftf:
 	vendor/bin/mftf run:group --remove -- AdyenMagentoSuite || vendor/bin/mftf run:failed
+
+phpstan-run:
+	vendor/bin/phpstan analyse -c vendor/adyen/module-payment/phpstan.neon
+
+phpunit-run:
+	cp vendor/adyen/module-payment/Test/phpunit.xml.dist dev/tests/unit/phpunit.xml
+	cd dev/tests/unit; \
+		../../../vendor/bin/phpunit \
+		--coverage-clover=../../../build/clover.xml \
+		--log-junit=../../../build/tests-log.xml \
+		-c phpunit.xml \
+		../../../vendor/adyen/module-payment/Test/Unit
+
+codesniffer-run:
+	vendor/bin/phpcs --standard=Magento2 \
+		--extensions=php,phtml \
+		--error-severity=10 \
+		--warning-severity=0 \
+		--ignore-annotations \
+		-p vendor/adyen/module-payment

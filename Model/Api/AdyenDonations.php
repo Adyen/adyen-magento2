@@ -12,6 +12,7 @@
 
 namespace Adyen\Payment\Model\Api;
 
+use Adyen\AdyenException;
 use Adyen\Payment\Api\AdyenDonationsInterface;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
@@ -70,12 +71,20 @@ class AdyenDonations implements AdyenDonationsInterface
         $this->makeDonation($payload, $order);
     }
 
+    /**
+     * @param string $payload
+     * @param OrderInterface $order
+     * @return void
+     * @throws AdyenException
+     * @throws LocalizedException
+     */
     public function makeDonation(string $payload, OrderInterface $order): void
     {
         $payload = $this->jsonSerializer->unserialize($payload);
 
         $paymentMethodInstance = $order->getPayment()->getMethodInstance();
         $donationToken = $order->getPayment()->getAdditionalInformation('donationToken');
+        $donationCampaignId = $order->getPayment()->getAdditionalInformation('donationCampaignId');
 
         if (!$donationToken) {
             throw new LocalizedException(__('Donation failed!'));
@@ -86,23 +95,12 @@ class AdyenDonations implements AdyenDonationsInterface
             throw new LocalizedException(__('Donation failed!'));
         }
 
-        $donationAmounts = explode(',', $this->config->getAdyenGivingDonationAmounts($order->getStoreId()));
-        $formatter = $this->dataHelper;
-        $donationAmountsMinorUnits = array_map(
-            function ($amount) use ($formatter, $currencyCode) {
-                return $formatter->formatAmount($amount, $currencyCode);
-            },
-            $donationAmounts
-        );
-        if (!in_array($payload['amount']['value'], $donationAmountsMinorUnits)) {
-            throw new LocalizedException(__('Donation failed!'));
-        }
-
         $payload['donationToken'] = $donationToken;
-        $payload['donationOriginalPspReference'] = $order->getPayment()->getAdditionalInformation('pspReference');
+        $payload['donationCampaignId'] = $donationCampaignId;
+        $payload['donationOriginalPspReference'] = $payment->getAdditionalInformation('pspReference');
 
         // Override payment method object with payment method code
-        if ($order->getPayment()->getMethod() === AdyenCcConfigProvider::CODE) {
+        if ($payment->getMethod() === AdyenCcConfigProvider::CODE) {
             $payload['paymentMethod'] = 'scheme';
         } elseif ($this->paymentMethodsHelper->isAlternativePaymentMethod($paymentMethodInstance)) {
             $payload['paymentMethod'] = $this->paymentMethodsHelper->getAlternativePaymentMethodTxVariant(
@@ -124,15 +122,17 @@ class AdyenDonations implements AdyenDonationsInterface
             $donationsCaptureCommand = $this->commandPool->get('capture');
             $donationsCaptureCommand->execute(['payment' => $payload]);
 
-            // Remove donation token after a successfull donation.
+            // Remove donation token & DonationCampaignId after a successful donation.
             $this->removeDonationToken($order);
+            $this->removeDonationCampaignId($order);
         }
         catch (LocalizedException $e) {
-            $this->donationTryCount = $order->getPayment()->getAdditionalInformation('donationTryCount');
+            $this->donationTryCount = $payment->getAdditionalInformation('donationTryCount');
 
             if ($this->donationTryCount >= 5) {
-                // Remove donation token after 5 try and throw a exception.
+                // Remove donation token and DonationCampaignId after 5 try and throw a exception.
                 $this->removeDonationToken($order);
+                $this->removeDonationCampaignId($order);
             }
 
             $this->incrementTryCount($order);
@@ -142,20 +142,29 @@ class AdyenDonations implements AdyenDonationsInterface
 
     private function incrementTryCount(Order $order): void
     {
+        $payment = $order->getPayment();
+
         if (!$this->donationTryCount) {
-            $order->getPayment()->setAdditionalInformation('donationTryCount', 1);
+            $payment->setAdditionalInformation('donationTryCount', 1);
         }
         else {
             $this->donationTryCount += 1;
-            $order->getPayment()->setAdditionalInformation('donationTryCount', $this->donationTryCount);
+            $payment->setAdditionalInformation('donationTryCount', $this->donationTryCount);
         }
 
-        $order->save();
+        $this->orderRepository->save($order);
     }
 
     private function removeDonationToken(Order $order): void
     {
-        $order->getPayment()->unsAdditionalInformation('donationToken');
+        $payment = $order->getPayment();
+        $payment->unsAdditionalInformation('donationToken');
+        $this->orderRepository->save($order);
+    }
+
+    private function removeDonationCampaignId(Order $order): void
+    {
+        $order->getPayment()->unsAdditionalInformation('donationCampaignId');
         $order->save();
     }
 }

@@ -1640,12 +1640,21 @@
     <preference for="Adyen\Payment\Api\GuestAdyenGiftcardInterface" type="Adyen\Payment\Model\Api\GuestAdyenGiftcard" />
     <preference for="Adyen\Payment\Api\AdyenDonationsInterface" type="Adyen\Payment\Model\Api\AdyenDonations" />
     <preference for="Adyen\Payment\Api\GuestAdyenDonationsInterface" type="Adyen\Payment\Model\Api\GuestAdyenDonations" />
+    <preference for="Adyen\Payment\Api\AdyenDonationCampaignsInterface" type="Adyen\Payment\Model\Api\AdyenDonationCampaigns" />
+    <preference for="Adyen\Payment\Api\GuestAdyenDonationCampaignsInterface" type="Adyen\Payment\Model\Api\GuestAdyenDonationCampaigns" />
     <preference for="Adyen\Payment\Api\AdyenPosCloudInterface" type="Adyen\Payment\Model\Api\AdyenPosCloud" />
     <preference for="Adyen\Payment\Api\GuestAdyenPosCloudInterface" type="Adyen\Payment\Model\Api\GuestAdyenPosCloud" />
     <preference for="Adyen\Payment\Api\Data\NotificationInterface" type="Adyen\Payment\Model\Notification" />
     <preference for="Adyen\Payment\Api\AdyenPaymentMethodsBalanceInterface" type="Adyen\Payment\Model\Api\AdyenPaymentMethodsBalance" />
     <preference for="Adyen\Payment\Api\TokenDeactivateInterface" type="Adyen\Payment\Model\Api\TokenDeactivate" />
-    <preference for="Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface" type="Adyen\Payment\Model\AdyenNotificationRepository" />
+    <preference for="Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface"
+                type="Adyen\Payment\Model\AdyenNotificationRepository" />
+    <preference for="Adyen\Payment\Api\Repository\AdyenInvoiceRepositoryInterface"
+                type="Adyen\Payment\Model\AdyenInvoiceRepository" />
+    <preference for="Adyen\Payment\Api\Repository\AdyenCreditmemoRepositoryInterface"
+                type="Adyen\Payment\Model\AdyenCreditmemoRepository" />
+    <preference for="Adyen\Payment\Api\Repository\AdyenOrderPaymentRepositoryInterface"
+                type="Adyen\Payment\Model\AdyenOrderPaymentRepository" />
     <type name="Magento\Vault\Api\PaymentTokenRepositoryInterface">
         <plugin name="AdyenPaymentVaultDeleteToken" type="Adyen\Payment\Plugin\PaymentVaultDeleteToken" sortOrder="10" />
     </type>

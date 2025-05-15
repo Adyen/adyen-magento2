@@ -6,10 +6,12 @@ use Adyen\Payment\Gateway\Request\CheckoutDataBuilder;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\OpenInvoice;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Model\Config\Source\ThreeDSFlow;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Magento\Catalog\Helper\Image;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
@@ -30,6 +32,8 @@ class CheckoutDataBuilderTest extends AbstractAdyenTestCase
     protected ChargedCurrency|MockObject $chargedCurrencyMock;
     protected Config|MockObject $configMock;
     protected PaymentMethods|MockObject $paymentMethodsHelperMock;
+    protected OpenInvoice|MockObject $openInvoiceMock;
+    protected Image|MockObject $imageMock;
 
     /**
      * @return void
@@ -41,6 +45,8 @@ class CheckoutDataBuilderTest extends AbstractAdyenTestCase
         $this->cartRepositoryMock = $this->createMock(CartRepositoryInterface::class);
         $this->chargedCurrencyMock = $this->createMock(ChargedCurrency::class);
         $this->configMock = $this->createMock(Config::class);
+        $this->openInvoiceMock = $this->createMock(OpenInvoice::class);
+        $this->imageMock = $this->createMock(Image::class);
         $this->paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
 
         $this->checkoutDataBuilder = new CheckoutDataBuilder(
@@ -49,7 +55,9 @@ class CheckoutDataBuilderTest extends AbstractAdyenTestCase
             $this->cartRepositoryMock,
             $this->chargedCurrencyMock,
             $this->configMock,
-            $this->paymentMethodsHelperMock
+            $this->paymentMethodsHelperMock,
+            $this->openInvoiceMock,
+            $this->imageMock
         );
 
         parent::setUp();

@@ -18,6 +18,7 @@ use Adyen\Payment\Plugin\PaymentVaultDeleteToken;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Payment\Helper\Requests;
 use Adyen\Service\RecurringApi;
+use Magento\Store\Model\Store;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Store\Model\StoreManagerInterface;
@@ -57,7 +58,7 @@ class PaymentVaultDeleteTokenTest extends AbstractAdyenTestCase
         $paymentTokenMock->method('getPaymentMethodCode')->willReturn('adyen_cc');
         $paymentTokenMock->method('getEntityId')->willReturn('123');
 
-        $storeMock = $this->createGeneratedMock(\Magento\Store\Model\Store::class, ['getStoreId']);
+        $storeMock = $this->createGeneratedMock(Store::class, [], ['getStoreId']);
         $storeMock->method('getStoreId')->willReturn(1);
 
         $storeManagerMock = $this->createMock(\Magento\Store\Model\StoreManagerInterface::class);
@@ -95,7 +96,7 @@ class PaymentVaultDeleteTokenTest extends AbstractAdyenTestCase
         $paymentTokenMock->method('getPaymentMethodCode')->willReturn('adyen_cc');
         $paymentTokenMock->method('getEntityId')->willReturn('123');
 
-        $storeMock = $this->createGeneratedMock(\Magento\Store\Model\Store::class, ['getStoreId']);
+        $storeMock = $this->createGeneratedMock(Store::class, [], ['getStoreId']);
         $storeMock->method('getStoreId')->willReturn(1);
 
         $storeManagerMock = $this->createMock(\Magento\Store\Model\StoreManagerInterface::class);
