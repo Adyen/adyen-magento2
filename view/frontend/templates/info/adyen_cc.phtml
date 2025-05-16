@@ -9,7 +9,11 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-// @codingStandardsIgnoreFile
+/**
+ * @var Cc $block
+ */
+
+use Adyen\Payment\Block\Info\Cc;
 
 ?>
 <dl class="payment-method adyen_cc">
@@ -17,12 +21,9 @@
         <?= $block->escapeHtml(sprintf("%s: %s", ucwords($block->getMethod()->getTitle()), __($block->getCcTypeName()))) ?>
     </dt>
 
-    <?php if ($block->getPartialPayments()): ?>
-        <dt class="title"><b><?= $block->escapeHtml(__("Partial Payments")) ?></b></dt>
-        <?php foreach ($block->getPartialPayments() as $payment): ?>
-            <dt class="title">
-                <?= $block->escapeHtml(sprintf("%s - %s", ucwords($payment->getPaymentMethod()), $payment->getFormattedAmountWithCurrency())) ?>
-            </dt>
-        <?php endforeach; ?>
-    <?php endif; ?>
+    <?php
+        if ($block->getPartialPayments()->getSize() > 1) {
+            echo $block->renderPartialPaymentsHtml();
+        }
+    ?>
 </dl>

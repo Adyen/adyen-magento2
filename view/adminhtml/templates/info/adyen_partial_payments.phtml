@@ -1,0 +1,51 @@
+<?php
+/**
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+
+
+/**
+ * @var AbstractInfo $block
+ */
+
+use Adyen\Payment\Block\Info\AbstractInfo;
+
+$isDemoMode = $block->isDemoMode();
+
+?>
+
+<p style="margin-top: 10px"><b>Partial Payments</b></p>
+<table class="edit-order-table" style="text-align:left; margin-top:5px; margin-bottom:0;" aria-describedby="Partial Payments">
+    <tr>
+        <th scope="col">PspReference</th>
+        <th scope="col">Payment Method</th>
+        <th scope="col">Amount</th>
+        <th scope="col">Refunded</th>
+        <th scope="col">Captured</th>
+    </tr>
+    <?php foreach ($block->getPartialPayments() as $payment): ?>
+        <tr>
+            <td>
+                <?php if ($isDemoMode): ?>
+                    <a href="https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=<?= $block->escapeHtml(
+                        $payment->getPspreference()
+                    ); ?>&txType=Payment" target="_blank"><?= $block->escapeHtml($payment->getPspreference()); ?></a>
+                <?php else: ?>
+                    <a href="https://ca-live.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=<?= $block->escapeHtml(
+                        $payment->getPspreference()
+                    ); ?>&txType=Payment" target="_blank"><?= $block->escapeHtml($payment->getPspreference()); ?></a>
+                <?php endif; ?>
+            </td>
+            <td><?= $block->escapeHtml($payment->getPaymentMethod()); ?></td>
+            <td><?= $block->escapeHtml($payment->getFormattedAmountWithCurrency()); ?></td>
+            <td><?= $block->escapeHtml($payment->getFormattedTotalRefundedWithCurrency()); ?></td>
+            <td><?= $block->escapeHtml($payment->getFormattedTotalCapturedWithCurrency()); ?></td>
+        </tr>
+    <?php endforeach; ?>
+</table>
