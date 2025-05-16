@@ -1223,6 +1223,7 @@
         <arguments>
             <argument name="builders" xsi:type="array">
                 <item name="donation" xsi:type="string">Adyen\Payment\Gateway\Request\DonationDataBuilder</item>
+                <item name="header" xsi:type="string">Adyen\Payment\Gateway\Request\Header\HeaderDataBuilder</item>
             </argument>
         </arguments>
     </virtualType>
