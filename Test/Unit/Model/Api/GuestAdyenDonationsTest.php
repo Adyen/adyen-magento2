@@ -18,9 +18,7 @@ use Adyen\Payment\Model\Api\GuestAdyenDonations;
 use Adyen\Payment\Model\Sales\OrderRepository;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
-use Magento\Quote\Model\QuoteIdMask;
-use Magento\Quote\Model\QuoteIdMaskFactory;
-use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Model\Order;
 
 class GuestAdyenDonationsTest extends AbstractAdyenTestCase
 {
@@ -55,7 +53,7 @@ class GuestAdyenDonationsTest extends AbstractAdyenTestCase
         $adyenDonationsModelMock = $this->createMock(AdyenDonations::class);
 
         $orderRepositoryMock = $this->createConfiguredMock(OrderRepository::class, [
-            'getOrderByQuoteId' => $this->createMock(OrderInterface::class)
+            'getOrderByQuoteId' => $this->createMock(Order::class)
         ]);
 
         $adyenLoggerMock = $this->createMock(AdyenLogger::class);
