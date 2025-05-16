@@ -98,7 +98,6 @@ script;
                 adyenPaymentService.donationCampaigns(isLoggedIn, orderId, maskedQuoteId)
                     .done(function (response) {
                         try {
-                        debugger;
                             const campaignResponse = JSON.parse(response);
                             if (campaignResponse && Object.keys(campaignResponse).length > 0) {
                                 mountAdyenGivingComponent(campaignResponse);
@@ -124,7 +123,6 @@ script;
                         if(campaign.donation.type == 'roundup') {
                             donationConfig.commercialTxAmount = '$orderAmount'
                         }
-                        debugger;
                         adyenGivingComponent = new window.AdyenWeb.Donation(
                             checkoutComponent,
                             donationConfig

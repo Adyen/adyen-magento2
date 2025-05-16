@@ -11,12 +11,15 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\AdyenException;
 use Adyen\Payment\Model\Config\Source\CcType;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Util\Uuid;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Request\Http as Http;
+use Magento\Framework\Exception\LocalizedException;
+
 
 class Requests extends AbstractHelper
 {
@@ -37,6 +40,9 @@ class Requests extends AbstractHelper
     private StateData $stateData;
     private Vault $vaultHelper;
     private Http $request;
+    protected Data $dataHelper;
+    private ChargedCurrency $chargedCurrency;
+    private PaymentMethods $paymentMethodsHelper;
 
     public function __construct(
         Data $adyenHelper,
@@ -44,7 +50,10 @@ class Requests extends AbstractHelper
         Address $addressHelper,
         StateData $stateData,
         Vault $vaultHelper,
-        Http $request
+        Http $request,
+        Data $dataHelper,
+        ChargedCurrency $chargedCurrency,
+        PaymentMethods $paymentMethodsHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenConfig = $adyenConfig;
@@ -52,6 +61,9 @@ class Requests extends AbstractHelper
         $this->stateData = $stateData;
         $this->vaultHelper = $vaultHelper;
         $this->request = $request;
+        $this->dataHelper = $dataHelper;
+        $this->chargedCurrency = $chargedCurrency;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
 
     /**
@@ -140,10 +152,10 @@ class Requests extends AbstractHelper
     }
 
     /**
-     * @param $request
      * @param $billingAddress
      * @param $shippingAddress
-     * @return mixed
+     * @param $storeId
+     * @param array $request
      */
     public function buildAddressData($billingAddress, $shippingAddress, $storeId, $request = [])
     {
@@ -394,25 +406,58 @@ class Requests extends AbstractHelper
         return $request;
     }
 
-    public function buildDonationData($buildSubject, $storeId): array
+    /**
+     * @throws AdyenException
+     * @throws LocalizedException
+     */
+    public function buildDonationData($payment, int $storeId): array
     {
-        $paymentMethodCode = $buildSubject['paymentMethod'];
+        $order = $payment->getOrder();
+        $paymentMethodInstance = $payment->getMethodInstance();
 
-        if (isset(self::DONATION_PAYMENT_METHOD_CODE_MAPPING[$paymentMethodCode])) {
-            $paymentMethodCode = self::DONATION_PAYMENT_METHOD_CODE_MAPPING[$paymentMethodCode];
+        $donationToken = $payment->getAdditionalInformation('donationToken');
+        $donationCampaignId = $payment->getAdditionalInformation('donationCampaignId');
+        $pspReference = $payment->getAdditionalInformation('pspReference');
+        $payload = $payment->getAdditionalInformation('donationPayload');
+
+        if (!$donationToken || !is_array($payload)) {
+            throw new LocalizedException(__('Donation failed!'));
         }
 
+        $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order, false);
+        $currencyCode = $orderAmountCurrency->getCurrencyCode();
+
+        if ($payload['amount']['currency'] !== $currencyCode) {
+            throw new LocalizedException(__('Donation failed!'));
+        }
+
+        $payload['donationToken'] = $donationToken;
+        $payload['donationCampaignId'] = $donationCampaignId;
+        $payload['donationOriginalPspReference'] = $pspReference;
+
+        if ($payment->getMethod() === AdyenCcConfigProvider::CODE) {
+            $paymentMethodCode = 'scheme';
+        } elseif ($this->paymentMethodsHelper->isAlternativePaymentMethod($paymentMethodInstance)) {
+            $paymentMethodCode = $this->paymentMethodsHelper->getAlternativePaymentMethodTxVariant($paymentMethodInstance);
+        } else {
+            throw new LocalizedException(__('Donation failed!'));
+        }
+
+        $shopperReference = $order->getCustomerId()
+            ? $this->dataHelper->padShopperReference($order->getCustomerId())
+            : $order->getIncrementId() . Uuid::generateV4();
+
         return [
-            'amount' => $buildSubject['amount'],
+            'amount' => $payload['amount'],
             'reference' => Uuid::generateV4(),
-            'shopperReference' => $buildSubject['shopperReference'],
+            'shopperReference' => $shopperReference,
             'paymentMethod' => [
                 'type' => $paymentMethodCode
             ],
-            'donationToken' => $buildSubject['donationToken'],
-            'donationCampaignId' => $buildSubject['donationCampaignId'],
-            'donationOriginalPspReference' => $buildSubject['donationOriginalPspReference'],
-            'returnUrl' => $buildSubject['returnUrl'],
+            'donationToken' => $payload['donationToken'],
+            'donationCampaignId' => $payload['donationCampaignId'],
+            'donationOriginalPspReference' => $payload['donationOriginalPspReference'],
+            'returnUrl' => $payload['returnUrl'],
             'merchantAccount' => $this->adyenHelper->getAdyenMerchantAccount('adyen_giving', $storeId),
         ];
     }
