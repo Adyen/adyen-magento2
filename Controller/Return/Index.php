@@ -124,8 +124,8 @@ class Index extends Action
 
                 // Add OrderIncrementId to redirect parameters for headless support.
                 $redirectParams = $this->configHelper->getAdyenAbstractConfigData('custom_success_redirect_path', $storeId)
-                    ? ['_query' => ['utm_nooverride' => '1', 'order_increment_id' => $this->order->getIncrementId()]]
-                    : ['_query' => ['utm_nooverride' => '1']];
+                    ? ['_query' => ['order_increment_id' => $this->order->getIncrementId()]]
+                    : [];
                 $this->_redirect($successPath, $redirectParams);
             } else {
                 $this->adyenLogger->addAdyenResult(
@@ -140,7 +140,7 @@ class Index extends Action
                 $this->session->restoreQuote();
                 $this->messageManager->addError(__('Your payment failed, Please try again later'));
 
-                $this->_redirect($failPath, ['_query' => ['utm_nooverride' => '1']]);
+                $this->_redirect($failPath);
             }
         } else {
             $this->_redirect($this->configHelper->getAdyenAbstractConfigData('return_path', $storeId));
