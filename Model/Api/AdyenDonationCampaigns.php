@@ -9,9 +9,9 @@ use Adyen\Payment\Helper\DonationsHelper;
 use Adyen\Payment\Helper\Locale;
 use Adyen\Payment\Model\Sales\OrderRepository;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Sales\Api\Data\OrderInterface;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Helper\Data;
+use Magento\Sales\Model\Order;
 
 class AdyenDonationCampaigns implements AdyenDonationCampaignsInterface
 {
@@ -63,11 +63,11 @@ class AdyenDonationCampaigns implements AdyenDonationCampaignsInterface
     }
 
     /**
-     * @param OrderInterface $order
+     * @param Order $order
      * @return string
      * @throws LocalizedException
      */
-    public function getCampaignData(OrderInterface $order): string
+    public function getCampaignData(Order $order): string
     {
         $donationToken = $order->getPayment()->getAdditionalInformation('donationToken');
         if (!$donationToken) {
