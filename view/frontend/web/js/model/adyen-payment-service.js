@@ -10,6 +10,7 @@ define(
         'Magento_Customer/js/model/customer',
         'Magento_Checkout/js/model/url-builder',
         'mage/storage',
+        'mage/url',
         'ko'
     ],
     function(
@@ -19,6 +20,7 @@ define(
         customer,
         urlBuilder,
         storage,
+        url,
         ko
     ) {
         'use strict';
