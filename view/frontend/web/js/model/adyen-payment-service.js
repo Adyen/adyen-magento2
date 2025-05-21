@@ -10,6 +10,7 @@ define(
         'Magento_Customer/js/model/customer',
         'Magento_Checkout/js/model/url-builder',
         'mage/storage',
+        'mage/url',
         'ko'
     ],
     function(
@@ -19,12 +20,18 @@ define(
         customer,
         urlBuilder,
         storage,
+        url,
         ko
     ) {
         'use strict';
+
+        // Set the base url to make ajax call to the REST endpoints
+        url.setBaseUrl(window.BASE_URL);
+
         return {
             paymentMethods: ko.observable(null),
             connectedTerminals: ko.observable(null),
+
 
             /**
              * Retrieve the list of available payment methods from Adyen
