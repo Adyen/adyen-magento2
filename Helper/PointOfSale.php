@@ -59,7 +59,7 @@ class PointOfSale
 
             if (!empty($posRecurringEnabled) && !empty($shopperEmail)) {
                 $saleToAcquirerData['shopperEmail'] = $shopperEmail;
-                $saleToAcquirerData['shopperReference'] = $this->dataHelper->padShopperReference($customerId);
+                $saleToAcquirerData['shopperReference'] = $this->platformInfo->padShopperReference($customerId);
                 $saleToAcquirerData['recurringProcessingModel'] = $recurringProcessingModel;
             }
         }
