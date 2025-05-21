@@ -288,16 +288,13 @@ define(
                 // Get state data only if the checkout component is ready,
                 if (this.checkoutComponent) {
                     const componentData = this.cardComponent.data;
-                    const stateData = JSON.stringify(componentData);
 
-                    data.additional_data.stateData = stateData;
+                    data.additional_data.stateData = JSON.stringify(componentData);
                     data.additional_data.cc_type = componentData.paymentMethod?.brand;
 
                     if (componentData.installments?.value) {
                         data.additional_data.number_of_installments = componentData.installments?.value;
                     }
-
-                    window.sessionStorage.setItem('adyen.stateData', stateData);
                 }
 
                 return data;

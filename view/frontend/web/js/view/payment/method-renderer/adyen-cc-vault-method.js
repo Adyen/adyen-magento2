@@ -230,14 +230,11 @@ define([
         getData: function () {
             const self = this;
             const componentData = self.component.data;
-            const stateData = JSON.stringify(componentData);
-
-            window.sessionStorage.setItem('adyen.stateData', stateData);
 
             let data = {
                 method: this.code,
                 additional_data: {
-                    stateData: stateData,
+                    stateData: JSON.stringify(componentData),
                     public_hash: this.publicHash,
                     frontendType: 'default',
                     cc_type: componentData.paymentMethod?.brand
