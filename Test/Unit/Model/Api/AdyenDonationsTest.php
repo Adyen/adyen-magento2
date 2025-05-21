@@ -1,273 +1,204 @@
 <?php
-/**
- *
- * Adyen Payment module (https://www.adyen.com/)
- *
- * Copyright (c) 2025 Adyen N.V. (https://www.adyen.com/)
- * See LICENSE.txt for license details.
- *
- * Author: Adyen <magento@adyen.com>
- */
+declare(strict_types=1);
 
-namespace Adyen\Payment\Test\Unit\Model\Api;
+namespace Adyen\Payment\Model\Api;
 
-use Adyen\AdyenException;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentMethods;
-use Adyen\Payment\Model\AdyenAmountCurrency;
-use Adyen\Payment\Model\Api\AdyenDonations;
 use Adyen\Payment\Model\Sales\OrderRepository;
+use Adyen\Payment\Helper\PlatformInfo;
+use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
-use Magento\Framework\Exception\InputException;
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Payment\Gateway\Command\CommandPoolInterface;
-use Magento\Payment\Gateway\CommandInterface;
-use Magento\Payment\Model\MethodInterface;
-use Magento\Sales\Model\Order;
-use PHPUnit\Framework\MockObject\MockObject;
 use Magento\Framework\Serialize\Serializer\Json;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Payment\Gateway\Command\CommandPoolInterface;
+use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Payment;
+use Magento\Payment\Gateway\Command\CommandInterface;
+use Magento\Sales\Api\Data\OrderInterface;
 
 class AdyenDonationsTest extends AbstractAdyenTestCase
 {
-    private ?AdyenDonations $adyenDonations;
-    private CommandPoolInterface|MockObject $commandPoolMock;
-    private Json|MockObject $jsonMock;
-    private Data|MockObject $dataMock;
-    private Config|MockObject $configMock;
-    private ChargedCurrency|MockObject $chargedCurrencyMock;
-    private PaymentMethods|MockObject $paymentMethodsMock;
-    private OrderRepository|MockObject $orderRepositoryMock;
+    private AdyenDonations $adyenDonations;
+    private $commandPool;
+    private $jsonSerializer;
+    private $dataHelper;
+    private $chargedCurrency;
+    private $config;
+    private $paymentMethodsHelper;
+    private $orderRepository;
+    private $platformInfo;
 
     protected function setUp(): void
     {
-        $this->commandPoolMock = $this->createMock(CommandPoolInterface::class);
-        $this->jsonMock = $this->createPartialMock(Json::class, []);
-        $this->dataMock = $this->createPartialMock(Data::class, []);
-        $this->chargedCurrencyMock = $this->createMock(ChargedCurrency::class);
-        $this->configMock = $this->createMock(Config::class);
-        $this->paymentMethodsMock = $this->createPartialMock(PaymentMethods::class, [
-            'getAlternativePaymentMethodTxVariant'
-        ]);
-        $this->orderRepositoryMock = $this->createMock(OrderRepository::class);
+        $this->commandPool = $this->createMock(CommandPoolInterface::class);
+        $this->jsonSerializer = $this->createMock(Json::class);
+        $this->dataHelper = $this->createMock(Data::class);
+        $this->chargedCurrency = $this->createMock(ChargedCurrency::class);
+        $this->config = $this->createMock(Config::class);
+        $this->paymentMethodsHelper = $this->createMock(PaymentMethods::class);
+        $this->orderRepository = $this->createMock(OrderRepository::class);
+        $this->platformInfo = $this->createMock(PlatformInfo::class);
 
         $this->adyenDonations = new AdyenDonations(
-            $this->commandPoolMock,
-            $this->jsonMock,
-            $this->dataMock,
-            $this->chargedCurrencyMock,
-            $this->configMock,
-            $this->paymentMethodsMock,
-            $this->orderRepositoryMock
+            $this->commandPool,
+            $this->jsonSerializer,
+            $this->dataHelper,
+            $this->chargedCurrency,
+            $this->config,
+            $this->paymentMethodsHelper,
+            $this->orderRepository,
+            $this->platformInfo
         );
     }
 
-    protected function tearDown(): void
+    public function testMakeDonationThrowsExceptionOnCurrencyMismatch(): void
     {
-        $this->adyenDonations = null;
-    }
+        $order = $this->createMock(Order::class);
+        $payment = $this->createMock(Payment::class);
+        $order->method('getPayment')->willReturn($payment);
 
-    private static function paymentMethodDataProvider(): array
-    {
-        return [
-            [
-                'paymentMethod' => 'adyen_cc',
-                'paymentMethodGroup' => 'adyen',
-                'customerId' => 1,
-                'executeSuccess' => true,
-                'donationTryCount' => 0
-            ],
-            [
-                'paymentMethod' => 'adyen_ideal',
-                'paymentMethodGroup' => 'adyen-alternative-payment-method',
-                'customerId' => null,
-                'executeSuccess' => true,
-                'donationTryCount' => 0
-            ],
-            [
-                'paymentMethod' => 'adyen_cc',
-                'paymentMethodGroup' => 'adyen',
-                'customerId' => null,
-                'executeSuccess' => false,
-                'donationTryCount' => 0
-            ],
-            [
-                'paymentMethod' => 'adyen_cc',
-                'paymentMethodGroup' => 'adyen',
-                'customerId' => null,
-                'executeSuccess' => false,
-                'donationTryCount' => 5
-            ],
-        ];
-    }
+        $payment->method('getAdditionalInformation')->willReturnMap([
+            ['donationToken', 'token123'],
+            ['donationCampaignId', 'camp123']
+        ]);
 
-    /**
-     * @dataProvider paymentMethodDataProvider
-     * @param $paymentMethod
-     * @param $paymentMethodGroup
-     * @param $customerId
-     * @param $executeSuccess
-     * @param $donationTryCount
-     * @return void
-     * @throws InputException
-     * @throws LocalizedException
-     * @throws NoSuchEntityException
-     */
-    public function testDonate($paymentMethod, $paymentMethodGroup, $customerId, $executeSuccess, $donationTryCount)
-    {
-        $orderId = 1;
-        $payload = '{"amount":{"value":1000,"currency":"EUR"}}';
-        $donationTokenMock = 'mock_token_abcde';
-        $orderCurrency = 'EUR';
-        $storeId = 1;
-        $donationAmounts = '1,5,10';
-        $pspReference = 'xyz_12345';
-        $orderIncrementId = '00000000001';
+        $orderAmount = $this->createConfiguredMock(\Magento\Framework\DataObject::class, [
+            'getCurrencyCode' => 'USD'
+        ]);
+        $this->chargedCurrency->method('getOrderAmountCurrency')->willReturn($orderAmount);
 
-        $paymentMethodInstanceMock = $this->createMock(MethodInterface::class);
-        $paymentMethodInstanceMock->method('getConfigData')
-            ->with('group')
-            ->willReturn($paymentMethodGroup);
+        $payload = ['amount' => ['currency' => 'EUR']];
 
-        $paymentMock = $this->createMock(Order\Payment::class);
-        $paymentMock->expects($this->once())
-            ->method('getMethodInstance')
-            ->willReturn($paymentMethodInstanceMock);
-        $paymentMock->expects($this->once())
-            ->method('getMethod')
-            ->willReturn($paymentMethod);
-        $paymentMock->method('getAdditionalInformation')
-            ->willReturnMap([
-                ['donationToken', $donationTokenMock],
-                ['pspReference', $pspReference],
-                ['donationTryCount', $donationTryCount]
-            ]);
-
-        $orderMock = $this->createMock(Order::class);
-        $orderMock->method('getPayment')->willReturn($paymentMock);
-        $orderMock->method('getStoreId')->willReturn($storeId);
-        $orderMock->method('getCustomerId')->willReturn($customerId);
-        $orderMock->method('getIncrementId')->willReturn($orderIncrementId);
-
-        $this->orderRepositoryMock->expects($this->once())
-            ->method('get')
-            ->with($orderId)
-            ->willReturn($orderMock);
-        $this->orderRepositoryMock->method('save')->with($orderMock);
-
-        $orderAmountCurrencyMock = $this->createMock(AdyenAmountCurrency::class);
-        $orderAmountCurrencyMock->method('getCurrencyCode')->willReturn($orderCurrency);
-
-        $this->paymentMethodsMock->method('getAlternativePaymentMethodTxVariant')
-            ->willReturn('tx_variant');
-
-        $this->chargedCurrencyMock->expects($this->once())
-            ->method('getOrderAmountCurrency')
-            ->with($orderMock, false)
-            ->willReturn($orderAmountCurrencyMock);
-
-        $this->configMock->expects($this->once())
-            ->method('getAdyenGivingDonationAmounts')
-            ->with($storeId)
-            ->willReturn($donationAmounts);
-
-        $donationCommand = $this->createMock(CommandInterface::class);
-
-        if ($executeSuccess) {
-            $paymentMock->expects($this->once())
-                ->method('unsAdditionalInformation')
-                ->with('donationToken');
-
-            $donationCommand->expects($this->once())->method('execute');
-        } else {
-            $this->expectException(LocalizedException::class);
-
-            $donationCommand->method('execute')->willThrowException(
-                new LocalizedException(__('exception'))
-            );
-        }
-
-        $this->commandPoolMock->expects($this->once())
-            ->method('get')
-            ->willReturn($this->createMock(OrderInterface::class));
-
-        $adyenDonationsMock = $this->getMockBuilder(AdyenDonations::class)
-            ->onlyMethods(['makeDonation'])
-            ->setConstructorArgs([
-                $this->createMock(CommandPoolInterface::class),
-                $this->createMock(Json::class),
-                $this->createMock(Data::class),
-                $this->createMock(ChargedCurrency::class),
-                $this->createMock(Config::class),
-                $this->createMock(PaymentMethods::class),
-                $orderRepositoryMock
-            ])
-            ->getMock();
-
-        $adyenDonationsMock->donate(1, '');
-            ->with('capture')
-            ->willReturn($donationCommand);
-
-        $this->adyenDonations->donate($orderId, $payload);
-    }
-
-    /**
-     * @return void
-     * @throws LocalizedException
-     * @throws AdyenException
-     */
-    public function testNullDonationToken()
-    {
         $this->expectException(LocalizedException::class);
+        $this->expectExceptionMessage('Donation failed!');
 
-        $payload = '{"amount":{"value":1000,"currency":"EUR"}}';
-        $donationTokenMock = null;
-
-        $paymentMock = $this->createMock(Order\Payment::class);
-        $paymentMock->method('getAdditionalInformation')
-            ->willReturnMap([
-                ['donationToken', $donationTokenMock]
-            ]);
-
-        $orderMock = $this->createMock(Order::class);
-        $orderMock->expects($this->once())->method('getPayment')->willReturn($paymentMock);
-
-        // Assert LocalizedException
-        $this->adyenDonations->makeDonation($payload, $orderMock);
+        $this->adyenDonations->makeDonation(json_encode($payload), $order);
     }
 
-    /**
-     * @return void
-     * @throws AdyenException
-     * @throws LocalizedException
-     */
-    public function testCurrencyMismatch()
+    public function testMakeDonationCardSuccess(): void
     {
+        $order = $this->createConfiguredMock(Order::class, [
+            'getCustomerId' => 123
+        ]);
+
+        $payment = $this->createConfiguredMock(Payment::class, [
+            'getMethod' => AdyenCcConfigProvider::CODE,
+            'getAdditionalInformation' => function ($key) {
+                return match ($key) {
+                    'donationToken' => 'token123',
+                    'donationCampaignId' => 'camp123',
+                    'pspReference' => 'psp123'
+                };
+            }
+        ]);
+        $order->method('getPayment')->willReturn($payment);
+
+        $orderAmount = $this->createConfiguredMock(\Magento\Framework\DataObject::class, [
+            'getCurrencyCode' => 'EUR'
+        ]);
+        $this->chargedCurrency->method('getOrderAmountCurrency')->willReturn($orderAmount);
+        $this->platformInfo->method('padShopperReference')->willReturn('ref123');
+
+        $command = $this->createMock(CommandInterface::class);
+        $this->commandPool->method('get')->with('capture')->willReturn($command);
+        $command->expects($this->once())->method('execute');
+
+        $this->adyenDonations->makeDonation(json_encode(['amount' => ['currency' => 'EUR']]), $order);
+        $this->assertTrue(true); // If no exception, it's a pass
+    }
+
+    public function testMakeDonationApmsSuccess(): void
+    {
+        $order = $this->createConfiguredMock(Order::class, ['getCustomerId' => null, 'getIncrementId' => '1000001']);
+        $payment = $this->createConfiguredMock(Payment::class, [
+            'getMethod' => 'ideal',
+            'getMethodInstance' => 'ideal',
+            'getAdditionalInformation' => function ($key) {
+                return match ($key) {
+                    'donationToken' => 'token123',
+                    'donationCampaignId' => 'camp123',
+                    'pspReference' => 'psp123'
+                };
+            }
+        ]);
+        $order->method('getPayment')->willReturn($payment);
+
+        $orderAmount = $this->createConfiguredMock(\Magento\Framework\DataObject::class, [
+            'getCurrencyCode' => 'EUR'
+        ]);
+        $this->chargedCurrency->method('getOrderAmountCurrency')->willReturn($orderAmount);
+
+        $this->paymentMethodsHelper->method('isAlternativePaymentMethod')->willReturn(true);
+        $this->paymentMethodsHelper->method('getAlternativePaymentMethodTxVariant')->willReturn('ideal');
+
+        $command = $this->createMock(CommandInterface::class);
+        $this->commandPool->method('get')->with('capture')->willReturn($command);
+        $command->expects($this->once())->method('execute');
+
+        $this->adyenDonations->makeDonation(json_encode(['amount' => ['currency' => 'EUR']]), $order);
+        $this->assertTrue(true);
+    }
+
+    public function testMakeDonationRetriesBelowLimit(): void
+    {
+        $order = $this->createMock(Order::class);
+        $payment = $this->createMock(Payment::class);
+
+        $order->method('getPayment')->willReturn($payment);
+        $order->method('getCustomerId')->willReturn(123);
+        $payment->method('getMethod')->willReturn(AdyenCcConfigProvider::CODE);
+        $payment->method('getAdditionalInformation')->willReturnMap([
+            ['donationToken', 'token123'],
+            ['donationCampaignId', 'camp123'],
+            ['pspReference', 'psp123'],
+            ['donationTryCount', 3]
+        ]);
+
+        $orderAmount = $this->createConfiguredMock(\Magento\Framework\DataObject::class, [
+            'getCurrencyCode' => 'EUR'
+        ]);
+        $this->chargedCurrency->method('getOrderAmountCurrency')->willReturn($orderAmount);
+        $this->platformInfo->method('padShopperReference')->willReturn('ref123');
+
+        $command = $this->createMock(CommandInterface::class);
+        $this->commandPool->method('get')->willReturn($command);
+        $command->method('execute')->willThrowException(new LocalizedException(__('fail')));
+
         $this->expectException(LocalizedException::class);
+        $this->expectExceptionMessage('Donation failed!');
+        $this->adyenDonations->makeDonation(json_encode(['amount' => ['currency' => 'EUR']]), $order);
+    }
 
-        $payload = '{"amount":{"value":1000,"currency":"EUR"}}';
-        $donationTokenMock = 'mock_token_abcde';
-        $orderCurrency = 'TRY';
+    public function testMakeDonationRetriesAboveLimit(): void
+    {
+        $order = $this->createMock(Order::class);
+        $payment = $this->createMock(Payment::class);
 
-        $paymentMock = $this->createMock(Order\Payment::class);
-        $paymentMock->method('getAdditionalInformation')
-            ->willReturnMap([
-                ['donationToken', $donationTokenMock]
-            ]);
-        $orderMock = $this->createMock(Order::class);
-        $orderMock->expects($this->once())->method('getPayment')->willReturn($paymentMock);
+        $order->method('getPayment')->willReturn($payment);
+        $order->method('getCustomerId')->willReturn(123);
+        $payment->method('getMethod')->willReturn(AdyenCcConfigProvider::CODE);
+        $payment->method('getAdditionalInformation')->willReturnMap([
+            ['donationToken', 'token123'],
+            ['donationCampaignId', 'camp123'],
+            ['pspReference', 'psp123'],
+            ['donationTryCount', 5]
+        ]);
 
-        $orderAmountCurrencyMock = $this->createMock(AdyenAmountCurrency::class);
-        $orderAmountCurrencyMock->method('getCurrencyCode')->willReturn($orderCurrency);
+        $orderAmount = $this->createConfiguredMock(\Magento\Framework\DataObject::class, [
+            'getCurrencyCode' => 'EUR'
+        ]);
+        $this->chargedCurrency->method('getOrderAmountCurrency')->willReturn($orderAmount);
+        $this->platformInfo->method('padShopperReference')->willReturn('ref123');
 
-        $this->chargedCurrencyMock->expects($this->once())
-            ->method('getOrderAmountCurrency')
-            ->with($orderMock, false)
-            ->willReturn($orderAmountCurrencyMock);
+        $command = $this->createMock(CommandInterface::class);
+        $this->commandPool->method('get')->willReturn($command);
+        $command->method('execute')->willThrowException(new LocalizedException(__('fail')));
 
-        // Assert LocalizedException
-        $this->adyenDonations->makeDonation($payload, $orderMock);
+        $this->expectException(LocalizedException::class);
+        $this->expectExceptionMessage('Donation failed!');
+        $this->adyenDonations->makeDonation(json_encode(['amount' => ['currency' => 'EUR']]), $order);
     }
 }

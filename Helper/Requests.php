@@ -15,6 +15,7 @@ use Adyen\Payment\Model\Config\Source\CcType;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Util\Uuid;
+use Adyen\Payment\Helper\PlatformInfo;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Request\Http as Http;
 
@@ -37,6 +38,8 @@ class Requests extends AbstractHelper
     private StateData $stateData;
     private Vault $vaultHelper;
     private Http $request;
+    private Locale $localeHelper;
+    private PlatformInfo $platformInfo;
 
     public function __construct(
         Data $adyenHelper,
@@ -44,7 +47,9 @@ class Requests extends AbstractHelper
         Address $addressHelper,
         StateData $stateData,
         Vault $vaultHelper,
-        Http $request
+        Http $request,
+        Locale $localeHelper,
+        PlatformInfo $platformInfo
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenConfig = $adyenConfig;
@@ -52,6 +57,8 @@ class Requests extends AbstractHelper
         $this->stateData = $stateData;
         $this->vaultHelper = $vaultHelper;
         $this->request = $request;
+        $this->localeHelper = $localeHelper;
+        $this->platformInfo = $platformInfo;
     }
 
     /**
@@ -121,7 +128,7 @@ class Requests extends AbstractHelper
                 $request['countryCode'] = $this->addressHelper->getAdyenCountryCode($countryId);
             }
 
-            $request['shopperLocale'] = $this->adyenHelper->getStoreLocale($storeId);
+            $request['shopperLocale'] = $this->localeHelper->getStoreLocale($storeId);
         }
 
         return $request;
@@ -425,7 +432,7 @@ class Requests extends AbstractHelper
     public function getShopperReference($customerId, $orderIncrementId): string
     {
         if ($customerId) {
-            $shopperReference = $this->adyenHelper->padShopperReference($customerId);
+            $shopperReference = $this->platformInfo->padShopperReference($customerId);
         } else {
             $uuid = Uuid::generateV4();
             $guestCustomerId = $orderIncrementId . $uuid;

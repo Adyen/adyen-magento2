@@ -6,6 +6,7 @@ use Adyen\Payment\Api\AdyenDonationCampaignsInterface;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\DonationsHelper;
+use Adyen\Payment\Helper\Locale;
 use Adyen\Payment\Model\Sales\OrderRepository;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\Data\OrderInterface;
@@ -19,7 +20,7 @@ class AdyenDonationCampaigns implements AdyenDonationCampaignsInterface
     private ChargedCurrency $chargedCurrency;
     private AdyenLogger $adyenLogger;
     private Config $configHelper;
-    private Data $adyenHelper;
+    private Locale $localeHelper;
 
     public function __construct(
         DonationsHelper $donationsHelper,
@@ -27,14 +28,14 @@ class AdyenDonationCampaigns implements AdyenDonationCampaignsInterface
         ChargedCurrency $chargedCurrency,
         AdyenLogger $adyenLogger,
         Config $configHelper,
-        Data $adyenHelper
+        Locale $localeHelper
     ) {
         $this->donationsHelper = $donationsHelper;
         $this->orderRepository = $orderRepository;
         $this->chargedCurrency = $chargedCurrency;
         $this->adyenLogger = $adyenLogger;
         $this->configHelper = $configHelper;
-        $this->adyenHelper = $adyenHelper;
+        $this->localeHelper = $localeHelper;
     }
 
     /**
@@ -81,7 +82,7 @@ class AdyenDonationCampaigns implements AdyenDonationCampaignsInterface
         //Creating payload
         $payloadData['currency'] = $currencyCode;
         $payloadData['merchantAccount'] = $this->configHelper->getMerchantAccount($order->getStoreId());
-        $payloadData['locale'] = $this->adyenHelper->getCurrentLocaleCode($order->getStoreId());
+        $payloadData['locale'] = $this->localeHelper->getCurrentLocaleCode($order->getStoreId());
 
         try {
             $donationCampaignsResponse = $this->donationsHelper->fetchDonationCampaigns($payloadData, $order->getStoreId());

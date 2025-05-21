@@ -2,10 +2,11 @@
 
 namespace Adyen\Payment\Test\Unit\Model\Api;
 
+use Adyen\Model\Management\Currency;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
-use Adyen\Payment\Helper\Data as AdyenHelper;
 use Adyen\Payment\Helper\DonationsHelper;
+use Adyen\Payment\Helper\Locale;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Api\AdyenDonationCampaigns;
 use Adyen\Payment\Model\Sales\OrderRepository;
@@ -15,17 +16,19 @@ use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\Order;
 use Adyen\Payment\Model\AdyenAmountCurrency;
-use PHPUnit\Framework\MockObject\Exception;
 
 class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
 {
-    private $donationsHelperMock;
-    private $orderRepositoryMock;
-    private $chargedCurrencyMock;
-    private $adyenLoggerMock;
-    private $configHelperMock;
-    private $adyenHelperMock;
-    private $adyenDonationCampaigns;
+    private DonationsHelper $donationsHelperMock;
+    private OrderRepository $orderRepositoryMock;
+    private ChargedCurrency $chargedCurrencyMock;
+    private AdyenLogger $adyenLoggerMock;
+    private Config $configHelperMock;
+    private Locale $localeHelperMock;
+    private AdyenDonationCampaigns $adyenDonationCampaigns;
+    private Order $orderMock;
+    private Payment $paymentMock;
+    private AdyenAmountCurrency $currencyObject;
 
     protected function setUp(): void
     {
@@ -34,7 +37,7 @@ class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
         $this->chargedCurrencyMock = $this->createMock(ChargedCurrency::class);
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
         $this->configHelperMock = $this->createMock(Config::class);
-        $this->adyenHelperMock = $this->createMock(AdyenHelper::class);
+        $this->localeHelperMock = $this->createMock(Locale::class);
         $this->currencyObject = $this->createMock(AdyenAmountCurrency::class);
         $this->paymentMock = $this->createMock(Payment::class);
         $this->orderMock = $this->createMock(Order::class);
@@ -45,17 +48,16 @@ class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
             $this->chargedCurrencyMock,
             $this->adyenLoggerMock,
             $this->configHelperMock,
-            $this->adyenHelperMock
+            $this->localeHelperMock
         );
     }
 
     public function testGetCampaignsSuccess(): void
     {
         $orderId = 100;
-        $orderMock = $this->createMock(OrderInterface::class);
-        $orderMock->method('getEntityId')->willReturn($orderId);
+        $this->orderMock->method('getEntityId')->willReturn($orderId);
 
-        $this->orderRepositoryMock->method('get')->willReturn($orderMock);
+        $this->orderRepositoryMock->method('get')->willReturn($this->orderMock);
 
         $this->adyenDonationCampaigns = $this->getMockBuilder(AdyenDonationCampaigns::class)
             ->setConstructorArgs([
@@ -64,14 +66,14 @@ class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
                 $this->chargedCurrencyMock,
                 $this->adyenLoggerMock,
                 $this->configHelperMock,
-                $this->adyenHelperMock
+                $this->localeHelperMock
             ])
             ->onlyMethods(['getCampaignData'])
             ->getMock();
 
         $this->adyenDonationCampaigns->expects($this->once())
             ->method('getCampaignData')
-            ->with($orderMock)
+            ->with($this->orderMock)
             ->willReturn(json_encode(['key' => 'value']));
 
         $result = $this->adyenDonationCampaigns->getCampaigns($orderId);
@@ -98,10 +100,9 @@ class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
         $this->expectException(LocalizedException::class);
 
         $orderId = 101;
-        $orderMock = $this->createMock(OrderInterface::class);
-        $orderMock->method('getEntityId')->willReturn(null);
+        $this->orderMock->method('getEntityId')->willReturn(null);
 
-        $this->orderRepositoryMock->method('get')->willReturn($orderMock);
+        $this->orderRepositoryMock->method('get')->willReturn($this->orderMock);
 
         $this->adyenLoggerMock->expects($this->once())
             ->method('error')
@@ -128,7 +129,7 @@ class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
             ->willReturn($this->currencyObject);
 
         $this->configHelperMock->method('getMerchantAccount')->willReturn($merchantAccount);
-        $this->adyenHelperMock->method('getCurrentLocaleCode')->willReturn($locale);
+        $this->localeHelperMock->method('getCurrentLocaleCode')->willReturn($locale);
 
         $donationCampaignsResponse = ['donationCampaigns' => [['id' => $campaignId]]];
         $formattedCampaign = ['reference' => 'abc'];

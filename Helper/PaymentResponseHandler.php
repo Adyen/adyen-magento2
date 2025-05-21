@@ -26,6 +26,7 @@ use Magento\Sales\Model\ResourceModel\Order;
 use Magento\Sales\Model\Order as OrderModel;
 use Magento\Framework\Mail\Exception\InvalidArgumentException;
 use Adyen\Client;
+use Magento\Sales\Model\Service\OrderService;
 
 class PaymentResponseHandler
 {
@@ -66,6 +67,7 @@ class PaymentResponseHandler
     private Config $configHelper;
     private PaymentMethods $paymentMethodsHelper;
     private OrderStatusHistoryRepositoryInterface $orderStatusHistoryRepository;
+    private OrderService $orderManagement;
 
     public function __construct(
         AdyenLogger $adyenLogger,
@@ -80,7 +82,8 @@ class PaymentResponseHandler
         PaymentResponseCollectionFactory $paymentResponseCollectionFactory,
         Config $configHelper,
         OrderStatusHistoryRepositoryInterface $orderStatusHistoryRepository,
-        PaymentMethods $paymentMethodsHelper
+        PaymentMethods $paymentMethodsHelper,
+        OrderService $orderManagement
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->vaultHelper = $vaultHelper;
@@ -95,6 +98,7 @@ class PaymentResponseHandler
         $this->configHelper = $configHelper;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
         $this->orderStatusHistoryRepository = $orderStatusHistoryRepository;
+        $this->orderManagement = $orderManagement;
     }
 
     public function formatPaymentResponse(
@@ -354,6 +358,56 @@ class PaymentResponseHandler
         $this->orderResourceModel->save($order);
 
         return $result;
+    }
+
+    /**
+     * @param $order
+     * @return void
+     * @throws NoSuchEntityException
+     */
+    public function cancelOrder($order): void
+    {
+        $orderStatus = $this->configHelper->getAdyenAbstractConfigData('payment_cancelled');
+        $order->setActionFlag($orderStatus, true);
+
+        switch ($orderStatus) {
+            case OrderModel::STATE_HOLDED:
+                if ($order->canHold()) {
+                    $order->hold()->save();
+                }
+                break;
+            default:
+                if ($order->canCancel()) {
+                    if ($this->orderManagement->cancel($order->getEntityId())) { //new canceling process
+                        try {
+                            $orderStatusHistory = $this->orderHistoryFactory->create()
+                                ->setParentId($order->getEntityId())
+                                ->setEntityName('order')
+                                ->setStatus(OrderModel::STATE_CANCELED)
+                                ->setComment(__('Order has been cancelled by "%1" payment response.', $order->getPayment()->getMethod()));
+                            $this->orderManagement->addComment($order->getEntityId(), $orderStatusHistory);
+                        } catch (Exception $e) {
+                            $this->adyenLogger->addAdyenDebug(
+                                __('Order cancel history comment error: %1', $e->getMessage()),
+                                $this->adyenLogger->getOrderContext($order)
+                            );
+                        }
+                    } else { //previous canceling process
+                        $this->adyenLogger->addAdyenDebug(
+                            'Unsuccessful order canceling attempt by orderManagement service, use legacy process',
+                            $this->adyenLogger->getOrderContext($order)
+                        );
+                        $order->cancel();
+                        $order->save();
+                    }
+                } else {
+                    $this->adyenLogger->addAdyenDebug(
+                        'Order can not be canceled',
+                        $this->adyenLogger->getOrderContext($order)
+                    );
+                }
+                break;
+        }
     }
 
     /**

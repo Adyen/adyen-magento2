@@ -34,6 +34,8 @@ use Magento\Sales\Model\Order;
 class CheckoutDataBuilder implements BuilderInterface
 {
     const ADYEN_BOLETO = 'adyen_boleto';
+    const RATEPAY = 'ratepay';
+    const KLARNA = 'klarna';
     const ORDER_EMAIL_REQUIRED_METHODS = [
         AdyenPayByLinkConfigProvider::CODE,
         self::ADYEN_BOLETO
@@ -104,12 +106,12 @@ class CheckoutDataBuilder implements BuilderInterface
             $this->paymentMethodsHelper->isOpenInvoice($paymentMethodInstance) ||
             $payment->getMethod() === AdyenPayByLinkConfigProvider::CODE
         ) {
-            if ($this->adyenHelper->isPaymentMethodOfType($payment->getMethod(), Data::KLARNA) &&
+            if (str_contains($payment->getMethod(), self::KLARNA) &&
                 $this->configHelper->getAutoCaptureOpenInvoice($storeId)) {
                 $requestBody['captureDelayHours'] = 0;
             }
 
-            if ($this->adyenHelper->isPaymentMethodOfType($payment->getMethod(), Data::KLARNA) ||
+            if (str_contains($payment->getMethod(), self::KLARNA) ||
                 $payment->getMethod() === AdyenPayByLinkConfigProvider::CODE
             ) {
                 $otherDeliveryInformation = $this->getOtherDeliveryInformation($order);
@@ -122,7 +124,9 @@ class CheckoutDataBuilder implements BuilderInterface
 
         // Ratepay specific Fingerprint
         $deviceFingerprint = $payment->getAdditionalInformation(AdyenPaymentMethodDataAssignObserver::DF_VALUE);
-        if ($deviceFingerprint && $this->adyenHelper->isPaymentMethodOfType($payment->getMethod(), Data::RATEPAY)) {
+
+        if (
+            $deviceFingerprint && str_contains($payment->getMethod(), self::RATEPAY)) {
             $requestBody['deviceFingerprint'] = $deviceFingerprint;
         }
 

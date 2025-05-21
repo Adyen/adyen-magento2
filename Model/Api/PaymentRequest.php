@@ -22,6 +22,7 @@ use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\RecurringType;
 use Exception;
+use Adyen\Payment\Helper\PlatformInfo;
 use Magento\Framework\App\State;
 use Magento\Framework\DataObject;
 use Magento\Framework\Encryption\EncryptorInterface;
@@ -58,6 +59,11 @@ class PaymentRequest extends DataObject
     protected RecurringType $recurringType;
 
     /**
+     * @var PlatformInfo
+     */
+    protected PlatformInfo $platformInfo;
+
+    /**
      * @var State
      */
     protected State $appState;
@@ -69,6 +75,7 @@ class PaymentRequest extends DataObject
      * @param AdyenLogger $adyenLogger
      * @param Config $configHelper
      * @param RecurringType $recurringType
+     * @param PlatformInfo $platformInfo
      * @param array $data
      */
     public function __construct(
@@ -78,6 +85,7 @@ class PaymentRequest extends DataObject
         AdyenLogger $adyenLogger,
         Config $configHelper,
         RecurringType $recurringType,
+        PlatformInfo $platformInfo,
         array $data = []
     ) {
         $this->encryptor = $encryptor;
@@ -86,6 +94,7 @@ class PaymentRequest extends DataObject
         $this->recurringType = $recurringType;
         $this->appState = $context->getAppState();
         $this->configHelper = $configHelper;
+        $this->platformInfo = $platformInfo;
     }
 
     /**
@@ -201,7 +210,7 @@ class PaymentRequest extends DataObject
         $contract = ['contract' => $recurringType];
         $request = [
             "merchantAccount" => $this->configHelper->getAdyenAbstractConfigData('merchant_account', $storeId),
-            "shopperReference" => $this->adyenHelper->padShopperReference($shopperReference),
+            "shopperReference" => $this->platformInfo->padShopperReference($shopperReference),
             "recurring" => $contract,
         ];
 
@@ -229,7 +238,7 @@ class PaymentRequest extends DataObject
         int $storeId
     ): bool {
         $merchantAccount = $this->configHelper->getAdyenAbstractConfigData("merchant_account", $storeId);
-        $shopperReference = $this->adyenHelper->padShopperReference($shopperReference);
+        $shopperReference = $this->platformInfo->padShopperReference($shopperReference);
         $request = [
             "merchantAccount" => $merchantAccount,
             "shopperReference" => $shopperReference,

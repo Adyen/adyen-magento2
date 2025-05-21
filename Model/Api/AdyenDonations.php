@@ -21,6 +21,7 @@ use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Model\Sales\OrderRepository;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Util\Uuid;
+use Adyen\Payment\Helper\PlatformInfo;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -38,6 +39,7 @@ class AdyenDonations implements AdyenDonationsInterface
     private Config $config;
     private PaymentMethods $paymentMethodsHelper;
     private OrderRepository $orderRepository;
+    private PlatformInfo $platformInfo;
 
     private $donationTryCount;
 
@@ -48,7 +50,8 @@ class AdyenDonations implements AdyenDonationsInterface
         ChargedCurrency $chargedCurrency,
         Config $config,
         PaymentMethods $paymentMethodsHelper,
-        OrderRepository $orderRepository
+        OrderRepository $orderRepository,
+        PlatformInfo $platformInfo
     ) {
         $this->commandPool = $commandPool;
         $this->jsonSerializer = $jsonSerializer;
@@ -57,6 +60,7 @@ class AdyenDonations implements AdyenDonationsInterface
         $this->config = $config;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
         $this->orderRepository = $orderRepository;
+        $this->platformInfo = $platformInfo;
     }
 
     /**
@@ -112,7 +116,7 @@ class AdyenDonations implements AdyenDonationsInterface
 
         $customerId = $order->getCustomerId();
         if ($customerId) {
-            $payload['shopperReference'] = $this->dataHelper->padShopperReference($customerId);
+            $payload['shopperReference'] = $this->platformInfo->padShopperReference($customerId);
         } else {
             $guestCustomerId = $order->getIncrementId() . Uuid::generateV4();
             $payload['shopperReference'] = $guestCustomerId;
