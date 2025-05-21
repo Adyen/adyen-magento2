@@ -14,6 +14,7 @@ namespace Adyen\Payment\Block\Checkout\Multishipping;
 
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\Locale;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Model\ResourceModel\PaymentResponse\Collection;
@@ -38,6 +39,7 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
     private SearchCriteriaBuilder $searchCriteriaBuilder;
     private Config $configHelper;
     private PaymentMethods $paymentMethodsHelper;
+    private Locale $localeHelper;
 
     /**
      * @var
@@ -56,6 +58,7 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
         OrderRepositoryInterface $orderRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         Config $configHelper,
+        Locale $localeHelper,
         array $data = []
     ) {
         $this->adyenHelper = $adyenHelper;
@@ -66,6 +69,7 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
         $this->orderRepository = $orderRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->configHelper = $configHelper;
+        $this->localeHelper = $localeHelper;
         parent::__construct($context, $multishipping, $data);
 
         $orderIds = $this->getOrderIds();
@@ -97,7 +101,7 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
 
     public function getLocale()
     {
-        return $this->adyenHelper->getCurrentLocaleCode(
+        return $this->localeHelper->getCurrentLocaleCode(
             $this->storeManager->getStore()->getId()
         );
     }

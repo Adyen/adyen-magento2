@@ -14,6 +14,7 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Model\ApplicationInfo;
 use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
+use Adyen\Payment\Helper\PlatformInfo;
 use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
@@ -23,15 +24,18 @@ class PointOfSale
     private Data $dataHelper;
     private ProductMetadataInterface $productMetadata;
     private Vault $vaultHelper;
+    private PlatformInfo $platformInfo;
 
     public function __construct(
         Data $dataHelper,
         ProductMetadataInterface $productMetadata,
-        Vault $vaultHelper
+        Vault $vaultHelper,
+        PlatformInfo $platformInfo
     ) {
         $this->dataHelper = $dataHelper;
         $this->productMetadata = $productMetadata;
         $this->vaultHelper = $vaultHelper;
+        $this->platformInfo = $platformInfo;
     }
 
     public function addSaleToAcquirerData(array $request, Order $order) : array
@@ -55,15 +59,15 @@ class PointOfSale
 
             if (!empty($posRecurringEnabled) && !empty($shopperEmail)) {
                 $saleToAcquirerData['shopperEmail'] = $shopperEmail;
-                $saleToAcquirerData['shopperReference'] = $this->dataHelper->padShopperReference($customerId);
+                $saleToAcquirerData['shopperReference'] = $this->platformInfo->padShopperReference($customerId);
                 $saleToAcquirerData['recurringProcessingModel'] = $recurringProcessingModel;
             }
         }
 
         $saleToAcquirerData[ApplicationInfo::APPLICATION_INFO][ApplicationInfo::MERCHANT_APPLICATION]
-        [ApplicationInfo::VERSION] = $this->dataHelper->getModuleVersion();
+        [ApplicationInfo::VERSION] = $this->platformInfo->getModuleVersion();
         $saleToAcquirerData[ApplicationInfo::APPLICATION_INFO][ApplicationInfo::MERCHANT_APPLICATION]
-        [ApplicationInfo::NAME] = $this->dataHelper->getModuleName();
+        [ApplicationInfo::NAME] = $this->platformInfo->getModuleName();
         $saleToAcquirerData[ApplicationInfo::APPLICATION_INFO][ApplicationInfo::EXTERNAL_PLATFORM]
         [ApplicationInfo::VERSION] = $this->productMetadata->getVersion();
         $saleToAcquirerData[ApplicationInfo::APPLICATION_INFO][ApplicationInfo::EXTERNAL_PLATFORM]
