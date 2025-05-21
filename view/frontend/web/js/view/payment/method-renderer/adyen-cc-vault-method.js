@@ -229,19 +229,23 @@ define([
 
         getData: function () {
             const self = this;
-            let stateData = self.component.data;
-            stateData = JSON.stringify(stateData);
-            window.sessionStorage.setItem('adyen.stateData', stateData);
-            return {
+            const componentData = self.component.data;
+
+            let data = {
                 method: this.code,
                 additional_data: {
-                    stateData: stateData,
+                    stateData: JSON.stringify(componentData),
                     public_hash: this.publicHash,
-                    'number_of_installments': self.installment(),
                     frontendType: 'default',
-                    'cc_type': self.getCcCodeByAltCode(self.getCardType())
+                    cc_type: componentData.paymentMethod?.brand
                 },
             };
+
+            if (componentData.installments?.value) {
+                data.additional_data.number_of_installments = componentData.installments?.value;
+            }
+
+            return data;
         },
 
         handleAdyenResult: function (responseJSON, orderId) {
