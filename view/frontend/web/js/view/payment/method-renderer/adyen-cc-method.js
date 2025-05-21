@@ -189,7 +189,6 @@ define(
                 let allInstallments = this.getAllInstallments();
                 let currency = quote.totals().quote_currency_code;
                 let componentConfig = {
-                    showPayButton: false,
                     enableStoreDetails: this.getEnableStoreDetails(),
                     brands: this.getBrands(),
                     amount: {
