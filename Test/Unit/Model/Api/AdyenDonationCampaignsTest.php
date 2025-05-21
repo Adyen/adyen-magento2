@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Adyen\Payment\Test\Unit\Model\Api;
 
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
-use Adyen\Payment\Helper\Data as AdyenHelper;
+use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\DonationsHelper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Api\AdyenDonationCampaigns;
@@ -30,15 +32,6 @@ class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
 
     protected function setUp(): void
     {
-        $this->donationsHelperMock = $this->createMock(DonationsHelper::class);
-        $this->orderRepositoryMock = $this->createMock(OrderRepository::class);
-        $this->chargedCurrencyMock = $this->createMock(ChargedCurrency::class);
-        $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
-        $this->configHelperMock = $this->createMock(Config::class);
-        $this->localeHelperMock = $this->createMock(Locale::class);
-        $this->currencyObject = $this->createMock(AdyenAmountCurrency::class);
-        $this->paymentMock = $this->createMock(Payment::class);
-        $this->orderMock = $this->createMock(Order::class);
         $this->donationsHelper = $this->createMock(DonationsHelper::class);
         $this->orderRepository = $this->createMock(OrderRepository::class);
         $this->chargedCurrency = $this->createMock(ChargedCurrency::class);
