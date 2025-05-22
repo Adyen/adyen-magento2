@@ -15,7 +15,6 @@ namespace Adyen\Payment\Model\Resolver;
 
 use Adyen\Payment\Exception\GraphQlAdyenException;
 use Adyen\Payment\Logger\AdyenLogger;
-use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
@@ -25,6 +24,7 @@ use Magento\Framework\GraphQl\Query\Resolver\Value;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use Magento\Framework\Serialize\Serializer\Json;
+use Magento\Quote\Api\Data\CartInterface;
 use Magento\QuoteGraphQl\Model\Cart\GetCartForUser;
 use Magento\Sales\Model\Order;
 use Magento\GraphQl\Helper\Error\AggregateExceptionMessageFormatter;
@@ -122,16 +122,8 @@ class GetAdyenPaymentDetails implements ResolverInterface
                 $order,
                 $cart
             );
-        } catch (LocalizedException $e) {
-            throw $this->getFormattedException($e, $field, $context, $info);
-        } catch (Exception $exception) {
-            $this->adyenLogger->error(sprintf(
-                'GraphQl payment details call failed with error message: %s',
-                $exception->getMessage()
-            ));
-            // In the future, use the message and the code passed by the exception. Since currently the message and code are not
-            // being passed, use this generic message.
-            throw new GraphQlAdyenException(__('An unknown error has occurred'), null, 000);
+        } catch (\Exception $e) {
+            $this->handleException($e, $order, $cart, $field, $context, $info);
         }
     }
 
@@ -156,9 +148,41 @@ class GetAdyenPaymentDetails implements ResolverInterface
                 $context,
                 $info
             );
-        } else {
-            return new GraphQlAdyenException(__('Unable to place order: A server error stopped your order from being placed. ' .
-                'Please try to place your order again'));
         }
+
+        return new GraphQlAdyenException(__('Unable to place order: A server error stopped your order from being placed. ' .
+            'Please try to place your order again'));
+    }
+
+    /**
+     * @param \Exception $cause
+     * @param \Magento\Sales\Model\Order $order
+     * @param \Magento\Quote\Api\Data\CartInterface $cart
+     * @param \Magento\Framework\GraphQl\Config\Element\Field $field
+     * @param \Magento\Framework\GraphQl\Query\Resolver\ContextInterface $context
+     * @param \Magento\Framework\GraphQl\Schema\Type\ResolveInfo $info
+     * @return void
+     * @throws \Adyen\Payment\Exception\GraphQlAdyenException
+     */
+    public function handleException(
+        \Exception $cause,
+        Order $order,
+        CartInterface $cart,
+        Field $field,
+        ContextInterface $context,
+        ResolveInfo $info
+    ): void {
+        if ($cause instanceof LocalizedException) {
+            throw $this->getFormattedException($cause, $field, $context, $info);
+        }
+
+        $this->adyenLogger->error(sprintf(
+            'GraphQl payment details call failed with error message: %s',
+            $cause->getMessage()
+        ));
+
+        // In the future, use the message and the code passed by the exception. Since currently the message and code are not
+        // being passed, use this generic message.
+        throw new GraphQlAdyenException(__('An unknown error has occurred'), null, 000);
     }
 }

@@ -12,6 +12,8 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
+use Adyen\Payment\Enum\PaymentDetailsError;
+use Adyen\Payment\Exception\AdyenPaymentDetailsException;
 use Adyen\Payment\Helper\Util\DataArrayValidator;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Checkout\Model\Session;
@@ -71,7 +73,10 @@ class PaymentsDetails
             $this->adyenLogger->error("Payment details call failed: " . $e->getMessage());
             $this->checkoutSession->restoreQuote();
 
-            throw new ValidatorException(__('Payment details call failed'));
+            throw new AdyenPaymentDetailsException(
+                __('Payment details call failed'),
+                PaymentDetailsError::ApiCallFailed,
+            );
         }
 
         return $response;

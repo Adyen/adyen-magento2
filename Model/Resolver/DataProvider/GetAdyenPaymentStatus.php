@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Adyen\Payment\Model\Resolver\DataProvider;
 
+use Adyen\Payment\Exception\AdyenPaymentDetailsException;
 use Adyen\Payment\Model\Api\AdyenOrderPaymentStatus;
 use Adyen\Payment\Model\Api\AdyenPaymentsDetails;
 use Magento\Framework\Exception\LocalizedException;
@@ -63,8 +64,13 @@ class GetAdyenPaymentStatus
 
     /**
      * @param string $payload
+     * @param \Magento\Sales\Api\Data\OrderInterface $order
+     * @param \Magento\Quote\Api\Data\CartInterface $cart
      * @return array
-     * @throws LocalizedException
+     * @throws \Adyen\Payment\Exception\AdyenPaymentDetailsException
+     * @throws \Magento\Framework\Exception\AlreadyExistsException
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function getGetAdyenPaymentDetails(string $payload, OrderInterface $order, CartInterface $cart): array
     {

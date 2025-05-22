@@ -12,6 +12,8 @@
 namespace Adyen\Payment\Model\Api;
 
 use Adyen\Payment\Api\AdyenPaymentsDetailsInterface;
+use Adyen\Payment\Enum\PaymentDetailsError;
+use Adyen\Payment\Exception\AdyenPaymentDetailsException;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Helper\PaymentsDetails;
 use Magento\Checkout\Model\Session;
@@ -47,6 +49,7 @@ class AdyenPaymentsDetails implements AdyenPaymentsDetailsInterface
      * @throws LocalizedException
      * @throws NoSuchEntityException
      * @throws AlreadyExistsException
+     * @throws AdyenPaymentDetailsException
      * @api
      */
     public function initiate(string $payload, string $orderId): string
@@ -58,8 +61,9 @@ class AdyenPaymentsDetails implements AdyenPaymentsDetailsInterface
 
         // Validate JSON that has just been parsed if it was in a valid format
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new ValidatorException(
-                __('Payment details call failed because the request was not a valid JSON')
+            throw new AdyenPaymentDetailsException(
+                __('Payment details call failed because the request was not a valid JSON'),
+                PaymentDetailsError::InvalidJson
             );
         }
 
@@ -68,7 +72,10 @@ class AdyenPaymentsDetails implements AdyenPaymentsDetailsInterface
         // Handle response
         if (!$this->paymentResponseHandler->handlePaymentsDetailsResponse($response, $order)) {
             $this->checkoutSession->restoreQuote();
-            throw new ValidatorException(__('The payment is REFUSED.'));
+            throw new AdyenPaymentDetailsException(
+                __('The payment is REFUSED.'),
+                PaymentDetailsError::Refused
+            );
         }
 
         return json_encode(
