@@ -51,6 +51,8 @@ use ReflectionClass;
 use Adyen\AdyenException;
 use Exception;
 use ReflectionMethod;
+use Adyen\Payment\Helper\GenerateShopperConversionId;
+use Magento\Checkout\Model\Session as CheckoutSession;
 
 class PaymentMethodsTest extends AbstractAdyenTestCase
 {
@@ -73,6 +75,8 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
     private AdyenDataHelper $adyenDataHelperMock;
     private PaymentTokenRepositoryInterface $paymentTokenRepository;
     private SearchCriteriaBuilder $searchCriteriaBuilder;
+    private CheckoutSession $checkoutSession;
+    private GenerateShopperConversionId $generateShopperConversionId;
 
     protected function setUp(): void
     {
@@ -116,6 +120,8 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             ->disableOriginalConstructor()
             ->getMock();
         $this->objectManager = new ObjectManager($this);
+        $this->checkoutSession = $this->createMock(CheckoutSession::class);
+        $this->generateShopperConversionId = $this->createMock(GenerateShopperConversionId::class);
 
         // Instantiate the PaymentMethods helper class with the mocked dependencies
         $this->paymentMethodsHelper = new PaymentMethods(
@@ -136,7 +142,9 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             $this->serializerMock,
             $this->adyenDataHelperMock,
             $this->paymentTokenRepository,
-            $this->searchCriteriaBuilder
+            $this->searchCriteriaBuilder,
+            $this->generateShopperConversionId,
+            $this->checkoutSession
         );
     }
 
@@ -419,58 +427,93 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $quoteId = 1;
         $storeId = 1;
         $amountValue = 100;
+        $shopperConversionId = '59e9d008-b427-47ae-b9b9-95c43d4ac3f6';
         $adyenClientMock = $this->createMock(Client::class);
         $checkoutServiceMock = $this->createMock(Checkout\PaymentsApi::class);
-        // Setup test scenario
+
+        $this->quoteMock = $this->getMockBuilder(Quote::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['getPayment', 'getStore', 'getBillingAddress'])
+            ->getMock();
+
+        // Mock store ID retrieval
         $this->storeMock->expects($this->any())
             ->method('getId')
             ->willReturn($quoteId);
 
-        // Mock the getId method of the quote to return the quoteId
+        // Mock store retrieval from quote
         $this->quoteMock->expects($this->any())
             ->method('getStore')
             ->willReturn($this->storeMock);
+
+        // Mock fetching merchant account configuration
         $this->configHelperMock->expects($this->once())
             ->method('getAdyenAbstractConfigData')
-            ->with('merchant_account', $storeId) // Ensure it's called with the expected parameters
-            ->willReturn('mocked_merchant_account'); // Define the return value for the mocked method
+            ->with('merchant_account', $storeId)
+            ->willReturn('mocked_merchant_account');
+
+        // Mock Adyen client and API initialization
         $this->adyenHelperMock->method('initializeAdyenClient')->willReturn($adyenClientMock);
-        $this->adyenHelperMock->method('initializePaymentsApi')->willReturn($checkoutServiceMock);
+
+        // Mock currency details
         $this->amountCurrencyMock->method('getCurrencyCode')->willReturn('EUR');
         $this->amountCurrencyMock->method('getAmount')->willReturn($amountValue);
         $this->chargedCurrencyMock->method('getQuoteAmountCurrency')->willReturn($this->amountCurrencyMock);
+
+        // Mock billing address retrieval
         $this->billingAddressMock->expects($this->once())
             ->method('getCountryId')
             ->willReturn('NL');
+
         $this->quoteMock
             ->method('getBillingAddress')
             ->willReturn($this->billingAddressMock);
-        // Simulate successful API call
-        $checkoutServiceMock->expects($this->once())
+
+        // Mock checkoutSession->getQuote()
+        $this->checkoutSession->expects($this->once())
+            ->method('getQuote')
+            ->willReturn($this->quoteMock);
+
+        // Mock getPayment()->getAdditionalInformation('shopper_conversion_id')
+        $paymentMock = $this->createMock(\Magento\Quote\Model\Quote\Payment::class);
+        $paymentMock->expects($this->once())
+            ->method('getAdditionalInformation')
+            ->with('shopper_conversion_id')
+            ->willReturn($shopperConversionId);
+
+        // Mock getPayment() from quote
+        $this->quoteMock->expects($this->once())
+            ->method('getPayment')
+            ->willReturn($paymentMock);
+
+        // Simulate successful API call but return empty response
+        $checkoutServiceMock
             ->method('paymentMethods')
             ->willThrowException(new AdyenException("The Payment methods response is empty check your Adyen configuration in Magento."));
-
         $fetchPaymentMethodsMethod = $this->getPrivateMethod(
             PaymentMethods::class,
             'fetchPaymentMethods'
         );
 
+        // Create PaymentMethods object with mocked dependencies
         $paymentMethods = $this->objectManager->getObject(
             PaymentMethods::class,
             [
                 'quote' => $this->quoteMock,
                 'configHelper' => $this->configHelperMock,
                 'chargedCurrency' => $this->chargedCurrencyMock,
-                'adyenHelper' => $this->adyenHelperMock
+                'adyenHelper' => $this->adyenHelperMock,
+                'checkoutSession' => $this->checkoutSession
             ]
         );
 
-        // Execute method of the tested class
+        // Execute the method being tested
         $result = $fetchPaymentMethodsMethod->invoke($paymentMethods, null, null);
 
-        // Assert conditions
+        // Assert that the response is an empty JSON array
         $this->assertEquals(json_encode([]), $result);
     }
+
 
     public function testSuccessfulRetrievalOfPaymentMethods()
     {
@@ -490,6 +533,11 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $quoteId = 1;
         $storeId = 1;
         $amountValue = '100';
+        $shopperConversionId = '59e9d008-b427-47ae-b9b9-95c43d4ac3f6';
+        $this->quoteMock = $this->getMockBuilder(Quote::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['getPayment', 'getStore', 'getBillingAddress'])
+            ->getMock();
 
         $requestParams = [
             "channel" => "Web",
@@ -500,7 +548,8 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             "amount" => [
                 "currency" => 'EUR',
                 "value" => $amountValue
-            ]
+            ],
+            'shopperConversionId' => $shopperConversionId
         ];
 
         $paymentMethodsExtraDetails['type']['configuration'] = [
@@ -558,6 +607,23 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $this->adyenHelperMock->expects($this->once())
             ->method('logResponse');
 
+
+        // Mock checkoutSession->getQuote()
+        $this->checkoutSession->expects($this->once())
+            ->method('getQuote')
+            ->willReturn($this->quoteMock);
+
+        $paymentMock = $this->createMock(\Magento\Quote\Model\Quote\Payment::class);
+        $paymentMock->expects($this->once())
+            ->method('getAdditionalInformation')
+            ->with('shopper_conversion_id')
+            ->willReturn($shopperConversionId);
+
+        // Mock getPayment() from quote
+        $this->quoteMock->expects($this->once())
+            ->method('getPayment')
+            ->willReturn($paymentMock);
+
         $paymentMethods = $this->objectManager->getObject(
             PaymentMethods::class,
             [
@@ -566,6 +632,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
                 'chargedCurrency' => $this->chargedCurrencyMock,
                 'adyenHelper' => $this->adyenHelperMock,
                 'paymentMethods' => $paymentMethodsMock,
+                'checkoutSession' => $this->checkoutSession
             ]
         );
         $fetchPaymentMethodsMethod = $this->getPrivateMethod(
@@ -575,6 +642,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $result = $fetchPaymentMethodsMethod->invoke($paymentMethods, 'NL', 'nl_NL');
 
         $this->assertJson($result);
+
     }
 
     public function testGetCurrentCountryCodeWithBillingAddressSet()
@@ -1091,6 +1159,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $country = 'NL';
         $amountValue = 100;
         $currencyCode = 'EUR';
+        $shopperConversionId = '59e9d008-b427-47ae-b9b9-95c43d4ac3f6';
         $this->amountCurrencyMock->method('getCurrencyCode')->willReturn('EUR');
         $this->amountCurrencyMock->method('getAmount')->willReturn($amountValue);
         $this->chargedCurrencyMock->method('getQuoteAmountCurrency')->willReturn($this->amountCurrencyMock);
@@ -1102,8 +1171,31 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             "merchantAccount" => $merchantAccount,
             "countryCode" => $country,
             "shopperLocale" => $shopperLocale,
-            "amount" => ["currency" => $currencyCode]
+            "amount" => ["currency" => $currencyCode],
+            "shopperConversionId" => "59e9d008-b427-47ae-b9b9-95c43d4ac3f6"
         ];
+
+        $this->quoteMock = $this->getMockBuilder(Quote::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['getPayment', 'getStore', 'getBillingAddress'])
+            ->getMock();
+
+        // Mock checkoutSession->getQuote()
+        $this->checkoutSession->expects($this->once())
+            ->method('getQuote')
+            ->willReturn($this->quoteMock);
+
+        // Mock getPayment()->getAdditionalInformation('shopper_conversion_id')
+        $paymentMock = $this->createMock(\Magento\Quote\Model\Quote\Payment::class);
+        $paymentMock->expects($this->once())
+            ->method('getAdditionalInformation')
+            ->with('shopper_conversion_id')
+            ->willReturn($shopperConversionId);
+
+        // Mock getPayment() from quote
+        $this->quoteMock->expects($this->once())
+            ->method('getPayment')
+            ->willReturn($paymentMock);
 
         $paymentMethods = $this->objectManager->getObject(
             PaymentMethods::class,
@@ -1112,6 +1204,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
                 'configHelper' => $this->configHelperMock,
                 'chargedCurrency' => $this->chargedCurrencyMock,
                 'adyenHelper' => $this->adyenHelperMock,
+                'checkoutSession' => $this->checkoutSession
             ]
         );
 
