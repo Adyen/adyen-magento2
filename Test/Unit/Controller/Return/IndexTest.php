@@ -189,7 +189,7 @@ class IndexTest extends AbstractAdyenTestCase
             $this->redirectMock->expects($this->once())->method('redirect')->with(
                 $this->contextResponseMock,
                 $returnPath,
-                $redirectResponse ? ['_query' => ['utm_nooverride' => '1']] : []
+                []
             );
         }
 

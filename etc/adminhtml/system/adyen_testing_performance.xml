@@ -77,5 +77,19 @@
                 This field determines the number of days after which processed webhooks will be removed by a cronjob. Note: Setting less than a reasonable number of days might reduce the desired visibility of webhooks in the Webhooks Overview.
             </tooltip>
         </field>
+        <field id="has_platform_integrator" translate="label" type="select" sortOrder="70" showInDefault="1">
+            <label>Managed by a system integrator</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <tooltip></tooltip>
+            <config_path>payment/adyen_abstract/has_platform_integrator</config_path>
+        </field>
+        <field id="platform_integrator" translate="label" type="text" sortOrder="80" showInDefault="1">
+            <label>Name of the system integrator</label>
+            <depends>
+                <field id="has_platform_integrator">1</field>
+            </depends>
+            <tooltip></tooltip>
+            <config_path>payment/adyen_abstract/platform_integrator</config_path>
+        </field>
     </group>
 </include>
