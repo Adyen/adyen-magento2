@@ -16,9 +16,10 @@ declare(strict_types=1);
 
 namespace Adyen\Payment\Enum;
 
-enum PaymentDetailsError: int
+enum PaymentDetailsError
 {
-    case Refused = 0;
-    case InvalidJson = 1;
-    case ApiCallFailed = 2;
+    case Refused;
+    case Canceled;
+    case InvalidJson;
+    case ApiCallFailed;
 }
