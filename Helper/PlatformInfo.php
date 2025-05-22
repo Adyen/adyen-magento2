@@ -108,6 +108,7 @@ class PlatformInfo
     public function buildRequestHeaders($payment = null)
     {
         $magentoDetails = $this->getMagentoDetails();
+
         $headers = [
             HeaderDataBuilderInterface::EXTERNAL_PLATFORM_NAME => $magentoDetails['name'],
             HeaderDataBuilderInterface::EXTERNAL_PLATFORM_VERSION => $magentoDetails['version'],

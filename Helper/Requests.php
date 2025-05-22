@@ -16,11 +16,11 @@ use Adyen\Payment\Model\Config\Source\CcType;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Util\Uuid;
-use Adyen\Payment\Helper\PlatformInfo;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Request\Http as Http;
 use Magento\Framework\Exception\LocalizedException;
-
+use Adyen\Payment\Helper\PlatformInfo;
+use Magento\Framework\Exception\NoSuchEntityException;
 
 class Requests extends AbstractHelper
 {
@@ -41,11 +41,10 @@ class Requests extends AbstractHelper
     private StateData $stateData;
     private Vault $vaultHelper;
     private Http $request;
-    private Locale $localeHelper;
-    private PlatformInfo $platformInfo;
-    protected Data $dataHelper;
     private ChargedCurrency $chargedCurrency;
     private PaymentMethods $paymentMethodsHelper;
+    private PlatformInfo $platformInfo;
+    private Locale $localeHelper;
 
     public function __construct(
         Data $adyenHelper,
@@ -54,11 +53,10 @@ class Requests extends AbstractHelper
         StateData $stateData,
         Vault $vaultHelper,
         Http $request,
-        Locale $localeHelper,
-        PlatformInfo $platformInfo
-        Data $dataHelper,
         ChargedCurrency $chargedCurrency,
-        PaymentMethods $paymentMethodsHelper
+        PaymentMethods $paymentMethodsHelper,
+        PlatformInfo $platformInfo,
+        Locale $localeHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenConfig = $adyenConfig;
@@ -66,11 +64,10 @@ class Requests extends AbstractHelper
         $this->stateData = $stateData;
         $this->vaultHelper = $vaultHelper;
         $this->request = $request;
-        $this->localeHelper = $localeHelper;
-        $this->platformInfo = $platformInfo;
-        $this->dataHelper = $dataHelper;
         $this->chargedCurrency = $chargedCurrency;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
+        $this->platformInfo = $platformInfo;
+        $this->localeHelper = $localeHelper;
     }
 
     /**
@@ -78,6 +75,7 @@ class Requests extends AbstractHelper
      * @param $paymentMethod
      * @param $storeId
      * @return mixed
+     * @throws NoSuchEntityException
      */
     public function buildMerchantAccountData($paymentMethod, $storeId, $request = [])
     {
@@ -451,7 +449,7 @@ class Requests extends AbstractHelper
         }
 
         $shopperReference = $order->getCustomerId()
-            ? $this->dataHelper->padShopperReference($order->getCustomerId())
+            ? $this->platformInfo->padShopperReference($order->getCustomerId())
             : $order->getIncrementId() . Uuid::generateV4();
 
         return [

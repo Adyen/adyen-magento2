@@ -61,7 +61,7 @@ class AdyenGenericConfigProviderTest extends AbstractAdyenTestCase
             $this->agreementsConfigProviderMock,
             $this->cspNonceProviderMock,
             $this->localeMock,
-            $this->PaymentMethodsMock,
+            $this->paymentMethodsMock,
             $this->txVariants,
             $this->customMethodRenderers
         );

@@ -37,6 +37,7 @@ use Adyen\Payment\Helper\Config;
 use PHPUnit\Framework\MockObject\MockObject;
 use Adyen\Payment\Helper\PaymentMethods;
 use ReflectionClass;
+use Magento\Sales\Model\Service\OrderService;
 
 class PaymentResponseHandlerTest extends AbstractAdyenTestCase
 {
@@ -58,6 +59,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
     private OrderStatusHistoryRepositoryInterface|MockObject $historyRepositoryMock;
     private Adapter|MockObject $paymentMethodInstanceMock;
     private PaymentMethods|MockObject $paymentMethodsHelperMock;
+    private OrderService $orderManagementMock;
 
     protected function setUp(): void
     {
@@ -98,6 +100,8 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
 
         $this->orderHelperMock->method('setStatusOrderCreation')->willReturn($this->orderMock);
 
+        $this->orderManagementMock = $this->createMock(OrderService::class);
+
         $this->paymentResponseHandler = new PaymentResponseHandler(
             $this->adyenLoggerMock,
             $this->vaultHelperMock,
@@ -111,7 +115,8 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
             $this->paymentResponseCollectionFactoryMock,
             $this->configHelperMock,
             $this->historyRepositoryMock,
-            $this->paymentMethodsHelperMock
+            $this->paymentMethodsHelperMock,
+            $this->orderManagementMock
         );
     }
 
@@ -462,10 +467,12 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         $merchantAccount = 'mock_merchant_account';
         $storeId = 1;
         $this->orderMock->expects($this->once())->method('getStoreId')->willReturn($storeId);
-        $this->configHelperMock->expects($this->any())
-            ->method('getAdyenAbstractConfigData')
-            ->with('merchant_account', $storeId)
-            ->willReturn($merchantAccount);
+        $this->configHelperMock->method('getAdyenAbstractConfigData')
+            ->willReturnMap([
+                ['merchant_account', $storeId, $merchantAccount],
+                ['payment_cancelled', null, MagentoOrder::STATE_CANCELED]
+            ]);
+
 
         // Create an instance of the class that has the private method
         $class = new \ReflectionClass(PaymentResponseHandler::class);
@@ -644,6 +651,69 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
 
         // Assert the response is as expected
         $this->assertTrue($result);
+    }
+
+    public function testCancelOrderWithHoldedState()
+    {
+        $this->configHelperMock->method('getAdyenAbstractConfigData')
+            ->with('payment_cancelled')
+            ->willReturn(MagentoOrder::STATE_HOLDED);
+
+        $orderMock = $this->createMock(MagentoOrder::class);
+        $orderMock->method('canHold')->willReturn(true);
+        $orderMock->expects($this->once())->method('hold')->willReturnSelf();
+        $orderMock->expects($this->once())->method('save');
+
+        $this->paymentResponseHandler->cancelOrder($orderMock);
+    }
+
+    public function testCancelOrderWithFallbackLegacyCancel()
+    {
+        $this->configHelperMock->method('getAdyenAbstractConfigData')
+            ->with('payment_cancelled')
+            ->willReturn(MagentoOrder::STATE_CANCELED);
+
+        $orderId = 42;
+
+        $orderMock = $this->createMock(MagentoOrder::class);
+        $orderMock->method('canCancel')->willReturn(true);
+        $orderMock->method('getEntityId')->willReturn($orderId);
+        $orderMock->expects($this->once())->method('cancel')->willReturnSelf();
+        $orderMock->expects($this->once())->method('save');
+
+        $paymentMock = $this->createMock(Payment::class);
+        $paymentMock->method('getMethod')->willReturn('adyen_cc');
+        $orderMock->method('getPayment')->willReturn($paymentMock);
+
+        $this->orderManagementMock->method('cancel')->with($orderId)->willReturn(false);
+
+        $this->adyenLoggerMock->expects($this->once())
+            ->method('addAdyenDebug')
+            ->with(
+                'Unsuccessful order canceling attempt by orderManagement service, use legacy process',
+                $this->anything()
+            );
+
+        $this->paymentResponseHandler->cancelOrder($orderMock);
+    }
+
+    public function testCancelOrderWhenOrderCannotBeCancelled()
+    {
+        $this->configHelperMock->method('getAdyenAbstractConfigData')
+            ->with('payment_cancelled')
+            ->willReturn(MagentoOrder::STATE_CANCELED);
+
+        $orderMock = $this->createMock(MagentoOrder::class);
+        $orderMock->method('canCancel')->willReturn(false);
+
+        $this->adyenLoggerMock->expects($this->once())
+            ->method('addAdyenDebug')
+            ->with(
+                'Order can not be canceled',
+                $this->anything()
+            );
+
+        $this->paymentResponseHandler->cancelOrder($orderMock);
     }
 
 
