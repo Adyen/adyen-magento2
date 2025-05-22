@@ -51,7 +51,7 @@ jobs:
           rm source.zip
 
       - name: Create Archive
-        uses: thedoctor0/zip-release@0.7.5
+        uses: thedoctor0/zip-release@0.7.6
         with:
           type: 'zip'
           filename: 'adyen-magento2-main.zip'

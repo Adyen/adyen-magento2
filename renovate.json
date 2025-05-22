@@ -7,15 +7,15 @@
   "minimumReleaseAge": "30 days",
   "labels": ["dependencies"],
   "prConcurrentLimit": 5,
-  "baseBranches": ["develop"],
+  "baseBranches": ["main"],
   "packageRules": [
     {
       "matchUpdateTypes": ["minor", "patch"],
-      "matchBaseBranches": ["develop"]
+      "matchBaseBranches": ["main"]
     },
     {
       "matchUpdateTypes": ["major", "pin", "pinDigest", "lockFileMaintenance", "rollback", "bump"],
-      "matchBaseBranches": ["develop"],
+      "matchBaseBranches": ["main"],
       "enabled": false
     }
   ]

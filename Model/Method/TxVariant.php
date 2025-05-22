@@ -14,7 +14,7 @@ namespace Adyen\Payment\Model\Method;
 
 class TxVariant
 {
-    private ?string $card;
+    private ?string $card = null;
     private string $paymentMethod;
 
     public function __construct(string $txVariant)
