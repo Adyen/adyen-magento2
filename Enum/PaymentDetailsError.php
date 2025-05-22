@@ -1,16 +1,13 @@
 <?php
 /**
- * Reflet Communication
  *
- * NOTICE OF LICENSE
+ * Adyen Payment Module
  *
- * This source file is subject to the Open Software License (OSL 3.0) that is available
- * through the world-wide-web at this URL: https://opensource.org/license/osl-3-0-php/
- * If you are unable to obtain it through the world-wide-web, please email agence@reflet-digital.com,
- * so we can send you a copy immediately.
+ * Copyright (c) 2021 Adyen B.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
  *
- * @author Reflet Communication
- * @license http://www.opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
+ * Author: Adyen <magento@adyen.com>
  */
 declare(strict_types=1);
 
