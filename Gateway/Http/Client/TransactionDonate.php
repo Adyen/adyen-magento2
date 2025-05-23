@@ -18,6 +18,7 @@ use Adyen\Model\Checkout\DonationPaymentRequest;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
 use Adyen\Service\Checkout\DonationsApi;
+use Adyen\Payment\Helper\PlatformInfo;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
@@ -40,18 +41,25 @@ class TransactionDonate implements ClientInterface
     private Idempotency $idempotencyHelper;
 
     /**
+     * @var PlatformInfo
+     */
+    private PlatformInfo $platformInfo;
+
+    /**
      * @param Data $adyenHelper
      * @param Idempotency $idempotencyHelper
+     * @param PlatformInfo $platformInfo
      * @throws AdyenException
      * @throws NoSuchEntityException
      */
     public function __construct(
         Data $adyenHelper,
-        Idempotency $idempotencyHelper
+        Idempotency $idempotencyHelper,
+        PlatformInfo $platformInfo
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->idempotencyHelper = $idempotencyHelper;
-
+        $this->platformInfo = $platformInfo;
         $this->client = $this->adyenHelper->initializeAdyenClient();
     }
 
@@ -65,7 +73,7 @@ class TransactionDonate implements ClientInterface
         $request = $transferObject->getBody();
         $headers = $transferObject->getHeaders();
 
-        $service = new DonationsApi($this->client);
+        $service = $this->adyenHelper->initializeDonationsApi($this->client);
 
         $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
             $request,
@@ -73,8 +81,8 @@ class TransactionDonate implements ClientInterface
         );
 
         $requestOptions['idempotencyKey'] = $idempotencyKey;
-        $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
-        $request['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($this->client);
+        $requestOptions['headers'] = $this->platformInfo->buildRequestHeaders();
+        $request['applicationInfo'] = $this->platformInfo->buildApplicationInfo($this->client);
 
         $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, 'donations');
         try {

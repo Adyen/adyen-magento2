@@ -17,6 +17,7 @@ use Adyen\Model\Checkout\PaymentRefundResponse;
 use Adyen\Payment\Gateway\Http\Client\TransactionRefund;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
+use Adyen\Payment\Helper\PlatformInfo;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Service\Checkout\ModificationsApi;
 use Magento\Payment\Gateway\Http\TransferInterface;
@@ -40,14 +41,18 @@ class TransactionRefundTest extends AbstractAdyenTestCase
      */
     private $transactionRefund;
 
+    private PlatformInfo $platformInfo;
+
     protected function setUp(): void
     {
         $this->adyenHelperMock = $this->createMock(Data::class);
         $this->idempotencyHelperMock = $this->createMock(Idempotency::class);
+        $this->platformInfo = $this->createMock(PlatformInfo::class);
 
         $this->transactionRefund = new TransactionRefund(
             $this->adyenHelperMock,
-            $this->idempotencyHelperMock
+            $this->idempotencyHelperMock,
+            $this->platformInfo
         );
     }
 
@@ -122,7 +127,6 @@ class TransactionRefundTest extends AbstractAdyenTestCase
 
         $this->adyenHelperMock->method('initializeAdyenClientWithClientConfig')->willReturn($adyenClientMock);
         $this->adyenHelperMock->method('initializeModificationsApi')->willReturn($serviceMock);
-        $this->adyenHelperMock->method('buildRequestHeaders')->willReturn(['custom-header' => 'value']);
 
         $this->idempotencyHelperMock->expects($this->once())
             ->method('generateIdempotencyKey')

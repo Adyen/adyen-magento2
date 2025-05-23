@@ -7,6 +7,7 @@ use Adyen\Model\Checkout\PaymentCancelResponse;
 use Adyen\Payment\Gateway\Http\Client\TransactionCancel;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
+use Adyen\Payment\Helper\PlatformInfo;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Payment\Gateway\Http\TransferInterface;
 use Adyen\Service\Checkout;
@@ -21,6 +22,7 @@ class TransactionCancelTest extends AbstractAdyenTestCase
     private TransferInterface|MockObject $transferObjectMock;
     private Checkout\ModificationsApi|MockObject $checkoutServiceMock;
     private Client|MockObject $clientMock;
+    private PlatformInfo $platformInfo;
 
     protected function setUp(): void
     {
@@ -30,6 +32,7 @@ class TransactionCancelTest extends AbstractAdyenTestCase
         $this->transferObjectMock = $this->createMock(TransferInterface::class);
         $this->clientMock = $this->createMock(Client::class);
         $this->checkoutServiceMock = $this->createMock(Checkout\ModificationsApi::class);
+        $this->platformInfo = $this->createMock(PlatformInfo::class);
         $this->transferObjectMock->method('getClientConfig')->willReturn([]);
         $this->checkoutServiceMock
             ->method('cancelAuthorisedPaymentByPspReference')
@@ -37,7 +40,8 @@ class TransactionCancelTest extends AbstractAdyenTestCase
 
         $this->transactionCancel = new TransactionCancel(
             $this->adyenHelperMock,
-            $this->idempotencyHelperMock
+            $this->idempotencyHelperMock,
+            $this->platformInfo
         );
     }
 
@@ -56,7 +60,6 @@ class TransactionCancelTest extends AbstractAdyenTestCase
         $this->transferObjectMock->method('getClientConfig')->willReturn([]);
         $this->adyenHelperMock->method('initializeAdyenClientWithClientConfig')->willReturn($this->clientMock);
         $this->adyenHelperMock->method('initializeModificationsApi')->willReturn($this->checkoutServiceMock);
-        $this->adyenHelperMock->method('buildRequestHeaders')->willReturn(['x-api-key' => 'test_key']);
 
         $expectedResult = ['status' => 'received'];
 
@@ -81,7 +84,6 @@ class TransactionCancelTest extends AbstractAdyenTestCase
 
         $this->adyenHelperMock->method('initializeAdyenClientWithClientConfig')->willReturn($this->clientMock);
         $this->adyenHelperMock->method('initializeModificationsApi')->willReturn($this->checkoutServiceMock);
-        $this->adyenHelperMock->method('buildRequestHeaders')->willReturn(['x-api-key' => 'test_key']);
 
         // Simulate Adyen API exception
         $this->checkoutServiceMock->method('cancelAuthorisedPaymentByPspReference')->willThrowException(new AdyenException('API exception'));
@@ -114,7 +116,6 @@ class TransactionCancelTest extends AbstractAdyenTestCase
 
         $this->adyenHelperMock->method('initializeAdyenClientWithClientConfig')->willReturn($this->clientMock);
         $this->adyenHelperMock->method('initializeModificationsApi')->willReturn($this->checkoutServiceMock);
-        $this->adyenHelperMock->method('buildRequestHeaders')->willReturn(['x-api-key' => 'test_key']);
 
         $expectedResults = ['status' => 'received'];
 

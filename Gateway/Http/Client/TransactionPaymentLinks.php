@@ -17,6 +17,7 @@ use Adyen\Model\Checkout\PaymentLinkRequest;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
 use Adyen\Service\Checkout\PaymentLinksApi;
+use Adyen\Payment\Helper\PlatformInfo;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
@@ -34,15 +35,23 @@ class TransactionPaymentLinks implements ClientInterface
     private Idempotency $idempotencyHelper;
 
     /**
+     * @var PlatformInfo
+     */
+    private PlatformInfo $platformInfo;
+
+    /**
      * @param Data $adyenHelper
      * @param Idempotency $idempotencyHelper
+     * @param PlatformInfo $platformInfo
      */
     public function __construct(
         Data $adyenHelper,
-        Idempotency $idempotencyHelper
+        Idempotency $idempotencyHelper,
+        PlatformInfo $platformInfo
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->idempotencyHelper = $idempotencyHelper;
+        $this->platformInfo = $platformInfo;
     }
 
     /**
@@ -75,7 +84,7 @@ class TransactionPaymentLinks implements ClientInterface
 
         $requestOptions['idempotencyKey'] = $idempotencyKey;
         $requestOptions['headers'] = $headers;
-        $request['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($client);
+        $request['applicationInfo'] = $this->platformInfo->buildApplicationInfo($client);
 
         $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/paymentLinks');
         try {

@@ -17,10 +17,12 @@ use Adyen\ConnectionException;
 use Adyen\Payment\Helper\Util\PaymentMethodUtil;
 use Adyen\Model\Checkout\PaymentMethodsRequest;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Config\Source\RenderMode;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Ui\Adminhtml\AdyenMotoConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
+use Adyen\Payment\Helper\PlatformInfo;
 use Magento\Framework\App\Area;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
@@ -40,7 +42,6 @@ use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
-use Adyen\Payment\Helper\Data as AdyenDataHelper;
 use Magento\Sales\Model\Order\Payment;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\Store;
@@ -112,11 +113,6 @@ class PaymentMethods extends AbstractHelper
     protected AdyenLogger $adyenLogger;
 
     /**
-     * @var Data
-     */
-    protected Data $adyenDataHelper;
-
-    /**
      * @var Repository
      */
     protected Repository $assetRepo;
@@ -172,6 +168,16 @@ class PaymentMethods extends AbstractHelper
     private SearchCriteriaBuilder $searchCriteriaBuilder;
 
     /**
+     * @var Locale
+     */
+    private Locale $localeHelper;
+
+    /**
+     * @var PlatformInfo
+     */
+    private PlatformInfo $platformInfo;
+
+    /**
      * @param Context $context
      * @param CartRepositoryInterface $quoteRepository
      * @param ScopeConfigInterface $config
@@ -187,9 +193,10 @@ class PaymentMethods extends AbstractHelper
      * @param Config $configHelper
      * @param MagentoDataHelper $dataHelper
      * @param SerializerInterface $serializer
-     * @param Data $adyenDataHelper
      * @param PaymentTokenRepositoryInterface $paymentTokenRepository
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param Locale $localeHelper
+     * @param PlatformInfo $platformInfo
      */
     public function __construct(
         Context $context,
@@ -207,9 +214,10 @@ class PaymentMethods extends AbstractHelper
         Config $configHelper,
         MagentoDataHelper $dataHelper,
         SerializerInterface $serializer,
-        AdyenDataHelper $adyenDataHelper,
         PaymentTokenRepositoryInterface $paymentTokenRepository,
-        SearchCriteriaBuilder $searchCriteriaBuilder
+        SearchCriteriaBuilder $searchCriteriaBuilder,
+        Locale $localeHelper,
+        PlatformInfo $platformInfo
     ) {
         parent::__construct($context);
         $this->quoteRepository = $quoteRepository;
@@ -226,9 +234,10 @@ class PaymentMethods extends AbstractHelper
         $this->configHelper = $configHelper;
         $this->dataHelper = $dataHelper;
         $this->serializer = $serializer;
-        $this->adyenDataHelper = $adyenDataHelper;
         $this->paymentTokenRepository = $paymentTokenRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->localeHelper = $localeHelper;
+        $this->platformInfo = $platformInfo;
     }
 
     /**
@@ -570,7 +579,7 @@ class PaymentMethods extends AbstractHelper
             "channel" => $channel ?? "Web",
             "merchantAccount" => $merchantAccount,
             "countryCode" => $country ?? $this->getCurrentCountryCode($store),
-            "shopperLocale" => $shopperLocale ?? $this->adyenHelper->getCurrentLocaleCode($store->getId()),
+            "shopperLocale" => $shopperLocale ?? $this->localeHelper->getCurrentLocaleCode($store->getId()),
             "amount" => [
                 "currency" => $currencyCode
             ]
@@ -578,7 +587,7 @@ class PaymentMethods extends AbstractHelper
 
         if (!empty($this->getCurrentShopperReference())) {
             $paymentMethodRequest["shopperReference"] =
-                $this->adyenDataHelper->padShopperReference($this->getCurrentShopperReference());
+                $this->platformInfo->padShopperReference($this->getCurrentShopperReference());
         }
 
         $amountValue = $this->adyenHelper->formatAmount($this->getCurrentPaymentAmount(), $currencyCode);
@@ -604,7 +613,7 @@ class PaymentMethods extends AbstractHelper
      */
     protected function showLogosPaymentMethods(array $paymentMethods, array $paymentMethodsExtraDetails): array
     {
-        if (!$this->adyenHelper->showLogos()) {
+        if (!$this->showLogos()) {
             return $paymentMethodsExtraDetails;
         }
         // Explicitly setting theme
@@ -640,11 +649,6 @@ class PaymentMethods extends AbstractHelper
             $icon = $this->buildPaymentMethodIcon($paymentMethodCode, $params);
 
             $paymentMethodsExtraDetails[$paymentMethodCode]['icon'] = $icon;
-
-            // TODO::This field is not relevant anymore and can be removed during cleaning-up deprecated methods on V10.
-            // check if payment method is an open invoice method
-            $paymentMethodsExtraDetails[$paymentMethodCode]['isOpenInvoice'] =
-                $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethodCode);
         }
         return $paymentMethodsExtraDetails;
     }
@@ -1096,5 +1100,17 @@ class PaymentMethods extends AbstractHelper
         $requiresLineItemsConfig = boolval($paymentMethodInstance->getConfigData(self::CONFIG_FIELD_REQUIRES_LINE_ITEMS));
 
         return $isOpenInvoice || $requiresLineItemsConfig;
+    }
+
+    /**
+     * @return bool
+     */
+    public function showLogos(): bool
+    {
+        $showLogos = $this->configHelper->getAdyenAbstractConfigData('title_renderer');
+        if ($showLogos == RenderMode::MODE_TITLE_IMAGE) {
+            return true;
+        }
+        return false;
     }
 }

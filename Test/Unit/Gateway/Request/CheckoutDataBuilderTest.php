@@ -140,9 +140,6 @@ class CheckoutDataBuilderTest extends AbstractAdyenTestCase
         ];
 
         $this->paymentMethodsHelperMock->method('isOpenInvoice')->willReturn(true);
-        $this->adyenHelperMock->method('isPaymentMethodOfType')
-            ->with('adyen_klarna', Data::KLARNA)
-            ->willReturn(true);
 
         $request = $this->checkoutDataBuilder->build($buildSubject);
 

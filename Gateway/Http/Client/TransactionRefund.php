@@ -16,6 +16,7 @@ use Adyen\Client;
 use Adyen\Model\Checkout\PaymentRefundRequest;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
+use Adyen\Payment\Helper\PlatformInfo;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Http\TransferInterface;
 
@@ -35,15 +36,23 @@ class TransactionRefund implements TransactionRefundInterface
     private Idempotency $idempotencyHelper;
 
     /**
+     * @var PlatformInfo
+     */
+    private PlatformInfo $platformInfo;
+
+    /**
      * @param Data $adyenHelper
      * @param Idempotency $idempotencyHelper
+     * @param PlatformInfo $platformInfo
      */
     public function __construct(
         Data $adyenHelper,
-        Idempotency $idempotencyHelper
+        Idempotency $idempotencyHelper,
+        PlatformInfo $platformInfo
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->idempotencyHelper = $idempotencyHelper;
+        $this->platformInfo = $platformInfo;
     }
 
     /**
@@ -74,7 +83,7 @@ class TransactionRefund implements TransactionRefundInterface
             $requestOptions['headers'] = $headers;
 
             $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/refunds');
-            $request['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($client);
+            $request['applicationInfo'] = $this->platformInfo->buildApplicationInfo($client);
             $paymentRefundRequest = new PaymentRefundRequest($request);
 
             try {

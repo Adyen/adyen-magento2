@@ -4,6 +4,7 @@ namespace Adyen\Payment\Test\Unit\Model\Order;
 
 use Adyen\Payment\Model\Order\Payment;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use DateTime;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Sales\Model\Order\Payment\Repository as MagentoPaymentRepository;
@@ -13,7 +14,7 @@ use Magento\Framework\Model\Context;
 use Magento\Framework\Registry;
 use PHPUnit\Framework\TestCase;
 
-class PaymentTest extends TestCase
+class PaymentTest extends AbstractAdyenTestCase
 {
     private $payment;
     private $pricingDataMock;

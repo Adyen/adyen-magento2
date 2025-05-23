@@ -6,8 +6,8 @@ namespace Adyen\Payment\Test\Unit\Model\Api;
 
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
-use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\DonationsHelper;
+use Adyen\Payment\Helper\Locale;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Api\AdyenDonationCampaigns;
 use Adyen\Payment\Model\Sales\OrderRepository;
@@ -27,8 +27,8 @@ class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
     private ChargedCurrency $chargedCurrency;
     private AdyenLogger $adyenLogger;
     private Config $configHelper;
-    private Data $adyenHelper;
     private AdyenDonationCampaigns $campaigns;
+    private Locale $localeHelper;
 
     protected function setUp(): void
     {
@@ -37,7 +37,7 @@ class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
         $this->chargedCurrency = $this->createMock(ChargedCurrency::class);
         $this->adyenLogger = $this->createMock(AdyenLogger::class);
         $this->configHelper = $this->createMock(Config::class);
-        $this->adyenHelper = $this->createMock(Data::class);
+        $this->localeHelper = $this->createMock(Locale::class);
 
         $this->campaigns = new AdyenDonationCampaigns(
             $this->donationsHelper,
@@ -45,7 +45,7 @@ class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
             $this->chargedCurrency,
             $this->adyenLogger,
             $this->configHelper,
-            $this->adyenHelper
+            $this->localeHelper
         );
     }
 
@@ -62,7 +62,7 @@ class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
 
         $this->orderRepository->method('get')->willReturn($order);
          $this->configHelper->method('getMerchantAccount')->willReturn('merchant123');
-        $this->adyenHelper->method('getCurrentLocaleCode')->willReturn('en_US');
+        $this->localeHelper->method('getCurrentLocaleCode')->willReturn('en_US');
 
         $this->donationsHelper->method('fetchDonationCampaigns')->willReturn([
             'donationCampaigns' => [['id' => 'camp123']]
@@ -139,7 +139,7 @@ class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
 
         $this->chargedCurrency->method('getOrderAmountCurrency')->willReturn($amountCurrency);
         $this->configHelper->method('getMerchantAccount')->willReturn('merchant123');
-        $this->adyenHelper->method('getCurrentLocaleCode')->willReturn('en_US');
+        $this->localeHelper->method('getCurrentLocaleCode')->willReturn('en_US');
 
         $this->donationsHelper->method('fetchDonationCampaigns')
             ->willThrowException(new \Exception('Failed'));

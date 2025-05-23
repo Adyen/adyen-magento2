@@ -13,6 +13,7 @@ namespace Adyen\Payment\Model\Ui;
 
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\PlatformInfo;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\CheckoutAgreements\Model\AgreementsConfigProvider;
 use Magento\Csp\Helper\CspNonceProvider;
@@ -21,6 +22,8 @@ use Magento\Framework\UrlInterface;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use Adyen\Payment\Helper\PaymentMethods;
+use Adyen\Payment\Helper\Locale;
 
 class AdyenGenericConfigProviderTest extends AbstractAdyenTestCase
 {
@@ -34,6 +37,8 @@ class AdyenGenericConfigProviderTest extends AbstractAdyenTestCase
     protected CspNonceProvider|MockObject $cspNonceProviderMock;
     protected array $txVariants = [];
     protected array $customMethodRenderers = [];
+    protected PaymentMethods $paymentMethodsMock;
+    protected Locale $localeMock;
 
     protected function setUp(): void
     {
@@ -44,6 +49,8 @@ class AdyenGenericConfigProviderTest extends AbstractAdyenTestCase
         $this->urlMock = $this->createMock(UrlInterface::class);
         $this->agreementsConfigProviderMock = $this->createMock(AgreementsConfigProvider::class);
         $this->cspNonceProviderMock = $this->createMock(CspNonceProvider::class);
+        $this->localeMock = $this->createMock(Locale::class);
+        $this->paymentMethodsMock = $this->createMock(PaymentMethods::class);
 
         $this->provider = new AdyenGenericConfigProvider(
             $this->adyenHelperMock,
@@ -53,6 +60,8 @@ class AdyenGenericConfigProviderTest extends AbstractAdyenTestCase
             $this->urlMock,
             $this->agreementsConfigProviderMock,
             $this->cspNonceProviderMock,
+            $this->localeMock,
+            $this->paymentMethodsMock,
             $this->txVariants,
             $this->customMethodRenderers
         );
@@ -100,7 +109,7 @@ class AdyenGenericConfigProviderTest extends AbstractAdyenTestCase
             ->with($storeId)
             ->willReturn($checkoutEnvironment);
 
-        $this->adyenHelperMock->expects($this->once())
+        $this->localeMock->expects($this->once())
             ->method('getStoreLocale')
             ->with($storeId)
             ->willReturn($storeLocale);

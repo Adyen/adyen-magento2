@@ -13,6 +13,7 @@ namespace Adyen\Payment\Model\Ui;
 
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Locale;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\Vault;
 use Magento\Checkout\Model\ConfigProviderInterface;
@@ -40,6 +41,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
     private PaymentMethods $paymentMethodsHelper;
     private Vault $vaultHelper;
     private Http $httpRequest;
+    private Locale $localeHelper;
 
     public function __construct(
         Data $adyenHelper,
@@ -52,7 +54,8 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         Config $configHelper,
         PaymentMethods $paymentMethodsHelper,
         Vault $vaultHelper,
-        Http $httpRequest
+        Http $httpRequest,
+        Locale $localeHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->request = $request;
@@ -65,6 +68,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         $this->paymentMethodsHelper = $paymentMethodsHelper;
         $this->vaultHelper = $vaultHelper;
         $this->httpRequest = $httpRequest;
+        $this->localeHelper = $localeHelper;
     }
 
     public function getConfig(): array
@@ -112,7 +116,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         $config['payment']['adyenCc']['adyenCcTypes'] = $types;
         $config['payment']['adyenCc']['methodCode'] = self::CODE;
         $config['payment']['adyenCc']['title'] = __($methodTitle);
-        $config['payment']['adyenCc']['locale'] = $this->adyenHelper->getStoreLocale($storeId);
+        $config['payment']['adyenCc']['locale'] = $this->localeHelper->getStoreLocale($storeId);
         $config['payment']['adyenCc']['isCardRecurringEnabled'] = $cardRecurringEnabled;
         $config['payment']['adyenCc']['icons'] = $this->getIcons();
         $config['payment']['adyenCc']['isClickToPayEnabled'] = $this->configHelper->isClickToPayEnabled($storeId);

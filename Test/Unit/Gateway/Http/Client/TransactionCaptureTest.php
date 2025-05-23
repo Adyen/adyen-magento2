@@ -7,6 +7,7 @@ use Adyen\Model\Checkout\ApplicationInfo;
 use Adyen\Model\Checkout\PaymentCaptureRequest;
 use Adyen\Model\Checkout\PaymentCaptureResponse;
 use Adyen\Payment\Gateway\Http\Client\TransactionCapture;
+use Adyen\Payment\Helper\PlatformInfo;
 use Adyen\Payment\Model\Order\Payment;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Service\Checkout;
@@ -23,21 +24,24 @@ class TransactionCaptureTest extends AbstractAdyenTestCase
     private $request;
     private $adyenHelper;
     private $idempotencyHelper;
+    private PlatformInfo $platformInfo;
 
     protected function setUp(): void
     {
         $this->adyenHelper = $this->createMock(Data::class);
         $adyenLogger = $this->createMock(AdyenLogger::class);
         $this->idempotencyHelper = $this->createMock(Idempotency::class);
+        $this->platformInfo = $this->createMock(PlatformInfo::class);
 
         $this->transactionCapture = new TransactionCapture(
             $this->adyenHelper,
             $adyenLogger,
-            $this->idempotencyHelper
+            $this->idempotencyHelper,
+            $this->platformInfo
         );
 
         $applicationInfo = $this->createMock(ApplicationInfo::class);
-        $this->adyenHelper->method('buildApplicationInfo')->willReturn($applicationInfo);
+        $this->platformInfo->method('buildApplicationInfo')->willReturn($applicationInfo);
 
         $this->request = [
             'amount' => ['value' => 100, 'currency' => 'USD'],
@@ -61,7 +65,7 @@ class TransactionCaptureTest extends AbstractAdyenTestCase
 
         $this->adyenHelper->method('initializeAdyenClientWithClientConfig')->willReturn($adyenClient);
         $this->adyenHelper->method('initializeModificationsApi')->willReturn($checkoutModificationsService);
-        $this->adyenHelper->method('buildRequestHeaders')->willReturn([]);
+        $this->platformInfo->method('buildRequestHeaders')->willReturn([]);
         $this->adyenHelper->expects($this->once())->method('logRequest');
 
         $trimmedRequest = $this->request;

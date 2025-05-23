@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Adyen\Payment\Model\Resolver\StoreConfig;
 
-use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Locale;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
@@ -22,15 +22,15 @@ use Magento\Store\Api\Data\StoreInterface;
 
 class StoreLocale implements ResolverInterface
 {
-    protected Data $adyenHelper;
+    protected Locale $localeHelper;
 
     /**
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Adyen\Payment\Helper\Locale $localeHelper
      */
     public function __construct(
-        Data $adyenHelper
+        Locale $localeHelper
     ) {
-        $this->adyenHelper = $adyenHelper;
+        $this->localeHelper = $localeHelper;
     }
 
     /**
@@ -46,6 +46,6 @@ class StoreLocale implements ResolverInterface
     ): ?string {
         /** @var StoreInterface $store */
         $store = $context->getExtensionAttributes()->getStore();
-        return $this->adyenHelper->getStoreLocale((int)$store->getId());
+        return $this->localeHelper->getStoreLocale((int)$store->getId());
     }
 }

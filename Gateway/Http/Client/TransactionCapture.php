@@ -20,6 +20,7 @@ use Adyen\Payment\Helper\Idempotency;
 use Adyen\Payment\Helper\Requests;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Service\Checkout\ModificationsApi;
+use Adyen\Payment\Helper\PlatformInfo;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
@@ -48,18 +49,26 @@ class TransactionCapture implements ClientInterface
     private Idempotency $idempotencyHelper;
 
     /**
+     * @var PlatformInfo
+     */
+    private PlatformInfo $platformInfo;
+
+    /**
      * @param Data $adyenHelper
      * @param AdyenLogger $adyenLogger
      * @param Idempotency $idempotencyHelper
+     * @param PlatformInfo $platformInfo
      */
     public function __construct(
         Data $adyenHelper,
         AdyenLogger $adyenLogger,
-        Idempotency $idempotencyHelper
+        Idempotency $idempotencyHelper,
+        PlatformInfo $platformInfo
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenLogger = $adyenLogger;
         $this->idempotencyHelper = $idempotencyHelper;
+        $this->platformInfo = $platformInfo;
     }
 
     /**
@@ -78,7 +87,7 @@ class TransactionCapture implements ClientInterface
         $service = $this->adyenHelper->initializeModificationsApi($client);
 
         $requestOptions['headers'] = $headers;
-        $request['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($client);
+        $request['applicationInfo'] = $this->platformInfo->buildApplicationInfo($client);
 
         if (array_key_exists(self::MULTIPLE_AUTHORIZATIONS, $request)) {
             return $this->placeMultipleCaptureRequests($service, $request, $requestOptions);

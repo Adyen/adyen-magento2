@@ -1,23 +1,16 @@
 <?php
-/**
- *
- * Adyen Payment module (https://www.adyen.com/)
- *
- * Copyright (c) 2024 Adyen N.V. (https://www.adyen.com/)
- * See LICENSE.txt for license details.
- *
- * Author: Adyen <magento@adyen.com>
- */
+declare(strict_types=1);
 
 namespace Adyen\Payment\Model\Ui;
 
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Locale;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
-use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\Request\Http;
+use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Asset\File;
@@ -25,26 +18,25 @@ use Magento\Framework\View\Asset\Source;
 use Magento\Payment\Model\CcConfig;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
-class AdyenCcConfigProviderTest extends AbstractAdyenTestCase
+final class AdyenCcConfigProviderTest extends AbstractAdyenTestCase
 {
-    protected ?AdyenCcConfigProvider $adyenCcConfigProvider;
-    protected Data|MockObject $adyenHelperMock;
-    protected RequestInterface|MockObject $requestMock;
-    protected UrlInterface|MockObject $urlBuilderMock;
-    protected Source|MockObject $assetSourceMock;
-    protected StoreManagerInterface|MockObject $storeManagerMock;
-    protected CcConfig|MockObject $ccConfigMock;
-    protected SerializerInterface|MockObject $serializerMock;
-    protected Config|MockObject $configHelperMock;
-    protected PaymentMethods|MockObject $paymentMethodsHelperMock;
-    protected Vault|MockObject $vaultHelperMock;
-    protected Http|MockObject $requestHttpMock;
+    private ?AdyenCcConfigProvider $adyenCcConfigProvider = null;
+    private Data&MockObject $adyenHelperMock;
+    private RequestInterface&MockObject $requestMock;
+    private UrlInterface&MockObject $urlBuilderMock;
+    private Source&MockObject $assetSourceMock;
+    private StoreManagerInterface&MockObject $storeManagerMock;
+    private CcConfig&MockObject $ccConfigMock;
+    private SerializerInterface&MockObject $serializerMock;
+    private Config&MockObject $configHelperMock;
+    private PaymentMethods&MockObject $paymentMethodsHelperMock;
+    private Vault&MockObject $vaultHelperMock;
+    private Http&MockObject $requestHttpMock;
+    private Locale&MockObject $localeHelper;
 
-    /**
-     * @return void
-     */
     protected function setUp(): void
     {
         $this->adyenHelperMock = $this->createMock(Data::class);
@@ -58,6 +50,7 @@ class AdyenCcConfigProviderTest extends AbstractAdyenTestCase
         $this->configHelperMock = $this->createMock(Config::class);
         $this->paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
         $this->vaultHelperMock = $this->createMock(Vault::class);
+        $this->localeHelper = $this->createMock(Locale::class);
 
         $this->adyenCcConfigProvider = new AdyenCcConfigProvider(
             $this->adyenHelperMock,
@@ -71,104 +64,78 @@ class AdyenCcConfigProviderTest extends AbstractAdyenTestCase
             $this->paymentMethodsHelperMock,
             $this->vaultHelperMock,
             $this->requestHttpMock,
+            $this->localeHelper
         );
     }
 
-    /**
-     * @return void
-     */
     protected function tearDown(): void
     {
         $this->adyenCcConfigProvider = null;
     }
 
-    /**
-     * @param $enableInstallments
-     * @return void
-     *
-     * @dataProvider getConfigTestDataProvider
-     */
-    public function testGetConfig($enableInstallments)
+    #[DataProvider('provideGetConfigTestData')]
+    public function testGetConfig(bool $enableInstallments): void
     {
         $storeId = PHP_INT_MAX;
         $store = $this->createMock(StoreInterface::class);
         $store->method('getId')->willReturn($storeId);
         $this->storeManagerMock->method('getStore')->willReturn($store);
+
         $controllerName = 'index';
 
-        $this->configHelperMock->method('getAdyenCcConfigData')
-            ->willReturnMap([
-                ['enable_installments', null, $enableInstallments],
-                ['installments', null, 'mock_serialized_installments'],
-                ['useccv', null, true]
+        $this->configHelperMock->method('getAdyenCcConfigData')->willReturnMap([
+            ['enable_installments', null, $enableInstallments],
+            ['installments', null, 'mock_serialized_installments'],
+            ['useccv', null, true]
         ]);
 
         $this->adyenHelperMock->method('getAdyenCcTypes')
             ->willReturn(['MC' => ['name' => 'MasterCard', 'code_alt' => 'mc']]);
 
-        $assetMockMasterCard = $this->createMock(File::class);
-        $assetMockMasterCard->method('getSourceFile')->willReturn(
-            __DIR__ . '/../../../../view/base/web/images/adyen/adyen-hq.svg'
-        );
+        $assetMock = $this->createMock(File::class);
+        $assetMock->method('getSourceFile')->willReturn(__DIR__ . '/../../../../view/base/web/images/adyen/adyen-hq.svg');
 
-        $this->ccConfigMock->method('createAsset')->willReturn($assetMockMasterCard);
+        $this->ccConfigMock->method('createAsset')->willReturn($assetMock);
+        $this->assetSourceMock->method('findSource')->willReturn('mock_relative_icon_path');
 
-        $this->assetSourceMock->method('findSource')
-            ->with($assetMockMasterCard)
-            ->willReturn('mock_relative_icon_path');
+        $this->ccConfigMock->expects($this->once())->method('getCcMonths');
+        $this->ccConfigMock->expects($this->once())->method('getCcYears');
+        $this->ccConfigMock->expects($this->once())->method('getCvvImageUrl');
+        $this->requestHttpMock->method('getControllerName')->willReturn($controllerName);
 
-        $this->ccConfigMock->expects($this->once())
-            ->method('getCcMonths');
+        $config = $this->adyenCcConfigProvider->getConfig();
 
-        $this->ccConfigMock->expects($this->once())
-            ->method('getCcYears');
+        $adyenCc = $config['payment']['adyenCc'];
+        $ccform = $config['payment']['ccform'];
 
-        $this->ccConfigMock->expects($this->once())
-            ->method('getCvvImageUrl');
+        $this->assertArrayHasKey('installments', $adyenCc);
+        $this->assertArrayHasKey('isClickToPayEnabled', $adyenCc);
+        $this->assertArrayHasKey('controllerName', $adyenCc);
+        $this->assertArrayHasKey('icons', $adyenCc);
+        $this->assertArrayHasKey('isCardRecurringEnabled', $adyenCc);
+        $this->assertArrayHasKey('locale', $adyenCc);
+        $this->assertArrayHasKey('title', $adyenCc);
+        $this->assertArrayHasKey('methodCode', $adyenCc);
 
-        $this->requestHttpMock->expects(
-            $this->once()
-        )->method(
-            'getControllerName'
-        )->willReturn(
-            $controllerName
-        );
-
-        $configObject = $this->adyenCcConfigProvider->getConfig();
-
-        $this->assertArrayHasKey('installments', $configObject['payment']['adyenCc']);
-        $this->assertArrayHasKey('isClickToPayEnabled', $configObject['payment']['adyenCc']);
-        $this->assertArrayHasKey('controllerName', $configObject['payment']['adyenCc']);
-        $this->assertArrayHasKey('icons', $configObject['payment']['adyenCc']);
-        $this->assertArrayHasKey('isCardRecurringEnabled', $configObject['payment']['adyenCc']);
-        $this->assertArrayHasKey('locale', $configObject['payment']['adyenCc']);
-        $this->assertArrayHasKey('title', $configObject['payment']['adyenCc']);
-        $this->assertArrayHasKey('methodCode', $configObject['payment']['adyenCc']);
-        $this->assertArrayHasKey('availableTypes', $configObject['payment']['ccform']);
-        $this->assertArrayHasKey('availableTypesByAlt', $configObject['payment']['ccform']);
-        $this->assertArrayHasKey('months', $configObject['payment']['ccform']);
-        $this->assertArrayHasKey('years', $configObject['payment']['ccform']);
-        $this->assertArrayHasKey('hasVerification', $configObject['payment']['ccform']);
-        $this->assertArrayHasKey('cvvImageUrl', $configObject['payment']['ccform']);
+        $this->assertArrayHasKey('availableTypes', $ccform);
+        $this->assertArrayHasKey('availableTypesByAlt', $ccform);
+        $this->assertArrayHasKey('months', $ccform);
+        $this->assertArrayHasKey('years', $ccform);
+        $this->assertArrayHasKey('hasVerification', $ccform);
+        $this->assertArrayHasKey('cvvImageUrl', $ccform);
     }
 
-    /**
-     * @return array
-     */
-    protected function getConfigTestDataProvider(): array
+    public static function provideGetConfigTestData(): array
     {
         return [
-            ['enableInstallments' => true],
-            ['enableInstallments' => false]
+            'installments enabled' => [true],
+            'installments disabled' => [false],
         ];
     }
 
-    /**
-     * @return void
-     */
-    public function testConstants()
+    public function testConstants(): void
     {
-        $this->assertEquals('adyen_cc', AdyenCcConfigProvider::CODE);
-        $this->assertEquals('adyen_cc_vault', AdyenCcConfigProvider::CC_VAULT_CODE);
+        $this->assertSame('adyen_cc', AdyenCcConfigProvider::CODE);
+        $this->assertSame('adyen_cc_vault', AdyenCcConfigProvider::CC_VAULT_CODE);
     }
 }
