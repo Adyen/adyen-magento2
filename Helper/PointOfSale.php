@@ -80,6 +80,8 @@ class PointOfSale
 
     public function getCustomerId(Quote $quote): ?string
     {
+        echo "fhdjk";
+        print_r($quote->getCustomerId());
         return $quote->getCustomerId();
     }
 
