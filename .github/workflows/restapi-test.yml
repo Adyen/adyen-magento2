@@ -46,3 +46,10 @@ jobs:
 
       - name: Run REST API tests
         run: docker exec magento2-container make restapi
+
+      - name: Archive Magento log artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: magento-logs
+          path: app-logs
