@@ -206,4 +206,42 @@ class ConfigTest extends AbstractAdyenTestCase
         $this->assertIsInt($result);
         $this->assertEquals(90, $result);
     }
+
+    public function testGetHAsPlatformIntegrator()
+    {
+        $hasPlatformIntegrator = true;
+
+        $path = sprintf(
+            "%s/%s/%s",
+            Config::XML_PAYMENT_PREFIX,
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            Config::XML_HAS_PLATFORM_INTEGRATOR
+        );
+
+        $this->scopeConfigMock->expects($this->once())
+            ->method('isSetFlag')
+            ->with($path, ScopeInterface::SCOPE_STORE, null)
+            ->willReturn($hasPlatformIntegrator);
+
+        $this->assertTrue($this->configHelper->getHasPlatformIntegrator());
+    }
+
+    public function testGetPlatformIntegratorName()
+    {
+        $mockIntegratorName = 'Galaxy Invaders Tech Co.';
+
+        $path = sprintf(
+            "%s/%s/%s",
+            Config::XML_PAYMENT_PREFIX,
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            Config::XML_PLATFORM_INTEGRATOR
+        );
+
+        $this->scopeConfigMock->expects($this->once())
+            ->method('getValue')
+            ->with($path, ScopeInterface::SCOPE_STORE, null)
+            ->willReturn($mockIntegratorName);
+
+        $this->assertEquals($mockIntegratorName, $this->configHelper->getPlatformIntegratorName());
+    }
 }
