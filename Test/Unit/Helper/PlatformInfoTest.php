@@ -9,14 +9,14 @@ use Adyen\Config;
 use Adyen\Model\Checkout\ApplicationInfo;
 use Adyen\Model\Checkout\CommonField;
 use Adyen\Payment\Helper\PlatformInfo;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\Component\ComponentRegistrarInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\TestCase;
 
 #[CoversClass(PlatformInfo::class)]
-class PlatformInfoTest extends TestCase
+class PlatformInfoTest extends AbstractAdyenTestCase
 {
     private ComponentRegistrarInterface $componentRegistrar;
     private ProductMetadataInterface $productMetadata;

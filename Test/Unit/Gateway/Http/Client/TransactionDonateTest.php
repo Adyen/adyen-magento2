@@ -13,12 +13,12 @@ use Adyen\Payment\Gateway\Http\Client\TransactionDonate;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
 use Adyen\Payment\Helper\PlatformInfo;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Service\Checkout\DonationsApi;
 use Magento\Payment\Gateway\Http\TransferInterface;
 use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
 
-class TransactionDonateTest extends TestCase
+class TransactionDonateTest extends AbstractAdyenTestCase
 {
     private TransactionDonate $transactionDonate;
     private MockObject $adyenHelper;

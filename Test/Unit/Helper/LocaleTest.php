@@ -6,18 +6,17 @@ namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Locale;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Locale\ResolverInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
 
 #[CoversClass(Locale::class)]
-class LocaleTest extends TestCase
+class LocaleTest extends AbstractAdyenTestCase
 {
     private Locale $localeHelper;
     private MockObject $storeManager;
