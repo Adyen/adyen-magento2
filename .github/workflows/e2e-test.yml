@@ -52,7 +52,7 @@ jobs:
       # Define variables for the test case
       - run: echo "IS_RELEASE=${{ contains(github.event.pull_request.title, 'Release v9.') && 'TRUE' || 'FALSE' }}" >> $GITHUB_ENV
       - run: echo "TEST_GROUP=${{ env.IS_RELEASE == 'TRUE' && 'all' || (inputs.testGroup || 'standard') }}" >> $GITHUB_ENV
-      - run: echo "TEST_BRANCH=${{ (env.IS_RELEASE == 'TRUE' || !inputs.testBranch)  && 'develop' || inputs.testBranch }}" >> $GITHUB_ENV
+      - run: echo "TEST_BRANCH=${{ (env.IS_RELEASE == 'TRUE' || !inputs.testBranch)  && 'feature-v10' || inputs.testBranch }}" >> $GITHUB_ENV
       - run: echo "EXPRESS_BRANCH=${{ contains(fromJSON('["all", "express-checkout"]'), env.TEST_GROUP) && (inputs.expressBranch || 'main') || '' }}" >> $GITHUB_ENV
 
       - name: Information
