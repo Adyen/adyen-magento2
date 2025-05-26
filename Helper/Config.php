@@ -59,6 +59,8 @@ class Config
     const XML_THREEDS_FLOW = 'threeds_flow';
     const XML_REMOVE_PROCESSED_WEBHOOKS = 'remove_processed_webhooks';
     const XML_PROCESSED_WEBHOOK_REMOVAL_TIME = 'processed_webhook_removal_time';
+    const XML_PLATFORM_INTEGRATOR = 'platform_integrator';
+    const XML_HAS_PLATFORM_INTEGRATOR = 'has_platform_integrator';
 
     protected ScopeConfigInterface $scopeConfig;
     private EncryptorInterface $encryptor;
@@ -589,6 +591,35 @@ class Config
             Config::XML_ADYEN_CC_VAULT,
             $storeId,
             true
+        );
+    }
+
+    /**
+     * Returns true if the store is managed by a system integrator
+     *
+     * @return bool
+     */
+    public function getHasPlatformIntegrator(): bool
+    {
+        return $this->getConfigData(
+            Config::XML_HAS_PLATFORM_INTEGRATOR,
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            null,
+            true
+        );
+    }
+
+    /**
+     * Returns the name of the platform integrator
+     *
+     * @return string|null
+     */
+    public function getPlatformIntegratorName(): ?string
+    {
+        return $this->getConfigData(
+            Config::XML_PLATFORM_INTEGRATOR,
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            null
         );
     }
 
