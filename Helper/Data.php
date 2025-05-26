@@ -943,7 +943,9 @@ class Data extends AbstractHelper
         $client->setMerchantApplication($this->getModuleName(), $this->getModuleVersion());
 
         $platformData = $this->getMagentoDetails();
-        $platformIntegrator = $this->configHelper->getPlatformIntegratorName() ?? '';
+        $hasPlatformIntegrator = $this->configHelper->getHasPlatformIntegrator();
+        $platformIntegratorName = $this->configHelper->getPlatformIntegratorName();
+        $platformIntegrator = ($hasPlatformIntegrator && $platformIntegratorName) ? $platformIntegratorName : '';
         $client->setExternalPlatform($platformData['name'], $platformData['version'], $platformIntegrator);
 
         if ($isDemo) {
