@@ -189,7 +189,6 @@ define(
                 let allInstallments = this.getAllInstallments();
                 let currency = quote.totals().quote_currency_code;
                 let componentConfig = {
-                    showPayButton: false,
                     enableStoreDetails: this.getEnableStoreDetails(),
                     brands: this.getBrands(),
                     amount: {
@@ -213,18 +212,6 @@ define(
                     // Required for Click to Pay
                     onSubmit: function () {
                         self.placeOrder();
-                    },
-                    // Keep onBrand as is until checkout component supports installments
-                    onBrand: function(state) {
-                        // Define the card type
-                        // translate adyen card type to magento card type
-                        let creditCardType = self.getCcCodeByAltCode(
-                            state.brand);
-                        if (creditCardType) {
-                            self.creditCardType(creditCardType);
-                        } else {
-                            self.creditCardType('');
-                        }
                     }
                 }
 
@@ -291,7 +278,6 @@ define(
                     additional_data: {
                         'stateData': {},
                         'guestEmail': quote.guestEmail,
-                        'cc_type': this.creditCardType(),
                         'combo_card_type': this.comboCardOption(),
                         //This is required by magento to store the token
                         'is_active_payment_token_enabler' : this.storeCc,
@@ -301,9 +287,14 @@ define(
 
                 // Get state data only if the checkout component is ready,
                 if (this.checkoutComponent) {
-                    const stateData = JSON.stringify(this.cardComponent.data)
-                    data.additional_data.stateData = stateData;
-                    window.sessionStorage.setItem('adyen.stateData', stateData);
+                    const componentData = this.cardComponent.data;
+
+                    data.additional_data.stateData = JSON.stringify(componentData);
+                    data.additional_data.cc_type = componentData.paymentMethod?.brand;
+
+                    if (componentData.installments?.value) {
+                        data.additional_data.number_of_installments = componentData.installments?.value;
+                    }
                 }
 
                 return data;
@@ -411,21 +402,6 @@ define(
                 }
 
                 return true;
-            },
-
-            /**
-             * Translates the card type alt code (used in Adyen) to card type code (used in Magento) if it's available
-             *
-             * @param altCode
-             * @returns {*}
-             */
-            getCcCodeByAltCode: function(altCode) {
-                let ccTypes = window.checkoutConfig.payment.ccform.availableTypesByAlt[this.getCode()];
-                if (ccTypes.hasOwnProperty(altCode)) {
-                    return ccTypes[altCode];
-                }
-
-                return '';
             },
 
             /**
