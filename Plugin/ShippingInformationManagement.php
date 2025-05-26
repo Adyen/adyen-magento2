@@ -14,7 +14,6 @@ namespace Adyen\Payment\Plugin;
 use Adyen\Payment\Helper\MagentoPaymentDetails;
 use Magento\Checkout\Api\Data\PaymentDetailsInterface;
 use Magento\Checkout\Api\Data\ShippingInformationInterface;
-use Magento\Checkout\Model\PaymentDetailsFactory;
 use Magento\Checkout\Model\ShippingInformationManagement as MagentoShippingInformationManagement;
 
 class ShippingInformationManagement

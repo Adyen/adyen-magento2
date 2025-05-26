@@ -199,5 +199,6 @@ class IndexTest extends AbstractAdyenTestCase
         $method = $reflection->getMethod('getOrder');
         $method->setAccessible(true);
         $method->invokeArgs($this->indexController, ['1001']);
+
     }
 }

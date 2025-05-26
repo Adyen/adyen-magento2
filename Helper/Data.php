@@ -546,17 +546,16 @@ class Data extends AbstractHelper
         }
 
         $client = $this->createAdyenClient();
+
         $client->setApplicationName(self::APPLICATION_NAME);
         $client->setXApiKey($apiKey);
-
         $client->setMerchantApplication($this->platformInfo->getModuleName(), $this->platformInfo->getModuleVersion());
         $platformData = $this->platformInfo->getMagentoDetails();
-        $integrator = $this->config->getValue('adyen/developer/external_integrator_name', ScopeInterface::SCOPE_STORE, $storeId);
-        if (!empty($integrator)) {
-            $client->setExternalPlatform($platformData['name'], $platformData['version'], $integrator);
-        } else {
-            $client->setExternalPlatform($platformData['name'], $platformData['version']);
-        }
+       
+        $hasPlatformIntegrator = $this->configHelper->getHasPlatformIntegrator();
+        $platformIntegratorName = $this->configHelper->getPlatformIntegratorName();
+        $platformIntegrator = ($hasPlatformIntegrator && $platformIntegratorName) ? $platformIntegratorName : '';
+        $client->setExternalPlatform($platformData['name'], $platformData['version'], $platformIntegrator);
 
         if ($isDemo) {
             $client->setEnvironment(Environment::TEST);
