@@ -138,7 +138,7 @@ jobs:
 
       - name: Archive Magento log artifacts
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: magento-logs
           path: app-logs
