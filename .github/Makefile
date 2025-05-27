@@ -1,3 +1,7 @@
+# Variables
+MAGENTO_ROOT=/var/www/html
+# End of variables
+
 # Install N98-Magerun
 n98-magerun2.phar:
 	wget -q https://files.magerun.net/n98-magerun2.phar
@@ -75,15 +79,19 @@ fs:
 production:
 	bin/magento deploy:mode:set production
 
-MAGENTO_ROOT=/var/www/html
-GRAPHQL_XML=${MAGENTO_ROOT}/dev/tests/api-functional/phpunit_graphql.xml.dist
-GRAPHQL_PHP=/data/extensions/workdir/Test/phpunit_graphql.php
-GRAPHQL_SUITE=${MAGENTO_ROOT}/vendor/adyen/module-payment/Test/api-functional/GraphQl
-
 # GraphQL tests
+GRAPHQL_XML_DIST=${MAGENTO_ROOT}/vendor/adyen/module-payment/Test/phpunit_graphql.xml.dist
+GRAPHQL_XML=${MAGENTO_ROOT}/dev/tests/api-functional/phpunit_graphql.xml
+
+setup-graphql:
+	sed '/TESTS_BASE_URL/s/magento.url/${MAGENTO_HOST}/g' ${GRAPHQL_XML_DIST} >> ${GRAPHQL_XML}
+	bin/magento indexer:set-mode realtime
+	bin/magento cache:clean
+	bin/magento indexer:reindex
+
 graphql:
-	@cd ${MAGENTO_ROOT}/dev/tests/api-functional && \
-		${MAGENTO_ROOT}/vendor/bin/phpunit --prepend ${GRAPHQL_PHP} --configuration ${GRAPHQL_XML} ${GRAPHQL_SUITE}
+	@cd ${MAGENTO_ROOT}/dev/tests/api-functional && ${MAGENTO_ROOT}/vendor/bin/phpunit -c ${GRAPHQL_XML}
+# End of GraphQL tests
 
 # REST API tests
 REST_XML_DIST=${MAGENTO_ROOT}/vendor/adyen/module-payment/Test/phpunit_rest.xml.dist
