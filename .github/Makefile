@@ -86,11 +86,14 @@ graphql:
 		${MAGENTO_ROOT}/vendor/bin/phpunit --prepend ${GRAPHQL_PHP} --configuration ${GRAPHQL_XML} ${GRAPHQL_SUITE}
 
 # REST API tests
+REST_XML_DIST=${MAGENTO_ROOT}/vendor/adyen/module-payment/Test/phpunit_rest.xml.dist
+REST_XML=${MAGENTO_ROOT}/dev/tests/api-functional/phpunit_rest.xml
+
+setup-restapi:
+	sed '/TESTS_BASE_URL/s/magento.url/${MAGENTO_HOST}/g' ${REST_XML_DIST} >> ${REST_XML}
+
 restapi:
-	@cd ${MAGENTO_ROOT}/dev/tests/api-functional && \
-        ${MAGENTO_ROOT}/vendor/bin/phpunit --prepend /data/extensions/workdir/Test/phpunit_rest.php \
-        --configuration ${MAGENTO_ROOT}/dev/tests/api-functional/phpunit_rest.xml.dist \
-        ${MAGENTO_ROOT}/vendor/adyen/module-payment/Test/api-functional/Webapi
+	@cd ${MAGENTO_ROOT}/dev/tests/api-functional && ${MAGENTO_ROOT}/vendor/bin/phpunit -c ${REST_XML}
 
 # Setup environment to run functional tests (https://devdocs.magento.com/mftf/docs/getting-started.html)
 setup-mftf:

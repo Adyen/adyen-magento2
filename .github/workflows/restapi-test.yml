@@ -44,5 +44,8 @@ jobs:
 
       - run: docker exec magento2-container /etc/init.d/cron stop
 
+      - name: Configure REST API requirements
+        run: docker exec magento2-container make setup-restapi
+
       - name: Run REST API tests
         run: docker exec magento2-container make restapi
