@@ -10,16 +10,9 @@ use Magento\TestFramework\TestCase\WebapiAbstract;
 
 class DonationsTest extends WebapiAbstract
 {
-    /**
-     * @var GetMaskedQuoteIdByReservedOrderId
-     */
-    private $getMaskedQuoteIdByReservedOrderId;
-    /**
-     * @var CustomerTokenServiceInterface
-     */
-    private $customerTokenService;
-
-    private $maskedQuoteId;
+    private GetMaskedQuoteIdByReservedOrderId $getMaskedQuoteIdByReservedOrderId;
+    private CustomerTokenServiceInterface $customerTokenService;
+    private ?string $maskedQuoteId;
 
     protected function setUp(): void
     {
@@ -32,15 +25,24 @@ class DonationsTest extends WebapiAbstract
     {
         $this->placeOrder();
 
-        $serviceInfo = [
+        $serviceInfoDonationCampaigns = [
             'rest' => [
-                'resourcePath' => "/V1/adyen/orders/guest-carts/{$this->maskedQuoteId}/donations?XDEBUG_SESSION_START=PHPSTORM",
+                'resourcePath' => "/V1/adyen/orders/guest-carts/{$this->maskedQuoteId}/donation-campaigns",
                 'httpMethod' => Request::HTTP_METHOD_POST
             ]
         ];
 
-        $payload = '{"amount":{"currency":"EUR","value":100},"returnUrl":"https://local.store/index.php/checkout/onepage/success/"}';
-        $response = $this->_webApiCall($serviceInfo, ['payload' => $payload]);
+        $this->_webApiCall($serviceInfoDonationCampaigns);
+
+        $serviceInfoDonations = [
+            'rest' => [
+                'resourcePath' => "/V1/adyen/orders/guest-carts/{$this->maskedQuoteId}/donations",
+                'httpMethod' => Request::HTTP_METHOD_POST
+            ]
+        ];
+
+        $payload = '{"amount":{"currency":"EUR","value":500},"returnUrl":"https://local.store/index.php/checkout/onepage/success/"}';
+        $response = $this->_webApiCall($serviceInfoDonations, ['payload' => $payload]);
 
         $this->assertEmpty($response);
     }
