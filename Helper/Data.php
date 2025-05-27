@@ -389,7 +389,6 @@ class Data extends AbstractHelper
      */
     public function createAsset($fileId, array $params = [])
     {
-        print_r($fileId);
         $params = array_merge(['_secure' => $this->_request->isSecure()], $params);
         return $this->_assetRepo->createAsset($fileId, $params);
     }
@@ -551,7 +550,7 @@ class Data extends AbstractHelper
         $client->setXApiKey($apiKey);
         $client->setMerchantApplication($this->platformInfo->getModuleName(), $this->platformInfo->getModuleVersion());
         $platformData = $this->platformInfo->getMagentoDetails();
-       
+
         $hasPlatformIntegrator = $this->configHelper->getHasPlatformIntegrator();
         $platformIntegratorName = $this->configHelper->getPlatformIntegratorName();
         $platformIntegrator = ($hasPlatformIntegrator && $platformIntegratorName) ? $platformIntegratorName : '';
