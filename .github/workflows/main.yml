@@ -12,7 +12,7 @@ on:
 
 jobs:
   build-main:
-    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) || (github.event_name == 'workflow_dispatch')
+    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) || (github.event_name == 'workflow_dispatch') || (github.event_name == 'push')
     environment: ${{ (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) && 'external' || 'internal' }}
     strategy:
       matrix:
@@ -61,6 +61,9 @@ jobs:
 
       - name: Run PHPUnit
         run: docker exec magento2-container make phpunit-run
+
+      - name: Format PHPUnit coverage reports
+        run: docker exec magento2-container make phpunit-fix-report
 
       - name: SonarCloud Scan
         if: ${{ env.SONAR_TOKEN }}
