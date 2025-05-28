@@ -129,7 +129,7 @@ setup-mftf:
 
 	cp dev/tests/acceptance/.htaccess.sample dev/tests/acceptance/.htaccess
 
-	vendor/bin/mftf doctor
+	# vendor/bin/mftf doctor
 
 # Magento Functional Testing Framework
 mftf:
