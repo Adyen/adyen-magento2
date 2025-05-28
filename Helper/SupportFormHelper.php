@@ -203,7 +203,6 @@ class SupportFormHelper
         $merchantAccount = $this->config->getMerchantAccount($storeId);
         $environmentMode = $this->config->isDemoMode($storeId) ? 'Test' : 'Live';
         $moduleVersion = $this->platformInfo->getModuleVersion();
-        $isAlternativePaymentMethodsEnabled = $this->config->isAlternativePaymentMethodsEnabled($storeId);
         $isMotoEnabled = $this->config->isMotoPaymentMethodEnabled($storeId);
         $configurationMode = $this->config->getConfigurationMode($storeId);
         $isAdyenCcEnabled = $this->config->getConfigData('active', 'adyen_cc', $storeId, true);
@@ -367,7 +366,6 @@ class SupportFormHelper
             'pluginVersion' => $moduleVersion,
             'merchantAccount' => $merchantAccount,
             'environmentMode' => $environmentMode,
-            'paymentMethodsEnabled' => $isAlternativePaymentMethodsEnabled ? 'Yes' : 'No',
             'notificationUsername' => $notificationUsername,
             'notificationPassword' => $notificationPassword,
             'motoEnabled' => $isMotoEnabled ? 'Yes' : 'No',

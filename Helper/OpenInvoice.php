@@ -232,26 +232,4 @@ class OpenInvoice
 
         return $category ?? null;
     }
-
-    /**
-     * @deprecated
-     */
-    protected function formatInvoiceDiscount(
-        mixed $discountAmount, $shippingDiscountAmount, AdyenAmountCurrency $itemAmountCurrency
-    ): array
-    {
-        $description = __('Discount');
-        $itemAmount = -$this->adyenHelper->formatAmount(
-            $discountAmount + $shippingDiscountAmount, $itemAmountCurrency->getCurrencyCode()
-        );
-
-        return [
-            'id' => 'Discount',
-            'amountIncludingTax' => $itemAmount,
-            'taxAmount' => 0,
-            'description' => $description,
-            'quantity' => 1,
-            'taxPercentage' => 0
-        ];
-    }
 }

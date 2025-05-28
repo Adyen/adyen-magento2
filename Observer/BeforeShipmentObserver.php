@@ -12,7 +12,6 @@
 
 namespace Adyen\Payment\Observer;
 
-use Adyen\Payment\Helper\Data as AdyenHelper;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
@@ -22,19 +21,11 @@ use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\Order\InvoiceRepository;
 use Magento\Sales\Model\Order\Shipment;
-use Psr\Log\LoggerInterface;
 
 class BeforeShipmentObserver extends AbstractDataAssignObserver
 {
     const XML_ADYEN_ABSTRACT_PREFIX = "adyen_abstract";
     const ONSHIPMENT_CAPTURE_OPENINVOICE = 'onshipment';
-
-    /**
-     * @deprecated This property is not being used and will be removed on V10.
-     *
-     * @var AdyenHelper
-     */
-    private AdyenHelper $adyenHelper;
 
     /**
      * @var ConfigHelper
@@ -59,20 +50,17 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
     /**
      * BeforeShipmentObserver constructor.
      *
-     * @param AdyenHelper $adyenHelper
      * @param ConfigHelper $configHelper
      * @param AdyenLogger $logger
      * @param InvoiceRepository $invoiceRepository
      * @param PaymentMethods $paymentMethodsHelper
      */
     public function __construct(
-        AdyenHelper $adyenHelper,
         ConfigHelper $configHelper,
         AdyenLogger $logger,
         InvoiceRepository $invoiceRepository,
         PaymentMethods $paymentMethodsHelper
     ) {
-        $this->adyenHelper = $adyenHelper;
         $this->configHelper = $configHelper;
         $this->logger = $logger;
         $this->invoiceRepository = $invoiceRepository;
@@ -147,16 +135,6 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
             $this->logger->error($e);
             throw new Exception('Error saving invoice. The error message is: ' . $e->getMessage());
         }
-    }
-
-    /**
-     * @deprecated Use isAdyenPayment() method from Adyen\Payment\Helper\PaymentMethods.
-     *
-     * Determine if the payment method is Adyen
-     */
-    public function isPaymentMethodAdyen($order)
-    {
-        return strpos((string) $order->getPayment()->getMethod(), 'adyen') !== false;
     }
 
     /**
