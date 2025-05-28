@@ -1,8 +1,11 @@
 version: '3'
+
 services:
   selenium:
-   image: selenium/standalone-chrome-debug:3.141.59
-   ports:
-     - "5900:5900"
-   networks:
-    - backend
+    image: selenium/standalone-chrome-debug:3.141.59
+    ports:
+      - 5900:5900
+    networks:
+      - backend
+networks:
+  backend:
