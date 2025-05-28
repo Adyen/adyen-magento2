@@ -9,7 +9,6 @@ use Adyen\Client;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\Notification\Collection;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory;
 use Adyen\Payment\Helper\PlatformInfo;
@@ -22,7 +21,6 @@ use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Config\DataInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\View\Asset\Repository;
 use Magento\Framework\View\Asset\Source;
@@ -32,7 +30,6 @@ use Magento\Tax\Model\Calculation;
 use Magento\Tax\Model\Config;
 use PHPUnit\Framework\Attributes\Test;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
-use Magento\Store\Api\Data\StoreInterface;
 use PHPUnit\Framework\MockObject\Exception;
 use Magento\Store\Model\ScopeInterface;
 use Adyen\Config as AdyenConfig;
@@ -124,18 +121,6 @@ class DataTest extends AbstractAdyenTestCase
             $this->platformInfo,
             $this->request
         );
-    }
-
-    #[Test]
-    public function testGetRecurringTypes(): void
-    {
-        $expected = [
-            RecurringType::ONECLICK => 'ONECLICK',
-            RecurringType::ONECLICK_RECURRING => 'ONECLICK,RECURRING',
-            RecurringType::RECURRING => 'RECURRING',
-        ];
-
-        self::assertSame($expected, $this->dataHelper->getRecurringTypes());
     }
 
     #[Test]

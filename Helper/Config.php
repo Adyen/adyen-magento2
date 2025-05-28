@@ -284,16 +284,6 @@ class Config
     }
 
     /**
-     * @param $storeId
-     * @return bool|mixed
-     * @deprecated
-     */
-    public function isAlternativePaymentMethodsEnabled($storeId = null): bool
-    {
-        return $this->getConfigData('active', Config::XML_ADYEN_HPP, $storeId, true);
-    }
-
-    /**
      * Retrieve charged currency selection (base or display)
      *
      * @param null|int|string $storeId

@@ -370,7 +370,7 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
     /**
      * @return array
      */
-    private static function isVirtualDataProvider(): array
+    public static function isVirtualDataProvider(): array
     {
         return [
             ['isVirtual' => true],

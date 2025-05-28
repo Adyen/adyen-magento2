@@ -130,21 +130,4 @@ class Creditmemo extends AbstractHelper
         $adyenCreditmemo->setStatus($status);
         $this->adyenCreditmemoRepository->save($adyenCreditmemo);
     }
-
-    /**
-     * @deprecated Use AdyenCreditmemoRepositoryInterface::getByRefundWebhook() instead.
-     *
-     * @param string $pspreference
-     * @return AdyenCreditmemoInterface|null
-     * @throws NoSuchEntityException
-     */
-    public function getAdyenCreditmemoByPspreference(string $pspreference): ?AdyenCreditmemoInterface {
-        $results = $this->adyenCreditmemoResourceModel->getAdyenCreditmemoByPspreference($pspreference);
-
-        if (is_null($results)) {
-            return null;
-        }
-
-        return $this->adyenCreditmemoRepository->get($results['entity_id']);
-    }
 }

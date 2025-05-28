@@ -23,6 +23,7 @@ use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Model\AbstractModel;
+use PHPUnit\Framework\MockObject\Exception;
 
 class CreditmemoTest extends AbstractAdyenTestCase
 {
@@ -181,59 +182,6 @@ class CreditmemoTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @return array
-     */
-    private static function dataproviderGetAdyenCreditmemoByPspreference(): array
-    {
-        return [
-            ['result' => ['entity_id' => 1]],
-            ['result' => null]
-        ];
-    }
-
-    /**
-     * @dataProvider dataproviderGetAdyenCreditmemoByPspreference
-     *
-     * @param $result
-     * @return void
-     * @throws NoSuchEntityException
-     */
-    public function testGetAdyenCreditmemoByPspreference($result)
-    {
-        $pspreference = '123_abcdef';
-
-        $creditmemoResourceModel = $this->createMock(CreditmemoResourceModel::class);
-        $creditmemoResourceModel->expects($this->once())
-            ->method('getAdyenCreditmemoByPspreference')
-            ->with($pspreference)
-            ->willReturn($result);
-
-        $creditmemoRepository = $this->createMock(AdyenCreditmemoRepositoryInterface::class);
-
-        $creditmemoHelper = $this->createCreditmemoHelper(
-            null,
-            null,
-            null,
-            $creditmemoResourceModel,
-            null,
-            $creditmemoRepository
-        );
-
-        if (is_null($result)) {
-            $this->assertNull($creditmemoHelper->getAdyenCreditmemoByPspreference($pspreference));
-        } else {
-            $creditmemoRepository->expects($this->once())
-                ->method('get')
-                ->with($result['entity_id']);
-
-            $this->assertInstanceOf(
-                CreditmemoInterface::class,
-                $creditmemoHelper->getAdyenCreditmemoByPspreference($pspreference)
-            );
-        }
-    }
-
-    /**
      * @param null $context
      * @param null $adyenDataHelper
      * @param null $adyenCreditmemoFactory
@@ -241,6 +189,7 @@ class CreditmemoTest extends AbstractAdyenTestCase
      * @param null $orderPaymentResourceModel
      * @param null $adyenCreditmemoRepositoryMock
      * @return Creditmemo
+     * @throws Exception
      */
     protected function createCreditmemoHelper(
         $context = null,

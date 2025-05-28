@@ -28,42 +28,6 @@ class Creditmemo extends AbstractDb
     }
 
     /**
-     * Get all the adyen_creditmemo entries linked to the adyen_order_payment
-     *
-     * @deprecated Use AdyenCreditmemoRepositoryInterface::getByAdyenOrderPaymentId() instead.
-     *
-     * @param int $adyenPaymentId
-     * @return array|null
-     */
-    public function getAdyenCreditmemosByAdyenPaymentid(int $adyenPaymentId): ?array
-    {
-        $select = $this->getConnection()->select()
-            ->from(['adyen_creditmemo' => $this->getTable('adyen_creditmemo')])
-            ->where('adyen_creditmemo.adyen_order_payment_id=?', $adyenPaymentId);
-
-        $result = $this->getConnection()->fetchAll($select);
-
-        return empty($result) ? null : $result;
-    }
-
-    /**
-     * @deprecated Use AdyenCreditmemoRepositoryInterface::getByRefundWebhook() instead.
-     *
-     * @param string $pspreference
-     * @return array|null
-     */
-    public function getAdyenCreditmemoByPspreference(string $pspreference): ?array
-    {
-        $select = $this->getConnection()->select()
-            ->from(['adyen_creditmemo' => $this->getTable('adyen_creditmemo')])
-            ->where('adyen_creditmemo.pspreference=?', $pspreference);
-
-        $result = $this->getConnection()->fetchRow($select);
-
-        return empty($result) ? null : $result;
-    }
-
-    /**
      * @param string $pspreference
      * @return string
      * @throws LocalizedException
