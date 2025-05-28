@@ -15,7 +15,9 @@ jobs:
         include:
           - php-version: '8.3'
             magento-version: '2.4.8'
-    runs-on: ubuntu-latest
+    runs-on:
+      group: larger-runners
+      labels: ubuntu-latest-8-cores
     timeout-minutes: 25
     env:
       PHP_VERSION: ${{ matrix.php-version }}
@@ -35,8 +37,11 @@ jobs:
       - name: Install Magento
         run: docker compose -f .github/docker-compose.yml run --rm web make magento
 
-      - name: Start services in background
-        run: docker compose -f .github/docker-compose.yml -f .github/docker-compose.mftf.yml up -d
+      - name: Start web server in background
+        run: docker compose -f .github/docker-compose.yml up -d web
+
+      - name: Start Selenium in background
+        run: docker compose -f .github/docker-compose.mftf.yml up -d
 
       - name: Kill Cron Jobs
         run: docker exec magento2-container /etc/init.d/cron stop
