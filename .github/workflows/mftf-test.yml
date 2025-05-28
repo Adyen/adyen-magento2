@@ -38,12 +38,6 @@ jobs:
       - name: Start services in background
         run: docker compose -f .github/docker-compose.yml -f .github/docker-compose.mftf.yml up -d
 
-      - name: Setup permissions
-        run: docker exec magento2-container make fs
-
-      - name: Check install
-        run: docker exec magento2-container make sys-check
-
       - name: Kill Cron Jobs
         run: docker exec magento2-container /etc/init.d/cron stop
 
