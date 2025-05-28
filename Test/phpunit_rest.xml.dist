@@ -16,8 +16,8 @@
 	<!-- Test suites definition -->
 	<testsuites>
 		<testsuite name="Adyen REST web API functional tests suite">
-		    <directory>../../../vendor/adyen/module-payment/Test/api-functional/Webapi</directory>
-        </testsuite>
+			<directory>../../../vendor/adyen/module-payment/Test/api-functional/Webapi</directory>
+		</testsuite>
 	</testsuites>
 	<!-- PHP INI settings and constants definition -->
 	<php>
