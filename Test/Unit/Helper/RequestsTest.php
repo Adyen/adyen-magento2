@@ -114,7 +114,7 @@ class RequestsTest extends AbstractAdyenTestCase
     #[Test]
     public function getShopperReferenceForCustomerIdReturnsPaddedValue(): void
     {
-        $this->platformInfo->expects($this->once())
+        $this->adyenHelper->expects($this->once())
             ->method('padShopperReference')
             ->with('42')
             ->willReturn('user_42');
@@ -127,7 +127,7 @@ class RequestsTest extends AbstractAdyenTestCase
     #[Test]
     public function getShopperReferenceForGuestReturnsCombinedValue(): void
     {
-        $this->platformInfo->expects($this->never())->method('padShopperReference');
+        $this->adyenHelper->expects($this->never())->method('padShopperReference');
 
         $result = $this->requests->getShopperReference(null, '0000123');
 
@@ -158,7 +158,7 @@ class RequestsTest extends AbstractAdyenTestCase
         );
 
         $this->localeHelper->method('getStoreLocale')->willReturn('nl_NL');
-        $this->platformInfo->method('padShopperReference')->willReturn('user_1');
+        $this->adyenHelper->method('padShopperReference')->willReturn('user_1');
         $this->addressHelper->method('getAdyenCountryCode')->willReturn('NL');
 
         $result = $this->requests->buildCustomerData(
@@ -290,7 +290,7 @@ class RequestsTest extends AbstractAdyenTestCase
         $this->chargedCurrency->method('getOrderAmountCurrency')->willReturn($amountCurrency);
         $this->paymentMethodsHelper->method('isAlternativePaymentMethod')->willReturn(false);
         $this->adyenHelper->method('getAdyenMerchantAccount')->with('adyen_giving', $storeId)->willReturn('merchant123');
-        $this->platformInfo->method('padShopperReference')->with(42)->willReturn('user_42');
+        $this->adyenHelper->method('padShopperReference')->with(42)->willReturn('user_42');
 
         $result = $this->requests->buildDonationData($payment, $storeId);
 

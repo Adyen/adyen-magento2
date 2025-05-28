@@ -449,7 +449,7 @@ class Requests extends AbstractHelper
         }
 
         $shopperReference = $order->getCustomerId()
-            ? $this->platformInfo->padShopperReference($order->getCustomerId())
+            ? $this->adyenHelper->padShopperReference($order->getCustomerId())
             : $order->getIncrementId() . Uuid::generateV4();
 
         return [
@@ -475,7 +475,7 @@ class Requests extends AbstractHelper
     public function getShopperReference($customerId, $orderIncrementId): string
     {
         if ($customerId) {
-            $shopperReference = $this->platformInfo->padShopperReference($customerId);
+            $shopperReference = $this->adyenHelper->padShopperReference($customerId);
         } else {
             $uuid = Uuid::generateV4();
             $guestCustomerId = $orderIncrementId . $uuid;

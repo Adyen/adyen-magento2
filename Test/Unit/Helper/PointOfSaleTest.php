@@ -52,7 +52,7 @@ class PointOfSaleTest extends AbstractAdyenTestCase
             ->with(AdyenPosCloudConfigProvider::CODE, 1)
             ->willReturn('CardOnFile');
 
-        $this->platformInfo->method('padShopperReference')->with('123')->willReturn('ref_123');
+        $this->dataHelper->method('padShopperReference')->with('123')->willReturn('ref_123');
         $this->platformInfo->method('getModuleVersion')->willReturn('1.0.0');
         $this->platformInfo->method('getModuleName')->willReturn('Adyen_Payment');
         $this->productMetadata->method('getVersion')->willReturn('2.4.6');

@@ -738,4 +738,13 @@ class Data extends AbstractHelper
             return false !== strpos(strtolower($key), 'reference');
         }, ARRAY_FILTER_USE_BOTH);
     }
+
+    /**
+     * @param string $shopperReference
+     * @return string
+     */
+    public function padShopperReference(string $shopperReference): string
+    {
+        return str_pad($shopperReference, 3, '0', STR_PAD_LEFT);
+    }
 }

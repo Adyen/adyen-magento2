@@ -31,7 +31,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
-final class AdyenCcConfigProviderTest extends AbstractAdyenTestCase
+class AdyenCcConfigProviderTest extends AbstractAdyenTestCase
 {
     private ?AdyenCcConfigProvider $adyenCcConfigProvider = null;
     private Data&MockObject $adyenHelperMock;

@@ -41,14 +41,6 @@ class PlatformInfoTest extends AbstractAdyenTestCase
         $this->assertSame('adyen-magento2', $this->platformInfo->getModuleName());
     }
 
-    public function testPadShopperReference(): void
-    {
-        $this->assertSame('001', $this->platformInfo->padShopperReference('1'));
-        $this->assertSame('010', $this->platformInfo->padShopperReference('10'));
-        $this->assertSame('100', $this->platformInfo->padShopperReference('100'));
-        $this->assertSame('1000', $this->platformInfo->padShopperReference('1000'));
-    }
-
     public function testGetMagentoDetails(): void
     {
         $this->productMetadata->method('getName')->willReturn('Magento');
