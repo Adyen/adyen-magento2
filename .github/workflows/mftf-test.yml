@@ -43,6 +43,9 @@ jobs:
       - name: Start Selenium in background
         run: docker compose -f .github/docker-compose.mftf.yml up -d
 
+      - name: Setup permissions
+        run: docker exec magento2-container make fs
+
       - name: Kill Cron Jobs
         run: docker exec magento2-container /etc/init.d/cron stop
 
