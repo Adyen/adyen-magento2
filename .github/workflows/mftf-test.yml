@@ -32,21 +32,22 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
 
-      - name: Start services
+      - name: Install Magento
+        run: docker compose -f .github/docker-compose.yml run --rm web make magento
+
+      - name: Start services in background
         run: docker compose -f .github/docker-compose.yml -f .github/docker-compose.mftf.yml up -d
 
-      # Temp solution to wait for install script to run
-      - name: Sleep for 120 seconds
-        run: sleep 120s
-        shell: bash
+      - name: Setup permissions
+        run: docker exec magento2-container make fs
 
-      - name: Show install logs
-        run: docker logs --tail 100 magento2-container
+      - name: Check install
+        run: docker exec magento2-container make sys-check
 
-      - name: Prevent cron from interfering with test execution
+      - name: Kill Cron Jobs
         run: docker exec magento2-container /etc/init.d/cron stop
 
-      - name: Install plugin
+      - name: Install plugin without configuring it
         run: docker exec -u www-data magento2-container make install
 
       - name: Build MFTF project
