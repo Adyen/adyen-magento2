@@ -13,7 +13,7 @@
 namespace Adyen\Payment\AdminMessage;
 
 use Adyen\Payment\Helper\Data;
-use Helper\PlatformInfo;
+use Adyen\Payment\Helper\PlatformInfo;
 use Magento\AdminNotification\Model\InboxFactory;
 use Magento\Backend\Model\Auth\Session;
 use Magento\Framework\App\RequestInterface;

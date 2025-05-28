@@ -818,4 +818,12 @@ class DataTest extends AbstractAdyenTestCase
         self::assertSame($mockAsset, $result);
     }
 
+    public function testPadShopperReference(): void
+    {
+        $this->assertSame('001', $this->dataHelper->padShopperReference('1'));
+        $this->assertSame('010', $this->dataHelper->padShopperReference('10'));
+        $this->assertSame('100', $this->dataHelper->padShopperReference('100'));
+        $this->assertSame('1000', $this->dataHelper->padShopperReference('1000'));
+    }
+
 }

@@ -63,14 +63,11 @@ class PaymentMethods extends AbstractHelper
     const METHODS_WITH_LOGO_FILE_MAPPING = [
         "scheme" => "card"
     ];
-
     const FUNDING_SOURCE_DEBIT = 'debit';
     const FUNDING_SOURCE_CREDIT = 'credit';
-
     const ADYEN_GROUP_ALTERNATIVE_PAYMENT_METHODS = 'adyen-alternative-payment-method';
     const CONFIG_FIELD_REQUIRES_LINE_ITEMS = 'requires_line_items';
     const CONFIG_FIELD_IS_OPEN_INVOICE = 'is_open_invoice';
-
     const VALID_CHANNELS = ["iOS", "Android", "Web"];
 
     /*
@@ -80,6 +77,13 @@ class PaymentMethods extends AbstractHelper
         AdyenPayByLinkConfigProvider::CODE,
         AdyenPosCloudConfigProvider::CODE,
         AdyenMotoConfigProvider::CODE
+    ];
+    const ADYEN_BOLETO = 'adyen_boleto';
+    const RATEPAY = 'ratepay';
+    const KLARNA = 'klarna';
+    const ORDER_EMAIL_REQUIRED_METHODS = [
+        AdyenPayByLinkConfigProvider::CODE,
+        self::ADYEN_BOLETO
     ];
 
     /**
@@ -587,7 +591,7 @@ class PaymentMethods extends AbstractHelper
 
         if (!empty($this->getCurrentShopperReference())) {
             $paymentMethodRequest["shopperReference"] =
-                $this->platformInfo->padShopperReference($this->getCurrentShopperReference());
+                $this->adyenHelper->padShopperReference($this->getCurrentShopperReference());
         }
 
         $amountValue = $this->adyenHelper->formatAmount($this->getCurrentPaymentAmount(), $currencyCode);

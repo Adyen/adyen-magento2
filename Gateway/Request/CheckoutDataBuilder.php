@@ -14,7 +14,6 @@ namespace Adyen\Payment\Gateway\Request;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
-use Adyen\Payment\Helper\OpenInvoice;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Model\Config\Source\ThreeDSFlow;
@@ -33,14 +32,6 @@ use Magento\Sales\Model\Order;
 
 class CheckoutDataBuilder implements BuilderInterface
 {
-    const ADYEN_BOLETO = 'adyen_boleto';
-    const RATEPAY = 'ratepay';
-    const KLARNA = 'klarna';
-    const ORDER_EMAIL_REQUIRED_METHODS = [
-        AdyenPayByLinkConfigProvider::CODE,
-        self::ADYEN_BOLETO
-    ];
-
     /**
      * CheckoutDataBuilder constructor.
      *
@@ -50,7 +41,6 @@ class CheckoutDataBuilder implements BuilderInterface
      * @param ChargedCurrency $chargedCurrency
      * @param Config $configHelper
      * @param PaymentMethods $paymentMethodsHelper
-     * @param OpenInvoice $openInvoiceHelper
      * @param Image $imageHelper
      */
     public function __construct(
@@ -60,7 +50,6 @@ class CheckoutDataBuilder implements BuilderInterface
         private readonly ChargedCurrency $chargedCurrency,
         private readonly Config $configHelper,
         private readonly PaymentMethods $paymentMethodsHelper,
-        private readonly OpenInvoice $openInvoiceHelper,
         private readonly Image $imageHelper
     ) { }
 
@@ -87,7 +76,7 @@ class CheckoutDataBuilder implements BuilderInterface
             $requestBody = json_decode((string) $payment->getCcNumber(), true);
         }
 
-        $order->setCanSendNewEmailFlag(in_array($payment->getMethod(), self::ORDER_EMAIL_REQUIRED_METHODS));
+        $order->setCanSendNewEmailFlag(in_array($payment->getMethod(), PaymentMethods::ORDER_EMAIL_REQUIRED_METHODS));
 
         // Additional data for ACH
         if ($payment->getAdditionalInformation("bankAccountNumber")) {
@@ -106,12 +95,12 @@ class CheckoutDataBuilder implements BuilderInterface
             $this->paymentMethodsHelper->isOpenInvoice($paymentMethodInstance) ||
             $payment->getMethod() === AdyenPayByLinkConfigProvider::CODE
         ) {
-            if (str_contains($payment->getMethod(), self::KLARNA) &&
+            if (str_contains($payment->getMethod(), PaymentMethods::KLARNA) &&
                 $this->configHelper->getAutoCaptureOpenInvoice($storeId)) {
                 $requestBody['captureDelayHours'] = 0;
             }
 
-            if (str_contains($payment->getMethod(), self::KLARNA) ||
+            if (str_contains($payment->getMethod(), PaymentMethods::KLARNA) ||
                 $payment->getMethod() === AdyenPayByLinkConfigProvider::CODE
             ) {
                 $otherDeliveryInformation = $this->getOtherDeliveryInformation($order);
@@ -126,12 +115,12 @@ class CheckoutDataBuilder implements BuilderInterface
         $deviceFingerprint = $payment->getAdditionalInformation(AdyenPaymentMethodDataAssignObserver::DF_VALUE);
 
         if (
-            $deviceFingerprint && str_contains($payment->getMethod(), self::RATEPAY)) {
+            $deviceFingerprint && str_contains($payment->getMethod(), PaymentMethods::RATEPAY)) {
             $requestBody['deviceFingerprint'] = $deviceFingerprint;
         }
 
         //Boleto data
-        if ($payment->getMethod() == self::ADYEN_BOLETO) {
+        if ($payment->getMethod() == PaymentMethods::ADYEN_BOLETO) {
             $deliveryDays = (int)$this->configHelper->getAdyenBoletoConfigData("delivery_days", $storeId);
             $deliveryDays = (!empty($deliveryDays)) ? $deliveryDays : 5;
             $deliveryDate = date(

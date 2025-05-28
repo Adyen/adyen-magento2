@@ -16,6 +16,7 @@ use Adyen\Client;
 use Adyen\Environment;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
 use Adyen\Service\Checkout\ModificationsApi;
 use Adyen\Service\Checkout\OrdersApi;
@@ -24,6 +25,7 @@ use Adyen\Service\Checkout\DonationsApi;
 use Adyen\Service\Checkout\PaymentsApi;
 use Adyen\Service\PosPayment;
 use Adyen\Service\RecurringApi;
+use Adyen\Payment\Helper\PlatformInfo;
 use Magento\Directory\Model\Config\Source\Country;
 use Magento\Framework\App\CacheInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -174,6 +176,20 @@ class Data extends AbstractHelper
         $this->configHelper = $configHelper;
         $this->platformInfo = $platformInfo;
         $this->_request = $request;
+    }
+
+    /**
+     * return recurring types for configuration setting
+     *
+     * @return array
+     */
+    public function getRecurringTypes()
+    {
+        return [
+            RecurringType::ONECLICK => 'ONECLICK',
+            RecurringType::ONECLICK_RECURRING => 'ONECLICK,RECURRING',
+            RecurringType::RECURRING => 'RECURRING'
+        ];
     }
 
     /**

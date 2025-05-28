@@ -27,6 +27,11 @@ class Version extends \Magento\Config\Block\System\Config\Form\Field
     protected $_adyenHelper;
 
     /**
+     * @var PlatformInfo
+     */
+    protected $_platformInfo;
+
+    /**
      * Version constructor.
      *
      * @param PlatformInfo $platformInfo

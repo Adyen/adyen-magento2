@@ -7,12 +7,11 @@ namespace Adyen\Payment\Test\Unit\Block\Checkout;
 use Adyen\Payment\Block\Checkout\Success;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
-use Adyen\Payment\Helper\PaymentResponseHandler;
+use Adyen\Payment\Helper\Locale;
 use Adyen\Payment\Model\Ui\AdyenCheckoutSuccessConfigProvider;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Customer\Model\Session as CustomerSession;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\View\Element\Template\Context;
 use Magento\Quote\Model\QuoteIdToMaskedQuoteId;
@@ -48,6 +47,7 @@ class SuccessTest extends AbstractAdyenTestCase
         $storeManager = $this->createMock(StoreManagerInterface::class);
         $serializer = $this->createMock(SerializerInterface::class);
         $orderRepository = $this->createMock(OrderRepositoryInterface::class);
+        $localeHelperMock = $this->createMock(Locale::class);
 
         $this->order = $this->createMock(Order::class);
 
@@ -67,7 +67,8 @@ class SuccessTest extends AbstractAdyenTestCase
             $configProvider,
             $storeManager,
             $serializer,
-            $orderRepository
+            $orderRepository,
+            $localeHelperMock
         );
     }
 
@@ -92,9 +93,9 @@ class SuccessTest extends AbstractAdyenTestCase
     #[Test]
     public function getLocaleReturnsCorrectLocaleCode(): void
     {
-        $helper = $this->getProperty($this->block, 'adyenHelper');
+        $helper = $this->getProperty($this->block, 'localeHelper');
         $helper->method('getCurrentLocaleCode')->with(10)->willReturn('en_US');
-        $this->setProperty($this->block, 'adyenHelper', $helper);
+        $this->setProperty($this->block, 'localeHelper', $helper);
 
         $this->assertSame('en_US', $this->block->getLocale());
     }

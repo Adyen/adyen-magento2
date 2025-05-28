@@ -9,6 +9,7 @@ use Adyen\Model\Checkout\PaymentLinkResponse;
 use Adyen\Payment\Gateway\Http\Client\TransactionPaymentLinks;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
+use Adyen\Payment\Helper\PlatformInfo;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Client;
 use Adyen\Service\Checkout\PaymentLinksApi;
@@ -24,14 +25,16 @@ class TransactionPaymentLinksTest extends AbstractAdyenTestCase
     private TransferInterface|MockObject $transferObjectMock;
     private PaymentLinksApi|MockObject $paymentLinksApiMock;
     private ApplicationInfo|MockObject $applicationInfoMock;
+    private PlatformInfo|MockObject $platformInfo;
 
     protected function setUp(): void
     {
         $this->adyenHelperMock = $this->createMock(Data::class);
         $this->idempotencyHelperMock = $this->createMock(Idempotency::class);
+        $this->platformInfo = $this->createMock(PlatformInfo::class);
         $this->transferObjectMock = $this->createMock(TransferInterface::class);
         $this->applicationInfoMock = $this->createMock(ApplicationInfo::class);
-        $this->adyenHelperMock->method('buildApplicationInfo')->willReturn($this->applicationInfoMock);
+        $this->platformInfo->method('buildApplicationInfo')->willReturn($this->applicationInfoMock);
         $this->transferObjectMock->method('getClientConfig')->willReturn([]);
         $this->clientMock = $this->createMock(Client::class);
         $this->adyenHelperMock->method('initializeAdyenClientWithClientConfig')->willReturn($this->clientMock);
@@ -43,7 +46,8 @@ class TransactionPaymentLinksTest extends AbstractAdyenTestCase
 
         $this->transactionPaymentLinks = new TransactionPaymentLinks(
             $this->adyenHelperMock,
-            $this->idempotencyHelperMock
+            $this->idempotencyHelperMock,
+            $this->platformInfo
         );
     }
 

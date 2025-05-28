@@ -73,7 +73,7 @@ class TransactionDonate implements ClientInterface
         $request = $transferObject->getBody();
         $headers = $transferObject->getHeaders();
 
-        $service = new DonationsApi($this->client);
+        $service = $this->adyenHelper->initializeDonationsApi($this->client);
 
         $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
             $request,
