@@ -24,15 +24,19 @@ use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\DB\TransactionFactory;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Notification\NotifierPool;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Model\Order as MagentoOrder;
+use Magento\Sales\Model\Order as OrderModel;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder;
+use Magento\Sales\Model\Order\Status\HistoryFactory;
 use Magento\Sales\Model\Order\StatusResolver;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderStatusCollectionFactory;
+use Magento\Sales\Model\Service\OrderService;
 
 class Order extends AbstractHelper
 {
@@ -55,6 +59,8 @@ class Order extends AbstractHelper
      * @param Creditmemo $adyenCreditmemoHelper
      * @param StatusResolver $statusResolver
      * @param AdyenCreditmemoRepositoryInterface $adyenCreditmemoRepository
+     * @param OrderService $orderManagement
+     * @param HistoryFactory $orderHistoryFactory
      */
     public function __construct(
         Context $context,
@@ -74,8 +80,11 @@ class Order extends AbstractHelper
         private readonly PaymentMethods $paymentMethodsHelper,
         private readonly AdyenCreditmemoHelper $adyenCreditmemoHelper,
         private readonly MagentoOrder\StatusResolver $statusResolver,
-        private readonly AdyenCreditmemoRepositoryInterface $adyenCreditmemoRepository
-    ) {
+        private readonly AdyenCreditmemoRepositoryInterface $adyenCreditmemoRepository,
+        private readonly OrderService $orderManagement,
+        private readonly HistoryFactory $orderHistoryFactory
+
+) {
         parent::__construct($context);
     }
 
@@ -666,5 +675,55 @@ class Order extends AbstractHelper
         }
 
         return $status;
+    }
+
+    /**
+     * @param $order
+     * @return void
+     * @throws NoSuchEntityException
+     */
+    public function cancelOrder($order): void
+    {
+        $orderStatus = $this->configHelper->getAdyenAbstractConfigData('payment_cancelled');
+        $order->setActionFlag($orderStatus, true);
+
+        switch ($orderStatus) {
+            case OrderModel::STATE_HOLDED:
+                if ($order->canHold()) {
+                    $order->hold()->save();
+                }
+                break;
+            default:
+                if ($order->canCancel()) {
+                    if ($this->orderManagement->cancel($order->getEntityId())) { //new canceling process
+                        try {
+                            $orderStatusHistory = $this->orderHistoryFactory->create()
+                                ->setParentId($order->getEntityId())
+                                ->setEntityName('order')
+                                ->setStatus(OrderModel::STATE_CANCELED)
+                                ->setComment(__('Order has been cancelled by "%1" payment response.', $order->getPayment()->getMethod()));
+                            $this->orderManagement->addComment($order->getEntityId(), $orderStatusHistory);
+                        } catch (Exception $e) {
+                            $this->adyenLogger->addAdyenDebug(
+                                __('Order cancel history comment error: %1', $e->getMessage()),
+                                $this->adyenLogger->getOrderContext($order)
+                            );
+                        }
+                    } else { //previous canceling process
+                        $this->adyenLogger->addAdyenDebug(
+                            'Unsuccessful order canceling attempt by orderManagement service, use legacy process',
+                            $this->adyenLogger->getOrderContext($order)
+                        );
+                        $order->cancel();
+                        $order->save();
+                    }
+                } else {
+                    $this->adyenLogger->addAdyenDebug(
+                        'Order can not be canceled',
+                        $this->adyenLogger->getOrderContext($order)
+                    );
+                }
+                break;
+        }
     }
 }
