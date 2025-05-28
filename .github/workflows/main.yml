@@ -62,6 +62,9 @@ jobs:
       - name: Run PHPUnit
         run: docker exec magento2-container make phpunit-run
 
+      - name: Format PHPUnit coverage reports
+        run: docker exec magento2-container make phpunit-fix-report
+
       - name: SonarCloud Scan
         if: ${{ env.SONAR_TOKEN }}
         uses: SonarSource/sonarqube-scan-action@master
