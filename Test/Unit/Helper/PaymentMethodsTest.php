@@ -391,7 +391,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             // Manual capture supported, capture mode auto
             [true, 'auto', '', 'sepadirectdebit', true, null, true],
             // Manual capture supported open invoice
-            [true, 'manual', '', 'klarna', false, null, false],
+            [true, 'manual', '', 'klarna', false, null, true],
             // Manual capture not supported
             [false, '', '', 'sepadirectdebit', true, null, true]
         ];
