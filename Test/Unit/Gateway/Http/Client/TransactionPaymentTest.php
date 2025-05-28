@@ -16,6 +16,7 @@ use Adyen\Model\Checkout\ApplicationInfo;
 use Adyen\Model\Checkout\PaymentRequest;
 use Adyen\Model\Checkout\PaymentResponse as CheckoutPaymentResponse;
 use Adyen\Payment\Api\Data\PaymentResponseInterface;
+use Adyen\Payment\Helper\PlatformInfo;
 use Adyen\Payment\Model\PaymentResponse;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Service\Checkout\PaymentsApi;
@@ -42,6 +43,7 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
     private GiftcardPayment|MockObject $giftcardPaymentHelperMock;
     private TransactionPayment $transactionPayment;
     private ApplicationInfo|MockObject $applicationInfoMock;
+    private PlatformInfo $platformInfo;
 
     protected function setUp(): void
     {
@@ -58,9 +60,10 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
         $paymentResponseMock->method('setMerchantReference')->willReturn($paymentResponseInterfaceMock);
         $this->paymentResponseFactoryMock = $this->createGeneratedMock(PaymentResponseFactory::class, ['create']);
         $this->paymentResponseFactoryMock->method('create')->willReturn($paymentResponseMock);
+        $this->platformInfo = $this->createMock(PlatformInfo::class);
 
         $this->applicationInfoMock = $this->createMock(ApplicationInfo::class);
-        $this->adyenHelperMock->method('buildApplicationInfo')->willReturn($this->applicationInfoMock);
+        $this->platformInfo->method('buildApplicationInfo')->willReturn($this->applicationInfoMock);
 
         $this->transactionPayment = new TransactionPayment(
             $this->adyenHelperMock,
@@ -69,7 +72,8 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
             $this->idempotencyHelperMock,
             $this->orderApiHelperMock,
             $this->storeManagerMock,
-            $this->giftcardPaymentHelperMock
+            $this->giftcardPaymentHelperMock,
+            $this->platformInfo
         );
     }
 
@@ -144,22 +148,26 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
         $this->assertEquals('Authorised', $response[0]['resultCode']);
     }
 
-    public function testRequestHeadersAreAddedToPaymentsCall()
+    public function testRequestHeadersAreAddedToPaymentsCall(): void
     {
-        $requestBody = new PaymentRequest(['reference' => 'ABC12345', 'amount' => ['value' => 1000], 'applicationInfo' => $this->applicationInfoMock]);
         $expectedHeaders = ['header1' => 'value1', 'header2' => 'value2'];
 
-        $transferObjectMock = $this->createConfiguredMock(TransferInterface::class, [
-            'getBody' => ['reference' => 'ABC12345', 'amount' => ['value' => 1000], 'applicationInfo' => $this->applicationInfoMock],
-            'getHeaders' => ['header1' => 'value1', 'header2' => 'value2'],
-            'getClientConfig' => []
-        ]);
-
-        $this->adyenHelperMock->expects($this->once())
+        // Set up what the mocked method should return
+        $this->platformInfo
             ->method('buildRequestHeaders')
             ->willReturn($expectedHeaders);
 
-        $actualHeaders = $this->adyenHelperMock->buildRequestHeaders();
+        $requestBody = new PaymentRequest([
+            'reference' => 'ABC12345',
+            'amount' => ['value' => 1000],
+            'applicationInfo' => $this->applicationInfoMock
+        ]);
+
+        $transferObjectMock = $this->createConfiguredMock(TransferInterface::class, [
+            'getBody' => ['reference' => 'ABC12345', 'amount' => ['value' => 1000], 'applicationInfo' => $this->applicationInfoMock],
+            'getHeaders' => $expectedHeaders,
+            'getClientConfig' => []
+        ]);
 
         $paymentResponse = new CheckoutPaymentResponse([
             'reference' => 'ABC12345',
@@ -184,8 +192,8 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
 
         $this->assertArrayHasKey('resultCode', $response[0]);
         $this->assertEquals('Authorised', $response[0]['resultCode']);
-        $this->assertEquals($expectedHeaders, $actualHeaders);
     }
+
 
     public function testProcessGiftCardsWithNoGiftCards()
     {

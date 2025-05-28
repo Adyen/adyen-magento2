@@ -80,7 +80,7 @@ class PaymentResponseHandler
         PaymentResponseCollectionFactory $paymentResponseCollectionFactory,
         Config $configHelper,
         OrderStatusHistoryRepositoryInterface $orderStatusHistoryRepository,
-        PaymentMethods $paymentMethodsHelper
+        PaymentMethods $paymentMethodsHelper,
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->vaultHelper = $vaultHelper;
@@ -322,7 +322,7 @@ class PaymentResponseHandler
                     if ($order->canCancel()) {
                         // Proceed to set cancellation action flag and cancel the order
                         $order->setActionFlag(\Magento\Sales\Model\Order::ACTION_FLAG_CANCEL, true);
-                        $this->dataHelper->cancelOrder($order);
+                        $this->orderHelper->cancelOrder($order);
                     } else {
                         $this->adyenLogger->addAdyenResult('The order cannot be cancelled');
                     }

@@ -15,14 +15,14 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Observer\SubmitQuoteObserver;
 use Adyen\Payment\Helper\PaymentResponseHandler;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Event\Observer;
 use Magento\Payment\Model\MethodInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
-use PHPUnit\Framework\TestCase;
 
-class SubmitQuoteObserverTest extends TestCase
+class SubmitQuoteObserverTest extends AbstractAdyenTestCase
 {
     private $paymentMethodsHelperMock;
     private $configHelperMock;
