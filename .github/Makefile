@@ -142,10 +142,14 @@ phpunit-run:
 	cp vendor/adyen/module-payment/Test/phpunit.xml.dist dev/tests/unit/phpunit.xml
 	cd dev/tests/unit; \
 		../../../vendor/bin/phpunit \
-		--coverage-clover=../../../build/clover.xml \
-		--log-junit=../../../build/tests-log.xml \
+		--coverage-clover=../../../build/clover.xml.dist \
+		--log-junit=../../../build/tests-log.xml.dist \
 		-c phpunit.xml \
 		../../../vendor/adyen/module-payment/Test/Unit
+
+phpunit-fix-report:
+	sed '/file/s/\/var\/www\/html\/vendor\/adyen\/module-payment\///g' ${MAGENTO_ROOT}/build/tests-log.xml.dist >> ${MAGENTO_ROOT}/build/tests-log.xml
+	sed '/file/s/\/var\/www\/html\/vendor\/adyen\/module-payment\///g' ${MAGENTO_ROOT}/build/clover.xml.dist >> ${MAGENTO_ROOT}/build/clover.xml
 
 codesniffer-run:
 	vendor/bin/phpcs --standard=Magento2 \
