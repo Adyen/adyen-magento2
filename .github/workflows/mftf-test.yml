@@ -50,6 +50,9 @@ jobs:
       - name: Install plugin without configuring it
         run: docker exec -u www-data magento2-container make install
 
+      - name: Check Magento access
+        run: curl -k https://magento2.test.com
+
       - name: Build MFTF project
         run: docker exec magento2-container make setup-mftf
 
