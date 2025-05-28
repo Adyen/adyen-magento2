@@ -348,11 +348,9 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $paymentCode,
         $autoCaptureOpenInvoice,
         $manualCapturePayPal,
-        $expectedResult,
-        $isOpenInvoicePaymentMethod
+        $expectedResult
     ) {
         $paymentMethodInstanceMock = $this->createMock(MethodInterface::class);
-        $paymentMethodInstanceMock->method('getConfigData')->with(PaymentMethods::CONFIG_FIELD_IS_OPEN_INVOICE)->willReturn($isOpenInvoicePaymentMethod);
 
         $this->orderPaymentMock->method('getMethodInstance')->willReturn($paymentMethodInstanceMock);
 
@@ -363,7 +361,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             ['capture_mode', 'adyen_abstract', '1', false, $captureMode],
             ['sepa-flow', 'adyen_abstract', '1', false, $sepaFlow],
             ['paypal_capture_mode', 'adyen_abstract', '1', false, $manualCapturePayPal],
-            [PaymentMethods::CONFIG_FIELD_IS_OPEN_INVOICE, null, null, null, $isOpenInvoicePaymentMethod]
+            [PaymentMethods::CONFIG_FIELD_IS_OPEN_INVOICE, null, null, null]
         ]);
 
         $this->configHelper->expects($this->any())
@@ -389,13 +387,13 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
     {
         return [
             // Manual capture supported, capture mode manual, sepa flow not authcap
-            [true, 'manual', 'notauthcap', 'paypal', true, null, true, false],
+            [true, 'manual', 'notauthcap', 'paypal', true, null, true],
             // Manual capture supported, capture mode auto
-            [true, 'auto', '', 'sepadirectdebit', true, null, true, false],
+            [true, 'auto', '', 'sepadirectdebit', true, null, true],
             // Manual capture supported open invoice
-            [true, 'manual', '', 'klarna', false, null, false, true],
+            [true, 'manual', '', 'klarna', false, null, false],
             // Manual capture not supported
-            [false, '', '', 'sepadirectdebit', true, null, true, false]
+            [false, '', '', 'sepadirectdebit', true, null, true]
         ];
     }
 
@@ -661,7 +659,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $this->amountCurrencyMock->method('getAmount')->willReturn($amountValue);
         $this->chargedCurrencyMock->method('getQuoteAmountCurrency')->willReturn($this->amountCurrencyMock);
         $this->localeHelper->method('getCurrentLocaleCode')->willReturn($shopperLocale);
-        $this->platformInfo->method('padShopperReference')->willReturn('123456');
+        $this->dataHelper->method('padShopperReference')->willReturn('123456');
         $this->amountCurrencyMock->method('getCurrencyCode')->willReturn('EUR');
         $expectedResult = [
             "channel" => "Web",
