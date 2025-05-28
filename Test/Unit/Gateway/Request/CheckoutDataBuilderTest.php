@@ -32,7 +32,6 @@ class CheckoutDataBuilderTest extends AbstractAdyenTestCase
     protected ChargedCurrency|MockObject $chargedCurrencyMock;
     protected Config|MockObject $configMock;
     protected PaymentMethods|MockObject $paymentMethodsHelperMock;
-    protected OpenInvoice|MockObject $openInvoiceMock;
     protected Image|MockObject $imageMock;
 
     /**
@@ -45,7 +44,6 @@ class CheckoutDataBuilderTest extends AbstractAdyenTestCase
         $this->cartRepositoryMock = $this->createMock(CartRepositoryInterface::class);
         $this->chargedCurrencyMock = $this->createMock(ChargedCurrency::class);
         $this->configMock = $this->createMock(Config::class);
-        $this->openInvoiceMock = $this->createMock(OpenInvoice::class);
         $this->imageMock = $this->createMock(Image::class);
         $this->paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
 
@@ -56,7 +54,6 @@ class CheckoutDataBuilderTest extends AbstractAdyenTestCase
             $this->chargedCurrencyMock,
             $this->configMock,
             $this->paymentMethodsHelperMock,
-            $this->openInvoiceMock,
             $this->imageMock
         );
 
