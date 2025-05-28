@@ -108,6 +108,7 @@ class PlatformInfo
     public function buildRequestHeaders($payment = null)
     {
         $magentoDetails = $this->getMagentoDetails();
+
         $headers = [
             HeaderDataBuilderInterface::EXTERNAL_PLATFORM_NAME => $magentoDetails['name'],
             HeaderDataBuilderInterface::EXTERNAL_PLATFORM_VERSION => $magentoDetails['version'],
@@ -132,14 +133,5 @@ class PlatformInfo
         }
 
         return $headers;
-    }
-
-    /**
-     * @param string $shopperReference
-     * @return string
-     */
-    public function padShopperReference(string $shopperReference): string
-    {
-        return str_pad($shopperReference, 3, '0', STR_PAD_LEFT);
     }
 }

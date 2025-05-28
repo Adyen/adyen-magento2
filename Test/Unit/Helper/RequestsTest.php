@@ -8,6 +8,8 @@ use Adyen\Payment\Helper\Address;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Locale;
+use Adyen\Payment\Helper\PlatformInfo;
 use Adyen\Payment\Helper\Requests;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Vault;
@@ -30,6 +32,8 @@ class RequestsTest extends AbstractAdyenTestCase
     private Http $request;
     private ChargedCurrency $chargedCurrency;
     private PaymentMethods $paymentMethodsHelper;
+    private Locale $localeHelper;
+    private PlatformInfo $platformInfo;
 
     protected function setUp(): void
     {
@@ -41,6 +45,8 @@ class RequestsTest extends AbstractAdyenTestCase
         $this->request = $this->createMock(Http::class);
         $this->chargedCurrency = $this->createMock(ChargedCurrency::class);
         $this->paymentMethodsHelper = $this->createMock(PaymentMethods::class);
+        $this->localeHelper = $this->createMock(Locale::class);
+        $this->platformInfo = $this->createMock(PlatformInfo::class);
 
         $this->requests = new Requests(
             $this->adyenHelper,
@@ -49,9 +55,10 @@ class RequestsTest extends AbstractAdyenTestCase
             $this->stateData,
             $this->vaultHelper,
             $this->request,
-            $this->adyenHelper, // passed twice (as $dataHelper too)
             $this->chargedCurrency,
-            $this->paymentMethodsHelper
+            $this->paymentMethodsHelper,
+            $this->platformInfo,
+            $this->localeHelper
         );
     }
 
@@ -150,7 +157,7 @@ class RequestsTest extends AbstractAdyenTestCase
             ])
         );
 
-        $this->adyenHelper->method('getStoreLocale')->willReturn('nl_NL');
+        $this->localeHelper->method('getStoreLocale')->willReturn('nl_NL');
         $this->adyenHelper->method('padShopperReference')->willReturn('user_1');
         $this->addressHelper->method('getAdyenCountryCode')->willReturn('NL');
 

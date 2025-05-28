@@ -1,94 +1,138 @@
 <?php
-/**
- *
- * Adyen Payment module (https://www.adyen.com/)
- *
- * Copyright (c) 2025 Adyen N.V. (https://www.adyen.com/)
- * See LICENSE.txt for license details.
- *
- * Author: Adyen <magento@adyen.com>
- */
 
-namespace Adyen\Payment\Test\Block\Form;
+declare(strict_types=1);
+
+namespace Adyen\Payment\Test\Unit\Block\Form;
 
 use Adyen\Payment\Block\Form\Moto;
-use Adyen\Payment\Helper\Config as AdyenConfig;
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Installments;
+use Adyen\Payment\Helper\Locale;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Backend\Model\Session\Quote;
 use Magento\Checkout\Model\Session;
+use Magento\Framework\App\State;
+use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Framework\View\Element\Template\Context;
 use Magento\Payment\Model\Config as PaymentConfig;
-use Magento\Quote\Model\Quote as QuoteModel;
-use Magento\Sales\Api\Data\OrderAddressInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
+use Magento\Quote\Model\Quote as QuoteModel;
+use Magento\Store\Model\Store;
 
-class MotoTest extends TestCase
+#[CoversClass(Moto::class)]
+class MotoTest extends AbstractAdyenTestCase
 {
-    protected ?Moto $motoFormBlock;
-    protected Context|MockObject $contextMock;
-    protected PaymentConfig|MockObject $paymentConfigMock;
-    protected Data|MockObject $adyenHelperMock;
-    protected Session|MockObject $checkoutSessionMock;
-    protected Installments|MockObject $installmentsHelperMock;
-    protected AdyenLogger|MockObject $adyenLoggerMock;
-    protected AdyenConfig|MockObject $adyenConfigMock;
-    protected Quote|MockObject $backendSessionMock;
+    private Moto $motoBlock;
 
-    /**
-     * @return void
-     */
+    private MockObject $adyenHelper;
+    private MockObject $checkoutSession;
+    private MockObject $installmentsHelper;
+    private MockObject $adyenLogger;
+    private MockObject $configHelper;
+    private MockObject $backendSession;
+    private MockObject $localeHelper;
+    private MockObject $storeManager;
+    private MockObject $quote;
+
     protected function setUp(): void
     {
-        $this->contextMock = $this->createMock(Context::class);
-        $this->paymentConfigMock = $this->createMock(PaymentConfig::class);
-        $this->adyenHelperMock = $this->createMock(Data::class);
-        $this->checkoutSessionMock = $this->createMock(Session::class);
-        $this->installmentsHelperMock = $this->createMock(Installments::class);
-        $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
-        $this->adyenConfigMock = $this->createMock(AdyenConfig::class);
-        $this->backendSessionMock = $this->createMock(Quote::class);
+        $context = $this->createMock(Context::class);
+        $paymentConfig = $this->createMock(PaymentConfig::class);
+        $this->adyenHelper = $this->createMock(Data::class);
+        $this->checkoutSession = $this->createMock(Session::class);
+        $this->installmentsHelper = $this->createMock(Installments::class);
+        $this->adyenLogger = $this->createMock(AdyenLogger::class);
+        $this->configHelper = $this->createMock(Config::class);
+        $this->backendSession = $this->createMock(Quote::class);
+        $this->localeHelper = $this->createMock(Locale::class);
+        $appState = $this->createMock(State::class);
+        $this->quote = $this->createMock(QuoteModel::class);
+        $store = $this->createMock(Store::class);
 
-        $this->motoFormBlock = new Moto(
-            $this->contextMock,
-            $this->paymentConfigMock,
-            $this->adyenHelperMock,
-            $this->checkoutSessionMock,
-            $this->installmentsHelperMock,
-            $this->adyenLoggerMock,
-            $this->adyenConfigMock,
-            $this->backendSessionMock
+        $this->storeManager = $this->createMock(\Magento\Store\Model\StoreManagerInterface::class);
+        $context->method('getAppState')->willReturn($appState);
+        $context->method('getStoreManager')->willReturn($this->storeManager);
+
+        $this->checkoutSession->method('getQuote')->willReturn($this->quote);
+        $this->backendSession->method('getQuote')->willReturn($this->quote);
+        $this->quote->method('getStore')->willReturn($store);
+        $store->method('getId')->willReturn(1);
+
+        $this->motoBlock = new Moto(
+            $context,
+            $paymentConfig,
+            $this->adyenHelper,
+            $this->checkoutSession,
+            $this->installmentsHelper,
+            $this->adyenLogger,
+            $this->configHelper,
+            $this->backendSession,
+            $this->localeHelper
         );
+
     }
 
-    /**
-     * @return void
-     */
-    protected function tearDown(): void
+    #[Test]
+    public function testGetCheckoutEnvironment(): void
     {
-        $this->motoFormBlock = null;
+        $this->adyenHelper->expects(self::once())
+            ->method('getCheckoutEnvironment')
+            ->with(1)
+            ->willReturn('test');
+
+        $this->assertSame('test', $this->motoBlock->getCheckoutEnvironment());
     }
 
-    /**
-     * @return void
-     */
-    public function testGetCountryId()
+    #[Test]
+    public function testGetLocale(): void
     {
-        $countryId = "NL";
+        $this->localeHelper->expects(self::once())
+            ->method('getStoreLocale')
+            ->with(1)
+            ->willReturn('en_US');
 
-        $billingAddressMock = $this->createMock(OrderAddressInterface::class);
-        $billingAddressMock->method('getCountryId')->willReturn($countryId);
-
-        $quoteModelMock = $this->createMock(QuoteModel::class);
-        $quoteModelMock->method('getBillingAddress')->willReturn($billingAddressMock);
-
-        $this->backendSessionMock->method('getQuote')->willReturn($quoteModelMock);
-
-        $this->assertEquals(
-            $countryId,
-            $this->motoFormBlock->getCountryId()
-        );
+        $this->assertSame('en_US', $this->motoBlock->getLocale());
     }
+
+    #[Test]
+    public function testGetCcAvailableTypesByAlt(): void
+    {
+        $this->adyenHelper->method('getAdyenCcTypes')->willReturn([
+            'visa' => ['code_alt' => 'VI'],
+            'mc' => ['code_alt' => 'MC']
+        ]);
+        $this->configHelper->method('getAdyenCcConfigData')->with('cctypes')->willReturn('visa,mc');
+
+        $expected = ['VI' => 'visa', 'MC' => 'mc'];
+        $this->assertSame($expected, $this->motoBlock->getCcAvailableTypesByAlt());
+    }
+
+    #[Test]
+    public function testGetFormattedInstallmentsReturnsData(): void
+    {
+        $quoteData = ['grand_total' => 100];
+        $this->quote->method('getData')->willReturn($quoteData);
+        $this->storeManager->method('getStore')->willReturn($this->quote->getStore());
+        $this->configHelper->method('getAdyenCcConfigData')->willReturn('installments');
+        $this->adyenHelper->method('getAdyenCcTypes')->willReturn([]);
+        $this->installmentsHelper->method('formatInstallmentsConfig')->willReturn('{}');
+
+        $this->assertSame('{}', $this->motoBlock->getFormattedInstallments());
+    }
+
+    #[Test]
+    public function testGetCountryId(): void
+    {
+        $billingAddress = $this->createMock(\Magento\Quote\Model\Quote\Address::class);
+        $billingAddress->method('getCountryId')->willReturn('NL');
+
+        $this->quote->method('getBillingAddress')->willReturn($billingAddress);
+
+        $this->assertSame('NL', $this->motoBlock->getCountryId());
+    }
+
 }

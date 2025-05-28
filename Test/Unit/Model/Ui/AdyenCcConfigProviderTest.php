@@ -1,6 +1,16 @@
 <?php
 declare(strict_types=1);
 
+/**
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2024 Adyen N.V. (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+
 namespace Adyen\Payment\Model\Ui;
 
 use Adyen\Payment\Helper\Config;
@@ -21,7 +31,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
-final class AdyenCcConfigProviderTest extends AbstractAdyenTestCase
+class AdyenCcConfigProviderTest extends AbstractAdyenTestCase
 {
     private ?AdyenCcConfigProvider $adyenCcConfigProvider = null;
     private Data&MockObject $adyenHelperMock;
