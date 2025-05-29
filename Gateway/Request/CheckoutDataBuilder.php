@@ -29,6 +29,7 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
+use Magento\Catalog\Helper\Image;
 
 class CheckoutDataBuilder implements BuilderInterface
 {
@@ -47,6 +48,7 @@ class CheckoutDataBuilder implements BuilderInterface
      * @param ChargedCurrency $chargedCurrency
      * @param Config $configHelper
      * @param OpenInvoice $openInvoiceHelper
+     * @param Image $imageHelper
      */
     public function __construct(
         private readonly Data $adyenHelper,
@@ -55,7 +57,8 @@ class CheckoutDataBuilder implements BuilderInterface
         private readonly ChargedCurrency $chargedCurrency,
         private readonly Config $configHelper,
         private readonly OpenInvoice $openInvoiceHelper,
-        private readonly PaymentMethods $paymentMethodsHelper
+        private readonly PaymentMethods $paymentMethodsHelper,
+        private readonly Image $imageHelper
     ) { }
 
     /**
@@ -218,7 +221,7 @@ class CheckoutDataBuilder implements BuilderInterface
         $product = $item->getProduct();
         $imageUrl = "";
 
-        if ($image = $product->getSmallImage()) {
+        if ($product && $image = $product->getSmallImage()) {
             $imageUrl = $this->imageHelper->init($product, 'product_page_image_small')
                 ->setImageFile($image)
                 ->getUrl();
