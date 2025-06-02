@@ -515,7 +515,7 @@ class PaymentMethods extends AbstractHelper
         $params = array_merge(
             [
                 'area' => Area::AREA_FRONTEND,
-                '_secure' => $this->request->isSecure(),
+                '_secure' => $this->_request->isSecure(),
                 'theme' => $themeCode
             ],
             $params
