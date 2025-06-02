@@ -294,8 +294,8 @@ class Requests extends AbstractHelper
      */
     public function buildBrowserData(array $request = []): array
     {
-        $userAgent = $this->request->getServer('HTTP_USER_AGENT');
-        $acceptHeader = $this->request->getServer('HTTP_ACCEPT');
+        $userAgent = $this->_request->getServer('HTTP_USER_AGENT');
+        $acceptHeader = $this->_request->getServer('HTTP_ACCEPT');
 
         if (!empty($userAgent)) {
             $request['browserInfo']['userAgent'] = $userAgent;

@@ -290,7 +290,7 @@ class Data extends AbstractHelper
      */
     public function createAsset($fileId, array $params = [])
     {
-        $params = array_merge(['_secure' => $this->request->isSecure()], $params);
+        $params = array_merge(['_secure' => $this->_request->isSecure()], $params);
         return $this->assetRepo->createAsset($fileId, $params);
     }
 
