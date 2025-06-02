@@ -14,11 +14,9 @@ namespace Adyen\Payment\Helper;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Api\Repository\AdyenCreditmemoRepositoryInterface;
 use Adyen\Payment\Model\Order\Payment;
-use Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo as CreditMemoResourceModel;
 use Adyen\Payment\Model\CreditmemoFactory;
 use Adyen\Payment\Api\Data\CreditmemoInterface as AdyenCreditmemoInterface;
 use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Creditmemo as MagentoCreditMemoModel;
 use Magento\Framework\App\Helper\AbstractHelper;
@@ -35,7 +33,6 @@ class Creditmemo extends AbstractHelper
      * @param Context $context
      * @param Data $adyenDataHelper
      * @param CreditmemoFactory $adyenCreditmemoFactory
-     * @param CreditMemoResourceModel $adyenCreditmemoResourceModel
      * @param OrderPaymentResourceModel $orderPaymentResourceModel
      * @param AdyenCreditmemoRepositoryInterface $adyenCreditmemoRepository
      */
@@ -43,7 +40,6 @@ class Creditmemo extends AbstractHelper
         Context $context,
         protected Data $adyenDataHelper,
         private readonly CreditmemoFactory $adyenCreditmemoFactory,
-        private readonly CreditmemoResourceModel $adyenCreditmemoResourceModel,
         protected OrderPaymentResourceModel $orderPaymentResourceModel,
         private readonly AdyenCreditmemoRepositoryInterface $adyenCreditmemoRepository
     ) {

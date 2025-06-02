@@ -11,9 +11,7 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
-use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
-use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Model\Config\Source\ThreeDSFlow;
@@ -26,8 +24,6 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
-use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
 
 class CheckoutDataBuilder implements BuilderInterface
@@ -35,19 +31,13 @@ class CheckoutDataBuilder implements BuilderInterface
     /**
      * CheckoutDataBuilder constructor.
      *
-     * @param Data $adyenHelper
      * @param StateData $stateData
-     * @param CartRepositoryInterface $cartRepository
-     * @param ChargedCurrency $chargedCurrency
      * @param Config $configHelper
      * @param PaymentMethods $paymentMethodsHelper
      * @param Image $imageHelper
      */
     public function __construct(
-        private readonly Data $adyenHelper,
         private readonly StateData $stateData,
-        private readonly CartRepositoryInterface $cartRepository,
-        private readonly ChargedCurrency $chargedCurrency,
         private readonly Config $configHelper,
         private readonly PaymentMethods $paymentMethodsHelper,
         private readonly Image $imageHelper
