@@ -16,7 +16,6 @@ use Adyen\Client;
 use Adyen\Environment;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
 use Adyen\Service\Checkout\ModificationsApi;
 use Adyen\Service\Checkout\OrdersApi;
@@ -25,7 +24,6 @@ use Adyen\Service\Checkout\DonationsApi;
 use Adyen\Service\Checkout\PaymentsApi;
 use Adyen\Service\PosPayment;
 use Adyen\Service\RecurringApi;
-use Adyen\Payment\Helper\PlatformInfo;
 use Magento\Directory\Model\Config\Source\Country;
 use Magento\Framework\App\CacheInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -59,137 +57,44 @@ class Data extends AbstractHelper
     const LIVE_IN = 'live-in';
 
     /**
-     * @var EncryptorInterface
+     * @param Context $context
+     * @param EncryptorInterface $encryptor
+     * @param DataInterface $dataStorage
+     * @param Country $country
+     * @param ModuleListInterface $moduleList
+     * @param Repository $assetRepo
+     * @param Source $assetSource
+     * @param NotificationCollectionFactory $notificationFactory
+     * @param Config $taxConfig
+     * @param Calculation $taxCalculation
+     * @param AdyenLogger $adyenLogger
+     * @param StoreManagerInterface $storeManager
+     * @param CacheInterface $cache
+     * @param ScopeConfigInterface $config
+     * @param ConfigHelper $configHelper
+     * @param PlatformInfo $platformInfo
+     * @param RequestInterface $request
      */
-    protected $_encryptor;
-
-    /**
-     * @var DataInterface
-     */
-    protected $_dataStorage;
-
-    /**
-     * @var Country
-     */
-    protected $_country;
-
-    /**
-     * @var ModuleListInterface
-     */
-    protected $_moduleList;
-
-    /**
-     * @var Repository
-     */
-    protected $_assetRepo;
-
-    /**
-     * @var Source
-     */
-    protected $_assetSource;
-
-    /**
-     * @var NotificationCollectionFactory
-     */
-    protected $_notificationFactory;
-
-    /**
-     * @var Config
-     */
-    protected $_taxConfig;
-
-    /**
-     * @var Calculation
-     */
-    protected $_taxCalculation;
-
-    /**
-     * @var AdyenLogger
-     */
-    protected $adyenLogger;
-
-    /**
-     * @var StoreManagerInterface
-     */
-    protected $storeManager;
-
-    /**
-     * @var CacheInterface
-     */
-    protected $cache;
-
-    /**
-     * @var ScopeConfigInterface
-     */
-    private $config;
-
-    /**
-     * @var ConfigHelper
-     */
-    private $configHelper;
-
-    /**
-     * @var PlatformInfo
-     */
-    private PlatformInfo $platformInfo;
-
-    /**
-     * Request object
-     *
-     * @var RequestInterface
-     */
-    protected $_request;
-
     public function __construct(
-        Context $context,
-        EncryptorInterface $encryptor,
-        DataInterface $dataStorage,
-        Country $country,
-        ModuleListInterface $moduleList,
-        Repository $assetRepo,
-        Source $assetSource,
-        NotificationCollectionFactory $notificationFactory,
-        Config $taxConfig,
-        Calculation $taxCalculation,
-        AdyenLogger $adyenLogger,
-        StoreManagerInterface $storeManager,
-        CacheInterface $cache,
-        ScopeConfigInterface $config,
-        ConfigHelper $configHelper,
-        PlatformInfo $platformInfo,
-        RequestInterface $request,
+        protected readonly Context $context,
+        protected readonly EncryptorInterface $encryptor,
+        protected readonly DataInterface $dataStorage,
+        protected readonly Country $country,
+        protected readonly ModuleListInterface $moduleList,
+        protected readonly Repository $assetRepo,
+        protected readonly Source $assetSource,
+        protected readonly NotificationCollectionFactory $notificationFactory,
+        protected readonly Config $taxConfig,
+        protected readonly Calculation $taxCalculation,
+        protected readonly AdyenLogger $adyenLogger,
+        protected readonly StoreManagerInterface $storeManager,
+        protected readonly CacheInterface $cache,
+        private readonly ScopeConfigInterface $config,
+        private readonly ConfigHelper $configHelper,
+        private readonly PlatformInfo $platformInfo,
+        protected $request,
     ) {
         parent::__construct($context);
-        $this->_encryptor = $encryptor;
-        $this->_dataStorage = $dataStorage;
-        $this->_country = $country;
-        $this->_moduleList = $moduleList;
-        $this->_assetRepo = $assetRepo;
-        $this->_assetSource = $assetSource;
-        $this->_notificationFactory = $notificationFactory;
-        $this->_taxConfig = $taxConfig;
-        $this->_taxCalculation = $taxCalculation;
-        $this->adyenLogger = $adyenLogger;
-        $this->storeManager = $storeManager;
-        $this->cache = $cache;
-        $this->config = $config;
-        $this->configHelper = $configHelper;
-        $this->platformInfo = $platformInfo;
-        $this->_request = $request;
-    }
-
-    /**
-     * return recurring types for configuration setting
-     *
-     * @return array
-     */
-    public function getRecurringTypes()
-    {
-        return [
-            RecurringType::ONECLICK => 'ONECLICK',
-            RecurringType::ONECLICK_RECURRING => 'ONECLICK,RECURRING',
-            RecurringType::RECURRING => 'RECURRING'
-        ];
     }
 
     /**
@@ -376,7 +281,7 @@ class Data extends AbstractHelper
      */
     public function getAdyenCcTypes()
     {
-        return $this->_dataStorage->get('adyen_credit_cards');
+        return $this->dataStorage->get('adyen_credit_cards');
     }
 
     /**
@@ -389,8 +294,8 @@ class Data extends AbstractHelper
      */
     public function createAsset($fileId, array $params = [])
     {
-        $params = array_merge(['_secure' => $this->_request->isSecure()], $params);
-        return $this->_assetRepo->createAsset($fileId, $params);
+        $params = array_merge(['_secure' => $this->request->isSecure()], $params);
+        return $this->assetRepo->createAsset($fileId, $params);
     }
 
     public function getCustomerStreetLinesEnabled($storeId)
@@ -402,7 +307,7 @@ class Data extends AbstractHelper
 
     public function getUnprocessedNotifications()
     {
-        $notifications = $this->_notificationFactory->create();
+        $notifications = $this->notificationFactory->create();
         $notifications->unprocessedNotificationsFilter();
         return $notifications->getSize();
     }
@@ -419,14 +324,14 @@ class Data extends AbstractHelper
                 return null;
             }
 
-            $apiKey = $this->_encryptor->decrypt(trim((string) $encryptedApiKeyTest));
+            $apiKey = $this->encryptor->decrypt(trim((string) $encryptedApiKeyTest));
         } else {
             $encryptedApiKeyLive = $this->configHelper->getAdyenPosCloudConfigData('api_key_live', $storeId);
             if (is_null($encryptedApiKeyLive)) {
                 return null;
             }
 
-            $apiKey = $this->_encryptor->decrypt(trim((string) $encryptedApiKeyLive));
+            $apiKey = $this->encryptor->decrypt(trim((string) $encryptedApiKeyLive));
         }
         return $apiKey;
     }
@@ -540,7 +445,7 @@ class Data extends AbstractHelper
             }
 
             // Override the x-api-key and demo mode setting if MOTO merchant account is set.
-            $apiKey = $this->_encryptor->decrypt($motoMerchantAccountProperties['apikey']);
+            $apiKey = $this->encryptor->decrypt($motoMerchantAccountProperties['apikey']);
             $isDemo = $this->isMotoDemoMode($motoMerchantAccountProperties);
         }
 
@@ -662,7 +567,7 @@ class Data extends AbstractHelper
     {
         $asset = $this->createAsset(sprintf("Adyen_Payment::images/logos/%s_small.png", $variant));
 
-        if($this->_assetSource->findSource($asset)) {
+        if($this->assetSource->findSource($asset)) {
             list($width, $height) = getimagesize($asset->getSourceFile());
             $icon = ['url' => $asset->getUrl(), 'width' => $width, 'height' => $height];
         } else {
