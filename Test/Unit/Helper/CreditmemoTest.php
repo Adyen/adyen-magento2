@@ -59,7 +59,6 @@ class CreditmemoTest extends AbstractAdyenTestCase
             null,
             null,
             $adyenCreditmemoFactoryMock,
-            null,
             $orderPaymentResourceModel,
             $adyenCreditmemoRepositoryMock
         );
@@ -112,7 +111,6 @@ class CreditmemoTest extends AbstractAdyenTestCase
         ]);
 
         $creditmemoHelper = $this->createCreditmemoHelper(
-            null,
             null,
             null,
             null,
@@ -174,7 +172,6 @@ class CreditmemoTest extends AbstractAdyenTestCase
             null,
             null,
             null,
-            null,
             $adyenCreditmemoRepositoryMock
         );
 
@@ -185,7 +182,6 @@ class CreditmemoTest extends AbstractAdyenTestCase
      * @param null $context
      * @param null $adyenDataHelper
      * @param null $adyenCreditmemoFactory
-     * @param null $adyenCreditmemoResourceModel
      * @param null $orderPaymentResourceModel
      * @param null $adyenCreditmemoRepositoryMock
      * @return Creditmemo
@@ -195,7 +191,6 @@ class CreditmemoTest extends AbstractAdyenTestCase
         $context = null,
         $adyenDataHelper = null,
         $adyenCreditmemoFactory = null,
-        $adyenCreditmemoResourceModel = null,
         $orderPaymentResourceModel = null,
         $adyenCreditmemoRepositoryMock = null
     ): Creditmemo {
@@ -209,12 +204,6 @@ class CreditmemoTest extends AbstractAdyenTestCase
 
         if (is_null($adyenCreditmemoFactory)) {
             $adyenCreditmemoFactory = $this->createGeneratedMock(CreditmemoFactory::class);
-        }
-
-        if (is_null($adyenCreditmemoResourceModel)) {
-            $adyenCreditmemoResourceModel = $this->createMock(
-                CreditmemoResourceModel::class
-            );
         }
 
         if (is_null($orderPaymentResourceModel)) {
@@ -231,7 +220,6 @@ class CreditmemoTest extends AbstractAdyenTestCase
             $context,
             $adyenDataHelper,
             $adyenCreditmemoFactory,
-            $adyenCreditmemoResourceModel,
             $orderPaymentResourceModel,
             $adyenCreditmemoRepositoryMock
         );
