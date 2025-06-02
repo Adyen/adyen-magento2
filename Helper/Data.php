@@ -29,7 +29,6 @@ use Magento\Framework\App\CacheInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
-use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Config\DataInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Exception\LocalizedException;
@@ -48,7 +47,6 @@ use Magento\Tax\Model\Config;
  */
 class Data extends AbstractHelper
 {
-
     const APPLICATION_NAME = 'Magento 2 plugin';
     const TEST = 'test';
     const LIVE = 'live';
@@ -73,7 +71,6 @@ class Data extends AbstractHelper
      * @param ScopeConfigInterface $config
      * @param ConfigHelper $configHelper
      * @param PlatformInfo $platformInfo
-     * @param RequestInterface $request
      */
     public function __construct(
         protected readonly Context $context,
@@ -91,8 +88,7 @@ class Data extends AbstractHelper
         protected readonly CacheInterface $cache,
         private readonly ScopeConfigInterface $config,
         private readonly ConfigHelper $configHelper,
-        private readonly PlatformInfo $platformInfo,
-        protected $request,
+        private readonly PlatformInfo $platformInfo
     ) {
         parent::__construct($context);
     }
