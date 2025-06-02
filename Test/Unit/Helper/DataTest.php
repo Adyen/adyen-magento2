@@ -22,6 +22,7 @@ use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Config\DataInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Module\ModuleListInterface;
+use Magento\Framework\View\Asset\File;
 use Magento\Framework\View\Asset\Repository;
 use Magento\Framework\View\Asset\Source;
 use Magento\Store\Model\Store;
@@ -60,9 +61,8 @@ class DataTest extends AbstractAdyenTestCase
     private ConfigHelper $configHelper;
     private PlatformInfo $platformInfo;
     private Client $clientMock;
-    private AdyenConfig $adyenConfig;
     private Store $store;
-    private RequestInterface $request;
+    private RequestInterface $mockRequest;
 
     /**
      * @throws Exception
@@ -100,7 +100,8 @@ class DataTest extends AbstractAdyenTestCase
         $this->configHelper = $this->createMock(ConfigHelper::class);
         $this->platformInfo = $this->createMock(PlatformInfo::class);
         $this->store = $this->createMock(Store::class);
-        $this->request = $this->createMock(RequestInterface::class);
+        $this->mockRequest = $this->createMock(RequestInterface::class);
+        $this->context->method('getRequest')->willReturn($this->mockRequest);
 
         $this->dataHelper = new Data(
             $this->context,
@@ -118,8 +119,7 @@ class DataTest extends AbstractAdyenTestCase
             $this->cache,
             $this->scopeConfig,
             $this->configHelper,
-            $this->platformInfo,
-            $this->request
+            $this->platformInfo
         );
     }
 
@@ -796,16 +796,7 @@ class DataTest extends AbstractAdyenTestCase
     public function testCreateAsset(): void
     {
         $fileId = 'Adyen_Payment::images/logos/adyen_vi.png';
-        $mockAsset = $this->createMock(\Magento\Framework\View\Asset\File::class);
-
-        // Mock request
-        $mockRequest = $this->createMock(\Magento\Framework\App\RequestInterface::class);
-        $mockRequest->method('isSecure')->willReturn(true);
-
-        // Context returns mocked request
-        $this->context
-            ->method('getRequest')
-            ->willReturn($mockRequest);
+        $mockAsset = $this->createMock(File::class);
 
         $this->assetRepo
             ->expects(self::once())
