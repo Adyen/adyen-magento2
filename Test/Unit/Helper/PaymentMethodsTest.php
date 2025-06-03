@@ -35,6 +35,7 @@ use ReflectionMethod;
 class PaymentMethodsTest extends AbstractAdyenTestCase
 {
     private PaymentMethods $helper;
+
     private MockObject $dataHelper;
     private MockObject $configHelper;
     private MockObject $magentoDataHelper;
@@ -89,10 +90,8 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             $this->createMock(CartRepositoryInterface::class),
             $this->config,
             $this->dataHelper,
-            $this->createMock(ResolverInterface::class),
             $this->createMock(AdyenLogger::class),
             $this->repositoryMock,
-            $this->createMock(RequestInterface::class),
             $this->sourceMock,
             $this->createMock(DesignInterface::class),
             $this->createMock(ThemeProviderInterface::class),
@@ -102,8 +101,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             $this->serializer,
             $this->paymentTokenRepositoryInterface,
             $this->searchCriteriaBuilder,
-            $this->localeHelper,
-            $this->platformInfo
+            $this->localeHelper
         );
     }
 
@@ -509,23 +507,20 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $helper = new PaymentMethods(
             $this->createMock(Context::class),
             $this->createMock(CartRepositoryInterface::class),
-            $this->createMock(ScopeConfigInterface::class),
+            $this->config,
             $this->dataHelper,
-            $this->createMock(ResolverInterface::class),
             $this->createMock(AdyenLogger::class),
             $this->repositoryMock,
-            $this->createMock(RequestInterface::class),
             $this->sourceMock,
             $this->createMock(DesignInterface::class),
             $this->createMock(ThemeProviderInterface::class),
-            $this->createMock(ChargedCurrency::class),
+            $this->chargedCurrencyMock,
             $this->configHelper,
             $this->magentoDataHelper,
             $this->serializer,
             $this->paymentTokenRepositoryInterface,
             $this->searchCriteriaBuilder,
-            $this->createMock(Locale::class),
-            $this->createMock(PlatformInfo::class)
+            $this->localeHelper
         );
 
         $responseData = [

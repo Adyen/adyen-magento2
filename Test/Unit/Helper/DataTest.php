@@ -9,7 +9,6 @@ use Adyen\Client;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\Notification\Collection;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory;
 use Adyen\Payment\Helper\PlatformInfo;
@@ -22,8 +21,8 @@ use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Config\DataInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Module\ModuleListInterface;
+use Magento\Framework\View\Asset\File;
 use Magento\Framework\View\Asset\Repository;
 use Magento\Framework\View\Asset\Source;
 use Magento\Store\Model\Store;
@@ -32,7 +31,6 @@ use Magento\Tax\Model\Calculation;
 use Magento\Tax\Model\Config;
 use PHPUnit\Framework\Attributes\Test;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
-use Magento\Store\Api\Data\StoreInterface;
 use PHPUnit\Framework\MockObject\Exception;
 use Magento\Store\Model\ScopeInterface;
 use Adyen\Config as AdyenConfig;
@@ -63,9 +61,8 @@ class DataTest extends AbstractAdyenTestCase
     private ConfigHelper $configHelper;
     private PlatformInfo $platformInfo;
     private Client $clientMock;
-    private AdyenConfig $adyenConfig;
     private Store $store;
-    private RequestInterface $request;
+    private RequestInterface $mockRequest;
 
     /**
      * @throws Exception
@@ -103,7 +100,8 @@ class DataTest extends AbstractAdyenTestCase
         $this->configHelper = $this->createMock(ConfigHelper::class);
         $this->platformInfo = $this->createMock(PlatformInfo::class);
         $this->store = $this->createMock(Store::class);
-        $this->request = $this->createMock(RequestInterface::class);
+        $this->mockRequest = $this->createMock(RequestInterface::class);
+        $this->context->method('getRequest')->willReturn($this->mockRequest);
 
         $this->dataHelper = new Data(
             $this->context,
@@ -121,21 +119,8 @@ class DataTest extends AbstractAdyenTestCase
             $this->cache,
             $this->scopeConfig,
             $this->configHelper,
-            $this->platformInfo,
-            $this->request
+            $this->platformInfo
         );
-    }
-
-    #[Test]
-    public function testGetRecurringTypes(): void
-    {
-        $expected = [
-            RecurringType::ONECLICK => 'ONECLICK',
-            RecurringType::ONECLICK_RECURRING => 'ONECLICK,RECURRING',
-            RecurringType::RECURRING => 'RECURRING',
-        ];
-
-        self::assertSame($expected, $this->dataHelper->getRecurringTypes());
     }
 
     #[Test]
@@ -811,16 +796,7 @@ class DataTest extends AbstractAdyenTestCase
     public function testCreateAsset(): void
     {
         $fileId = 'Adyen_Payment::images/logos/adyen_vi.png';
-        $mockAsset = $this->createMock(\Magento\Framework\View\Asset\File::class);
-
-        // Mock request
-        $mockRequest = $this->createMock(\Magento\Framework\App\RequestInterface::class);
-        $mockRequest->method('isSecure')->willReturn(true);
-
-        // Context returns mocked request
-        $this->context
-            ->method('getRequest')
-            ->willReturn($mockRequest);
+        $mockAsset = $this->createMock(File::class);
 
         $this->assetRepo
             ->expects(self::once())

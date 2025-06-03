@@ -1477,7 +1477,6 @@
     <type name="Adyen\Payment\Helper\Data">
         <arguments>
             <argument name="dataStorage" xsi:type="object">adyenPaymentConfigDataStorage</argument>
-            <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
     </type>
     <type name="Adyen\Payment\Model\Config\Backend\Installments">

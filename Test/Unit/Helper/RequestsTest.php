@@ -15,7 +15,9 @@ use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\Request\Http;
+use Magento\Framework\App\RequestInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
@@ -33,7 +35,7 @@ class RequestsTest extends AbstractAdyenTestCase
     private ChargedCurrency $chargedCurrency;
     private PaymentMethods $paymentMethodsHelper;
     private Locale $localeHelper;
-    private PlatformInfo $platformInfo;
+    private Context $context;
 
     protected function setUp(): void
     {
@@ -46,18 +48,18 @@ class RequestsTest extends AbstractAdyenTestCase
         $this->chargedCurrency = $this->createMock(ChargedCurrency::class);
         $this->paymentMethodsHelper = $this->createMock(PaymentMethods::class);
         $this->localeHelper = $this->createMock(Locale::class);
-        $this->platformInfo = $this->createMock(PlatformInfo::class);
+        $this->context = $this->createMock(Context::class);
+        $this->context->method('getRequest')->willReturn($this->request);
 
         $this->requests = new Requests(
+            $this->context,
             $this->adyenHelper,
             $this->adyenConfig,
             $this->addressHelper,
             $this->stateData,
             $this->vaultHelper,
-            $this->request,
             $this->chargedCurrency,
             $this->paymentMethodsHelper,
-            $this->platformInfo,
             $this->localeHelper
         );
     }
