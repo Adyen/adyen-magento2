@@ -14,6 +14,7 @@ namespace Adyen\Payment\Logger\Handler;
 use Magento\Framework\Logger\Handler\Base;
 use Monolog\Formatter\LineFormatter;
 use Magento\Framework\Filesystem\DriverInterface;
+use Monolog\LogRecord;
 
 class AdyenBase extends Base
 {
@@ -43,7 +44,7 @@ class AdyenBase extends Base
      *
      * {@inheritdoc}
      */
-    public function isHandling(array $record): bool
+    public function isHandling(LogRecord $record): bool
     {
         return $record['level'] == $this->level;
     }

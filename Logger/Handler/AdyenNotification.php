@@ -13,6 +13,7 @@ namespace Adyen\Payment\Logger\Handler;
 
 use Monolog\Logger;
 use Adyen\Payment\Logger\AdyenLogger;
+use Monolog\Level;
 
 class AdyenNotification extends AdyenBase
 {
@@ -24,7 +25,7 @@ class AdyenNotification extends AdyenBase
     /**
      * @var int
      */
-    protected $loggerType = AdyenLogger::ADYEN_NOTIFICATION;
+    protected $loggerType = Level::Notice;
 
-    protected $level = AdyenLogger::ADYEN_NOTIFICATION;
+    protected Level $level = Level::Notice;
 }

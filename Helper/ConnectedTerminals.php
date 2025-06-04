@@ -31,7 +31,7 @@ class ConnectedTerminals
         $this->adyenLogger = $adyenLogger;
     }
 
-    public function getConnectedTerminals(int $storeId = null): array
+    public function getConnectedTerminals(?int $storeId = null): array
     {
         if (!isset($storeId)) {
             $storeId = $this->session->getQuote()->getStoreId();

@@ -30,8 +30,8 @@ class PaymentMethodsStatus extends Value
         ScopeConfigInterface $config,
         TypeListInterface $cacheTypeList,
         PaymentMethods $paymentMethodsHelper,
-        AbstractResource $resource = null,
-        AbstractDb $resourceCollection = null,
+        ?AbstractResource $resource = null,
+        ?AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         $this->paymentMethodsHelper = $paymentMethodsHelper;

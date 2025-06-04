@@ -61,8 +61,8 @@ class WebhookCredentials extends Value
         ManagementHelper $managementApiHelper,
         Config $configHelper,
         UrlInterface $url,
-        AbstractResource $resource = null,
-        AbstractDb $resourceCollection = null,
+        ?AbstractResource $resource = null,
+        ?AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         $this->managementApiHelper = $managementApiHelper;

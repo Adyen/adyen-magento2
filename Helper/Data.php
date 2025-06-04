@@ -1442,7 +1442,7 @@ class Data extends AbstractHelper
      * @throws NoSuchEntityException
      * @deprecared use `initializePaymentsApi`, or `initializeModificationsApi` based on your case
      */
-    public function createAdyenCheckoutService(Client $client = null): Checkout
+    public function createAdyenCheckoutService(?Client $client = null): Checkout
     {
         if (!$client) {
             $client = $this->initializeAdyenClient();

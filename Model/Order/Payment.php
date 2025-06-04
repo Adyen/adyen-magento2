@@ -34,8 +34,8 @@ class Payment extends AbstractModel implements OrderPaymentInterface
         Registry $registry,
         PricingData $pricingData,
         MagentoPaymentRepository $magentoPaymentRepository,
-        AbstractResource $resource = null,
-        AbstractDb $resourceCollection = null,
+        ?AbstractResource $resource = null,
+        ?AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         $this->magentoPaymentRepository = $magentoPaymentRepository;

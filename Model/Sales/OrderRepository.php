@@ -40,12 +40,12 @@ class OrderRepository extends SalesOrderRepository
         SortOrderBuilder $sortOrderBuilder,
         Metadata $metadata,
         SearchResultFactory $searchResultFactory,
-        CollectionProcessorInterface $collectionProcessor = null,
-        OrderExtensionFactory $orderExtensionFactory = null,
-        OrderTaxManagementInterface $orderTaxManagement = null,
-        PaymentAdditionalInfoInterfaceFactory $paymentAdditionalInfoFactory = null,
-        JsonSerializer $serializer = null,
-        JoinProcessorInterface $extensionAttributesJoinProcessor = null
+        ?CollectionProcessorInterface $collectionProcessor = null,
+        ?OrderExtensionFactory $orderExtensionFactory = null,
+        ?OrderTaxManagementInterface $orderTaxManagement = null,
+        ?PaymentAdditionalInfoInterfaceFactory $paymentAdditionalInfoFactory = null,
+        ?JsonSerializer $serializer = null,
+        ?JoinProcessorInterface $extensionAttributesJoinProcessor = null
     ) {
         parent::__construct(
             $metadata,

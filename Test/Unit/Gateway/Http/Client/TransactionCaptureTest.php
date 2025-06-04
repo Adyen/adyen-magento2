@@ -53,7 +53,7 @@ class TransactionCaptureTest extends AbstractAdyenTestCase
         ]);
     }
 
-    private function configureAdyenMocks(array $response = null, \Exception $exception = null): void
+    private function configureAdyenMocks(?array $response = null, ?\Exception $exception = null): void
     {
         $adyenClient = $this->createMock(Client::class);
         $checkoutModificationsService = $this->createMock(Checkout\ModificationsApi::class);
