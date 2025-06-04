@@ -48,6 +48,7 @@ jobs:
       ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
       DONATION_ACCOUNT: ${{secrets.DONATION_ACCOUNT}}
       DEPLOY_SAMPLEDATA: 1
+      USE_SSL: 1
     steps:
       # Define variables for the test case
       - run: echo "IS_RELEASE=${{ contains(github.event.pull_request.title, 'Release v9.') && 'TRUE' || 'FALSE' }}" >> $GITHUB_ENV
