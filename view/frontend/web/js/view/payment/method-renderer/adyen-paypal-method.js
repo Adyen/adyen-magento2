@@ -73,7 +73,7 @@ define(
                     }
                 }
 
-                return paypalConfiguration
+                return paypalConfiguration;
             },
             renderActionComponent: function(resultCode, action, component) {
                 fullScreenLoader.stopLoader();

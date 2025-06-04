@@ -39,12 +39,12 @@ define(
         paymentComponentStates
     ) {
         'use strict';
-        let popupModal;
 
         return Component.extend({
             placeOrderButtonVisible: true,
             checkoutComponent: null,
             paymentComponent: null,
+            popupModal: null,
             defaults: {
                 template: 'Adyen_Payment/payment/pm-form',
                 orderId: null,
