@@ -50,6 +50,7 @@ services:
       ADYEN_CLIENT_KEY:
       PHP_VERSION:
       MAGENTO_VERSION:
+      USE_SSL:
     depends_on:
       - db
       - opensearch

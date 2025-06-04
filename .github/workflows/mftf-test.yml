@@ -29,6 +29,7 @@ jobs:
       ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
       ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
       ADMIN_URLEXT: admin
+      USE_SSL: 0
     steps:
       - uses: actions/checkout@v3
         with:
