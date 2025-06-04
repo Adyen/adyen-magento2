@@ -22,15 +22,12 @@ use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Ui\Adminhtml\AdyenMotoConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
-use Adyen\Payment\Helper\PlatformInfo;
 use Magento\Framework\App\Area;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
-use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\View\Asset\Repository;
 use Magento\Framework\View\Asset\Source;
@@ -86,110 +83,15 @@ class PaymentMethods extends AbstractHelper
         self::ADYEN_BOLETO
     ];
 
-    /**
-     * @var CartRepositoryInterface
-     */
-    protected CartRepositoryInterface $quoteRepository;
-
-    /**
-     * @var ScopeConfigInterface
-     */
-    protected ScopeConfigInterface $config;
-
-    /**
-     * @var Data
-     */
-    protected Data $adyenHelper;
-
-    /**
-     * @var MagentoDataHelper
-     */
-    private MagentoDataHelper $dataHelper;
-
-    /**
-     * @var ResolverInterface
-     */
-    protected ResolverInterface $localeResolver;
-
-    /**
-     * @var AdyenLogger
-     */
-    protected AdyenLogger $adyenLogger;
-
-    /**
-     * @var Repository
-     */
-    protected Repository $assetRepo;
-
-    /**
-     * @var RequestInterface
-     */
-    protected RequestInterface $request;
-
-    /**
-     * @var Source
-     */
-    protected Source $assetSource;
-
-    /**
-     * @var DesignInterface
-     */
-    protected DesignInterface $design;
-
-    /**
-     * @var ThemeProviderInterface
-     */
-    protected ThemeProviderInterface $themeProvider;
-
-    /**
-     * @var CartInterface
-     */
     protected CartInterface $quote;
-
-    /**
-     * @var ChargedCurrency
-     */
-    private ChargedCurrency $chargedCurrency;
-
-    /**
-     * @var Config
-     */
-    private Config $configHelper;
-
-    /**
-     * @var SerializerInterface
-     */
-    private SerializerInterface $serializer;
-
-    /**
-     * @var PaymentTokenRepositoryInterface
-     */
-    private PaymentTokenRepositoryInterface $paymentTokenRepository;
-
-    /**
-     * @var SearchCriteriaBuilder
-     */
-    private SearchCriteriaBuilder $searchCriteriaBuilder;
-
-    /**
-     * @var Locale
-     */
-    private Locale $localeHelper;
-
-    /**
-     * @var PlatformInfo
-     */
-    private PlatformInfo $platformInfo;
 
     /**
      * @param Context $context
      * @param CartRepositoryInterface $quoteRepository
      * @param ScopeConfigInterface $config
      * @param Data $adyenHelper
-     * @param ResolverInterface $localeResolver
      * @param AdyenLogger $adyenLogger
      * @param Repository $assetRepo
-     * @param RequestInterface $request
      * @param Source $assetSource
      * @param DesignInterface $design
      * @param ThemeProviderInterface $themeProvider
@@ -200,48 +102,26 @@ class PaymentMethods extends AbstractHelper
      * @param PaymentTokenRepositoryInterface $paymentTokenRepository
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param Locale $localeHelper
-     * @param PlatformInfo $platformInfo
      */
     public function __construct(
         Context $context,
-        CartRepositoryInterface $quoteRepository,
-        ScopeConfigInterface $config,
-        Data $adyenHelper,
-        ResolverInterface $localeResolver,
-        AdyenLogger $adyenLogger,
-        Repository $assetRepo,
-        RequestInterface $request,
-        Source $assetSource,
-        DesignInterface $design,
-        ThemeProviderInterface $themeProvider,
-        ChargedCurrency $chargedCurrency,
-        Config $configHelper,
-        MagentoDataHelper $dataHelper,
-        SerializerInterface $serializer,
-        PaymentTokenRepositoryInterface $paymentTokenRepository,
-        SearchCriteriaBuilder $searchCriteriaBuilder,
-        Locale $localeHelper,
-        PlatformInfo $platformInfo
+        protected readonly CartRepositoryInterface $quoteRepository,
+        protected readonly ScopeConfigInterface $config,
+        protected readonly Data $adyenHelper,
+        protected readonly AdyenLogger $adyenLogger,
+        protected readonly Repository $assetRepo,
+        protected readonly Source $assetSource,
+        protected readonly DesignInterface $design,
+        protected readonly ThemeProviderInterface $themeProvider,
+        protected readonly ChargedCurrency $chargedCurrency,
+        protected readonly Config $configHelper,
+        protected readonly MagentoDataHelper $dataHelper,
+        protected readonly SerializerInterface $serializer,
+        protected readonly PaymentTokenRepositoryInterface $paymentTokenRepository,
+        protected readonly SearchCriteriaBuilder $searchCriteriaBuilder,
+        protected readonly Locale $localeHelper
     ) {
         parent::__construct($context);
-        $this->quoteRepository = $quoteRepository;
-        $this->config = $config;
-        $this->adyenHelper = $adyenHelper;
-        $this->localeResolver = $localeResolver;
-        $this->adyenLogger = $adyenLogger;
-        $this->assetRepo = $assetRepo;
-        $this->request = $request;
-        $this->assetSource = $assetSource;
-        $this->design = $design;
-        $this->themeProvider = $themeProvider;
-        $this->chargedCurrency = $chargedCurrency;
-        $this->configHelper = $configHelper;
-        $this->dataHelper = $dataHelper;
-        $this->serializer = $serializer;
-        $this->paymentTokenRepository = $paymentTokenRepository;
-        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
-        $this->localeHelper = $localeHelper;
-        $this->platformInfo = $platformInfo;
     }
 
     /**
@@ -635,7 +515,7 @@ class PaymentMethods extends AbstractHelper
         $params = array_merge(
             [
                 'area' => Area::AREA_FRONTEND,
-                '_secure' => $this->request->isSecure(),
+                '_secure' => $this->_request->isSecure(),
                 'theme' => $themeCode
             ],
             $params

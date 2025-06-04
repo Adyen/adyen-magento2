@@ -42,7 +42,6 @@ class Success extends Template
     private QuoteIdToMaskedQuoteId $quoteIdToMaskedQuoteId;
     private OrderRepositoryInterface $orderRepository;
     private Locale $localeHelper;
-    /** @deprecated This property has been deprecated and will be removed on V10. */
     protected OrderFactory $orderFactory;
 
     public function __construct(

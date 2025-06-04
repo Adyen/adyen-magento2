@@ -17,9 +17,8 @@ use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Util\Uuid;
 use Magento\Framework\App\Helper\AbstractHelper;
-use Magento\Framework\App\Request\Http as Http;
+use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Exception\LocalizedException;
-use Adyen\Payment\Helper\PlatformInfo;
 use Magento\Framework\Exception\NoSuchEntityException;
 
 class Requests extends AbstractHelper
@@ -35,39 +34,18 @@ class Requests extends AbstractHelper
         'applepay' => 'scheme'
     ];
 
-    private Data $adyenHelper;
-    private Config $adyenConfig;
-    private Address $addressHelper;
-    private StateData $stateData;
-    private Vault $vaultHelper;
-    private Http $request;
-    private ChargedCurrency $chargedCurrency;
-    private PaymentMethods $paymentMethodsHelper;
-    private PlatformInfo $platformInfo;
-    private Locale $localeHelper;
-
     public function __construct(
-        Data $adyenHelper,
-        Config $adyenConfig,
-        Address $addressHelper,
-        StateData $stateData,
-        Vault $vaultHelper,
-        Http $request,
-        ChargedCurrency $chargedCurrency,
-        PaymentMethods $paymentMethodsHelper,
-        PlatformInfo $platformInfo,
-        Locale $localeHelper
+        Context $context,
+        protected readonly Data $adyenHelper,
+        protected readonly Config $adyenConfig,
+        protected readonly Address $addressHelper,
+        protected readonly StateData $stateData,
+        protected readonly Vault $vaultHelper,
+        protected readonly ChargedCurrency $chargedCurrency,
+        protected readonly PaymentMethods $paymentMethodsHelper,
+        protected readonly Locale $localeHelper
     ) {
-        $this->adyenHelper = $adyenHelper;
-        $this->adyenConfig = $adyenConfig;
-        $this->addressHelper = $addressHelper;
-        $this->stateData = $stateData;
-        $this->vaultHelper = $vaultHelper;
-        $this->request = $request;
-        $this->chargedCurrency = $chargedCurrency;
-        $this->paymentMethodsHelper = $paymentMethodsHelper;
-        $this->platformInfo = $platformInfo;
-        $this->localeHelper = $localeHelper;
+        parent::__construct($context);
     }
 
     /**
@@ -316,8 +294,8 @@ class Requests extends AbstractHelper
      */
     public function buildBrowserData(array $request = []): array
     {
-        $userAgent = $this->request->getServer('HTTP_USER_AGENT');
-        $acceptHeader = $this->request->getServer('HTTP_ACCEPT');
+        $userAgent = $this->_request->getServer('HTTP_USER_AGENT');
+        $acceptHeader = $this->_request->getServer('HTTP_ACCEPT');
 
         if (!empty($userAgent)) {
             $request['browserInfo']['userAgent'] = $userAgent;
