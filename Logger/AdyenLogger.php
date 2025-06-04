@@ -16,15 +16,10 @@ use Magento\Framework\Phrase;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Store\Model\StoreManagerInterface;
 use Monolog\Logger;
+use Monolog\Level;
 
 class AdyenLogger extends Logger
 {
-    /**
-     * Detailed debug information
-     */
-    const ADYEN_DEBUG = 101;
-    const ADYEN_NOTIFICATION = 201;
-    const ADYEN_RESULT = 202;
     /**
      * Logging levels from syslog protocol defined in RFC 5424
      * Overrule the default to add Adyen specific loggers to log into seperate files
@@ -33,10 +28,7 @@ class AdyenLogger extends Logger
      */
     protected static $levels = [
         100 => 'DEBUG',
-        101 => 'ADYEN_DEBUG',
         200 => 'INFO',
-        201 => 'ADYEN_NOTIFICATION',
-        202 => 'ADYEN_RESULT',
         250 => 'NOTICE',
         300 => 'WARNING',
         400 => 'ERROR',
@@ -73,14 +65,14 @@ class AdyenLogger extends Logger
      */
     public function addAdyenNotification($message, array $context = [])
     {
-        return $this->addRecord(static::ADYEN_NOTIFICATION, $message, $context);
+        return $this->addRecord(Level::Notice, $message, $context);
     }
 
     public function addAdyenDebug($message, array $context = [])
     {
         $storeId = $this->storeManager->getStore()->getId();
         if ($this->config->debugLogsEnabled($storeId)) {
-            return $this->addRecord(static::ADYEN_DEBUG, $message, $context);
+            return $this->addRecord(Level::Debug, $message, $context);
         }
     }
 
@@ -91,7 +83,7 @@ class AdyenLogger extends Logger
 
     public function addAdyenResult($message, array $context = [])
     {
-        return $this->addRecord(static::ADYEN_RESULT, $message, $context);
+        return $this->addRecord(Level::Debug, $message, $context);
     }
 
     /**

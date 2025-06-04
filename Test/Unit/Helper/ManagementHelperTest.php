@@ -564,12 +564,12 @@ class ManagementHelperTest extends AbstractAdyenTestCase
      * @return ManagementHelper
      */
     private function createManagementHelper(
-        StoreManager $storeManager = null,
-        EncryptorInterface $encryptor = null,
-        Data $dataHelper = null,
-        Config $configHelper = null,
-        AdyenLogger $adyenLogger = null,
-        ManagerInterface $messageManager = null
+        ?StoreManager $storeManager = null,
+        ?EncryptorInterface $encryptor = null,
+        ?Data $dataHelper = null,
+        ?Config $configHelper = null,
+        ?AdyenLogger $adyenLogger = null,
+        ?ManagerInterface $messageManager = null
     ): ManagementHelper {
 
         if (is_null($storeManager)) {

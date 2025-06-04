@@ -13,6 +13,7 @@ namespace Adyen\Payment\Logger\Handler;
 
 use Monolog\Logger;
 use Adyen\Payment\Logger\AdyenLogger;
+use Monolog\Level;
 
 class AdyenResult extends AdyenBase
 {
@@ -24,7 +25,7 @@ class AdyenResult extends AdyenBase
     /**
      * @var int
      */
-    protected $loggerType = AdyenLogger::ADYEN_RESULT;
+    protected $loggerType = Level::Debug;
 
-    protected $level = AdyenLogger::ADYEN_RESULT;
+    protected Level $level = Level::Debug;
 }

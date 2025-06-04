@@ -173,7 +173,7 @@ class Index extends Action
     /**
      * @throws LocalizedException
      */
-    private function getOrder(string $incrementId = null): Order
+    private function getOrder(?string $incrementId = null): Order
     {
         if ($incrementId !== null) {
             $order = $this->orderFactory->create()->loadByIncrementId($incrementId);

@@ -37,7 +37,7 @@ class PaymentMethodVault extends Vault
         PaymentTokenManagementInterface $tokenManagement,
         OrderPaymentExtensionInterfaceFactory $paymentExtensionFactory,
         $code,
-        Json $jsonSerializer = null
+        ?Json $jsonSerializer = null
     ) {
         parent::__construct(
             $config,

@@ -47,8 +47,8 @@ class Tokenization extends Value
         SerializerInterface $serializer,
         PaymentMethods $paymentMethodsHelper,
         Data $dataHelper,
-        AbstractResource $resource = null,
-        AbstractDb $resourceCollection = null,
+        ?AbstractResource $resource = null,
+        ?AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         $this->mathRandom = $mathRandom;
