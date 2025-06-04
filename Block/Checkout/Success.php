@@ -13,6 +13,7 @@ namespace Adyen\Payment\Block\Checkout;
 
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Locale;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Model\Ui\AdyenCheckoutSuccessConfigProvider;
 use Magento\Checkout\Model\Session as CheckoutSession;
@@ -40,7 +41,7 @@ class Success extends Template
     private AdyenCheckoutSuccessConfigProvider $configProvider;
     private QuoteIdToMaskedQuoteId $quoteIdToMaskedQuoteId;
     private OrderRepositoryInterface $orderRepository;
-    /** @deprecated This property has been deprecated and will be removed on V10. */
+    private Locale $localeHelper;
     protected OrderFactory $orderFactory;
 
     public function __construct(
@@ -55,6 +56,7 @@ class Success extends Template
         StoreManagerInterface $storeManager,
         SerializerInterface $serializerInterface,
         OrderRepositoryInterface $orderRepository,
+        Locale $localeHelper,
         array $data = []
     ) {
         parent::__construct($context, $data);
@@ -69,6 +71,7 @@ class Success extends Template
         $this->storeManager = $storeManager;
         $this->serializerInterface = $serializerInterface;
         $this->orderRepository = $orderRepository;
+        $this->localeHelper = $localeHelper;
     }
 
     /**
@@ -128,7 +131,7 @@ class Success extends Template
 
     public function getLocale()
     {
-        return $this->adyenHelper->getCurrentLocaleCode(
+        return $this->localeHelper->getCurrentLocaleCode(
             $this->storeManager->getStore()->getId()
         );
     }

@@ -12,40 +12,38 @@
 
 namespace Adyen\Payment\Ui\Component\Listing\Column;
 
-use PHPUnit\Framework\TestCase;
-use PHPUnit_Framework_MockObject_MockObject as MockObject;
-use Adyen\Payment\Ui\Component\Listing\Column\NotificationColumn;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Sales\Model\Order;
 use Magento\Backend\Helper\Data;
 use Adyen\Payment\Helper\Data as AdyenHelper;
 use Magento\Framework\View\Element\UiComponent\ContextInterface;
 use Magento\Framework\View\Element\UiComponentFactory;
 
-class NotificationColumnTest extends TestCase
+class NotificationColumnTest extends AbstractAdyenTestCase
 {
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|Order
+     * @var Order
      */
     private $orderMock;
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|Data
+     * @var Data
      */
     private $dataMock;
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|AdyenHelper
+     * @var AdyenHelper
      */
     private $adyenHelperMock;
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|ContextInterface
+     * @var ContextInterface
      */
     private $contextMock;
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|UiComponentFactory
+     * @var UiComponentFactory
      */
     private $uiComponentMock;
 

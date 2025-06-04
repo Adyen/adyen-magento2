@@ -37,9 +37,11 @@ use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\Order\Payment\Transaction;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder;
 use Magento\Sales\Model\Order\Shipment;
+use Magento\Sales\Model\Order\Status\HistoryFactory;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderStatusCollectionFactory;
 use Magento\Sales\Api\Data\TransactionInterface;
+use Magento\Sales\Model\Service\OrderService;
 
 class OrderTest extends AbstractAdyenTestCase
 {
@@ -674,6 +676,94 @@ class OrderTest extends AbstractAdyenTestCase
         $this->assertInstanceOf(OrderInterface::class, $result);
     }
 
+    public function testCancelOrderWithHoldedState()
+    {
+        $orderStatus = MagentoOrder::STATE_HOLDED;
+
+        $paymentMock = $this->createConfiguredMock(Payment::class, [
+            'getData' => 'test_value'
+        ]);
+
+        $orderMock = $this->createMock(MagentoOrder::class);
+        $orderMock->method('canHold')->willReturn(true);
+        $orderMock->expects($this->once())->method('hold')->willReturnSelf();
+        $orderMock->expects($this->once())->method('save');
+
+        $configHelper = $this->createConfiguredMock(Config::class, [
+            'getAdyenAbstractConfigData' => $orderStatus
+        ]);
+
+        $orderHelper = $this->createOrderHelper(
+            null, $configHelper, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+            $this->createMock(OrderService::class)
+        );
+
+        $orderHelper->cancelOrder($orderMock);
+    }
+
+    public function testCancelOrderWithFallbackToLegacyCancel()
+    {
+        $orderStatus = MagentoOrder::STATE_CANCELED;
+        $orderId = 456;
+
+        $orderMock = $this->createMock(MagentoOrder::class);
+        $orderMock->method('canCancel')->willReturn(true);
+        $orderMock->method('getEntityId')->willReturn($orderId);
+        $orderMock->expects($this->once())->method('cancel')->willReturnSelf();
+        $orderMock->expects($this->once())->method('save');
+
+        $paymentMock = $this->createMock(Payment::class);
+        $paymentMock->method('getMethod')->willReturn('adyen_cc');
+        $orderMock->method('getPayment')->willReturn($paymentMock);
+
+
+        $orderManagementMock = $this->createMock(OrderService::class);
+        $orderManagementMock->expects($this->once())->method('cancel')->with($orderId)->willReturn(false);
+
+        $configHelper = $this->createConfiguredMock(Config::class, [
+            'getAdyenAbstractConfigData' => $orderStatus
+        ]);
+
+        $adyenLoggerMock = $this->createMock(AdyenLogger::class);
+        $adyenLoggerMock->expects($this->once())->method('addAdyenDebug')
+            ->with($this->stringContains('Unsuccessful order canceling attempt by orderManagement service'));
+
+        $orderHelper = $this->createOrderHelper(
+            null, $configHelper, null, null, null, null, null, $adyenLoggerMock, null, null, null, null, null, null, null, null,
+            null, $orderManagementMock
+        );
+
+        $orderHelper->cancelOrder($orderMock);
+    }
+
+    public function testCancelOrderWithNonCancellableOrder()
+    {
+        $orderStatus = MagentoOrder::STATE_CANCELED;
+        $paymentMock = $this->createConfiguredMock(Payment::class, [
+            'getData' => 'test_value'
+        ]);
+
+        $orderMock = $this->createMock(MagentoOrder::class);
+        $orderMock->method('getPayment')->willReturn($paymentMock);
+        $orderMock->method('canCancel')->willReturn(false);
+        $orderMock->method('canHold')->willReturn(false);
+
+        $adyenLoggerMock = $this->createMock(AdyenLogger::class);
+        $adyenLoggerMock->expects($this->once())->method('addAdyenDebug')
+            ->with($this->stringContains('Order can not be canceled'));
+
+        $configHelper = $this->createConfiguredMock(Config::class, [
+            'getAdyenAbstractConfigData' => $orderStatus
+        ]);
+
+        $orderHelper = $this->createOrderHelper(
+            null, $configHelper, null, null, null, null, null, $adyenLoggerMock
+        );
+
+        $orderHelper->cancelOrder($orderMock);
+    }
+
+
     protected function createOrderHelper(
         $orderStatusCollectionFactory = null,
         $configHelper = null,
@@ -692,6 +782,8 @@ class OrderTest extends AbstractAdyenTestCase
         $adyenCreditmemoHelper = null,
         $statusResolver = null,
         $adyenCreditmemoRepositoryMock = null,
+        $orderManagermentMock = null,
+        $orderHistoryFactoryMock = null
     ): Order
     {
         $context = $this->createMock(Context::class);
@@ -764,6 +856,14 @@ class OrderTest extends AbstractAdyenTestCase
             $adyenCreditmemoRepositoryMock = $this->createMock(AdyenCreditmemoRepositoryInterface::class);
         }
 
+        if (is_null($orderManagermentMock)) {
+            $orderManagermentMock = $this->createMock(OrderService::class);
+        }
+
+        if (is_null($orderHistoryFactoryMock)) {
+            $orderHistoryFactoryMock = $this->createMock(HistoryFactory::class);
+        }
+
         return new Order(
             $context,
             $builder,
@@ -782,7 +882,9 @@ class OrderTest extends AbstractAdyenTestCase
             $paymentMethodsHelper,
             $adyenCreditmemoHelper,
             $statusResolver,
-            $adyenCreditmemoRepositoryMock
+            $adyenCreditmemoRepositoryMock,
+            $orderManagermentMock,
+            $orderHistoryFactoryMock
         );
     }
 }

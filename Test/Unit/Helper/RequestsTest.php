@@ -8,12 +8,16 @@ use Adyen\Payment\Helper\Address;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Locale;
+use Adyen\Payment\Helper\PlatformInfo;
 use Adyen\Payment\Helper\Requests;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\Request\Http;
+use Magento\Framework\App\RequestInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
@@ -30,6 +34,8 @@ class RequestsTest extends AbstractAdyenTestCase
     private Http $request;
     private ChargedCurrency $chargedCurrency;
     private PaymentMethods $paymentMethodsHelper;
+    private Locale $localeHelper;
+    private Context $context;
 
     protected function setUp(): void
     {
@@ -41,17 +47,20 @@ class RequestsTest extends AbstractAdyenTestCase
         $this->request = $this->createMock(Http::class);
         $this->chargedCurrency = $this->createMock(ChargedCurrency::class);
         $this->paymentMethodsHelper = $this->createMock(PaymentMethods::class);
+        $this->localeHelper = $this->createMock(Locale::class);
+        $this->context = $this->createMock(Context::class);
+        $this->context->method('getRequest')->willReturn($this->request);
 
         $this->requests = new Requests(
+            $this->context,
             $this->adyenHelper,
             $this->adyenConfig,
             $this->addressHelper,
             $this->stateData,
             $this->vaultHelper,
-            $this->request,
-            $this->adyenHelper, // passed twice (as $dataHelper too)
             $this->chargedCurrency,
-            $this->paymentMethodsHelper
+            $this->paymentMethodsHelper,
+            $this->localeHelper
         );
     }
 
@@ -150,7 +159,7 @@ class RequestsTest extends AbstractAdyenTestCase
             ])
         );
 
-        $this->adyenHelper->method('getStoreLocale')->willReturn('nl_NL');
+        $this->localeHelper->method('getStoreLocale')->willReturn('nl_NL');
         $this->adyenHelper->method('padShopperReference')->willReturn('user_1');
         $this->addressHelper->method('getAdyenCountryCode')->willReturn('NL');
 

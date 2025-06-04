@@ -12,7 +12,6 @@
 namespace Adyen\Payment\Test\Unit\Observer;
 
 use Adyen\Payment\Helper\Config;
-use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Observer\BeforeShipmentObserver;
@@ -32,7 +31,6 @@ class BeforeShipmentObserverTest extends AbstractAdyenTestCase
     private $beforeShipmentObserver;
 
     # Define constructor arguments as mocks
-    private $adyenHelperMock;
     private $configHelperMock;
     private $adyenLoggerMock;
     private $invoiceRepositoryMock;
@@ -47,7 +45,6 @@ class BeforeShipmentObserverTest extends AbstractAdyenTestCase
 
     public function setUp(): void
     {
-        $this->adyenHelperMock = $this->createMock(Data::class);
         $this->configHelperMock = $this->createMock(Config::class);
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
         $this->invoiceRepositoryMock = $this->createMock(InvoiceRepository::class);
@@ -69,7 +66,6 @@ class BeforeShipmentObserverTest extends AbstractAdyenTestCase
         $this->observerMock->method('getEvent')->willReturn($this->eventMock);
 
         $this->beforeShipmentObserver = new BeforeShipmentObserver(
-            $this->adyenHelperMock,
             $this->configHelperMock,
             $this->adyenLoggerMock,
             $this->invoiceRepositoryMock,
