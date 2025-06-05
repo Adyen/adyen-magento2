@@ -48,7 +48,8 @@ class AdyenNotificationRepository implements AdyenNotificationRepositoryInterfac
      */
     public function save(NotificationInterface $entity): NotificationInterface
     {
-        $this->resourceModel->save($entity);
+        $resource = $this->objectManager->get($this->resourceModel);
+        $resource->save($entity);
 
         return $entity;
     }
