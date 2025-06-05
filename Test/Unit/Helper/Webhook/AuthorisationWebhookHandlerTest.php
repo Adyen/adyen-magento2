@@ -2,6 +2,7 @@
 
 namespace Adyen\Payment\Test\Unit\Helper\Webhook;
 
+use Adyen\Payment\Api\CleanupAdditionalInformationInterface;
 use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Model\AdyenAmountCurrency;
@@ -380,7 +381,8 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
         $mockInvoiceHelper = null,
         $mockPaymentMethodsHelper = null,
         $mockCartRepositoryMock = null,
-        $adyenNotificationRepositoryMock = null
+        $adyenNotificationRepositoryMock = null,
+        $cleanupAdditionalInformation = null
     ): AuthorisationWebhookHandler {
         if (is_null($mockAdyenOrderPayment)) {
             $mockAdyenOrderPayment = $this->createMock(AdyenOrderPayment::class);
@@ -417,8 +419,13 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
         if (is_null($mockCartRepositoryMock)) {
             $mockCartRepositoryMock = $this->createMock(CartRepositoryInterface::class);
         }
+
         if (is_null($adyenNotificationRepositoryMock)) {
             $adyenNotificationRepositoryMock = $this->createMock(AdyenNotificationRepositoryInterface::class);
+        }
+
+        if (is_null($cleanupAdditionalInformation)) {
+            $cleanupAdditionalInformation = $this->createMock(CleanupAdditionalInformationInterface::class);
         }
 
         return new AuthorisationWebhookHandler(
@@ -431,7 +438,8 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
             $mockInvoiceHelper,
             $mockPaymentMethodsHelper,
             $mockCartRepositoryMock,
-            $adyenNotificationRepositoryMock
+            $adyenNotificationRepositoryMock,
+            $cleanupAdditionalInformation
         );
     }
 }
