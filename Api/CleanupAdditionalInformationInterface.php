@@ -18,10 +18,18 @@ interface CleanupAdditionalInformationInterface
 {
     const FIELD_ACTION = 'action';
     const FIELD_ADDITIONAL_DATA = 'additionalData';
+    const FIELD_DONATION_TOKEN = 'donationToken';
+    const FIELD_FRONTEND_TYPE = 'frontendType';
+    const FIELD_COMBO_CARD_TYPE = 'combo_card_type';
+    const FIELD_CC_TYPE = 'cc_type';
 
     const FIELDS_TO_BE_CLEANED_UP = [
         self::FIELD_ACTION,
-        self::FIELD_ADDITIONAL_DATA
+        self::FIELD_ADDITIONAL_DATA,
+        self::FIELD_DONATION_TOKEN,
+        self::FIELD_FRONTEND_TYPE,
+        self::FIELD_COMBO_CARD_TYPE,
+        self::FIELD_CC_TYPE
     ];
 
     /**
