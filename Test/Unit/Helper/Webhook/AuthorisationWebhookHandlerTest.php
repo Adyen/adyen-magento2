@@ -6,6 +6,9 @@ use Adyen\Payment\Api\CleanupAdditionalInformationInterface;
 use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Model\AdyenAmountCurrency;
+use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenCcConfigProviderTest;
+use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Payment\Helper\Webhook\AuthorisationWebhookHandler;
 use Adyen\Payment\Model\Notification;
@@ -190,12 +193,47 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
     /**
      * @throws ReflectionExceptionAlias
      */
-    public function testHandleFailedAuthorisation(): void
+    public function testHandleFailedAuthorisationAlreadyProcessed(): void
     {
         $this->orderMock->expects($this->atLeastOnce())
             ->method('getData')
             ->willReturnMap([
                 ['adyen_notification_event_code', null, 'AUTHORISATION : TRUE'],
+                ['adyen_notification_payment_captured', null, false]
+            ]);
+
+        // Create an instance of AuthorisationWebhookHandler
+        $webhookHandler = $this->createAuthorisationWebhookHandler();
+
+        $handleFailedAuthorisationMethod = $this->getPrivateMethod(
+            AuthorisationWebhookHandler::class,
+            'handleFailedAuthorisation'
+        );
+
+        // Call the private method directly and provide required parameters
+        $result = $handleFailedAuthorisationMethod->invokeArgs(
+            $webhookHandler,
+            [$this->orderMock, $this->notificationMock]
+        );
+
+        // Assert the expected behavior based on the mocked logic and result
+        $this->assertInstanceOf(Order::class, $result);
+    }
+
+    /**
+     * @throws ReflectionExceptionAlias
+     */
+    public function testHandleFailedAuthorisation(): void
+    {
+        $orderPayment = $this->createMock(Order\Payment::class);
+        $orderPayment->method('getMethod')->willReturn(AdyenCcConfigProvider::CODE);
+
+        $this->orderMock->method('getPayment')->willReturn($orderPayment);
+
+        $this->orderMock->expects($this->atLeastOnce())
+            ->method('getData')
+            ->willReturnMap([
+                ['adyen_notification_event_code', null, false],
                 ['adyen_notification_payment_captured', null, false]
             ]);
 
