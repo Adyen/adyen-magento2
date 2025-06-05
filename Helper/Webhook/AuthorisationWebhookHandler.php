@@ -12,6 +12,7 @@
 
 namespace Adyen\Payment\Helper\Webhook;
 
+use Adyen\Payment\Api\CleanupAdditionalInformationInterface;
 use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\CaseManagement;
@@ -41,6 +42,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
      * @param PaymentMethods $paymentMethodsHelper
      * @param CartRepositoryInterface $cartRepository
      * @param AdyenNotificationRepositoryInterface $notificationRepository
+     * @param CleanupAdditionalInformationInterface $cleanupAdditionalInformation
      */
     public function __construct(
         private readonly AdyenOrderPayment $adyenOrderPaymentHelper,
@@ -52,7 +54,8 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         private readonly Invoice $invoiceHelper,
         private readonly PaymentMethods $paymentMethodsHelper,
         private readonly CartRepositoryInterface $cartRepository,
-        private readonly AdyenNotificationRepositoryInterface $notificationRepository
+        private readonly AdyenNotificationRepositoryInterface $notificationRepository,
+        private readonly CleanupAdditionalInformationInterface $cleanupAdditionalInformation
     ) { }
 
     /**
@@ -113,6 +116,9 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
             // Set authorized amount in sales_order_payment
             $order->getPayment()->setAmountAuthorized($order->getGrandTotal());
             $order->getPayment()->setBaseAmountAuthorized($order->getBaseGrandTotal());
+
+            // Clean-up the data temporarily stored in `additional_information`
+            $this->cleanupAdditionalInformation->execute($order->getPayment());
         } else {
             $this->orderHelper->addWebhookStatusHistoryComment($order, $notification);
         }
@@ -185,6 +191,9 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         if (!$order->canCancel() && $this->configHelper->getNotificationsCanCancel($order->getStoreId())) {
             $order->setState(Order::STATE_NEW);
         }
+
+        // Clean-up the data temporarily stored in `additional_information`
+        $this->cleanupAdditionalInformation->execute($order->getPayment());
 
         return $this->orderHelper->holdCancelOrder($order, true);
     }
