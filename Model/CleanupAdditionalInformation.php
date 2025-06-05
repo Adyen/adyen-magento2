@@ -13,10 +13,19 @@
 namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Api\CleanupAdditionalInformationInterface;
+use Adyen\Payment\Logger\AdyenLogger;
+use Exception;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
 
 class CleanupAdditionalInformation implements CleanupAdditionalInformationInterface
 {
+    /**
+     * @param AdyenLogger $adyenLogger
+     */
+    public function __construct(
+        private readonly AdyenLogger $adyenLogger
+    ) { }
+
     /**
      * This method cleans-up the unnecessary fields in `additional_information` of OrderPayment object.
      *
@@ -25,8 +34,17 @@ class CleanupAdditionalInformation implements CleanupAdditionalInformationInterf
      */
     public function execute(OrderPaymentInterface $orderPayment): OrderPaymentInterface
     {
-        foreach (self::FIELDS_TO_BE_CLEANED_UP as $field) {
-            $orderPayment->unsAdditionalInformation($field);
+        try {
+            foreach (self::FIELDS_TO_BE_CLEANED_UP as $field) {
+                $orderPayment->unsAdditionalInformation($field);
+            }
+        } catch (Exception $e) {
+            $this->adyenLogger->error(
+                sprintf(
+                    "An error occurred while trying to cleanup additional information: %s",
+                    $e->getMessage()
+                )
+            );
         }
 
         return $orderPayment;
