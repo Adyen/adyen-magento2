@@ -15,7 +15,9 @@ jobs:
         include:
           - php-version: '8.3'
             magento-version: '2.4.8'
-    runs-on: ubuntu-latest
+    runs-on:
+      group: larger-runners
+      labels: ubuntu-latest-8-cores
     timeout-minutes: 25
     env:
       PHP_VERSION: ${{ matrix.php-version }}
@@ -27,26 +29,28 @@ jobs:
       ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
       ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
       ADMIN_URLEXT: admin
+      USE_SSL: 0
     steps:
       - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
 
-      - name: Start services
-        run: docker compose -f .github/docker-compose.yml -f .github/docker-compose.mftf.yml up -d
+      - name: Install Magento
+        run: docker compose -f .github/docker-compose.yml run --rm web make magento
 
-      # Temp solution to wait for install script to run
-      - name: Sleep for 120 seconds
-        run: sleep 120s
-        shell: bash
+      - name: Start web server in background
+        run: docker compose -f .github/docker-compose.yml up -d web
 
-      - name: Show install logs
-        run: docker logs --tail 100 magento2-container
+      - name: Start Selenium in background
+        run: docker compose -f .github/docker-compose.mftf.yml up -d
 
-      - name: Prevent cron from interfering with test execution
+      - name: Setup permissions
+        run: docker exec magento2-container make fs
+
+      - name: Kill Cron Jobs
         run: docker exec magento2-container /etc/init.d/cron stop
 
-      - name: Install plugin
+      - name: Install plugin without configuring it
         run: docker exec -u www-data magento2-container make install
 
       - name: Build MFTF project
