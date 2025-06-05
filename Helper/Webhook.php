@@ -54,8 +54,6 @@ class Webhook
         'payment_authorized' => [Order::STATE_PROCESSING]
     ];
 
-    // TODO::This property is not written but only is read. Check the usage.
-    private $boletoPaidAmount;
     private ?string $klarnaReservationNumber;
     private ?string $ratepayDescriptor;
 
@@ -355,23 +353,16 @@ class Webhook
             $klarnaReservationNumberText = "";
         }
 
-        if ($this->boletoPaidAmount != null && $this->boletoPaidAmount != "") {
-            $boletoPaidAmountText = "<br /> Paid amount: " . $this->boletoPaidAmount;
-        } else {
-            $boletoPaidAmountText = "";
-        }
-
         $type = 'Adyen HTTP Notification(s):';
         $comment = __(
             '%1 <br /> eventCode: %2 <br /> pspReference: %3 <br /> paymentMethod: %4 <br />' .
-            ' success: %5 %6 %7',
+            ' success: %5 %6',
             $type,
             $eventCode,
             $notification->getPspreference(),
             $notification->getPaymentMethod(),
             $success,
-            $klarnaReservationNumberText,
-            $boletoPaidAmountText
+            $klarnaReservationNumberText
         );
 
         // If notification is pending status and pending status is set add the status change to the comment history
@@ -471,29 +462,8 @@ class Webhook
         if (isset($additionalData['authCode'])) {
             $payment->setAdditionalInformation('adyen_auth_code', $additionalData['authCode']);
         }
-        if (isset($additionalData['cardBin'])) {
-            $payment->setAdditionalInformation('adyen_card_bin', $additionalData['cardBin']);
-        }
-        if (isset($additionalData['expiryDate'])) {
-            $payment->setAdditionalInformation('adyen_expiry_date', $additionalData['expiryDate']);
-        }
-        if (isset($additionalData['issuerCountry'])) {
-            $payment
-                ->setAdditionalInformation('adyen_issuer_country', $additionalData['issuerCountry']);
-        }
         $payment->setAdyenPspReference($notification->getPspreference());
         $payment->setAdditionalInformation('pspReference', $notification->getPspreference());
-
-        if ($this->klarnaReservationNumber != "") {
-            $payment->setAdditionalInformation(
-                'adyen_klarna_number',
-                $this->klarnaReservationNumber
-            );
-        }
-
-        if ($this->boletoPaidAmount != "") {
-            $payment->setAdditionalInformation('adyen_boleto_paid_amount', $this->boletoPaidAmount);
-        }
 
         if (!empty($this->ratepayDescriptor)) {
             $payment->setAdditionalInformation(
