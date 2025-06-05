@@ -25,7 +25,7 @@ $scriptString = <<<script
     window.isCustomerLoggedIn = window.checkoutConfig.isCustomerLoggedIn;
     window.customerData = window.checkoutConfig.customerData;
 script;
-echo $secureRenderer->renderTag('script', [], $scriptString, false);
+echo $secureRenderer->renderTag('script', [], /* @noEscape */ $scriptString, false);
 ?>
 
 <div id="checkout" data-bind="scope:'checkoutMessages'">
@@ -176,7 +176,7 @@ $scriptString = <<<script
         });
     });
 script;
-echo $secureRenderer->renderTag('script', [], $scriptString, false);
+echo $secureRenderer->renderTag('script', [], /* @noEscape */ $scriptString, false);
 
 // JS to populate billing address in JS model
 $address = $block->getAddress();
@@ -204,7 +204,7 @@ $scriptString = <<<script
         }
     );
 script;
-echo $secureRenderer->renderTag('script', [], $scriptString, false);
+echo $secureRenderer->renderTag('script', [], /* @noEscape */ $scriptString, false);
 
 $adyenMethodsJson = $block->escapeJs($block->getAdyenPaymentMethodsResponse());
 $adyenScript = <<<script
@@ -217,5 +217,5 @@ $adyenScript = <<<script
     });
 script;
 
-echo $secureRenderer->renderTag('script', [], $adyenScript, false);
+echo $secureRenderer->renderTag('script', [], /* @noEscape */ $adyenScript, false);
 ?>
