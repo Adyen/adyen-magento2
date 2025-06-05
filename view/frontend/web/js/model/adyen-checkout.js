@@ -23,7 +23,6 @@ define(
                 paymentMethodsResponse,
                 countryCode,
                 handleOnAdditionalDetails,
-                handleOnCancel = undefined,
                 handleOnSubmit = undefined,
                 handleOnError = undefined
             ) {
@@ -35,7 +34,6 @@ define(
                             environment: adyenConfiguration.getCheckoutEnvironment(),
                             paymentMethodsResponse: paymentMethodsResponse.paymentMethodsResponse,
                             onAdditionalDetails: handleOnAdditionalDetails,
-                            onCancel: handleOnCancel,
                             onSubmit: handleOnSubmit,
                             onError: handleOnError
                         }
