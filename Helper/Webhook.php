@@ -495,7 +495,7 @@ class Webhook
             $payment->setAdditionalInformation('adyen_boleto_paid_amount', $this->boletoPaidAmount);
         }
 
-        if ($this->ratepayDescriptor !== "") {
+        if (!empty($this->ratepayDescriptor)) {
             $payment->setAdditionalInformation(
                 'adyen_ratepay_descriptor',
                 $this->ratepayDescriptor
