@@ -52,5 +52,9 @@
       "magento/composer-dependency-version-audit-plugin": true,
       "dealerdirect/phpcodesniffer-composer-installer": true
     }
-  }
+  },
+    "conflict": {
+        "magento/module-csp": "==100.4.3|==100.4.4|==100.4.5"
+    }
+
 }
