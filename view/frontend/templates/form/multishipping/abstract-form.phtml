@@ -55,7 +55,8 @@ $script = <<<SCRIPT
     });
 SCRIPT;
 
-echo $secureRenderer->renderTag('script', [], /* @noEscape */ $script, false);
+/* @noEscape */
+echo $secureRenderer->renderTag('script', [], $script, false);
 ?>
 
 <!-- ko template: getTemplate() --><!-- /ko -->
