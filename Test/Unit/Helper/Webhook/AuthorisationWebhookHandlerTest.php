@@ -136,7 +136,7 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
         ]);
 
         // Create mock instances for Order and Notification
-        $paymentMock = $this->createMock(Order::class);
+        $paymentMock = $this->createMock(Order\Payment::class);
         $storeId = 1;
         $this->orderMock->method('getStoreId')->willReturn($storeId);
         $this->orderMock->method('getPayment')->willReturn($paymentMock);
