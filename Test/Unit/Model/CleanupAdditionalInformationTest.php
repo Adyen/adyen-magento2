@@ -15,6 +15,7 @@ use Adyen\Payment\Api\CleanupAdditionalInformationInterface;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\CleanupAdditionalInformation;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Exception;
 use Magento\Sales\Model\Order\Payment;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -43,11 +44,16 @@ class CleanupAdditionalInformationTest extends AbstractAdyenTestCase
     {
         $this->orderPaymentMock
             ->expects($this->exactly(count(CleanupAdditionalInformationInterface::FIELDS_TO_BE_CLEANED_UP)))
-            ->method('unsAdditionalInformation')
-            ->willReturnMap([
-                [CleanupAdditionalInformationInterface::FIELD_ADDITIONAL_DATA, $this->orderPaymentMock],
-                [CleanupAdditionalInformationInterface::FIELD_ACTION, $this->orderPaymentMock]
-            ]);
+            ->method('unsAdditionalInformation');
+
+        $result = $this->cleanupAdditionalInformation->execute($this->orderPaymentMock);
+        $this->assertInstanceOf(Payment::class, $result);
+    }
+
+    public function testExecuteThrowsException()
+    {
+        $this->orderPaymentMock->method('unsAdditionalInformation')->willThrowException(new Exception());
+        $this->adyenLoggerMock->expects($this->once())->method('error');
 
         $result = $this->cleanupAdditionalInformation->execute($this->orderPaymentMock);
         $this->assertInstanceOf(Payment::class, $result);
