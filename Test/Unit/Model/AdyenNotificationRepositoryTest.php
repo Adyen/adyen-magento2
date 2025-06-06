@@ -11,7 +11,6 @@
 
 namespace Adyen\Payment\Test\Helper\Unit\Model;
 
-use Adyen\Payment\Api\Data\CreditmemoInterface;
 use Adyen\Payment\Api\Data\NotificationInterface;
 use Adyen\Payment\Model\AdyenNotificationRepository;
 use Adyen\Payment\Model\Notification as NotificationModel;
