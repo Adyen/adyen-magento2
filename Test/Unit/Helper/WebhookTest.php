@@ -572,13 +572,12 @@ class WebhookTest extends AbstractAdyenTestCase
         $method = $reflection->getMethod('updateOrderPaymentWithAdyenAttributes');
         $method->setAccessible(true);
 
-        $paymentMock->expects($this->exactly(4))
+        $paymentMock->expects($this->exactly(3))
             ->method('setAdditionalInformation')
             ->willReturnMap([
                 ['adyen_avs_result', 'avs_result_value', $paymentMock],
                 ['adyen_cvc_result', 'cvc_result_value', $paymentMock],
-                ['pspReference', 'pspReference', $paymentMock],
-                ['adyen_ratepay_descriptor', $this->anything(), $paymentMock],
+                ['pspReference', 'pspReference', $paymentMock]
             ]);
 
         $method->invokeArgs($webhook, [$paymentMock, $notificationMock, $additionalData]);
