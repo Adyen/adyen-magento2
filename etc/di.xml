@@ -1655,6 +1655,8 @@
                 type="Adyen\Payment\Model\AdyenCreditmemoRepository" />
     <preference for="Adyen\Payment\Api\Repository\AdyenOrderPaymentRepositoryInterface"
                 type="Adyen\Payment\Model\AdyenOrderPaymentRepository" />
+    <preference for="Adyen\Payment\Api\CleanupAdditionalInformationInterface"
+                type="Adyen\Payment\Model\CleanupAdditionalInformation" />
     <type name="Magento\Vault\Api\PaymentTokenRepositoryInterface">
         <plugin name="AdyenPaymentVaultDeleteToken" type="Adyen\Payment\Plugin\PaymentVaultDeleteToken" sortOrder="10" />
     </type>
