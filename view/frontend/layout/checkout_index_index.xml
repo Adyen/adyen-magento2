@@ -356,6 +356,9 @@
                                                                         <item name="adyen_afterpaytouch_US" xsi:type="array">
                                                                             <item name="isBillingAddressRequired" xsi:type="boolean">true</item>
                                                                         </item>
+                                                                        <item name="adyen_paybybank_ais_dd" xsi:type="array">
+                                                                            <item name="isBillingAddressRequired" xsi:type="boolean">true</item>
+                                                                        </item>
                                                                     </item>
                                                                 </item>
                                                             </item>
