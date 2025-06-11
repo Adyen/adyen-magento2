@@ -101,7 +101,7 @@ class PaymentMethodInfoTest extends AbstractAdyenTestCase
                 'actionMock' => [
                     'entity' => '123456',
                     'reference' => '111 222 333',
-                    'expiresAt' => '2025-10-29T10:45:00+00:00'
+                    'expiresAt' => '2025-10-29T10:45:00'
                 ]
             ],
             [
