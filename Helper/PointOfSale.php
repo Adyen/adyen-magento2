@@ -89,7 +89,6 @@ class PointOfSale
         int $precision
     ): array {
         $formattedInstallments = [];
-
         foreach ($installments as $minAmount => $installmentsAmounts) {
             foreach ($installmentsAmounts as $installment) {
                 if ($amount >= $minAmount) {
