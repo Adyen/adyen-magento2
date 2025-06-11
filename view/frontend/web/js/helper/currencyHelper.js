@@ -47,7 +47,8 @@ define([], function () {
         },
         formatAmount: function (amount, currency) {
             let decimals = this.decimalNumbers(currency);
-            return parseInt(amount.toFixed(decimals).replace('.', ''));
+            let numericAmount = Number(amount);
+            return parseInt(numericAmount.toFixed(decimals).replace('.', ''));
         }
     };
 });

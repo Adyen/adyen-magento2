@@ -14,7 +14,6 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Model\ApplicationInfo;
 use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
-use Adyen\Payment\Helper\PlatformInfo;
 use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
@@ -90,7 +89,6 @@ class PointOfSale
         int $precision
     ): array {
         $formattedInstallments = [];
-
         foreach ($installments as $minAmount => $installmentsAmounts) {
             foreach ($installmentsAmounts as $installment) {
                 if ($amount >= $minAmount) {
