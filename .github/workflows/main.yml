@@ -1,6 +1,8 @@
 name: Main CI workflow
 
 on:
+  push:
+    branches: [main]
   pull_request:
   pull_request_target:
   workflow_dispatch:
@@ -11,6 +13,8 @@ jobs:
     environment: ${{ (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) && 'external' || 'internal' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    permissions:
+      contents: read
     strategy:
       matrix:
         php-version: [8.2,8.3]
