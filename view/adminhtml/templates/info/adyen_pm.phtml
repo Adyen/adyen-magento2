@@ -108,33 +108,24 @@ $_isDemoMode = $block->isDemoMode();
     <div>
         <table class="edit-order-table" style="text-align:left; margin-top:5px; margin-bottom:0;" aria-describedby="Multibanco Details">
             <tbody>
-            <?php if (!empty($multibancoData['comprafacil.entity'])): ?>
+            <?php if (!empty($multibancoData['entity'])): ?>
                 <tr>
                     <th scope="row"><?= $block->escapeHtml(__('Entity')); ?></th>
-                    <td><?= $block->escapeHtml($multibancoData['comprafacil.entity']); ?></td>
+                    <td><?= $block->escapeHtml($multibancoData['entity']); ?></td>
                 </tr>
             <?php endif; ?>
 
-            <?php if (!empty($multibancoData['comprafacil.reference'])): ?>
+            <?php if (!empty($multibancoData['reference'])): ?>
                 <tr>
                     <th scope="row"><?= $block->escapeHtml(__('Reference')); ?></th>
-                    <td><?= $block->escapeHtml($multibancoData['comprafacil.reference']); ?></td>
+                    <td><?= $block->escapeHtml($multibancoData['reference']); ?></td>
                 </tr>
             <?php endif; ?>
 
-            <?php if (!empty($multibancoData['comprafacil.amount'])): ?>
+            <?php if (!empty($multibancoData['expiresAt'])): ?>
                 <tr>
-                    <th scope="row"><?= $block->escapeHtml(__('Amount')); ?></th>
-                    <td><?= $block->escapeHtml($multibancoData['comprafacil.amount']); ?></td>
-                </tr>
-            <?php endif; ?>
-
-            <?php if (!empty($multibancoData['comprafacil.deadline'])): ?>
-                <tr>
-                    <th scope="row"><?= $block->escapeHtml(__('Deadline')); ?></th>
-                    <td><?= $block->escapeHtml($multibancoData['comprafacil.deadline']); ?><?= $block->escapeHtml(
-                        __('Days')
-                    ); ?></td>
+                    <th scope="row"><?= $block->escapeHtml(__('Expires at')); ?></th>
+                    <td><?= $block->escapeHtml($multibancoData['expiresAt']); ?></td>
                 </tr>
             <?php endif; ?>
             </tbody>
