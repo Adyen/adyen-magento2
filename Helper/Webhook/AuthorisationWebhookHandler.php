@@ -209,7 +209,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
     {
         $this->invoiceHelper->createInvoice($order, $notification, true);
         if ($requireFraudManualReview) {
-             $order = $this->caseManagementHelper->markCaseAsPendingReview($order, $notification->getPspreference(), true);
+            $order = $this->caseManagementHelper->markCaseAsPendingReview($order, $notification->getPspreference(), true);
         } else {
             $order = $this->orderHelper->finalizeOrder($order, $notification);
         }
