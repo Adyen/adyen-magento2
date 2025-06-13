@@ -90,8 +90,6 @@ class CheckoutResponseValidator extends AbstractValidator
         $paymentDataObjectInterface = SubjectReader::readPayment($responseSubject);
         $payment = $paymentDataObjectInterface->getPayment();
 
-        $payment->setAdditionalInformation('3dActive', false);
-
         // Handle empty result for unexpected cases
         if (empty($response['resultCode'])) {
             $this->handleEmptyResultCode($response);
