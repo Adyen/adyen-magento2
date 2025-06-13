@@ -97,7 +97,7 @@ define(
             },
 
             enablePaymentMethod: function (paymentMethodsResponse) {
-                if (this.checkBrowserCompatibility() && !!paymentMethodsResponse.paymentMethodsResponse) {
+                if (!!paymentMethodsResponse.paymentMethodsResponse) {
                     this.paymentMethod(
                         adyenPaymentService.getPaymentMethodFromResponse(
                             this.getTxVariant(),
@@ -503,10 +503,6 @@ define(
                     lastName: address.lastname,
                     telephone: address.telephone
                 };
-            },
-
-            checkBrowserCompatibility: function () {
-                return true;
             },
 
             getPaymentMethodComponent: function () {
