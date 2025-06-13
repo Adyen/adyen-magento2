@@ -3,12 +3,14 @@
 namespace Adyen\Payment\Test\Unit\Helper\Webhook;
 
 use Adyen\Payment\Helper\Webhook\CancelOrRefundWebhookHandler;
+use Adyen\Payment\Model\CleanupAdditionalInformation;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Payment\Helper\Order as OrderHelper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Webhook\PaymentStates;
 use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Quote\Api\Data\PaymentInterface;
 use Magento\Sales\Model\Order;
 
 class CancelOrRefundWebhookHandlerTest extends AbstractAdyenTestCase
@@ -32,10 +34,13 @@ class CancelOrRefundWebhookHandlerTest extends AbstractAdyenTestCase
         $notificationMock =  $this->createMock(Notification::class);
         $orderId = 123;
 
+        $paymentMock = $this->createMock(Order\Payment::class);
+
         $this->orderMock->method('getIncrementId')->willReturn($orderId);
         $this->orderMock->method('isCanceled')->willReturn(false);
         $this->orderMock->method('getState')->willReturn(Order::STATE_NEW);
         $this->orderMock->method('canCancel')->willReturn(true);
+        $this->orderMock->method('getPayment')->willReturn($paymentMock);
 
         $this->adyenLoggerMock->expects($this->once())
             ->method('addAdyenNotification')
@@ -61,11 +66,14 @@ class CancelOrRefundWebhookHandlerTest extends AbstractAdyenTestCase
         $notificationMock =  $this->createMock(Notification::class);
         $orderId = 123;
 
+        $paymentMock = $this->createMock(Order\Payment::class);
+
         $this->orderMock->method('getIncrementId')->willReturn($orderId);
         $this->orderMock->method('isCanceled')->willReturn(false);
         $this->orderMock->method('getState')->willReturn(Order::STATE_NEW);
         $this->orderMock->method('canCancel')->willReturn(false);
         $this->orderMock->method('canHold')->willReturn(false);
+        $this->orderMock->method('getPayment')->willReturn($paymentMock);
 
         $this->adyenLoggerMock->expects($this->once())
             ->method('addAdyenNotification')
@@ -116,10 +124,13 @@ class CancelOrRefundWebhookHandlerTest extends AbstractAdyenTestCase
         $notificationMock =  $this->createMock(Notification::class);
         $orderId = 123;
 
+        $paymentMock = $this->createMock(Order\Payment::class);
+
         $this->orderMock->method('getIncrementId')->willReturn($orderId);
         $this->orderMock->method('isCanceled')->willReturn(true);
         $this->orderMock->method('getState')->willReturn(Order::STATE_NEW);
         $this->orderMock->method('canCancel')->willReturn(false);
+        $this->orderMock->method('getPayment')->willReturn($paymentMock);
 
         $this->adyenLoggerMock->expects($this->once())
             ->method('addAdyenNotification')
@@ -131,7 +142,7 @@ class CancelOrRefundWebhookHandlerTest extends AbstractAdyenTestCase
                 ]
             );
 
-        $webhookHandler = $this->createCancelOrRefundWebhookHandler($this->adyenLoggerMock,null,null);
+        $webhookHandler = $this->createCancelOrRefundWebhookHandler($this->adyenLoggerMock);
 
         $transitionState = PaymentStates::STATE_CANCELLED;
 
@@ -143,7 +154,9 @@ class CancelOrRefundWebhookHandlerTest extends AbstractAdyenTestCase
     protected function createCancelOrRefundWebhookHandler(
         $mockAdyenLogger = null,
         $mockSerializer = null,
-        $mockOrderHelper = null
+        $mockOrderHelper = null,
+        $cleanupAdditionalInformation = null
+
     ): CancelOrRefundWebhookHandler
     {
         if (is_null($mockAdyenLogger)) {
@@ -155,11 +168,15 @@ class CancelOrRefundWebhookHandlerTest extends AbstractAdyenTestCase
         if (is_null($mockOrderHelper)) {
             $mockOrderHelper = $this->createMock(OrderHelper::class);
         }
+        if (is_null($cleanupAdditionalInformation)) {
+            $cleanupAdditionalInformation = $this->createMock(CleanupAdditionalInformation::class);
+        }
 
         return new CancelOrRefundWebhookHandler(
             $mockAdyenLogger,
             $mockSerializer,
-            $mockOrderHelper
+            $mockOrderHelper,
+            $cleanupAdditionalInformation
         );
     }
 

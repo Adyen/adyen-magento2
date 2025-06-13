@@ -2,6 +2,7 @@
 
 namespace Adyen\Payment\Test\Unit\Helper;
 
+use Adyen\Payment\Model\CleanupAdditionalInformation;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\Collection;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Serialize\SerializerInterface;
@@ -31,6 +32,7 @@ class OrderClosedWebhookHandlerTest extends AbstractAdyenTestCase
     private Collection $adyenOrderPaymentCollectionMock;
     private Order\Payment $adyenOrderPaymentMock;
     private OrderPaymentInterface $adyenOrderPaymentInterfaceMock;
+    private CleanupAdditionalInformation $cleanupAdditionalInformationMock;
 
     protected function setUp(): void
     {
@@ -42,6 +44,7 @@ class OrderClosedWebhookHandlerTest extends AbstractAdyenTestCase
         $this->configHelperMock = $this->createMock(Config::class);
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
         $this->adyenOrderPaymentCollectionFactoryMock = $this->createGeneratedMock(OrderPaymentCollectionFactory::class, ['create']);
+        $this->cleanupAdditionalInformationMock = $this->createMock(CleanupAdditionalInformation::class);
 
         $this->adyenOrderPaymentMock = $this->createConfiguredMock(Order\Payment::class, [
             'getId' => 123
@@ -54,7 +57,8 @@ class OrderClosedWebhookHandlerTest extends AbstractAdyenTestCase
             $this->configHelperMock,
             $this->adyenOrderPaymentCollectionFactoryMock,
             $this->adyenLoggerMock,
-            $this->serializerMock
+            $this->serializerMock,
+            $this->cleanupAdditionalInformationMock
         );
     }
 
@@ -94,7 +98,7 @@ class OrderClosedWebhookHandlerTest extends AbstractAdyenTestCase
     {
         $this->notificationMock->expects($this->once())->method('isSuccessful')->willReturn(false);
 
-        $this->orderMock->expects($this->once())->method('getPayment')->willReturn(
+        $this->orderMock->expects($this->exactly(2))->method('getPayment')->willReturn(
             $this->createConfiguredMock(MagentoOrderPaymentInterface::class, ['getEntityId' => 123])
         );
 
