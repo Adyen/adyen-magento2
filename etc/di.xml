@@ -1309,7 +1309,6 @@
         <arguments>
             <argument name="handlers" xsi:type="array">
                 <item name="payments" xsi:type="string">Adyen\Payment\Gateway\Response\CheckoutPaymentsResponseHandler</item>
-                <item name="state_data" xsi:type="string">Adyen\Payment\Gateway\Response\StateDataHandler</item>
                 <item name="order_status_history" xsi:type="string">AdyenPaymentAuthorisationOrderStatusHistoryHandler</item>
             </argument>
         </arguments>
