@@ -76,7 +76,6 @@ class PaymentMethods extends AbstractHelper
         AdyenPosCloudConfigProvider::CODE,
         AdyenMotoConfigProvider::CODE
     ];
-    const ADYEN_BOLETO = 'adyen_boleto';
     const RATEPAY = 'ratepay';
     const KLARNA = 'klarna';
     const ORDER_EMAIL_REQUIRED_METHODS = [
