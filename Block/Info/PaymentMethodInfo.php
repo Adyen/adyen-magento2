@@ -58,26 +58,30 @@ class PaymentMethodInfo extends AbstractInfo
     {
         $result = [];
 
-        $payment = $this->getInfo()->getOrder()->getPayment();
-        $action = $payment->getAdditionalInformation('action');
+        if (!empty($this->getInfo()->getOrder()) &&
+            !empty($this->getInfo()->getOrder()->getPayment()) &&
+            !empty($this->getInfo()->getOrder()->getPayment()->getAdditionalInformation('action'))
+        ) {
+            $payment = $this->getInfo()->getOrder()->getPayment();
+            $action = $payment->getAdditionalInformation('action');
 
-        if (isset($action['entity'])) {
-            $result['entity'] = $action['entity'];
-        }
+            if (isset($action['entity'])) {
+                $result['entity'] = $action['entity'];
+            }
 
-        if (isset($action['reference'])) {
-            $result['reference'] = $action['reference'];
-        }
+            if (isset($action['reference'])) {
+                $result['reference'] = $action['reference'];
+            }
 
-        if (isset($action['expiresAt'])) {
-            $expiresAt = DateTime::createFromFormat('Y-m-d\TH:i:s', $action['expiresAt']);
-            if ($expiresAt) {
-                $result['expiresAt'] = $expiresAt->format('d-m-Y H:i');
-            } else {
-                $result['expiresAt'] = $action['expiresAt'];
+            if (isset($action['expiresAt'])) {
+                $expiresAt = DateTime::createFromFormat('Y-m-d\TH:i:s', $action['expiresAt']);
+                if ($expiresAt) {
+                    $result['expiresAt'] = $expiresAt->format('d-m-Y H:i');
+                } else {
+                    $result['expiresAt'] = $action['expiresAt'];
+                }
             }
         }
-
         return $result;
     }
 
