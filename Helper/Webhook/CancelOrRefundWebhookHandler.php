@@ -12,6 +12,7 @@
 
 namespace Adyen\Payment\Helper\Webhook;
 
+use Adyen\Payment\Api\CleanupAdditionalInformationInterface;
 use Adyen\Payment\Helper\CaseManagement;
 use Adyen\Payment\Helper\Order;
 use Adyen\Payment\Helper\PaymentMethods;
@@ -25,24 +26,18 @@ class CancelOrRefundWebhookHandler implements WebhookHandlerInterface
 {
     const MODIFICATION_ACTION = 'modification.action';
 
-    /** @var AdyenLogger */
-    private $adyenLogger;
-
-    /** @var SerializerInterface */
-    private $serializer;
-
-    /** @var Order */
-    private $orderHelper;
-
+    /**
+     * @param AdyenLogger $adyenLogger
+     * @param SerializerInterface $serializer
+     * @param Order $orderHelper
+     * @param CleanupAdditionalInformationInterface $cleanupAdditionalInformation
+     */
     public function __construct(
-        AdyenLogger $adyenLogger,
-        SerializerInterface $serializer,
-        Order $orderHelper
-    ) {
-        $this->adyenLogger = $adyenLogger;
-        $this->serializer = $serializer;
-        $this->orderHelper = $orderHelper;
-    }
+        private readonly AdyenLogger $adyenLogger,
+        private readonly SerializerInterface $serializer,
+        private readonly Order $orderHelper,
+        private readonly CleanupAdditionalInformationInterface $cleanupAdditionalInformation
+    ) { }
 
     /**
      * @throws LocalizedException
@@ -92,6 +87,9 @@ class CancelOrRefundWebhookHandler implements WebhookHandlerInterface
                 }
             }
         }
+
+        // Clean-up the data temporarily stored in `additional_information`
+        $this->cleanupAdditionalInformation->execute($order->getPayment());
 
         return $order;
     }
