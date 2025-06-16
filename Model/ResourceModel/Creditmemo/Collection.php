@@ -12,29 +12,17 @@
 
 namespace Adyen\Payment\Model\ResourceModel\Creditmemo;
 
-use Adyen\Payment\Model\Creditmemo;
+use Adyen\Payment\Model\Creditmemo as CreditmemoModel;
+use Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo as CreditmemoResourceModel;
 use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
 
 class Collection extends AbstractCollection
 {
-
-    public function _construct()
-    {
-        $this->_init(\Adyen\Payment\Model\Creditmemo::class, Creditmemo::class);
-    }
-
     /**
-     * Get all the adyen_creditmemo linked to a magento invoice
-     *
-     * @param int $creditMemoId
-     * @return array
+     * @return void
      */
-    public function getAdyenCreditMemosLinkedToMagentoInvoice(int $creditMemoId): array
+    public function _construct(): void
     {
-        $select = $this->getConnection()->select()
-            ->from(['adyen_creditmemo' => $this->getTable('adyen_creditmemo')])
-            ->where('adyen_creditmemo.creditmemo_id=?', $creditMemoId);
-
-        return $this->getConnection()->fetchAll($select);
+        $this->_init(CreditmemoModel::class, CreditmemoResourceModel::class);
     }
 }

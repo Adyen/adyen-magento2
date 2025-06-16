@@ -13,45 +13,28 @@ namespace Adyen\Payment\Test\Block\Form;
 
 use Adyen\Payment\Block\Form\PayByLink;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\App\Config;
 use Magento\Framework\View\Element\Template\Context;
-use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManager;
-use PHPUnit\Framework\TestCase;
 
-class PayByLinkTest extends TestCase
+class PayByLinkTest extends AbstractAdyenTestCase
 {
-    /**
-     * @var PayByLink
-     */
-    private $payByLink;
+    private PayByLink $payByLink;
 
     protected function setUp(): void
     {
-
-        $scopeConfig = $this->getMockBuilder(Config::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['getValue'])
-            ->getMock();
+        $scopeConfig = $this->createMock(Config::class);
         $scopeConfig->method('getValue')->willReturn(AdyenPayByLinkConfigProvider::MIN_EXPIRY_DAYS);
 
-        $store = $this->getMockBuilder(Store::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['getId'])
-            ->getMock();
+        $store = $this->createMock(Store::class);
         $store->method('getId')->willReturn(1);
 
-        $storeManager = $this->getMockBuilder(StoreManager::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['getStore'])
-            ->getMock();
+        $storeManager = $this->createMock(StoreManager::class);
         $storeManager->method('getStore')->willReturn($store);
 
-        $context = $this->getMockBuilder(Context::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['getScopeConfig', 'getStoreManager'])
-            ->getMock();
+        $context = $this->createMock(Context::class);
         $context->method('getScopeConfig')->willReturn($scopeConfig);
         $context->method('getStoreManager')->willReturn($storeManager);
 

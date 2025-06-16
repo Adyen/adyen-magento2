@@ -1,0 +1,28 @@
+<?php
+/**
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2025 Adyen N.V. (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+
+
+/**
+ * @var AbstractInfo $block
+ */
+
+use Adyen\Payment\Block\Info\AbstractInfo;
+
+$isDemoMode = $block->isDemoMode();
+
+?>
+
+<dt class="title"><b><?= $block->escapeHtml(__("Partial Payments")) ?></b></dt>
+<?php foreach ($block->getPartialPayments() as $payment): ?>
+    <dt class="title">
+        <?= $block->escapeHtml(sprintf("%s - %s", ucwords($payment->getPaymentMethod()), $payment->getFormattedAmountWithCurrency())) ?>
+    </dt>
+<?php endforeach; ?>

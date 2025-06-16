@@ -3,11 +3,10 @@
 namespace Adyen\Payment\Test\Comment;
 
 use Adyen\Payment\Model\Comment\ApiKeyEnding;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Encryption\Encryptor;
-use PHPUnit\Framework\TestCase;
-use PHPUnit_Framework_MockObject_MockObject as MockObject;
 
-class ApiKeyEndingTest extends TestCase
+class ApiKeyEndingTest extends AbstractAdyenTestCase
 {
     /**
      * @var ApiKeyEnding
@@ -16,7 +15,7 @@ class ApiKeyEndingTest extends TestCase
 
     public function setUp(): void
     {
-        /** @var MockObject|Encryptor $encryptor */
+        /** @var Encryptor $encryptor */
         $encryptor = $this->createMock(Encryptor::class);
         $map = [
             ['4321', '1234'],

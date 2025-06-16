@@ -11,7 +11,9 @@
 
 namespace Adyen\Payment\Test\Helper\Unit\Model;
 
+use Adyen\Payment\Api\Data\NotificationInterface;
 use Adyen\Payment\Model\AdyenNotificationRepository;
+use Adyen\Payment\Model\Notification as NotificationModel;
 use Adyen\Payment\Model\ResourceModel\Notification;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
@@ -79,5 +81,24 @@ class AdyenNotificationRepositoryTest extends AbstractAdyenTestCase
         $this->objectManagerMock->expects($this->never())->method('get');
 
         $this->adyenNotificationRepository->deleteByIds($entityIds);
+    }
+
+    public function testSave()
+    {
+        $notification = $this->createMock(NotificationModel::class);
+        $resourceModel = $this->createMock(Notification::class);
+
+        $resourceModel->expects($this->once())
+            ->method('save')
+            ->with($notification)
+            ->willReturnSelf();
+
+        $this->objectManagerMock->expects($this->once())
+            ->method('get')
+            ->with(self::RESOURCE_MODEL)
+            ->willReturn($resourceModel);
+
+        $result = $this->adyenNotificationRepository->save($notification);
+        $this->assertInstanceOf(NotificationInterface::class, $result);
     }
 }

@@ -59,6 +59,8 @@ class Config
     const XML_THREEDS_FLOW = 'threeds_flow';
     const XML_REMOVE_PROCESSED_WEBHOOKS = 'remove_processed_webhooks';
     const XML_PROCESSED_WEBHOOK_REMOVAL_TIME = 'processed_webhook_removal_time';
+    const XML_PLATFORM_INTEGRATOR = 'platform_integrator';
+    const XML_HAS_PLATFORM_INTEGRATOR = 'has_platform_integrator';
 
     protected ScopeConfigInterface $scopeConfig;
     private EncryptorInterface $encryptor;
@@ -282,16 +284,6 @@ class Config
     }
 
     /**
-     * @param $storeId
-     * @return bool|mixed
-     * @deprecated
-     */
-    public function isAlternativePaymentMethodsEnabled($storeId = null): bool
-    {
-        return $this->getConfigData('active', Config::XML_ADYEN_HPP, $storeId, true);
-    }
-
-    /**
      * Retrieve charged currency selection (base or display)
      *
      * @param null|int|string $storeId
@@ -349,53 +341,6 @@ class Config
     public function adyenGivingEnabled($storeId)
     {
         return $this->getConfigData('active', self::XML_ADYEN_GIVING_PREFIX, $storeId);
-    }
-
-    public function getAdyenGivingConfigData($storeId)
-    {
-        return [
-            'name' => $this->getAdyenGivingCharityName($storeId),
-            'description' => $this->getAdyenGivingCharityDescription($storeId),
-            'backgroundUrl' => $this->getAdyenGivingBackgroundImage($storeId),
-            'logoUrl' => $this->getAdyenGivingCharityLogo($storeId),
-            'website' => $this->getAdyenGivingCharityWebsite($storeId),
-            'donationAmounts' => $this->getAdyenGivingDonationAmounts($storeId)
-        ];
-    }
-
-    public function getAdyenGivingCharityName($storeId)
-    {
-        return $this->getConfigData('charity_name', self::XML_ADYEN_GIVING_PREFIX, $storeId);
-    }
-
-    public function getAdyenGivingCharityDescription($storeId)
-    {
-        return $this->getConfigData('charity_description', self::XML_ADYEN_GIVING_PREFIX, $storeId);
-    }
-
-    public function getAdyenGivingBackgroundImage($storeId)
-    {
-        return $this->getConfigData('background_image', self::XML_ADYEN_GIVING_PREFIX, $storeId);
-    }
-
-    public function getAdyenGivingCharityLogo($storeId)
-    {
-        return $this->getConfigData('charity_logo', self::XML_ADYEN_GIVING_PREFIX, $storeId);
-    }
-
-    public function getAdyenGivingCharityWebsite($storeId)
-    {
-        return $this->getConfigData('charity_website', self::XML_ADYEN_GIVING_PREFIX, $storeId);
-    }
-
-    public function getAdyenGivingDonationAmounts($storeId)
-    {
-        return $this->getConfigData('donation_amounts', self::XML_ADYEN_GIVING_PREFIX, $storeId);
-    }
-
-    public function getCharityMerchantAccount($storeId)
-    {
-        return $this->getConfigData('charity_merchant_account', self::XML_ADYEN_GIVING_PREFIX, $storeId);
     }
 
     /**
@@ -636,6 +581,35 @@ class Config
             Config::XML_ADYEN_CC_VAULT,
             $storeId,
             true
+        );
+    }
+
+    /**
+     * Returns true if the store is managed by a system integrator
+     *
+     * @return bool
+     */
+    public function getHasPlatformIntegrator(): bool
+    {
+        return $this->getConfigData(
+            Config::XML_HAS_PLATFORM_INTEGRATOR,
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            null,
+            true
+        );
+    }
+
+    /**
+     * Returns the name of the platform integrator
+     *
+     * @return string|null
+     */
+    public function getPlatformIntegratorName(): ?string
+    {
+        return $this->getConfigData(
+            Config::XML_PLATFORM_INTEGRATOR,
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            null
         );
     }
 

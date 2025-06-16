@@ -23,6 +23,7 @@ use Adyen\Payment\Model\PaymentResponse;
 use Adyen\Payment\Model\PaymentResponseFactory;
 use Adyen\Payment\Model\ResourceModel\PaymentResponse as PaymentResponseResourceModel;
 use Adyen\Service\Checkout\PaymentsApi;
+use Adyen\Payment\Helper\PlatformInfo;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Http\ClientInterface;
@@ -66,6 +67,11 @@ class TransactionPayment implements ClientInterface
      */
     private GiftcardPayment $giftcardPaymentHelper;
 
+    /**
+     * @var PlatformInfo
+     */
+    private PlatformInfo $platformInfo;
+
     private ?int $remainingOrderAmount;
 
     /**
@@ -76,6 +82,7 @@ class TransactionPayment implements ClientInterface
      * @param OrdersApi $orderApiHelper
      * @param StoreManagerInterface $storeManager
      * @param GiftcardPayment $giftcardPaymentHelper
+     * @param PlatformInfo $platformInfo
      */
     public function __construct(
         Data $adyenHelper,
@@ -85,6 +92,7 @@ class TransactionPayment implements ClientInterface
         OrdersApi $orderApiHelper,
         StoreManagerInterface $storeManager,
         GiftcardPayment $giftcardPaymentHelper,
+        PlatformInfo $platformInfo
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->paymentResponseFactory = $paymentResponseFactory;
@@ -93,6 +101,7 @@ class TransactionPayment implements ClientInterface
         $this->orderApiHelper = $orderApiHelper;
         $this->storeManager = $storeManager;
         $this->giftcardPaymentHelper = $giftcardPaymentHelper;
+        $this->platformInfo = $platformInfo;
         $this->remainingOrderAmount = null;
     }
 
@@ -101,7 +110,6 @@ class TransactionPayment implements ClientInterface
      * @return array
      * @throws AdyenException
      * @throws AlreadyExistsException
-     * @throws ConnectionException
      * @throws NoSuchEntityException
      */
     public function placeRequest(TransferInterface $transferObject): array
@@ -133,7 +141,7 @@ class TransactionPayment implements ClientInterface
                 }
             }
 
-            $requestData['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($client);
+            $requestData['applicationInfo'] = $this->platformInfo->buildApplicationInfo($client);
             $paymentRequest = new PaymentRequest($requestData);
 
             $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(

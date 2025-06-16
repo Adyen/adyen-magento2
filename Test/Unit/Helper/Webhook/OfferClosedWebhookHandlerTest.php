@@ -7,6 +7,7 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Order;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\CleanupAdditionalInformation;
 use Adyen\Payment\Model\Method\Adapter;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel;
@@ -102,7 +103,13 @@ class OfferClosedWebhookHandlerTest extends AbstractAdyenTestCase
         $this->orderPaymentResourceModel->method('getLinkedAdyenOrderPayments')->willReturn(['payment1', 'payment2']);
 
         // Create an instance of the OfferClosedWebhookHandler
-        $webhookHandler = $this->createOfferClosedWebhookHandler(null,null,null,null,$this->orderPaymentResourceModel);
+        $webhookHandler = $this->createOfferClosedWebhookHandler(
+            null,
+            null,
+            null,
+            null,
+            $this->orderPaymentResourceModel
+        );
 
         // Call the handleWebhook method and assert that it returns the order
         $result = $webhookHandler->handleWebhook($order, $notification, 'PAYMENT_REVIEW');
@@ -114,7 +121,8 @@ class OfferClosedWebhookHandlerTest extends AbstractAdyenTestCase
         $mockAdyenLogger = null,
         $mockConfigHelper = null,
         $mockOrderHelper = null,
-        $mockOrderPaymentResourceModel = null
+        $mockOrderPaymentResourceModel = null,
+        $cleanupAdditionalInformation = null
     ): OfferClosedWebhookHandler
     {
         if (is_null($mockOrderPaymentResourceModel)) {
@@ -137,13 +145,17 @@ class OfferClosedWebhookHandlerTest extends AbstractAdyenTestCase
             $mockPaymentMethodsHelper = $this->createMock(PaymentMethods::class);
         }
 
+        if (is_null($cleanupAdditionalInformation)) {
+            $cleanupAdditionalInformation = $this->createMock(CleanupAdditionalInformation::class);
+        }
+
         return new OfferClosedWebhookHandler(
             $mockPaymentMethodsHelper,
             $mockAdyenLogger,
             $mockConfigHelper,
             $mockOrderHelper,
-            $mockOrderPaymentResourceModel
+            $mockOrderPaymentResourceModel,
+            $cleanupAdditionalInformation
         );
     }
-
 }

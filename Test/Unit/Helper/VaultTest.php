@@ -47,23 +47,15 @@ class VaultTest extends AbstractAdyenTestCase
         $this->config = $this->createMock(Config::class);
         $this->paymentMethodsHelper = $this->createMock(PaymentMethods::class);
 
-        $this->vault = $this->getMockBuilder(Vault::class)
-            ->setMethods([
-                'getPaymentMethodRecurringActive',
-                'getPaymentMethodRecurringProcessingModel'
-            ])
-            ->setConstructorArgs([
-                $this->adyenLogger,
-                $this->paymentTokenManagement,
-                $this->paymentTokenFactory,
-                $this->paymentTokenRepository,
-                $this->config,
-                $this->paymentMethodsHelper,
-                $this->stateData
-            ])
-            ->getMock();
-
-        $this->vault->method('getPaymentMethodRecurringActive')->willReturn(true);
+        $this->vault = new Vault(
+            $this->adyenLogger,
+            $this->paymentTokenManagement,
+            $this->paymentTokenFactory,
+            $this->paymentTokenRepository,
+            $this->config,
+            $this->paymentMethodsHelper,
+            $this->stateData
+        );
     }
 
     /**
@@ -74,6 +66,8 @@ class VaultTest extends AbstractAdyenTestCase
         $recurringProcessingModel,
         $storePaymentMethod
     ) {
+        $storeId = 1;
+
         $paymentMock = $this->createConfiguredMock(Order\Payment::class, [
             'getMethodInstance' => $this->createConfiguredMock(Adapter::class, [
                 'getCode' => 'adyen_klarna'
@@ -83,12 +77,15 @@ class VaultTest extends AbstractAdyenTestCase
             ])
         ]);
 
-        $this->vault->method('getPaymentMethodRecurringProcessingModel')->willReturn(
-            $recurringProcessingModel
-        );
-        $this->stateData->method('getStoredPaymentMethodIdFromStateData')->willReturn($storedPaymentMethodId);
-        $storeId = 1;
+        $recurringConfigJson = "{\"adyen_klarna\":{\"enabled\":true,\"recurringProcessingModel\":\"$recurringProcessingModel\"}}";
+        $this->config->method('getConfigData')->with(
+            Config::XML_RECURRING_CONFIGURATION,
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId,
+            false
+        )->willReturn($recurringConfigJson);
 
+        $this->stateData->method('getStoredPaymentMethodIdFromStateData')->willReturn($storedPaymentMethodId);
         $request = $this->vault->buildPaymentMethodRecurringData($paymentMock, $storeId);
 
         if ($storePaymentMethod) {

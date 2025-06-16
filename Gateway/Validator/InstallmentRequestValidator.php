@@ -15,6 +15,7 @@ namespace Adyen\Payment\Gateway\Validator;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Adyen\Payment\Helper\Data;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Payment\Gateway\Validator\AbstractValidator;
 use Magento\Payment\Gateway\Validator\ResultInterface;
@@ -29,13 +30,15 @@ class InstallmentRequestValidator extends AbstractValidator
      * @param SerializerInterface $serializer
      * @param QuoteRepository $quoteRepository
      * @param ChargedCurrency $chargedCurrency
+     * @param Data $adyenHelper
      */
     public function __construct(
         ResultInterfaceFactory $resultFactory,
         private readonly Config $configHelper,
         private readonly SerializerInterface $serializer,
         private readonly QuoteRepository $quoteRepository,
-        private readonly ChargedCurrency $chargedCurrency
+        private readonly ChargedCurrency $chargedCurrency,
+        private readonly Data $adyenHelper
     ) {
         parent::__construct($resultFactory);
     }
@@ -66,7 +69,7 @@ class InstallmentRequestValidator extends AbstractValidator
             $installmentsAvailable = $this->configHelper->getAdyenCcConfigData('installments');
             $installmentSelected = $payment->getAdditionalInformation('number_of_installments');
 
-            $ccType = $payment->getAdditionalInformation('cc_type');
+            $ccType = $this->adyenHelper->getMagentoCreditCartType($payment->getAdditionalInformation('cc_type'));
 
             if ($installmentsAvailable) {
                 $installments = $this->serializer->unserialize($installmentsAvailable);
@@ -94,6 +97,6 @@ class InstallmentRequestValidator extends AbstractValidator
             }
         }
 
-        return $this->createResult($isValid, $fails);
+        return $this->createResult($isValid, !$isValid ? $fails : []);
     }
 }

@@ -12,6 +12,7 @@
 
 namespace Adyen\Payment\Helper\Webhook;
 
+use Adyen\Payment\Api\CleanupAdditionalInformationInterface;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\Config;
@@ -24,48 +25,24 @@ use Magento\Framework\Serialize\SerializerInterface;
 
 class OrderClosedWebhookHandler implements WebhookHandlerInterface
 {
-    /** @var AdyenOrderPayment */
-    private $adyenOrderPaymentHelper;
-
-    /** @var OrderHelper */
-    private $orderHelper;
-
-    /** @var Config */
-    private $configHelper;
-
-    /** @var AdyenLogger */
-    private $adyenLogger;
-
-    /** @var OrderPaymentCollectionFactory */
-    private $adyenOrderPaymentCollectionFactory;
-
     /**
-     * @var SerializerInterface
-     */
-    private $serializer;
-
-    /**
-     * @param AdyenOrderPayment $adyenOrderPayment
+     * @param AdyenOrderPayment $adyenOrderPaymentHelper
      * @param OrderHelper $orderHelper
      * @param Config $configHelper
      * @param OrderPaymentCollectionFactory $adyenOrderPaymentCollectionFactory
      * @param AdyenLogger $adyenLogger
+     * @param SerializerInterface $serializer
+     * @param CleanupAdditionalInformationInterface $cleanupAdditionalInformation
      */
     public function __construct(
-        AdyenOrderPayment $adyenOrderPayment,
-        OrderHelper $orderHelper,
-        Config $configHelper,
-        OrderPaymentCollectionFactory $adyenOrderPaymentCollectionFactory,
-        AdyenLogger $adyenLogger,
-        SerializerInterface $serializer
-    ) {
-        $this->adyenOrderPaymentHelper = $adyenOrderPayment;
-        $this->orderHelper = $orderHelper;
-        $this->configHelper = $configHelper;
-        $this->adyenOrderPaymentCollectionFactory = $adyenOrderPaymentCollectionFactory;
-        $this->adyenLogger = $adyenLogger;
-        $this->serializer = $serializer;
-    }
+        private readonly AdyenOrderPayment $adyenOrderPaymentHelper,
+        private readonly OrderHelper $orderHelper,
+        private readonly Config $configHelper,
+        private readonly OrderPaymentCollectionFactory $adyenOrderPaymentCollectionFactory,
+        private readonly AdyenLogger $adyenLogger,
+        private readonly SerializerInterface $serializer,
+        private readonly CleanupAdditionalInformationInterface $cleanupAdditionalInformation
+    ) { }
 
     /**
      * @param MagentoOrder $order
@@ -168,6 +145,9 @@ class OrderClosedWebhookHandler implements WebhookHandlerInterface
                     ]
                 );
             }
+
+            // Clean-up the data temporarily stored in `additional_information`
+            $this->cleanupAdditionalInformation->execute($order->getPayment());
         }
 
         return $order;

@@ -18,6 +18,8 @@ use Adyen\Payment\Gateway\Validator\AbstractModificationsResponseValidator;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Idempotency;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Service\Checkout\ModificationsApi;
+use Adyen\Payment\Helper\PlatformInfo;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
@@ -32,11 +34,13 @@ class TransactionCapture implements ClientInterface
      * @param Data $adyenHelper
      * @param AdyenLogger $adyenLogger
      * @param Idempotency $idempotencyHelper
+     * @param PlatformInfo $platformInfo
      */
     public function __construct(
         private readonly Data $adyenHelper,
         private readonly AdyenLogger $adyenLogger,
-        private readonly Idempotency $idempotencyHelper
+        private readonly Idempotency $idempotencyHelper,
+        private readonly PlatformInfo $platformInfo
     ) { }
 
     /**
@@ -64,7 +68,7 @@ class TransactionCapture implements ClientInterface
                 $idempotencyKeyExtraData ?? null
             );
 
-            $request['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($client);
+            $request['applicationInfo'] = $this->platformInfo->buildApplicationInfo($client);
             $requestOptions['headers'] = $headers;
             $requestOptions['idempotencyKey'] = $idempotencyKey;
 

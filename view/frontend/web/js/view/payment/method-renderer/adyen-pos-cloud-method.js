@@ -91,25 +91,30 @@ define(
             },
             placeOrderPos: function () {
                 let self = this;
-                fullScreenLoader.startLoader();
-                placeOrderAction(self.getData(), new Messages())
-                    .fail(function (response) {
-                        self.handleFailedResponse(response)
-                    })
-                    .done(function (orderId) {
-                        let posPaymentAction = window.checkoutConfig.payment.adyenPos.paymentAction;
-                        if (posPaymentAction === 'order') {
-                            adyenPaymentService.posPayment(orderId)
-                                .fail(function (response) {
-                                    self.handleFailedResponse(response)
-                                })
-                                .done(function () {
-                                    self.posComplete()
-                                });
-                        } else {
-                            self.posComplete();
-                        }
-                    })
+
+                if (additionalValidators.validate()) {
+                    fullScreenLoader.startLoader();
+                    placeOrderAction(self.getData(), new Messages())
+                        .fail(function (response) {
+                            self.handleFailedResponse(response)
+                        })
+                        .done(function (orderId) {
+                            let posPaymentAction = window.checkoutConfig.payment.adyenPos.paymentAction;
+                            if (posPaymentAction === 'order') {
+                                adyenPaymentService.posPayment(orderId)
+                                    .fail(function (response) {
+                                        self.handleFailedResponse(response)
+                                    })
+                                    .done(function () {
+                                        self.posComplete()
+                                    });
+                            } else {
+                                self.posComplete();
+                            }
+                        })
+                } else {
+                    return false;
+                }
             },
             handleFailedResponse: function (response) {
                 let self = this;

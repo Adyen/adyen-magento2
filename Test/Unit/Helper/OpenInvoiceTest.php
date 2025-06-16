@@ -62,13 +62,17 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
         $this->quotePaymentMock = $this->createMock(Quote\Payment::class);
         $this->quoteMock = $this->createMock(Quote::class);
         $this->quoteMock->method('getPayment')->willReturn($this->quotePaymentMock);
-        $this->quoteItemMock = $this->createGeneratedMock(Item::class,
-            ['getIsVirtual', 'getQty', 'getProduct', 'getName', 'getSku', 'getTaxPercent', 'getQuote']
+        $this->quoteItemMock = $this->createGeneratedMock(
+            Item::class,
+            ['getName', 'getProduct', 'getSku', 'getQuote', 'getQty'],
+            ['getIsVirtual', 'getTaxPercent']
         );
         $this->productMock = $this->createMock(Product::class);
         $this->invoiceMock = $this->createMock(Invoice::class);
-        $this->orderItemMock = $this->createGeneratedMock(Order\Item::class,
-            ['getIsVirtual', 'getQty', 'getProduct', 'getName', 'getSku', 'getTaxPercent', 'getOrder']
+        $this->orderItemMock = $this->createGeneratedMock(
+            Order\Item::class,
+            ['getIsVirtual', 'getName', 'getProduct', 'getTaxPercent', 'getSku', 'getOrder'],
+            ['getQty']
         );
         $this->invoiceItemMock = $this->createMock(Invoice\Item::class);
         $this->creditmemoMock = $this->createMock(Creditmemo::class);
@@ -366,7 +370,7 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
     /**
      * @return array
      */
-    private static function isVirtualDataProvider(): array
+    public static function isVirtualDataProvider(): array
     {
         return [
             ['isVirtual' => true],

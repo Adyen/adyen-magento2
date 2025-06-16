@@ -13,31 +13,36 @@ namespace Adyen\Payment\Block\Checkout;
 
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Locale;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Model\Ui\AdyenCheckoutSuccessConfigProvider;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Customer\Model\Session as CustomerSession;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\QuoteIdToMaskedQuoteId;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\View\Element\Template;
 use Magento\Framework\View\Element\Template\Context;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
-use Magento\Sales\Model\OrderFactory;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Sales\Model\OrderFactory;
 
 class Success extends Template
 {
     protected $order;
     protected CheckoutSession $checkoutSession;
     protected CustomerSession $customerSession;
-    protected OrderFactory $orderFactory;
     protected Data $adyenHelper;
     protected StoreManagerInterface $storeManager;
     private Config $configHelper;
     private SerializerInterface $serializerInterface;
     private AdyenCheckoutSuccessConfigProvider $configProvider;
     private QuoteIdToMaskedQuoteId $quoteIdToMaskedQuoteId;
+    private OrderRepositoryInterface $orderRepository;
+    private Locale $localeHelper;
+    protected OrderFactory $orderFactory;
 
     public function __construct(
         Context $context,
@@ -50,8 +55,12 @@ class Success extends Template
         AdyenCheckoutSuccessConfigProvider $configProvider,
         StoreManagerInterface $storeManager,
         SerializerInterface $serializerInterface,
+        OrderRepositoryInterface $orderRepository,
+        Locale $localeHelper,
         array $data = []
     ) {
+        parent::__construct($context, $data);
+
         $this->checkoutSession = $checkoutSession;
         $this->customerSession = $customerSession;
         $this->quoteIdToMaskedQuoteId = $quoteIdToMaskedQuoteId;
@@ -61,7 +70,8 @@ class Success extends Template
         $this->configProvider = $configProvider;
         $this->storeManager = $storeManager;
         $this->serializerInterface = $serializerInterface;
-        parent::__construct($context, $data);
+        $this->orderRepository = $orderRepository;
+        $this->localeHelper = $localeHelper;
     }
 
     /**
@@ -70,7 +80,7 @@ class Success extends Template
      * Received e.g. Bank Transfer IBAN
      * @return bool
      */
-    public function renderAction()
+    public function renderAction(): bool
     {
         if (
             !empty($this->getOrder()->getPayment()->getAdditionalInformation('resultCode')) &&
@@ -94,7 +104,7 @@ class Success extends Template
         return json_encode($this->getOrder()->getPayment()->getAdditionalInformation('action'));
     }
 
-    public function showAdyenGiving()
+    public function showAdyenGiving(): bool
     {
         return $this->adyenGivingEnabled() && $this->hasDonationToken();
     }
@@ -104,7 +114,7 @@ class Success extends Template
         return (bool) $this->configHelper->adyenGivingEnabled($this->storeManager->getStore()->getId());
     }
 
-    public function hasDonationToken()
+    public function hasDonationToken(): bool
     {
         return $this->getDonationToken() && 'null' !== $this->getDonationToken();
     }
@@ -114,25 +124,6 @@ class Success extends Template
         return json_encode($this->getOrder()->getPayment()->getAdditionalInformation('donationToken'));
     }
 
-    public function getDonationComponentConfiguration(): array
-    {
-        $storeId = $this->storeManager->getStore()->getId();
-        $imageBaseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA).'adyen/';
-        $donationAmounts = explode(',', (string) $this->configHelper->getAdyenGivingDonationAmounts($storeId));
-        $donationAmounts = array_map(function ($amount) {
-            return $this->adyenHelper->formatAmount($amount, $this->getOrder()->getOrderCurrencyCode());
-        }, $donationAmounts);
-
-        return [
-            'name' => $this->configHelper->getAdyenGivingCharityName($storeId),
-            'description' => $this->configHelper->getAdyenGivingCharityDescription($storeId),
-            'backgroundUrl' => $imageBaseUrl . $this->configHelper->getAdyenGivingBackgroundImage($storeId),
-            'logoUrl' => $imageBaseUrl . $this->configHelper->getAdyenGivingCharityLogo($storeId),
-            'website' => $this->configHelper->getAdyenGivingCharityWebsite($storeId),
-            'donationAmounts' => implode(',', $donationAmounts)
-        ];
-    }
-
     public function getSerializedCheckoutConfig()
     {
         return $this->serializerInterface->serialize($this->configProvider->getConfig());
@@ -140,7 +131,7 @@ class Success extends Template
 
     public function getLocale()
     {
-        return $this->adyenHelper->getCurrentLocaleCode(
+        return $this->localeHelper->getCurrentLocaleCode(
             $this->storeManager->getStore()->getId()
         );
     }
@@ -151,7 +142,7 @@ class Success extends Template
         return $this->configHelper->getClientKey($environment);
     }
 
-    public function getEnvironment()
+    public function getEnvironment(): string
     {
         return $this->adyenHelper->getCheckoutEnvironment(
             $this->storeManager->getStore()->getId()
@@ -160,13 +151,28 @@ class Success extends Template
 
     /**
      * @return Order
+     * @throws LocalizedException
      */
-    public function getOrder()
+    public function getOrder(): Order
+    {
+        if ($this->order == null) {
+            $this->order = $this->orderRepository->get($this->checkoutSession->getLastOrderId());
+        }
+        return $this->order;
+    }
+
+    /**
+     * @return int
+     * @throws LocalizedException
+     */
+    public function getOrderAmount()
     {
         if ($this->order == null) {
             $this->order = $this->orderFactory->create()->load($this->checkoutSession->getLastOrderId());
         }
-        return $this->order;
+        $amount = $this->order->getGrandTotal();
+        $currency = $this->order->getOrderCurrencyCode();
+        return $this->adyenHelper->formatAmount($amount, $currency);
     }
 
     /**

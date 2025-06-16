@@ -12,21 +12,21 @@ use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Validator\Result;
 use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
 use Magento\Sales\Model\Order\Payment;
+use PHPUnit\Framework\MockObject\MockObject;
 
 class CheckoutResponseValidatorTest extends AbstractAdyenTestCase
 {
-    private $checkoutResponseValidator;
-    private $resultFactoryMock;
-    private $paymentDataObject;
+    private CheckoutResponseValidator $checkoutResponseValidator;
+    private ResultInterfaceFactory|MockObject $resultFactoryMock;
+    private PaymentDataObject $paymentDataObject;
+    private AdyenLogger|MockObject $adyenLoggerMock;
+    private Data|MockObject $adyenHelperMock;
 
     protected function setUp(): void
     {
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
         $this->adyenHelperMock = $this->createMock(Data::class);
-        $this->resultFactoryMock = $this->getMockBuilder(ResultInterfaceFactory::class)
-            ->setMethods(['create'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->resultFactoryMock = $this->createMock(ResultInterfaceFactory::class);
         $orderAdapterMock = $this->createMock(OrderAdapterInterface::class);
         $paymentMock = $this->createMock(Payment::class);
         $this->paymentDataObject = new PaymentDataObject($orderAdapterMock, $paymentMock);

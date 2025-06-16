@@ -1,0 +1,23 @@
+parameters:
+    level: 0
+    paths:
+        - AdminMessage
+        - Api
+        - Block
+        - Console
+        - Controller
+        - Cron
+        - Exception
+        - Gateway
+        - Helper
+        - Logger
+        - Model
+        - Observer
+        - Plugin
+        - Setup
+        - Test
+        - Ui
+        - view
+    scanDirectories:
+        - ../../../dev/tests
+        - ../../magento

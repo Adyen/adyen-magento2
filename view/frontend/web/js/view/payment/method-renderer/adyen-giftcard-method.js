@@ -183,7 +183,7 @@ define(
                             });
                     },
                     onSubmit: function (data, component, actions) {
-                        self.placeOrder(data, actions);
+                        self.placeOrder(data, null, actions);
                     }
                 };
             },
@@ -301,7 +301,7 @@ define(
                 this.giftcardTitle(this.selectedGiftcard().key);
             },
 
-            placeOrder: async function(stateData, actions) {
+            placeOrder: async function(stateData, event, actions = null) {
                 let self = this;
 
                 let additionalData = {
@@ -320,7 +320,9 @@ define(
                 await $.when(placeOrderAction(data, self.currentMessageContainer)).fail(
                     function(response) {
                         console.log(response);
-                        actions.reject();
+                        if (actions !== null) {
+                            actions.reject();
+                        }
                     }
                 ).done(
                     function(orderId) {
@@ -332,13 +334,16 @@ define(
                 );
             },
 
-            validateActionOrPlaceOrder: function(responseJSON, orderId, actions) {
+            validateActionOrPlaceOrder: function(responseJSON, orderId, actions = null) {
                 let self = this;
                 let response = JSON.parse(responseJSON);
 
                 if (!!response.isFinal) {
+                    if (actions !== null) {
+                        actions.resolve();
+                    }
+
                     // Status is final redirect to the success page
-                    actions.resolve();
                     $.mage.redirect(
                         window.checkoutConfig.payment.adyen.successPage
                     );
