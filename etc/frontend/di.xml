@@ -124,6 +124,7 @@
                 <item name="adyen_doku_indomaret" xsi:type="string">doku_indomaret</item>
                 <item name="adyen_doku_mandiri_va" xsi:type="string">doku_mandiri_va</item>
                 <item name="adyen_afterpaytouch_US" xsi:type="string">afterpaytouch_US</item>
+                <item name="adyen_paybybank_ais_dd" xsi:type="string">paybybank_AIS_DD</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
@@ -173,6 +174,7 @@
                 <item name="adyen_cashapp" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
                 <item name="adyen_ach" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
                 <item name="adyen_dana" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
+                <item name="adyen_paybybank_ais_dd" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
             </argument>
         </arguments>
     </type>
