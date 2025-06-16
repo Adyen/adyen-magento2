@@ -43,7 +43,7 @@ class ModificationsCapturesResponseHandler implements HandlerInterface
 
         foreach ($responseCollection as $response) {
             if (count($responseCollection) > 1) {
-                $this->adyenLogger->info(sprintf(
+                $this->adyenLogger->addAdyenInfoLog(sprintf(
                     'Handling partial or multiple capture response for order %s',
                     $payment->getOrder()->getIncrementId()
                 ));
