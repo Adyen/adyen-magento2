@@ -4,15 +4,9 @@ namespace Adyen\Payment\Test\Unit\Gateway\Request;
 
 use Adyen\Payment\Gateway\Request\Header\HeaderDataBuilder;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
-use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\PlatformInfo;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
-use Magento\Payment\Gateway\Helper\SubjectReader;
-use Magento\Sales\Model\Order;
-use Magento\Sales\Model\Order\Invoice;
-use Magento\Sales\Model\ResourceModel\Order\Invoice\Collection as InvoiceCollection;
-use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
 
 class HeaderDataBuilderTest extends AbstractAdyenTestCase
 {
@@ -22,22 +16,22 @@ class HeaderDataBuilderTest extends AbstractAdyenTestCase
     private $headerDataBuilder;
 
     /**
-     * @var Data|MockObject
+     * @var PlatformInfo
      */
-    private $adyenHelperMock;
+    private $platformInfo;
 
     protected function setUp(): void
     {
         $objectManager = new ObjectManager($this);
 
-        $this->adyenHelperMock = $this->getMockBuilder(Data::class)
+        $this->platformInfo = $this->getMockBuilder(PlatformInfo::class)
             ->disableOriginalConstructor()
             ->getMock();
 
         $this->headerDataBuilder = $objectManager->getObject(
             HeaderDataBuilder::class,
             [
-                'adyenHelper' => $this->adyenHelperMock
+                'platformInfo' => $this->platformInfo
             ]
         );
     }
@@ -54,7 +48,7 @@ class HeaderDataBuilderTest extends AbstractAdyenTestCase
 
         $headers = ['header1' => 'value1', 'header2' => 'value2'];
 
-        $this->adyenHelperMock->expects($this->once())
+        $this->platformInfo->expects($this->once())
             ->method('buildRequestHeaders')
             ->with($paymentMock)
             ->willReturn($headers);

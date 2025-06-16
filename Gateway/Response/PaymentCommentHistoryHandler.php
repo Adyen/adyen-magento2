@@ -74,7 +74,7 @@ class PaymentCommentHistoryHandler implements HandlerInterface
      */
     private function handlePartialOrMultipleCaptureRequests($payment, array $responseContainer)
     {
-        $this->adyenLogger->info(sprintf(
+        $this->adyenLogger->addAdyenInfoLog(sprintf(
             'Handling partial OR multiple capture response in comment history handler for order %s',
             $payment->getOrder()->getIncrementId()
         ));

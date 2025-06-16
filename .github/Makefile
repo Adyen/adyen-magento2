@@ -1,3 +1,7 @@
+# Variables
+MAGENTO_ROOT=/var/www/html
+# End of variables
+
 # Install N98-Magerun
 n98-magerun2.phar:
 	wget -q https://files.magerun.net/n98-magerun2.phar
@@ -15,7 +19,6 @@ magento:
 install:
 	composer config --json repositories.local '{"type": "path", "url": "/data/extensions/workdir", "options": { "symlink": false } }'
 	composer require "adyen/module-payment:*"
-	vendor/bin/phpcs --standard=Magento2 --extensions=php,phtml --error-severity=10 -n -p vendor/adyen/module-payment
 	bin/magento module:enable Adyen_Payment
 	bin/magento setup:upgrade
 	bin/magento setup:di:compile
@@ -33,11 +36,6 @@ configure: n98-magerun2.phar
 	bin/magento config:set payment/adyen_pay_by_link/active 1
 	bin/magento config:set payment/adyen_pay_by_link/days_to_expire 5
 	bin/magento config:set payment/adyen_giving/active 1
-	bin/magento config:set payment/adyen_giving/charity_description 'test'
-	bin/magento config:set payment/adyen_giving/charity_website 'https://adyen.com'
-	bin/magento config:set payment/adyen_giving/charity_merchant_account "${DONATION_ACCOUNT}"
-	bin/magento config:set payment/adyen_giving/donation_amounts '1,5,10'
-	bin/magento config:set payment/adyen_giving/background_image ''
 	bin/magento config:set payment/adyen_abstract/merchant_account "${ADYEN_MERCHANT}"
 	bin/magento config:set payment/adyen_abstract/notifications_ip_check 0
 	bin/magento config:set payment/adyen_abstract/payment_authorized 'processing'
@@ -81,22 +79,29 @@ fs:
 production:
 	bin/magento deploy:mode:set production
 
-MAGENTO_ROOT=/var/www/html
-GRAPHQL_XML=${MAGENTO_ROOT}/dev/tests/api-functional/phpunit_graphql.xml.dist
-GRAPHQL_PHP=/data/extensions/workdir/Test/phpunit_graphql.php
-GRAPHQL_SUITE=${MAGENTO_ROOT}/vendor/adyen/module-payment/Test/api-functional/GraphQl
-
 # GraphQL tests
+GRAPHQL_XML_DIST=${MAGENTO_ROOT}/vendor/adyen/module-payment/Test/phpunit_graphql.xml.dist
+GRAPHQL_XML=${MAGENTO_ROOT}/dev/tests/api-functional/phpunit_graphql.xml
+
+setup-graphql:
+	sed '/TESTS_BASE_URL/s/magento.url/${MAGENTO_HOST}/g' ${GRAPHQL_XML_DIST} >> ${GRAPHQL_XML}
+	bin/magento indexer:set-mode realtime
+	bin/magento cache:clean
+	bin/magento indexer:reindex
+
 graphql:
-	@cd ${MAGENTO_ROOT}/dev/tests/api-functional && \
-		${MAGENTO_ROOT}/vendor/bin/phpunit --prepend ${GRAPHQL_PHP} --configuration ${GRAPHQL_XML} ${GRAPHQL_SUITE}
+	@cd ${MAGENTO_ROOT}/dev/tests/api-functional && ${MAGENTO_ROOT}/vendor/bin/phpunit -c ${GRAPHQL_XML}
+# End of GraphQL tests
 
 # REST API tests
+REST_XML_DIST=${MAGENTO_ROOT}/vendor/adyen/module-payment/Test/phpunit_rest.xml.dist
+REST_XML=${MAGENTO_ROOT}/dev/tests/api-functional/phpunit_rest.xml
+
+setup-restapi:
+	sed '/TESTS_BASE_URL/s/magento.url/${MAGENTO_HOST}/g' ${REST_XML_DIST} >> ${REST_XML}
+
 restapi:
-	@cd ${MAGENTO_ROOT}/dev/tests/api-functional && \
-        ${MAGENTO_ROOT}/vendor/bin/phpunit --prepend /data/extensions/workdir/Test/phpunit_rest.php \
-        --configuration ${MAGENTO_ROOT}/dev/tests/api-functional/phpunit_rest.xml.dist \
-        ${MAGENTO_ROOT}/vendor/adyen/module-payment/Test/api-functional/Webapi
+	@cd ${MAGENTO_ROOT}/dev/tests/api-functional && ${MAGENTO_ROOT}/vendor/bin/phpunit -c ${REST_XML}
 
 # Setup environment to run functional tests (https://devdocs.magento.com/mftf/docs/getting-started.html)
 setup-mftf:
@@ -113,7 +118,7 @@ setup-mftf:
 
 	rm -f dev/tests/acceptance/.env;
 	vendor/bin/mftf setup:env \
-		--MAGENTO_BASE_URL "https://${MAGENTO_HOST}/" \
+		--MAGENTO_BASE_URL "http://${MAGENTO_HOST}/" \
 		--MAGENTO_BACKEND_NAME "${ADMIN_URLEXT}" \
 		--MAGENTO_ADMIN_USERNAME "${ADMIN_USERNAME}" \
 		--BROWSER chrome \
@@ -129,3 +134,27 @@ setup-mftf:
 # Magento Functional Testing Framework
 mftf:
 	vendor/bin/mftf run:group --remove -- AdyenMagentoSuite || vendor/bin/mftf run:failed
+
+phpstan-run:
+	vendor/bin/phpstan analyse -c vendor/adyen/module-payment/phpstan.neon
+
+phpunit-run:
+	cp vendor/adyen/module-payment/Test/phpunit.xml.dist dev/tests/unit/phpunit.xml
+	cd dev/tests/unit; \
+		../../../vendor/bin/phpunit \
+		--coverage-clover=../../../build/clover.xml.dist \
+		--log-junit=../../../build/tests-log.xml.dist \
+		-c phpunit.xml \
+		../../../vendor/adyen/module-payment/Test/Unit
+
+phpunit-fix-report:
+	sed '/file/s/\/var\/www\/html\/vendor\/adyen\/module-payment\///g' ${MAGENTO_ROOT}/build/tests-log.xml.dist >> ${MAGENTO_ROOT}/build/tests-log.xml
+	sed '/file/s/\/var\/www\/html\/vendor\/adyen\/module-payment\///g' ${MAGENTO_ROOT}/build/clover.xml.dist >> ${MAGENTO_ROOT}/build/clover.xml
+
+codesniffer-run:
+	vendor/bin/phpcs --standard=Magento2 \
+		--extensions=php,phtml \
+		--error-severity=10 \
+		--warning-severity=0 \
+		--ignore-annotations \
+		-p vendor/adyen/module-payment

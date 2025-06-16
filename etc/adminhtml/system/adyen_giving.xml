@@ -22,47 +22,5 @@
             <config_path>payment/adyen_giving/active</config_path>
             <tooltip><![CDATA[Set to Yes to enable Adyen Giving and offer the donation form in the order success page.]]></tooltip>
         </field>
-        <field id="charity_name" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Charity name</label>
-            <config_path>payment/adyen_giving/charity_name</config_path>
-            <tooltip><![CDATA[Name of the charity displayed on the Adyen Giving form.]]></tooltip>
-        </field>
-        <field id="charity_description" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Charity description</label>
-            <config_path>payment/adyen_giving/charity_description</config_path>
-            <tooltip><![CDATA[Description of the charity.]]></tooltip>
-        </field>
-        <field id="charity_website" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Charity website</label>
-            <config_path>payment/adyen_giving/charity_website</config_path>
-            <tooltip><![CDATA[Link to the charity website.]]></tooltip>
-        </field>
-        <field id="charity_merchant_account" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Charity merchant account</label>
-            <config_path>payment/adyen_giving/charity_merchant_account</config_path>
-            <tooltip><![CDATA[Adyen merchant account for the charity.]]></tooltip>
-        </field>
-        <field id="charity_logo" translate="label" type="image" sortOrder="90" showInDefault="1" showInWebsite="1" >
-            <label>Charity logo</label>
-            <config_path>payment/adyen_giving/charity_logo</config_path>
-            <backend_model>Magento\Config\Model\Config\Backend\Image</backend_model>
-            <upload_dir config="system" scope_info="1">adyen</upload_dir>
-            <base_url type="media" scope_info="1">adyen</base_url>
-            <comment><![CDATA[Logo displayed on the Adyen Giving form.]]></comment>
-        </field>
-        <field id="donation_amounts" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Suggested donation amounts</label>
-            <backend_model>Adyen\Payment\Model\Config\Backend\DonationAmounts</backend_model>
-            <config_path>payment/adyen_giving/donation_amounts</config_path>
-            <tooltip><![CDATA[Suggested amounts that the shopper can choose to donate using the order currency, separated by commas.]]></tooltip>
-        </field>
-        <field id="background_image" translate="label" type="image" sortOrder="80" showInDefault="1" showInWebsite="1" >
-            <label>Background image</label>
-            <backend_model>Magento\Config\Model\Config\Backend\Image</backend_model>
-            <config_path>payment/adyen_giving/background_image</config_path>
-            <upload_dir config="system" scope_info="1">adyen</upload_dir>
-            <base_url type="media" scope_info="1">adyen</base_url>
-            <comment><![CDATA[Background image of the Adyen Giving form.]]></comment>
-        </field>
     </group>
 </include>

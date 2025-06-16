@@ -21,10 +21,11 @@ use Magento\Quote\Model\Quote\Payment;
 
 class AdyenPaymentMethodDataAssignObserverTest extends AbstractAdyenTestCase
 {
-    private MockObject $checkoutStateDataValidator;
-    private MockObject $stateDataCollection;
-    private MockObject $stateData;
-    private MockObject $vaultHelper;
+    private MockObject|CheckoutStateDataValidator $checkoutStateDataValidator;
+    private MockObject|Collection $stateDataCollection;
+    private MockObject|StateData $stateData;
+    private MockObject|Vault $vaultHelper;
+    private MockObject|Payment $paymentInfo;
     private AdyenPaymentMethodDataAssignObserver $observer;
 
     protected function setUp(): void
@@ -101,7 +102,10 @@ class AdyenPaymentMethodDataAssignObserverTest extends AbstractAdyenTestCase
 
         $this->paymentInfo->expects($this->atLeastOnce())
             ->method('unsAdditionalInformation')
-            ->withConsecutive(['cc_type'], ['recurringProcessingModel']);
+            ->willReturnMap([
+                ['cc_type', $this->paymentInfo],
+                ['recurringProcessingModel', $this->paymentInfo]
+            ]);
 
         $this->paymentInfo->expects($this->any())->method('getData')
             ->with('quote_id')->willReturn(123);

@@ -25,6 +25,7 @@ use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Vault\Model\Method\Vault;
 use PHPUnit\Framework\MockObject\MockObject;
+use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 
 class RecurringVaultDataBuilderTest extends AbstractAdyenTestCase
 {
@@ -62,13 +63,14 @@ class RecurringVaultDataBuilderTest extends AbstractAdyenTestCase
      * @param $tokenDetails
      * @param $tokenType
      * @param $isInstantPurchase
+     * @param $numberOfInstallments
      *
      * @return void
      * @throws LocalizedException
      *
      * @dataProvider dataProvider
      */
-    public function testBuild($paymentMethodCode, $tokenDetails, $tokenType, $isInstantPurchase)
+    public function testBuild($paymentMethodCode, $tokenDetails, $tokenType, $isInstantPurchase, $numberOfInstallments)
     {
         $quoteId = 1;
         $storeId = 1;
@@ -88,9 +90,11 @@ class RecurringVaultDataBuilderTest extends AbstractAdyenTestCase
         $paymentTokenMock->method('getGatewayToken')->willReturn("ABC1234567");
         $paymentTokenMock->method('getType')->willReturn($tokenType);
 
-        $extensionAttributesMock = $this->createGeneratedMock(ExtensionAttributesInterface::class, [
-            'getVaultPaymentToken'
-        ]);
+        $extensionAttributesMock = $this->createGeneratedMock(
+            ExtensionAttributesInterface::class,
+            [],
+            ['getVaultPaymentToken']
+        );
         $extensionAttributesMock->method('getVaultPaymentToken')->willReturn($paymentTokenMock);
 
         $paymentMock = $this->createMock(Payment::class);
@@ -98,8 +102,13 @@ class RecurringVaultDataBuilderTest extends AbstractAdyenTestCase
         $paymentMock->method('getMethodInstance')->willReturn($paymentMethodInstanceMock);
         $paymentMock->method('getExtensionAttributes')->willReturn($extensionAttributesMock);
         $paymentMock->method('getAdditionalInformation')
-            ->with('instant-purchase')
-            ->willReturn($isInstantPurchase);
+            ->willReturnCallback(function ($key) use ($isInstantPurchase, $numberOfInstallments) {
+                return match ($key) {
+                    'instant-purchase' => $isInstantPurchase,
+                    AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS => $numberOfInstallments,
+                    default => null,
+                };
+            });
 
         $buildSubject = [
             'payment' => $this->createConfiguredMock(PaymentDataObject::class, [
@@ -113,7 +122,8 @@ class RecurringVaultDataBuilderTest extends AbstractAdyenTestCase
         if ($tokenType === PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD && !$isInstantPurchase) {
             $this->stateDataHelperMock->expects($this->once())
                 ->method('getStateData')
-                ->with($quoteId);
+                ->with($quoteId)
+                ->willReturn([]);
         }
 
         $request = $this->recurringVaultDataBuilder->build($buildSubject);
@@ -127,47 +137,59 @@ class RecurringVaultDataBuilderTest extends AbstractAdyenTestCase
         } else {
             $this->assertArrayNotHasKey('additionalData', $request['body']);
         }
+
+        if (!empty($numberOfInstallments)) {
+            $this->assertArrayHasKey('installments', $request['body']);
+            $this->assertEquals(['value' => (int) $numberOfInstallments], $request['body']['installments']);
+        }
     }
 
     public static function dataProvider(): array
     {
         return [
             [
-                'paymentMethodCode' => 'adyen_cc_vault',
-                'tokenDetails' => '{"type":"visa","maskedCC":"1111","expirationDate":"3\/2030", "tokenType": "CardOnFile"}',
-                'tokenType' => 'card',
-                'isInstantPurchase' => false
+                'adyen_cc_vault',
+                '{"type":"visa","maskedCC":"1111","expirationDate":"3\/2030", "tokenType": "CardOnFile"}',
+                'card',
+                false,
+                '3'
             ],
             [
-                'paymentMethodCode' => 'adyen_cc_vault',
-                'tokenDetails' => '{"type":"visa","maskedCC":"1111","expirationDate":"3\/2030"}',
-                'tokenType' => 'card',
-                'isInstantPurchase' => false
+                'adyen_cc_vault',
+                '{"type":"visa","maskedCC":"1111","expirationDate":"3\/2030"}',
+                'card',
+                false,
+                null
             ],
             [
-                'paymentMethodCode' => 'adyen_cc_vault',
-                'tokenDetails' => '{"type":"visa","maskedCC":"1111","expirationDate":"3\/2030"}',
-                'tokenType' => 'card',
-                'isInstantPurchase' => true
+                'adyen_cc_vault',
+                '{"type":"visa","maskedCC":"1111","expirationDate":"3\/2030"}',
+                'card',
+                true,
+                null
             ],
             [
-                'paymentMethodCode' => 'adyen_klarna_vault',
-                'tokenDetails' => '{"type":"klarna", "tokenType": "CardOnFile"}',
-                'tokenType' => 'account',
-                'isInstantPurchase' => false
+                'adyen_klarna_vault',
+                '{"type":"klarna", "tokenType": "CardOnFile"}',
+                'account',
+                false,
+                null
             ],
             [
-                'paymentMethodCode' => 'adyen_klarna_vault',
-                'tokenDetails' => '{"type":"klarna"}',
-                'tokenType' => 'account',
-                'isInstantPurchase' => false
+                'adyen_klarna_vault',
+                '{"type":"klarna"}',
+                'account',
+                false,
+                null
             ],
             [
-                'paymentMethodCode' => 'adyen_klarna_vault',
-                'tokenDetails' => '{"type":"klarna"}',
-                'tokenType' => 'account',
-                'isInstantPurchase' => true
+                'adyen_klarna_vault',
+                '{"type":"klarna"}',
+                'account',
+                true,
+                null
             ]
         ];
     }
+
 }

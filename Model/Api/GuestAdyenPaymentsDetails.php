@@ -12,28 +12,28 @@
 namespace Adyen\Payment\Model\Api;
 
 use Adyen\Payment\Api\GuestAdyenPaymentsDetailsInterface;
+use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\NotFoundException;
-use Magento\Quote\Model\QuoteIdMaskFactory;
+use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 
 class GuestAdyenPaymentsDetails implements GuestAdyenPaymentsDetailsInterface
 {
-    private OrderRepositoryInterface $orderRepository;
-    private QuoteIdMaskFactory $quoteIdMaskFactory;
-    private AdyenPaymentsDetails $adyenPaymentsDetails;
-
+    /**
+     * @param OrderRepositoryInterface $orderRepository
+     * @param AdyenPaymentsDetails $adyenPaymentsDetails
+     * @param MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
+     * @param AdyenLogger $adyenLogger
+     */
     public function __construct(
-        OrderRepositoryInterface $orderRepository,
-        QuoteIdMaskFactory $quoteIdMaskFactory,
-        AdyenPaymentsDetails $adyenPaymentsDetails
-    ) {
-        $this->orderRepository = $orderRepository;
-        $this->quoteIdMaskFactory = $quoteIdMaskFactory;
-        $this->adyenPaymentsDetails = $adyenPaymentsDetails;
-    }
+        private readonly OrderRepositoryInterface $orderRepository,
+        private readonly AdyenPaymentsDetails $adyenPaymentsDetails,
+        private readonly MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
+        private readonly AdyenLogger $adyenLogger
+    ) { }
 
     /**
      * @param string $payload
@@ -47,10 +47,27 @@ class GuestAdyenPaymentsDetails implements GuestAdyenPaymentsDetailsInterface
      */
     public function initiate(string $payload, string $orderId, string $cartId): string
     {
-        $order = $this->orderRepository->get(intval($orderId));
+        try {
+            $quoteId = $this->maskedQuoteIdToQuoteId->execute($cartId);
+        } catch (NoSuchEntityException $e) {
+            $errorMessage = sprintf("Quote with masked ID %s not found!", $cartId);
+            $this->adyenLogger->error($errorMessage);
 
-        $quoteIdMask = $this->quoteIdMaskFactory->create()->load($cartId, 'masked_id');
-        $quoteId = $quoteIdMask->getQuoteId();
+            throw new NotFoundException(
+                __("The entity that was requested doesn't exist. Verify the entity and try again.")
+            );
+        }
+
+        try {
+            $order = $this->orderRepository->get(intval($orderId));
+        } catch (NoSuchEntityException $e) {
+            $errorMessage = sprintf("Order with ID %s not found!", $orderId);
+            $this->adyenLogger->error($errorMessage);
+
+            throw new NotFoundException(
+                __("The entity that was requested doesn't exist. Verify the entity and try again.")
+            );
+        }
 
         if ($order->getQuoteId() != $quoteId) {
             throw new NotFoundException(

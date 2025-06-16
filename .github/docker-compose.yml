@@ -2,7 +2,7 @@ version: '3'
 
 services:
   db:
-    image: mariadb:10.4
+    image: mariadb:11.4
     container_name: mariadb
     networks:
       - backend
@@ -50,6 +50,7 @@ services:
       ADYEN_CLIENT_KEY:
       PHP_VERSION:
       MAGENTO_VERSION:
+      USE_SSL:
     depends_on:
       - db
       - opensearch
@@ -58,6 +59,7 @@ services:
       - ./Makefile:/var/www/html/Makefile
       - composer:/usr/local/bin
       - magento:/var/www/html
+      - ../build:/var/www/html/build
 networks:
   backend:
 volumes:

@@ -230,23 +230,6 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
     }
 
     /**
-     * Set mail from address
-     *
-     * @param string|array $from
-     *
-     * @return $this
-     * @throws InvalidArgumentException
-     * @see setFromByScope()
-     *
-     * @deprecated 102.0.1 This function sets the from address but does not provide
-     * a way of setting the correct from addresses based on the scope.
-     */
-    public function setFrom($from)
-    {
-        return $this->setFromByScope($from);
-    }
-
-    /**
      * Set mail from address by scopeId
      *
      * @param string|array $from
@@ -441,8 +424,11 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
         return $this->mimePartInterfaceFactory->create(
             [
                 'content' => $content,
+                // @phpstan-ignore-next-line
                 'type' => Mime::TYPE_OCTETSTREAM,
+                // @phpstan-ignore-next-line
                 'disposition' => Mime::DISPOSITION_ATTACHMENT,
+                // @phpstan-ignore-next-line
                 'encoding' => Mime::ENCODING_BASE64,
                 'fileName' => $filename
             ]

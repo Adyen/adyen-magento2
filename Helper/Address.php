@@ -66,7 +66,7 @@ class Address
         } elseif ($address instanceof OrderAddressInterface) {
             $addressArray = $address->getStreet();
         } else {
-            $this->logger->warning(sprintf(
+            $this->logger->addAdyenWarning(sprintf(
                 'Unknown address type %s passed to the getStreetAndHouseNumberFromAddress function',
                 get_class($address)
             ));

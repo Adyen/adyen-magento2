@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace Adyen\Payment\Test\Unit\Model\Resolver\StoreConfig;
 
-use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Locale;
 use Adyen\Payment\Model\Resolver\StoreConfig\StoreLocale;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\GraphQl\Config\Element\Field;
@@ -30,16 +30,13 @@ class StoreLocaleTest extends AbstractAdyenTestCase
     private MockObject|Context $contextMock;
     private MockObject|Field $fieldMock;
     private MockObject|ResolveInfo $infoMock;
-    private MockObject|Data $dataHelperMock;
+    private MockObject|Locale $dataHelperMock;
     private MockObject|ContextExtensionInterface $contextExtensionMock;
     private StoreLocale $storeLocale;
 
     protected function setUp(): void
     {
-        $this->contextExtensionMock = $this->createGeneratedMock(
-            ContextExtensionInterface::class,
-            ['getStore']
-        );
+        $this->contextExtensionMock = $this->createMock(ContextExtensionInterface::class);
 
         $this->contextMock = $this->getMockBuilder(Context::class)
             ->disableOriginalConstructor()
@@ -49,7 +46,7 @@ class StoreLocaleTest extends AbstractAdyenTestCase
         $this->fieldMock = $this->createMock(Field::class);
         $this->infoMock = $this->createMock(ResolveInfo::class);
 
-        $this->dataHelperMock = $this->getMockBuilder(Data::class)
+        $this->dataHelperMock = $this->getMockBuilder(Locale::class)
             ->disableOriginalConstructor()
             ->onlyMethods(['getStoreLocale'])
             ->getMock();
