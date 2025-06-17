@@ -27,7 +27,6 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\Order\Status\History;
-use Magento\Sales\Model\ResourceModel\Order;
 use Magento\Sales\Model\OrderRepository;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Model\ResourceModel\PaymentResponse\Collection;
@@ -60,7 +59,6 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         $this->paymentMethodInstanceMock = $this->createMock(Adapter::class);
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
         $vaultHelperMock = $this->createMock(Vault::class);
-        $orderResourceModelMock = $this->createMock(Order::class);
         $dataHelperMock = $this->createMock(Data::class);
         $this->quoteHelperMock = $this->createMock(Quote::class);
         $orderHelperMock = $this->createMock(OrderHelper::class);
@@ -71,7 +69,6 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         $this->paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
 
         $this->paymentResponseMockForFactory = $this->createMock(Collection::class);
-
         $this->paymentResponseCollectionFactoryMock = $this->createGeneratedMock(CollectionFactory::class, ['create']);
 
         $orderHistory = $this->createMock(History::class);
@@ -93,7 +90,6 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         $this->paymentResponseHandler = new PaymentResponseHandler(
             $this->adyenLoggerMock,
             $vaultHelperMock,
-            $orderResourceModelMock,
             $dataHelperMock,
             $this->quoteHelperMock,
             $orderHelperMock,

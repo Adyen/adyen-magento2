@@ -55,7 +55,6 @@ class PaymentResponseHandler
     /**
      * @param AdyenLogger $adyenLogger
      * @param Vault $vaultHelper
-     * @param Order $orderResourceModel
      * @param Data $dataHelper
      * @param Quote $quoteHelper
      * @param AdyenOrderHelper $orderHelper
@@ -69,7 +68,6 @@ class PaymentResponseHandler
     public function __construct(
         private readonly AdyenLogger                      $adyenLogger,
         private readonly Vault                            $vaultHelper,
-        private readonly Order                            $orderResourceModel,
         private readonly Data                             $dataHelper,
         private readonly Quote                            $quoteHelper,
         private readonly AdyenOrderHelper                 $orderHelper,

@@ -13,6 +13,7 @@
 namespace Adyen\Payment\Helper\Webhook;
 
 use Adyen\Payment\Api\Repository\AdyenOrderPaymentRepositoryInterface;
+use Adyen\Payment\Exception\AdyenWebhookException;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\Invoice;
 use Adyen\Payment\Helper\Order;
@@ -22,7 +23,6 @@ use Adyen\Payment\Model\Notification;
 use Adyen\Webhook\PaymentStates;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Sales\Api\InvoiceRepositoryInterface;
 use Magento\Sales\Model\Order as MagentoOrder;
 
 class CaptureWebhookHandler implements WebhookHandlerInterface
@@ -33,7 +33,6 @@ class CaptureWebhookHandler implements WebhookHandlerInterface
      * @param AdyenLogger $adyenLogger
      * @param Order $orderHelper
      * @param PaymentMethods $paymentMethodsHelper
-     * @param InvoiceRepositoryInterface $invoiceRepository
      * @param AdyenOrderPaymentRepositoryInterface $adyenOrderPaymentRepository
      */
     public function __construct(
@@ -42,7 +41,6 @@ class CaptureWebhookHandler implements WebhookHandlerInterface
         private readonly AdyenLogger $adyenLogger,
         private readonly Order $orderHelper,
         private readonly PaymentMethods $paymentMethodsHelper,
-        private readonly InvoiceRepositoryInterface $invoiceRepository,
         private readonly AdyenOrderPaymentRepositoryInterface $adyenOrderPaymentRepository
     ) { }
 
@@ -53,6 +51,7 @@ class CaptureWebhookHandler implements WebhookHandlerInterface
      * @return MagentoOrder
      * @throws AlreadyExistsException
      * @throws NoSuchEntityException
+     * @throws AdyenWebhookException
      */
     public function handleWebhook(MagentoOrder $order, Notification $notification, string $transitionState): MagentoOrder
     {
