@@ -36,7 +36,7 @@ class PaymentMethodVault extends Vault
      * @param CommandManagerPoolInterface $commandManagerPool
      * @param PaymentTokenManagementInterface $tokenManagement
      * @param OrderPaymentExtensionInterfaceFactory $paymentExtensionFactory
-     * @param $code
+     * @param string $code
      * @param Json|null $jsonSerializer
      */
     public function __construct(
