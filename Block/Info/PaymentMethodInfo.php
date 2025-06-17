@@ -62,8 +62,7 @@ class PaymentMethodInfo extends AbstractInfo
             !empty($this->getInfo()->getOrder()->getPayment()) &&
             !empty($this->getInfo()->getOrder()->getPayment()->getAdditionalInformation('action'))
         ) {
-            $payment = $this->getInfo()->getOrder()->getPayment();
-            $action = $payment->getAdditionalInformation('action');
+            $action = $this->getInfo()->getOrder()->getPayment()->getAdditionalInformation('action');
 
             if (isset($action['entity'])) {
                 $result['entity'] = $action['entity'];
