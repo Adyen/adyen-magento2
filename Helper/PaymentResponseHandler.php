@@ -51,55 +51,39 @@ class PaymentResponseHandler
     ];
 
     /**
-     * @var AdyenLogger
+     * @param AdyenLogger $adyenLogger
+     * @param Vault $vaultHelper
+     * @param Order $orderResourceModel
+     * @param Data $dataHelper
+     * @param Quote $quoteHelper
+     * @param Order $orderHelper
+     * @param OrderRepository $orderRepository
+     * @param HistoryFactory $orderHistoryFactory
+     * @param StateData $stateDataHelper
+     * @param PaymentResponseCollectionFactory $paymentResponseCollectionFactory
+     * @param Config $configHelper
+     * @param OrderStatusHistoryRepositoryInterface $orderStatusHistoryRepository
+     * @param PaymentMethods $paymentMethodsHelper
      */
-    private AdyenLogger $adyenLogger;
-    private Vault $vaultHelper;
-    private Order $orderResourceModel;
-    private Data $dataHelper;
-    private Quote $quoteHelper;
-    private \Adyen\Payment\Helper\Order $orderHelper;
-    private OrderRepository $orderRepository;
-    private HistoryFactory $orderHistoryFactory;
-    private StateData $stateDataHelper;
-    private PaymentResponseCollectionFactory $paymentResponseCollectionFactory;
-    private Config $configHelper;
-    private PaymentMethods $paymentMethodsHelper;
-    private OrderStatusHistoryRepositoryInterface $orderStatusHistoryRepository;
-
     public function __construct(
-        AdyenLogger $adyenLogger,
-        Vault $vaultHelper,
-        Order $orderResourceModel,
-        Data $dataHelper,
-        Quote $quoteHelper,
-        \Adyen\Payment\Helper\Order $orderHelper,
-        OrderRepository $orderRepository,
-        HistoryFactory $orderHistoryFactory,
-        StateData $stateDataHelper,
-        PaymentResponseCollectionFactory $paymentResponseCollectionFactory,
-        Config $configHelper,
-        OrderStatusHistoryRepositoryInterface $orderStatusHistoryRepository,
-        PaymentMethods $paymentMethodsHelper,
-    ) {
-        $this->adyenLogger = $adyenLogger;
-        $this->vaultHelper = $vaultHelper;
-        $this->orderResourceModel = $orderResourceModel;
-        $this->dataHelper = $dataHelper;
-        $this->quoteHelper = $quoteHelper;
-        $this->orderHelper = $orderHelper;
-        $this->orderRepository = $orderRepository;
-        $this->orderHistoryFactory = $orderHistoryFactory;
-        $this->stateDataHelper = $stateDataHelper;
-        $this->paymentResponseCollectionFactory = $paymentResponseCollectionFactory;
-        $this->configHelper = $configHelper;
-        $this->paymentMethodsHelper = $paymentMethodsHelper;
-        $this->orderStatusHistoryRepository = $orderStatusHistoryRepository;
-    }
+        private readonly AdyenLogger $adyenLogger,
+        private readonly Vault $vaultHelper,
+        private readonly Order $orderResourceModel,
+        private readonly Data $dataHelper,
+        private readonly Quote $quoteHelper,
+        private readonly \Adyen\Payment\Helper\Order $orderHelper,
+        private readonly OrderRepository $orderRepository,
+        private readonly HistoryFactory $orderHistoryFactory,
+        private readonly StateData $stateDataHelper,
+        private readonly PaymentResponseCollectionFactory $paymentResponseCollectionFactory,
+        private readonly Config $configHelper,
+        private readonly OrderStatusHistoryRepositoryInterface $orderStatusHistoryRepository,
+        private readonly PaymentMethods $paymentMethodsHelper,
+    ) { }
 
     public function formatPaymentResponse(
         string $resultCode,
-        array $action = null
+        ?array $action = null
     ): array {
         switch ($resultCode) {
             case self::AUTHORISED:

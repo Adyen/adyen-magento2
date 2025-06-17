@@ -39,8 +39,8 @@ class PlatformIntegrator extends Value
         ScopeConfigInterface $config,
         TypeListInterface $cacheTypeList,
         private readonly WriterInterface $configWriter,
-        AbstractResource $resource = null,
-        AbstractDb $resourceCollection = null,
+        ?AbstractResource $resource = null,
+        ?AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         parent::__construct($context, $registry, $config, $cacheTypeList, $resource, $resourceCollection, $data);
