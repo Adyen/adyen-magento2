@@ -19,9 +19,9 @@ class PaymentLinksRequestValidator extends AbstractValidator
 {
     /**
      * @param array $validationSubject
-     * @return ResultInterface
+     * @return mixed
      */
-    public function validate(array $validationSubject): ResultInterface
+    public function validate(array $validationSubject)
     {
         $payment = $validationSubject['payment'];
         $expiresAt = $payment->getAdyenPblExpiresAt() . ' 23:59:59';

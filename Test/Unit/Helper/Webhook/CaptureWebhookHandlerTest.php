@@ -124,13 +124,21 @@ class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
         $paymentMethodsHelperMock = $this->createMockWithMethods(PaymentMethods::class, ['isAutoCapture'], []);
         $paymentMethodsHelperMock->method('isAutoCapture')->willReturn(false);
 
+        $orderMock = $this->createMock(MagentoOrder::class);
+
         // Set up expectations on the invoiceHelperMock
         $invoiceHelperMock = $this->createMockWithMethods(Invoice::class, ['handleCaptureWebhook'], []);
-        $invoiceHelperMock->expects($this->once())->method('handleCaptureWebhook')->willReturn($adyenInvoice);
+        $invoiceHelperMock->expects($this->once())->method('handleCaptureWebhook')->willReturn([
+            $adyenInvoice,
+            $magentoInvoice,
+            $orderMock
+        ]);
 
         // Set up a partial mock of orderHelper to expect a call to fetchOrderByIncrementId
-        $orderHelperMock = $this->createGeneratedMock(Order::class, ['fetchOrderByIncrementId', 'finalizeOrder']);
-        $orderHelperMock->expects($this->once())->method('fetchOrderByIncrementId')->willReturn($this->order);
+        $orderHelperMock = $this->createGeneratedMock(Order::class, [
+            'fetchOrderByIncrementId',
+            'finalizeOrder'
+        ]);
         $orderHelperMock->expects($this->once())
             ->method('finalizeOrder')
             ->with($this->order, $this->notification)

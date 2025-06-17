@@ -323,7 +323,7 @@ class PaymentResponseHandler
 
         // needed because then we need to save $order objects
         $order->setAdyenResulturlEventCode($authResult);
-        $this->orderResourceModel->save($order);
+        $this->orderRepository->save($order);
 
         return $result;
     }

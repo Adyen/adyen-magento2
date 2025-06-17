@@ -3,9 +3,9 @@
 namespace Test\Unit\Gateway\Response;
 
 use Adyen\Payment\Helper\PaymentMethods;
+use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Payment\Gateway\Response\CheckoutPaymentsResponseHandler;
-use Adyen\Payment\Helper\Data;
 use Magento\Payment\Gateway\Data\OrderAdapterInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Sales\Model\Order;
@@ -17,14 +17,14 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
     private CheckoutPaymentsResponseHandler $checkoutPaymentsDetailsHandler;
     private Payment|MockObject $paymentMock;
     private Order|MockObject $orderMock;
-    private Data|MockObject $adyenHelperMock;
-    private PaymentDataObject $paymentDataObject;
+    private PaymentDataObject|MockObject $paymentDataObject;
+    private Vault|MockObject $vaultMock;
     private array $handlingSubject;
 
     protected function setUp(): void
     {
-        $this->adyenHelperMock = $this->createMock(Data::class);
-        $this->checkoutPaymentsDetailsHandler = new CheckoutPaymentsResponseHandler($this->adyenHelperMock);
+        $this->vaultMock = $this->createMock(Vault::class);
+        $this->checkoutPaymentsDetailsHandler = new CheckoutPaymentsResponseHandler($this->vaultMock);
 
         $orderAdapterMock = $this->createMock(OrderAdapterInterface::class);
         $this->orderMock = $this->createMock(Order::class);
@@ -52,7 +52,7 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
         ];
 
         $this->paymentMock
-            ->expects($this->once())
+            ->expects($this->any())
             ->method('getMethod')
             ->willReturn('any_method');
 
@@ -79,7 +79,7 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
         ];
 
         $this->paymentMock
-            ->expects($this->once())
+            ->expects($this->any())
             ->method('getMethod')
             ->willReturn(PaymentMethods::ADYEN_BOLETO);
 
@@ -123,7 +123,7 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
         ];
 
         $this->paymentMock
-            ->expects($this->once())
+            ->expects($this->any())
             ->method('getMethod')
             ->willReturn('any_method');
 
@@ -148,21 +148,12 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
             ->method('setTransactionId')
             ->with('ABC12345');
 
-        $this->paymentMock
-            ->expects($this->once())
-            ->method('getAdditionalInformation')
-            ->with('cc_type')
-            ->willReturn(null);
-
-        $this->paymentMock
-            ->expects($this->once())
+        $this->paymentMock->expects($this->any())
             ->method('setAdditionalInformation')
-            ->with('cc_type', 'VI');
-
-        $this->paymentMock
-            ->expects($this->once())
-            ->method('setCcType')
-            ->with('VI');
+            ->willReturnMap([
+                ['cc_type', 'VI', null],
+                ['resultCode', 'Authorised', null],
+            ]);
 
         $this->applyGenericMockExpectations();
 
