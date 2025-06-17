@@ -39,7 +39,7 @@ class AbstractOrderStatusHistoryHandler implements HandlerInterface
     {
         if (empty($this->actionDescription) || empty($this->apiEndpoint)) {
             $this->adyenLogger->error(
-                __('Order status history can not be handled due to properties!')
+                __('Order status history can not be handled due to missing constructor arguments!')
             );
         } else {
             $readPayment = SubjectReader::readPayment($handlingSubject);

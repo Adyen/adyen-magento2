@@ -115,7 +115,7 @@ class CheckoutResponseValidatorTest extends AbstractAdyenTestCase
         ];
 
         $this->expectException(ValidatorException::class);
-        $this->expectExceptionMessage("Error with payment method please select different payment method.");
+        $this->expectExceptionMessage("Error with payment method, please select a different payment method.");
 
         $this->checkoutResponseValidator->validate($validationSubject);
     }

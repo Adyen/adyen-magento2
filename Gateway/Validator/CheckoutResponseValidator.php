@@ -77,7 +77,7 @@ class CheckoutResponseValidator extends AbstractValidator
             // this will result the specific error
             throw new ValidatorException($errorMsg);
         } elseif (!in_array($resultCode, self::VALID_RESULT_CODES, true)) {
-            $errorMsg = __('Error with payment method please select different payment method.');
+            $errorMsg = __('Error with payment method, please select a different payment method.');
             throw new ValidatorException($errorMsg);
         }
     }
