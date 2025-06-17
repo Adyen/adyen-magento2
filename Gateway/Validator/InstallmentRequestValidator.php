@@ -55,7 +55,7 @@ class InstallmentRequestValidator extends AbstractValidator
         $payment = $validationSubject['payment'];
         $quoteId = $payment->getQuoteId();
 
-        //This validator also runs for other payments that don't necesarily have a quoteId
+        //This validator also runs for other payments that don't necessarily have a quoteId
         if ($quoteId) {
             $quote = $this->quoteRepository->get($quoteId);
         } else {
@@ -70,7 +70,6 @@ class InstallmentRequestValidator extends AbstractValidator
             $installmentSelected = $payment->getAdditionalInformation('number_of_installments');
 
             $ccType = $this->adyenHelper->getMagentoCreditCartType($payment->getAdditionalInformation('cc_type'));
-
             if ($installmentsAvailable) {
                 $installments = $this->serializer->unserialize($installmentsAvailable);
             }
