@@ -46,11 +46,6 @@ class AbstractOrderStatusHistoryHandler implements HandlerInterface
             $payment = $readPayment->getPayment();
             $order = $payment->getOrder();
 
-            // Temporary workaround to clean-up `hasOnlyGiftCards` key. It needs to be handled separately.
-            if (isset($responseCollection['hasOnlyGiftCards'])) {
-                unset($responseCollection['hasOnlyGiftCards']);
-            }
-
             foreach ($responseCollection as $response) {
                 $comment = $this->orderStatusHistoryHelper->buildApiResponseComment(
                     $response,
