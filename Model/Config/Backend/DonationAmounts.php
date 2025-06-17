@@ -44,8 +44,8 @@ class DonationAmounts extends Value
         ScopeConfigInterface $config,
         TypeListInterface $cacheTypeList,
         protected readonly StoreManagerInterface $storeManager,
-        AbstractResource $resource = null,
-        AbstractDb $resourceCollection = null,
+        ?AbstractResource $resource = null,
+        ?AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         parent::__construct($context, $registry, $config, $cacheTypeList, $resource, $resourceCollection, $data);

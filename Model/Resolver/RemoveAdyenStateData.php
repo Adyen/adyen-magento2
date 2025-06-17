@@ -53,8 +53,8 @@ class RemoveAdyenStateData implements ResolverInterface
         Field $field,
         $context,
         ResolveInfo $info,
-        array $value = null,
-        array $args = null
+        ?array $value = null,
+        ?array $args = null
     ): array {
         if (empty($args['stateDataId'])) {
             throw new GraphQlInputException(__('Required parameter "stateDataId" is missing'));

@@ -24,18 +24,11 @@ use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 class GetAdyenPaymentMethodsBalance implements ResolverInterface
 {
     /**
-     * @var AdyenPaymentMethodsBalance
-     */
-    private AdyenPaymentMethodsBalance $balance;
-
-    /**
      * @param AdyenPaymentMethodsBalance $balance
      */
     public function __construct(
-        AdyenPaymentMethodsBalance  $balance
-    ) {
-        $this->balance = $balance;
-    }
+        private readonly AdyenPaymentMethodsBalance $balance
+    ) { }
 
     /**
      * @param Field $field
@@ -52,8 +45,8 @@ class GetAdyenPaymentMethodsBalance implements ResolverInterface
         Field       $field,
                     $context,
         ResolveInfo $info,
-        array       $value = null,
-        array       $args = null
+        ?array       $value = null,
+        ?array       $args = null
     ): array {
         if (empty($args['payload'])) {
             throw new GraphQlInputException(__('Required parameter "payload" is missing'));

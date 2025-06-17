@@ -20,47 +20,24 @@ use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\GraphQl\Exception\GraphQlNoSuchEntityException;
 use Magento\Framework\GraphQl\Query\Resolver\ContextInterface;
-use Magento\Framework\GraphQl\Query\Resolver\Value;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
-use Magento\QuoteGraphQl\Model\Cart\GetCartForUser;
 use Magento\Sales\Model\Order;
 
 class GetAdyenPaymentStatus implements ResolverInterface
 {
     /**
-     * @var DataProvider\GetAdyenPaymentStatus
-     */
-    protected $getAdyenPaymentStatusDataProvider;
-    /**
-     * @var Order
-     */
-    protected $order;
-    /**
-     * @var AdyenLogger
-     */
-    protected $adyenLogger;
-    /**
-     * @var Quote
-     */
-    private $quoteHelper;
-
-    /**
+     * @param Quote $quoteHelper
      * @param DataProvider\GetAdyenPaymentStatus $getAdyenPaymentStatusDataProvider
      * @param Order $order
      * @param AdyenLogger $adyenLogger
      */
     public function __construct(
-        Quote $quoteHelper,
-        DataProvider\GetAdyenPaymentStatus $getAdyenPaymentStatusDataProvider,
-        Order $order,
-        AdyenLogger $adyenLogger
-    ) {
-        $this->getAdyenPaymentStatusDataProvider = $getAdyenPaymentStatusDataProvider;
-        $this->order = $order;
-        $this->adyenLogger = $adyenLogger;
-        $this->quoteHelper = $quoteHelper;
-    }
+        private readonly Quote $quoteHelper,
+        protected readonly DataProvider\GetAdyenPaymentStatus $getAdyenPaymentStatusDataProvider,
+        protected readonly Order $order,
+        protected readonly AdyenLogger $adyenLogger
+    ) { }
 
     /**
      * @inheritdoc
@@ -70,7 +47,7 @@ class GetAdyenPaymentStatus implements ResolverInterface
      * @param ResolveInfo $info
      * @param array|null $value
      * @param array|null $args
-     * @return array|Value|mixed
+     * @return array
      * @throws GraphQlInputException
      * @throws GraphQlNoSuchEntityException
      */
@@ -78,9 +55,9 @@ class GetAdyenPaymentStatus implements ResolverInterface
         Field $field,
         $context,
         ResolveInfo $info,
-        array $value = null,
-        array $args = null
-    ) {
+        ?array $value = null,
+        ?array $args = null
+    ): array {
         if (empty($args['orderNumber']) && empty($value['order_number'])) {
             throw new GraphQlInputException(__('Required parameter "order_number" is missing'));
         } elseif (empty($args['cartId']) && empty($value['cart_id'])) {

@@ -26,6 +26,19 @@ use Magento\Vault\Model\Method\Vault;
 
 class PaymentMethodVault extends Vault
 {
+    /**
+     * @param ConfigInterface $config
+     * @param ConfigFactoryInterface $configFactory
+     * @param ObjectManagerInterface $objectManager
+     * @param MethodInterface $vaultProvider
+     * @param ManagerInterface $eventManager
+     * @param ValueHandlerPoolInterface $valueHandlerPool
+     * @param CommandManagerPoolInterface $commandManagerPool
+     * @param PaymentTokenManagementInterface $tokenManagement
+     * @param OrderPaymentExtensionInterfaceFactory $paymentExtensionFactory
+     * @param string $code
+     * @param Json|null $jsonSerializer
+     */
     public function __construct(
         ConfigInterface $config,
         ConfigFactoryInterface $configFactory,
@@ -37,7 +50,7 @@ class PaymentMethodVault extends Vault
         PaymentTokenManagementInterface $tokenManagement,
         OrderPaymentExtensionInterfaceFactory $paymentExtensionFactory,
         $code,
-        Json $jsonSerializer = null
+        ?Json $jsonSerializer = null
     ) {
         parent::__construct(
             $config,

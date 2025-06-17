@@ -21,7 +21,7 @@ class Idempotency
      */
     public function generateIdempotencyKey (
         array $request,
-        array $idempotencyExtraData = null
+        ?array $idempotencyExtraData = null
     ): string {
         $hashSource['request'] = $request;
 
