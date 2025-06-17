@@ -11,17 +11,17 @@
 
 namespace Adyen\Payment\Test\Gateway\Validator;
 
-use Adyen\Payment\Gateway\Validator\PayByLinkValidator;
+use Adyen\Payment\Gateway\Validator\PaymentLinksRequestValidator;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
 use Magento\Quote\Model\Quote\Payment;
 use PHPUnit\Framework\TestCase;
 
-class PayByLinkValidatorTest extends AbstractAdyenTestCase
+class PaymentLinksRequestValidatorTest extends AbstractAdyenTestCase
 {
     /**
-     * @var PayByLinkValidator
+     * @var PaymentLinksRequestValidator
      */
     private $payByLinkValidator;
 
@@ -55,7 +55,7 @@ class PayByLinkValidatorTest extends AbstractAdyenTestCase
                     ]
                 ]));
 
-        $this->payByLinkValidator = new PayByLinkValidator($resultInterfaceFactory);
+        $this->payByLinkValidator = new PaymentLinksRequestValidator($resultInterfaceFactory);
 
         $this->payment = $this->getMockBuilder(Payment::class)
             ->disableOriginalConstructor()->addMethods(['getAdyenPblExpiresAt'])

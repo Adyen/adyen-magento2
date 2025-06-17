@@ -293,7 +293,6 @@ define(
                     }
                     errorProcessor.process(response, self.currentMessageContainer);
                     paymentComponentStates().setIsPlaceOrderAllowed(self.getMethodCode(), true);
-                    self.showErrorMessage(response);
                 });
             },
 
@@ -363,12 +362,6 @@ define(
                 const form = '#adyen-' + this.getTxVariant() + '-form';
                 const validate = $(form).validation() && $(form).validation('isValid');
                 return validate && additionalValidators.validate();
-            },
-
-            showErrorMessage: function(message) {
-                messageList.addErrorMessage({
-                    message: message
-                });
             },
 
             showPlaceOrderButton: function() {

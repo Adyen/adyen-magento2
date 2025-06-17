@@ -2,8 +2,9 @@
 
 namespace Test\Unit\Gateway\Response;
 
+use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
-use Adyen\Payment\Gateway\Response\CheckoutPaymentsDetailsHandler;
+use Adyen\Payment\Gateway\Response\CheckoutPaymentsResponseHandler;
 use Adyen\Payment\Helper\Data;
 use Magento\Payment\Gateway\Data\OrderAdapterInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
@@ -11,9 +12,9 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
 use PHPUnit\Framework\MockObject\MockObject;
 
-class CheckoutPaymentsDetailsHandlerTest extends AbstractAdyenTestCase
+class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
 {
-    private CheckoutPaymentsDetailsHandler $checkoutPaymentsDetailsHandler;
+    private CheckoutPaymentsResponseHandler $checkoutPaymentsDetailsHandler;
     private Payment|MockObject $paymentMock;
     private Order|MockObject $orderMock;
     private Data|MockObject $adyenHelperMock;
@@ -23,7 +24,7 @@ class CheckoutPaymentsDetailsHandlerTest extends AbstractAdyenTestCase
     protected function setUp(): void
     {
         $this->adyenHelperMock = $this->createMock(Data::class);
-        $this->checkoutPaymentsDetailsHandler = new CheckoutPaymentsDetailsHandler($this->adyenHelperMock);
+        $this->checkoutPaymentsDetailsHandler = new CheckoutPaymentsResponseHandler($this->adyenHelperMock);
 
         $orderAdapterMock = $this->createMock(OrderAdapterInterface::class);
         $this->orderMock = $this->createMock(Order::class);
@@ -43,7 +44,6 @@ class CheckoutPaymentsDetailsHandlerTest extends AbstractAdyenTestCase
     {
         // prepare Handler input.
         $responseCollection = [
-            'hasOnlyGiftCards' => false,
             0 => [
                 'additionalData' => [],
                 'amount' => [],
@@ -70,7 +70,6 @@ class CheckoutPaymentsDetailsHandlerTest extends AbstractAdyenTestCase
     {
         // prepare Handler input.
         $responseCollection = [
-            'hasOnlyGiftCards' => false,
             0 => [
                 'additionalData' => [],
                 'amount' => [],
@@ -82,7 +81,7 @@ class CheckoutPaymentsDetailsHandlerTest extends AbstractAdyenTestCase
         $this->paymentMock
             ->expects($this->once())
             ->method('getMethod')
-            ->willReturn(CheckoutPaymentsDetailsHandler::ADYEN_BOLETO);
+            ->willReturn(PaymentMethods::ADYEN_BOLETO);
 
         // for boleto it should not call this function.
         $this->orderMock
@@ -99,7 +98,6 @@ class CheckoutPaymentsDetailsHandlerTest extends AbstractAdyenTestCase
     {
         // prepare Handler input.
         $responseCollection = [
-            'hasOnlyGiftCards' => false,
             0 => [
                 'additionalData' => [],
                 'amount' => [],
