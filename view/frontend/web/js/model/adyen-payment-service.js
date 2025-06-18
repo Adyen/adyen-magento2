@@ -157,7 +157,7 @@ define(
 
             getPaymentMethodFromResponse: function (txVariant, paymentMethodResponse) {
                 return paymentMethodResponse.find((paymentMethod) => {
-                    return txVariant === paymentMethod.type
+                    return txVariant.toLowerCase() === paymentMethod.type.toLowerCase();
                 });
             },
 

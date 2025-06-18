@@ -84,10 +84,17 @@ class PaymentMethodsFilter
                 );
             }
 
-            if ($txVariant &&
-                !in_array($txVariant, array_column($adyenPaymentMethods, 'type'), true)) {
+            if ( $txVariant &&
+                !array_filter(
+                    $adyenPaymentMethods,
+                    function ($method) use ($txVariant) {
+                        return isset($method['type']) && strcasecmp($method['type'], $txVariant) === 0;
+                    }
+                )
+            ) {
                 unset($magentoPaymentMethods[$key]);
             }
+
         }
 
         return $magentoPaymentMethods;
