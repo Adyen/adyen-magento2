@@ -5,6 +5,7 @@ namespace Adyen\Payment\Test\Unit\Helper;
 use Adyen\Payment\Helper\Webhook\AuthorisationWebhookHandler;
 use Adyen\Payment\Helper\Webhook\CancellationWebhookHandler;
 use Adyen\Payment\Helper\Webhook\CancelOrRefundWebhookHandler;
+use Adyen\Payment\Helper\Webhook\CaptureFailedWebhookHandler;
 use Adyen\Payment\Helper\Webhook\CaptureWebhookHandler;
 use Adyen\Payment\Helper\Webhook\ChargebackReversedWebhookHandler;
 use Adyen\Payment\Helper\Webhook\ChargebackWebhookHandler;
@@ -23,11 +24,7 @@ use Adyen\Payment\Helper\Webhook\SecondChargebackWebhookHandler;
 use Adyen\Payment\Helper\Webhook\WebhookHandlerFactory;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
-use Adyen\Payment\Model\Order\Payment as AdyenPaymentModel;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
-use Adyen\Webhook\Processor\RequestForInformationProcessor;
-use Magento\Sales\Model\Order;
-
 
 class WebhookHandlerFactoryTest extends AbstractAdyenTestCase
 {
@@ -51,7 +48,8 @@ class WebhookHandlerFactoryTest extends AbstractAdyenTestCase
             [Notification::REQUEST_FOR_INFORMATION, RequestForInformationWebhookHandler::class],
             [Notification::CHARGEBACK_REVERSED, ChargebackReversedWebhookHandler::class],
             [Notification::CHARGEBACK, ChargebackWebhookHandler::class],
-            [Notification::SECOND_CHARGEBACK, SecondChargebackWebhookHandler::class]
+            [Notification::SECOND_CHARGEBACK, SecondChargebackWebhookHandler::class],
+            [Notification::CAPTURE_FAILED, CaptureFailedWebhookHandler::class]
         ];
     }
 
@@ -79,6 +77,7 @@ class WebhookHandlerFactoryTest extends AbstractAdyenTestCase
         $chargebackReversedWebhookHandler = $this->createMock(ChargebackReversedWebhookHandler::class);
         $secondChargebackWebhookHandler = $this->createMock(SecondChargebackWebhookHandler::class);
         $notificationOfChargebackWebhookHandler = $this->createMock(NotificationOfChargebackWebhookHandler::class);
+        $captureFailedWebhookHandler = $this->createMock(CaptureFailedWebhookHandler::class);
 
         $factory = new WebhookHandlerFactory(
             $adyenLogger,
@@ -99,7 +98,8 @@ class WebhookHandlerFactoryTest extends AbstractAdyenTestCase
             $requestForInformationWebhookHandler,
             $chargebackReversedWebhookHandler,
             $secondChargebackWebhookHandler,
-            $notificationOfChargebackWebhookHandler
+            $notificationOfChargebackWebhookHandler,
+            $captureFailedWebhookHandler
         );
 
         $handler = $factory->create($notificationType);
