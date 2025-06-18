@@ -16,6 +16,7 @@ use Magento\Payment\Model\MethodInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
+use Magento\Catalog\Helper\Image;
 use PHPUnit\Framework\MockObject\MockObject;
 
 class CheckoutDataBuilderTest extends AbstractAdyenTestCase
@@ -29,6 +30,7 @@ class CheckoutDataBuilderTest extends AbstractAdyenTestCase
     protected Config|MockObject $configMock;
     protected OpenInvoice|MockObject $openInvoiceMock;
     protected PaymentMethods|MockObject $paymentMethodsHelperMock;
+    protected Image|MockObject $imageHelperMock;
 
     public function setUp(): void
     {
@@ -39,6 +41,7 @@ class CheckoutDataBuilderTest extends AbstractAdyenTestCase
         $this->configMock = $this->createMock(Config::class);
         $this->openInvoiceMock = $this->createMock(OpenInvoice::class);
         $this->paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
+        $this->imageHelperMock = $this->createMock(Image::class);
 
         $this->checkoutDataBuilder = new CheckoutDataBuilder(
             $this->adyenHelperMock,
@@ -47,7 +50,8 @@ class CheckoutDataBuilderTest extends AbstractAdyenTestCase
             $this->chargedCurrencyMock,
             $this->configMock,
             $this->openInvoiceMock,
-            $this->paymentMethodsHelperMock
+            $this->paymentMethodsHelperMock,
+            $this->imageHelperMock
         );
 
         parent::setUp();

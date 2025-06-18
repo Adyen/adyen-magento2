@@ -38,6 +38,9 @@ jobs:
       group: larger-runners
       labels: ubuntu-latest-8-cores
     timeout-minutes: 25
+    permissions:
+      contents: read
+      attestations: write
     env:
       PHP_VERSION: ${{ matrix.php-version }}
       MAGENTO_VERSION: ${{ matrix.magento-version }}

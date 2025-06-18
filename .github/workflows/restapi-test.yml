@@ -11,6 +11,8 @@ jobs:
         magento-version: [2.4.7-p2]
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    permissions:
+      contents: read
     env:
       PHP_VERSION: ${{ matrix.php-version }}
       MAGENTO_VERSION: ${{ matrix.magento-version }}
