@@ -32,7 +32,6 @@ use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\Order as OrderModel;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder;
-use Magento\Sales\Model\Order\Status\HistoryFactory;
 use Magento\Sales\Model\Order\StatusResolver;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderStatusCollectionFactory;
@@ -60,7 +59,6 @@ class Order extends AbstractHelper
      * @param StatusResolver $statusResolver
      * @param AdyenCreditmemoRepositoryInterface $adyenCreditmemoRepository
      * @param OrderService $orderManagement
-     * @param HistoryFactory $orderHistoryFactory
      */
     public function __construct(
         Context $context,
@@ -82,9 +80,7 @@ class Order extends AbstractHelper
         private readonly MagentoOrder\StatusResolver $statusResolver,
         private readonly AdyenCreditmemoRepositoryInterface $adyenCreditmemoRepository,
         private readonly OrderService $orderManagement,
-        private readonly HistoryFactory $orderHistoryFactory
-
-) {
+    ) {
         parent::__construct($context);
     }
 
@@ -165,6 +161,7 @@ class Order extends AbstractHelper
      * @return MagentoOrder
      *
      * TODO: Throw exception when order cannot be shipped
+     * @throws Exception
      */
     public function createShipment(MagentoOrder $order): MagentoOrder
     {
@@ -678,11 +675,13 @@ class Order extends AbstractHelper
     }
 
     /**
-     * @param $order
+     * @param OrderInterface $order
+     * @param string|null $reason
      * @return void
+     * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function cancelOrder($order): void
+    public function cancelOrder(OrderInterface $order, string $reason = null): void
     {
         $orderStatus = $this->configHelper->getAdyenAbstractConfigData('payment_cancelled');
         $order->setActionFlag($orderStatus, true);
@@ -697,12 +696,11 @@ class Order extends AbstractHelper
                 if ($order->canCancel()) {
                     if ($this->orderManagement->cancel($order->getEntityId())) { //new canceling process
                         try {
-                            $orderStatusHistory = $this->orderHistoryFactory->create()
-                                ->setParentId($order->getEntityId())
-                                ->setEntityName('order')
-                                ->setStatus(OrderModel::STATE_CANCELED)
-                                ->setComment(__('Order has been cancelled by "%1" payment response.', $order->getPayment()->getMethod()));
-                            $this->orderManagement->addComment($order->getEntityId(), $orderStatusHistory);
+                            $comment = __('Order has been cancelled.', $order->getPayment()->getMethod());
+                            if ($reason) {
+                                $comment .= '<br />' . __("Reason: %1", $reason) . '<br />';
+                            }
+                            $order->addCommentToStatusHistory($comment, $order->getStatus());
                         } catch (Exception $e) {
                             $this->adyenLogger->addAdyenDebug(
                                 __('Order cancel history comment error: %1', $e->getMessage()),

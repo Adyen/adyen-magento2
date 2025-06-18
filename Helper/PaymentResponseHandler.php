@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Model\Checkout\CancelOrderRequest;
+use Adyen\Payment\Helper\Order as AdyenOrderHelper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\ResourceModel\PaymentResponse\CollectionFactory as PaymentResponseCollectionFactory;
 use Exception;
@@ -19,8 +20,6 @@ use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Api\Data\OrderInterface;
-use Magento\Sales\Api\OrderStatusHistoryRepositoryInterface;
-use Magento\Sales\Model\Order\Status\HistoryFactory;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\ResourceModel\Order;
 use Magento\Sales\Model\Order as OrderModel;
@@ -43,6 +42,9 @@ class PaymentResponseHandler
     const VAULT = 'Magento Vault';
     const POS_SUCCESS = 'Success';
 
+    const PAYMENTS_DETAILS_API_COMMENT_ACTION_DESCRIPTION = 'Submit details for Adyen payment';
+    const PAYMENTS_DETAILS_API_COMMENT_ENDPOINT = '/payments/details';
+
     const ACTION_REQUIRED_STATUSES = [
         self::REDIRECT_SHOPPER,
         self::IDENTIFY_SHOPPER,
@@ -51,51 +53,31 @@ class PaymentResponseHandler
     ];
 
     /**
-     * @var AdyenLogger
+     * @param AdyenLogger $adyenLogger
+     * @param Vault $vaultHelper
+     * @param Data $dataHelper
+     * @param Quote $quoteHelper
+     * @param AdyenOrderHelper $orderHelper
+     * @param OrderRepository $orderRepository
+     * @param StateData $stateDataHelper
+     * @param PaymentResponseCollectionFactory $paymentResponseCollectionFactory
+     * @param Config $configHelper
+     * @param PaymentMethods $paymentMethodsHelper
+     * @param OrderStatusHistory $orderStatusHistoryHelper
      */
-    private AdyenLogger $adyenLogger;
-    private Vault $vaultHelper;
-    private Order $orderResourceModel;
-    private Data $dataHelper;
-    private Quote $quoteHelper;
-    private \Adyen\Payment\Helper\Order $orderHelper;
-    private OrderRepository $orderRepository;
-    private HistoryFactory $orderHistoryFactory;
-    private StateData $stateDataHelper;
-    private PaymentResponseCollectionFactory $paymentResponseCollectionFactory;
-    private Config $configHelper;
-    private PaymentMethods $paymentMethodsHelper;
-    private OrderStatusHistoryRepositoryInterface $orderStatusHistoryRepository;
-
     public function __construct(
-        AdyenLogger $adyenLogger,
-        Vault $vaultHelper,
-        Order $orderResourceModel,
-        Data $dataHelper,
-        Quote $quoteHelper,
-        \Adyen\Payment\Helper\Order $orderHelper,
-        OrderRepository $orderRepository,
-        HistoryFactory $orderHistoryFactory,
-        StateData $stateDataHelper,
-        PaymentResponseCollectionFactory $paymentResponseCollectionFactory,
-        Config $configHelper,
-        OrderStatusHistoryRepositoryInterface $orderStatusHistoryRepository,
-        PaymentMethods $paymentMethodsHelper,
-    ) {
-        $this->adyenLogger = $adyenLogger;
-        $this->vaultHelper = $vaultHelper;
-        $this->orderResourceModel = $orderResourceModel;
-        $this->dataHelper = $dataHelper;
-        $this->quoteHelper = $quoteHelper;
-        $this->orderHelper = $orderHelper;
-        $this->orderRepository = $orderRepository;
-        $this->orderHistoryFactory = $orderHistoryFactory;
-        $this->stateDataHelper = $stateDataHelper;
-        $this->paymentResponseCollectionFactory = $paymentResponseCollectionFactory;
-        $this->configHelper = $configHelper;
-        $this->paymentMethodsHelper = $paymentMethodsHelper;
-        $this->orderStatusHistoryRepository = $orderStatusHistoryRepository;
-    }
+        private readonly AdyenLogger                      $adyenLogger,
+        private readonly Vault                            $vaultHelper,
+        private readonly Data                             $dataHelper,
+        private readonly Quote                            $quoteHelper,
+        private readonly AdyenOrderHelper                 $orderHelper,
+        private readonly OrderRepository                  $orderRepository,
+        private readonly StateData                        $stateDataHelper,
+        private readonly PaymentResponseCollectionFactory $paymentResponseCollectionFactory,
+        private readonly Config                           $configHelper,
+        private readonly PaymentMethods                   $paymentMethodsHelper,
+        private readonly OrderStatusHistory               $orderStatusHistoryHelper
+    ) { }
 
     public function formatPaymentResponse(
         string $resultCode,
@@ -174,23 +156,6 @@ class PaymentResponseHandler
             return false;
         }
 
-        $paymentMethod = $paymentsDetailsResponse['paymentMethod']['brand'] ??
-            $paymentsDetailsResponse['paymentMethod']['type'] ??
-            '';
-
-        $pspReference = isset($paymentsDetailsResponse['pspReference']) ?
-            trim((string) $paymentsDetailsResponse['pspReference']) :
-            '';
-
-        $type = 'Adyen paymentsDetails response:';
-        $comment = __(
-            '%1 <br /> authResult: %2 <br /> pspReference: %3 <br /> paymentMethod: %4',
-            $type,
-            $authResult,
-            $pspReference,
-            $paymentMethod
-        );
-
         $resultCode = $paymentsDetailsResponse['resultCode'];
         if (!empty($resultCode)) {
             $payment->setAdditionalInformation('resultCode', $resultCode);
@@ -238,8 +203,15 @@ class PaymentResponseHandler
              * Otherwise keep the order state as pending_payment.
              */
             $order = $this->orderHelper->setStatusOrderCreation($order);
-            $this->orderRepository->save($order);
         }
+
+        // Add order status history comment for /payments/details API response
+        $comment = $this->orderStatusHistoryHelper->buildApiResponseComment(
+            $paymentsDetailsResponse,
+            self::PAYMENTS_DETAILS_API_COMMENT_ACTION_DESCRIPTION,
+            self::PAYMENTS_DETAILS_API_COMMENT_ENDPOINT
+        );
+        $order->addCommentToStatusHistory($comment, $order->getStatus());
 
         // Cleanup state data if exists.
         try {
@@ -247,6 +219,10 @@ class PaymentResponseHandler
         } catch (Exception $exception) {
             $this->adyenLogger->error(__('Error cleaning the payment state data: %s', $exception->getMessage()));
         }
+
+        $paymentMethod = $paymentsDetailsResponse['paymentMethod']['brand'] ??
+            $paymentsDetailsResponse['paymentMethod']['type'] ??
+            '';
 
         switch ($resultCode) {
             case self::AUTHORISED:
@@ -277,16 +253,18 @@ class PaymentResponseHandler
 
                 // do nothing wait for the notification
                 if (strpos((string) $paymentMethod, "bankTransfer") !== false) {
-                    $comment .= "<br /><br />Waiting for the customer to transfer the money.";
+                    $pendingComment = "Waiting for the customer to transfer the money.";
                 } elseif ($paymentMethod == "sepadirectdebit") {
-                    $comment .= "<br /><br />This request will be send to the bank at the end of the day.";
+                    $pendingComment = "This request will be send to the bank at the end of the day.";
                 } else {
-                    $comment .= "<br /><br />The payment result is not confirmed (yet).
+                    $pendingComment = "The payment result is not confirmed (yet).
                                  <br />Once the payment is authorised, the order status will be updated accordingly.
                                  <br />If the order is stuck on this status, the payment can be seen as unsuccessful.
                                  <br />The order can be automatically cancelled based on the OFFER_CLOSED notification.
                                  Please contact Adyen Support to enable this.";
                 }
+
+                $order->addCommentToStatusHistory($pendingComment, $order->getStatus());
                 $this->adyenLogger->addAdyenResult('Do nothing wait for the notification');
 
                 $result = true;
@@ -322,7 +300,7 @@ class PaymentResponseHandler
                     if ($order->canCancel()) {
                         // Proceed to set cancellation action flag and cancel the order
                         $order->setActionFlag(\Magento\Sales\Model\Order::ACTION_FLAG_CANCEL, true);
-                        $this->orderHelper->cancelOrder($order);
+                        $this->orderHelper->cancelOrder($order, $resultCode);
                     } else {
                         $this->adyenLogger->addAdyenResult('The order cannot be cancelled');
                     }
@@ -341,17 +319,9 @@ class PaymentResponseHandler
                 break;
         }
 
-        $history = $this->orderHistoryFactory->create()
-            ->setStatus($order->getStatus())
-            ->setComment($comment)
-            ->setEntityName('order')
-            ->setOrder($order);
-
-        $this->orderStatusHistoryRepository->save($history);
-
         // needed because then we need to save $order objects
         $order->setAdyenResulturlEventCode($authResult);
-        $this->orderResourceModel->save($order);
+        $this->orderRepository->save($order);
 
         return $result;
     }

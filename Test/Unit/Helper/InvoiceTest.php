@@ -254,12 +254,12 @@ class InvoiceTest extends AbstractAdyenTestCase
             'ADY00000000TX'
         );
 
-        $adyenInvoice = $invoiceHelper->handleCaptureWebhook(
+        $result = $invoiceHelper->handleCaptureWebhook(
             $orderMock,
             $notificationMock
         );
 
-        $this->assertInstanceOf(AdyenInvoice::class, $adyenInvoice);
+        $this->assertInstanceOf(AdyenInvoice::class, $result[0]);
     }
 
     public function testLinkAndUpdateAdyenInvoices()

@@ -81,7 +81,7 @@ class CaptureDataBuilderTest extends AbstractAdyenTestCase
     */
     public function testBuildCaptureRequest($adyenOrderPayments, $fullAmountAuthorized)
     {
-        $adyenHelperMock = $this->createPartialMock(Data::class, []);
+        $adyenHelperMock = $this->createPartialMock(Data::class, ['getAdyenMerchantAccount']);
 
         $lineItems = [
             'id' => PHP_INT_MAX
@@ -156,25 +156,9 @@ class CaptureDataBuilderTest extends AbstractAdyenTestCase
         $this->assertArrayHasKey('body', $request);
         $this->assertArrayHasKey('clientConfig', $request);
 
-        if (count($adyenOrderPayments) > 1) {
-            $this->assertArrayHasKey(TransactionCapture::MULTIPLE_AUTHORIZATIONS, $request['body']);
-            $this->assertSame(
-                count($adyenOrderPayments),
-                count($request['body'][TransactionCapture::MULTIPLE_AUTHORIZATIONS])
-            );
-            $this->assertArrayHasKey('amount', $request['body'][TransactionCapture::MULTIPLE_AUTHORIZATIONS][0]);
-            $this->assertArrayHasKey('reference', $request['body'][TransactionCapture::MULTIPLE_AUTHORIZATIONS][0]);
-            $this->assertArrayHasKey(
-                'paymentPspReference',
-                $request['body'][TransactionCapture::MULTIPLE_AUTHORIZATIONS][0]
-            );
-        } else {
-            $this->assertArrayNotHasKey(TransactionCapture::MULTIPLE_AUTHORIZATIONS, $request['body']);
-
-            $this->assertArrayHasKey('amount', $request['body']);
-            $this->assertArrayHasKey('reference', $request['body']);
-            $this->assertArrayHasKey('paymentPspReference', $request['body']);
-        }
+        $this->assertArrayHasKey('amount', $request['body'][0]);
+        $this->assertArrayHasKey('reference', $request['body'][0]);
+        $this->assertArrayHasKey('paymentPspReference', $request['body'][0]);
     }
 
     private function buildCaptureDataBuilderObject(
