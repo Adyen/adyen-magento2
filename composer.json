@@ -20,8 +20,7 @@
     "magento/module-graph-ql": ">=100.4.4",
     "magento/module-instant-purchase": ">=100.4.3",
     "magento/module-checkout-agreements": ">=100.4.3",
-    "ext-json": "*",
-    "magento/module-csp": "*"
+    "ext-json": "*"
   },
   "require-dev": {
     "phpunit/phpunit": "~9.6.1",
