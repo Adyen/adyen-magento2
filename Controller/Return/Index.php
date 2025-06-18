@@ -24,6 +24,7 @@ use Magento\Framework\App\Action\Context;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\OrderFactory;
 use Magento\Store\Model\StoreManagerInterface;
@@ -48,6 +49,8 @@ class Index extends Action
         'threeds2.challengeResult',
         'threeds2.fingerprint'
     ];
+
+    private ?OrderInterface $order = null;
 
     /**
      * @param Context $context
@@ -157,7 +160,6 @@ class Index extends Action
 
         if ($result) {
             $this->order = $order;
-            $this->payment = $order->getPayment();
         }
 
         return $result;
