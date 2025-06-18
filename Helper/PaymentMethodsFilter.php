@@ -95,7 +95,6 @@ class PaymentMethodsFilter
             ) {
                 unset($magentoPaymentMethods[$key]);
             }
-
         }
 
         return $magentoPaymentMethods;
