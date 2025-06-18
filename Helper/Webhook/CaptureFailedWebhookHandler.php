@@ -45,8 +45,6 @@ class CaptureFailedWebhookHandler implements WebhookHandlerInterface
 
         // The reason can be seen on the order comment history.
         $message .= '<br />' . __("Reason: %1", $notification->getReason());
-
-
         $order->addCommentToStatusHistory($message);
 
         return $order;
