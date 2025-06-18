@@ -84,11 +84,12 @@ class PaymentMethodsFilter
                 );
             }
 
-            if ( $txVariant &&
+            if ($txVariant && is_string($txVariant) &&
                 !array_filter(
                     $adyenPaymentMethods,
                     function ($method) use ($txVariant) {
-                        return isset($method['type']) && strcasecmp($method['type'], $txVariant) === 0;
+                        return isset($method['type']) && is_string($method['type']) &&
+                            strcasecmp($method['type'], $txVariant) === 0;
                     }
                 )
             ) {
