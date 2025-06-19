@@ -1082,7 +1082,7 @@
                 <item name="header" xsi:type="string">Adyen\Payment\Gateway\Request\Header\HeaderDataBuilder</item>
                 <item name="giftcard" xsi:type="string">Adyen\Payment\Gateway\Request\GiftcardDataBuilder</item>
                 <item name="company" xsi:type="string">Adyen\Payment\Gateway\Request\CompanyDataBuilder</item>
-                <item name="mechantRiskIndicator" xsi:type="string">Adyen\Payment\Gateway\Request\MerchantRiskIndicatorDataBuilder</item>
+                <item name="merchantRiskIndicator" xsi:type="string">Adyen\Payment\Gateway\Request\MerchantRiskIndicatorDataBuilder</item>
             </argument>
         </arguments>
     </virtualType>
@@ -1119,7 +1119,7 @@
                 <item name="header" xsi:type="string">Adyen\Payment\Gateway\Request\Header\HeaderDataBuilder</item>
                 <item name="company" xsi:type="string">Adyen\Payment\Gateway\Request\CompanyDataBuilder</item>
                 <item name="line_items" xsi:type="string">Adyen\Payment\Gateway\Request\LineItemsDataBuilder</item>
-                <item name="mechantRiskIndicator" xsi:type="string">Adyen\Payment\Gateway\Request\MerchantRiskIndicatorDataBuilder</item>
+                <item name="merchantRiskIndicator" xsi:type="string">Adyen\Payment\Gateway\Request\MerchantRiskIndicatorDataBuilder</item>
             </argument>
         </arguments>
     </virtualType>
@@ -1142,7 +1142,7 @@
                 <item name="header" xsi:type="string">Adyen\Payment\Gateway\Request\Header\HeaderDataBuilder</item>
                 <item name="giftcard" xsi:type="string">Adyen\Payment\Gateway\Request\GiftcardDataBuilder</item>
                 <item name="company" xsi:type="string">Adyen\Payment\Gateway\Request\CompanyDataBuilder</item>
-                <item name="mechantRiskIndicator" xsi:type="string">Adyen\Payment\Gateway\Request\MerchantRiskIndicatorDataBuilder</item>
+                <item name="merchantRiskIndicator" xsi:type="string">Adyen\Payment\Gateway\Request\MerchantRiskIndicatorDataBuilder</item>
             </argument>
         </arguments>
     </virtualType>
@@ -1165,7 +1165,7 @@
                 <item name="giftcard" xsi:type="string">Adyen\Payment\Gateway\Request\GiftcardDataBuilder</item>
                 <item name="company" xsi:type="string">Adyen\Payment\Gateway\Request\CompanyDataBuilder</item>
                 <item name="line_items" xsi:type="string">Adyen\Payment\Gateway\Request\LineItemsDataBuilder</item>
-                <item name="mechantRiskIndicator" xsi:type="string">Adyen\Payment\Gateway\Request\MerchantRiskIndicatorDataBuilder</item>
+                <item name="merchantRiskIndicator" xsi:type="string">Adyen\Payment\Gateway\Request\MerchantRiskIndicatorDataBuilder</item>
             </argument>
         </arguments>
     </virtualType>
@@ -1219,7 +1219,7 @@
                 <item name="giftcard" xsi:type="string">Adyen\Payment\Gateway\Request\GiftcardDataBuilder</item>
                 <item name="company" xsi:type="string">Adyen\Payment\Gateway\Request\CompanyDataBuilder</item>
                 <item name="line_items" xsi:type="string">Adyen\Payment\Gateway\Request\LineItemsDataBuilder</item>
-                <item name="mechantRiskIndicator" xsi:type="string">Adyen\Payment\Gateway\Request\MerchantRiskIndicatorDataBuilder</item>
+                <item name="merchantRiskIndicator" xsi:type="string">Adyen\Payment\Gateway\Request\MerchantRiskIndicatorDataBuilder</item>
             </argument>
         </arguments>
     </virtualType>
