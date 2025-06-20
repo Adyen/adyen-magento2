@@ -88,9 +88,6 @@ jobs:
           ${BASE_URL}/rest/v1/app/session/token)
 
           SESSION_TOKEN=$(echo $response | jq -r '.ust')
-          echo "SESSION_TOKEN=$SESSION_TOKEN" >> $GITHUB_OUTPUT
-
-          echo "Session Token Response: $response"
 
       - name: Upload zip to adobe and get upload id
         id: upload_and_fetch
