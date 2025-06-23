@@ -1,8 +1,9 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
-        <block class="Adyen\Payment\Block\DataCollection"
-               name="adyen_payment_data_collection"
-               cacheable="false"
-               template="Adyen_Payment::default/data_collection.phtml"/>
+        <referenceContainer name="head.additional">
+            <block class="Adyen\Payment\Block\Default\DataCollection"
+                   name="adyen.default.dataCollection"
+                   template="Adyen_Payment::default/data_collection.phtml"/>
+        </referenceContainer>
     </body>
 </page>
