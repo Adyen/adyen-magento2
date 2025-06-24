@@ -1713,12 +1713,6 @@
     <type name="Magento\Vault\Api\PaymentTokenRepositoryInterface">
         <plugin name="AdyenPaymentVaultDeleteToken" type="Adyen\Payment\Plugin\PaymentVaultDeleteToken" sortOrder="10" />
     </type>
-    <type name="Magento\Checkout\Api\PaymentInformationManagementInterface">
-        <plugin name="AdyenPaymentInformationResetOrderId" type="Adyen\Payment\Plugin\PaymentInformationResetOrderId" sortOrder="10" />
-    </type>
-    <type name="Magento\Checkout\Api\GuestPaymentInformationManagementInterface">
-        <plugin name="GuestAdyenPaymentInformationResetOrderId" type="Adyen\Payment\Plugin\GuestPaymentInformationResetOrderId" sortOrder="10" />
-    </type>
     <type name="Magento\QuoteGraphQl\Model\Resolver\PlaceOrder">
         <plugin name="GraphQlPlaceOrderAddCartId" type="Adyen\Payment\Plugin\GraphQlPlaceOrderAddCartId" sortOrder="10" />
     </type>
