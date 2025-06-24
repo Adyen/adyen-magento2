@@ -15,7 +15,7 @@ define([
 ], function (wrapper, $) {
     'use strict';
 
-    // Since Amazon Pay requires the checkout page to be loaded twice 
+    // Since Amazon Pay requires the checkout page to be loaded twice
     // the agreements are confirmed automatically on the second redirect
     return function (agreementsAssignerAction) {
         return wrapper.wrap(agreementsAssignerAction, function (originalAction, paymentData) {

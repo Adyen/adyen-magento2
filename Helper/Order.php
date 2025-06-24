@@ -11,125 +11,84 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Api\Data\CreditmemoInterface;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
+use Adyen\Payment\Api\Repository\AdyenCreditmemoRepositoryInterface;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as OrderPaymentCollectionFactory;
-use Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo as AdyenCreditMemoResourceModel;
 use Adyen\Payment\Helper\Creditmemo as AdyenCreditmemoHelper;
-use Adyen\Payment\Model\Creditmemo as AdyenCreditmemoModel;
 use Exception;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\DB\TransactionFactory;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Notification\NotifierPool;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Model\Order as MagentoOrder;
+use Magento\Sales\Model\Order as OrderModel;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder;
+use Magento\Sales\Model\Order\StatusResolver;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderStatusCollectionFactory;
+use Magento\Sales\Model\Service\OrderService;
 
 class Order extends AbstractHelper
 {
-    /** @var Builder */
-    private $transactionBuilder;
-
-    /** @var Data */
-    private $dataHelper;
-
-    /** @var AdyenLogger */
-    private $adyenLogger;
-
-    /** @var OrderSender */
-    private $orderSender;
-
-    /** @var TransactionFactory */
-    private $transactionFactory;
-
-    /** @var ChargedCurrency */
-    private $chargedCurrency;
-
-    /** @var AdyenOrderPayment */
-    private $adyenOrderPaymentHelper;
-
-    /** @var Config */
-    private $configHelper;
-
-    /** @var OrderStatusCollectionFactory */
-    private $orderStatusCollectionFactory;
-
-    /** @var SearchCriteriaBuilder */
-    private $searchCriteriaBuilder;
-
-    /** @var OrderRepository  */
-    private $orderRepository;
-
-    /** @var NotifierPool */
-    private $notifierPool;
-
-    /** @var OrderPaymentCollectionFactory */
-    private $adyenOrderPaymentCollectionFactory;
-
-    /** @var PaymentMethods */
-    private $paymentMethodsHelper;
-
-    /** @var AdyenCreditMemoResourceModel */
-    private $adyenCreditmemoResourceModel;
-
-    /** @var AdyenCreditmemoHelper */
-    private $adyenCreditmemoHelper;
-
-    private MagentoOrder\StatusResolver $statusResolver;
-
+    /**
+     * @param Context $context
+     * @param Builder $transactionBuilder
+     * @param Data $dataHelper
+     * @param AdyenLogger $adyenLogger
+     * @param OrderSender $orderSender
+     * @param TransactionFactory $transactionFactory
+     * @param ChargedCurrency $chargedCurrency
+     * @param AdyenOrderPayment $adyenOrderPaymentHelper
+     * @param Config $configHelper
+     * @param OrderStatusCollectionFactory $orderStatusCollectionFactory
+     * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param OrderRepository $orderRepository
+     * @param NotifierPool $notifierPool
+     * @param OrderPaymentCollectionFactory $adyenOrderPaymentCollectionFactory
+     * @param PaymentMethods $paymentMethodsHelper
+     * @param Creditmemo $adyenCreditmemoHelper
+     * @param StatusResolver $statusResolver
+     * @param AdyenCreditmemoRepositoryInterface $adyenCreditmemoRepository
+     * @param OrderService $orderManagement
+     */
     public function __construct(
         Context $context,
-        Builder $transactionBuilder,
-        Data $dataHelper,
-        AdyenLogger $adyenLogger,
-        OrderSender $orderSender,
-        TransactionFactory $transactionFactory,
-        ChargedCurrency $chargedCurrency,
-        AdyenOrderPayment $adyenOrderPaymentHelper,
-        Config $configHelper,
-        OrderStatusCollectionFactory $orderStatusCollectionFactory,
-        SearchCriteriaBuilder $searchCriteriaBuilder,
-        OrderRepository $orderRepository,
-        NotifierPool $notifierPool,
-        OrderPaymentCollectionFactory $adyenOrderPaymentCollectionFactory,
-        PaymentMethods $paymentMethodsHelper,
-        AdyenCreditMemoResourceModel $adyenCreditmemoResourceModel,
-        AdyenCreditmemoHelper $adyenCreditmemoHelper,
-        MagentoOrder\StatusResolver $statusResolver
+        private readonly Builder $transactionBuilder,
+        private readonly Data $dataHelper,
+        private readonly AdyenLogger $adyenLogger,
+        private readonly OrderSender $orderSender,
+        private readonly TransactionFactory $transactionFactory,
+        private readonly ChargedCurrency $chargedCurrency,
+        private readonly AdyenOrderPayment $adyenOrderPaymentHelper,
+        private readonly Config $configHelper,
+        private readonly OrderStatusCollectionFactory $orderStatusCollectionFactory,
+        private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
+        private readonly OrderRepository $orderRepository,
+        private readonly NotifierPool $notifierPool,
+        private readonly OrderPaymentCollectionFactory $adyenOrderPaymentCollectionFactory,
+        private readonly PaymentMethods $paymentMethodsHelper,
+        private readonly AdyenCreditmemoHelper $adyenCreditmemoHelper,
+        private readonly MagentoOrder\StatusResolver $statusResolver,
+        private readonly AdyenCreditmemoRepositoryInterface $adyenCreditmemoRepository,
+        private readonly OrderService $orderManagement,
     ) {
         parent::__construct($context);
-        $this->transactionBuilder = $transactionBuilder;
-        $this->dataHelper = $dataHelper;
-        $this->adyenLogger = $adyenLogger;
-        $this->orderSender = $orderSender;
-        $this->transactionFactory = $transactionFactory;
-        $this->chargedCurrency = $chargedCurrency;
-        $this->adyenOrderPaymentHelper = $adyenOrderPaymentHelper;
-        $this->configHelper = $configHelper;
-        $this->orderStatusCollectionFactory = $orderStatusCollectionFactory;
-        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
-        $this->orderRepository = $orderRepository;
-        $this->notifierPool = $notifierPool;
-        $this->adyenOrderPaymentCollectionFactory = $adyenOrderPaymentCollectionFactory;
-        $this->paymentMethodsHelper = $paymentMethodsHelper;
-        $this->adyenCreditmemoResourceModel = $adyenCreditmemoResourceModel;
-        $this->adyenCreditmemoHelper = $adyenCreditmemoHelper;
-        $this->statusResolver = $statusResolver;
     }
 
     /**
      * @param MagentoOrder $order
      * @param Notification $notification
      * @return TransactionInterface|null
-     * @throws \Exception
+     * @throws Exception
      */
     public function updatePaymentDetails(MagentoOrder $order, Notification $notification): ?TransactionInterface
     {
@@ -202,6 +161,7 @@ class Order extends AbstractHelper
      * @return MagentoOrder
      *
      * TODO: Throw exception when order cannot be shipped
+     * @throws Exception
      */
     public function createShipment(MagentoOrder $order): MagentoOrder
     {
@@ -487,14 +447,12 @@ class Order extends AbstractHelper
             sprintf('Refund has failed. Unable to change back status of the order.<br /> %s', $description)
         ), $order->getStatus());
 
-        $linkedAdyenCreditmemo = $this->adyenCreditmemoHelper->getAdyenCreditmemoByPspreference(
-            $notification->getPspreference()
-        );
+        $linkedAdyenCreditmemo = $this->adyenCreditmemoRepository->getByRefundWebhook($notification);
 
-        if ($linkedAdyenCreditmemo instanceof AdyenCreditmemoModel) {
+        if (isset($linkedAdyenCreditmemo)) {
             $this->adyenCreditmemoHelper->updateAdyenCreditmemosStatus(
                 $linkedAdyenCreditmemo,
-                AdyenCreditmemoModel::FAILED_STATUS
+                CreditmemoInterface::FAILED_STATUS
             );
         }
 
@@ -598,9 +556,7 @@ class Order extends AbstractHelper
          * Check adyen_creditmemo table.
          * If credit memo doesn't exist for this notification, create it.
          */
-        $linkedAdyenCreditmemo = $this->adyenCreditmemoHelper->getAdyenCreditmemoByPspreference(
-            $notification->getPspreference()
-        );
+        $linkedAdyenCreditmemo = $this->adyenCreditmemoRepository->getByRefundWebhook($notification);
 
         if (is_null($linkedAdyenCreditmemo)) {
             if ($order->canCreditmemo()) {
@@ -670,11 +626,9 @@ class Order extends AbstractHelper
             );
         }
 
-        if ($linkedAdyenCreditmemo instanceof AdyenCreditmemoModel) {
-            $this->adyenCreditmemoHelper->updateAdyenCreditmemosStatus(
-                $linkedAdyenCreditmemo, AdyenCreditmemoModel::COMPLETED_STATUS
-            );
-        }
+        $this->adyenCreditmemoHelper->updateAdyenCreditmemosStatus(
+            $linkedAdyenCreditmemo, CreditmemoInterface::COMPLETED_STATUS
+        );
 
         $order->addStatusHistoryComment(__(sprintf(
             '%s Webhook successfully handled',
@@ -718,5 +672,56 @@ class Order extends AbstractHelper
         }
 
         return $status;
+    }
+
+    /**
+     * @param OrderInterface $order
+     * @param string|null $reason
+     * @return void
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
+    public function cancelOrder(OrderInterface $order, string $reason = null): void
+    {
+        $orderStatus = $this->configHelper->getAdyenAbstractConfigData('payment_cancelled');
+        $order->setActionFlag($orderStatus, true);
+
+        switch ($orderStatus) {
+            case OrderModel::STATE_HOLDED:
+                if ($order->canHold()) {
+                    $order->hold()->save();
+                }
+                break;
+            default:
+                if ($order->canCancel()) {
+                    if ($this->orderManagement->cancel($order->getEntityId())) { //new canceling process
+                        try {
+                            $comment = __('Order has been cancelled.', $order->getPayment()->getMethod());
+                            if ($reason) {
+                                $comment .= '<br />' . __("Reason: %1", $reason) . '<br />';
+                            }
+                            $order->addCommentToStatusHistory($comment, $order->getStatus());
+                        } catch (Exception $e) {
+                            $this->adyenLogger->addAdyenDebug(
+                                __('Order cancel history comment error: %1', $e->getMessage()),
+                                $this->adyenLogger->getOrderContext($order)
+                            );
+                        }
+                    } else { //previous canceling process
+                        $this->adyenLogger->addAdyenDebug(
+                            'Unsuccessful order canceling attempt by orderManagement service, use legacy process',
+                            $this->adyenLogger->getOrderContext($order)
+                        );
+                        $order->cancel();
+                        $order->save();
+                    }
+                } else {
+                    $this->adyenLogger->addAdyenDebug(
+                        'Order can not be canceled',
+                        $this->adyenLogger->getOrderContext($order)
+                    );
+                }
+                break;
+        }
     }
 }

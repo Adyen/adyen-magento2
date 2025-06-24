@@ -14,6 +14,7 @@ use Adyen\AdyenException;
 use Adyen\Model\Checkout\PaymentDetailsRequest;
 use Adyen\Model\Checkout\PaymentDetailsResponse;
 use Adyen\Payment\Helper\PaymentsDetails;
+use Adyen\Payment\Helper\PlatformInfo;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Exception\ValidatorException;
 use Magento\Sales\Api\Data\OrderInterface;
@@ -37,6 +38,7 @@ class PaymentDetailsTest extends AbstractAdyenTestCase
     private $paymentMock;
     private $paymentsApiMock;
     private $adyenClientMock;
+    private PlatformInfo $platformInfo;
 
     protected function setUp(): void
     {
@@ -56,12 +58,14 @@ class PaymentDetailsTest extends AbstractAdyenTestCase
 
         $this->adyenHelperMock->method('initializeAdyenClient')->willReturn($this->adyenClientMock);
         $this->adyenHelperMock->method('initializePaymentsApi')->willReturn($this->paymentsApiMock);
+        $this->platformInfo = $this->createMock(PlatformInfo::class);
 
         $this->paymentDetails = new PaymentsDetails(
             $this->checkoutSessionMock,
             $this->adyenHelperMock,
             $this->adyenLoggerMock,
-            $this->idempotencyHelperMock
+            $this->idempotencyHelperMock,
+            $this->platformInfo
         );
     }
 
@@ -85,7 +89,7 @@ class PaymentDetailsTest extends AbstractAdyenTestCase
 
         $paymentDetailsResult = ['resultCode' => 'Authorised'];
 
-        $this->adyenHelperMock->method('buildRequestHeaders')->willReturn($requestOptions['headers']);
+        $this->platformInfo->method('buildRequestHeaders')->willReturn($requestOptions['headers']);
         $this->idempotencyHelperMock->method('generateIdempotencyKey')->willReturn($requestOptions['idempotencyKey']);
 
         // testing cleanUpPaymentDetailsPayload() method

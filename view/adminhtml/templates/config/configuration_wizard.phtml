@@ -17,6 +17,8 @@
             const webhookUsernameSelector = "div.adyen_required_config_settings input[name*='notification_username']";
             const webhookPasswordSelector = "div.adyen_required_config_settings input[name*='notification_password']";
             const createNewWebhookSelector = "div.adyen_required_config_settings input[name*='create_new_webhook']";
+            const hasPlatformIntegrator = "div.adyen_required_config_settings select[name*='has_platform_integrator']";
+            const platformIntegrator = "div.adyen_required_config_settings input[name*='platform_integrator']";
             const actionButton = $("#adyen_configuration_action");
             const resetButton = $("#adyen_configuration_action_reset");
 
@@ -59,6 +61,7 @@
                     showConfigField($(merchantAccountSelector), false);
                     showConfigField($(webhookUsernameSelector), false);
                     showConfigField($(webhookPasswordSelector), false);
+                    showConfigField($(hasPlatformIntegrator));
 
                     actionButton.hide();
                     resetButton.show();
@@ -78,6 +81,8 @@
                 hideConfigField($(merchantAccountSelector));
                 hideConfigField($(webhookUsernameSelector));
                 hideConfigField($(webhookPasswordSelector));
+                hideConfigField($(hasPlatformIntegrator));
+                hideConfigField($(platformIntegrator));
                 configured = false;
 
                 actionButton.show();
@@ -165,7 +170,10 @@
                 showConfigField($(createNewWebhookSelector));
                 showConfigField($(webhookUsernameSelector));
                 showConfigField($(webhookPasswordSelector));
-
+                showConfigField($(hasPlatformIntegrator));
+                if ($(hasPlatformIntegrator).val() === '1') {
+                    showConfigField($(platformIntegrator));
+                }
 
                 $('*[id*=create_new_webhook0]').prop('checked', true);
 

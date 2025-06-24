@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Gateway\Request\Header;
 
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\PlatformInfo;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
@@ -19,20 +20,20 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
 class HeaderDataBuilder implements BuilderInterface, HeaderDataBuilderInterface
 {
     /**
-     * @var Data
+     * @var PlatformInfo
      */
-    private Data $adyenHelper;
+    private PlatformInfo $platformInfo;
 
     /**
      * PaymentDataBuilder constructor.
      *
-     * @param Data $adyenHelper
+     * @param PlatformInfo $platformInfo
      */
     public function __construct(
-        Data $adyenHelper
+        PlatformInfo $platformInfo
     )
     {
-        $this->adyenHelper = $adyenHelper;
+        $this->platformInfo = $platformInfo;
     }
 
     /**
@@ -44,7 +45,7 @@ class HeaderDataBuilder implements BuilderInterface, HeaderDataBuilderInterface
         /** @var PaymentDataObject $paymentDataObject */
         $paymentDataObject = SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
-        $headers = $this->adyenHelper->buildRequestHeaders($payment);
+        $headers = $this->platformInfo->buildRequestHeaders($payment);
         return ['headers' => $headers];
     }
 }

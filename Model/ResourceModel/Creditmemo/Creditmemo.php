@@ -12,6 +12,7 @@
 
 namespace Adyen\Payment\Model\ResourceModel\Creditmemo;
 
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
 
 class Creditmemo extends AbstractDb
@@ -27,34 +28,20 @@ class Creditmemo extends AbstractDb
     }
 
     /**
-     * Get all the adyen_creditmemo entries linked to the adyen_order_payment
-     *
-     * @param int $adyenPaymentId
-     * @return array|null
-     */
-    public function getAdyenCreditmemosByAdyenPaymentid(int $adyenPaymentId): ?array
-    {
-        $select = $this->getConnection()->select()
-            ->from(['adyen_creditmemo' => $this->getTable('adyen_creditmemo')])
-            ->where('adyen_creditmemo.adyen_order_payment_id=?', $adyenPaymentId);
-
-        $result = $this->getConnection()->fetchAll($select);
-
-        return empty($result) ? null : $result;
-    }
-
-    /**
      * @param string $pspreference
-     * @return array|null
+     * @return string
+     * @throws LocalizedException
      */
-    public function getAdyenCreditmemoByPspreference(string $pspreference): ?array
+    public function getIdByPspreference(string $pspreference): string
     {
-        $select = $this->getConnection()->select()
-            ->from(['adyen_creditmemo' => $this->getTable('adyen_creditmemo')])
-            ->where('adyen_creditmemo.pspreference=?', $pspreference);
+        $connection = $this->getConnection();
 
-        $result = $this->getConnection()->fetchRow($select);
+        $select = $connection->select()
+            ->from($this->getMainTable(), 'entity_id')
+            ->where('pspreference = :pspreference');
 
-        return empty($result) ? null : $result;
+        $bind = [':pspreference' => $pspreference];
+
+        return $connection->fetchOne($select, $bind);
     }
 }

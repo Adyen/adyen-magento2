@@ -2,6 +2,7 @@
 
 namespace Adyen\Payment\Test\Unit\Controller\Webhook;
 
+use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
 use Adyen\Payment\Controller\Webhook\Index;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
@@ -21,65 +22,31 @@ use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Serialize\SerializerInterface;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use PHPUnit\Framework\MockObject\MockObject;
 
 class IndexTest extends AbstractAdyenTestCase
 {
-    /**
-     * @var Context|\PHPUnit\Framework\MockObject\MockObject
-     */
-    private $contextMock;
-
-    /**
-     * @var RequestInterface|\PHPUnit\Framework\MockObject\MockObject
-     */
-    private $requestMock;
-
-    /**
-     * @var ResponseInterface|\PHPUnit\Framework\MockObject\MockObject
-     */
-    private $responseMock;
-
-    /**
-     * @var JsonFactory|\PHPUnit\Framework\MockObject\MockObject
-     */
-    private $resultJsonFactoryMock;
-
-    /**
-     * @var Json|\PHPUnit\Framework\MockObject\MockObject
-     */
-    private $resultJsonMock;
-
-    /**
-     * @var Data|\PHPUnit\Framework\MockObject\MockObject
-     */
-    private $adyenHelperMock;
-
-    /**
-     * @var NotificationFactory|\PHPUnit\Framework\MockObject\MockObject
-     */
-    private $notificationHelperMock;
-
-    /**
-     * @var SerializerInterface|\PHPUnit\Framework\MockObject\MockObject
-     */
-    private $serializerMock;
-
-    /**
-     * @var AdyenLogger|\PHPUnit\Framework\MockObject\MockObject
-     */
-    private $adyenLoggerMock;
-
-    /**
-     * @var Index
-     */
-    private $indexController;
+    private Context|MockObject $contextMock;
+    private MockObject|RequestInterface $requestMock;
+    private ResponseInterface|MockObject $responseMock;
+    private JsonFactory|MockObject $resultJsonFactoryMock;
+    private MockObject|Json $resultJsonMock;
+    private Data|MockObject $adyenHelperMock;
+    private MockObject|NotificationFactory $notificationHelperMock;
+    private SerializerInterface|MockObject $serializerMock;
+    private AdyenLogger|MockObject $adyenLoggerMock;
+    private Index $indexController;
+    private IpAddress|MockObject $ipAddressHelperMock;
+    private Config|MockObject $configHelperMock;
+    private RateLimiter|MockObject $rateLimiterHelperMock;
+    private HmacSignature|MockObject $hmacSignatureMock;
+    private NotificationReceiver|MockObject $notificationReceiverMock;
+    private RemoteAddress|MockObject $remoteAddressMock;
+    private AdyenNotificationRepositoryInterface|MockObject $notificationRepositoryMock;
 
     protected function setUp(): void
     {
         $this->contextMock = $this->getMockBuilder(Context::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->httpMock = $this->getMockBuilder(http::class)
             ->disableOriginalConstructor()
             ->getMock();
         $this->requestMock = $this->getMockBuilder(RequestInterface::class)
@@ -124,9 +91,10 @@ class IndexTest extends AbstractAdyenTestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-
         $this->contextMock->method('getRequest')->willReturn($this->requestMock);
         $this->contextMock->method('getResponse')->willReturn($this->responseMock);
+
+        $this->notificationRepositoryMock = $this->createMock(AdyenNotificationRepositoryInterface::class);
         $this->resultJsonFactoryMock->method('create')->willReturn($this->resultJsonMock);
 
         $this->indexController = new Index(
@@ -141,7 +109,7 @@ class IndexTest extends AbstractAdyenTestCase
             $this->hmacSignatureMock,
             $this->notificationReceiverMock,
             $this->remoteAddressMock,
-            $this->httpMock
+            $this->notificationRepositoryMock
         );
     }
 

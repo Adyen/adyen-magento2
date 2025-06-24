@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Test\Gateway\Request;
 
+use Adyen\Payment\Api\Data\InvoiceInterface;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Gateway\Request\RefundDataBuilder;
 use Adyen\Payment\Helper\ChargedCurrency;
@@ -20,6 +21,7 @@ use Adyen\Payment\Helper\OpenInvoice;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Model\AdyenAmountCurrency;
 use Adyen\Payment\Model\Order\Payment as AdyenOrderPayment;
+use Adyen\Payment\Model\ResourceModel\Invoice\Collection as AdyenInvoiceCollection;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\Collection;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as PaymentCollectionFactory;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
@@ -38,6 +40,7 @@ class RefundDataBuilderTest extends AbstractAdyenTestCase
     protected Config $configHelperMock;
     protected OpenInvoice $openInvoiceHelperMock;
     protected PaymentMethods $paymentMethodsHelperMock;
+    protected AdyenInvoiceCollection $adyenInvoiceCollection;
 
     /**
      * @return void
@@ -53,6 +56,7 @@ class RefundDataBuilderTest extends AbstractAdyenTestCase
         $this->configHelperMock = $this->createMock(Config::class);
         $this->openInvoiceHelperMock = $this->createMock(OpenInvoice::class);
         $this->paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
+        $this->adyenInvoiceCollection = $this->createMock(AdyenInvoiceCollection::class);
 
         $this->refundDataBuilder = new RefundDataBuilder(
             $this->adyenHelperMock,
@@ -60,7 +64,8 @@ class RefundDataBuilderTest extends AbstractAdyenTestCase
             $this->chargedCurrencyMock,
             $this->configHelperMock,
             $this->openInvoiceHelperMock,
-            $this->paymentMethodsHelperMock
+            $this->paymentMethodsHelperMock,
+            $this->adyenInvoiceCollection
         );
     }
 
@@ -77,6 +82,15 @@ class RefundDataBuilderTest extends AbstractAdyenTestCase
         return [
             [
                 'paymentMethod' => 'adyen_cc',
+                'orderPaymentCollectionData' => [
+                    [
+                        'amount' => 100.00,
+                        'totalRefunded' => 0.0
+                    ]
+                ]
+            ],
+            [
+                'paymentMethod' => 'adyen_paypal',
                 'orderPaymentCollectionData' => [
                     [
                         'amount' => 100.00,
@@ -223,6 +237,17 @@ class RefundDataBuilderTest extends AbstractAdyenTestCase
         $creditMemoAmountCurrencyMock->method('getCurrencyCode')->willReturn($creditMemoCurrency);
         $creditMemoAmountCurrencyMock->method('getAmount')->willReturn($creditMemoAmount);
 
+        $adyenInvoiceMock = [
+            InvoiceInterface::ENTITY_ID => 1,
+            InvoiceInterface::PSPREFERENCE => 'mock_capture_pspreference'
+        ];
+
+        $this->adyenInvoiceCollection->method('getAdyenInvoicesLinkedToMagentoInvoice')
+            ->willReturn([$adyenInvoiceMock]);
+        $this->configHelperMock->method('getConfigData')->willReturnMap([
+            ['paypal_capture_mode', 'adyen_abstract', $storeId, true, true],
+        ]);
+
         $this->chargedCurrencyMock->method('getOrderAmountCurrency')
             ->with($orderMock)
             ->willReturn($orderAmountCurrencyMock);
@@ -252,8 +277,7 @@ class RefundDataBuilderTest extends AbstractAdyenTestCase
                 ]);
             }
 
-            // phpcs:ignore
-            $orderPaymentCollectionMock->method('getIterator')->willReturn(new \ArrayObject($objectArray));
+            $orderPaymentCollectionMock->method('getIterator')->willReturn(new \ArrayIterator($objectArray));
         }
 
         $this->orderPaymentCollectionFactoryMock->method('create')->willReturn($orderPaymentCollectionMock);
@@ -282,5 +306,8 @@ class RefundDataBuilderTest extends AbstractAdyenTestCase
         $this->assertArrayHasKey('amount', $result['body'][0]);
         $this->assertArrayHasKey('reference', $result['body'][0]);
         $this->assertArrayHasKey('paymentPspReference', $result['body'][0]);
+        if ($paymentMethod === PaymentMethods::ADYEN_PAYPAL) {
+            $this->assertArrayHasKey('capturePspReference', $result['body'][0]);
+        }
     }
 }

@@ -7,6 +7,7 @@ use Adyen\Model\Checkout\ApplicationInfo;
 use Adyen\Model\Checkout\PaymentCaptureRequest;
 use Adyen\Model\Checkout\PaymentCaptureResponse;
 use Adyen\Payment\Gateway\Http\Client\TransactionCapture;
+use Adyen\Payment\Helper\PlatformInfo;
 use Adyen\Payment\Model\Order\Payment;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Service\Checkout;
@@ -23,28 +24,36 @@ class TransactionCaptureTest extends AbstractAdyenTestCase
     private $request;
     private $adyenHelper;
     private $idempotencyHelper;
+    private PlatformInfo $platformInfo;
 
     protected function setUp(): void
     {
-        $this->adyenHelper = $this->createMock(Data::class);
+        $this->adyenHelper = $this->createPartialMock(Data::class, [
+            'initializeAdyenClientWithClientConfig',
+            'initializeModificationsApi',
+            'logRequest',
+            'logResponse'
+        ]);
         $adyenLogger = $this->createMock(AdyenLogger::class);
         $this->idempotencyHelper = $this->createMock(Idempotency::class);
+        $this->platformInfo = $this->createMock(PlatformInfo::class);
 
         $this->transactionCapture = new TransactionCapture(
             $this->adyenHelper,
             $adyenLogger,
-            $this->idempotencyHelper
+            $this->idempotencyHelper,
+            $this->platformInfo
         );
 
         $applicationInfo = $this->createMock(ApplicationInfo::class);
-        $this->adyenHelper->method('buildApplicationInfo')->willReturn($applicationInfo);
+        $this->platformInfo->method('buildApplicationInfo')->willReturn($applicationInfo);
 
-        $this->request = [
+        $this->request = [[
             'amount' => ['value' => 100, 'currency' => 'USD'],
             'paymentPspReference' => 'testPspReference',
             'applicationInfo' => $applicationInfo,
             'idempotencyExtraData' => ['someData']
-        ];
+        ]];
 
         $this->transferObject = $this->createConfiguredMock(TransferInterface::class, [
             'getBody' => $this->request,
@@ -61,10 +70,10 @@ class TransactionCaptureTest extends AbstractAdyenTestCase
 
         $this->adyenHelper->method('initializeAdyenClientWithClientConfig')->willReturn($adyenClient);
         $this->adyenHelper->method('initializeModificationsApi')->willReturn($checkoutModificationsService);
-        $this->adyenHelper->method('buildRequestHeaders')->willReturn([]);
+        $this->platformInfo->method('buildRequestHeaders')->willReturn([]);
         $this->adyenHelper->expects($this->once())->method('logRequest');
 
-        $trimmedRequest = $this->request;
+        $trimmedRequest = $this->request[0];
         unset($trimmedRequest['idempotencyExtraData']);
 
         $this->idempotencyHelper->expects($this->once())
@@ -78,7 +87,7 @@ class TransactionCaptureTest extends AbstractAdyenTestCase
         if ($response) {
             $this->adyenHelper->expects($this->once())->method('logResponse');
 
-            $request = new PaymentCaptureRequest($this->request);
+            $request = new PaymentCaptureRequest($this->request[0]);
 
             $responseMock = $this->createMock(PaymentCaptureResponse::class);
             $responseMock->method('toArray')->willReturn($response);
@@ -89,7 +98,7 @@ class TransactionCaptureTest extends AbstractAdyenTestCase
             $checkoutModificationsService->expects($this->once())
                 ->method('captureAuthorisedPayment')
                 ->with(
-                    $this->request['paymentPspReference'],
+                    $this->request[0]['paymentPspReference'],
                     $request,
                     $requestOptions
                 )
@@ -106,9 +115,10 @@ class TransactionCaptureTest extends AbstractAdyenTestCase
     public function testPlaceRequest()
     {
         $expectedResponse = [
-            'capture_amount' => $this->request['amount']['value'],
-            'paymentPspReference' => $this->request['paymentPspReference'],
-            'applicationInfo' => $this->request['applicationInfo'],
+            'capture_amount' => $this->request[0]['amount']['value'],
+            'paymentPspReference' => $this->request[0]['paymentPspReference'],
+            'applicationInfo' => $this->request[0]['applicationInfo'],
+            'formattedModificationAmount' => 'USD 1'
         ];
 
         $this->configureAdyenMocks($expectedResponse);
@@ -117,7 +127,7 @@ class TransactionCaptureTest extends AbstractAdyenTestCase
         $response = $this->transactionCapture->placeRequest($this->transferObject);
 
         // Assert that the response is as expected
-        $this->assertEquals($expectedResponse, $response);
+        $this->assertEquals([$expectedResponse], $response);
     }
 
     public function testPlaceRequestWithException()
@@ -130,7 +140,7 @@ class TransactionCaptureTest extends AbstractAdyenTestCase
         $response = $this->transactionCapture->placeRequest($this->transferObject);
 
         // Assert that the response contains the error message
-        $this->assertArrayHasKey('error', $response);
-        $this->assertEquals('Test exception', $response['error']);
+        $this->assertArrayHasKey('error', $response[0]);
+        $this->assertEquals('An error occurred during the capture attempt of authorisation with pspreference testPspReference. Test exception', $response[0]['error']);
     }
 }
