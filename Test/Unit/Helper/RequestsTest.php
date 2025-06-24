@@ -9,18 +9,23 @@ use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Locale;
-use Adyen\Payment\Helper\PlatformInfo;
 use Adyen\Payment\Helper\Requests;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\App\Helper\Context;
+use Magento\Customer\Api\CustomerRepositoryInterface;
+use Magento\Customer\Api\Data\CustomerInterface;
+use Magento\Payment\Model\MethodInterface;
+use Magento\Quote\Model\Quote\Address as QuoteAddress;
+use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Payment;
 use Magento\Framework\App\Request\Http;
-use Magento\Framework\App\RequestInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
+use PHPUnit\Framework\MockObject\MockObject;
 
 #[CoversClass(Requests::class)]
 class RequestsTest extends AbstractAdyenTestCase
@@ -36,20 +41,35 @@ class RequestsTest extends AbstractAdyenTestCase
     private PaymentMethods $paymentMethodsHelper;
     private Locale $localeHelper;
     private Context $context;
+    private CustomerRepositoryInterface|MockObject $customerRepositoryMock;
+    private QuoteAddress $billingAddressMock;
+    private Order $order;
+    private MethodInterface $methodInstance;
+    private Payment $payment;
 
     protected function setUp(): void
     {
+        // Constructor arguments
+        $this->request = $this->createMock(Http::class);
+        $this->context = $this->createMock(Context::class);
+        $this->context->method('getRequest')->willReturn($this->request);
         $this->adyenHelper = $this->createMock(Data::class);
         $this->adyenConfig = $this->createMock(Config::class);
         $this->addressHelper = $this->createMock(Address::class);
         $this->stateData = $this->createMock(StateData::class);
         $this->vaultHelper = $this->createMock(Vault::class);
-        $this->request = $this->createMock(Http::class);
         $this->chargedCurrency = $this->createMock(ChargedCurrency::class);
         $this->paymentMethodsHelper = $this->createMock(PaymentMethods::class);
         $this->localeHelper = $this->createMock(Locale::class);
-        $this->context = $this->createMock(Context::class);
-        $this->context->method('getRequest')->willReturn($this->request);
+        $this->customerRepositoryMock = $this->createMock(CustomerRepositoryInterface::class);
+
+        $this->billingAddressMock = $this->getMockBuilder(QuoteAddress::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $this->order = $this->createMock(Order::class);
+        $this->methodInstance = $this->createMock(MethodInterface::class);
+        $this->payment = $this->createMock(Payment::class);
+        $this->payment->method('getMethodInstance')->willReturn($this->methodInstance);
 
         $this->requests = new Requests(
             $this->context,
@@ -60,7 +80,8 @@ class RequestsTest extends AbstractAdyenTestCase
             $this->vaultHelper,
             $this->chargedCurrency,
             $this->paymentMethodsHelper,
-            $this->localeHelper
+            $this->localeHelper,
+            $this->customerRepositoryMock
         );
     }
 
@@ -75,6 +96,51 @@ class RequestsTest extends AbstractAdyenTestCase
 
         $this->assertArrayHasKey('merchantAccount', $result);
         $this->assertEquals('TestMerchant123', $result['merchantAccount']);
+    }
+
+    public function testBuildCustomerDataWithDob(): void
+    {
+        $this->payment->method('getOrder')->willReturn($this->order);
+        $this->order->method('getIncrementId')->willReturn('12345');
+        $this->methodInstance->method('getCode')->willReturn('adyen_cc');
+        $this->localeHelper->method('getStoreLocale')->with(1)->willReturn('en_US');
+
+        $customerId = 3;
+        $mockDob = '1990-01-01';
+
+        $customerMock = $this->createMock(CustomerInterface::class);
+        $customerMock->expects($this->once())->method('getDob')->willReturn($mockDob);
+
+        $this->customerRepositoryMock->expects($this->once())
+            ->method('getById')
+            ->with($customerId)
+            ->willReturn($customerMock);
+
+        $request = $this->requests->buildCustomerData($this->billingAddressMock, 1, $customerId, $this->payment);
+
+        $this->assertEquals($mockDob, $request['dateOfBirth']);
+    }
+
+    public function testBuildCustomerDataWithDobInvalidFormat(): void
+    {
+        $this->payment->method('getOrder')->willReturn($this->order);
+        $this->order->method('getIncrementId')->willReturn('12345');
+        $this->methodInstance->method('getCode')->willReturn('adyen_cc');
+        $this->localeHelper->method('getStoreLocale')->with(1)->willReturn('en_US');
+
+        $customerId = 3;
+        $mockDob = '01/01/2025';
+
+        $customerMock = $this->createMock(CustomerInterface::class);
+        $customerMock->expects($this->once())->method('getDob')->willReturn($mockDob);
+
+        $this->customerRepositoryMock->expects($this->once())
+            ->method('getById')
+            ->with($customerId)
+            ->willReturn($customerMock);
+
+        $request = $this->requests->buildCustomerData($this->billingAddressMock, 1, $customerId, $this->payment);
+        $this->assertArrayNotHasKey('dateOfBirth', $request);
     }
 
     #[Test]
@@ -149,7 +215,7 @@ class RequestsTest extends AbstractAdyenTestCase
 
         $payment = $this->createMock(\Magento\Sales\Model\Order\Payment::class);
         $payment->method('getMethodInstance')->willReturn(
-            $this->createConfiguredMock(\Magento\Payment\Model\MethodInterface::class, [
+            $this->createConfiguredMock(MethodInterface::class, [
                 'getCode' => 'scheme'
             ])
         );
@@ -162,6 +228,11 @@ class RequestsTest extends AbstractAdyenTestCase
         $this->localeHelper->method('getStoreLocale')->willReturn('nl_NL');
         $this->adyenHelper->method('padShopperReference')->willReturn('user_1');
         $this->addressHelper->method('getAdyenCountryCode')->willReturn('NL');
+
+        $this->customerRepositoryMock->expects($this->once())
+            ->method('getById')
+            ->with(1)
+            ->willReturn($this->createMock(CustomerInterface::class));
 
         $result = $this->requests->buildCustomerData(
             $billingAddress,
@@ -265,7 +336,7 @@ class RequestsTest extends AbstractAdyenTestCase
 
         $payment = $this->createMock(\Magento\Sales\Model\Order\Payment::class);
         $order = $this->createMock(\Magento\Sales\Model\Order::class);
-        $paymentMethodInstance = $this->createMock(\Magento\Payment\Model\MethodInterface::class);
+        $paymentMethodInstance = $this->createMock(MethodInterface::class);
 
         $payment->method('getOrder')->willReturn($order);
         $payment->method('getMethodInstance')->willReturn($paymentMethodInstance);
@@ -337,7 +408,7 @@ class RequestsTest extends AbstractAdyenTestCase
         $payment->method('getOrder')->willReturn($order);
         $payment->method('getMethod')->willReturn('scheme');
         $payment->method('getMethodInstance')->willReturn(
-            $this->createStub(\Magento\Payment\Model\MethodInterface::class)
+            $this->createStub(MethodInterface::class)
         );
         $payment->method('getAdditionalInformation')->willReturnMap([
             ['donationToken', 'valid-token'],
@@ -357,5 +428,4 @@ class RequestsTest extends AbstractAdyenTestCase
 
         $this->requests->buildDonationData($payment, 1);
     }
-
 }

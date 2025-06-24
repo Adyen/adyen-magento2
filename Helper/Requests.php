@@ -16,6 +16,8 @@ use Adyen\Payment\Model\Config\Source\CcType;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Util\Uuid;
+use DateTime;
+use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Exception\LocalizedException;
@@ -43,7 +45,8 @@ class Requests extends AbstractHelper
         protected readonly Vault $vaultHelper,
         protected readonly ChargedCurrency $chargedCurrency,
         protected readonly PaymentMethods $paymentMethodsHelper,
-        protected readonly Locale $localeHelper
+        protected readonly Locale $localeHelper,
+        private readonly CustomerRepositoryInterface $customerRepository
     ) {
         parent::__construct($context);
     }
@@ -67,14 +70,15 @@ class Requests extends AbstractHelper
     }
 
     /**
-     * @param int $customerId
      * @param $billingAddress
      * @param $storeId
-     * @param \Magento\Sales\Model\Order\Payment\|null $payment
+     * @param int $customerId
+     * @param null $payment
      * @param null $additionalData
      * @param array $request
      * @return array
-     * @return array
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
     public function buildCustomerData(
         $billingAddress,
@@ -117,6 +121,17 @@ class Requests extends AbstractHelper
             }
 
             $request['shopperLocale'] = $this->localeHelper->getStoreLocale($storeId);
+        }
+
+        // TODO:: Can be implemented for guests after https://github.com/magento/magento2/issues/14509 is resolved.
+        if ($customerId) {
+            $customer = $this->customerRepository->getById($customerId);
+            $dob = $customer->getDob();
+
+            // Magento already returns ISO-8601, validate the required format YYYY-MM-DD.
+            if (!empty($dob) && DateTime::createFromFormat('Y-m-d', $dob)) {
+                $request['dateOfBirth'] = $dob;
+            }
         }
 
         return $request;
