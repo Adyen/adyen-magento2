@@ -827,6 +827,7 @@
                 <item name="adyen_eps" xsi:type="string">AdyenPaymentCommandManager</item>
                 <item name="adyen_directEbanking" xsi:type="string">AdyenPaymentCommandManager</item>
                 <item name="adyen_dana" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_paybybank_ais_dd" xsi:type="string">AdyenPaymentCommandManager</item>
             </argument>
         </arguments>
     </type>
@@ -4621,6 +4622,59 @@
     <virtualType name="AdyenPaymentAfterpaytouchUSConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
             <argument name="methodCode" xsi:type="string">adyen_afterpaytouch_US</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentPaybybankAISDDFacade" type="Adyen\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="string">adyen_paybybank_ais_dd</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\PaymentMethodInfo</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentPaybybankAISDDValueHandlerPool</argument>
+            <argument name="validatorPool" xsi:type="object">AdyenPaymentValidatorPool</argument>
+            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentPaybybankAISDDValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AdyenPaymentPaybybankAISDDConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentPaybybankAISDDConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AdyenPaymentPaybybankAISDDConfig</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentPaybybankAISDDConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="string">adyen_paybybank_ais_dd</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentPaybybankAISDDVaultFacade" type="Adyen\Payment\Model\Method\PaymentMethodVault">
+        <arguments>
+            <argument name="code" xsi:type="string">adyen_paybybank_ais_dd_vault</argument>
+            <argument name="config" xsi:type="object">AdyenPaymentPaybybankAISDDVaultConfig</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentPaybybankAISDDVaultValueHandlerPool</argument>
+            <argument name="vaultProvider" xsi:type="object">AdyenPaymentPaybybankAISDDFacade</argument>
+            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentPaybybankAISDDVaultValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AdyenPaymentPaybybankAISDDVaultConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentPaybybankAISDDVaultConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AdyenPaymentPaybybankAISDDVaultConfig</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentPaybybankAISDDVaultConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="string">adyen_paybybank_ais_dd_vault</argument>
         </arguments>
     </virtualType>
 </config>
