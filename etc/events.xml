@@ -341,4 +341,7 @@
     <event name="payment_method_assign_data_adyen_afterpaytouch_US">
         <observer name="adyen_afterpaytouch_US_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="checkout_submit_before">
+        <observer name="adyen_reset_quote_reserved_order_id" instance="Adyen\Payment\Observer\ResetQuoteReservedOrderId" />
+    </event>
 </config>
