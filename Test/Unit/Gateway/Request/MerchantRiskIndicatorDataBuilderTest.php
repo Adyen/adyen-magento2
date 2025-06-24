@@ -5,6 +5,7 @@ namespace Adyen\Payment\Test\Gateway\Request;
 use Adyen\Payment\Gateway\Request\MerchantRiskIndicatorDataBuilder;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\GiftcardPayment;
+use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\AdyenAmountCurrency;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -27,6 +28,7 @@ class MerchantRiskIndicatorDataBuilderTest extends AbstractAdyenTestCase
     protected Order|MockObject $orderMock;
     protected Quote|MockObject $quoteMock;
     protected Address|MockObject $shippingAddressMock;
+    protected AdyenLogger|MockObject $adyenLoggerMock;
     protected int $quoteId = 1;
     protected array $buildSubject;
 
@@ -54,13 +56,16 @@ class MerchantRiskIndicatorDataBuilderTest extends AbstractAdyenTestCase
         $this->paymentDataObjectMock = $this->createMock(PaymentDataObject::class);
         $this->paymentDataObjectMock->method('getPayment')->willReturn($this->paymentMock);
 
+        $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
+
         $this->buildSubject = ['payment' => $this->paymentDataObjectMock];
 
         // SUT generation
         $this->merchantRiskIndicatorDataBuilder = new MerchantRiskIndicatorDataBuilder(
             $this->cartRepositoryMock,
             $this->chargedCurrencyMock,
-            $this->giftcardPaymentHelperMock
+            $this->giftcardPaymentHelperMock,
+            $this->adyenLoggerMock
         );
     }
 
@@ -85,7 +90,7 @@ class MerchantRiskIndicatorDataBuilderTest extends AbstractAdyenTestCase
             [
                 'isVirtual' => true,
                 'sameAsBillingAddress' => 0,
-                'deliveryAddressIndicator' => 'digitalGoods',
+                'deliveryAddressIndicator' => 'other',
             ]
         ];
     }
@@ -173,5 +178,27 @@ class MerchantRiskIndicatorDataBuilderTest extends AbstractAdyenTestCase
         $this->assertArrayHasKey('value', $result['body']['merchantRiskIndicator']['giftCardAmount']);
         $this->assertEquals($totalGiftcardDiscount,
             $result['body']['merchantRiskIndicator']['giftCardAmount']['value']);
+    }
+
+    /**
+     * @return void
+     * @throws NoSuchEntityException
+     */
+    public function testBuildPhysicalGoodsWithGiftcardInvalidData()
+    {
+        $quoteAmountCurrency = $this->createMock(AdyenAmountCurrency::class);
+        $quoteAmountCurrency->method('getCurrencyCode')->willReturn('EUR');
+        $this->chargedCurrencyMock->expects($this->once())->method('getQuoteAmountCurrency')
+            ->with($this->quoteMock)
+            ->willReturn($quoteAmountCurrency);
+
+        $this->giftcardPaymentHelperMock->method('fetchRedeemedGiftcards')
+            ->willThrowException(new \Exception());
+
+        $this->adyenLoggerMock->expects($this->once())->method('error');
+        $this->assertArrayNotHasKey(
+            'body',
+            $this->merchantRiskIndicatorDataBuilder->build($this->buildSubject)
+        );
     }
 }

@@ -13,6 +13,8 @@ namespace Adyen\Payment\Gateway\Request;
 
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\GiftcardPayment;
+use Adyen\Payment\Logger\AdyenLogger;
+use Exception;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
@@ -25,18 +27,20 @@ class MerchantRiskIndicatorDataBuilder implements BuilderInterface
 {
     const ADDRESS_INDICATOR_SHIP_TO_BILLING_ADDRESS = 'shipToBillingAddress';
     const ADDRESS_INDICATOR_SHIP_TO_NEW_ADDRESS = 'shipToNewAddress';
-    const ADDRESS_INDICATOR_DIGITAL_GOODS = 'digitalGoods';
+    const ADDRESS_INDICATOR_OTHER = 'other';
     const DELIVERY_TIMEFRAME_ELECTRONIC_DELIVERY = 'electronicDelivery';
 
     /**
      * @param CartRepositoryInterface $cartRepository
      * @param ChargedCurrency $chargeCurrency
      * @param GiftcardPayment $giftcardPaymentHelper
+     * @param AdyenLogger $adyenLogger
      */
     public function __construct(
         private readonly CartRepositoryInterface $cartRepository,
         private readonly ChargedCurrency $chargeCurrency,
-        private readonly GiftcardPayment $giftcardPaymentHelper
+        private readonly GiftcardPayment $giftcardPaymentHelper,
+        private readonly AdyenLogger $adyenLogger
     ) { }
 
     /**
@@ -53,38 +57,49 @@ class MerchantRiskIndicatorDataBuilder implements BuilderInterface
         /** @var Order $order */
         $order = $payment->getOrder();
         $quote = $this->cartRepository->get($order->getQuoteId());
-
         $isVirtual = $order->getIsVirtual();
 
-        $merchantRiskIndicatorFields = [];
+        try {
+            if ($isVirtual) {
+                $merchantRiskIndicatorFields['deliveryAddressIndicator'] = self::ADDRESS_INDICATOR_OTHER;
+                $merchantRiskIndicatorFields['deliveryEmailAddress'] = $order->getCustomerEmail();
+                $merchantRiskIndicatorFields['deliveryTimeframe'] = self::DELIVERY_TIMEFRAME_ELECTRONIC_DELIVERY;
+            } else {
+                $shippingAddress = $quote->getShippingAddress();
+                $addressMatch = $shippingAddress->getSameAsBilling();
 
-        if ($isVirtual) {
-            $merchantRiskIndicatorFields['deliveryAddressIndicator'] = self::ADDRESS_INDICATOR_DIGITAL_GOODS;
-            $merchantRiskIndicatorFields['deliveryEmailAddress'] = $order->getCustomerEmail();
-            $merchantRiskIndicatorFields['deliveryTimeframe'] = self::DELIVERY_TIMEFRAME_ELECTRONIC_DELIVERY;
-        } else {
-            $shippingAddress = $quote->getShippingAddress();
-            $addressMatch = $shippingAddress->getSameAsBilling();
+                $merchantRiskIndicatorFields['addressMatch'] = boolval($addressMatch);
+                $merchantRiskIndicatorFields['deliveryAddressIndicator'] = $addressMatch ?
+                    self::ADDRESS_INDICATOR_SHIP_TO_BILLING_ADDRESS :
+                    self::ADDRESS_INDICATOR_SHIP_TO_NEW_ADDRESS;
+            }
 
-            $merchantRiskIndicatorFields['addressMatch'] = boolval($addressMatch);
-            $merchantRiskIndicatorFields['deliveryAddressIndicator'] = $addressMatch ?
-                self::ADDRESS_INDICATOR_SHIP_TO_BILLING_ADDRESS :
-                self::ADDRESS_INDICATOR_SHIP_TO_NEW_ADDRESS;
+            $merchantRiskIndicatorFields['reorderItems'] = !empty($order->getRelationParentId());
+
+            // Build giftcard related risk indicators
+            $merchantRiskIndicatorFields = array_merge(
+                $merchantRiskIndicatorFields,
+                $this->buildGiftcardRiskIndicatorFields($quote)
+            );
+        } catch (Exception $e) {
+            $message = __(
+                "An error occurred while building the merchantRiskIndicator field: %1",
+                $e->getMessage()
+            );
+            $this->adyenLogger->error($message);
+
+            $merchantRiskIndicatorFields = [];
         }
 
-        $merchantRiskIndicatorFields['reorderItems'] = !empty($order->getRelationParentId());
+        if (!empty($merchantRiskIndicatorFields)) {
+            $response = [
+                'body' => [
+                    'merchantRiskIndicator' => $merchantRiskIndicatorFields,
+                ]
+            ];
+        }
 
-        // Build giftcard related risk indicators
-        $merchantRiskIndicatorFields = array_merge(
-            $merchantRiskIndicatorFields,
-            $this->buildGiftcardRiskIndicatorFields($quote)
-        );
-
-        return [
-            'body' => [
-                'merchantRiskIndicator' => $merchantRiskIndicatorFields,
-            ]
-        ];
+        return $response ?? [];
     }
 
     /**
