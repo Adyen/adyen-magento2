@@ -53,7 +53,7 @@ class ResetQuoteReservedOrderId implements ObserverInterface
             }
         } catch (\Exception $e) {
             $this->adyenLogger->error("Failed to reset reservedOrderId for guest shopper" . $e->getMessage(), [
-                'quote_id'
+                'quote_id' => $quote->getId(),
             ]);
         }
     }
