@@ -10,8 +10,12 @@
 
 namespace Adyen\Payment\Test\Unit\Helper;
 
+use Adyen\AdyenException;
 use Adyen\Client;
-use Adyen\Payment\Gateway\Request\HeaderDataBuilder;
+use Adyen\Config as AdyenConfig;
+use Adyen\Model\Checkout\ApplicationInfo;
+use Adyen\Model\Checkout\CommonField;
+use Adyen\Payment\Gateway\Request\Header\HeaderDataBuilderInterface;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Locale;
@@ -21,6 +25,11 @@ use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Adyen\Service\Checkout\ModificationsApi;
+use Adyen\Service\Checkout\OrdersApi;
+use Adyen\Service\Checkout\PaymentLinksApi;
+use Adyen\Service\Checkout\PaymentsApi;
+use Adyen\Service\RecurringApi;
 use Magento\Backend\Helper\Data as BackendHelper;
 use Magento\Customer\Helper\Address;
 use Magento\Directory\Model\Config\Source\Country;
@@ -37,19 +46,19 @@ use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Asset\Repository;
 use Magento\Framework\View\Asset\Source;
+use Magento\Payment\Model\InfoInterface;
 use Magento\Quote\Model\Quote\Address\RateRequest;
 use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\Order\Status\HistoryFactory;
+use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManager;
 use Magento\Tax\Model\Calculation;
 use Magento\Tax\Model\Config;
 use Magento\Sales\Model\Order;
-use Magento\Framework\View\Asset\File;
 use ReflectionClass;
-use Adyen\Service\Recurring;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
-
+use Magento\Framework\App\Request\Http;
 
 class DataTest extends AbstractAdyenTestCase
 {
@@ -58,8 +67,43 @@ class DataTest extends AbstractAdyenTestCase
      */
     private $dataHelper;
 
+    private $clientMock;
+    private $adyenLogger;
+    private $ccTypesAltData;
+    private $configHelper;
+    private $objectManager;
+    private $store;
+    private $encryptor;
+    private $dataStorage;
+    private $assetRepo;
+    private $assetSource;
+    private $taxConfig;
+    private $taxCalculation;
+    private $backendHelper;
+    private $storeManager;
+    private $cache;
+    private $localeResolver;
+    private $config;
+    private $componentRegistrar;
+    private $localeHelper;
+    private $orderManagement;
+    private $orderStatusHistoryFactory;
+    private $request;
+
     public function setUp(): void
     {
+        $this->clientMock = $this->createConfiguredMock(Client::class, [
+                'getConfig' => new AdyenConfig([
+                    'environment' => 'test',
+                    'externalPlatform' => ['name' => 'test platform', 'version' => '1.2.3', 'integrator' => 'test integrator'],
+                    'merchantApplication' => ['name' => 'test merchant', 'version' => '1.2.3'],
+                    'adyenPaymentSource' => ['name' => 'test source', 'version' => '1.2.3']
+                ]),
+                'getLibraryName' => 'test library',
+                'getLibraryVersion' => '1.2.3',
+            ]
+        );
+
         // Prepare mock data for ccTypesAltData
         $this->ccTypesAltData = [
             'VI' => ['code_alt' => 'VI', 'code' => 'VI'],
@@ -71,9 +115,10 @@ class DataTest extends AbstractAdyenTestCase
                 'demo_mode' => '1'
             ]
         ]);
+
         $this->objectManager = new ObjectManager($this);
         $context = $this->createMock(Context::class);
-        $this->store = $this->createMock(\Magento\Store\Model\Store::class);
+        $this->store = $this->createMock(Store::class);
         $this->encryptor = $this->createMock(EncryptorInterface::class);
         $this->dataStorage = $this->createMock(DataInterface::class);
         $country = $this->createMock(Country::class);
@@ -91,6 +136,7 @@ class DataTest extends AbstractAdyenTestCase
         ]);
         $this->adyenLogger = $this->createMock(AdyenLogger::class);
         $this->storeManager = $this->createMock(StoreManager::class);
+        $this->storeManager->method('getStore')->willReturn($this->store);
         $this->cache = $this->createMock(CacheInterface::class);
         $this->localeResolver = $this->createMock(ResolverInterface::class);
         $this->config = $this->createMock(ScopeConfigInterface::class);
@@ -104,6 +150,13 @@ class DataTest extends AbstractAdyenTestCase
         $this->dataStorage->method('get')
             ->with('adyen_credit_cards')
             ->willReturn($this->ccTypesAltData);
+
+        $this->request = $this->createMock(Http::class);
+
+        $this->paymentMock = $this->getMockBuilder(InfoInterface::class)
+            ->disableOriginalConstructor()
+            ->setMethods(null)
+            ->getMock();
 
         // Partial mock builder is being used for mocking the methods in the class being tested.
         $this->dataHelper = $this->getMockBuilder(Data::class)
@@ -130,7 +183,8 @@ class DataTest extends AbstractAdyenTestCase
                 $this->localeHelper,
                 $this->orderManagement,
                 $this->orderStatusHistoryFactory,
-                $this->configHelper
+                $this->configHelper,
+                $this->request
             ])
             ->getMock();
 
@@ -159,7 +213,8 @@ class DataTest extends AbstractAdyenTestCase
             'eu' => 'Default (EU - Europe)',
             'au' => 'AU - Australasia',
             'us' => 'US - United States',
-            'in' => 'IN - India'
+            'in' => 'IN - India',
+            'apse' => 'APSE - Asia Pacific Southeast'
         ];
 
         $actualResult = $this->dataHelper->getCheckoutFrontendRegions();
@@ -1011,6 +1066,69 @@ class DataTest extends AbstractAdyenTestCase
         $this->assertEquals($expectedHeaders, $headers);
     }
 
+    public function testBuildRequestHeadersWithFrontendTypeSet(): void
+    {
+        // Mock dependencies as needed
+        $payment = $this->createMock(Payment::class);
+
+        // Set up expectations for the getAdditionalInformation method
+        $payment->method('getAdditionalInformation')
+            ->with(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY)
+            ->willReturn(null);
+
+        $headers = $this->dataHelper->buildRequestHeaders($this->paymentMock);
+
+        $this->assertArrayHasKey(HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE, $headers);
+        $this->assertEquals('headless-rest', $headers[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE]);
+    }
+
+    public function testBuildRequestHeadersWithNullFrontendTypeGraphQL(): void
+    {
+        $this->paymentMock->method('getAdditionalInformation')
+            ->with(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY)
+            ->willReturn(null);
+
+        $this->request->method('getOriginalPathInfo')
+            ->willReturn('/graphql');
+        $this->request->method('getMethod')
+            ->willReturn('POST');
+
+        $headers = $this->dataHelper->buildRequestHeaders($this->paymentMock);
+
+        $this->assertArrayHasKey(HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE, $headers);
+        $this->assertEquals('headless-graphql', $headers[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE]);
+    }
+
+    public function testBuildApplicationInfo()
+    {
+        $expectedApplicationInfo =  new ApplicationInfo();
+
+        // These getters are deprecated but needed to mock the client
+        $expectedApplicationInfo->setAdyenLibrary(new CommonField([
+            'name' => $this->clientMock->getLibraryName(),
+            'version' => $this->clientMock->getLibraryVersion()
+        ]));
+
+        $expectedApplicationInfo->setAdyenPaymentSource(new CommonField(
+            $this->clientMock->getConfig()->getAdyenPaymentSource())
+        );
+
+        $expectedApplicationInfo->setExternalPlatform(
+            $this->clientMock->getConfig()->getExternalPlatform()
+        );
+
+        $expectedApplicationInfo->setMerchantApplication(new CommonField(
+            $this->clientMock->getConfig()->getMerchantApplication())
+        );
+
+        $applicationInfo = $this->dataHelper->buildApplicationInfo($this->clientMock);
+
+        $this->assertEquals(
+            $expectedApplicationInfo,
+            $applicationInfo
+        );
+    }
+
     public function testBuildRequestHeadersWithNonNullFrontendType()
     {
         // Mock dependencies as needed
@@ -1018,15 +1136,15 @@ class DataTest extends AbstractAdyenTestCase
 
         // Set up expectations for the getAdditionalInformation method
         $payment->method('getAdditionalInformation')
-            ->with(HeaderDataBuilder::FRONTENDTYPE)
-            ->willReturn('some_frontend_type');
+            ->with(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY)
+            ->willReturn('default');
 
         // Call the method under test
         $result = $this->dataHelper->buildRequestHeaders($payment);
 
         // Assert that the 'frontend-type' header is correctly set
-        $this->assertArrayHasKey(HeaderDataBuilder::FRONTENDTYPE, $result);
-        $this->assertEquals('some_frontend_type', $result[HeaderDataBuilder::FRONTENDTYPE]);
+        $this->assertArrayHasKey(HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE, $result);
+        $this->assertEquals('default', $result[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE]);
 
         // Assert other headers as needed
     }
@@ -1038,7 +1156,7 @@ class DataTest extends AbstractAdyenTestCase
         $result = $this->dataHelper->buildRequestHeaders();
 
         // Assert that the 'frontend-type' header is not set
-        $this->assertArrayNotHasKey(HeaderDataBuilder::FRONTENDTYPE, $result);
+        $this->assertArrayNotHasKey(HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE, $result);
     }
 
     public function testLogResponse()
@@ -1365,8 +1483,9 @@ class DataTest extends AbstractAdyenTestCase
     {
         $storeId = 1;
         $expectedBaseUrl = 'https://example.com/';
+
         $stateMock = $this->createMock(State::class);
-        $storeMock = $this->createMock(\Magento\Store\Model\Store::class);
+
         $objectManagerStub = $this->createMock(\Magento\Framework\App\ObjectManager::class);
         $objectManagerStub->method('get')->willReturnMap([
             [State::class, $stateMock]
@@ -1379,13 +1498,8 @@ class DataTest extends AbstractAdyenTestCase
             ->with('payment_origin_url', $storeId)
             ->willReturn('');
 
-        // Mock the store manager to return the store mock
-        $this->storeManager->expects($this->once())
-            ->method('getStore')
-            ->willReturn($storeMock);
-
         // Mock the store to return the expected base URL
-        $storeMock->expects($this->once())
+        $this->store->expects($this->once())
             ->method('getBaseUrl')
             ->with(UrlInterface::URL_TYPE_WEB)
             ->willReturn($expectedBaseUrl);
@@ -1446,7 +1560,7 @@ class DataTest extends AbstractAdyenTestCase
         $merchantAccount = 'mock_merchant_account';
 
         // Mock the store manager and config helper
-        $storeMock = $this->createMock(\Magento\Store\Model\Store::class);
+        $storeMock = $this->createMock(Store::class);
         $storeMock->expects($this->any())
             ->method('getId')
             ->willReturn($storeId);
@@ -1476,7 +1590,7 @@ class DataTest extends AbstractAdyenTestCase
         $merchantAccountPos = 'mock_pos_merchant_account';
 
         // Mock the store manager and config helper
-        $storeMock = $this->createMock(\Magento\Store\Model\Store::class);
+        $storeMock = $this->createMock(Store::class);
         $storeMock->expects($this->any())
             ->method('getId')
             ->willReturn($storeId);
@@ -1714,5 +1828,127 @@ class DataTest extends AbstractAdyenTestCase
         // Assert that the formFields array is correctly populated
         $this->assertArrayHasKey('openinvoicedata.line1.itemId', $result);
         $this->assertEquals("shippingCost", $result['openinvoicedata.line1.itemId']);
+    }
+
+    /**
+     * @test
+     */
+    public function getRecurringTypesShouldReturnAnArrayOfRecurringTypes()
+    {
+        $this->assertEquals([
+            RecurringType::ONECLICK => 'ONECLICK',
+            RecurringType::ONECLICK_RECURRING => 'ONECLICK,RECURRING',
+            RecurringType::RECURRING => 'RECURRING'
+        ], $this->dataHelper->getRecurringTypes());
+    }
+
+    public function getCheckoutFrontendRegionsShouldReturnAnArray()
+    {
+        $this->assertEquals([
+            'eu' => 'Default (EU - Europe)',
+            'au' => 'AU - Australasia',
+            'us' => 'US - United States',
+            'in' => 'IN - India',
+            'apse' => 'APSE - Asia Pacific Southeast'
+        ], $this->dataHelper->getRecurringTypes());
+    }
+
+    public function testGetClientKey()
+    {
+        $expectedValue = 'client_key_test_value';
+        $storeId = 1;
+
+        $this->configHelper->method('isDemoMode')
+            ->with($storeId)
+            ->willReturn(true);
+
+        $this->configHelper->method('getAdyenAbstractConfigData')
+            ->with('client_key_test', $storeId)
+            ->willReturn($expectedValue);
+
+        $key = $this->dataHelper->getClientKey(1);
+        $this->assertEquals($expectedValue, $key);
+    }
+
+    public function testGetApiKey()
+    {
+        $apiKey = 'api_key_test_value';
+        $expectedValue = 'api_key_test_decryted_value';
+        $storeId = 1;
+
+        $this->configHelper->method('isDemoMode')
+            ->with($storeId)
+            ->willReturn(true);
+
+        $this->configHelper->method('getAdyenAbstractConfigData')
+            ->with('api_key_test', $storeId)
+            ->willReturn($apiKey);
+
+        $this->encryptor->method('decrypt')
+            ->with($apiKey)
+            ->willReturn($expectedValue);
+
+        $key = $this->dataHelper->getAPIKey(1);
+        $this->assertEquals($expectedValue, $key);
+    }
+
+    public function testIsDemoMode()
+    {
+        $storeId = 1;
+        $this->configHelper->method('getAdyenAbstractConfigDataFlag')
+            ->with('demo_mode', $storeId)
+            ->willReturn(true);
+
+        $value = $this->dataHelper->isDemoMode($storeId);
+
+        $this->assertEquals(true, $value);
+    }
+
+    public function testCaptureModes()
+    {
+        $this->assertSame(
+            [
+                'auto' => 'Immediate',
+                'manual' => 'Manual'
+            ],
+            $this->dataHelper->getCaptureModes()
+        );
+    }
+
+    public function testInitializePaymentsApi()
+    {
+        $service = $this->dataHelper->initializePaymentsApi($this->clientMock);
+        $this->assertInstanceOf(PaymentsApi::class, $service);
+    }
+
+    public function testInitializeModificationsApi()
+    {
+        $service = $this->dataHelper->initializeModificationsApi($this->clientMock);
+        $this->assertInstanceOf(ModificationsApi::class, $service);
+    }
+
+    public function testInitializeRecurringApi()
+    {
+        $service = $this->dataHelper->initializeRecurringApi($this->clientMock);
+        $this->assertInstanceOf(RecurringApi::class, $service);
+    }
+
+    public function testInitializeOrdersApi()
+    {
+        $service = $this->dataHelper->initializeOrdersApi($this->clientMock);
+        $this->assertInstanceOf(OrdersApi::class, $service);
+    }
+
+    public function testInitializePaymentLinksApi()
+    {
+        $service = $this->dataHelper->initializePaymentLinksApi($this->clientMock);
+        $this->assertInstanceOf(PaymentLinksApi::class, $service);
+    }
+
+    public function testLogAdyenException()
+    {
+        $this->store->method('getId')->willReturn(1);
+        $this->adyenLogger->expects($this->once())->method('info');
+        $this->dataHelper->logAdyenException(new AdyenException('error message', 123));
     }
 }

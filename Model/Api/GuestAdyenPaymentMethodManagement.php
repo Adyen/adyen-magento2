@@ -28,10 +28,15 @@ class GuestAdyenPaymentMethodManagement implements GuestAdyenPaymentMethodManage
         $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
 
-    public function getPaymentMethods(string $cartId, ?string $shopperLocale = null, ?string $country = null): string {
+    public function getPaymentMethods(
+        string $cartId,
+        ?string $shopperLocale = null,
+        ?string $country = null,
+        ?string $channel = null
+    ): string {
         $quoteIdMask = $this->quoteIdMaskFactory->create()->load($cartId, 'masked_id');
         $quoteId = $quoteIdMask->getQuoteId();
 
-        return $this->paymentMethodsHelper->getPaymentMethods($quoteId, $country, $shopperLocale);
+        return $this->paymentMethodsHelper->getPaymentMethods($quoteId, $country, $shopperLocale, $channel);
     }
 }

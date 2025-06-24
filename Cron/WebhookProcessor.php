@@ -99,6 +99,8 @@ class WebhookProcessor
 
         // Loop through and process notifications.
         $count = 0;
+        $queued = 0;
+
         /** @var Notification[] $notifications */
         foreach ($notifications as $notification) {
             // ignore duplicate notification
@@ -128,6 +130,7 @@ class WebhookProcessor
 
             if ($this->configHelper->useQueueProcessor()) {
                 $this->notificationPublisher->execute($notification);
+                $queued++;
                 $count++;
             } elseif ($this->webhookHelper->processNotification($notification)) {
                 $count++;
@@ -139,7 +142,8 @@ class WebhookProcessor
                 "Cronjob updated %s notification(s)", $count
             ), [
                 'pspReference' => $notification->getPspreference(),
-                'merchantReference' => $notification->getMerchantReference()
+                'merchantReference' => $notification->getMerchantReference(),
+                'queued' => $queued
             ]);
         }
     }

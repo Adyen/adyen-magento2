@@ -1,18 +1,20 @@
 name: Main CI workflow
 
 on:
+  push:
+    branches: [main]
   pull_request:
   pull_request_target:
   workflow_dispatch:
-  push:
-    branches: [develop]
 
 jobs:
   build:
-    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) || (github.event_name == 'push') || (github.event_name == 'workflow_dispatch')
+    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) || (github.event_name == 'workflow_dispatch')
     environment: ${{ (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) && 'external' || 'internal' }}
     runs-on: ubuntu-latest
-
+    timeout-minutes: 25
+    permissions:
+      contents: read
     strategy:
       matrix:
         php-version: [8.2,8.3]
@@ -20,13 +22,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
           fetch-depth: 0
 
       - name: Use PHP ${{ matrix.php-version }}
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
-          tools: composer:v1
+          tools: composer:v2
 
       - name: Test plugin installation
         run: |
@@ -48,7 +51,7 @@ jobs:
 
       - name: SonarCloud Scan
         if: ${{ env.SONAR_TOKEN }}
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarqube-scan-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

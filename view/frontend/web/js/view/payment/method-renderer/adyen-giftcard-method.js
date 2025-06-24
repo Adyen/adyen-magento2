@@ -95,7 +95,7 @@ define(
                 fullScreenLoader.startLoader();
                 let giftcards = [];
 
-                let paymentMethods = paymentMethodsResponse.paymentMethodsResponse.paymentMethods;
+                let paymentMethods = paymentMethodsResponse.paymentMethodsResponse?.paymentMethods;
 
                 if (!!paymentMethods && paymentMethods.length > 0) {
                     giftcards.push({
@@ -213,9 +213,16 @@ define(
             handleBalanceResult: function (balanceResponse, stateData, resolve) {
                 let self = this;
 
-                let consumableBalance = balanceResponse.transactionLimit ?
-                    balanceResponse.transactionLimit :
-                    balanceResponse.balance;
+                let consumableBalance;
+                if (balanceResponse.transactionLimit && balanceResponse.transactionLimit.value) {
+                    if (balanceResponse.transactionLimit.value <= balanceResponse.balance.value) {
+                        consumableBalance = balanceResponse.transactionLimit;
+                    } else {
+                        consumableBalance = balanceResponse.balance;
+                    }
+                } else {
+                    consumableBalance = balanceResponse.balance;
+                }
 
                 let orderAmount = currencyHelper.formatAmount(
                     quote.totals().grand_total,
