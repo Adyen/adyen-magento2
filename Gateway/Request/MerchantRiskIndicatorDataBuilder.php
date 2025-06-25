@@ -74,8 +74,6 @@ class MerchantRiskIndicatorDataBuilder implements BuilderInterface
                     self::ADDRESS_INDICATOR_SHIP_TO_NEW_ADDRESS;
             }
 
-            $merchantRiskIndicatorFields['reorderItems'] = !empty($order->getRelationParentId());
-
             // Build giftcard related risk indicators
             $merchantRiskIndicatorFields = array_merge(
                 $merchantRiskIndicatorFields,
@@ -92,14 +90,14 @@ class MerchantRiskIndicatorDataBuilder implements BuilderInterface
         }
 
         if (!empty($merchantRiskIndicatorFields)) {
-            $response = [
+            $request = [
                 'body' => [
                     'merchantRiskIndicator' => $merchantRiskIndicatorFields,
                 ]
             ];
         }
 
-        return $response ?? [];
+        return $request ?? [];
     }
 
     /**

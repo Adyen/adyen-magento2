@@ -109,7 +109,6 @@ class MerchantRiskIndicatorDataBuilderTest extends AbstractAdyenTestCase
         $customerEmail = 'roni_cost@example.com';
 
         $this->orderMock->expects($this->once())->method('getIsVirtual')->willReturn($isVirtual);
-        $this->orderMock->expects($this->once())->method('getRelationParentId')->willReturn(null);
         $this->orderMock->method('getCustomerEmail')->willReturn($customerEmail);
 
         $this->shippingAddressMock->method('getSameAsBilling')->willReturn($sameAsBillingAddress);
@@ -130,7 +129,6 @@ class MerchantRiskIndicatorDataBuilderTest extends AbstractAdyenTestCase
             $this->assertArrayHasKey('addressMatch', $result['body']['merchantRiskIndicator']);
         }
 
-        $this->assertArrayHasKey('reorderItems', $result['body']['merchantRiskIndicator']);
         $this->assertArrayHasKey('deliveryAddressIndicator', $result['body']['merchantRiskIndicator']);
         $this->assertEquals($deliveryAddressIndicator,
             $result['body']['merchantRiskIndicator']['deliveryAddressIndicator']);
