@@ -1595,6 +1595,15 @@
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
     </type>
+    <type name="Adyen\Payment\Model\Webhook\WebhookAcceptorFactory">
+        <arguments>
+            <argument name="acceptors" xsi:type="array">
+                <item name="standard" xsi:type="object">Adyen\Payment\Model\Webhook\StandardWebhookAcceptor</item>
+                <item name="token" xsi:type="object">Adyen\Payment\Model\Webhook\TokenWebhookAcceptor</item>
+            </argument>
+        </arguments>
+    </type>
+
     <type name="Adyen\Payment\Model\Api\AdyenDonations">
         <arguments>
             <argument name="commandPool" xsi:type="object">AdyenPaymentDonationsCommandPool</argument>
