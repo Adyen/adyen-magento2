@@ -148,10 +148,10 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
         SenderResolverInterface $senderResolver,
         ObjectManagerInterface $objectManager,
         TransportInterfaceFactory $mailTransportFactory,
-        EmailMessageInterfaceFactory $emailMessageInterfaceFactory = null,
-        MimeMessageInterfaceFactory $mimeMessageInterfaceFactory = null,
-        MimePartInterfaceFactory $mimePartInterfaceFactory = null,
-        AddressConverter $addressConverter = null
+        ?EmailMessageInterfaceFactory $emailMessageInterfaceFactory = null,
+        ?MimeMessageInterfaceFactory $mimeMessageInterfaceFactory = null,
+        ?MimePartInterfaceFactory $mimePartInterfaceFactory = null,
+        ?AddressConverter $addressConverter = null
     ) {
         $this->templateFactory = $templateFactory;
         $this->objectManager = $objectManager;

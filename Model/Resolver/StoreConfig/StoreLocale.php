@@ -17,32 +17,31 @@ use Adyen\Payment\Helper\Locale;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
-use Magento\GraphQl\Model\Query\Context;
 use Magento\Store\Api\Data\StoreInterface;
 
 class StoreLocale implements ResolverInterface
 {
-    protected Locale $localeHelper;
-
     /**
-     * @param \Adyen\Payment\Helper\Locale $localeHelper
+     * @param Locale $localeHelper
      */
     public function __construct(
-        Locale $localeHelper
-    ) {
-        $this->localeHelper = $localeHelper;
-    }
+        protected readonly Locale $localeHelper
+    ) { }
 
     /**
-     * @param Context $context
-     * @inheritDoc
+     * @param Field $field
+     * @param $context
+     * @param ResolveInfo $info
+     * @param array|null $value
+     * @param array|null $args
+     * @return string|null
      */
     public function resolve(
         Field $field,
         $context,
         ResolveInfo $info,
-        array $value = null,
-        array $args = null
+        ?array $value = null,
+        ?array $args = null
     ): ?string {
         /** @var StoreInterface $store */
         $store = $context->getExtensionAttributes()->getStore();

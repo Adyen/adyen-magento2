@@ -210,7 +210,7 @@ class CaptureDataBuilder implements BuilderInterface
         int $amount,
         string $currency,
         string $pspReference,
-        float $totalCaptured = null
+        ?float $totalCaptured = null
     ): array {
         $method = $payment->getMethod();
         $storeId = $payment->getOrder()->getStoreId();

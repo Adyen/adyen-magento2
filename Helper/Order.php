@@ -681,7 +681,7 @@ class Order extends AbstractHelper
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function cancelOrder(OrderInterface $order, string $reason = null): void
+    public function cancelOrder(OrderInterface $order, ?string $reason = null): void
     {
         $orderStatus = $this->configHelper->getAdyenAbstractConfigData('payment_cancelled');
         $order->setActionFlag($orderStatus, true);

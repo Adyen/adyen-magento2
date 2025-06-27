@@ -94,6 +94,7 @@ class CaseManagementTest extends AbstractAdyenTestCase
         $reviewRequiredStatus = null;
         $expectedManualReviewComment = 'Manual review required for order w/pspReference: PSPREFERENCE. Please check the Adyen platform.';
         $order = $this->createMock(Order::class);
+        $order->method('getStoreId')->willReturn(1);
         $payment = $this->createGeneratedMock(Payment::class, [], ['getData']);
         $configHelper = $this->createMock(Config::class);
         $logger = $this->createMock(AdyenLogger::class);

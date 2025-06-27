@@ -21,37 +21,14 @@ use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\GraphQl\Exception\GraphQlNoSuchEntityException;
 use Magento\Framework\GraphQl\Query\Resolver\ContextInterface;
-use Magento\Framework\GraphQl\Query\Resolver\Value;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\QuoteGraphQl\Model\Cart\GetCartForUser;
 use Magento\Sales\Model\Order;
-use Magento\GraphQl\Helper\Error\AggregateExceptionMessageFormatter;
 
 class GetAdyenPaymentDetails implements ResolverInterface
 {
-    /**
-     * @var GetCartForUser
-     */
-    private $getCartForUser;
-    /**
-     * @var DataProvider\GetAdyenPaymentStatus
-     */
-    protected $getAdyenPaymentStatusDataProvider;
-    /**
-     * @var Order
-     */
-    protected $order;
-    /**
-     * @var Json
-     */
-    protected $jsonSerializer;
-    /**
-     * @var AdyenLogger
-     */
-    protected $adyenLogger;
-
     /**
      * @param GetCartForUser $getCartForUser
      * @param DataProvider\GetAdyenPaymentStatus $getAdyenPaymentStatusDataProvider
@@ -60,18 +37,12 @@ class GetAdyenPaymentDetails implements ResolverInterface
      * @param AdyenLogger $adyenLogger
      */
     public function __construct(
-        GetCartForUser $getCartForUser,
-        DataProvider\GetAdyenPaymentStatus $getAdyenPaymentStatusDataProvider,
-        Order $order,
-        Json $jsonSerializer,
-        AdyenLogger $adyenLogger
-    ) {
-        $this->getCartForUser = $getCartForUser;
-        $this->getAdyenPaymentStatusDataProvider = $getAdyenPaymentStatusDataProvider;
-        $this->order = $order;
-        $this->jsonSerializer = $jsonSerializer;
-        $this->adyenLogger = $adyenLogger;
-    }
+        private readonly GetCartForUser $getCartForUser,
+        protected readonly DataProvider\GetAdyenPaymentStatus $getAdyenPaymentStatusDataProvider,
+        protected readonly Order $order,
+        protected readonly Json $jsonSerializer,
+        protected readonly AdyenLogger $adyenLogger
+    ) { }
 
     /**
      * @inheritdoc
@@ -81,7 +52,7 @@ class GetAdyenPaymentDetails implements ResolverInterface
      * @param ResolveInfo $info
      * @param array|null $value
      * @param array|null $args
-     * @return array|Value|mixed
+     * @return array
      * @throws GraphQlAdyenException
      * @throws GraphQlInputException
      * @throws GraphQlNoSuchEntityException
@@ -90,9 +61,9 @@ class GetAdyenPaymentDetails implements ResolverInterface
         Field $field,
         $context,
         ResolveInfo $info,
-        array $value = null,
-        array $args = null
-    ) {
+        ?array $value = null,
+        ?array $args = null
+    ): array {
         if (empty($args['payload'])) {
             throw new GraphQlInputException(__('Required parameter "payload" is missing'));
         }

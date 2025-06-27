@@ -34,7 +34,7 @@ class AdyenPaymentMethodsBalanceTest extends AbstractAdyenTestCase
             [
                 'getStore' => $this->createConfiguredMock(
                     Store::class, [
-                        'getId' => 'StoreId'
+                        'getId' => 1
                     ]
                 ),
             ]

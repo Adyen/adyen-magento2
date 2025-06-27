@@ -53,8 +53,8 @@ class GetAdyenRedeemedGiftcards implements ResolverInterface
         Field       $field,
                     $context,
         ResolveInfo $info,
-        array       $value = null,
-        array       $args = null
+        ?array       $value = null,
+        ?array       $args = null
     ) {
         if (empty($args['cartId'])) {
             throw new GraphQlInputException(__('Required parameter "cartId" is missing'));

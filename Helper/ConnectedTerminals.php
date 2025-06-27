@@ -14,24 +14,30 @@ namespace Adyen\Payment\Helper;
 use Adyen\AdyenException;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Checkout\Model\Session;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 
 class ConnectedTerminals
 {
-    protected Session $session;
-    protected Data $adyenHelper;
-    private AdyenLogger $adyenLogger;
-
+    /**
+     * @param Data $adyenHelper
+     * @param Session $session
+     * @param AdyenLogger $adyenLogger
+     */
     public function __construct(
-        Data $adyenHelper,
-        Session $session,
-        AdyenLogger $adyenLogger
-    ) {
-        $this->adyenHelper = $adyenHelper;
-        $this->session = $session;
-        $this->adyenLogger = $adyenLogger;
-    }
+        protected readonly Data $adyenHelper,
+        protected readonly Session $session,
+        private readonly AdyenLogger $adyenLogger
+    ) { }
 
-    public function getConnectedTerminals(int $storeId = null): array
+    /**
+     * @param int|null $storeId
+     * @return array
+     * @throws AdyenException
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
+    public function getConnectedTerminals(?int $storeId = null): array
     {
         if (!isset($storeId)) {
             $storeId = $this->session->getQuote()->getStoreId();
