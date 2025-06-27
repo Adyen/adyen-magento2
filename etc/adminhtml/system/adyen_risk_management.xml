@@ -23,7 +23,7 @@
             <config_path>payment/adyen_abstract/send_additional_risk_data</config_path>
             <comment>
                 <![CDATA[
-                If enabled additional risk data will be sent with every payment request. To learn more about risk management refer to
+                If enabled additional risk data will be sent with every payment request. To learn more about risk management, refer to
                 <a target="_blank" href="https://docs.adyen.com/risk-management">Adyen documentation</a>.
                 ]]>
             </comment>
@@ -32,6 +32,12 @@
             <label>Collect data outside of the checkout</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_abstract/outside_checkout_data_collection</config_path>
+            <comment>
+                <![CDATA[
+                Additional data will be collected to detect fraud outside of the checkout page if enabled. To learn more about data collection to detect fraud, refer to
+                <a target="_blank" href="https://docs.adyen.com/risk-management/fraud-data-collection">Adyen documentation</a>.
+                ]]>
+            </comment>
         </field>
         <field id="fraud_manual_review_status" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Manual review status</label>
