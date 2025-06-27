@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Test\Unit\Helper;
 
+use Adyen\Payment\Helper\OrderStatusHistory;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Helper\Vault;
@@ -23,13 +24,10 @@ use Exception;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Sales\Api\OrderStatusHistoryRepositoryInterface;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\Order\Status\History;
-use Magento\Sales\Model\ResourceModel\Order;
 use Magento\Sales\Model\OrderRepository;
-use Magento\Sales\Model\Order\Status\HistoryFactory;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Model\ResourceModel\PaymentResponse\Collection;
 use Adyen\Payment\Model\ResourceModel\PaymentResponse\CollectionFactory;
@@ -61,21 +59,16 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         $this->paymentMethodInstanceMock = $this->createMock(Adapter::class);
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
         $vaultHelperMock = $this->createMock(Vault::class);
-        $orderResourceModelMock = $this->createMock(Order::class);
         $dataHelperMock = $this->createMock(Data::class);
         $this->quoteHelperMock = $this->createMock(Quote::class);
         $orderHelperMock = $this->createMock(OrderHelper::class);
         $this->orderRepositoryMock = $this->createMock(OrderRepository::class);
-        $orderHistoryFactoryMock = $this->createGeneratedMock(HistoryFactory::class, [
-            'create'
-        ]);
+
         $this->stateDataHelperMock = $this->createMock(StateData::class);
         $this->configHelperMock = $this->createMock(Config::class);
         $this->paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
-        $historyRepositoryMock = $this->createMock(OrderStatusHistoryRepositoryInterface::class);
 
         $this->paymentResponseMockForFactory = $this->createMock(Collection::class);
-
         $this->paymentResponseCollectionFactoryMock = $this->createGeneratedMock(CollectionFactory::class, ['create']);
 
         $orderHistory = $this->createMock(History::class);
@@ -84,7 +77,6 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         $orderHistory->method('setEntityName')->willReturnSelf();
         $orderHistory->method('setOrder')->willReturnSelf();
 
-        $orderHistoryFactoryMock->method('create')->willReturn($orderHistory);
         $this->orderMock->method('getQuoteId')->willReturn(1);
         $this->orderMock->method('getPayment')->willReturn($this->paymentMock);
         $this->orderMock->method('getStatus')->willReturn('pending');
@@ -93,20 +85,20 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
 
         $orderHelperMock->method('setStatusOrderCreation')->willReturn($this->orderMock);
 
+        $orderStatusHistoryMock = $this->createMock(OrderStatusHistory::class);
+
         $this->paymentResponseHandler = new PaymentResponseHandler(
             $this->adyenLoggerMock,
             $vaultHelperMock,
-            $orderResourceModelMock,
             $dataHelperMock,
             $this->quoteHelperMock,
             $orderHelperMock,
             $this->orderRepositoryMock,
-            $orderHistoryFactoryMock,
             $this->stateDataHelperMock,
             $this->paymentResponseCollectionFactoryMock,
             $this->configHelperMock,
-            $historyRepositoryMock,
-            $this->paymentMethodsHelperMock
+            $this->paymentMethodsHelperMock,
+            $orderStatusHistoryMock
         );
     }
 

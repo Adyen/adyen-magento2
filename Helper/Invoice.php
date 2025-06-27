@@ -212,11 +212,11 @@ class Invoice extends AbstractHelper
      *
      * @param Order $order
      * @param Notification $notification
-     * @return AdyenInvoice
+     * @return array
+     * @throws AdyenWebhookException
      * @throws AlreadyExistsException
-     * @throws Exception
      */
-    public function handleCaptureWebhook(Order $order, Notification $notification): AdyenInvoice
+    public function handleCaptureWebhook(Order $order, Notification $notification): array
     {
         $adyenInvoice = $this->adyenInvoiceRepository->getByCaptureWebhook($notification);
 
@@ -261,7 +261,7 @@ class Invoice extends AbstractHelper
         }
 
         $additionalData = $notification->getAdditionalData();
-        $acquirerReference = $additionalData[NotificationInterface::ADDITIONAL_DATA] ?? null;
+        $acquirerReference = $additionalData[Notification::ADDITIONAL_DATA] ?? null;
         $adyenInvoice->setAcquirerReference($acquirerReference);
         $adyenInvoice->setStatus(InvoiceInterface::STATUS_SUCCESSFUL);
         $this->adyenInvoiceRepository->save($adyenInvoice);
@@ -270,12 +270,19 @@ class Invoice extends AbstractHelper
         $magentoInvoice = $this->invoiceRepository->get($adyenInvoice->getInvoiceId());
 
         if ($this->isFullInvoiceAmountManuallyCaptured($magentoInvoice)) {
+            /*
+             * Magento Invoice updates the Order object while paying the invoice. This creates two divergent
+             * Order objects. In the downstream, some information might be missing due to setting them on the
+             * wrong order object as the Order might be already updated in the upstream without persisting
+             * it to the database. Setting the order again on the Invoice makes sure we are dealing
+             * with the same order object always.
+             */
+            $magentoInvoice->setOrder($order);
             $magentoInvoice->pay();
             $this->invoiceRepository->save($magentoInvoice);
-            $this->orderRepository->save($magentoInvoice->getOrder());
         }
 
-        return $adyenInvoice;
+        return [$adyenInvoice, $magentoInvoice, $order];
     }
 
     /**

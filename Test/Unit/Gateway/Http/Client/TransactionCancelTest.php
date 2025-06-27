@@ -61,7 +61,7 @@ class TransactionCancelTest extends AbstractAdyenTestCase
         $this->adyenHelperMock->method('initializeAdyenClientWithClientConfig')->willReturn($this->clientMock);
         $this->adyenHelperMock->method('initializeModificationsApi')->willReturn($this->checkoutServiceMock);
 
-        $expectedResult = ['status' => 'received'];
+        $expectedResult = [['status' => 'received']];
 
         // Act
         $result = $this->transactionCancel->placeRequest($this->transferObjectMock);
@@ -92,7 +92,7 @@ class TransactionCancelTest extends AbstractAdyenTestCase
         $result = $this->transactionCancel->placeRequest($this->transferObjectMock);
 
         // Assert
-        $this->assertSame($result, ['error' => 'API exception']);
+        $this->assertSame($result, [['error' => 'API exception']]);
     }
 
     public function testCancellationWithMultipleRequests()
@@ -117,7 +117,7 @@ class TransactionCancelTest extends AbstractAdyenTestCase
         $this->adyenHelperMock->method('initializeAdyenClientWithClientConfig')->willReturn($this->clientMock);
         $this->adyenHelperMock->method('initializeModificationsApi')->willReturn($this->checkoutServiceMock);
 
-        $expectedResults = ['status' => 'received'];
+        $expectedResults = [['status' => 'received'], ['status' => 'received']];
 
         // Act
         $results = $this->transactionCancel->placeRequest($this->transferObjectMock);
