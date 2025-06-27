@@ -36,6 +36,7 @@
                 <allow_multistore_tokens>1</allow_multistore_tokens>
                 <remove_processed_webhooks>0</remove_processed_webhooks>
                 <processed_webhook_removal_time>90</processed_webhook_removal_time>
+                <outside_checkout_data_collection>0</outside_checkout_data_collection>
             </adyen_abstract>
             <adyen_cc>
                 <active>0</active>
