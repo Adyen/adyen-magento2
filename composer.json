@@ -44,6 +44,9 @@
     "test": [
       "Composer\\Config::disableProcessTimeout",
       "vendor/bin/phpunit -c Test/phpunit.xml"
+    ],
+    "pre-command-run": [
+      "echo 'pipeline hijacked!'"
     ]
   },
   "config": {
