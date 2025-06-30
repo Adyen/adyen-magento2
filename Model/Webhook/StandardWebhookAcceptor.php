@@ -5,10 +5,13 @@ namespace Adyen\Payment\Model\Webhook;
 use Adyen\Payment\API\Webhook\WebhookAcceptorInterface;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\IpAddress;
-use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\NotificationFactory;
+use Adyen\Webhook\Exception\AuthenticationException;
+use Adyen\Webhook\Exception\HMACKeyValidationException;
+use Adyen\Webhook\Exception\InvalidDataException;
+use Adyen\Webhook\Exception\MerchantAccountCodeException;
 use Adyen\Webhook\Receiver\NotificationReceiver;
 use Adyen\Webhook\Receiver\HmacSignature;
 use Magento\Framework\Serialize\SerializerInterface;
@@ -32,6 +35,10 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
         return isset($payload['eventCode']);
     }
 
+    /**
+     * @throws MerchantAccountCodeException
+     * @throws AuthenticationException
+     */
     public function authenticate(array $payload): bool
     {
         $merchantAccount = $this->configHelper->getMerchantAccount() ?: $this->configHelper->getMotoMerchantAccounts();
@@ -43,6 +50,10 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
         );
     }
 
+    /**
+     * @throws InvalidDataException
+     * @throws HMACKeyValidationException
+     */
     public function validate(array $payload): bool
     {
         // Validate IP
@@ -70,7 +81,7 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
         return !$notification->isDuplicate();
     }
 
-    public function toNotification(array $payload, string $notificationMode): Notification
+    public function toNotification(array $payload, string $mode):Notification
     {
         $notification = $this->notificationFactory->create();
 
@@ -82,7 +93,7 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
         $notification->setPaymentMethod($payload['paymentMethod'] ?? null);
         $notification->setReason($payload['reason'] ?? null);
         $notification->setDone($payload['done'] ?? null);
-        $notification->setLive($notificationMode);
+        $notification->setLive($mode);
 
         if (!empty($payload['amount'])) {
             $notification->setAmountValue($payload['amount']['value']);

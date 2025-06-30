@@ -11,20 +11,14 @@
 
 namespace Adyen\Payment\Controller\Webhook;
 
-use Adyen\Exception\AuthenticationException;
-use Adyen\Exception\MerchantAccountCodeException;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\IpAddress;
 use Adyen\Payment\Helper\RateLimiter;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\NotificationFactory;
-use Adyen\Webhook\Exception\HMACKeyValidationException;
-use Adyen\Webhook\Exception\InvalidDataException;
 use Adyen\Webhook\Receiver\HmacSignature;
 use Adyen\Webhook\Receiver\NotificationReceiver;
-use DateTime;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\CsrfAwareActionInterface;
@@ -40,57 +34,13 @@ use Adyen\Payment\Model\Webhook\WebhookAcceptorFactory;
  */
 class Index extends Action
 {
-    /**
-     * @var NotificationFactory
-     */
-    private $notificationFactory;
+    private Data $adyenHelper;
 
-    /**
-     * @var Data
-     */
-    private $adyenHelper;
+    private AdyenLogger $adyenLogger;
 
-    /**
-     * @var AdyenLogger
-     */
-    private $adyenLogger;
+    private Config $configHelper;
 
-    /**
-     * @var SerializerInterface
-     */
-    private $serializer;
-
-    /**
-     * @var Config
-     */
-    private $configHelper;
-
-    /**
-     * @var IpAddress
-     */
-    private $ipAddressHelper;
-
-    /**
-     * @var RateLimiter
-     */
-    private $rateLimiterHelper;
-
-    /**
-     * @var HmacSignature
-     */
-    private $hmacSignature;
-
-    /**
-     * @var NotificationReceiver
-     */
-    private $notificationReceiver;
-
-    /**
-     * @var RemoteAddress
-     */
-    private $remoteAddress;
-
-    private Http $request;
+    private NotificationReceiver $notificationReceiver;
 
     private WebhookAcceptorFactory $webhookAcceptorFactory;
 
@@ -98,6 +48,7 @@ class Index extends Action
      * Json constructor.
      *
      * @param Context $context
+     * @param NotificationFactory $notificationFactory
      * @param Data $adyenHelper
      * @param AdyenLogger $adyenLogger
      * @param SerializerInterface $serializer
@@ -107,6 +58,7 @@ class Index extends Action
      * @param HmacSignature $hmacSignature
      * @param NotificationReceiver $notificationReceiver
      * @param RemoteAddress $remoteAddress
+     * @param Http $request
      * @param WebhookAcceptorFactory $webhookAcceptorFactory
      */
     public function __construct(
