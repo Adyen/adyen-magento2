@@ -20,6 +20,11 @@ use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Vault\Model\PaymentTokenManagement;
 
+/**
+ * @deprecated This webhook event has been deprecated.
+ * You can start using tokenization webhooks. Please visit the following link for further information.
+ * https://docs.adyen.com/api-explorer/Tokenization-webhooks/1/overview
+ */
 class RecurringContractWebhookHandler implements WebhookHandlerInterface
 {
     private AdyenLogger $adyenLogger;
