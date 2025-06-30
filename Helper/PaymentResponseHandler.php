@@ -21,7 +21,6 @@ use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\OrderRepository;
-use Magento\Sales\Model\ResourceModel\Order;
 use Magento\Sales\Model\Order as OrderModel;
 use Magento\Framework\Mail\Exception\InvalidArgumentException;
 use Adyen\Client;
@@ -81,7 +80,7 @@ class PaymentResponseHandler
 
     public function formatPaymentResponse(
         string $resultCode,
-        array $action = null
+        ?array $action = null
     ): array {
         switch ($resultCode) {
             case self::AUTHORISED:

@@ -182,7 +182,7 @@ class Invoice extends AbstractHelper
         string $pspReference,
         string $originalReference,
         int $captureAmountCents,
-        int $invoiceId = null
+        ?int $invoiceId = null
     ): AdyenInvoice {
         $order = $payment->getOrder();
         /** @var OrderPaymentInterface $adyenOrderPayment */

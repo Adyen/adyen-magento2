@@ -27,21 +27,6 @@ use Magento\Framework\UrlInterface;
 class AutoConfiguration extends Value
 {
     /**
-     * @var ManagementHelper
-     */
-    private ManagementHelper $managementApiHelper;
-
-    /**
-     * @var UrlInterface
-     */
-    private UrlInterface $url;
-
-    /**
-     * @var BaseUrlHelper
-     */
-    private BaseUrlHelper $baseUrlHelper;
-
-    /**
      * @param Context $context
      * @param Registry $registry
      * @param ScopeConfigInterface $config
@@ -58,17 +43,14 @@ class AutoConfiguration extends Value
         Registry $registry,
         ScopeConfigInterface $config,
         TypeListInterface $cacheTypeList,
-        ManagementHelper $managementApiHelper,
-        UrlInterface $url,
-        BaseUrlHelper $baseUrlHelper,
-        AbstractResource $resource = null,
-        AbstractDb $resourceCollection = null,
+        private readonly ManagementHelper $managementApiHelper,
+        private readonly UrlInterface $url,
+        private readonly BaseUrlHelper $baseUrlHelper,
+        ?AbstractResource $resource = null,
+        ?AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         parent::__construct($context, $registry, $config, $cacheTypeList, $resource, $resourceCollection, $data);
-        $this->managementApiHelper = $managementApiHelper;
-        $this->url = $url;
-        $this->baseUrlHelper = $baseUrlHelper;
     }
 
     /**
