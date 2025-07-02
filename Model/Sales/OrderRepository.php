@@ -68,7 +68,7 @@ class OrderRepository extends SalesOrderRepository
         );
     }
 
-    public function getOrderByQuoteId(int $quoteId): OrderInterface|false
+    public function getOrderByQuoteId(int $quoteId)
     {
         $quoteIdFilter = $this->filterBuilder->setField('quote_id')
             ->setConditionType('eq')
