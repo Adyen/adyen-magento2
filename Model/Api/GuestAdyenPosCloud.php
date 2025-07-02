@@ -11,13 +11,13 @@
 
 namespace Adyen\Payment\Model\Api;
 
+use Adyen\AdyenException;
 use Adyen\Payment\Api\GuestAdyenPosCloudInterface;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Sales\OrderRepository;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObjectFactoryInterface;
 use Magento\Quote\Model\QuoteIdMaskFactory;
-
 
 class GuestAdyenPosCloud extends AdyenPosCloud implements GuestAdyenPosCloudInterface
 {
@@ -46,12 +46,16 @@ class GuestAdyenPosCloud extends AdyenPosCloud implements GuestAdyenPosCloudInte
     /**
      * @param string $cartId
      * @return void
+     * @throws AdyenException
      */
     public function payByCart(string $cartId): void
     {
         $quoteIdMask = $this->quoteIdMaskFactory->create()->load($cartId, 'masked_id');
         $quoteId = $quoteIdMask->getQuoteId();
         $order = $this->orderRepository->getOrderByQuoteId($quoteId);
+        if (!$order) {
+            throw new AdyenException('POS Payment Failed');
+        }
         $this->execute($order);
     }
 }
