@@ -182,7 +182,7 @@ class CheckoutDataBuilder implements BuilderInterface
         $product = $item->getProduct();
         $imageUrl = "";
 
-        if ($image = $product->getSmallImage()) {
+        if ($product && $image = $product->getSmallImage()) {
             $imageUrl = $this->imageHelper->init($product, 'product_page_image_small')
                 ->setImageFile($image)
                 ->getUrl();
