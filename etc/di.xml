@@ -1445,7 +1445,6 @@
         </arguments>
     </virtualType>
     <preference for="Magento\Payment\Gateway\Data\Order\AddressAdapter" type="Adyen\Payment\Gateway\Data\Order\AddressAdapter" />
-    <preference for="Magento\Payment\Gateway\Data\Order\OrderAdapter" type="Adyen\Payment\Gateway\Data\Order\OrderAdapter" />
     <preference for="Adyen\Payment\Api\InstantPurchase\PaymentMethodIntegration\AdyenAvailabilityCheckerInterface" type="Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker" />
     <type name="Adyen\Payment\Logger\Handler\AdyenDebug">
         <arguments>
