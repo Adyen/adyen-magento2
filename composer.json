@@ -2,7 +2,7 @@
   "name": "adyen/module-payment",
   "description": "Official Magento2 Plugin to connect to Payment Service Provider Adyen.",
   "type": "magento2-module",
-  "version": "10.0.0-rc1",
+  "version": "9.19.1",
   "license": "MIT",
   "repositories": [
     {
@@ -26,7 +26,7 @@
     "phpunit/phpunit": "^10.5",
     "phpstan/phpstan": "^1.9",
     "magento/magento-coding-standard": "*",
-    "squizlabs/php_codesniffer": "^3.12.2"
+    "squizlabs/php_codesniffer": "~3.13.0"
   },
   "autoload": {
     "files": [

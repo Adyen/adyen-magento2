@@ -2607,6 +2607,38 @@
                 <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
             </adyen_afterpaytouch_US>
+            <adyen_paybybank_ais_dd>
+                <active>0</active>
+                <model>AdyenPaymentPaybybankAISDDFacade</model>
+                <title>Pay By Bank US</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <is_gateway>1</is_gateway>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>1</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>1</supports_recurring>
+                <supports_manual_capture>1</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <is_open_invoice>0</is_open_invoice>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_paybybank_ais_dd>
+            <adyen_paybybank_ais_dd_vault>
+                <title>Stored Pay By Bank US</title>
+                <model>AdyenPaymentPaybybankAISDDVaultFacade</model>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
+                </instant_purchase>
+            </adyen_paybybank_ais_dd_vault>
             <adyen_giving>
                 <active>1</active>
             </adyen_giving>
