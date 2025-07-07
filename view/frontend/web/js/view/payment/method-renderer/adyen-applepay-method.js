@@ -38,6 +38,9 @@ define(
                         reject();
                     }
                 }
+                applePayConfiguration.onAuthorized = function (data, actions) {
+                    actions.resolve();
+                }
 
                 return applePayConfiguration;
             }
