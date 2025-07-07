@@ -39,7 +39,6 @@ define(
                 let paypalConfiguration = Object.assign(baseComponentConfiguration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
                 paypalConfiguration.showPayButton = true;
                 paypalConfiguration.cspNonce = adyenConfiguration.getCspNonce();
-                paypalConfiguration.onSubmit = this.handleOnSubmit.bind(this);
 
                 let agreementsConfig = adyenConfiguration.getAgreementsConfig();
 

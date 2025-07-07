@@ -203,6 +203,8 @@ define(
                         onChange: function (state) {
                             paymentComponentStates().setIsPlaceOrderAllowed(self.getMethodCode(), state.isValid);
                         },
+                        onSubmit: this.handleOnSubmit.bind(this)
+
                     });
 
                 return configuration;
