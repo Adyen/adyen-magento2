@@ -7,19 +7,26 @@ use Adyen\Payment\Model\NotificationFactory;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\Serialize\SerializerInterface;
 use Adyen\Payment\API\Webhook\WebhookAcceptorInterface;
+use Adyen\Payment\Helper\Webhook;
 
-class TokenWebhookAcceptor implements WebhookAcceptorInterface
+readonly class TokenWebhookAcceptor implements WebhookAcceptorInterface
 {
-    public function __construct(
-        private readonly NotificationFactory $notificationFactory,
-        private readonly SerializerInterface $serializer,
-        private readonly AdyenLogger $adyenLogger
-    ) {}
+    private const REQUIRED_FIELDS = [
+        'eventId',
+        'type',
+        'data',
+        'data.storedPaymentMethodId',
+        'data.type',
+        'data.shopperReference',
+        'data.merchantAccount'
+    ];
 
-    public function canHandle(array $payload): bool
-    {
-        return isset($payload['type']) && str_contains($payload['type'], 'token');
-    }
+    public function __construct(
+        private NotificationFactory $notificationFactory,
+        private SerializerInterface $serializer,
+        private AdyenLogger         $adyenLogger,
+        private Webhook             $webhookHelper
+    ) {}
 
     public function authenticate(array $payload): bool
     {
@@ -29,16 +36,19 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
 
     public function validate(array $payload): bool
     {
-        // Required fields
-        $requiredFields = ['eventId', 'type', 'data', 'data.storedPaymentMethodId', 'data.type'];
-        foreach ($requiredFields as $field) {
-            if (!$this->getNestedValue($payload, explode('.', $field))) {
-                $this->adyenLogger->addAdyenNotification("Missing required field [$field] in token webhook", $payload);
+        if (!$this->webhookHelper->isIpValid($payload, 'token webhook')) {
+            return false;
+        }
+
+        foreach (self::REQUIRED_FIELDS as $fieldPath) {
+            if (!$this->getNestedValue($payload, explode('.', $fieldPath))) {
+                $this->adyenLogger->addAdyenNotification("Missing required field [$fieldPath] in token webhook", $payload);
                 return false;
             }
         }
 
-        return true;
+        $incomingMerchantAccount = $payload['data']['merchantAccount'];
+        return $this->webhookHelper->isMerchantAccountValid($incomingMerchantAccount, $payload, 'token webhook');
     }
 
     public function toNotification(array $payload, string $mode): Notification

@@ -25,6 +25,7 @@ use Adyen\Webhook\PaymentStates;
 use Adyen\Webhook\Processor\ProcessorFactory;
 use Exception;
 use Adyen\Payment\Model\Notification as NotificationEntity;
+use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Sales\Model\Order;
@@ -67,6 +68,8 @@ class Webhook
      * @param OrderHelper $orderHelper
      * @param OrderRepository $orderRepository
      * @param PaymentMethods $paymentMethodsHelper
+     * @param IpAddress $ipAddressHelper
+     * @param RemoteAddress $remoteAddress
      */
     public function __construct(
         private readonly Data $adyenHelper,
@@ -78,7 +81,9 @@ class Webhook
         private readonly WebhookHandlerFactory $webhookHandlerFactory,
         private readonly OrderHelper $orderHelper,
         private readonly OrderRepository $orderRepository,
-        private readonly PaymentMethods $paymentMethodsHelper
+        private readonly PaymentMethods $paymentMethodsHelper,
+        private readonly IpAddress $ipAddressHelper,
+        private readonly RemoteAddress $remoteAddress,
     ) {
         $this->klarnaReservationNumber = null;
         $this->ratepayDescriptor = null;
@@ -524,5 +529,28 @@ class Webhook
         $order->addStatusHistoryComment($comment, $order->getStatus());
         $this->orderRepository->save($order);
         return $order;
+    }
+
+    public function isIpValid(array $payload, string $context = 'webhook'): bool
+    {
+        $ip = explode(',', (string) $this->remoteAddress->getRemoteAddress());
+        if (!$this->ipAddressHelper->isIpAddressValid($ip)) {
+            $this->logger->addAdyenNotification("Invalid IP for $context", $payload);
+            return false;
+        }
+        return true;
+    }
+
+    public function isMerchantAccountValid(string $incoming, array $payload, string $context = 'webhook'): bool
+    {
+        $expected = $this->configHelper->getMerchantAccount();
+        if ($incoming !== $expected) {
+            $this->logger->addAdyenNotification(
+                "Merchant account mismatch for $context. Expected: $expected, Received: $incoming",
+                $payload
+            );
+            return false;
+        }
+        return true;
     }
 }

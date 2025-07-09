@@ -6,24 +6,17 @@ use Adyen\Payment\API\Webhook\WebhookAcceptorInterface;
 
 class WebhookAcceptorFactory
 {
-    /**
-     * @var WebhookAcceptorInterface[]
-     */
-    private array $acceptors;
+    public function __construct(
+        private StandardWebhookAcceptor $standardWebhookAcceptor,
+        private TokenWebhookAcceptor    $tokenWebhookAcceptor
+    ) {}
 
-    public function __construct(array $acceptors = [])
+    public function getAcceptor(string $type): WebhookAcceptorInterface
     {
-        $this->acceptors = $acceptors;
-    }
-
-    public function getAcceptor(array $payload): WebhookAcceptorInterface
-    {
-        foreach ($this->acceptors as $acceptor) {
-            if ($acceptor->canHandle($payload)) {
-                return $acceptor;
-            }
-        }
-
-        throw new \InvalidArgumentException('No suitable webhook acceptor found for this payload.');
+        return match ($type) {
+            WebhookAcceptorInterface::TYPE_STANDARD => $this->standardWebhookAcceptor,
+            WebhookAcceptorInterface::TYPE_TOKEN    => $this->tokenWebhookAcceptor,
+            default                                  => throw new \InvalidArgumentException("Unsupported webhook type [$type]"),
+        };
     }
 }

@@ -4,7 +4,6 @@ namespace Adyen\Payment\Model\Webhook;
 
 use Adyen\Payment\API\Webhook\WebhookAcceptorInterface;
 use Adyen\Payment\Helper\Config;
-use Adyen\Payment\Helper\IpAddress;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\NotificationFactory;
@@ -15,25 +14,19 @@ use Adyen\Webhook\Exception\MerchantAccountCodeException;
 use Adyen\Webhook\Receiver\NotificationReceiver;
 use Adyen\Webhook\Receiver\HmacSignature;
 use Magento\Framework\Serialize\SerializerInterface;
-use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
+use Adyen\Payment\Helper\Webhook;
 
-class StandardWebhookAcceptor implements WebhookAcceptorInterface
+readonly class StandardWebhookAcceptor implements WebhookAcceptorInterface
 {
     public function __construct(
-        private readonly Config $configHelper,
-        private readonly NotificationReceiver $notificationReceiver,
-        private readonly HmacSignature $hmacSignature,
-        private readonly IpAddress $ipAddressHelper,
-        private readonly RemoteAddress $remoteAddress,
-        private readonly NotificationFactory $notificationFactory,
-        private readonly SerializerInterface $serializer,
-        private readonly AdyenLogger $adyenLogger
+        private Config               $configHelper,
+        private NotificationReceiver $notificationReceiver,
+        private HmacSignature        $hmacSignature,
+        private NotificationFactory  $notificationFactory,
+        private SerializerInterface  $serializer,
+        private AdyenLogger          $adyenLogger,
+        private Webhook              $webhookHelper,
     ) {}
-
-    public function canHandle(array $payload): bool
-    {
-        return isset($payload['eventCode']);
-    }
 
     /**
      * @throws MerchantAccountCodeException
@@ -56,10 +49,7 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
      */
     public function validate(array $payload): bool
     {
-        // Validate IP
-        $ip = explode(',', (string) $this->remoteAddress->getRemoteAddress());
-        if (!$this->ipAddressHelper->isIpAddressValid($ip)) {
-            $this->adyenLogger->addAdyenNotification("Invalid IP for notification", $payload);
+        if (!$this->webhookHelper->isIpValid($payload, 'standard webhook')) {
             return false;
         }
 

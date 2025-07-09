@@ -2,11 +2,14 @@
 
 namespace Adyen\Payment\API\Webhook;
 
+use Adyen\Payment\Model\Notification;
+
 interface WebhookAcceptorInterface
 {
-    public function canHandle(array $payload): bool;
+    public const TYPE_STANDARD = 'standard';
+    public const TYPE_TOKEN = 'token';
     public function authenticate(array $payload): bool;
     public function validate(array $payload): bool;
-    public function toNotification(array $payload, string $mode);
+    public function toNotification(array $payload, string $mode): Notification;
 }
 
