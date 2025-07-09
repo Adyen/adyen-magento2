@@ -59,30 +59,28 @@ class Config
     const XML_THREEDS_FLOW = 'threeds_flow';
     const XML_REMOVE_PROCESSED_WEBHOOKS = 'remove_processed_webhooks';
     const XML_PROCESSED_WEBHOOK_REMOVAL_TIME = 'processed_webhook_removal_time';
-
-    protected ScopeConfigInterface $scopeConfig;
-    private EncryptorInterface $encryptor;
-    private WriterInterface $configWriter;
-    private SerializerInterface $serializer;
-
-    public function __construct(
-        ScopeConfigInterface $scopeConfig,
-        EncryptorInterface $encryptor,
-        WriterInterface $configWriter,
-        SerializerInterface $serializer
-    ) {
-        $this->scopeConfig = $scopeConfig;
-        $this->encryptor = $encryptor;
-        $this->configWriter = $configWriter;
-        $this->serializer = $serializer;
-    }
+    const XML_PLATFORM_INTEGRATOR = 'platform_integrator';
+    const XML_HAS_PLATFORM_INTEGRATOR = 'has_platform_integrator';
 
     /**
-     * @param $mode
+     * @param ScopeConfigInterface $scopeConfig
+     * @param EncryptorInterface $encryptor
+     * @param WriterInterface $configWriter
+     * @param SerializerInterface $serializer
+     */
+    public function __construct(
+        protected readonly ScopeConfigInterface $scopeConfig,
+        private readonly EncryptorInterface $encryptor,
+        private readonly WriterInterface $configWriter,
+        private readonly SerializerInterface $serializer
+    ) { }
+
+    /**
+     * @param string $mode
      * @param mixed $storeId
      * @return string
      */
-    public function getApiKey($mode, $storeId = null): string
+    public function getApiKey(string $mode, $storeId = null): string
     {
         $apiKey = $this->getConfigData('api_key_' . $mode, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
 
@@ -90,16 +88,20 @@ class Config
     }
 
     /**
-     * @param $mode
-     * @param $storeId
+     * @param string $mode
+     * @param null $storeId
      * @return string|null
      */
-    public function getClientKey($mode, $storeId = null): ?string
+    public function getClientKey(string $mode, $storeId = null): ?string
     {
         return $this->getConfigData('client_key_' . $mode, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
     }
 
-    public function getIsPaymentMethodsActive($storeId = null): bool
+    /**
+     * @param int|null $storeId
+     * @return bool
+     */
+    public function getIsPaymentMethodsActive(?int $storeId = null): bool
     {
         return $this->getConfigData(
             self::XML_PAYMENT_METHODS_ACTIVE,
@@ -112,7 +114,7 @@ class Config
      * @param int|null $storeId
      * @return string|null
      */
-    public function getMerchantAccount($storeId = null): ?string
+    public function getMerchantAccount(?int $storeId = null): ?string
     {
         return $this->getConfigData(
             self::XML_MERCHANT_ACCOUNT,
@@ -122,10 +124,10 @@ class Config
     }
 
     /**
-     * @param $storeId
+     * @param int|null $storeId
      * @return array|null
      */
-    public function getMotoMerchantAccounts($storeId = null): ?array
+    public function getMotoMerchantAccounts(?int $storeId = null): ?array
     {
         $serializedData = $this->getConfigData(
             self::XML_MOTO_MERCHANT_ACCOUNTS,
@@ -137,10 +139,10 @@ class Config
     }
 
     /**
-     * @param $storeId
-     * @return bool|mixed
+     * @param int|null $storeId
+     * @return bool
      */
-    public function isMotoPaymentMethodEnabled($storeId = null): bool
+    public function isMotoPaymentMethodEnabled(?int $storeId = null): bool
     {
         return $this->getConfigData('active', Config::XML_ADYEN_MOTO, $storeId, true);
     }
@@ -149,11 +151,11 @@ class Config
      * Returns the properties of a MOTO merchant account in an array (API Key, Client Key, Demo Mode)
      *
      * @param string $motoMerchantAccount
-     * @param $storeId
+     * @param int|null $storeId
      * @return array
      * @throws AdyenException
      */
-    public function getMotoMerchantAccountProperties(string $motoMerchantAccount, $storeId = null) : array
+    public function getMotoMerchantAccountProperties(string $motoMerchantAccount, ?int $storeId = null) : array
     {
         $motoMerchantAccounts = $this->getMotoMerchantAccounts($storeId);
 
@@ -168,7 +170,7 @@ class Config
      * @param int|null $storeId
      * @return string|null
      */
-    public function getNotificationsUsername($storeId = null): ?string
+    public function getNotificationsUsername(?int $storeId = null): ?string
     {
         return $this->getConfigData(
             self::XML_NOTIFICATIONS_USERNAME,
@@ -181,7 +183,7 @@ class Config
      * @param int|null $storeId
      * @return string|null
      */
-    public function getNotificationsPassword($storeId = null): ?string
+    public function getNotificationsPassword(?int $storeId = null): ?string
     {
         $key = $this->getConfigData(
             self::XML_NOTIFICATIONS_PASSWORD,
@@ -196,10 +198,10 @@ class Config
     }
 
     /**
-     * @param mixed $storeId
+     * @param int|null $storeId
      * @return string|null
      */
-    public function getWebhookUrl($storeId = null): ?string
+    public function getWebhookUrl(?int $storeId = null): ?string
     {
         return $this->getConfigData(
             self::XML_WEBHOOK_URL,
@@ -208,7 +210,11 @@ class Config
         );
     }
 
-    public function getWebhookId($storeId = null): ?string
+    /**
+     * @param int|null $storeId
+     * @return string|null
+     */
+    public function getWebhookId(?int $storeId = null): ?string
     {
         return $this->getConfigData('webhook_id', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
     }
@@ -216,10 +222,10 @@ class Config
     /**
      * Retrieve flag for notifications_can_cancel
      *
-     * @param mixed $storeId
+     * @param int|null $storeId
      * @return bool
      */
-    public function getNotificationsCanCancel($storeId = null): bool
+    public function getNotificationsCanCancel(?int $storeId = null): bool
     {
         return (bool)$this->getConfigData(
             self::XML_NOTIFICATIONS_CAN_CANCEL_FIELD,
@@ -232,10 +238,10 @@ class Config
     /**
      * Retrieve key for notifications_hmac_key
      *
-     * @param mixed $storeId
+     * @param int|null $storeId
      * @return string|null
      */
-    public function getNotificationsHmacKey($storeId = null): ?string
+    public function getNotificationsHmacKey(?int $storeId = null): ?string
     {
         if ($this->isDemoMode($storeId)) {
             $key = $this->getConfigData(
@@ -263,10 +269,10 @@ class Config
     /**
      * Retrieve flag for notifications_ip_check
      *
-     * @param int $storeId
+     * @param int|null $storeId
      * @return bool
      */
-    public function getNotificationsIpCheck(int $storeId = null): bool
+    public function getNotificationsIpCheck(?int $storeId = null): bool
     {
         return (bool) $this->getConfigData(
             self::XML_NOTIFICATIONS_IP_CHECK,
@@ -276,28 +282,22 @@ class Config
         );
     }
 
-    public function isDemoMode($storeId = null): bool
+    /**
+     * @param int|null $storeId
+     * @return bool
+     */
+    public function isDemoMode(?int $storeId = null): bool
     {
         return $this->getConfigData('demo_mode', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId, true);
     }
 
     /**
-     * @param $storeId
-     * @return bool|mixed
-     * @deprecated
-     */
-    public function isAlternativePaymentMethodsEnabled($storeId = null): bool
-    {
-        return $this->getConfigData('active', Config::XML_ADYEN_HPP, $storeId, true);
-    }
-
-    /**
      * Retrieve charged currency selection (base or display)
      *
-     * @param null|int|string $storeId
+     * @param int|null $storeId
      * @return mixed
      */
-    public function getChargedCurrency($storeId = null)
+    public function getChargedCurrency(?int $storeId = null)
     {
         return $this->getConfigData(self::XML_CHARGED_CURRENCY, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
     }
@@ -305,10 +305,10 @@ class Config
     /**
      * Retrieve has_holder_name config
      *
-     * @param null|int|string $storeId
+     * @param int|null $storeId
      * @return mixed
      */
-    public function getHasHolderName($storeId = null)
+    public function getHasHolderName(?int $storeId = null)
     {
         return $this->getConfigData(self::XML_HAS_HOLDER_NAME, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId, true);
     }
@@ -316,10 +316,10 @@ class Config
     /**
      * Retrieve house_number_street_line config
      *
-     * @param null|int|string $storeId
+     * @param int|null $storeId
      * @return mixed
      */
-    public function getHouseNumberStreetLine($storeId = null)
+    public function getHouseNumberStreetLine(?int $storeId = null)
     {
         return $this->getConfigData(self::XML_HOUSE_NUMBER_STREET_LINE, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
     }
@@ -327,10 +327,10 @@ class Config
     /**
      * Retrieve holder_name_required config
      *
-     * @param null|int|string $storeId
+     * @param int|null $storeId
      * @return mixed
      */
-    public function getHolderNameRequired($storeId = null)
+    public function getHolderNameRequired(?int $storeId = null)
     {
         return $this->getConfigData(self::XML_HOLDER_NAME_REQUIRED, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId, true);
     }
@@ -338,73 +338,30 @@ class Config
     /**
      * Retrieve payment_origin_url config
      *
-     * @param int|string $storeId
+     * @param int|null $storeId
      * @return mixed
      */
-    public function getPWAOriginUrl($storeId)
+    public function getPWAOriginUrl(?int $storeId = null)
     {
         return $this->getConfigData(self::XML_PAYMENT_ORIGIN_URL, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
     }
 
-    public function adyenGivingEnabled($storeId)
+    /**
+     * @param int|null $storeId
+     * @return mixed
+     */
+    public function adyenGivingEnabled(?int $storeId = null)
     {
         return $this->getConfigData('active', self::XML_ADYEN_GIVING_PREFIX, $storeId);
-    }
-
-    public function getAdyenGivingConfigData($storeId)
-    {
-        return [
-            'name' => $this->getAdyenGivingCharityName($storeId),
-            'description' => $this->getAdyenGivingCharityDescription($storeId),
-            'backgroundUrl' => $this->getAdyenGivingBackgroundImage($storeId),
-            'logoUrl' => $this->getAdyenGivingCharityLogo($storeId),
-            'website' => $this->getAdyenGivingCharityWebsite($storeId),
-            'donationAmounts' => $this->getAdyenGivingDonationAmounts($storeId)
-        ];
-    }
-
-    public function getAdyenGivingCharityName($storeId)
-    {
-        return $this->getConfigData('charity_name', self::XML_ADYEN_GIVING_PREFIX, $storeId);
-    }
-
-    public function getAdyenGivingCharityDescription($storeId)
-    {
-        return $this->getConfigData('charity_description', self::XML_ADYEN_GIVING_PREFIX, $storeId);
-    }
-
-    public function getAdyenGivingBackgroundImage($storeId)
-    {
-        return $this->getConfigData('background_image', self::XML_ADYEN_GIVING_PREFIX, $storeId);
-    }
-
-    public function getAdyenGivingCharityLogo($storeId)
-    {
-        return $this->getConfigData('charity_logo', self::XML_ADYEN_GIVING_PREFIX, $storeId);
-    }
-
-    public function getAdyenGivingCharityWebsite($storeId)
-    {
-        return $this->getConfigData('charity_website', self::XML_ADYEN_GIVING_PREFIX, $storeId);
-    }
-
-    public function getAdyenGivingDonationAmounts($storeId)
-    {
-        return $this->getConfigData('donation_amounts', self::XML_ADYEN_GIVING_PREFIX, $storeId);
-    }
-
-    public function getCharityMerchantAccount($storeId)
-    {
-        return $this->getConfigData('charity_merchant_account', self::XML_ADYEN_GIVING_PREFIX, $storeId);
     }
 
     /**
      * Retrieve payment_return_url config
      *
-     * @param int|string $storeId
+     * @param int $storeId
      * @return mixed
      */
-    public function getPWAReturnUrl($storeId)
+    public function getPWAReturnUrl(int $storeId)
     {
         return $this->getConfigData(self::XML_PAYMENT_RETURN_URL, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
     }
@@ -412,10 +369,11 @@ class Config
     /**
      * Retrieve the passed fraud status config
      *
-     * @param int|string $storeId
+     * @param string $fraudStatus
+     * @param int $storeId
      * @return mixed
      */
-    public function getFraudStatus($fraudStatus, $storeId)
+    public function getFraudStatus(string $fraudStatus, int $storeId)
     {
         return $this->getConfigData(
             $fraudStatus,
@@ -426,29 +384,45 @@ class Config
 
     /**
      * Determine whether or not to send additional riskdata properties in /payments and /authorize requests
-     * @param $storeId
+     * @param int $storeId
      * @return bool
      */
-    public function sendAdditionalRiskData($storeId): bool
+    public function sendAdditionalRiskData(int $storeId): bool
     {
         return $this->getConfigData('send_additional_risk_data', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId, true);
     }
 
-    public function sendLevel23AdditionalData($storeId): bool
+    /**
+     * @param int $storeId
+     * @return bool
+     */
+    public function sendLevel23AdditionalData(int $storeId): bool
     {
         return $this->getConfigData('send_level23_data', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId, true);
     }
 
-    public function isClickToPayEnabled($storeId): ?bool
+    /**
+     * @param int $storeId
+     * @return bool|null
+     */
+    public function isClickToPayEnabled(int $storeId): ?bool
     {
         return $this->getConfigData('enable_click_to_pay', self::XML_ADYEN_CC, $storeId);
     }
 
-    public function debugLogsEnabled($storeId): bool
+    /**
+     * @param int $storeId
+     * @return bool
+     */
+    public function debugLogsEnabled(int $storeId): bool
     {
         return $this->getConfigData('debug', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId, true);
     }
 
+    /**
+     * @param int $storeId
+     * @return bool
+     */
     public function getAutoCaptureOpenInvoice(int $storeId): bool
     {
         $captureForOpenInvoice = $this->getConfigData(
@@ -464,7 +438,7 @@ class Config
         return $this->getConfigData('adyen_support_email_address', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
     }
 
-    public function getAdyenPosCloudConfigData(string $field, int $storeId = null, bool $flag = false)
+    public function getAdyenPosCloudConfigData(string $field, ?int $storeId = null, bool $flag = false)
     {
         return $this->getConfigData($field, self::XML_ADYEN_POS_CLOUD, $storeId, $flag);
     }
@@ -474,7 +448,7 @@ class Config
         return $this->getAdyenPosCloudConfigData(self::XML_PAYMENT_ACTION, $storeId);
     }
 
-    public function useQueueProcessor($storeId = null): bool
+    public function useQueueProcessor(?int $storeId = null): bool
     {
         return $this->getConfigData(
             self::XML_WEBHOOK_NOTIFICATION_PROCESSOR,
@@ -492,12 +466,12 @@ class Config
         );
     }
 
-    public function getAdyenAbstractConfigData(string $field, int $storeId = null): mixed
+    public function getAdyenAbstractConfigData(string $field, ?int $storeId = null): mixed
     {
         return $this->getConfigData($field, 'adyen_abstract', $storeId);
     }
 
-    public function getLiveEndpointPrefix(int $storeId = null): ?string
+    public function getLiveEndpointPrefix(?int $storeId = null): ?string
     {
         $prefix = $this->getAdyenAbstractConfigData('live_endpoint_url_prefix', $storeId);
 
@@ -508,52 +482,52 @@ class Config
         return trim($prefix);
     }
 
-    public function getAdyenAbstractConfigDataFlag($field, $storeId = null): mixed
+    public function getAdyenAbstractConfigDataFlag(string $field, ?int $storeId = null): mixed
     {
         return $this->getConfigData($field, 'adyen_abstract', $storeId, true);
     }
 
-    public function getAdyenCcConfigData($field, $storeId = null): mixed
+    public function getAdyenCcConfigData(string $field, ?int $storeId = null): mixed
     {
         return $this->getConfigData($field, 'adyen_cc', $storeId);
     }
 
-    public function getAdyenHppConfigData($field, $storeId = null): mixed
+    public function getAdyenHppConfigData(string $field, ?int $storeId = null): mixed
     {
         return $this->getConfigData($field, 'adyen_hpp', $storeId);
     }
 
-    public function getAdyenHppVaultConfigDataFlag($field, $storeId = null): mixed
+    public function getAdyenHppVaultConfigDataFlag(string $field, ?int $storeId = null): mixed
     {
         return $this->getConfigData($field, 'adyen_hpp_vault', $storeId, true);
     }
 
-    public function isHppVaultEnabled($storeId = null): mixed
+    public function isHppVaultEnabled(?int $storeId = null): mixed
     {
         return $this->getAdyenHppVaultConfigDataFlag('active', $storeId);
     }
 
-    public function getAdyenOneclickConfigData($field, int $storeId = null): mixed
+    public function getAdyenOneclickConfigData(string $field, ?int $storeId = null): mixed
     {
         return $this->getConfigData($field, 'adyen_oneclick', $storeId);
     }
 
-    public function getAdyenOneclickConfigDataFlag($field, int $storeId = null): bool
+    public function getAdyenOneclickConfigDataFlag(string $field, ?int $storeId = null): bool
     {
         return $this->getConfigData($field, 'adyen_oneclick', $storeId, true);
     }
 
-    public function isPerStoreBillingAgreement(int $storeId): bool //Only use of Flag above
+    public function isPerStoreBillingAgreement(?int $storeId): bool //Only use of Flag above
     {
         return !$this->getAdyenOneclickConfigDataFlag('share_billing_agreement', $storeId);
     }
 
-    public function getAdyenBoletoConfigData(string $field, int $storeId = null): mixed
+    public function getAdyenBoletoConfigData(string $field, ?int $storeId = null): mixed
     {
         return $this->getConfigData($field, 'adyen_boleto', $storeId);
     }
 
-    public function getCheckoutFrontendRegion(int $storeId = null): ?string
+    public function getCheckoutFrontendRegion(?int $storeId = null): ?string
     {
         $checkoutFrontendRegion = $this->getAdyenAbstractConfigData('checkout_frontend_region', $storeId);
 
@@ -564,12 +538,12 @@ class Config
         return trim($checkoutFrontendRegion);
     }
 
-    public function getRatePayId(int $storeId = null)
+    public function getRatePayId(?int $storeId = null)
     {
         return $this->getConfigData("ratepay_id", self::XML_ADYEN_RATEPAY, $storeId);
     }
 
-    public function getAllowMultistoreTokens(int $storeId = null): ?bool
+    public function getAllowMultistoreTokens(?int $storeId = null): ?bool
     {
         return $this->getConfigData(
             self::XML_ALLOW_MULTISTORE_TOKENS,
@@ -585,7 +559,7 @@ class Config
      * @param int|null $storeId
      * @return string
      */
-    public function getThreeDSFlow(int $storeId = null): string
+    public function getThreeDSFlow(?int $storeId = null): string
     {
         return $this->getConfigData(
             self::XML_THREEDS_FLOW,
@@ -629,13 +603,42 @@ class Config
         );
     }
 
-    public function getIsCvcRequiredForRecurringCardPayments(int $storeId = null): bool
+    public function getIsCvcRequiredForRecurringCardPayments(?int $storeId = null): bool
     {
          return (bool) $this->getConfigData(
             'require_cvc',
             Config::XML_ADYEN_CC_VAULT,
             $storeId,
             true
+        );
+    }
+
+    /**
+     * Returns true if the store is managed by a system integrator
+     *
+     * @return bool
+     */
+    public function getHasPlatformIntegrator(): bool
+    {
+        return $this->getConfigData(
+            Config::XML_HAS_PLATFORM_INTEGRATOR,
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            null,
+            true
+        );
+    }
+
+    /**
+     * Returns the name of the platform integrator
+     *
+     * @return string|null
+     */
+    public function getPlatformIntegratorName(): ?string
+    {
+        return $this->getConfigData(
+            Config::XML_PLATFORM_INTEGRATOR,
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            null
         );
     }
 

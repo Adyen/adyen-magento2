@@ -131,14 +131,11 @@ define([
         handleOnAdditionalDetails: function (result) {
             let self = this;
             let request = result.data;
-
-            fullScreenLoader.stopLoader();
-
-            let popupModal = self.showModal();
+            adyenPaymentModal.hideModalLabel(this.modalLabel);
+            fullScreenLoader.startLoader();
 
             adyenPaymentService.paymentDetails(request, self.orderId).done(function (responseJSON) {
-                self.handleAdyenResult(responseJSON,
-                    self.orderId);
+                self.handleAdyenResult(responseJSON, self.orderId);
             }).fail(function (response) {
                 self.closeModal(popupModal);
                 errorProcessor.process(response, self.messageContainer);
@@ -232,17 +229,23 @@ define([
 
         getData: function () {
             const self = this;
-            let stateData = self.component.data;
-            stateData = JSON.stringify(stateData);
-            window.sessionStorage.setItem('adyen.stateData', stateData);
-            return {
+            const componentData = self.component.data;
+
+            let data = {
                 method: this.code,
                 additional_data: {
-                    stateData: stateData,
+                    stateData: JSON.stringify(componentData),
                     public_hash: this.publicHash,
-                    frontendType: 'default'
+                    frontendType: 'default',
+                    cc_type: componentData.paymentMethod?.brand
                 },
             };
+
+            if (componentData.installments?.value) {
+                data.additional_data.number_of_installments = componentData.installments?.value;
+            }
+
+            return data;
         },
 
         handleAdyenResult: function (responseJSON, orderId) {
@@ -266,15 +269,19 @@ define([
             }
             try {
                 // Determine threeDS2 modal size, based on screen width
-                const threeDSConfiguration = {
-                    challengeWindowSize: screen.width < 460 ? '01' : '02'
+                const actionComponentConfiguration = {
+                    challengeWindowSize: screen.width < 460 ? '01' : '02',
+                    onActionHandled: function (event) {
+                        if (event.componentType === "3DS2Challenge") {
+                            fullScreenLoader.stopLoader();
+                            popupModal.modal('openModal');
+                        }
+                    }
                 }
 
-                this.checkoutComponent.createFromAction(action, threeDSConfiguration).mount(
+                this.checkoutComponent.createFromAction(action, actionComponentConfiguration).mount(
                     '#' + this.modalLabel + 'Content'
                 );
-
-                fullScreenLoader.stopLoader();
             } catch (e) {
                 console.log(e);
                 self.closeModal(popupModal);
@@ -282,7 +289,16 @@ define([
         },
 
         showModal: function() {
-            let actionModal = adyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.modalLabel, this.isPlaceOrderActionAllowed)
+            let actionModal = adyenPaymentModal.showModal(
+                adyenPaymentService,
+                fullScreenLoader,
+                this.messageContainer,
+                this.orderId,
+                this.modalLabel,
+                this.isPlaceOrderActionAllowed,
+                false
+            );
+
             $("." + this.modalLabel + " .action-close").hide();
 
             return actionModal;

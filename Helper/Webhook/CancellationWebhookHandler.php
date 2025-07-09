@@ -12,6 +12,7 @@
 
 namespace Adyen\Payment\Helper\Webhook;
 
+use Adyen\Payment\Api\CleanupAdditionalInformationInterface;
 use Adyen\Payment\Helper\Order;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
@@ -20,16 +21,16 @@ use Magento\Sales\Model\Order as MagentoOrder;
 
 class CancellationWebhookHandler implements WebhookHandlerInterface
 {
-    private Order $orderHelper;
-    private AdyenLogger $adyenLogger;
-
+    /**
+     * @param Order $orderHelper
+     * @param AdyenLogger $adyenLogger
+     * @param CleanupAdditionalInformationInterface $cleanupAdditionalInformation
+     */
     public function __construct(
-        Order $orderHelper,
-        AdyenLogger $adyenLogger
-    ) {
-        $this->orderHelper = $orderHelper;
-        $this->adyenLogger = $adyenLogger;
-    }
+        private readonly Order $orderHelper,
+        private readonly AdyenLogger $adyenLogger,
+        private readonly CleanupAdditionalInformationInterface $cleanupAdditionalInformation
+    ) { }
 
     /**
      * @throws LocalizedException
@@ -66,6 +67,9 @@ class CancellationWebhookHandler implements WebhookHandlerInterface
                 ]
             );
         }
+
+        // Clean-up the data temporarily stored in `additional_information`
+        $this->cleanupAdditionalInformation->execute($order->getPayment());
 
         return $order;
     }

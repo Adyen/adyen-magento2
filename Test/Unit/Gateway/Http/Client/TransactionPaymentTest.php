@@ -16,10 +16,10 @@ use Adyen\Model\Checkout\ApplicationInfo;
 use Adyen\Model\Checkout\PaymentRequest;
 use Adyen\Model\Checkout\PaymentResponse as CheckoutPaymentResponse;
 use Adyen\Payment\Api\Data\PaymentResponseInterface;
+use Adyen\Payment\Helper\PlatformInfo;
 use Adyen\Payment\Model\PaymentResponse;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Service\Checkout\PaymentsApi;
-use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Model\PaymentResponseFactory;
 use Adyen\Payment\Model\ResourceModel\PaymentResponse as PaymentResponseResourceModel;
@@ -30,22 +30,23 @@ use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Adyen\Payment\Helper\GiftcardPayment;
 use Magento\Payment\Gateway\Http\TransferInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 
 class TransactionPaymentTest extends AbstractAdyenTestCase
 {
-    private $adyenHelperMock;
-    private $paymentResponseFactoryMock;
-    private $paymentResponseResourceModelMock;
-    private $idempotencyHelperMock;
-    private $orderApiHelperMock;
-    private $storeManagerMock;
-    private $giftcardPaymentHelperMock;
-    private $transactionPayment;
+    private Data|MockObject$adyenHelperMock;
+    private PaymentResponseFactory|MockObject $paymentResponseFactoryMock;
+    private PaymentResponseResourceModel|MockObject $paymentResponseResourceModelMock;
+    private Idempotency|MockObject $idempotencyHelperMock;
+    private OrdersApi|MockObject $orderApiHelperMock;
+    private StoreManagerInterface|MockObject $storeManagerMock;
+    private GiftcardPayment|MockObject $giftcardPaymentHelperMock;
+    private TransactionPayment $transactionPayment;
+    private ApplicationInfo|MockObject $applicationInfoMock;
+    private PlatformInfo $platformInfo;
 
     protected function setUp(): void
     {
-        $objectManager = new ObjectManager($this);
-
         $this->adyenHelperMock = $this->createMock(Data::class);
         $this->paymentResponseResourceModelMock = $this->createMock(PaymentResponseResourceModel::class);
         $this->idempotencyHelperMock = $this->createMock(Idempotency::class);
@@ -59,21 +60,20 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
         $paymentResponseMock->method('setMerchantReference')->willReturn($paymentResponseInterfaceMock);
         $this->paymentResponseFactoryMock = $this->createGeneratedMock(PaymentResponseFactory::class, ['create']);
         $this->paymentResponseFactoryMock->method('create')->willReturn($paymentResponseMock);
+        $this->platformInfo = $this->createMock(PlatformInfo::class);
 
         $this->applicationInfoMock = $this->createMock(ApplicationInfo::class);
-        $this->adyenHelperMock->method('buildApplicationInfo')->willReturn($this->applicationInfoMock);
+        $this->platformInfo->method('buildApplicationInfo')->willReturn($this->applicationInfoMock);
 
-        $this->transactionPayment = $objectManager->getObject(
-            TransactionPayment::class,
-            [
-                'adyenHelper' => $this->adyenHelperMock,
-                'paymentResponseFactory' => $this->paymentResponseFactoryMock,
-                'paymentResponseResourceModel' => $this->paymentResponseResourceModelMock,
-                'idempotencyHelper' => $this->idempotencyHelperMock,
-                'orderApiHelper' => $this->orderApiHelperMock,
-                'storeManager' => $this->storeManagerMock,
-                'giftcardPaymentHelper' => $this->giftcardPaymentHelperMock,
-            ]
+        $this->transactionPayment = new TransactionPayment(
+            $this->adyenHelperMock,
+            $this->paymentResponseFactoryMock,
+            $this->paymentResponseResourceModelMock,
+            $this->idempotencyHelperMock,
+            $this->orderApiHelperMock,
+            $this->storeManagerMock,
+            $this->giftcardPaymentHelperMock,
+            $this->platformInfo
         );
     }
 
@@ -148,22 +148,26 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
         $this->assertEquals('Authorised', $response[0]['resultCode']);
     }
 
-    public function testRequestHeadersAreAddedToPaymentsCall()
+    public function testRequestHeadersAreAddedToPaymentsCall(): void
     {
-        $requestBody = new PaymentRequest(['reference' => 'ABC12345', 'amount' => ['value' => 1000], 'applicationInfo' => $this->applicationInfoMock]);
         $expectedHeaders = ['header1' => 'value1', 'header2' => 'value2'];
 
-        $transferObjectMock = $this->createConfiguredMock(TransferInterface::class, [
-            'getBody' => ['reference' => 'ABC12345', 'amount' => ['value' => 1000], 'applicationInfo' => $this->applicationInfoMock],
-            'getHeaders' => ['header1' => 'value1', 'header2' => 'value2'],
-            'getClientConfig' => []
-        ]);
-
-        $this->adyenHelperMock->expects($this->once())
+        // Set up what the mocked method should return
+        $this->platformInfo
             ->method('buildRequestHeaders')
             ->willReturn($expectedHeaders);
 
-        $actualHeaders = $this->adyenHelperMock->buildRequestHeaders();
+        $requestBody = new PaymentRequest([
+            'reference' => 'ABC12345',
+            'amount' => ['value' => 1000],
+            'applicationInfo' => $this->applicationInfoMock
+        ]);
+
+        $transferObjectMock = $this->createConfiguredMock(TransferInterface::class, [
+            'getBody' => ['reference' => 'ABC12345', 'amount' => ['value' => 1000], 'applicationInfo' => $this->applicationInfoMock],
+            'getHeaders' => $expectedHeaders,
+            'getClientConfig' => []
+        ]);
 
         $paymentResponse = new CheckoutPaymentResponse([
             'reference' => 'ABC12345',
@@ -188,8 +192,8 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
 
         $this->assertArrayHasKey('resultCode', $response[0]);
         $this->assertEquals('Authorised', $response[0]['resultCode']);
-        $this->assertEquals($expectedHeaders, $actualHeaders);
     }
+
 
     public function testProcessGiftCardsWithNoGiftCards()
     {

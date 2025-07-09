@@ -14,6 +14,7 @@ namespace Adyen\Payment\Block\Info;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\Collection;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\View\Element\Template;
 use Magento\Payment\Block\Info;
 
@@ -36,7 +37,7 @@ class AbstractInfo extends Info
 
     /**
      * @return mixed
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function getAdyenPspReference()
     {
@@ -45,7 +46,7 @@ class AbstractInfo extends Info
 
     /**
      * @return mixed
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function isDemoMode()
     {
@@ -53,17 +54,26 @@ class AbstractInfo extends Info
         return $this->configHelper->getAdyenAbstractConfigDataFlag('demo_mode', $storeId);
     }
 
-    public function getPartialPayments(): ?Collection
+    /**
+     * @return Collection
+     * @throws LocalizedException
+     */
+    public function getPartialPayments(): Collection
     {
-        // retrieve partial payments of the order
-        $orderPaymentCollection = $this->adyenOrderPaymentCollectionFactory
+        return $this->adyenOrderPaymentCollectionFactory
             ->create()
             ->addPaymentFilterAscending($this->getInfo()->getId());
+    }
 
-        if ($orderPaymentCollection->getSize() > 1) {
-            return $orderPaymentCollection;
-        } else {
-            return null;
-        }
+    /**
+     * @return string
+     * @throws LocalizedException
+     */
+    public function renderPartialPaymentsHtml(): string
+    {
+        return $this->getLayout()
+            ->createBlock("Adyen\Payment\Block\Info\PartialPayments")
+            ->setInfoBlock($this)
+            ->toHtml();
     }
 }

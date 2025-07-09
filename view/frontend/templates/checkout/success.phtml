@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2022 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -12,104 +12,150 @@
 /**
  * @var \Adyen\Payment\Block\Checkout\Success $block
  */
-?>
-<script type="text/javascript">
-    // Refresh cart status
+// Script 1: Reload cart
+$scriptCartReload = <<<script
     require(['Magento_Customer/js/customer-data'], function (customerData) {
         'use strict';
-
         customerData.reload(['cart'], true);
     });
-</script>
+script;
+?>
+
+<?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptCartReload, false) ?>
+
 <?php if ($block->renderAction()): ?>
-    <script type="text/javascript">
+    <div id="ActionContainer"></div>
+    <?php
+    $actionJson = json_encode($block->getAction());
+    $locale = $block->escapeJs($block->getLocale());
+    $countryCode = $block->escapeJs($block->getOrder()->getBillingAddress()->getCountryId());
+    $environment = $block->escapeJs($block->getEnvironment());
+    $clientKey = $block->escapeJs($block->getClientKey());
+
+    $scriptAction = <<<script
         require([
             'jquery',
             'Adyen_Payment/js/adyen'
         ], function ($, AdyenWeb) {
-        (async function () { // RequireJS does not support async callback
-            var action = JSON.parse('<?= /* @noEscape */ $block->getAction(); ?>');
-            var checkoutComponent = await window.AdyenWeb.AdyenCheckout({
-                locale: '<?= $block->escapeJs($block->getLocale()); ?>',
-                countryCode: '<?= $block->escapeJs($block->getOrder()->getBillingAddress()->getCountryId()); ?>',
-                environment: '<?= $block->escapeJs($block->getEnvironment()); ?>',
-                clientKey: '<?= $block->escapeJs($block->getClientKey()); ?>'
-            });
-            try {
-                checkoutComponent.createFromAction(action).mount('#ActionContainer');
-            } catch(err) {
-                // Action component cannot be created
-            }
-        })();
+            (async function () {
+                var action = JSON.parse($actionJson);
+                var checkoutComponent = await window.AdyenWeb.AdyenCheckout({
+                    locale: '$locale',
+                    countryCode: '$countryCode',
+                    environment: '$environment',
+                    clientKey: '$clientKey'
+                });
+                try {
+                    checkoutComponent.createFromAction(action).mount('#ActionContainer');
+                } catch (err) {
+                    // Action component cannot be created
+                }
+            })();
         });
-    </script>
-    <div id="ActionContainer"></div>
+script;
+    ?>
+
+    <?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptAction, false) ?>
 <?php endif; ?>
-<?php if ($block->showAdyenGiving()):
-    $checkoutConfig = /* @noEscape */
-    $block->getSerializedCheckoutConfig();
-    $scriptString = __('window.checkoutConfig = %1;', $checkoutConfig);
-?>
-<script>
-    <?= /* @noEscape */ $scriptString ?>
-    require([
-        'jquery',
-        'Adyen_Payment/js/adyen',
-        'Adyen_Payment/js/model/adyen-payment-service'
-    ], function ($, AdyenCheckout, adyenPaymentService) {
-    (async function () { // RequireJS does not support async callback
-        function handleOnDonate(state, component) {
-            if (state.isValid) {
-                let payload = state.data;
-                payload.returnUrl = window.location.href;
 
-                const orderId = <?= $block->escapeJs($block->getOrder()->getId()) ?>;
-                const isLoggedIn = Boolean(<?= $block->escapeJs($block->getIsCustomerLoggedIn()) ?>);
-                const maskedQuoteId = "<?= $block->escapeJs($block->getMaskedQuoteId()) ?>";
+<?php if ($block->showAdyenGiving()): ?>
+    <div id="donation-container"></div>
 
-                adyenPaymentService.donate(payload, isLoggedIn, orderId, maskedQuoteId)
+    <?php
+    $checkoutConfig = $block->getSerializedCheckoutConfig();
+    $scriptCheckoutConfig = "window.checkoutConfig = $checkoutConfig;";
+    ?>
+
+    <?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptCheckoutConfig, false) ?>
+
+    <?php
+    $orderId = $block->escapeJs($block->getOrder()->getId());
+    $isLoggedIn = (int) $block->getIsCustomerLoggedIn(); // use int to safely cast for Boolean
+    $maskedQuoteId = $block->escapeJs($block->getMaskedQuoteId());
+    $currency = $block->escapeJs($block->getOrder()->getOrderCurrencyCode());
+    $locale =  $block->escapeJs($block->getLocale());
+    $environment = $block->escapeJs($block->getEnvironment());
+    $clientKey = $block->escapeJs($block->getClientKey());
+    $countryCode = $block->escapeJs($block->getOrder()->getBillingAddress()->getCountryId());
+    $orderAmount = $block->escapeJs($block->getOrderAmount());
+
+    $scriptGiving = <<<script
+        require([
+            'jquery',
+            'mage/storage',
+            'Adyen_Payment/js/adyen',
+            'Adyen_Payment/js/model/adyen-payment-service'
+        ], function ($, storage, AdyenWeb, adyenPaymentService) {
+            (async function () {
+                const currency = '$currency';
+                const locale = '$locale';
+                const environment = '$environment';
+                const clientKey = '$clientKey';
+                const orderId = '$orderId';
+                const isLoggedIn = Boolean($isLoggedIn);
+                const maskedQuoteId = '$maskedQuoteId';
+
+                adyenPaymentService.donationCampaigns(isLoggedIn, orderId, maskedQuoteId)
                     .done(function (response) {
-                        component.setStatus("success");
-                    })
-                    .fail(function (response) {
-                        component.setStatus('error');
+                        try {
+                            const campaignResponse = JSON.parse(response);
+                            if (campaignResponse && Object.keys(campaignResponse).length > 0) {
+                                mountAdyenGivingComponent(campaignResponse);
+                            }
+                        } catch (parseError) {
+                            console.warn('Error parsing donation campaign response:', parseError);
+                        }
                     });
-            } else {
-                component.setStatus('ready');
-            }
-        }
-        function handleOnCancel(state, component) {
-            // Redirect to default 'Continue Shopping' action
-            let continueActionUrl = $('.primary.action.continue')[0].href;
-            window.location = continueActionUrl;
-        }
-        const donationConfig = {
-            amounts: {
-                currency: "<?= $block->escapeJs($block->getOrder()->getOrderCurrencyCode()) ?>",
-                values: [<?= $block->escapeJs($block->getDonationComponentConfiguration()['donationAmounts']); ?>]
-            },
-            backgroundUrl: "<?= $block->escapeJs($block->getDonationComponentConfiguration()['backgroundUrl']); ?>",
-            description: "<?= $block->escapeJs($block->getDonationComponentConfiguration()['description']); ?>",
-            logoUrl: "<?= $block->escapeJs($block->getDonationComponentConfiguration()['logoUrl']); ?>",
-            name: "<?= $block->escapeJs($block->getDonationComponentConfiguration()['name']); ?>",
-            url: "<?= $block->escapeJs($block->getDonationComponentConfiguration()['website']); ?>",
-            showCancelButton: true,
-            onDonate: handleOnDonate,
-            onCancel: handleOnCancel
-        };
-        var checkoutComponent = await AdyenCheckout({
-            locale: '<?= $block->escapeJs($block->getLocale()); ?>',
-            environment: '<?= $block->escapeJs($block->getEnvironment()); ?>',
-            clientKey: '<?= $block->escapeJs($block->getClientKey()); ?>'
+
+                async function mountAdyenGivingComponent(campaign) {
+                    try {
+                        const checkoutComponent = await window.AdyenWeb.AdyenCheckout({
+                            locale: locale,
+                            countryCode: '$countryCode',
+                            environment: environment,
+                            clientKey: clientKey
+                        });
+                        const donationConfig = {
+                            ...campaign,
+                            onDonate: handleOnDonate,
+                            onCancel: handleOnCancel
+                        };
+                        if(campaign.donation.type == 'roundup') {
+                            donationConfig.commercialTxAmount = '$orderAmount'
+                        }
+                        adyenGivingComponent = new window.AdyenWeb.Donation(
+                            checkoutComponent,
+                            donationConfig
+                        );
+                        adyenGivingComponent.mount('#donation-container');
+                    } catch (error) {
+                        console.error('Failed to initialize Adyen Giving component:', error);
+                    }
+                }
+
+                function handleOnDonate(state, component) {
+                    if (state.isValid) {
+                        const payload = state.data;
+                        payload.returnUrl = window.location.href;
+                        adyenPaymentService.donate(payload, isLoggedIn, orderId, maskedQuoteId)
+                            .done(function () {
+                                component.setStatus('success');
+                            })
+                            .fail(function () {
+                                component.setStatus('error');
+                            });
+                    } else {
+                        component.setStatus('ready');
+                    }
+                }
+
+                function handleOnCancel(state, component) {
+                    window.location.href = $('.primary.action.continue')[0]?.href || '/';
+                }
+            })();
         });
-        try {
-            const donation = checkoutComponent.create('donation', donationConfig).mount('#donation-container');
-        } catch(err) {
-            // Action component cannot be created
-            console.log(err);
-        }
-    })();
-    });
-</script>
-<div id='donation-container'></div>
+script;
+    ?>
+
+    <?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptGiving, false) ?>
 <?php endif; ?>

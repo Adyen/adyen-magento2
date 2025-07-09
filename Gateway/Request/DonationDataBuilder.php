@@ -12,8 +12,11 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Adyen\AdyenException;
 use Adyen\Payment\Helper\Requests;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
@@ -45,12 +48,17 @@ class DonationDataBuilder implements BuilderInterface
      * @param array $buildSubject
      * @return array
      * @throws NoSuchEntityException
+     * @throws AdyenException
+     * @throws LocalizedException
      */
     public function build(array $buildSubject): array
     {
+        $paymentDataObject = SubjectReader::readPayment($buildSubject);
+
+        $payment = $paymentDataObject->getPayment();
         return [
             'body' => $this->adyenRequestsHelper->buildDonationData(
-                    $buildSubject['payment'],
+                    $payment,
                     $this->storeManager->getStore()->getId()
                 )
         ];

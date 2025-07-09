@@ -20,33 +20,18 @@ use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Model\MethodInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\Order\StatusResolver;
 
 class SetOrderStateAfterPaymentObserver implements ObserverInterface
 {
-    /**
-     * @var StatusResolver
-     */
-    private StatusResolver $statusResolver;
-
-    /**
-     * @var Config
-     */
-    private Config $configHelper;
-
-    /**
-     * @param StatusResolver $statusResolver
-     * @param Config $configHelper
-     */
     public function __construct(
-        StatusResolver $statusResolver,
-        Config $configHelper
-    ) {
-        $this->statusResolver = $statusResolver;
-        $this->configHelper = $configHelper;
-    }
+        private readonly StatusResolver $statusResolver,
+        private readonly Config $configHelper,
+        private readonly OrderRepositoryInterface $orderRepository
+    ) { }
 
     /**
      * @throws Exception
@@ -85,7 +70,7 @@ class SetOrderStateAfterPaymentObserver implements ObserverInterface
             $order->setStatus($status);
             $message = __("Pos payment initiated and waiting for payment");
             $order->addCommentToStatusHistory($message, $status);
-            $order->save();
+            $this->orderRepository->save($order);
         }
     }
 
@@ -107,11 +92,7 @@ class SetOrderStateAfterPaymentObserver implements ObserverInterface
              * Set order status and state to pending_payment if an addition action is required.
              * This status will be changed when the shopper completes the action or returns from a redirection.
              */
-            if (in_array($resultCode, PaymentResponseHandler::ACTION_REQUIRED_STATUSES) &&
-            !is_null($action)
-            ) {
-                $actionType = $action['type'];
-
+            if (in_array($resultCode, PaymentResponseHandler::ACTION_REQUIRED_STATUSES) && !is_null($action)) {
                 $status = $this->statusResolver->getOrderStatusByState(
                     $payment->getOrder(),
                     Order::STATE_PENDING_PAYMENT
@@ -119,14 +100,11 @@ class SetOrderStateAfterPaymentObserver implements ObserverInterface
                 $order->setState(Order::STATE_PENDING_PAYMENT);
                 $order->setStatus($status);
 
-                $message = sprintf(
-                    __("%s action is required to complete the payment.<br>Result code: %s"),
-                    ucfirst($actionType),
-                    $resultCode
-                );
+                $message = __("%1 action is required to complete the Adyen payment.", ucfirst($action['type']));
+                $message .= '<br />' . __("Result code: %1", $resultCode);
 
                 $order->addCommentToStatusHistory($message, $status);
-                $order->save();
+                $this->orderRepository->save($order);
             }
         }
     }

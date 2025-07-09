@@ -30,7 +30,7 @@ class ProcessedWebhookRemovalTest extends AbstractAdyenTestCase
     protected ScopeConfigInterface|MockObject $configMock;
     protected TypeListInterface|MockObject $cacheTypeListMock;
     protected ManagerInterface|MockObject $messageManagerMock;
-    protected AbstractResource|MockObject $resource;
+    protected AbstractResource|MockObject $resourceMock;
     protected AbstractDb|MockObject $resourceCollection;
     protected array $data = [];
 

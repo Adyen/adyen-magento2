@@ -10,6 +10,7 @@ define(
         'Magento_Customer/js/model/customer',
         'Magento_Checkout/js/model/url-builder',
         'mage/storage',
+        'mage/url',
         'ko'
     ],
     function(
@@ -19,12 +20,18 @@ define(
         customer,
         urlBuilder,
         storage,
+        url,
         ko
     ) {
         'use strict';
+
+        // Set the base url to make ajax call to the REST endpoints
+        url.setBaseUrl(window.BASE_URL);
+
         return {
             paymentMethods: ko.observable(null),
             connectedTerminals: ko.observable(null),
+
 
             /**
              * Retrieve the list of available payment methods from Adyen
@@ -131,6 +138,25 @@ define(
                         cartId: maskedQuoteId
                     });
                 }
+                return storage.post(
+                    serviceUrl,
+                    JSON.stringify(request),
+                    true
+                );
+            },
+
+            donationCampaigns: function (isLoggedIn, orderId, maskedQuoteId) {
+                let serviceUrl;
+                let request = {};
+
+                if (isLoggedIn) {
+                    serviceUrl =  urlBuilder.createUrl('/adyen/orders/carts/mine/donation-campaigns', {});
+                    request.orderId = orderId;
+                } else {
+                    serviceUrl =  urlBuilder.createUrl('/adyen/orders/guest-carts/:cartId/donation-campaigns', {
+                        cartId: maskedQuoteId
+                    });
+                }
 
                 return storage.post(
                     serviceUrl,
@@ -154,7 +180,7 @@ define(
 
             getPaymentMethodFromResponse: function (txVariant, paymentMethodResponse) {
                 return paymentMethodResponse.find((paymentMethod) => {
-                    return txVariant === paymentMethod.type
+                    return (txVariant || '').toLowerCase() === ((paymentMethod && paymentMethod.type) || '').toLowerCase();
                 });
             },
 

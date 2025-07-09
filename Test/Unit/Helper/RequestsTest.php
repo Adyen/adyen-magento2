@@ -1,624 +1,361 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Payment\Helper\Address;
+use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Locale;
+use Adyen\Payment\Helper\PlatformInfo;
 use Adyen\Payment\Helper\Requests;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Vault;
+use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
-use Magento\Customer\Api\CustomerRepositoryInterface;
-use Magento\Customer\Api\Data\CustomerInterface;
-use Magento\Sales\Model\Order;
-use Magento\Sales\Model\Order\Payment;
+use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\Request\Http;
-use PHPUnit\Framework\MockObject\MockObject;
+use Magento\Framework\App\RequestInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Test;
+use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 
+#[CoversClass(Requests::class)]
 class RequestsTest extends AbstractAdyenTestCase
 {
-    /** @var Requests $sut */
-    private $sut;
-
-    /** @var Payment $paymentMock */
-    private $paymentMock;
-
-    private CustomerRepositoryInterface|MockObject $customerRepositoryMock;
-
-    /**
-     * @var Data $adyenHelperMock
-     */
-    private Data $adyenHelperMock;
+    private Requests $requests;
+    private Data $adyenHelper;
+    private Config $adyenConfig;
+    private Address $addressHelper;
+    private StateData $stateData;
+    private Vault $vaultHelper;
+    private Http $request;
+    private ChargedCurrency $chargedCurrency;
+    private PaymentMethods $paymentMethodsHelper;
+    private Locale $localeHelper;
+    private Context $context;
 
     protected function setUp(): void
     {
-        parent::setUp();
+        $this->adyenHelper = $this->createMock(Data::class);
+        $this->adyenConfig = $this->createMock(Config::class);
+        $this->addressHelper = $this->createMock(Address::class);
+        $this->stateData = $this->createMock(StateData::class);
+        $this->vaultHelper = $this->createMock(Vault::class);
+        $this->request = $this->createMock(Http::class);
+        $this->chargedCurrency = $this->createMock(ChargedCurrency::class);
+        $this->paymentMethodsHelper = $this->createMock(PaymentMethods::class);
+        $this->localeHelper = $this->createMock(Locale::class);
+        $this->context = $this->createMock(Context::class);
+        $this->context->method('getRequest')->willReturn($this->request);
 
-        $this->billingAddressMock = $this->getMockBuilder(\Magento\Quote\Model\Quote\Address::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->order = $this->createMock(Order::class);
-        $this->methodInstance = $this->createMock(\Magento\Payment\Model\MethodInterface::class);
-        $this->payment = $this->createMock(Payment::class);
-        $this->payment->method('getMethodInstance')->willReturn($this->methodInstance);
-        $this->adyenConfigMock = $this->createMock(\Adyen\Payment\Helper\Config::class);
-        $this->vaultHelperMock = $this->createMock(\Adyen\Payment\Helper\Vault::class);
-
-        // Mock dependencies
-        $this->adyenHelperMock = $this->createMock(Data::class);
-        $this->addressHelperMock = $this->createMock(Address::class);
-        $configHelperMock = $this->createMock(Config::class);
-        $stateDataHelperMock = $this->createMock(StateData::class);
-        $vaultHelperMock = $this->createMock(Vault::class);
-        $this->requestInterfaceMock = $this->createGeneratedMock(Http::class, [
-                     'getServer'
-                    ]);
-        $this->customerRepositoryMock = $this->createMock(CustomerRepositoryInterface::class);
-
-        // Initialize the subject under test
-        $this->sut = new Requests(
-            $this->adyenHelperMock,
-            $configHelperMock,
-            $this->addressHelperMock,
-            $stateDataHelperMock,
-            $vaultHelperMock,
-            $this->requestInterfaceMock,
-            $this->customerRepositoryMock
+        $this->requests = new Requests(
+            $this->context,
+            $this->adyenHelper,
+            $this->adyenConfig,
+            $this->addressHelper,
+            $this->stateData,
+            $this->vaultHelper,
+            $this->chargedCurrency,
+            $this->paymentMethodsHelper,
+            $this->localeHelper
         );
     }
 
-    public function testBuildCardRecurringGuestNoStorePaymentMethod()
+    #[Test]
+    public function buildMerchantAccountDataAddsCorrectKey(): void
     {
-        $this->setMockObjects([], false, '');
-        $this->assertEmpty($this->sut->buildCardRecurringData(1, $this->paymentMock));
-    }
+        $this->adyenHelper->method('getAdyenMerchantAccount')
+            ->with('scheme', 1)
+            ->willReturn('TestMerchant123');
 
-    public function testBuildCardRecurringStorePaymentMethodTrueVault(): void
-    {
-        $this->setMockObjects(['storePaymentMethod' => true], true, Vault::SUBSCRIPTION);
-        $request = $this->sut->buildCardRecurringData(1, $this->paymentMock);
+        $result = $this->requests->buildMerchantAccountData('scheme', 1);
 
-        $this->assertTrue($request['storePaymentMethod']);
-        $this->assertEquals(Vault::SUBSCRIPTION, $request['recurringProcessingModel']);
-    }
-
-    public function testBuildCardRecurringStorePaymentMethodTrueAdyenCardOnFile(): void
-    {
-        $this->setMockObjects(['storePaymentMethod' => true], true, Vault::CARD_ON_FILE);
-        $request = $this->sut->buildCardRecurringData(1, $this->paymentMock);
-
-        $this->assertTrue($request['storePaymentMethod']);
-        $this->assertEquals(Vault::CARD_ON_FILE, $request['recurringProcessingModel']);
-    }
-
-    public function testBuildCardRecurringStorePaymentMethodTrueAdyenSubscription(): void
-    {
-        $this->setMockObjects(['storePaymentMethod' => true], true, Vault::SUBSCRIPTION);
-        $request = $this->sut->buildCardRecurringData(1, $this->paymentMock);
-
-        $this->assertTrue($request['storePaymentMethod']);
-        $this->assertEquals(Vault::SUBSCRIPTION, $request['recurringProcessingModel']);
-    }
-
-    public function testBuildCardRecurringStorePaymentMethodFalse(): void
-    {
-        $this->setMockObjects(['storePaymentMethod' => false], false, Vault::SUBSCRIPTION);
-        $request = $this->sut->buildCardRecurringData(1, $this->paymentMock);
-
-        $this->assertArrayNotHasKey('storePaymentMethod', $request);
-        $this->assertArrayNotHasKey('recurringProcessingModel', $request);
-    }
-
-    public function testBuildCardRecurringWithEmptyStateData(): void
-    {
-        $this->setMockObjects([], true, Vault::SUBSCRIPTION);
-        $request = $this->sut->buildCardRecurringData(1, $this->paymentMock);
-
-        $this->assertArrayNotHasKey('storePaymentMethod', $request);
-        $this->assertArrayNotHasKey('recurringProcessingModel', $request);
-    }
-
-    public function testBuildCardRecurringWithInvalidRecurringProcessingModel(): void
-    {
-        $this->setMockObjects(['storePaymentMethod' => true], true, 'INVALID_MODEL');
-        $request = $this->sut->buildCardRecurringData(1, $this->paymentMock);
-
-        $this->assertArrayHasKey('storePaymentMethod', $request);
-        //$this->assertArrayNotHasKey('recurringProcessingModel', $request, 'Unexpected model should not be set');
-    }
-
-    public function testBuildCardRecurringWithPartialStateData(): void
-    {
-        $this->setMockObjects(['storePaymentMethod' => true], true, Vault::CARD_ON_FILE);
-        $request = $this->sut->buildCardRecurringData(1, $this->paymentMock);
-
-        $this->assertTrue($request['storePaymentMethod']);
-        $this->assertEquals(Vault::CARD_ON_FILE, $request['recurringProcessingModel']);
-    }
-
-    // Edge case: Vault disabled but storePaymentMethod is present in stateData
-    public function testBuildCardRecurringVaultDisabledWithStorePaymentMethod(): void
-    {
-        $this->setMockObjects(['storePaymentMethod' => true], false, Vault::SUBSCRIPTION);
-        $request = $this->sut->buildCardRecurringData(1, $this->paymentMock);
-
-        $this->assertArrayNotHasKey('storePaymentMethod', $request);
-        $this->assertArrayNotHasKey('recurringProcessingModel', $request);
-    }
-
-    public function testBuildCardRecurringGuestWithVaultDisabled(): void
-    {
-        $this->setMockObjects([], false, '');
-        $request = $this->sut->buildCardRecurringData(1, $this->paymentMock);
-
-        $this->assertArrayNotHasKey('storePaymentMethod', $request);
-        $this->assertArrayNotHasKey('recurringProcessingModel', $request);
-    }
-
-    public function testBuildCardRecurringWithSubscriptionModelAndStoreTrue(): void
-    {
-        $this->setMockObjects(['storePaymentMethod' => true], true, Vault::SUBSCRIPTION);
-        $request = $this->sut->buildCardRecurringData(1, $this->paymentMock);
-
-        $this->assertTrue($request['storePaymentMethod']);
-        $this->assertEquals(Vault::SUBSCRIPTION, $request['recurringProcessingModel']);
-    }
-
-    public function testBuildMerchantAccountDataWithValidAccount(): void
-    {
-        // Arrange
-        $paymentMethod = 'adyen_cc';
-        $storeId = 1;
-        $merchantAccount = 'ValidMerchantAccount';
-
-        $this->adyenHelperMock->method('getAdyenMerchantAccount')
-            ->with($paymentMethod, $storeId)
-            ->willReturn($merchantAccount);
-
-        // Act
-        $request = $this->sut->buildMerchantAccountData($paymentMethod, $storeId);
-
-        // Assert
-        $this->assertArrayHasKey(Requests::MERCHANT_ACCOUNT, $request);
-        $this->assertEquals($merchantAccount, $request[Requests::MERCHANT_ACCOUNT]);
-    }
-
-    public function testBuildMerchantAccountDataWithExistingRequestData(): void
-    {
-        // Arrange
-        $paymentMethod = 'adyen_cc';
-        $storeId = 1;
-        $merchantAccount = 'TestMerchantAccount';
-        $existingRequest = ['existingKey' => 'existingValue'];
-
-        $this->adyenHelperMock->method('getAdyenMerchantAccount')
-            ->with($paymentMethod, $storeId)
-            ->willReturn($merchantAccount);
-
-        // Act
-        $request = $this->sut->buildMerchantAccountData($paymentMethod, $storeId, $existingRequest);
-
-        // Assert
-        $this->assertArrayHasKey(Requests::MERCHANT_ACCOUNT, $request);
-        $this->assertEquals($merchantAccount, $request[Requests::MERCHANT_ACCOUNT]);
-        $this->assertArrayHasKey('existingKey', $request);
-        $this->assertEquals('existingValue', $request['existingKey']);
-    }
-
-    public function testBuildMerchantAccountDataWithEmptyAccount(): void
-    {
-        // Arrange
-        $paymentMethod = 'adyen_cc';
-        $storeId = 1;
-        $merchantAccount = ''; // Simulating empty account return
-
-        $this->adyenHelperMock->method('getAdyenMerchantAccount')
-            ->with($paymentMethod, $storeId)
-            ->willReturn($merchantAccount);
-
-        // Act
-        $request = $this->sut->buildMerchantAccountData($paymentMethod, $storeId);
-
-        // Assert
-        $this->assertArrayHasKey(Requests::MERCHANT_ACCOUNT, $request);
-        $this->assertEquals($merchantAccount, $request[Requests::MERCHANT_ACCOUNT]);
-    }
-
-    public function testBuildMerchantAccountDataWithNullAccount(): void
-    {
-        $paymentMethod = 'adyen_cc';
-        $storeId = 1;
-        $merchantAccount = null; // Simulating null account return
-
-        $this->adyenHelperMock->method('getAdyenMerchantAccount')
-            ->with($paymentMethod, $storeId)
-            ->willReturn($merchantAccount);
-
-        $request = $this->sut->buildMerchantAccountData($paymentMethod, $storeId);
-
-        $this->assertArrayHasKey(Requests::MERCHANT_ACCOUNT, $request);
-        $this->assertNull($request[Requests::MERCHANT_ACCOUNT]);
-    }
-
-    public function testBuildCustomerDataWithGuestEmail(): void
-    {
-        $this->payment->method('getOrder')->willReturn($this->order);
-        $this->order->method('getIncrementId')->willReturn('12345');
-
-        $additionalData = ['guestEmail' => 'guest@example.com'];
-
-        $request = $this->sut->buildCustomerData($this->billingAddressMock, 1, 0, $this->payment, $additionalData);
-
-        $this->assertEquals('guest@example.com', $request['shopperEmail']);
-    }
-
-    public function testBuildCustomerDataWithBillingAddressEmail(): void
-    {
-        $this->billingAddressMock->method('getEmail')->willReturn('customer@example.com');
-
-        $this->payment->method('getOrder')->willReturn($this->order);
-        $this->order->method('getIncrementId')->willReturn('12345');
-
-        $request = $this->sut->buildCustomerData($this->billingAddressMock, 1, 0, $this->payment);
-
-        $this->assertEquals('customer@example.com', $request['shopperEmail']);
-    }
-
-    public function testBuildCustomerDataWithPhoneNumber(): void
-    {
-        $this->billingAddressMock->method('getTelephone')->willReturn('1234567890');
-
-
-        $this->methodInstance->method('getCode')->willReturn('adyen_cc');
-
-        $this->payment->method('getOrder')->willReturn($this->order);
-        $this->order->method('getIncrementId')->willReturn('12345');
-
-        $request = $this->sut->buildCustomerData($this->billingAddressMock, 1, 0, $this->payment);
-
-        $this->assertEquals('1234567890', $request['telephoneNumber']);
-    }
-
-    public function testBuildCustomerDataWithShopperName(): void
-    {
-        $this->billingAddressMock->method('getFirstname')->willReturn('John');
-        $this->billingAddressMock->method('getLastname')->willReturn('Doe');
-        $this->payment->method('getOrder')->willReturn($this->order);
-        $this->order->method('getIncrementId')->willReturn('12345');
-        $this->methodInstance->method('getCode')->willReturn('adyen_cc');
-        $request = $this->sut->buildCustomerData($this->billingAddressMock, 1, 0, $this->payment);
-
-        $this->assertEquals('John', $request['shopperName']['firstName']);
-        $this->assertEquals('Doe', $request['shopperName']['lastName']);
-    }
-
-    public function testBuildCustomerDataWithCountryCode(): void
-    {
-        $this->billingAddressMock->method('getCountryId')->willReturn('US');
-
-        $this->addressHelperMock->method('getAdyenCountryCode')->with('US')->willReturn('US');
-        $this->methodInstance->method('getCode')->willReturn('adyen_cc');
-        $this->payment->method('getOrder')->willReturn($this->order);
-        $this->order->method('getIncrementId')->willReturn('12345');
-
-        $request = $this->sut->buildCustomerData($this->billingAddressMock, 1, 0, $this->payment);
-
-        $this->assertEquals('US', $request['countryCode']);
-    }
-
-    public function testBuildCustomerDataWithLocale(): void
-    {
-        $this->payment->method('getOrder')->willReturn($this->order);
-        $this->order->method('getIncrementId')->willReturn('12345');
-        $this->methodInstance->method('getCode')->willReturn('adyen_cc');
-        $this->adyenHelperMock->method('getStoreLocale')->with(1)->willReturn('en_US');
-
-        $request = $this->sut->buildCustomerData($this->billingAddressMock, 1, 0, $this->payment);
-
-        $this->assertEquals('en_US', $request['shopperLocale']);
-    }
-
-    public function testBuildCustomerDataWithDob(): void
-    {
-        $this->payment->method('getOrder')->willReturn($this->order);
-        $this->order->method('getIncrementId')->willReturn('12345');
-        $this->methodInstance->method('getCode')->willReturn('adyen_cc');
-        $this->adyenHelperMock->method('getStoreLocale')->with(1)->willReturn('en_US');
-
-        $customerId = 3;
-        $mockDob = '1990-01-01';
-
-        $customerMock = $this->createMock(CustomerInterface::class);
-        $customerMock->expects($this->once())->method('getDob')->willReturn($mockDob);
-
-        $this->customerRepositoryMock->expects($this->once())
-            ->method('getById')
-            ->with($customerId)
-            ->willReturn($customerMock);
-
-        $request = $this->sut->buildCustomerData($this->billingAddressMock, 1, $customerId, $this->payment);
-
-        $this->assertEquals($mockDob, $request['dateOfBirth']);
-    }
-
-    public function testBuildCustomerDataWithDobInvalidFormat(): void
-    {
-        $this->payment->method('getOrder')->willReturn($this->order);
-        $this->order->method('getIncrementId')->willReturn('12345');
-        $this->methodInstance->method('getCode')->willReturn('adyen_cc');
-        $this->adyenHelperMock->method('getStoreLocale')->with(1)->willReturn('en_US');
-
-        $customerId = 3;
-        $mockDob = '01/01/2025';
-
-        $customerMock = $this->createMock(CustomerInterface::class);
-        $customerMock->expects($this->once())->method('getDob')->willReturn($mockDob);
-
-        $this->customerRepositoryMock->expects($this->once())
-            ->method('getById')
-            ->with($customerId)
-            ->willReturn($customerMock);
-
-        $request = $this->sut->buildCustomerData($this->billingAddressMock, 1, $customerId, $this->payment);
-        $this->assertArrayNotHasKey('dateOfBirth', $request);
-    }
-
-    public function testBuildCustomerIpData(): void
-    {
-        // Define test IP address
-        $ipAddress = '192.168.1.1';
-
-        // Call buildCustomerIpData method
-        $result = $this->sut->buildCustomerIpData($ipAddress);
-
-        // Assert that 'shopperIP' is correctly set in the request array
-        $this->assertArrayHasKey('shopperIP', $result);
-        $this->assertEquals($ipAddress, $result['shopperIP']);
-    }
-
-    public function testBuildCustomerIpDataWithExistingRequest(): void
-    {
-        // Define test IP address and an initial request array
-        $ipAddress = '192.168.1.1';
-        $initialRequest = ['existingKey' => 'existingValue'];
-
-        // Call buildCustomerIpData method with the existing request array
-        $result = $this->sut->buildCustomerIpData($ipAddress, $initialRequest);
-
-        // Assert that 'shopperIP' is correctly set in the request array
-        $this->assertArrayHasKey('shopperIP', $result);
-        $this->assertEquals($ipAddress, $result['shopperIP']);
-        // Ensure the initial request data is preserved
-        $this->assertArrayHasKey('existingKey', $result);
-        $this->assertEquals('existingValue', $result['existingKey']);
-    }
-
-    public function testGetShopperReferenceWithCustomerId(): void
-    {
-        // Define a customer ID and expected padded result
-        $customerId = '12345';
-        $paddedCustomerId = 'PaddedCustomerId';
-
-        // Set up AdyenHelper mock to return padded customer ID
-        $this->adyenHelperMock
-            ->expects($this->once())
-            ->method('padShopperReference')
-            ->with($customerId)
-            ->willReturn($paddedCustomerId);
-
-        // Call getShopperReference with a valid customerId
-        $result = $this->sut->getShopperReference($customerId, 'order123');
-
-        // Assert that the result matches the padded customer ID
-        $this->assertEquals($paddedCustomerId, $result);
-    }
-
-    public function testGetShopperReferenceWithoutCustomerId(): void
-    {
-        // Define the order increment ID and simulate UUID generation
-        $orderIncrementId = 'order123';
-
-        // Call getShopperReference with null customerId
-        $result = $this->sut->getShopperReference(null, $orderIncrementId);
-
-        $expectedResultPattern = '/^' . preg_quote($orderIncrementId, '/') . '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/';
-        $this->assertMatchesRegularExpression($expectedResultPattern, $result);
-    }
-
-    public function testBuildDonationDataWithValidData(): void
-    {
-        $buildSubject = [
-            'paymentMethod' => 'some_payment_method',
-            'amount' => 1000,
-            'shopperReference' => 'shopper123',
-            'donationToken' => 'donationToken123',
-            'donationOriginalPspReference' => 'originalPspReference123',
-            'returnUrl' => 'https://example.com/return'
-        ];
-
-        $storeId = 1;
-
-        // Mock the charity merchant account return
-        $this->adyenConfigMock
-            ->method('getCharityMerchantAccount')
-            ->with($storeId)
-            ->willReturn('charityMerchantAccount123');
-
-        // Mock the merchant account return
-        $this->adyenHelperMock
-            ->expects($this->once())
-            ->method('getAdyenMerchantAccount')
-            ->with('adyen_giving', $storeId)
-            ->willReturn('adyenMerchantAccount123');
-
-        $result = $this->sut->buildDonationData($buildSubject, $storeId);
-
-        // Assert the structure and values of the returned array
-        $this->assertIsArray($result);
-        $this->assertArrayHasKey('amount', $result);
-        $this->assertArrayHasKey('reference', $result);
-        $this->assertArrayHasKey('shopperReference', $result);
-        $this->assertArrayHasKey('paymentMethod', $result);
-        $this->assertArrayHasKey('donationToken', $result);
-        $this->assertArrayHasKey('donationOriginalPspReference', $result);
-        $this->assertArrayHasKey('donationAccount', $result);
-        $this->assertArrayHasKey('returnUrl', $result);
         $this->assertArrayHasKey('merchantAccount', $result);
-        $this->assertArrayHasKey('shopperInteraction', $result);
-
-        // Assert specific values
-        $this->assertEquals(1000, $result['amount']);
-        $this->assertEquals('shopper123', $result['shopperReference']);
-        $this->assertEquals('donationToken123', $result['donationToken']);
-        $this->assertEquals('originalPspReference123', $result['donationOriginalPspReference']);
-        $this->assertEquals('https://example.com/return', $result['returnUrl']);
-        $this->assertEquals('adyenMerchantAccount123', $result['merchantAccount']);
+        $this->assertEquals('TestMerchant123', $result['merchantAccount']);
     }
 
-    public function testBuildDonationDataWithMappedPaymentMethod(): void
+    #[Test]
+    public function buildCustomerIpDataAddsIpAddress(): void
     {
-        $buildSubject = [
-            'paymentMethod' => 'original_payment_method',
-            'amount' => 2000,
-            'shopperReference' => 'shopper456',
-            'donationToken' => 'donationToken456',
-            'donationOriginalPspReference' => 'originalPspReference456',
-            'returnUrl' => 'https://example.com/return'
-        ];
+        $result = $this->requests->buildCustomerIpData('192.168.0.1');
 
-        $storeId = 2;
-
-        $this->adyenHelperMock
-            ->expects($this->once())
-            ->method('getAdyenMerchantAccount')
-            ->with('adyen_giving', $storeId)
-            ->willReturn('adyenMerchantAccount456');
-
-        $result = $this->sut->buildDonationData($buildSubject, $storeId);
-
-        // Assert that the mapped payment method is used
-        $this->assertEquals('original_payment_method', $result['paymentMethod']['type']);
+        $this->assertArrayHasKey('shopperIP', $result);
+        $this->assertSame('192.168.0.1', $result['shopperIP']);
     }
 
-    public function testBuildAdyenTokenizedPaymentRecurringDataWithExistingModel(): void
+    #[Test]
+    public function buildPaymentDataFormatsAmountCorrectly(): void
     {
-        $storeId = 1;
-        $paymentMock = $this->createMock(\Magento\Payment\Model\InfoInterface::class);
-        $paymentMock->method('getAdditionalInformation')
-            ->willReturn(['recurringProcessingModel' => 'some_model']);
+        $this->adyenHelper->method('formatAmount')
+            ->with(15.99, 'EUR')
+            ->willReturn(1599);
 
-        $result = $this->sut->buildAdyenTokenizedPaymentRecurringData($storeId, $paymentMock);
+        $result = $this->requests->buildPaymentData(15.99, 'EUR', 'ref123');
 
-        // Assert that the recurringProcessingModel is set correctly
-        $this->assertArrayHasKey('recurringProcessingModel', $result);
-        $this->assertNotEmpty($result['recurringProcessingModel']);
+        $this->assertSame(['currency' => 'EUR', 'value' => 1599], $result['amount']);
+        $this->assertSame('ref123', $result['reference']);
     }
 
-    public function testBuildAdyenTokenizedPaymentRecurringDataWithCardType(): void
+    #[Test]
+    public function buildBrowserDataReturnsUserAgentAndAcceptHeader(): void
     {
-        $storeId = 1;
-        $paymentMock = $this->createMock(\Magento\Payment\Model\InfoInterface::class);
-        $paymentMock->method('getAdditionalInformation')
-            ->willReturn(['cc_type' => 'visa']);
-
-        $result = $this->sut->buildAdyenTokenizedPaymentRecurringData($storeId, $paymentMock);
-
-        // Assert that the recurringProcessingModel is set to the model returned from the vault helper
-        $this->assertArrayHasKey('recurringProcessingModel', $result);
-        $this->assertNotEmpty($result['recurringProcessingModel']);
-    }
-
-    public function testBuildAdyenTokenizedPaymentRecurringDataWithOtherPaymentMethod(): void
-    {
-        $storeId = 1;
-        $paymentMock = $this->createMock(\Magento\Payment\Model\InfoInterface::class);
-        $paymentMock->method('getAdditionalInformation')
-            ->willReturn(['cc_type' => 'other_pm_type', 'method' => 'other_pm']);
-
-        $result = $this->sut->buildAdyenTokenizedPaymentRecurringData($storeId, $paymentMock);
-
-        // Assert that the recurringProcessingModel is set to the model returned from the vault helper
-        $this->assertArrayHasKey('recurringProcessingModel', $result);
-        $this->assertNotEmpty($result['recurringProcessingModel']);
-    }
-
-    public function testBuildBrowserDataWithUserAgentAndAcceptHeader()
-    {
-        // Arrange
-        $userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36';
-        $acceptHeader = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8';
-
-        // Setting up the request mock to return headers
-        $this->requestInterfaceMock->method('getServer')
-            ->will($this->returnCallback(function ($header) use ($userAgent, $acceptHeader) {
-                if ($header === 'HTTP_USER_AGENT') {
-                    return $userAgent;
-                } elseif ($header === 'HTTP_ACCEPT') {
-                    return $acceptHeader;
-                }
-                return null;
-            }));
-
-        // Act
-        $result = $this->sut->buildBrowserData([]);
-
-        // Assert
-        $this->assertArrayHasKey('browserInfo', $result);
-        $this->assertArrayHasKey('userAgent', $result['browserInfo']);
-        $this->assertArrayHasKey('acceptHeader', $result['browserInfo']);
-        $this->assertEquals($userAgent, $result['browserInfo']['userAgent']);
-        $this->assertEquals($acceptHeader, $result['browserInfo']['acceptHeader']);
-    }
-
-    public function testBuildBrowserDataWithNoUserAgentOrAcceptHeader()
-    {
-        // Arrange
-        $this->requestInterfaceMock->method('getServer')
-            ->willReturn(null);
-
-        // Act
-        $result = $this->sut->buildBrowserData([]);
-
-        // Assert
-        $this->assertArrayNotHasKey('browserInfo', $result);
-    }
-
-    private function setMockObjects(array $stateDataArray, bool $vaultEnabled, string $tokenType): void
-    {
-        $stateDataMock = $this->createConfiguredMock(StateData::class, [
-            'getStateData' => $stateDataArray
+        $this->request->method('getServer')->willReturnMap([
+            ['HTTP_USER_AGENT', null, 'Mozilla'],
+            ['HTTP_ACCEPT', null, 'text/html']
         ]);
 
-        $vaultHelperMock = $this->createConfiguredMock(Vault::class, [
-            'getPaymentMethodRecurringActive' => $vaultEnabled,
-            'getPaymentMethodRecurringProcessingModel' => $tokenType
-        ]);
+        $result = $this->requests->buildBrowserData();
 
-        $this->adyenHelperMock = $this->createMock(Data::class);
+        $this->assertSame('Mozilla', $result['browserInfo']['userAgent']);
+        $this->assertSame('text/html', $result['browserInfo']['acceptHeader']);
+    }
 
+    #[Test]
+    public function getShopperReferenceForCustomerIdReturnsPaddedValue(): void
+    {
+        $this->adyenHelper->expects($this->once())
+            ->method('padShopperReference')
+            ->with('42')
+            ->willReturn('user_42');
 
-        $configHelperMock = $this->createConfiguredMock(Config::class, [
-            //'getPaymentMethodRecurringProcessingModel' => $tokenType
-            //'getCardRecurringActive' => true
-        ]);
+        $result = $this->requests->getShopperReference('42', '0000123');
 
-        $this->sut = new Requests(
-            $this->createMock(Data::class),
-            $configHelperMock,
-            $this->createMock(Address::class),
-            $stateDataMock,
-            $vaultHelperMock,
-            $this->createMock(http::class),
-            $this->customerRepositoryMock
+        $this->assertSame('user_42', $result);
+    }
+
+    #[Test]
+    public function getShopperReferenceForGuestReturnsCombinedValue(): void
+    {
+        $this->adyenHelper->expects($this->never())->method('padShopperReference');
+
+        $result = $this->requests->getShopperReference(null, '0000123');
+
+        $this->assertStringStartsWith('0000123', $result);
+        $this->assertGreaterThan(10, strlen($result));
+    }
+
+    #[Test]
+    public function buildCustomerDataIncludesEmailTelephoneName(): void
+    {
+        $billingAddress = $this->createMock(\Magento\Sales\Api\Data\OrderAddressInterface::class);
+        $billingAddress->method('getEmail')->willReturn('customer@example.com');
+        $billingAddress->method('getTelephone')->willReturn('123456789');
+        $billingAddress->method('getFirstname')->willReturn('John');
+        $billingAddress->method('getLastname')->willReturn('Doe');
+        $billingAddress->method('getCountryId')->willReturn('NL');
+
+        $payment = $this->createMock(\Magento\Sales\Model\Order\Payment::class);
+        $payment->method('getMethodInstance')->willReturn(
+            $this->createConfiguredMock(\Magento\Payment\Model\MethodInterface::class, [
+                'getCode' => 'scheme'
+            ])
+        );
+        $payment->method('getOrder')->willReturn(
+            $this->createConfiguredMock(\Magento\Sales\Model\Order::class, [
+                'getIncrementId' => '000001'
+            ])
         );
 
-        $orderMock = $this->createConfiguredMock(Order::class, [
-            'getQuoteId' => 1
-        ]);
-        $this->paymentMock = $this->createConfiguredMock(Payment::class, [
-            'getOrder' => $orderMock,
-            'getMethod' => 'adyen_cc'
-        ]);
+        $this->localeHelper->method('getStoreLocale')->willReturn('nl_NL');
+        $this->adyenHelper->method('padShopperReference')->willReturn('user_1');
+        $this->addressHelper->method('getAdyenCountryCode')->willReturn('NL');
+
+        $result = $this->requests->buildCustomerData(
+            $billingAddress,
+            1,
+            1,
+            $payment,
+            [],
+            []
+        );
+
+        $this->assertSame('user_1', $result['shopperReference']);
+        $this->assertSame('customer@example.com', $result['shopperEmail']);
+        $this->assertSame('123456789', $result['telephoneNumber']);
+        $this->assertSame('John', $result['shopperName']['firstName']);
+        $this->assertSame('Doe', $result['shopperName']['lastName']);
+        $this->assertSame('NL', $result['countryCode']);
+        $this->assertSame('nl_NL', $result['shopperLocale']);
     }
+
+    #[Test]
+    public function buildAddressDataBuildsBillingAndDeliveryAddress(): void
+    {
+        $billing = $this->createMock(\Magento\Sales\Api\Data\OrderAddressInterface::class);
+        $shipping = $this->createMock(\Magento\Sales\Api\Data\OrderAddressInterface::class);
+
+        $billing->method('getCity')->willReturn('Amsterdam');
+        $billing->method('getCountryId')->willReturn('NL');
+        $billing->method('getPostcode')->willReturn('1011AB');
+
+        $shipping->method('getCity')->willReturn('Rotterdam');
+        $shipping->method('getCountryId')->willReturn('NL');
+        $shipping->method('getPostcode')->willReturn('3011AB');
+
+        $this->adyenConfig->method('getAdyenAbstractConfigData')->willReturn(1);
+        $this->adyenHelper->method('getCustomerStreetLinesEnabled')->willReturn(true);
+
+        $this->addressHelper->method('getStreetAndHouseNumberFromAddress')
+            ->willReturnMap([
+                [$billing, 1, true, ['name' => 'Damrak', 'house_number' => '1']],
+                [$shipping, 1, true, ['name' => 'Coolsingel', 'house_number' => '10']]
+            ]);
+
+        $this->addressHelper->method('getAdyenCountryCode')->willReturn('NL');
+
+        $result = $this->requests->buildAddressData($billing, $shipping, 1);
+
+        $this->assertSame('Damrak', $result['billingAddress']['street']);
+        $this->assertSame('Coolsingel', $result['deliveryAddress']['street']);
+        $this->assertSame('1', $result['billingAddress']['houseNumberOrName']);
+        $this->assertSame('10', $result['deliveryAddress']['houseNumberOrName']);
+    }
+
+    #[Test]
+    public function buildCardRecurringDataWithConsent(): void
+    {
+        $payment = $this->createMock(\Magento\Sales\Model\Order\Payment::class);
+        $order = $this->createMock(\Magento\Sales\Model\Order::class);
+        $order->method('getQuoteId')->willReturn(1);
+        $payment->method('getOrder')->willReturn($order);
+        $payment->method('getMethod')->willReturn('scheme');
+        $payment->method('getAdditionalInformation')->willReturn('card');
+
+        $this->vaultHelper->method('getPaymentMethodRecurringActive')->willReturn(true);
+        $this->stateData->method('getStateData')->willReturn([]);
+        $this->stateData->method('getStoredPaymentMethodIdFromStateData')->willReturn('stored-token');
+        $this->vaultHelper->method('getPaymentMethodRecurringProcessingModel')->willReturn('card');
+
+        $result = $this->requests->buildCardRecurringData(1, $payment);
+
+        $this->assertSame('card', $result['recurringProcessingModel']);
+    }
+
+    #[Test]
+    public function buildAdyenTokenizedRecurringDataForStoredCard(): void
+    {
+        $payment = $this->createMock(\Magento\Sales\Model\Order\Payment::class);
+        $payment->method('getAdditionalInformation')->willReturnMap([
+            ['recurringProcessingModel', 'card'],
+            ['cc_type', 'visa'],
+            ['method', 'scheme']
+        ]);
+
+        $this->vaultHelper
+            ->method('getPaymentMethodRecurringProcessingModel')
+            ->with(AdyenCcConfigProvider::CODE, 1)
+            ->willReturn('card');
+
+        $result = $this->requests->buildAdyenTokenizedPaymentRecurringData(1, $payment);
+
+        $this->assertSame('card', $result['recurringProcessingModel']);
+    }
+
+    #[Test]
+    public function buildDonationDataReturnsCorrectStructure(): void
+    {
+        $storeId = 1;
+        $currency = 'EUR';
+        $amount = ['currency' => $currency, 'value' => 1000];
+        $returnUrl = 'https://example.com';
+        $payload = ['amount' => $amount, 'returnUrl' => $returnUrl];
+
+        $payment = $this->createMock(\Magento\Sales\Model\Order\Payment::class);
+        $order = $this->createMock(\Magento\Sales\Model\Order::class);
+        $paymentMethodInstance = $this->createMock(\Magento\Payment\Model\MethodInterface::class);
+
+        $payment->method('getOrder')->willReturn($order);
+        $payment->method('getMethodInstance')->willReturn($paymentMethodInstance);
+        $payment->method('getMethod')->willReturn('adyen_cc');
+        $payment->method('getAdditionalInformation')->willReturnMap([
+            ['donationToken', 'donation-token'],
+            ['donationCampaignId', 'campaign-id'],
+            ['pspReference', 'psp-ref-123'],
+            ['donationPayload', $payload]
+        ]);
+
+        $this->vaultHelper
+            ->method('getPaymentMethodRecurringProcessingModel')
+            ->with(AdyenCcConfigProvider::CODE, 1)
+            ->willReturn('adyen_cc');
+
+        $order->method('getCustomerId')->willReturn(42);
+        $order->method('getIncrementId')->willReturn('000001');
+
+        $amountCurrency = $this->createConfiguredMock(\Adyen\Payment\Model\AdyenAmountCurrency::class, [
+            'getCurrencyCode' => $currency
+        ]);
+
+        $this->chargedCurrency->method('getOrderAmountCurrency')->willReturn($amountCurrency);
+        $this->paymentMethodsHelper->method('isAlternativePaymentMethod')->willReturn(false);
+        $this->adyenHelper->method('getAdyenMerchantAccount')->with('adyen_giving', $storeId)->willReturn('merchant123');
+        $this->adyenHelper->method('padShopperReference')->with(42)->willReturn('user_42');
+
+        $result = $this->requests->buildDonationData($payment, $storeId);
+
+        $this->assertSame('scheme', $result['paymentMethod']['type']);
+        $this->assertSame('user_42', $result['shopperReference']);
+        $this->assertSame('donation-token', $result['donationToken']);
+        $this->assertSame('campaign-id', $result['donationCampaignId']);
+        $this->assertSame('psp-ref-123', $result['donationOriginalPspReference']);
+        $this->assertSame('merchant123', $result['merchantAccount']);
+        $this->assertSame($amount, $result['amount']);
+        $this->assertSame($returnUrl, $result['returnUrl']);
+    }
+
+    #[Test]
+    public function buildDonationDataThrowsExceptionIfTokenOrPayloadInvalid(): void
+    {
+        $this->expectException(\Magento\Framework\Exception\LocalizedException::class);
+        $this->expectExceptionMessage('Donation failed!');
+
+        $payment = $this->createMock(\Magento\Sales\Model\Order\Payment::class);
+        $order = $this->createStub(\Magento\Sales\Model\Order::class);
+
+        $payment->method('getOrder')->willReturn($order);
+        $payment->method('getAdditionalInformation')->willReturnMap([
+            ['donationToken', null],
+            ['donationPayload', []]
+        ]);
+
+        $this->requests->buildDonationData($payment, 1);
+    }
+
+    #[Test]
+    public function buildDonationDataThrowsExceptionOnCurrencyMismatch(): void
+    {
+        $this->expectException(\Magento\Framework\Exception\LocalizedException::class);
+        $this->expectExceptionMessage('Donation failed!');
+
+        $payment = $this->createMock(\Magento\Sales\Model\Order\Payment::class);
+        $order = $this->createMock(\Magento\Sales\Model\Order::class);
+        $payload = ['amount' => ['currency' => 'USD']];
+
+        $payment->method('getOrder')->willReturn($order);
+        $payment->method('getMethod')->willReturn('scheme');
+        $payment->method('getMethodInstance')->willReturn(
+            $this->createStub(\Magento\Payment\Model\MethodInterface::class)
+        );
+        $payment->method('getAdditionalInformation')->willReturnMap([
+            ['donationToken', 'valid-token'],
+            ['donationPayload', $payload],
+            ['donationCampaignId', 'campaign-id'],
+            ['pspReference', 'psp-ref-123']
+        ]);
+
+        $this->chargedCurrency
+            ->method('getOrderAmountCurrency')
+            ->with($order, false)
+            ->willReturn(
+                $this->createConfiguredMock(\Adyen\Payment\Model\AdyenAmountCurrency::class, [
+                    'getCurrencyCode' => 'EUR'
+                ])
+            );
+
+        $this->requests->buildDonationData($payment, 1);
+    }
+
 }
