@@ -196,7 +196,7 @@ class RefundDataBuilderTest extends AbstractAdyenTestCase
     public function testBuild(
         string $paymentMethod,
         array $orderPaymentCollectionData,
-        string $refundStrategy = null
+        ?string $refundStrategy = null
     ) {
         $storeId = 1;
         $paymentId = 10;

@@ -68,26 +68,19 @@
             )
             ); ?></dd>
 
-        <?php if (!empty($multibancoData['comprafacil.entity'])): ?>
+        <?php if (!empty($multibancoData['entity'])): ?>
             <dt><?= $block->escapeHtml(__('Entity')); ?></dt>
-            <dd><?= $block->escapeHtml($multibancoData['comprafacil.entity']); ?></dd>
+            <dd><?= $block->escapeHtml($multibancoData['entity']); ?></dd>
         <?php endif; ?>
 
-        <?php if (!empty($multibancoData['comprafacil.reference'])): ?>
+        <?php if (!empty($multibancoData['reference'])): ?>
             <dt><?= $block->escapeHtml(__('Reference')); ?></dt>
-            <dd><?= $block->escapeHtml($multibancoData['comprafacil.reference']); ?></dd>
+            <dd><?= $block->escapeHtml($multibancoData['reference']); ?></dd>
         <?php endif; ?>
 
-        <?php if (!empty($multibancoData['comprafacil.amount'])): ?>
-            <dt><?= $block->escapeHtml(__('Amount')); ?></dt>
-            <dd><?= $block->escapeHtml($multibancoData['comprafacil.amount']); ?></dd>
-        <?php endif; ?>
-
-        <?php if (!empty($multibancoData['comprafacil.deadline'])): ?>
-            <dt><?= $block->escapeHtml(__('Deadline')); ?></dt>
-            <dd><?= $block->escapeHtml($multibancoData['comprafacil.deadline']); ?> <?= $block->escapeHtml(
-                __('Days')
-                ); ?></dd>
+        <?php if (!empty($multibancoData['expiresAt'])): ?>
+            <dt><?= $block->escapeHtml(__('Expires at')); ?></dt>
+            <dd><?= $block->escapeHtml($multibancoData['expiresAt']); ?></dd>
         <?php endif; ?>
     <?php else: ?>
         <?php if ($_methodTitle = $_info->getAdditionalInformation('method_title')): ?>

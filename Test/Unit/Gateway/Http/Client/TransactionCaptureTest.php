@@ -8,9 +8,9 @@ use Adyen\Model\Checkout\PaymentCaptureRequest;
 use Adyen\Model\Checkout\PaymentCaptureResponse;
 use Adyen\Payment\Gateway\Http\Client\TransactionCapture;
 use Adyen\Payment\Helper\PlatformInfo;
-use Adyen\Payment\Model\Order\Payment;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Service\Checkout;
+use Exception;
 use Magento\Payment\Gateway\Http\TransferInterface;
 use Adyen\Payment\Helper\Idempotency;
 use Adyen\Payment\Logger\AdyenLogger;
@@ -62,7 +62,7 @@ class TransactionCaptureTest extends AbstractAdyenTestCase
         ]);
     }
 
-    private function configureAdyenMocks(array $response = null, \Exception $exception = null): void
+    private function configureAdyenMocks(?array $response = null, ?Exception $exception = null): void
     {
         $adyenClient = $this->createMock(Client::class);
         $checkoutModificationsService = $this->createMock(Checkout\ModificationsApi::class);

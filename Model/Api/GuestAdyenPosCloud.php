@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Model\Api;
 
+use Adyen\AdyenException;
 use Adyen\Payment\Api\GuestAdyenPosCloudInterface;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Sales\OrderRepository;
@@ -48,6 +49,7 @@ class GuestAdyenPosCloud extends AdyenPosCloud implements GuestAdyenPosCloudInte
      * @param string $cartId
      * @return void
      * @throws NotFoundException
+     * @throws AdyenException
      */
     public function payByCart(string $cartId): void
     {
@@ -63,6 +65,9 @@ class GuestAdyenPosCloud extends AdyenPosCloud implements GuestAdyenPosCloudInte
         }
 
         $order = $this->orderRepository->getOrderByQuoteId($quoteId);
+        if (!$order) {
+            throw new AdyenException('POS Payment Failed');
+        }
         $this->execute($order);
     }
 }

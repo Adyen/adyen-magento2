@@ -19,7 +19,6 @@ use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SortOrderBuilder;
 use Magento\Framework\Serialize\Serializer\Json as JsonSerializer;
 use Magento\Payment\Api\Data\PaymentAdditionalInfoInterfaceFactory;
-use Magento\Sales\Api\Data\OrderExtensionFactory;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderSearchResultInterfaceFactory as SearchResultFactory;
 use Magento\Sales\Model\OrderRepository as SalesOrderRepository;
@@ -29,24 +28,33 @@ use Magento\Sales\Model\Order\ShippingAssignmentBuilder;
 
 class OrderRepository extends SalesOrderRepository
 {
-    private SearchCriteriaBuilder $searchCriteriaBuilder;
-    private SortOrderBuilder $sortOrderBuilder;
-    private FilterBuilder $filterBuilder;
-    private FilterGroupBuilder $filterGroupBuilder;
-
+    /**
+     * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param FilterBuilder $filterBuilder
+     * @param FilterGroupBuilder $filterGroupBuilder
+     * @param SortOrderBuilder $sortOrderBuilder
+     * @param Metadata $metadata
+     * @param SearchResultFactory $searchResultFactory
+     * @param CollectionProcessorInterface|null $collectionProcessor
+     * @param OrderTaxManagementInterface|null $orderTaxManagement
+     * @param PaymentAdditionalInfoInterfaceFactory|null $paymentAdditionalInfoFactory
+     * @param JsonSerializer|null $serializer
+     * @param JoinProcessorInterface|null $extensionAttributesJoinProcessor
+     * @param ShippingAssignmentBuilder|null $shippingAssignmentBuilder
+     */
     public function __construct(
-        SearchCriteriaBuilder $searchCriteriaBuilder,
-        FilterBuilder $filterBuilder,
-        FilterGroupBuilder $filterGroupBuilder,
-        SortOrderBuilder $sortOrderBuilder,
+        private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
+        private readonly FilterBuilder $filterBuilder,
+        private readonly FilterGroupBuilder $filterGroupBuilder,
+        private readonly SortOrderBuilder $sortOrderBuilder,
         Metadata $metadata,
         SearchResultFactory $searchResultFactory,
-        CollectionProcessorInterface $collectionProcessor = null,
-        OrderTaxManagementInterface $orderTaxManagement = null,
-        PaymentAdditionalInfoInterfaceFactory $paymentAdditionalInfoFactory = null,
-        JsonSerializer $serializer = null,
-        JoinProcessorInterface $extensionAttributesJoinProcessor = null,
-        ShippingAssignmentBuilder $shippingAssignmentBuilder = null
+        ?CollectionProcessorInterface $collectionProcessor = null,
+        ?OrderTaxManagementInterface $orderTaxManagement = null,
+        ?PaymentAdditionalInfoInterfaceFactory $paymentAdditionalInfoFactory = null,
+        ?JsonSerializer $serializer = null,
+        ?JoinProcessorInterface $extensionAttributesJoinProcessor = null,
+        ?ShippingAssignmentBuilder $shippingAssignmentBuilder = null
     ) {
         parent::__construct(
             $metadata,
@@ -58,14 +66,9 @@ class OrderRepository extends SalesOrderRepository
             $extensionAttributesJoinProcessor,
             $shippingAssignmentBuilder
         );
-
-        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
-        $this->sortOrderBuilder = $sortOrderBuilder;
-        $this->filterBuilder = $filterBuilder;
-        $this->filterGroupBuilder = $filterGroupBuilder;
     }
 
-    public function getOrderByQuoteId(int $quoteId): OrderInterface|false
+    public function getOrderByQuoteId(int $quoteId)
     {
         $quoteIdFilter = $this->filterBuilder->setField('quote_id')
             ->setConditionType('eq')

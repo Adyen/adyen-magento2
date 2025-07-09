@@ -15,6 +15,7 @@ use Adyen\Payment\Api\Data\NotificationInterface;
 use Adyen\Payment\Model\ResourceModel\Notification as NotificationResourceModel;
 use DateTime;
 use Magento\Framework\Data\Collection\AbstractDb;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Model\AbstractModel;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
@@ -52,12 +53,21 @@ class Notification extends AbstractModel implements NotificationInterface
     const STATE_ADYEN_AUTHORIZED = "adyen_authorized";
     const MAX_ERROR_COUNT = 5;
 
+    /**
+     * @param Context $context
+     * @param Registry $registry
+     * @param NotificationResourceModel $notificationResourceModel
+     * @param AbstractResource|null $resource
+     * @param AbstractDb|null $resourceCollection
+     * @param array $data
+     * @throws LocalizedException
+     */
     public function __construct(
         Context $context,
         Registry $registry,
         private readonly NotificationResourceModel $notificationResourceModel,
-        AbstractResource $resource = null,
-        AbstractDb $resourceCollection = null,
+        ?AbstractResource $resource = null,
+        ?AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);

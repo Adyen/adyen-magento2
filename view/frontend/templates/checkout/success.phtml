@@ -135,7 +135,6 @@ script;
 
                 function handleOnDonate(state, component) {
                     if (state.isValid) {
-                        console.log(state.data)
                         const payload = state.data;
                         payload.returnUrl = window.location.href;
                         adyenPaymentService.donate(payload, isLoggedIn, orderId, maskedQuoteId)

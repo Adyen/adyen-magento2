@@ -191,7 +191,7 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
                 'getBaseCurrencyCode' => self::AMOUNT_CURRENCY['base']['currencyCode'],
                 'getGrandTotal' => self::AMOUNT_CURRENCY['display']['amount'],
                 'getQuoteCurrencyCode' => self::AMOUNT_CURRENCY['display']['currencyCode'],
-                'getStoreId' => 'NA',
+                'getStoreId' => null,
                 'getShippingAddress' => $shippingAddress
             ]
         );

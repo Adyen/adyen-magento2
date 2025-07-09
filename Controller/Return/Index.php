@@ -24,7 +24,7 @@ use Magento\Framework\App\Action\Context;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\OrderFactory;
 use Magento\Store\Model\StoreManagerInterface;
@@ -50,44 +50,33 @@ class Index extends Action
         'threeds2.fingerprint'
     ];
 
-    protected OrderFactory $orderFactory;
-    protected Config $configHelper;
-    protected Order $order;
-    protected Session $session;
-    protected AdyenLogger $adyenLogger;
-    protected StoreManagerInterface $storeManager;
-    private Quote $quoteHelper;
-    private Order\Payment $payment;
-    private PaymentsDetails $paymentsDetailsHelper;
-    private PaymentResponseHandler $paymentResponseHandler;
-    private CartRepositoryInterface $cartRepository;
-    private OrderRepositoryInterface $orderRepository;
+    private ?OrderInterface $order = null;
 
+    /**
+     * @param Context $context
+     * @param OrderFactory $orderFactory
+     * @param Session $session
+     * @param AdyenLogger $adyenLogger
+     * @param StoreManagerInterface $storeManager
+     * @param Quote $quoteHelper
+     * @param Config $configHelper
+     * @param PaymentsDetails $paymentsDetailsHelper
+     * @param PaymentResponseHandler $paymentResponseHandler
+     * @param CartRepositoryInterface $cartRepository
+     */
     public function __construct(
         Context                  $context,
-        OrderFactory             $orderFactory,
-        Session                  $session,
-        AdyenLogger              $adyenLogger,
-        StoreManagerInterface    $storeManager,
-        Quote                    $quoteHelper,
-        Config                   $configHelper,
-        PaymentsDetails $paymentsDetailsHelper,
-        PaymentResponseHandler $paymentResponseHandler,
-        CartRepositoryInterface $cartRepository,
-        OrderRepositoryInterface $orderRepository
+        private readonly OrderFactory             $orderFactory,
+        private readonly Session                  $session,
+        private readonly AdyenLogger              $adyenLogger,
+        private readonly StoreManagerInterface    $storeManager,
+        private readonly Quote                    $quoteHelper,
+        private readonly Config                   $configHelper,
+        private readonly PaymentsDetails $paymentsDetailsHelper,
+        private readonly PaymentResponseHandler $paymentResponseHandler,
+        private readonly CartRepositoryInterface $cartRepository
     ) {
         parent::__construct($context);
-
-        $this->orderFactory = $orderFactory;
-        $this->session = $session;
-        $this->adyenLogger = $adyenLogger;
-        $this->storeManager = $storeManager;
-        $this->quoteHelper = $quoteHelper;
-        $this->configHelper = $configHelper;
-        $this->paymentsDetailsHelper = $paymentsDetailsHelper;
-        $this->paymentResponseHandler = $paymentResponseHandler;
-        $this->cartRepository = $cartRepository;
-        $this->orderRepository = $orderRepository;
     }
 
     /**
@@ -171,7 +160,6 @@ class Index extends Action
 
         if ($result) {
             $this->order = $order;
-            $this->payment = $order->getPayment();
         }
 
         return $result;
@@ -180,7 +168,7 @@ class Index extends Action
     /**
      * @throws LocalizedException
      */
-    private function getOrder(string $incrementId = null): Order
+    private function getOrder(?string $incrementId = null): Order
     {
         if ($incrementId !== null) {
             $order = $this->orderFactory->create()->loadByIncrementId($incrementId);

@@ -11,8 +11,8 @@
     }
   ],
   "require": {
-    "php": ">=8.2",
-    "adyen/php-api-library": "^27.0.0",
+    "php": "~8.2.0||~8.3.0||~8.4.0",
+    "adyen/php-api-library": "^28.1.0",
     "adyen/php-webhook-module": "^1",
     "magento/framework": ">=103.0.8",
     "magento/module-vault": ">=101.2.8",
@@ -20,13 +20,14 @@
     "magento/module-graph-ql": ">=100.4.8",
     "magento/module-instant-purchase": ">=100.4.7",
     "magento/module-checkout-agreements": ">=100.4.7",
+    "magento/module-csp": ">=100.4.7",
     "ext-json": "*"
   },
   "require-dev": {
     "phpunit/phpunit": "^10.5",
     "phpstan/phpstan": "^1.9",
     "magento/magento-coding-standard": "*",
-    "squizlabs/php_codesniffer": "^3.12.2"
+    "squizlabs/php_codesniffer": "~3.13.0"
   },
   "autoload": {
     "files": [
@@ -52,9 +53,5 @@
       "magento/composer-dependency-version-audit-plugin": true,
       "dealerdirect/phpcodesniffer-composer-installer": true
     }
-  },
-    "conflict": {
-        "magento/module-csp": "==100.4.3|==100.4.4|==100.4.5"
-    }
-
+  }
 }

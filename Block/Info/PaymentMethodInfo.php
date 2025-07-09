@@ -15,6 +15,7 @@ use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Model\AdyenAmountCurrency;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory;
+use DateTime;
 use Magento\Framework\View\Element\Template;
 
 class PaymentMethodInfo extends AbstractInfo
@@ -56,13 +57,30 @@ class PaymentMethodInfo extends AbstractInfo
     public function getMultibancoData(): array
     {
         $result = [];
+
         if (!empty($this->getInfo()->getOrder()) &&
             !empty($this->getInfo()->getOrder()->getPayment()) &&
-            !empty($this->getInfo()->getOrder()->getPayment()->getAdditionalInformation('comprafacil.entity'))
+            !empty($this->getInfo()->getOrder()->getPayment()->getAdditionalInformation('action'))
         ) {
-            $result = $this->getInfo()->getOrder()->getPayment()->getAdditionalInformation();
-        }
+            $action = $this->getInfo()->getOrder()->getPayment()->getAdditionalInformation('action');
 
+            if (isset($action['entity'])) {
+                $result['entity'] = $action['entity'];
+            }
+
+            if (isset($action['reference'])) {
+                $result['reference'] = $action['reference'];
+            }
+
+            if (isset($action['expiresAt'])) {
+                $expiresAt = DateTime::createFromFormat('Y-m-d\TH:i:s', $action['expiresAt']);
+                if ($expiresAt) {
+                    $result['expiresAt'] = $expiresAt->format('d-m-Y H:i');
+                } else {
+                    $result['expiresAt'] = $action['expiresAt'];
+                }
+            }
+        }
         return $result;
     }
 

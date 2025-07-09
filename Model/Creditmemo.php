@@ -15,6 +15,7 @@ namespace Adyen\Payment\Model;
 use Adyen\Payment\Api\Data\CreditmemoInterface;
 use DateTime;
 use Magento\Framework\Data\Collection\AbstractDb;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Model\AbstractModel;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
@@ -22,11 +23,19 @@ use Magento\Framework\Registry;
 
 class Creditmemo extends AbstractModel implements CreditMemoInterface
 {
+    /**
+     * @param Context $context
+     * @param Registry $registry
+     * @param AbstractResource|null $resource
+     * @param AbstractDb|null $resourceCollection
+     * @param array $data
+     * @throws LocalizedException
+     */
     public function __construct(
         Context $context,
         Registry $registry,
-        AbstractResource $resource = null,
-        AbstractDb $resourceCollection = null,
+        ?AbstractResource $resource = null,
+        ?AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
