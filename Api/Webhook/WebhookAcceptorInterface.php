@@ -1,6 +1,6 @@
 <?php
 
-namespace Adyen\Payment\API\Webhook;
+namespace Adyen\Payment\Api\Webhook;
 
 use Adyen\Payment\Model\Notification;
 

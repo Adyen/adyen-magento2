@@ -6,10 +6,10 @@ use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\NotificationFactory;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\Serialize\SerializerInterface;
-use Adyen\Payment\API\Webhook\WebhookAcceptorInterface;
+use Adyen\Payment\Api\Webhook\WebhookAcceptorInterface;
 use Adyen\Payment\Helper\Webhook;
 
-readonly class TokenWebhookAcceptor implements WebhookAcceptorInterface
+class TokenWebhookAcceptor implements WebhookAcceptorInterface
 {
     private const REQUIRED_FIELDS = [
         'eventId',
@@ -22,10 +22,10 @@ readonly class TokenWebhookAcceptor implements WebhookAcceptorInterface
     ];
 
     public function __construct(
-        private NotificationFactory $notificationFactory,
-        private SerializerInterface $serializer,
-        private AdyenLogger         $adyenLogger,
-        private Webhook             $webhookHelper
+        private readonly NotificationFactory $notificationFactory,
+        private readonly SerializerInterface          $serializer,
+        private readonly AdyenLogger                  $adyenLogger,
+        private readonly Webhook                      $webhookHelper
     ) {}
 
     public function authenticate(array $payload): bool

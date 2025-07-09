@@ -2,7 +2,7 @@
 
 namespace Adyen\Payment\Model\Webhook;
 
-use Adyen\Payment\API\Webhook\WebhookAcceptorInterface;
+use Adyen\Payment\Api\Webhook\WebhookAcceptorInterface;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
@@ -16,16 +16,16 @@ use Adyen\Webhook\Receiver\HmacSignature;
 use Magento\Framework\Serialize\SerializerInterface;
 use Adyen\Payment\Helper\Webhook;
 
-readonly class StandardWebhookAcceptor implements WebhookAcceptorInterface
+class StandardWebhookAcceptor implements WebhookAcceptorInterface
 {
     public function __construct(
-        private Config               $configHelper,
-        private NotificationReceiver $notificationReceiver,
-        private HmacSignature        $hmacSignature,
-        private NotificationFactory  $notificationFactory,
-        private SerializerInterface  $serializer,
-        private AdyenLogger          $adyenLogger,
-        private Webhook              $webhookHelper,
+        private readonly Config      $configHelper,
+        private readonly NotificationFactory  $notificationFactory,
+        private readonly NotificationReceiver $notificationReceiver,
+        private readonly HmacSignature        $hmacSignature,
+        private readonly SerializerInterface  $serializer,
+        private readonly AdyenLogger          $adyenLogger,
+        private readonly Webhook              $webhookHelper,
     ) {}
 
     /**

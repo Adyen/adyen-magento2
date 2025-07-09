@@ -619,6 +619,83 @@ class WebhookTest extends AbstractAdyenTestCase
         $this->assertFalse($response);
     }
 
+    public function testIsIpValidReturnsTrue(): void
+    {
+        $payload = ['dummy' => 'data'];
+
+        $remoteAddress = $this->createMock(\Magento\Framework\HTTP\PhpEnvironment\RemoteAddress::class);
+        $remoteAddress->method('getRemoteAddress')->willReturn('127.0.0.1');
+
+        $ipAddressHelper = $this->createMock(\Adyen\Payment\Helper\IpAddress::class);
+        $ipAddressHelper->method('isIpAddressValid')->with(['127.0.0.1'])->willReturn(true);
+
+        $webhook = $this->createWebhookHelper(
+            null, null, null, null, null, null, null, null, null, null, null, null,
+            $ipAddressHelper,
+            $remoteAddress
+        );
+
+        $this->assertTrue($webhook->isIpValid($payload));
+    }
+
+    public function testIsIpValidReturnsFalseAndLogs(): void
+    {
+        $payload = ['key' => 'value'];
+
+        $remoteAddress = $this->createMock(\Magento\Framework\HTTP\PhpEnvironment\RemoteAddress::class);
+        $remoteAddress->method('getRemoteAddress')->willReturn('192.168.0.1');
+
+        $ipAddressHelper = $this->createMock(\Adyen\Payment\Helper\IpAddress::class);
+        $ipAddressHelper->method('isIpAddressValid')->with(['192.168.0.1'])->willReturn(false);
+
+        $logger = $this->createMock(AdyenLogger::class);
+        $logger->expects($this->once())
+            ->method('addAdyenNotification')
+            ->with($this->stringContains('Invalid IP'), $payload);
+
+        $webhook = $this->createWebhookHelper(
+            null, null, null, null, null, $logger, null, null, null, null, null, null,
+            $ipAddressHelper,
+            $remoteAddress
+        );
+
+        $this->assertFalse($webhook->isIpValid($payload));
+    }
+
+    public function testIsMerchantAccountValidReturnsTrue(): void
+    {
+        $payload = ['eventCode' => 'AUTHORISATION'];
+        $expectedMerchant = 'TestMerchant';
+
+        $configHelper = $this->createMock(ConfigHelper::class);
+        $configHelper->method('getMerchantAccount')->willReturn($expectedMerchant);
+
+        $webhook = $this->createWebhookHelper(null, null, null, $configHelper);
+        $this->assertTrue($webhook->isMerchantAccountValid($expectedMerchant, $payload));
+    }
+
+    public function testIsMerchantAccountValidReturnsFalseAndLogs(): void
+    {
+        $payload = ['eventCode' => 'REFUND'];
+        $expected = 'LiveMerchant';
+        $incoming = 'WrongMerchant';
+
+        $configHelper = $this->createMock(ConfigHelper::class);
+        $configHelper->method('getMerchantAccount')->willReturn($expected);
+
+        $logger = $this->createMock(AdyenLogger::class);
+        $logger->expects($this->once())
+            ->method('addAdyenNotification')
+            ->with(
+                $this->stringContains("Merchant account mismatch"),
+                $payload
+            );
+
+        $webhook = $this->createWebhookHelper(null, null, null, $configHelper, null, $logger);
+        $this->assertFalse($webhook->isMerchantAccountValid($incoming, $payload));
+    }
+
+
     protected function createWebhookHelper(
         $mockAdyenHelper = null,
         $mockSerializer = null,
@@ -631,7 +708,9 @@ class WebhookTest extends AbstractAdyenTestCase
         $mockOrderRepository = null,
         $paymentMethodsHelperMock = null,
         $adyenNotificationRepositoryMock = null,
-        $orderStatusHistoryHelperMock = null
+        $orderStatusHistoryHelperMock = null,
+        $ipAddressHelperMock = null,
+        $remoteAddressMock = null
     ): Webhook {
         if (is_null($mockAdyenHelper)) {
             $mockAdyenHelper = $this->createMock(Data::class);
@@ -669,6 +748,12 @@ class WebhookTest extends AbstractAdyenTestCase
         if (is_null($orderStatusHistoryHelperMock)) {
             $orderStatusHistoryHelperMock = $this->createMock(OrderStatusHistory::class);
         }
+        if (is_null($ipAddressHelperMock)) {
+            $ipAddressHelperMock = $this->createMock(\Adyen\Payment\Helper\IpAddress::class);
+        }
+        if (is_null($remoteAddressMock)) {
+            $remoteAddressMock = $this->createMock(\Magento\Framework\HTTP\PhpEnvironment\RemoteAddress::class);
+        }
 
         return new Webhook(
             $mockSerializer,
@@ -680,7 +765,17 @@ class WebhookTest extends AbstractAdyenTestCase
             $mockOrderRepository,
             $orderStatusHistoryHelperMock,
             $paymentMethodsHelperMock,
-            $adyenNotificationRepositoryMock
+            $adyenNotificationRepositoryMock,
+            $ipAddressHelperMock,
+            $remoteAddressMock
         );
+    }
+
+    private function setProperty(object $object, string $property, mixed $value): void
+    {
+        $ref = new \ReflectionClass($object);
+        $prop = $ref->getProperty($property);
+        $prop->setAccessible(true);
+        $prop->setValue($object, $value);
     }
 }
