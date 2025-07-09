@@ -55,7 +55,7 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
     {
         $notification = $this->notificationFactory->create();
 
-        $pspReference = $payload['data']['storedPaymentMethodId'] ?? $payload['eventId'] ?? uniqid('token_', true);
+        $pspReference = $payload['data']['storedPaymentMethodId'];
         $merchantReference = $payload['data']['shopperReference'] ?? null;
 
         $notification->setPspreference($pspReference);
@@ -64,7 +64,7 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
         $notification->setEventCode($payload['eventType'] ?? $payload['type'] ?? 'TOKEN');
         $notification->setPaymentMethod($payload['data']['type'] ?? null);
         $notification->setLive($mode);
-        $notification->setSuccess('true'); // Always true for token events
+        $notification->setSuccess('true');
         $notification->setReason('Token lifecycle event');
 
         // Store full payload in additionalData
