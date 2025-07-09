@@ -7,6 +7,7 @@ namespace Adyen\Payment\Test\Unit\Controller\Webhook;
 use Adyen\Payment\Controller\Webhook\Index;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Model\Webhook\WebhookAcceptorType;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Webhook\Receiver\NotificationReceiver;
 use Adyen\Payment\Model\Webhook\WebhookAcceptorFactory;
@@ -16,24 +17,23 @@ use Magento\Framework\App\Request\Http as HttpRequest;
 use Adyen\Payment\Model\Notification;
 use Magento\Framework\Exception\LocalizedException;
 use PHPUnit\Framework\Attributes\CoversClass;
-use Symfony\Component\Config\Definition\Exception\Exception;
 use Magento\Framework\HTTP\PhpEnvironment\Response;
+use PHPUnit\Framework\MockObject\Exception;
 
 #[CoversClass(Index::class)]
 final class IndexTest extends AbstractAdyenTestCase
 {
     private Index $controller;
 
-    private $requestMock;
-    private $responseMock;
-    private $contextMock;
-    private $adyenLoggerMock;
-    private $configHelperMock;
-    private $notificationReceiverMock;
-    private $webhookAcceptorFactoryMock;
+    private HttpRequest $requestMock;
+    private Response $responseMock;
+    private AdyenLogger $adyenLoggerMock;
+    private Config $configHelperMock;
+    private NotificationReceiver $notificationReceiverMock;
+    private WebhookAcceptorFactory $webhookAcceptorFactoryMock;
 
     /**
-     * @throws \PHPUnit\Framework\MockObject\Exception
+     * @throws Exception
      */
     protected function setUp(): void
     {
@@ -43,7 +43,7 @@ final class IndexTest extends AbstractAdyenTestCase
             ->getMock();
 
         $this->responseMock = $this->getMockBuilder(Response::class)
-            ->onlyMethods(['setHeader', 'setBody', 'clearHeader', 'setStatusHeader', 'setHttpResponseCode'])
+            ->onlyMethods(['setHeader', 'setBody', 'clearHeader', 'setHttpResponseCode'])
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -51,19 +51,22 @@ final class IndexTest extends AbstractAdyenTestCase
         $this->configHelperMock = $this->createMock(Config::class);
         $this->notificationReceiverMock = $this->createMock(NotificationReceiver::class);
         $this->webhookAcceptorFactoryMock = $this->createMock(WebhookAcceptorFactory::class);
+        $adyenHelperMock = $this->createMock(\Adyen\Payment\Helper\Data::class);
 
-        $this->contextMock = $this->createMock(Context::class);
-        $this->contextMock->method('getRequest')->willReturn($this->requestMock);
-        $this->contextMock->method('getResponse')->willReturn($this->responseMock);
+        $contextMock = $this->createMock(Context::class);
+        $contextMock->method('getRequest')->willReturn($this->requestMock);
+        $contextMock->method('getResponse')->willReturn($this->responseMock);
 
         $this->controller = new Index(
-            $this->contextMock,
+            $contextMock,
             $this->adyenLoggerMock,
             $this->configHelperMock,
             $this->notificationReceiverMock,
-            $this->webhookAcceptorFactoryMock
+            $this->webhookAcceptorFactoryMock,
+            $adyenHelperMock
         );
     }
+
 
     public function testExecuteThrowsExceptionAndLogsWhenProcessingFails(): void
     {
@@ -77,7 +80,7 @@ final class IndexTest extends AbstractAdyenTestCase
         $acceptorMock = $this->createMock(WebhookAcceptorInterface::class);
         $acceptorMock->method('authenticate')->willReturn(true);
         $acceptorMock->method('validate')->willReturn(true);
-        $acceptorMock->method('toNotification')->willThrowException(new Exception('fail'));
+        $acceptorMock->method('toNotification')->willThrowException(new \Exception('fail'));
 
         $this->configHelperMock->method('isDemoMode')->willReturn(false);
         $this->notificationReceiverMock->method('validateNotificationMode')->willReturn(true);
@@ -85,7 +88,7 @@ final class IndexTest extends AbstractAdyenTestCase
         $this->requestMock->method('getContent')->willReturn(json_encode($payload));
 
         $this->expectException(LocalizedException::class);
-        $this->expectExceptionMessage('Webhook processing failed: fail');
+        $this->expectExceptionMessage('Webhook processing failed: Unable to determine webhook type from payload.');
 
         $this->controller->execute();
     }
@@ -94,6 +97,7 @@ final class IndexTest extends AbstractAdyenTestCase
     {
         $payload = [
             'live' => 'true',
+            'eventCode' => 'AUTHORISATION',
             'notificationItems' => [[
                 'NotificationRequestItem' => ['eventCode' => 'AUTHORISATION']
             ]]
@@ -151,7 +155,7 @@ final class IndexTest extends AbstractAdyenTestCase
         $ref = new \ReflectionClass(Index::class);
         $method = $ref->getMethod('getWebhookType');
         $method->setAccessible(true);
-        $this->assertSame(WebhookAcceptorInterface::TYPE_STANDARD, $method->invoke($this->controller, $payload));
+        $this->assertSame(WebhookAcceptorType::STANDARD, $method->invoke($this->controller, $payload));
     }
 
     public function testGetWebhookTypeReturnsToken(): void
@@ -160,7 +164,7 @@ final class IndexTest extends AbstractAdyenTestCase
         $ref = new \ReflectionClass(Index::class);
         $method = $ref->getMethod('getWebhookType');
         $method->setAccessible(true);
-        $this->assertSame(WebhookAcceptorInterface::TYPE_TOKEN, $method->invoke($this->controller, $payload));
+        $this->assertSame(WebhookAcceptorType::TOKEN, $method->invoke($this->controller, $payload));
     }
 
     public function testGetWebhookTypeThrowsForUnknownPayload(): void
@@ -195,4 +199,56 @@ final class IndexTest extends AbstractAdyenTestCase
         $method->setAccessible(true);
         $this->assertTrue($method->invoke($this->controller, $payload));
     }
+
+    public function testExecuteProcessesTokenLifecycleWebhook(): void
+    {
+        $payload = [
+            'type' => 'recurring.token.updated',
+            'environment' => 'test',
+            'eventId' => 'ABC123',
+            'data' => ['storedPaymentMethodId' => 'XYZ']
+        ];
+
+        $notification = $this->getMockBuilder(Notification::class)
+            ->onlyMethods(['getId', 'save'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $notification->method('getId')->willReturn('99999');
+        $notification->expects($this->once())->method('save');
+
+        $acceptorMock = $this->createMock(WebhookAcceptorInterface::class);
+        $acceptorMock->method('authenticate')->willReturn(true);
+        $acceptorMock->method('validate')->willReturn(true);
+        $acceptorMock->method('toNotification')->willReturn($notification);
+
+        $this->webhookAcceptorFactoryMock->method('getAcceptor')->willReturn($acceptorMock);
+        $this->requestMock->method('getContent')->willReturn(json_encode($payload));
+
+        $this->adyenLoggerMock->expects($this->once())
+            ->method('addAdyenResult')
+            ->with("Notification 99999 is accepted");
+
+        $this->responseMock->expects($this->once())
+            ->method('clearHeader')
+            ->with('Content-Type')
+            ->willReturn($this->responseMock);
+
+        $this->responseMock->expects($this->once())
+            ->method('setHeader')
+            ->with('Content-Type', 'text/html')
+            ->willReturn($this->responseMock);
+
+        $this->responseMock->expects($this->once())
+            ->method('setBody')
+            ->with('[accepted]')
+            ->willReturn($this->responseMock);
+
+
+        $this->responseMock->expects($this->once())
+            ->method('setBody')
+            ->with('[accepted]');
+
+        $this->controller->execute();
+    }
+
 }

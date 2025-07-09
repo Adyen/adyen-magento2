@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace Adyen\Payment\Test\Unit\Model\Webhook;
 
-use Adyen\Payment\API\Webhook\WebhookAcceptorInterface;
+use Adyen\Payment\Model\Webhook\WebhookAcceptorFactory;
+use Adyen\Payment\Model\Webhook\WebhookAcceptorType;
 use Adyen\Payment\Model\Webhook\StandardWebhookAcceptor;
 use Adyen\Payment\Model\Webhook\TokenWebhookAcceptor;
-use Adyen\Payment\Model\Webhook\WebhookAcceptorFactory;
-use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
-use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
 #[CoversClass(WebhookAcceptorFactory::class)]
-class WebhookAcceptorFactoryTest extends AbstractAdyenTestCase
+class WebhookAcceptorFactoryTest extends TestCase
 {
+    private WebhookAcceptorFactory $factory;
+
     private MockObject $standardAcceptor;
     private MockObject $tokenAcceptor;
-    private WebhookAcceptorFactory $factory;
 
     protected function setUp(): void
     {
@@ -31,23 +31,15 @@ class WebhookAcceptorFactoryTest extends AbstractAdyenTestCase
         );
     }
 
-    public function testGetStandardAcceptor(): void
+    public function testReturnsStandardWebhookAcceptor(): void
     {
-        $result = $this->factory->getAcceptor(WebhookAcceptorInterface::TYPE_STANDARD);
-        self::assertSame($this->standardAcceptor, $result);
+        $result = $this->factory->getAcceptor(WebhookAcceptorType::STANDARD);
+        $this->assertSame($this->standardAcceptor, $result);
     }
 
-    public function testGetTokenAcceptor(): void
+    public function testReturnsTokenWebhookAcceptor(): void
     {
-        $result = $this->factory->getAcceptor(WebhookAcceptorInterface::TYPE_TOKEN);
-        self::assertSame($this->tokenAcceptor, $result);
-    }
-
-    public function testThrowsExceptionForInvalidType(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Unsupported webhook type [invalid-type]');
-
-        $this->factory->getAcceptor('invalid-type');
+        $result = $this->factory->getAcceptor(WebhookAcceptorType::TOKEN);
+        $this->assertSame($this->tokenAcceptor, $result);
     }
 }

@@ -9,6 +9,7 @@ use Adyen\Payment\Helper\Webhook\WebhookHandlerInterface;
 use Adyen\Payment\Model\AdyenAmountCurrency;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Payment\Model\MethodInterface;
 use Magento\Sales\Model\Order;
@@ -22,6 +23,7 @@ use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\Order as OrderHelper;
 use Adyen\Payment\Helper\Webhook\WebhookHandlerFactory;
 use Adyen\Payment\Logger\AdyenLogger;
+use PHPUnit\Framework\MockObject\Exception;
 use ReflectionMethod;
 use Adyen\Payment\Exception\AdyenWebhookException;
 
@@ -638,11 +640,14 @@ class WebhookTest extends AbstractAdyenTestCase
         $this->assertTrue($webhook->isIpValid($payload));
     }
 
+    /**
+     * @throws Exception
+     */
     public function testIsIpValidReturnsFalseAndLogs(): void
     {
         $payload = ['key' => 'value'];
 
-        $remoteAddress = $this->createMock(\Magento\Framework\HTTP\PhpEnvironment\RemoteAddress::class);
+        $remoteAddress = $this->createMock(RemoteAddress::class);
         $remoteAddress->method('getRemoteAddress')->willReturn('192.168.0.1');
 
         $ipAddressHelper = $this->createMock(\Adyen\Payment\Helper\IpAddress::class);
@@ -662,6 +667,9 @@ class WebhookTest extends AbstractAdyenTestCase
         $this->assertFalse($webhook->isIpValid($payload));
     }
 
+    /**
+     * @throws Exception
+     */
     public function testIsMerchantAccountValidReturnsTrue(): void
     {
         $payload = ['eventCode' => 'AUTHORISATION'];
@@ -673,6 +681,26 @@ class WebhookTest extends AbstractAdyenTestCase
         $webhook = $this->createWebhookHelper(null, null, null, $configHelper);
         $this->assertTrue($webhook->isMerchantAccountValid($expectedMerchant, $payload));
     }
+
+    /**
+     * @throws Exception
+     */
+    public function testIsMerchantAccountValidUsesMotoFallback(): void
+    {
+        $payload = ['eventCode' => 'AUTHORISATION'];
+        $incoming = 'MotoMerchant';
+
+        $configHelper = $this->createMock(ConfigHelper::class);
+        $configHelper->method('getMerchantAccount')->willReturn(null);
+        $configHelper->method('getMotoMerchantAccounts')->willReturn([$incoming]);
+
+        $logger = $this->createMock(AdyenLogger::class);
+
+        $webhook = $this->createWebhookHelper(null, null, null, $configHelper, null, $logger);
+
+        $this->assertTrue($webhook->isMerchantAccountValid($incoming, $payload));
+    }
+
 
     public function testIsMerchantAccountValidReturnsFalseAndLogs(): void
     {

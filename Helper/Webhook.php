@@ -486,13 +486,24 @@ class Webhook
     public function isMerchantAccountValid(string $incoming, array $payload, string $context = 'webhook'): bool
     {
         $expected = $this->configHelper->getMerchantAccount();
-        if ($incoming !== $expected) {
+
+        if ($expected === null) {
+            $expected = $this->configHelper->getMotoMerchantAccounts();
+        }
+
+        $isValid = is_array($expected)
+            ? in_array($incoming, $expected, true)
+            : $incoming === $expected;
+
+        if (!$isValid) {
+            $expectedDisplay = is_array($expected) ? implode(', ', $expected) : (string)$expected;
             $this->logger->addAdyenNotification(
-                "Merchant account mismatch for $context. Expected: $expected, Received: $incoming",
+                "Merchant account mismatch for $context. Expected: $expectedDisplay, Received: $incoming",
                 $payload
             );
             return false;
         }
+
         return true;
     }
 }

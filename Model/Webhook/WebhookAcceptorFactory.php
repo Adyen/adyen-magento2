@@ -2,7 +2,7 @@
 
 namespace Adyen\Payment\Model\Webhook;
 
-use Adyen\Payment\API\Webhook\WebhookAcceptorInterface;
+use Adyen\Payment\Api\Webhook\WebhookAcceptorInterface;
 
 class WebhookAcceptorFactory
 {
@@ -11,12 +11,11 @@ class WebhookAcceptorFactory
         private readonly TokenWebhookAcceptor $tokenWebhookAcceptor
     ) {}
 
-    public function getAcceptor(string $type): WebhookAcceptorInterface
+    public function getAcceptor(WebhookAcceptorType $type): WebhookAcceptorInterface
     {
         return match ($type) {
-            WebhookAcceptorInterface::TYPE_STANDARD => $this->standardWebhookAcceptor,
-            WebhookAcceptorInterface::TYPE_TOKEN    => $this->tokenWebhookAcceptor,
-            default                                 => throw new \InvalidArgumentException("Unsupported webhook type [$type]")
+            WebhookAcceptorType::STANDARD => $this->standardWebhookAcceptor,
+            WebhookAcceptorType::TOKEN    => $this->tokenWebhookAcceptor,
         };
     }
 }
