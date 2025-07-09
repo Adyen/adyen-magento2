@@ -25,7 +25,7 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
         private readonly HmacSignature        $hmacSignature,
         private readonly SerializerInterface  $serializer,
         private readonly AdyenLogger          $adyenLogger,
-        private readonly Webhook              $webhookHelper,
+        private readonly Webhook              $webhookHelper
     ) {}
 
     /**
