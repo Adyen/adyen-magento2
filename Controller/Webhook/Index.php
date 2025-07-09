@@ -14,7 +14,7 @@ namespace Adyen\Payment\Controller\Webhook;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Webhook\WebhookAcceptorFactory;
-use Adyen\Payment\API\Webhook\WebhookAcceptorInterface;
+use Adyen\Payment\Api\Webhook\WebhookAcceptorInterface;
 use Adyen\Webhook\Receiver\NotificationReceiver;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
