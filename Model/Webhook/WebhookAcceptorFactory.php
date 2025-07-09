@@ -16,7 +16,7 @@ class WebhookAcceptorFactory
         return match ($type) {
             WebhookAcceptorInterface::TYPE_STANDARD => $this->standardWebhookAcceptor,
             WebhookAcceptorInterface::TYPE_TOKEN    => $this->tokenWebhookAcceptor,
-            default                                 => throw new \InvalidArgumentException("Unsupported webhook type [$type]"),
+            default                                 => throw new \InvalidArgumentException("Unsupported webhook type [$type]")
         };
     }
 }
