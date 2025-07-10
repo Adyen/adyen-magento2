@@ -4,7 +4,7 @@
     "config:base",
     ":disableDependencyDashboard"
   ],
-  "minimumReleaseAge": "30 days",
+  "minimumReleaseAge": "21 days",
   "labels": ["dependencies"],
   "prConcurrentLimit": 5,
   "baseBranches": ["main"],

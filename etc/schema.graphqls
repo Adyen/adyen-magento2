@@ -8,6 +8,7 @@ type Query {
         cart_id: String! @doc(description: "Cart ID.")
         shopper_locale: String @doc(description: "Language and country code combination separated by underscore (_), e.g. en_US")
         country: String @doc(description: "Country code to be used in paymentMethods call, e.g. US")
+        channel: String @doc(description: "The platform where a payment transaction takes place, e.g. Web")
     ) : AdyenPaymentMethods @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentMethods")
 
     adyenPaymentMethodsBalance (

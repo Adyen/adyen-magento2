@@ -59,6 +59,10 @@ class GraphQlPlaceOrderAddCartId
      */
     public function afterResolve(PlaceOrder $placeOrder, array $result): array
     {
+        if (!isset($result['order'])) {
+            return $result;
+        }
+
         try {
             $cart = $this->quoteHelper->getQuoteByOrderIncrementId($result['order']['order_number']);
             $maskedId = $this->quoteIdToMaskedQuoteId->execute($cart->getId());

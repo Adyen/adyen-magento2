@@ -13,7 +13,6 @@ namespace Adyen\Payment\Block\Customer;
 
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
-use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Adyen\Payment\Helper\Data;
 use Magento\Framework\View\Element\Template;
 use Magento\Vault\Api\Data\PaymentTokenInterface;

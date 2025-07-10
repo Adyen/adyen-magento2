@@ -17,8 +17,8 @@ use Adyen\Environment;
 use Adyen\Model\Checkout\ApplicationInfo;
 use Adyen\Model\Checkout\CommonField;
 use Adyen\Model\Checkout\UtilityRequest;
+use Adyen\Payment\Gateway\Request\Header\HeaderDataBuilderInterface;
 use Adyen\Payment\Helper\Config as ConfigHelper;
-use Adyen\Payment\Gateway\Request\HeaderDataBuilder;
 use Adyen\Service\Checkout;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Config\Source\RenderMode;
@@ -27,6 +27,7 @@ use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as Notifica
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Adyen\Service\Checkout\ModificationsApi;
 use Adyen\Service\Checkout\OrdersApi;
+use Adyen\Service\Checkout\PaymentLinksApi;
 use Adyen\Service\Checkout\PaymentsApi;
 use Adyen\Service\Checkout\UtilityApi;
 use Adyen\Service\PosPayment;
@@ -63,6 +64,7 @@ use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Tax\Model\Calculation;
 use Magento\Tax\Model\Config;
+use Magento\Framework\App\Request\Http;
 
 /**
  * @SuppressWarnings(PHPMD.LongVariable)
@@ -198,6 +200,11 @@ class Data extends AbstractHelper
      */
     private $backendHelper;
 
+    /**
+     * @var Http
+     */
+    private Http $request;
+
     public function __construct(
         Context $context,
         EncryptorInterface $encryptor,
@@ -220,7 +227,8 @@ class Data extends AbstractHelper
         Locale $localeHelper,
         OrderManagementInterface $orderManagement,
         HistoryFactory $orderStatusHistoryFactory,
-        ConfigHelper $configHelper
+        ConfigHelper $configHelper,
+        HTTP $request
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
@@ -244,6 +252,7 @@ class Data extends AbstractHelper
         $this->orderManagement = $orderManagement;
         $this->orderStatusHistoryFactory = $orderStatusHistoryFactory;
         $this->configHelper = $configHelper;
+        $this->request = $request;
     }
 
     /**
@@ -271,7 +280,8 @@ class Data extends AbstractHelper
             'eu' => 'Default (EU - Europe)',
             'au' => 'AU - Australasia',
             'us' => 'US - United States',
-            'in' => 'IN - India'
+            'in' => 'IN - India',
+            'apse' => 'APSE - Asia Pacific Southeast'
         ];
     }
 
@@ -678,6 +688,8 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @deprecated Use Adyen\Payment\Helper\PaymentMethods::isOpenInvoice() instead.
+     *
      * @param $paymentMethod
      * @return bool
      */
@@ -1143,11 +1155,6 @@ class Data extends AbstractHelper
         $client->setApplicationName(self::APPLICATION_NAME);
         $client->setXApiKey($apiKey);
 
-        $checkoutFrontendRegion = $this->configHelper->getCheckoutFrontendRegion($storeId);
-        if (isset($checkoutFrontendRegion)) {
-            $client->setRegion($checkoutFrontendRegion);
-        }
-
         $client->setMerchantApplication($this->getModuleName(), $this->getModuleVersion());
         $platformData = $this->getMagentoDetails();
         $client->setExternalPlatform($platformData['name'], $platformData['version'], 'Adyen');
@@ -1173,16 +1180,26 @@ class Data extends AbstractHelper
     {
         $magentoDetails = $this->getMagentoDetails();
         $headers = [
-            'external-platform-name' => $magentoDetails['name'],
-            'external-platform-version' => $magentoDetails['version'],
-            'external-platform-edition' => $magentoDetails['edition'],
-            'merchant-application-name' => $this->getModuleName(),
-            'merchant-application-version' => $this->getModuleVersion()
+            HeaderDataBuilderInterface::EXTERNAL_PLATFORM_NAME => $magentoDetails['name'],
+            HeaderDataBuilderInterface::EXTERNAL_PLATFORM_VERSION => $magentoDetails['version'],
+            HeaderDataBuilderInterface::EXTERNAL_PLATFORM_EDITION => $magentoDetails['edition'],
+            HeaderDataBuilderInterface::MERCHANT_APPLICATION_NAME => $this->getModuleName(),
+            HeaderDataBuilderInterface::MERCHANT_APPLICATION_VERSION  => $this->getModuleVersion()
         ];
 
-        if(isset($payment) && !is_null($payment->getAdditionalInformation(HeaderDataBuilder::FRONTENDTYPE))) {
-            $headers[HeaderDataBuilder::FRONTENDTYPE] =
-                $payment->getAdditionalInformation(HeaderDataBuilder::FRONTENDTYPE);
+        if (isset($payment)) {
+            $frontendType = $payment->getAdditionalInformation(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY);
+            if (is_null($frontendType)) {
+                // Check the request URI
+                $requestPath = $this->request->getOriginalPathInfo();
+                $requestMethod = $this->request->getMethod();
+                if ($requestPath === '/graphql' && $requestMethod === 'POST') {
+                    $frontendType = 'headless-graphql';
+                } else {
+                    $frontendType = 'headless-rest';
+                }
+            }
+            $headers[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE] = $frontendType;
         }
 
         return $headers;
@@ -1246,6 +1263,11 @@ class Data extends AbstractHelper
     public function initializeOrdersApi(Client $client): OrdersApi
     {
         return new OrdersApi($client);
+    }
+
+    public function initializePaymentLinksApi(Client $client):PaymentLinksApi
+    {
+        return new PaymentLinksApi($client);
     }
 
     /**

@@ -24,6 +24,7 @@
     <column xsi:type="datetime" name="updated_at" on_update="false" nullable="false" comment="Updated at"/>
     <column xsi:type="text" name="capture_status" nullable="true" comment="Field to determine if and how order payment was captured"/>
     <column xsi:type="decimal" name="total_captured" scale="4" precision="12" unsigned="true" nullable="true" comment="Field to determine the amount that has been captured."/>
+    <column xsi:type="int" name="order_sort" unsigned="true" nullable="true" comment="Sort order of Partial Payment"/>
     <constraint xsi:type="primary" referenceId="PRIMARY">
       <column name="entity_id"/>
     </constraint>

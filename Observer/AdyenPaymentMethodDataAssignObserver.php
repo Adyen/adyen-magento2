@@ -11,7 +11,7 @@
 
 namespace Adyen\Payment\Observer;
 
-use Adyen\Payment\Gateway\Request\HeaderDataBuilder;
+use Adyen\Payment\Gateway\Request\Header\HeaderDataBuilderInterface;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Util\CheckoutStateDataValidator;
 use Adyen\Payment\Helper\Util\DataArrayValidator;
@@ -39,7 +39,7 @@ class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
         self::RETURN_URL,
         self::RECURRING_PROCESSING_MODEL,
         self::CC_NUMBER,
-        HeaderDataBuilder::FRONTENDTYPE
+        HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY
     ];
 
     protected CheckoutStateDataValidator $checkoutStateDataValidator;

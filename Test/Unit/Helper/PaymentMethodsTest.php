@@ -956,12 +956,20 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $paymentCode,
         $autoCaptureOpenInvoice,
         $manualCapturePayPal,
-        $expectedResult
+        $expectedResult,
+        $isOpenInvoicePaymentMethod
     ) {
         // Reset Config mock to prevent interventions with other expects() assertions.
         $this->configHelperMock = $this->createMock(Config::class);
 
+        $paymentMethodInstanceMock = $this->createMock(MethodInterface::class);
+        $paymentMethodInstanceMock->method('getConfigData')->with(PaymentMethods::CONFIG_FIELD_IS_OPEN_INVOICE)->willReturn($isOpenInvoicePaymentMethod);
+
+        $paymentMock = $this->createMock(Order\Payment::class);
+        $paymentMock->method('getMethodInstance')->willReturn($paymentMethodInstanceMock);
+
         $this->orderMock->method('getStoreId')->willReturn(1);
+        $this->orderMock->method('getPayment')->willReturn($paymentMock);
 
         $this->configHelperMock->expects($this->any())
             ->method('getConfigData')
@@ -1004,11 +1012,13 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
     {
         return [
             // Manual capture supported, capture mode manual, sepa flow not authcap
-            [true, 'manual', 'notauthcap', 'paypal', true, null, true],
+            [true, 'manual', 'notauthcap', 'paypal', true, null, true, false],
             // Manual capture supported, capture mode auto
-            [true, 'auto', '', 'sepadirectdebit', true, null, true],
+            [true, 'auto', '', 'sepadirectdebit', true, null, true, false],
+            // Manual capture supported open invoice
+            [true, 'manual', '', 'klarna', false, null, false, true],
             // Manual capture not supported
-            [false, '', '', 'sepadirectdebit', true, null, true]
+            [false, '', '', 'sepadirectdebit', true, null, true, false]
         ];
     }
 
@@ -1314,5 +1324,53 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $this->configHelperMock->expects($this->atLeastOnce())->method('removeConfigData');
 
         $this->paymentMethodsHelper->removePaymentMethodsActivation('default', 0);
+    }
+
+    public function testIsOpenInvoice()
+    {
+        $paymentMethodInstanceMock = $this->createMock(MethodInterface::class);
+        $paymentMethodInstanceMock->method('getConfigData')
+            ->with(PaymentMethods::CONFIG_FIELD_IS_OPEN_INVOICE)
+            ->willReturn(true);
+
+        $result = $this->paymentMethodsHelper->isOpenInvoice($paymentMethodInstanceMock);
+        $this->assertTrue($result);
+    }
+
+    /**
+     * @return array
+     */
+    private static function getRequiresLineItemsDataProvider(): array
+    {
+        return [
+            ['isOpenInvoice' => true, 'isRequiresOpenInvoiceConfigSet' => false, 'requiresLineItems' => true],
+            ['isOpenInvoice' => false, 'isRequiresOpenInvoiceConfigSet' => true, 'requiresLineItems' => true],
+            ['isOpenInvoice' => false, 'isRequiresOpenInvoiceConfigSet' => false, 'requiresLineItems' => false],
+            ['isOpenInvoice' => true, 'isRequiresOpenInvoiceConfigSet' => true, 'requiresLineItems' => true]
+        ];
+    }
+
+    /**
+     * @dataProvider getRequiresLineItemsDataProvider()
+     *
+     * @param bool $isOpenInvoice
+     * @param bool $isRequiresOpenInvoiceConfigSet
+     * @param bool $requiresLineItems
+     * @return void
+     */
+    public function testGetRequiresLineItems(
+        bool $isOpenInvoice,
+        bool $isRequiresOpenInvoiceConfigSet,
+        bool $requiresLineItems
+    ) {
+        $paymentMethodInstanceMock = $this->createMock(MethodInterface::class);
+        $paymentMethodInstanceMock->method('getConfigData')
+            ->willReturnMap([
+                [PaymentMethods::CONFIG_FIELD_IS_OPEN_INVOICE, null, $isOpenInvoice],
+                [PaymentMethods::CONFIG_FIELD_REQUIRES_LINE_ITEMS, null, $isRequiresOpenInvoiceConfigSet]
+            ]);
+
+        $result = $this->paymentMethodsHelper->getRequiresLineItems($paymentMethodInstanceMock);
+        $this->assertEquals($requiresLineItems, $result);
     }
 }

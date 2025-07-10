@@ -10,6 +10,9 @@ jobs:
         php-version: [8.3]
         magento-version: [2.4.7-p2]
     runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
     env:
       PHP_VERSION: ${{ matrix.php-version }}
       MAGENTO_VERSION: ${{ matrix.magento-version }}
@@ -23,6 +26,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
 
       - name: Install Magento
         run: docker compose -f .github/docker-compose.yml run --rm web make magento

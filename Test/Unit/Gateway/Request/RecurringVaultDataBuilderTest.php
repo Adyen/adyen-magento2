@@ -12,47 +12,74 @@
 namespace Adyen\Payment\Test\Gateway\Request;
 
 use Adyen\Payment\Gateway\Request\RecurringVaultDataBuilder;
+use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\StateData;
+use Adyen\Payment\Helper\Vault as AdyenVaultHelper;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Api\ExtensionAttributesInterface;
-use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
+use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Vault\Model\Method\Vault;
+use PHPUnit\Framework\MockObject\MockObject;
+use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 
 class RecurringVaultDataBuilderTest extends AbstractAdyenTestCase
 {
-    private object $recurringVaultDataBuilder;
-    private $vaultHelperMock;
+    protected ?RecurringVaultDataBuilder $recurringVaultDataBuilder;
+    protected AdyenVaultHelper|MockObject $vaultHelperMock;
+    protected StateData|MockObject $stateDataHelperMock;
+    protected Config|MockObject $configHelperMock;
 
     /**
      * @return void
      */
     protected function setUp(): void
     {
-        $this->vaultHelperMock = $this->createMock(\Adyen\Payment\Helper\Vault::class);
+        $this->vaultHelperMock = $this->createMock(AdyenVaultHelper::class);
+        $this->stateDataHelperMock = $this->createMock(StateData::class);
+        $this->configHelperMock = $this->createMock(Config::class);
 
-        $objectManager = new ObjectManager($this);
-        $this->recurringVaultDataBuilder = $objectManager->getObject(RecurringVaultDataBuilder::class, [
-            'vaultHelper' => $this->vaultHelperMock
-        ]);
+        $this->recurringVaultDataBuilder = new RecurringVaultDataBuilder(
+            $this->stateDataHelperMock,
+            $this->vaultHelperMock,
+            $this->configHelperMock
+        );
+    }
+
+    /**
+     * @return void
+     */
+    protected function tearDown(): void
+    {
+        $this->recurringVaultDataBuilder = null;
     }
 
     /**
      * @param $paymentMethodCode
      * @param $tokenDetails
-     * @param $expect3dsFlag
-     * @dataProvider dataProvider
+     * @param $tokenType
+     * @param $isInstantPurchase
+     * @param $numberOfInstallments
+     *
      * @return void
+     * @throws LocalizedException
+     *
+     * @dataProvider dataProvider
      */
-    public function testBuild($paymentMethodCode, $tokenDetails, $expect3dsFlag)
+    public function testBuild($paymentMethodCode, $tokenDetails, $tokenType, $isInstantPurchase, $numberOfInstallments)
     {
+        $quoteId = 1;
+        $storeId = 1;
+
         $paymentMethodProviderCode = str_replace('_vault', '', $paymentMethodCode);
 
         $orderMock = $this->createMock(Order::class);
-        $orderMock->method('getQuoteId')->willReturn(1);
-        $orderMock->method('getStoreId')->willReturn(1);
+        $orderMock->method('getQuoteId')->willReturn($quoteId);
+        $orderMock->method('getStoreId')->willReturn($storeId);
 
         $paymentMethodInstanceMock = $this->createMock(Vault::class);
         $paymentMethodInstanceMock->method('getProviderCode')->willReturn($paymentMethodProviderCode);
@@ -61,6 +88,7 @@ class RecurringVaultDataBuilderTest extends AbstractAdyenTestCase
         $paymentTokenMock = $this->createMock(PaymentTokenInterface::class);
         $paymentTokenMock->method('getTokenDetails')->willReturn($tokenDetails);
         $paymentTokenMock->method('getGatewayToken')->willReturn("ABC1234567");
+        $paymentTokenMock->method('getType')->willReturn($tokenType);
 
         $extensionAttributesMock = $this->createGeneratedMock(ExtensionAttributesInterface::class, [
             'getVaultPaymentToken'
@@ -71,6 +99,14 @@ class RecurringVaultDataBuilderTest extends AbstractAdyenTestCase
         $paymentMock->method('getOrder')->willReturn($orderMock);
         $paymentMock->method('getMethodInstance')->willReturn($paymentMethodInstanceMock);
         $paymentMock->method('getExtensionAttributes')->willReturn($extensionAttributesMock);
+        $paymentMock->method('getAdditionalInformation')
+            ->willReturnCallback(function ($key) use ($isInstantPurchase, $numberOfInstallments) {
+                return match ($key) {
+                    'instant-purchase' => $isInstantPurchase,
+                    AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS => $numberOfInstallments,
+                    default => null,
+                };
+            });
 
         $buildSubject = [
             'payment' => $this->createConfiguredMock(PaymentDataObject::class, [
@@ -81,12 +117,28 @@ class RecurringVaultDataBuilderTest extends AbstractAdyenTestCase
         $this->vaultHelperMock->method('getPaymentMethodRecurringProcessingModel')
             ->willReturn('CardOnFile');
 
+        if ($tokenType === PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD && !$isInstantPurchase) {
+            $this->stateDataHelperMock->expects($this->once())
+                ->method('getStateData')
+                ->with($quoteId)
+                ->willReturn([]);
+        }
+
         $request = $this->recurringVaultDataBuilder->build($buildSubject);
 
         $this->assertIsArray($request);
         $this->assertArrayHasKey('recurringProcessingModel', $request['body']);
-        if ($expect3dsFlag) {
-            $this->assertArrayHasKey('allow3DS2', $request['body']['additionalData']);
+
+        if ($tokenType === PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD) {
+            $this->assertArrayHasKey('nativeThreeDS', $request['body']['authenticationData']['threeDSRequestData']);
+            $this->assertArrayHasKey('holderName', $request['body']['paymentMethod']);
+        } else {
+            $this->assertArrayNotHasKey('additionalData', $request['body']);
+        }
+
+        if (!empty($numberOfInstallments)) {
+            $this->assertArrayHasKey('installments', $request['body']);
+            $this->assertEquals(['value' => (int) $numberOfInstallments], $request['body']['installments']);
         }
     }
 
@@ -94,25 +146,48 @@ class RecurringVaultDataBuilderTest extends AbstractAdyenTestCase
     {
         return [
             [
-                'paymentMethodCode' => 'adyen_cc_vault',
-                'tokenDetails' => '{"type":"visa","maskedCC":"1111","expirationDate":"3\/2030", "tokenType": "CardOnFile"}',
-                'expect3dsFlag' => true
+                'adyen_cc_vault',
+                '{"type":"visa","maskedCC":"1111","expirationDate":"3\/2030", "tokenType": "CardOnFile"}',
+                'card',
+                false,
+                '3'
             ],
             [
-                'paymentMethodCode' => 'adyen_cc_vault',
-                'tokenDetails' => '{"type":"visa","maskedCC":"1111","expirationDate":"3\/2030"}',
-                'expect3dsFlag' => true
+                'adyen_cc_vault',
+                '{"type":"visa","maskedCC":"1111","expirationDate":"3\/2030"}',
+                'card',
+                false,
+                null
             ],
             [
-                'paymentMethodCode' => 'adyen_klarna_vault',
-                'tokenDetails' => '{"type":"klarna", "tokenType": "CardOnFile"}',
-                'expect3dsFlag' => false
+                'adyen_cc_vault',
+                '{"type":"visa","maskedCC":"1111","expirationDate":"3\/2030"}',
+                'card',
+                true,
+                null
             ],
             [
-                'paymentMethodCode' => 'adyen_klarna_vault',
-                'tokenDetails' => '{"type":"klarna"}',
-                'expect3dsFlag' => false
+                'adyen_klarna_vault',
+                '{"type":"klarna", "tokenType": "CardOnFile"}',
+                'account',
+                false,
+                null
             ],
+            [
+                'adyen_klarna_vault',
+                '{"type":"klarna"}',
+                'account',
+                false,
+                null
+            ],
+            [
+                'adyen_klarna_vault',
+                '{"type":"klarna"}',
+                'account',
+                true,
+                null
+            ]
         ];
     }
+
 }

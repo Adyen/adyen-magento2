@@ -15,7 +15,7 @@ use Adyen\Client;
 use Adyen\Config as AdyenConfig;
 use Adyen\Model\Checkout\ApplicationInfo;
 use Adyen\Model\Checkout\CommonField;
-use Adyen\Payment\Gateway\Request\HeaderDataBuilder;
+use Adyen\Payment\Gateway\Request\Header\HeaderDataBuilderInterface;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Locale;
@@ -27,6 +27,7 @@ use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Service\Checkout\ModificationsApi;
 use Adyen\Service\Checkout\OrdersApi;
+use Adyen\Service\Checkout\PaymentLinksApi;
 use Adyen\Service\Checkout\PaymentsApi;
 use Adyen\Service\RecurringApi;
 use Magento\Backend\Helper\Data as BackendHelper;
@@ -45,6 +46,7 @@ use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Asset\Repository;
 use Magento\Framework\View\Asset\Source;
+use Magento\Payment\Model\InfoInterface;
 use Magento\Quote\Model\Quote\Address\RateRequest;
 use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Model\Order\Payment;
@@ -56,6 +58,7 @@ use Magento\Tax\Model\Config;
 use Magento\Sales\Model\Order;
 use ReflectionClass;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
+use Magento\Framework\App\Request\Http;
 
 class DataTest extends AbstractAdyenTestCase
 {
@@ -85,6 +88,7 @@ class DataTest extends AbstractAdyenTestCase
     private $localeHelper;
     private $orderManagement;
     private $orderStatusHistoryFactory;
+    private $request;
 
     public function setUp(): void
     {
@@ -147,6 +151,13 @@ class DataTest extends AbstractAdyenTestCase
             ->with('adyen_credit_cards')
             ->willReturn($this->ccTypesAltData);
 
+        $this->request = $this->createMock(Http::class);
+
+        $this->paymentMock = $this->getMockBuilder(InfoInterface::class)
+            ->disableOriginalConstructor()
+            ->setMethods(null)
+            ->getMock();
+
         // Partial mock builder is being used for mocking the methods in the class being tested.
         $this->dataHelper = $this->getMockBuilder(Data::class)
             ->setMethods(['getModuleVersion'])
@@ -172,7 +183,8 @@ class DataTest extends AbstractAdyenTestCase
                 $this->localeHelper,
                 $this->orderManagement,
                 $this->orderStatusHistoryFactory,
-                $this->configHelper
+                $this->configHelper,
+                $this->request
             ])
             ->getMock();
 
@@ -201,7 +213,8 @@ class DataTest extends AbstractAdyenTestCase
             'eu' => 'Default (EU - Europe)',
             'au' => 'AU - Australasia',
             'us' => 'US - United States',
-            'in' => 'IN - India'
+            'in' => 'IN - India',
+            'apse' => 'APSE - Asia Pacific Southeast'
         ];
 
         $actualResult = $this->dataHelper->getCheckoutFrontendRegions();
@@ -1053,6 +1066,39 @@ class DataTest extends AbstractAdyenTestCase
         $this->assertEquals($expectedHeaders, $headers);
     }
 
+    public function testBuildRequestHeadersWithFrontendTypeSet(): void
+    {
+        // Mock dependencies as needed
+        $payment = $this->createMock(Payment::class);
+
+        // Set up expectations for the getAdditionalInformation method
+        $payment->method('getAdditionalInformation')
+            ->with(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY)
+            ->willReturn(null);
+
+        $headers = $this->dataHelper->buildRequestHeaders($this->paymentMock);
+
+        $this->assertArrayHasKey(HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE, $headers);
+        $this->assertEquals('headless-rest', $headers[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE]);
+    }
+
+    public function testBuildRequestHeadersWithNullFrontendTypeGraphQL(): void
+    {
+        $this->paymentMock->method('getAdditionalInformation')
+            ->with(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY)
+            ->willReturn(null);
+
+        $this->request->method('getOriginalPathInfo')
+            ->willReturn('/graphql');
+        $this->request->method('getMethod')
+            ->willReturn('POST');
+
+        $headers = $this->dataHelper->buildRequestHeaders($this->paymentMock);
+
+        $this->assertArrayHasKey(HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE, $headers);
+        $this->assertEquals('headless-graphql', $headers[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE]);
+    }
+
     public function testBuildApplicationInfo()
     {
         $expectedApplicationInfo =  new ApplicationInfo();
@@ -1090,15 +1136,15 @@ class DataTest extends AbstractAdyenTestCase
 
         // Set up expectations for the getAdditionalInformation method
         $payment->method('getAdditionalInformation')
-            ->with(HeaderDataBuilder::FRONTENDTYPE)
-            ->willReturn('some_frontend_type');
+            ->with(HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY)
+            ->willReturn('default');
 
         // Call the method under test
         $result = $this->dataHelper->buildRequestHeaders($payment);
 
         // Assert that the 'frontend-type' header is correctly set
-        $this->assertArrayHasKey(HeaderDataBuilder::FRONTENDTYPE, $result);
-        $this->assertEquals('some_frontend_type', $result[HeaderDataBuilder::FRONTENDTYPE]);
+        $this->assertArrayHasKey(HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE, $result);
+        $this->assertEquals('default', $result[HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE]);
 
         // Assert other headers as needed
     }
@@ -1110,7 +1156,7 @@ class DataTest extends AbstractAdyenTestCase
         $result = $this->dataHelper->buildRequestHeaders();
 
         // Assert that the 'frontend-type' header is not set
-        $this->assertArrayNotHasKey(HeaderDataBuilder::FRONTENDTYPE, $result);
+        $this->assertArrayNotHasKey(HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE, $result);
     }
 
     public function testLogResponse()
@@ -1802,7 +1848,8 @@ class DataTest extends AbstractAdyenTestCase
             'eu' => 'Default (EU - Europe)',
             'au' => 'AU - Australasia',
             'us' => 'US - United States',
-            'in' => 'IN - India'
+            'in' => 'IN - India',
+            'apse' => 'APSE - Asia Pacific Southeast'
         ], $this->dataHelper->getRecurringTypes());
     }
 
@@ -1890,6 +1937,12 @@ class DataTest extends AbstractAdyenTestCase
     {
         $service = $this->dataHelper->initializeOrdersApi($this->clientMock);
         $this->assertInstanceOf(OrdersApi::class, $service);
+    }
+
+    public function testInitializePaymentLinksApi()
+    {
+        $service = $this->dataHelper->initializePaymentLinksApi($this->clientMock);
+        $this->assertInstanceOf(PaymentLinksApi::class, $service);
     }
 
     public function testLogAdyenException()
