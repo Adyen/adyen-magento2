@@ -244,4 +244,23 @@ class ConfigTest extends AbstractAdyenTestCase
 
         $this->assertEquals($mockIntegratorName, $this->configHelper->getPlatformIntegratorName());
     }
+
+    public function testIsReliabilityDataCollectionEnabled()
+    {
+        $isfeatureEnabled = true;
+
+        $path = sprintf(
+            "%s/%s/%s",
+            Config::XML_PAYMENT_PREFIX,
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            Config::XML_RELIABILITY_DATA_COLLECTION
+        );
+
+        $this->scopeConfigMock->expects($this->once())
+            ->method('isSetFlag')
+            ->with($path, ScopeInterface::SCOPE_STORE, null)
+            ->willReturn($isfeatureEnabled);
+
+        $this->assertTrue($this->configHelper->isReliabilityDataCollectionEnabled());
+    }
 }
