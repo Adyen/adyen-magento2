@@ -14,7 +14,7 @@ class AnalyticsEvent extends AbstractModel implements AnalyticsEventInterface
 
     public function getUuid(): string
     {
-        return $this->getData(self::RELATION_ID);
+        return $this->getData(self::UUID);
     }
 
     public function setUuid(string $uuid): AnalyticsEventInterface

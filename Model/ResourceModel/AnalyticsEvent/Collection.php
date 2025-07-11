@@ -10,7 +10,7 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model\ResourceModel\AnalyticsEvent;;
+namespace Adyen\Payment\Model\ResourceModel\AnalyticsEvent;
 
 use Adyen\Payment\Model\AnalyticsEvent as AnalyticsEventModel;
 use Adyen\Payment\Model\ResourceModel\AnalyticsEvent as AnalyticsEventResourceModel;
