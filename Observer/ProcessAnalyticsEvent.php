@@ -1,27 +1,29 @@
 <?php
+/**
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2025 Adyen N.V. (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+
 namespace Adyen\Payment\Observer;
 
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Adyen\Payment\Api\AdyenAnalyticsRepositoryInterface;
-use Adyen\Payment\Api\Data\AdyenAnalyticsInterfaceFactory;
+use Adyen\Payment\Model\AnalyticsEventFactory;
 use Psr\Log\LoggerInterface;
 
 class ProcessAnalyticsEvent implements ObserverInterface
 {
-    protected AdyenAnalyticsRepositoryInterface $adyenAnalyticsRepository;
-    protected AdyenAnalyticsInterfaceFactory $adyenAnalyticsFactory;
-    protected $logger;
-
     public function __construct(
-        AdyenAnalyticsRepositoryInterface $adyenAnalyticsRepository,
-        AdyenAnalyticsInterfaceFactory $adyenAnalyticsFactory,
-        LoggerInterface $logger
-    ) {
-        $this->adyenAnalyticsRepository = $adyenAnalyticsRepository;
-        $this->adyenAnalyticsFactory = $adyenAnalyticsFactory;
-        $this->logger = $logger;
-    }
+        protected readonly AdyenAnalyticsRepositoryInterface $adyenAnalyticsRepository,
+        protected readonly AnalyticsEventFactory $analyticsEventFactory,
+        protected readonly LoggerInterface $logger
+    ) { }
 
     public function execute(Observer $observer)
     {
@@ -33,15 +35,13 @@ class ProcessAnalyticsEvent implements ObserverInterface
             $this->logger->info('Received event data for payment_method_adyen_analytics: ', $eventData);
 
             // Create a new instance of the AdyenAnalytics model
-            $analytics = $this->adyenAnalyticsFactory->create();
+            $analytics = $this->analyticsEventFactory->create();
 
             // Populate the model with event data
-            $analytics->setCheckoutAttemptId($eventData['checkoutAttemptId']);
-            $analytics->setEventType($eventData['eventType']);
+            $analytics->setRelationId($eventData['relationId']);
+            $analytics->setType($eventData['type']);
             $analytics->setTopic($eventData['topic']);
             $analytics->setMessage($eventData['message']);
-            $analytics->setErrorCount($eventData['errorCount']);
-            $analytics->setDone($eventData['done']);
 
             // Save the event data to the database
             $this->adyenAnalyticsRepository->save($analytics);
