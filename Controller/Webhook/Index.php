@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Controller\Webhook;
 
+use Adyen\Payment\Exception\AuthenticationException;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
@@ -53,54 +54,31 @@ class Index implements ActionInterface
      */
     public function execute(): void
     {
-        $rawPayload = json_decode((string) $this->context->getRequest()->getContent(), true);
+        if (!$this->authenticateRequest()) {
+            $this->return401();
+            return;
+        }
+
+        $rawContent = (string) $this->context->getRequest()->getContent();
+        if (empty($rawContent)) {
+            throw new LocalizedException(__('Empty request body.'));
+        }
+
+        $rawPayload = json_decode($rawContent, true);
+
+        if (!is_array($rawPayload)) {
+            throw new LocalizedException(__('Invalid JSON payload.'));
+        }
         $acceptedMessage = '[accepted]';
 
         try {
             $webhookType = $this->getWebhookType($rawPayload);
             $acceptor = $this->webhookAcceptorFactory->getAcceptor($webhookType);
 
-            if ($webhookType == WebhookAcceptorType::STANDARD) {
-                if (!$this->isNotificationModeValid($rawPayload)) {
-                    $this->return401();
-                    return;
-                }
+            $notifications = $acceptor->toNotificationList($rawPayload);
 
-                foreach ($rawPayload['notificationItems'] as $notificationItemWrapper) {
-                    $item = $notificationItemWrapper['NotificationRequestItem'] ?? $notificationItemWrapper;
-
-                    if (!$acceptor->authenticate($item) || !$acceptor->validate($item)) {
-                        $this->return401();
-                        return;
-                    }
-
-                    $notification = $acceptor->toNotification($item, $rawPayload['live']);
-                    $notification->save();
-
-                    $this->adyenLogger->addAdyenResult(sprintf("Notification %s is accepted", $notification->getId()));
-                }
-
-                // Optional: check for unprocessed notifications for test mode
-                $cronCheckTest = $rawPayload['notificationItems'][0]['NotificationRequestItem']['pspReference']
-                    ?? $rawPayload['notificationItems'][0]['tokenId']
-                    ?? null;
-
-                if ($cronCheckTest && $this->notificationReceiver->isTestNotification($cronCheckTest)) {
-                    $unprocessedNotifications = $this->adyenHelper->getUnprocessedNotifications();
-                    if ($unprocessedNotifications > 0) {
-                        $acceptedMessage .= "\nYou have $unprocessedNotifications unprocessed notifications.";
-                    }
-                }
-            } else {
-                // Token lifecycle webhook
-                if (!$acceptor->authenticate($rawPayload) || !$acceptor->validate($rawPayload)) {
-                    $this->return401();
-                    return;
-                }
-
-                $notification = $acceptor->toNotification($rawPayload, $rawPayload['environment'] ?? 'test');
+            foreach ($notifications as $notification) {
                 $notification->save();
-
                 $this->adyenLogger->addAdyenResult(sprintf("Notification %s is accepted", $notification->getId()));
             }
 
@@ -110,6 +88,9 @@ class Index implements ActionInterface
                 ->setBody($acceptedMessage);
             return;
 
+        } catch (AuthenticationException) {
+            $this->return401();
+            return;
         } catch (\Throwable $e) {
             throw new LocalizedException(__('Webhook processing failed: %1', $e->getMessage()));
         }
@@ -117,7 +98,10 @@ class Index implements ActionInterface
 
     private function getWebhookType(array $payload): WebhookAcceptorType
     {
-        if (isset($payload['eventCode'])) {
+        if (
+            isset($payload['notificationItems'][0]['NotificationRequestItem']) &&
+            isset($payload['notificationItems'][0]['NotificationRequestItem']['eventCode'])
+        ) {
             return WebhookAcceptorType::STANDARD;
         }
 
@@ -140,9 +124,11 @@ class Index implements ActionInterface
         );
     }
 
-    private function return401(): void
+    private function return401(string $message = 'Unauthorized'): void
     {
-        $this->context->getResponse()->setHttpResponseCode(401);
+        $response = $this->context->getResponse();
+        $response->setHttpResponseCode(401);
+        $response->setBody($message);
     }
 
     private function enforceAjaxHeaderForMagento23Compatibility(): void
@@ -155,4 +141,23 @@ class Index implements ActionInterface
             }
         }
     }
+
+    private function authenticateRequest(): bool
+    {
+        $expectedUsername = $this->configHelper->getNotificationsUsername();
+        $expectedPassword = $this->configHelper->getNotificationsPassword();
+
+        if (!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW'])) {
+            return false;
+        }
+
+        $usernameIsValid = hash_equals($expectedUsername, $_SERVER['PHP_AUTH_USER']);
+        $passwordIsValid = hash_equals($expectedPassword, $_SERVER['PHP_AUTH_PW']);
+
+        if (!$usernameIsValid || !$passwordIsValid) {
+            return false;
+        }
+        return true;
+    }
+
 }

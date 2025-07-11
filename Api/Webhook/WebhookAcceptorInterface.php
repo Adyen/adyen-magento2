@@ -6,8 +6,14 @@ use Adyen\Payment\Model\Notification;
 
 interface WebhookAcceptorInterface
 {
-    public function authenticate(array $payload): bool;
     public function validate(array $payload): bool;
-    public function toNotification(array $payload, string $mode): Notification;
-}
 
+    /**
+     * Converts the incoming payload into one or more Notification objects.
+     * Should throw UnauthorizedWebhookException on failure.
+     *
+     * @param array $payload
+     * @return Notification[]
+     */
+    public function toNotificationList(array $payload): array;
+}

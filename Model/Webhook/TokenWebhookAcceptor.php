@@ -2,6 +2,7 @@
 
 namespace Adyen\Payment\Model\Webhook;
 
+use Adyen\Payment\Exception\AuthenticationException;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\NotificationFactory;
 use Adyen\Payment\Logger\AdyenLogger;
@@ -23,20 +24,15 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
 
     public function __construct(
         private readonly NotificationFactory $notificationFactory,
-        private readonly SerializerInterface          $serializer,
-        private readonly AdyenLogger                  $adyenLogger,
-        private readonly Webhook                      $webhookHelper
+        private readonly SerializerInterface $serializer,
+        private readonly AdyenLogger $adyenLogger,
+        private readonly Webhook $webhookHelper
     ) {}
-
-    public function authenticate(array $payload): bool
-    {
-        // Token lifecycle webhooks do not support HMAC signature (yet), return true for now.
-        return true;
-    }
 
     public function validate(array $payload): bool
     {
         if (!$this->webhookHelper->isIpValid($payload, 'token webhook')) {
+            $this->adyenLogger->addAdyenNotification("IP validation failed for token webhook", $payload);
             return false;
         }
 
@@ -59,22 +55,54 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
         $merchantReference = $payload['data']['shopperReference'] ?? null;
 
         $notification->setPspreference($pspReference);
-        $notification->setOriginalReference($payload['eventId'] ?? null);
-        $notification->setMerchantReference($merchantReference);
-        $notification->setEventCode($payload['eventType'] ?? $payload['type'] ?? 'TOKEN');
-        $notification->setPaymentMethod($payload['data']['type'] ?? null);
+
+        if (isset($payload['eventId'])) {
+            $notification->setOriginalReference($payload['eventId']);
+        }
+
+        if (isset($merchantReference)) {
+            $notification->setMerchantReference($merchantReference);
+        }
+
+        if (isset($payload['eventType'])) {
+            $notification->setEventCode($payload['eventType']);
+        } elseif (isset($payload['type'])) {
+            $notification->setEventCode($payload['type']);
+        } else {
+            $notification->setEventCode('TOKEN');
+        }
+
+        if (isset($payload['data']['type'])) {
+            $notification->setPaymentMethod($payload['data']['type']);
+        }
+
         $notification->setLive($mode);
         $notification->setSuccess('true');
         $notification->setReason('Token lifecycle event');
-
-        // Store full payload in additionalData
         $notification->setAdditionalData($this->serializer->serialize($payload));
 
         $formattedDate = date('Y-m-d H:i:s');
         $notification->setCreatedAt($formattedDate);
         $notification->setUpdatedAt($formattedDate);
 
+        // 💡 Add duplicate check here
+        if ($notification->isDuplicate()) {
+            throw new \RuntimeException('Duplicate token notification');
+        }
+
         return $notification;
+    }
+
+    /**
+     * @throws AuthenticationException
+     */
+    public function toNotificationList(array $payload): array
+    {
+        if (!$this->validate($payload)) {
+            throw new AuthenticationException('Token webhook failed authentication or validation.');
+        }
+
+        return [$this->toNotification($payload, $payload['environment'] ?? 'test')];
     }
 
     private function getNestedValue(array $array, array $path): mixed

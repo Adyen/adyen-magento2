@@ -3,14 +3,13 @@
 namespace Adyen\Payment\Model\Webhook;
 
 use Adyen\Payment\Api\Webhook\WebhookAcceptorInterface;
+use Adyen\Payment\Exception\AuthenticationException;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\NotificationFactory;
-use Adyen\Webhook\Exception\AuthenticationException;
 use Adyen\Webhook\Exception\HMACKeyValidationException;
 use Adyen\Webhook\Exception\InvalidDataException;
-use Adyen\Webhook\Exception\MerchantAccountCodeException;
 use Adyen\Webhook\Receiver\NotificationReceiver;
 use Adyen\Webhook\Receiver\HmacSignature;
 use Magento\Framework\Serialize\SerializerInterface;
@@ -28,20 +27,6 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
         private readonly Webhook              $webhookHelper
     ) {}
 
-    /**
-     * @throws MerchantAccountCodeException
-     * @throws AuthenticationException
-     */
-    public function authenticate(array $payload): bool
-    {
-        $merchantAccount = $this->configHelper->getMerchantAccount() ?: $this->configHelper->getMotoMerchantAccounts();
-        return $this->notificationReceiver->isAuthenticated(
-            $payload,
-            $merchantAccount,
-            $this->configHelper->getNotificationsUsername(),
-            $this->configHelper->getNotificationsPassword()
-        );
-    }
 
     /**
      * @throws InvalidDataException
@@ -53,37 +38,56 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
             return false;
         }
 
-        // Validate HMAC
         $hasHmac = $this->configHelper->getNotificationsHmacKey() &&
             $this->hmacSignature->isHmacSupportedEventCode($payload);
-        if ($hasHmac && !$this->notificationReceiver->validateHmac($payload, $this->configHelper->getNotificationsHmacKey())) {
+
+        if ($hasHmac && !$this->notificationReceiver->validateHmac(
+                $payload,
+                $this->configHelper->getNotificationsHmacKey()
+            )) {
             $this->adyenLogger->addAdyenNotification("HMAC validation failed", $payload);
             return false;
         }
 
-        // Check duplicate
-        $notification = $this->notificationFactory->create();
-        $notification->setPspreference(trim((string) $payload['pspReference']));
-        $notification->setEventCode(trim((string) $payload['eventCode']));
-        $notification->setSuccess(trim((string) $payload['success'] ?? 'false'));
-        $notification->setOriginalReference($payload['originalReference'] ?? null);
-
-        return !$notification->isDuplicate();
+        return true;
     }
 
-    public function toNotification(array $payload, string $mode):Notification
+
+    private function toNotification(array $payload, string $mode): Notification
     {
         $notification = $this->notificationFactory->create();
 
-        $notification->setPspreference($payload['pspReference'] ?? null);
-        $notification->setOriginalReference($payload['originalReference'] ?? null);
-        $notification->setMerchantReference($payload['merchantReference'] ?? null);
-        $notification->setEventCode($payload['eventCode'] ?? null);
-        $notification->setSuccess($payload['success'] ?? null);
-        $notification->setPaymentMethod($payload['paymentMethod'] ?? null);
-        $notification->setReason($payload['reason'] ?? null);
-        $notification->setDone($payload['done'] ?? null);
-        $notification->setLive($mode);
+        if (isset($payload['pspReference'])) {
+            $notification->setPspreference($payload['pspReference']);
+        }
+        if (isset($payload['originalReference'])) {
+            $notification->setOriginalReference($payload['originalReference']);
+        }
+        if (isset($payload['merchantReference'])) {
+            $notification->setMerchantReference($payload['merchantReference']);
+        }
+        if (isset($payload['eventCode'])) {
+            $notification->setEventCode($payload['eventCode']);
+        }
+        if (isset($payload['success'])) {
+            $notification->setSuccess($payload['success']);
+        }
+        if (isset($payload['paymentMethod'])) {
+            $notification->setPaymentMethod($payload['paymentMethod']);
+        }
+        if (isset($payload['reason'])) {
+            $notification->setReason($payload['reason']);
+        }
+        if (isset($payload['done'])) {
+            $notification->setDone($payload['done']);
+        }
+        if (isset($payload['amount'])) {
+            $notification->setAmountValue($payload['amount']['value']);
+            $notification->setAmountCurrency($payload['amount']['currency']);
+        }
+        if (isset($payload['additionalData'])) {
+            $notification->setAdditionalData($this->serializer->serialize($payload['additionalData']));
+        }
 
         if (!empty($payload['amount'])) {
             $notification->setAmountValue($payload['amount']['value']);
@@ -98,6 +102,42 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
         $notification->setCreatedAt($formattedDate);
         $notification->setUpdatedAt($formattedDate);
 
+        if ($notification->isDuplicate()) {
+            throw new \RuntimeException('Duplicate notification');
+        }
+
         return $notification;
+    }
+
+
+    /**
+     * @throws AuthenticationException
+     * @throws InvalidDataException
+     * @throws HMACKeyValidationException
+     */
+    public function toNotificationList(array $payload): array
+    {
+        $mode = $payload['live'] ?? '';
+
+        if (!$this->notificationReceiver->validateNotificationMode(
+            $mode,
+            $this->configHelper->isDemoMode()
+        )) {
+            throw new AuthenticationException('Invalid notification mode.');
+        }
+
+        $notifications = [];
+
+        foreach ($payload['notificationItems'] as $notificationItemWrapper) {
+            $item = $notificationItemWrapper['NotificationRequestItem'] ?? $notificationItemWrapper;
+
+            if (!$this->validate($item)) {
+                throw new AuthenticationException('Notification failed authentication or validation.');
+            }
+
+            $notifications[] = $this->toNotification($item, $mode);
+        }
+
+        return $notifications;
     }
 }
