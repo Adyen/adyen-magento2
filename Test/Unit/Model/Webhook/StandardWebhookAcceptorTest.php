@@ -4,144 +4,183 @@ declare(strict_types=1);
 
 namespace Adyen\Payment\Test\Unit\Model\Webhook;
 
+use Adyen\Payment\Exception\AuthenticationException;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Webhook;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\NotificationFactory;
 use Adyen\Payment\Model\Webhook\StandardWebhookAcceptor;
-use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Adyen\Webhook\Exception\HMACKeyValidationException;
+use Adyen\Webhook\Exception\InvalidDataException;
 use Adyen\Webhook\Receiver\HmacSignature;
 use Adyen\Webhook\Receiver\NotificationReceiver;
 use Magento\Framework\Serialize\SerializerInterface;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
-#[CoversClass(StandardWebhookAcceptor::class)]
-class StandardWebhookAcceptorTest extends AbstractAdyenTestCase
+final class StandardWebhookAcceptorTest extends TestCase
 {
     private StandardWebhookAcceptor $acceptor;
-
-    private MockObject $configHelper;
-    private MockObject $notificationFactory;
-    private MockObject $notificationReceiver;
-    private MockObject $hmacSignature;
-    private MockObject $serializer;
-    private MockObject $adyenLogger;
-    private MockObject $webhookHelper;
+    private Config $configMock;
+    private NotificationFactory $notificationFactoryMock;
+    private NotificationReceiver $notificationReceiverMock;
+    private HmacSignature $hmacSignatureMock;
+    private SerializerInterface $serializerMock;
+    private AdyenLogger $adyenLoggerMock;
+    private Webhook $webhookHelperMock;
 
     protected function setUp(): void
     {
-        $this->configHelper = $this->createMock(Config::class);
-        $this->notificationFactory = $this->createMock(NotificationFactory::class);
-        $this->notificationReceiver = $this->createMock(NotificationReceiver::class);
-        $this->hmacSignature = $this->createMock(HmacSignature::class);
-        $this->serializer = $this->createMock(SerializerInterface::class);
-        $this->adyenLogger = $this->createMock(AdyenLogger::class);
-        $this->webhookHelper = $this->createMock(Webhook::class);
+        $this->configMock = $this->createMock(Config::class);
+        $this->notificationFactoryMock = $this->createMock(NotificationFactory::class);
+        $this->notificationReceiverMock = $this->createMock(NotificationReceiver::class);
+        $this->hmacSignatureMock = $this->createMock(HmacSignature::class);
+        $this->serializerMock = $this->createMock(SerializerInterface::class);
+        $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
+        $this->webhookHelperMock = $this->createMock(Webhook::class);
 
         $this->acceptor = new StandardWebhookAcceptor(
-            $this->configHelper,
-            $this->notificationFactory,
-            $this->notificationReceiver,
-            $this->hmacSignature,
-            $this->serializer,
-            $this->adyenLogger,
-            $this->webhookHelper
+            $this->configMock,
+            $this->notificationFactoryMock,
+            $this->notificationReceiverMock,
+            $this->hmacSignatureMock,
+            $this->serializerMock,
+            $this->adyenLoggerMock,
+            $this->webhookHelperMock
         );
     }
 
-    public function testAuthenticate(): void
+    public function testValidateReturnsFalseIfIpInvalid(): void
     {
-        $payload = ['pspReference' => 'test123'];
-        $merchantAccount = 'TestMerchant';
-        $username = 'user';
-        $password = 'pass';
+        $this->webhookHelperMock->method('isIpValid')->willReturn(false);
 
-        $this->configHelper->method('getMerchantAccount')->willReturn($merchantAccount);
-        $this->configHelper->method('getNotificationsUsername')->willReturn($username);
-        $this->configHelper->method('getNotificationsPassword')->willReturn($password);
-
-        $this->notificationReceiver
-            ->expects(self::once())
-            ->method('isAuthenticated')
-            ->with($payload, $merchantAccount, $username, $password)
-            ->willReturn(true);
-
-        self::assertTrue($this->acceptor->authenticate($payload));
+        $result = $this->acceptor->validate(['eventCode' => 'AUTHORISATION']);
+        $this->assertFalse($result);
     }
 
-    public function testValidateReturnsFalseWhenIpInvalid(): void
+    public function testValidateReturnsTrueIfNoHmac(): void
     {
-        $payload = [];
+        $this->webhookHelperMock->method('isIpValid')->willReturn(true);
+        $this->configMock->method('getNotificationsHmacKey')->willReturn('');
+        $this->hmacSignatureMock->method('isHmacSupportedEventCode')->willReturn(false);
 
-        $this->webhookHelper->method('isIpValid')->willReturn(false);
-
-        self::assertFalse($this->acceptor->validate($payload));
+        $result = $this->acceptor->validate(['eventCode' => 'AUTHORISATION']);
+        $this->assertTrue($result);
     }
 
-    public function testValidateReturnsFalseWhenHmacFails(): void
+    public function testValidateReturnsFalseIfHmacFails(): void
     {
-        $payload = ['pspReference' => '123', 'eventCode' => 'AUTHORISATION'];
+        $this->webhookHelperMock->method('isIpValid')->willReturn(true);
+        $this->configMock->method('getNotificationsHmacKey')->willReturn('secret');
+        $this->hmacSignatureMock->method('isHmacSupportedEventCode')->willReturn(true);
+        $this->notificationReceiverMock->method('validateHmac')->willReturn(false);
 
-        $this->webhookHelper->method('isIpValid')->willReturn(true);
-        $this->configHelper->method('getNotificationsHmacKey')->willReturn('test-key');
-        $this->hmacSignature->method('isHmacSupportedEventCode')->willReturn(true);
-        $this->notificationReceiver->method('validateHmac')->willReturn(false);
-        $this->adyenLogger->expects(self::once())->method('addAdyenNotification');
+        $this->adyenLoggerMock->expects($this->once())->method('addAdyenNotification');
 
-        self::assertFalse($this->acceptor->validate($payload));
+        $result = $this->acceptor->validate(['eventCode' => 'AUTHORISATION']);
+        $this->assertFalse($result);
     }
 
-    public function testValidateReturnsTrueIfNotDuplicate(): void
+    public function testValidateReturnsTrueIfHmacSucceeds(): void
+    {
+        $this->webhookHelperMock->method('isIpValid')->willReturn(true);
+        $this->configMock->method('getNotificationsHmacKey')->willReturn('secret');
+        $this->hmacSignatureMock->method('isHmacSupportedEventCode')->willReturn(true);
+        $this->notificationReceiverMock->method('validateHmac')->willReturn(true);
+
+        $result = $this->acceptor->validate(['eventCode' => 'AUTHORISATION']);
+        $this->assertTrue($result);
+    }
+
+    public function testToNotificationListThrowsAuthenticationExceptionOnInvalidMode(): void
+    {
+        $this->configMock->method('isDemoMode')->willReturn(false);
+        $this->notificationReceiverMock
+            ->method('validateNotificationMode')
+            ->willReturn(false);
+
+        $this->expectException(AuthenticationException::class);
+        $this->expectExceptionMessage('Invalid notification mode.');
+
+        $this->acceptor->toNotificationList(['live' => 'invalid', 'notificationItems' => []]);
+    }
+
+    public function testToNotificationListThrowsOnInvalidNotification(): void
+    {
+        $this->configMock->method('isDemoMode')->willReturn(false);
+        $this->notificationReceiverMock->method('validateNotificationMode')->willReturn(true);
+        $this->webhookHelperMock->method('isIpValid')->willReturn(true);
+        $this->configMock->method('getNotificationsHmacKey')->willReturn('');
+        $this->hmacSignatureMock->method('isHmacSupportedEventCode')->willReturn(false);
+
+        $this->acceptor = new StandardWebhookAcceptor(
+            $this->configMock,
+            $this->notificationFactoryMock,
+            $this->notificationReceiverMock,
+            $this->hmacSignatureMock,
+            $this->serializerMock,
+            $this->adyenLoggerMock,
+            $this->webhookHelperMock
+        );
+
+        $this->webhookHelperMock->method('isIpValid')->willReturn(true);
+        $this->acceptor = $this->getMockBuilder(StandardWebhookAcceptor::class)
+            ->setConstructorArgs([
+                $this->configMock,
+                $this->notificationFactoryMock,
+                $this->notificationReceiverMock,
+                $this->hmacSignatureMock,
+                $this->serializerMock,
+                $this->adyenLoggerMock,
+                $this->webhookHelperMock
+            ])
+            ->onlyMethods(['validate'])
+            ->getMock();
+
+        $this->acceptor->method('validate')->willReturn(false);
+
+        $this->expectException(AuthenticationException::class);
+        $this->expectExceptionMessage('Notification failed authentication or validation.');
+
+        $this->acceptor->toNotificationList([
+            'live' => 'true',
+            'notificationItems' => [
+                ['NotificationRequestItem' => ['eventCode' => 'AUTHORISATION']]
+            ]
+        ]);
+    }
+
+    public function testToNotificationListReturnsValidNotifications(): void
     {
         $payload = [
-            'pspReference' => '123',
+            'pspReference' => 'test_psp',
             'eventCode' => 'AUTHORISATION',
-            'success' => 'true'
-        ];
-
-        $this->webhookHelper->method('isIpValid')->willReturn(true);
-        $this->configHelper->method('getNotificationsHmacKey')->willReturn(null);
-
-        $notification = $this->createMock(Notification::class);
-        $notification->expects(self::once())->method('setPspreference');
-        $notification->expects(self::once())->method('setEventCode');
-        $notification->expects(self::once())->method('setSuccess');
-        $notification->expects(self::once())->method('setOriginalReference');
-        $notification->method('isDuplicate')->willReturn(false);
-
-        $this->notificationFactory->method('create')->willReturn($notification);
-
-        self::assertTrue($this->acceptor->validate($payload));
-    }
-
-    public function testToNotification(): void
-    {
-        $payload = [
-            'pspReference' => '123',
-            'originalReference' => '321',
-            'merchantReference' => 'mr',
-            'eventCode' => 'AUTHORISATION',
-            'success' => 'true',
-            'paymentMethod' => 'visa',
-            'reason' => 'Approved',
-            'done' => 'true',
             'amount' => ['value' => 1000, 'currency' => 'EUR'],
             'additionalData' => ['key' => 'value']
         ];
 
-        $notification = $this->createMock(Notification::class);
-        $this->notificationFactory->method('create')->willReturn($notification);
+        $notification = $this->getMockBuilder(Notification::class)
+            ->onlyMethods(['isDuplicate', 'setCreatedAt', 'setUpdatedAt'])
+            ->disableOriginalConstructor()
+            ->getMock();
 
-        $this->serializer->method('serialize')->willReturn('serialized_data');
+        $notification->method('isDuplicate')->willReturn(false);
 
-        $notification->method('setCreatedAt');
-        $notification->method('setUpdatedAt');
+        $this->notificationFactoryMock->method('create')->willReturn($notification);
+        $this->notificationReceiverMock->method('validateNotificationMode')->willReturn(true);
+        $this->configMock->method('isDemoMode')->willReturn(false);
+        $this->webhookHelperMock->method('isIpValid')->willReturn(true);
+        $this->hmacSignatureMock->method('isHmacSupportedEventCode')->willReturn(false);
+        $this->serializerMock->method('serialize')->willReturn('{"key":"value"}');
 
-        $notification->expects(self::once())->method('setAdditionalData')->with('serialized_data');
+        $result = $this->acceptor->toNotificationList([
+            'live' => 'true',
+            'notificationItems' => [
+                ['NotificationRequestItem' => $payload]
+            ]
+        ]);
 
-        $result = $this->acceptor->toNotification($payload, 'live');
-        self::assertInstanceOf(Notification::class, $result);
+        $this->assertCount(1, $result);
+        $this->assertInstanceOf(Notification::class, $result[0]);
     }
 }

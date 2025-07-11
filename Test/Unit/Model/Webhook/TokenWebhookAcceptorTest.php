@@ -4,130 +4,147 @@ declare(strict_types=1);
 
 namespace Adyen\Payment\Test\Unit\Model\Webhook;
 
+use Adyen\Payment\Api\Webhook\WebhookAcceptorInterface;
+use Adyen\Payment\Exception\AuthenticationException;
 use Adyen\Payment\Helper\Webhook;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\NotificationFactory;
 use Adyen\Payment\Model\Webhook\TokenWebhookAcceptor;
-use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Serialize\SerializerInterface;
-use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
-#[CoversClass(TokenWebhookAcceptor::class)]
-class TokenWebhookAcceptorTest extends AbstractAdyenTestCase
+final class TokenWebhookAcceptorTest extends TestCase
 {
     private TokenWebhookAcceptor $acceptor;
-
-    private MockObject $notificationFactory;
-    private MockObject $serializer;
-    private MockObject $adyenLogger;
-    private MockObject $webhookHelper;
+    private MockObject $notificationFactoryMock;
+    private MockObject $serializerMock;
+    private MockObject $adyenLoggerMock;
+    private MockObject $webhookHelperMock;
 
     protected function setUp(): void
     {
-        $this->notificationFactory = $this->createMock(NotificationFactory::class);
-        $this->serializer = $this->createMock(SerializerInterface::class);
-        $this->adyenLogger = $this->createMock(AdyenLogger::class);
-        $this->webhookHelper = $this->createMock(Webhook::class);
+        $this->notificationFactoryMock = $this->createMock(NotificationFactory::class);
+        $this->serializerMock = $this->createMock(SerializerInterface::class);
+        $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
+        $this->webhookHelperMock = $this->createMock(Webhook::class);
 
         $this->acceptor = new TokenWebhookAcceptor(
-            $this->notificationFactory,
-            $this->serializer,
-            $this->adyenLogger,
-            $this->webhookHelper
+            $this->notificationFactoryMock,
+            $this->serializerMock,
+            $this->adyenLoggerMock,
+            $this->webhookHelperMock
         );
     }
 
-    public function testAuthenticateAlwaysReturnsTrue(): void
+    private function getValidPayload(): array
     {
-        $payload = ['key' => 'value'];
-        self::assertTrue($this->acceptor->authenticate($payload));
-    }
-
-    public function testValidateFailsWhenIpIsInvalid(): void
-    {
-        $this->webhookHelper->method('isIpValid')->willReturn(false);
-        self::assertFalse($this->acceptor->validate([]));
-    }
-
-    public function testValidateFailsWhenRequiredFieldsMissing(): void
-    {
-        $this->webhookHelper->method('isIpValid')->willReturn(true);
-        $this->adyenLogger
-            ->expects(self::once())
-            ->method('addAdyenNotification')
-            ->with(
-                $this->stringContains('Missing required field'),
-                $this->isType('array')
-            );
-
-        $result = $this->acceptor->validate([
-            'eventId' => 'evt_123',
-            // Missing nested data fields
-        ]);
-
-        self::assertFalse($result);
-    }
-
-    public function testValidatePassesWithAllRequiredFields(): void
-    {
-        $payload = [
-            'eventId' => 'evt_123',
-            'type' => 'TOKEN',
+        return [
+            'eventId' => 'evt-123',
+            'type' => 'token.created',
             'data' => [
-                'storedPaymentMethodId' => 'spm_456',
+                'storedPaymentMethodId' => 'mock-psp',
                 'type' => 'visa',
-                'shopperReference' => 'shopper_789',
-                'merchantAccount' => 'Merchant123'
-            ]
+                'shopperReference' => 'shopper123',
+                'merchantAccount' => 'TestMerchant',
+            ],
+            'environment' => 'test'
         ];
-
-        $this->webhookHelper->method('isIpValid')->willReturn(true);
-        $this->webhookHelper
-            ->expects(self::once())
-            ->method('isMerchantAccountValid')
-            ->with('Merchant123', $payload, 'token webhook')
-            ->willReturn(true);
-
-        self::assertTrue($this->acceptor->validate($payload));
     }
 
-    public function testToNotificationBuildsCorrectly(): void
+    public function testValidateReturnsFalseIfIpInvalid(): void
     {
-        $payload = [
-            'eventId' => 'evt_001',
-            'type' => 'TOKEN',
-            'data' => [
-                'storedPaymentMethodId' => 'spm_001',
-                'type' => 'mc',
-                'shopperReference' => 'shopper_xyz',
-                'merchantAccount' => 'MerchantABC'
-            ]
-        ];
+        $this->webhookHelperMock->method('isIpValid')->willReturn(false);
+        $this->adyenLoggerMock->expects($this->once())->method('addAdyenNotification');
 
-        $notification = $this->createMock(Notification::class);
-        $this->notificationFactory->method('create')->willReturn($notification);
+        $result = $this->acceptor->validate($this->getValidPayload());
+        $this->assertFalse($result);
+    }
 
-        $this->serializer
-            ->expects(self::once())
-            ->method('serialize')
-            ->with($payload)
-            ->willReturn('serialized_payload');
+    public function testValidateReturnsFalseIfFieldMissing(): void
+    {
+        $payload = $this->getValidPayload();
+        unset($payload['data']['storedPaymentMethodId']);
 
-        $notification->expects(self::once())->method('setPspreference')->with('spm_001');
-        $notification->expects(self::once())->method('setOriginalReference')->with('evt_001');
-        $notification->expects(self::once())->method('setMerchantReference')->with('shopper_xyz');
-        $notification->expects(self::once())->method('setEventCode')->with('TOKEN');
-        $notification->expects(self::once())->method('setPaymentMethod')->with('mc');
-        $notification->expects(self::once())->method('setLive')->with('live');
-        $notification->expects(self::once())->method('setSuccess')->with('true');
-        $notification->expects(self::once())->method('setReason')->with('Token lifecycle event');
-        $notification->expects(self::once())->method('setAdditionalData')->with('serialized_payload');
-        $notification->method('setCreatedAt');
-        $notification->method('setUpdatedAt');
+        $this->webhookHelperMock->method('isIpValid')->willReturn(true);
+        $this->adyenLoggerMock->expects($this->once())->method('addAdyenNotification');
 
-        $result = $this->acceptor->toNotification($payload, 'live');
-        self::assertInstanceOf(Notification::class, $result);
+        $result = $this->acceptor->validate($payload);
+        $this->assertFalse($result);
+    }
+
+    public function testValidateReturnsFalseIfMerchantAccountInvalid(): void
+    {
+        $this->webhookHelperMock->method('isIpValid')->willReturn(true);
+        $this->webhookHelperMock->method('isMerchantAccountValid')->willReturn(false);
+
+        $payload = $this->getValidPayload();
+
+        $result = $this->acceptor->validate($payload);
+        $this->assertFalse($result);
+    }
+
+    public function testValidateReturnsTrueOnValidPayload(): void
+    {
+        $this->webhookHelperMock->method('isIpValid')->willReturn(true);
+        $this->webhookHelperMock->method('isMerchantAccountValid')->willReturn(true);
+
+        $result = $this->acceptor->validate($this->getValidPayload());
+        $this->assertTrue($result);
+    }
+
+    public function testToNotificationListThrowsAuthenticationException(): void
+    {
+        $this->webhookHelperMock->method('isIpValid')->willReturn(false);
+
+        $this->expectException(AuthenticationException::class);
+        $this->expectExceptionMessage('Token webhook failed authentication or validation.');
+
+        $this->acceptor->toNotificationList($this->getValidPayload());
+    }
+
+    public function testToNotificationListReturnsNotification(): void
+    {
+        $payload = $this->getValidPayload();
+
+        $notification = $this->getMockBuilder(Notification::class)
+            ->onlyMethods(['setPspreference', 'setOriginalReference', 'setMerchantReference',
+                'setEventCode', 'setPaymentMethod', 'setLive', 'setSuccess', 'setReason',
+                'setAdditionalData', 'setCreatedAt', 'setUpdatedAt', 'isDuplicate'])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $notification->method('isDuplicate')->willReturn(false);
+
+        $this->notificationFactoryMock->method('create')->willReturn($notification);
+        $this->serializerMock->method('serialize')->willReturn(json_encode($payload));
+
+        $this->webhookHelperMock->method('isIpValid')->willReturn(true);
+        $this->webhookHelperMock->method('isMerchantAccountValid')->willReturn(true);
+
+        $result = $this->acceptor->toNotificationList($payload);
+
+        $this->assertCount(1, $result);
+        $this->assertSame($notification, $result[0]);
+    }
+
+    public function testToNotificationThrowsOnDuplicate(): void
+    {
+        $payload = $this->getValidPayload();
+
+        $notification = $this->getMockBuilder(Notification::class)
+            ->onlyMethods(['isDuplicate'])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $notification->method('isDuplicate')->willReturn(true);
+        $this->notificationFactoryMock->method('create')->willReturn($notification);
+        $this->serializerMock->method('serialize')->willReturn(json_encode($payload));
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Duplicate token notification');
+
+        $this->acceptor->toNotification($payload, 'test');
     }
 }
