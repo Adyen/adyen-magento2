@@ -26,6 +26,7 @@ use Adyen\Webhook\PaymentStates;
 use Adyen\Webhook\Processor\ProcessorFactory;
 use Exception;
 use Adyen\Payment\Model\Notification as NotificationEntity;
+use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Sales\Api\Data\OrderInterface;
@@ -68,6 +69,8 @@ class Webhook
      * @param PaymentMethods $paymentMethodsHelper
      * @param AdyenNotificationRepositoryInterface $notificationRepository
      * @param OrderStatusHistory $orderStatusHistoryHelper
+     * @param IpAddress $ipAddressHelper
+     * @param RemoteAddress $remoteAddress
      */
     public function __construct(
         private readonly SerializerInterface $serializer,
@@ -79,7 +82,9 @@ class Webhook
         private readonly OrderRepository $orderRepository,
         private readonly OrderStatusHistory $orderStatusHistoryHelper,
         private readonly PaymentMethods $paymentMethodsHelper,
-        private readonly AdyenNotificationRepositoryInterface $notificationRepository
+        private readonly AdyenNotificationRepositoryInterface $notificationRepository,
+        private readonly IpAddress $ipAddressHelper,
+        private readonly RemoteAddress $remoteAddress,
     ) {
         $this->klarnaReservationNumber = null;
         $this->ratepayDescriptor = null;
@@ -466,5 +471,39 @@ class Webhook
         $order->addCommentToStatusHistory($comment, $order->getStatus());
         $this->orderRepository->save($order);
         return $order;
+    }
+
+    public function isIpValid(array $payload, string $context = 'webhook'): bool
+    {
+        $ip = explode(',', (string) $this->remoteAddress->getRemoteAddress());
+        if (!$this->ipAddressHelper->isIpAddressValid($ip)) {
+            $this->logger->addAdyenNotification("Invalid IP for $context", $payload);
+            return false;
+        }
+        return true;
+    }
+
+    public function isMerchantAccountValid(string $incoming, array $payload, string $context = 'webhook'): bool
+    {
+        $expected = $this->configHelper->getMerchantAccount();
+
+        if ($expected === null) {
+            $expected = $this->configHelper->getMotoMerchantAccounts();
+        }
+
+        $isValid = is_array($expected)
+            ? in_array($incoming, $expected, true)
+            : $incoming === $expected;
+
+        if (!$isValid) {
+            $expectedDisplay = is_array($expected) ? implode(', ', $expected) : (string)$expected;
+            $this->logger->addAdyenNotification(
+                "Merchant account mismatch for $context. Expected: $expectedDisplay, Received: $incoming",
+                $payload
+            );
+            return false;
+        }
+
+        return true;
     }
 }
