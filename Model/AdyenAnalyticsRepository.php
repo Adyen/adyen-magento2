@@ -1,46 +1,55 @@
 <?php
+/**
+ *
+ * Adyen Payment Module
+ *
+ * Copyright (c) 2025 Adyen N.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+
 namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Api\AdyenAnalyticsRepositoryInterface;
-use Adyen\Payment\Api\Data\AdyenAnalyticsInterface;
-use Adyen\Payment\Model\ResourceModel\AdyenAnalytics as ResourceModel;
-use Adyen\Payment\Model\AdyenAnalyticsFactory;
+use Adyen\Payment\Api\Data\AnalyticsEventInterface;
+use Adyen\Payment\Model\ResourceModel\AnalyticsEvent as AnalyticsEventResourceModel;
 use Magento\Framework\Exception\NoSuchEntityException;
 
 class AdyenAnalyticsRepository implements AdyenAnalyticsRepositoryInterface
 {
-    protected ResourceModel $resourceModel;
-    protected \Adyen\Payment\Model\AdyenAnalyticsFactory $analyticsFactory;
-
     public function __construct(
-        ResourceModel $resourceModel,
-        AdyenAnalyticsFactory $analyticsFactory
-    ) {
-        $this->resourceModel = $resourceModel;
-        $this->analyticsFactory = $analyticsFactory;
+        protected readonly AnalyticsEventResourceModel $resourceModel,
+        protected readonly AnalyticsEventFactory $analyticsEventFactory
+    ) { }
+
+    public function save(AnalyticsEventInterface $analyticsEvent): AnalyticsEventInterface
+    {
+        $this->resourceModel->save($analyticsEvent);
+
+        return $analyticsEvent;
     }
 
-    public function save(AdyenAnalyticsInterface $analytics)
+    /**
+     * @throws NoSuchEntityException
+     */
+    public function getById(int $id): AnalyticsEventInterface
     {
-        $this->resourceModel->save($analytics);
-    }
-
-    public function getById($id)
-    {
-        $analytics = $this->analyticsFactory->create();
-        $this->resourceModel->load($analytics, $id);
-        if (!$analytics->getId()) {
-            throw new NoSuchEntityException(__('Unable to find analytics with ID "%1"', $id));
+        $analyticsEvent = $this->analyticsEventFactory->create();
+        $this->resourceModel->load($analyticsEvent, $id);
+        if (!$analyticsEvent->getId()) {
+            throw new NoSuchEntityException(__('Unable to find analytics event with ID "%1"', $id));
         }
-        return $analytics;
+        return $analyticsEvent;
     }
 
-    public function delete(AdyenAnalyticsInterface $analytics)
+    public function delete(AnalyticsEventInterface $analyticsEvent): void
     {
-        $this->resourceModel->delete($analytics);
+        $this->resourceModel->delete($analyticsEvent);
     }
 
-    public function deleteById($id)
+    public function deleteById(int $id): void
     {
         $analytics = $this->getById($id);
         $this->delete($analytics);

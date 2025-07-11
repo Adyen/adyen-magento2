@@ -1,15 +1,15 @@
 <?php
 namespace Adyen\Payment\Api;
 
-use Adyen\Payment\Api\Data\AdyenAnalyticsInterface;
+use Adyen\Payment\Api\Data\AnalyticsEventInterface;
 
 interface AdyenAnalyticsRepositoryInterface
 {
-    public function save(AdyenAnalyticsInterface $analytics);
+    public function save(AnalyticsEventInterface $analyticsEvent): AnalyticsEventInterface;
 
-    public function getById($id);
+    public function getById(int $id): AnalyticsEventInterface;
 
-    public function delete(AdyenAnalyticsInterface $analytics);
+    public function delete(AnalyticsEventInterface $analyticsEvent): void;
 
-    public function deleteById($id);
+    public function deleteById(int $id): void;
 }
