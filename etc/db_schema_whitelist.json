@@ -111,17 +111,26 @@
             "PRIMARY": true
         }
     },
-    "adyen_analytics": {
-        "columns": {
-            "id": {},
-            "checkoutAttemptId": {},
-            "eventType": {},
-            "topic": {},
-            "message": {},
-            "errorCount": {},
-            "done": {},
-            "createdAt": {},
-            "updatedAt": {}
+    "adyen_analytics_event": {
+        "column": {
+            "entity_id": true,
+            "uuid": true,
+            "relation_id": true,
+            "type": true,
+            "topic": true,
+            "message": true,
+            "error_count": true,
+            "status": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        },
+        "index": {
+            "ADYEN_ANALYTICS_EVENT_TYPE": true,
+            "ADYEN_ANALYTICS_EVENT_STATUS": true,
+            "ADYEN_ANALYTICS_EVENT_TYPE_STATUS": true
         }
     }
 }

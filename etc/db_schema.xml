@@ -124,18 +124,29 @@
     </constraint>
     <constraint xsi:type="foreign" referenceId="ADYEN_CREDITMEMO_ADYEN_ORDER_PAYMENT_ID_ADYEN_ORDER_PAYMENT_ENTITY_ID" table="adyen_creditmemo" column="adyen_order_payment_id" referenceTable="adyen_order_payment" referenceColumn="entity_id" onDelete="CASCADE"/>
   </table>
-  <table name="adyen_analytics" resource="default" engine="innodb" comment="Adyen Analytics Event Queue">
-    <column xsi:type="int" name="id" padding="10" unsigned="true" nullable="false" identity="true" comment="ID"/>
-    <column xsi:type="varchar" name="checkoutAttemptId" length="255" nullable="false" comment="Checkout Attempt ID"/>
-    <column xsi:type="varchar" name="eventType" length="255" nullable="false" comment="Event Type"/>
-    <column xsi:type="varchar" name="topic" length="255" nullable="false" comment="Event Topic"/>
-    <column xsi:type="text" name="message" nullable="false" comment="Message"/>
-    <column xsi:type="int" name="errorCount" nullable="false" default="0" comment="Error Count"/>
-    <column xsi:type="boolean" name="done" nullable="false" default="0" comment="Done"/>
-    <column xsi:type="timestamp" name="createdAt" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
-    <column xsi:type="timestamp" name="updatedAt" nullable="true" on_update="true" comment="Updated At"/>
+  <table name="adyen_analytics_event" resource="default" engine="innodb" comment="Adyen Analytics Event Queue">
+    <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Adyen Analytics Event Entity ID"/>
+    <column xsi:type="varchar" name="uuid" length="255" nullable="false" comment="Unique event ID"/>
+    <column xsi:type="varchar" name="relation_id" length="255" nullable="false" comment="Relation ID"/>
+    <column xsi:type="varchar" name="type" length="50" nullable="false" comment="Type"/>
+    <column xsi:type="varchar" name="topic" length="255" nullable="false" comment="Topic"/>
+    <column xsi:type="text" name="message" nullable="true" comment="Message"/>
+    <column xsi:type="int" name="error_count" nullable="false" default="0" comment="Error Count"/>
+    <column xsi:type="int" name="status" nullable="false" default="0" comment="Status"/>
+    <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+    <column xsi:type="timestamp" name="updated_at" nullable="true" on_update="true" comment="Updated At"/>
     <constraint xsi:type="primary" referenceId="PRIMARY">
-        <column name="id"/>
+      <column name="entity_id"/>
     </constraint>
+    <index referenceId="ADYEN_ANALYTICS_EVENT_TYPE" indexType="btree">
+      <column name="type"/>
+    </index>
+    <index referenceId="ADYEN_ANALYTICS_EVENT_STATUS" indexType="btree">
+      <column name="status"/>
+    </index>
+    <index referenceId="ADYEN_ANALYTICS_EVENT_TYPE_STATUS" indexType="btree">
+      <column name="type"/>
+      <column name="status"/>
+    </index>
   </table>
 </schema>

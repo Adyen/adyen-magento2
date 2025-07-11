@@ -1659,9 +1659,9 @@
             </argument>
         </arguments>
     </type>
-    <type name="Adyen\Payment\Api\Data\AdyenAnalyticsInterface">
+    <type name="Adyen\Payment\Api\Data\AnalyticsEventInterface">
         <arguments>
-            <argument name="instance" xsi:type="string">Adyen\Payment\Model\AdyenAnalytics</argument>
+            <argument name="instance" xsi:type="string">Adyen\Payment\Model\AnalyticsEvent</argument>
         </arguments>
     </type>
     <preference for="Adyen\Payment\Api\GuestAdyenPaymentMethodManagementInterface" type="Adyen\Payment\Model\Api\GuestAdyenPaymentMethodManagement" />
@@ -1688,7 +1688,7 @@
     <preference for="Adyen\Payment\Api\Repository\AdyenInvoiceRepositoryInterface" type="Adyen\Payment\Model\AdyenInvoiceRepository" />
     <preference for="Adyen\Payment\Api\Repository\AdyenCreditmemoRepositoryInterface" type="Adyen\Payment\Model\AdyenCreditmemoRepository" />
     <preference for="Adyen\Payment\Api\Repository\AdyenOrderPaymentRepositoryInterface" type="Adyen\Payment\Model\AdyenOrderPaymentRepository" />
-    <preference for="Adyen\Payment\Api\Data\AdyenAnalyticsInterface" type="Adyen\Payment\Model\AdyenAnalytics"/>
+    <preference for="Adyen\Payment\Api\Data\AnalyticsEventInterface" type="Adyen\Payment\Model\AnalyticsEvent"/>
     <preference for="Adyen\Payment\Api\AdyenAnalyticsRepositoryInterface" type="Adyen\Payment\Model\AdyenAnalyticsRepository"/>
     <type name="Magento\Vault\Api\PaymentTokenRepositoryInterface">
         <plugin name="AdyenPaymentVaultDeleteToken" type="Adyen\Payment\Plugin\PaymentVaultDeleteToken" sortOrder="10" />
