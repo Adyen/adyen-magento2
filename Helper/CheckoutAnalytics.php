@@ -100,8 +100,8 @@ class CheckoutAnalytics
     public function sendAnalytics(
         string $checkoutAttemptId,
         array $message,
-        string $channel = null,
-        string $platform = null
+        ?string $channel = null,
+        ?string $platform = null
     ): void {
         try {
             $request = $this->buildSendAnalyticsRequest($message, $channel, $platform);
@@ -152,8 +152,8 @@ class CheckoutAnalytics
      */
     private function buildSendAnalyticsRequest(
         array $message,
-        string $channel = null,
-        string $platform = null
+        ?string $channel = null,
+        ?string $platform = null
     ): array {
         if (empty($message)) {
             throw new InvalidArgumentException(__('Message can not be empty!'));
