@@ -61,6 +61,7 @@ class Config
     const XML_PROCESSED_WEBHOOK_REMOVAL_TIME = 'processed_webhook_removal_time';
     const XML_PLATFORM_INTEGRATOR = 'platform_integrator';
     const XML_HAS_PLATFORM_INTEGRATOR = 'has_platform_integrator';
+    const XML_RELIABILITY_DATA_COLLECTION = 'reliability_data_collection';
 
     /**
      * @param ScopeConfigInterface $scopeConfig
@@ -639,6 +640,22 @@ class Config
             Config::XML_PLATFORM_INTEGRATOR,
             Config::XML_ADYEN_ABSTRACT_PREFIX,
             null
+        );
+    }
+
+    /**
+     * Returns true if the reliability data collection is enabled
+     *
+     * @param int|null $storeId
+     * @return bool
+     */
+    public function isReliabilityDataCollectionEnabled(?int $storeId = null): bool
+    {
+        return $this->getConfigData(
+            Config::XML_RELIABILITY_DATA_COLLECTION,
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId,
+            true
         );
     }
 
