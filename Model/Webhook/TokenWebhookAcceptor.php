@@ -43,10 +43,12 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
 
     public function toNotificationList(array $payload): array
     {
-        return [$this->toNotification($payload, $payload['environment'] ?? 'test')];
+        $isLive = $payload['environment'] === 'live';
+
+        return [$this->toNotification($payload, $isLive)];
     }
 
-    private function toNotification(array $payload, string $mode): Notification
+    private function toNotification(array $payload, string $isLive): Notification
     {
         $notification = $this->notificationFactory->create();
 
@@ -75,7 +77,7 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
             $notification->setPaymentMethod($payload['data']['type']);
         }
 
-        $notification->setLive($mode);
+        $notification->setLive($isLive);
         $notification->setSuccess('true');
         $notification->setReason('Token lifecycle event');
         $notification->setAdditionalData($this->serializer->serialize($payload));

@@ -31,10 +31,10 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
      */
     public function validate(array $payload): bool
     {
-        $mode = $payload['live'] ?? '';
+        $isLiveMode = $payload['live'];
 
         if (!$this->notificationReceiver->validateNotificationMode(
-            $mode,
+            $isLiveMode,
             $this->configHelper->isDemoMode()
         )) {
             return false;
@@ -61,7 +61,7 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
     }
 
 
-    private function toNotification(array $payload, string $mode): Notification
+    private function toNotification(array $payload, string $isLive): Notification
     {
         $notification = $this->notificationFactory->create();
 
@@ -110,6 +110,8 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
         $notification->setCreatedAt($formattedDate);
         $notification->setUpdatedAt($formattedDate);
 
+        $notification->setLive($isLive);
+
         if ($notification->isDuplicate()) {
             throw new \RuntimeException('Duplicate notification');
         }
@@ -120,11 +122,12 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
     public function toNotificationList(array $payload): array
     {
         $notifications = [];
+        $isLive = $payload['live'];
 
         foreach ($payload['notificationItems'] as $notificationItemWrapper) {
             $item = $notificationItemWrapper['NotificationRequestItem'] ?? $notificationItemWrapper;
 
-            $notifications[] = $this->toNotification($item, $payload['live']);
+            $notifications[] = $this->toNotification($item, $isLive);
         }
 
         return $notifications;
