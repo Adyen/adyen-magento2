@@ -52,6 +52,7 @@ class Notification extends AbstractModel implements NotificationInterface
     const NOTIFICATION_OF_CHARGEBACK = "NOTIFICATION_OF_CHARGEBACK";
     const STATE_ADYEN_AUTHORIZED = "adyen_authorized";
     const MAX_ERROR_COUNT = 5;
+    const RECURRING_TOKEN_ALREADY_EXISTING  = "RECURRING_TOKEN_ALREADY_EXISTING";
 
     /**
      * @param Context $context
