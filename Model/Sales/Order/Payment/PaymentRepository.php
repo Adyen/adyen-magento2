@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
+ * Copyright (c) 2025 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -47,10 +47,12 @@ class PaymentRepository extends SalesOrderPaymentRepository
             ->setPageSize(1)
             ->create();
 
-        $payments = $this->getList($searchCriteria)->getItems();
+        $paymentsList = $this->getList($searchCriteria);
 
-        if (count($payments) > 0) {
-            return reset($payments);
+        if ($paymentsList->getSize() > 0) {
+            /** @var OrderPaymentInterface $payment */
+            $payment = $paymentsList->getFirstItem();
+            return $payment;
         } else {
             return null;
         }
