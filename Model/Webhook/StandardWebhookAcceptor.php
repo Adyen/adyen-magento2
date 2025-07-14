@@ -13,7 +13,6 @@ use Adyen\Webhook\Exception\InvalidDataException;
 use Adyen\Webhook\Receiver\NotificationReceiver;
 use Adyen\Webhook\Receiver\HmacSignature;
 use Magento\Framework\Serialize\SerializerInterface;
-use Adyen\Payment\Helper\Webhook;
 
 class StandardWebhookAcceptor implements WebhookAcceptorInterface
 {
@@ -23,9 +22,8 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
         private readonly NotificationReceiver $notificationReceiver,
         private readonly HmacSignature        $hmacSignature,
         private readonly SerializerInterface  $serializer,
-        private readonly AdyenLogger          $adyenLogger,
-        private readonly Webhook              $webhookHelper
-    ) {}
+        private readonly AdyenLogger          $adyenLogger
+    ) { }
 
 
     /**
@@ -34,10 +32,6 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
      */
     public function validate(array $payload): bool
     {
-        if (!$this->webhookHelper->isIpValid($payload, 'standard webhook')) {
-            return false;
-        }
-
         $hasHmac = $this->configHelper->getNotificationsHmacKey() &&
             $this->hmacSignature->isHmacSupportedEventCode($payload);
 

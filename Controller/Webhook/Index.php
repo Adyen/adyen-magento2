@@ -14,6 +14,7 @@ namespace Adyen\Payment\Controller\Webhook;
 use Adyen\Payment\Exception\AuthenticationException;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Webhook;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Webhook\WebhookAcceptorFactory;
 use Adyen\Payment\Model\Webhook\WebhookAcceptorType;
@@ -27,6 +28,7 @@ use Magento\Framework\Exception\LocalizedException;
 class Index implements ActionInterface
 {
     private Context $context;
+
     /**
      * Json constructor.
      *
@@ -35,7 +37,6 @@ class Index implements ActionInterface
      * @param Config $configHelper
      * @param NotificationReceiver $notificationReceiver
      * @param WebhookAcceptorFactory $webhookAcceptorFactory
-     * @param Data $adyenHelper
      */
     public function __construct(
         Context $context,
@@ -43,7 +44,7 @@ class Index implements ActionInterface
         private readonly Config $configHelper,
         private readonly NotificationReceiver $notificationReceiver,
         private readonly WebhookAcceptorFactory $webhookAcceptorFactory,
-        private readonly Data $adyenHelper
+        private readonly Webhook $webhookHelper
     ) {
         $this->context = $context;
         $this->enforceAjaxHeaderForMagento23Compatibility();
@@ -69,6 +70,12 @@ class Index implements ActionInterface
         if (!is_array($rawPayload)) {
             throw new LocalizedException(__('Invalid JSON payload.'));
         }
+
+        if (!$this->webhookHelper->isIpValid($rawPayload)) {
+            $this->return401();
+            return;
+        }
+
         $acceptedMessage = '[accepted]';
 
         try {

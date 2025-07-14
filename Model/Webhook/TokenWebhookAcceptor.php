@@ -31,11 +31,6 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
 
     public function validate(array $payload): bool
     {
-        if (!$this->webhookHelper->isIpValid($payload, 'token webhook')) {
-            $this->adyenLogger->addAdyenNotification("IP validation failed for token webhook", $payload);
-            return false;
-        }
-
         foreach (self::REQUIRED_FIELDS as $fieldPath) {
             if (!$this->getNestedValue($payload, explode('.', $fieldPath))) {
                 $this->adyenLogger->addAdyenNotification("Missing required field [$fieldPath] in token webhook", $payload);
@@ -47,7 +42,19 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
         return $this->webhookHelper->isMerchantAccountValid($incomingMerchantAccount, $payload, 'token webhook');
     }
 
-    public function toNotification(array $payload, string $mode): Notification
+    /**
+     * @throws AuthenticationException
+     */
+    public function toNotificationList(array $payload): array
+    {
+        if (!$this->validate($payload)) {
+            throw new AuthenticationException('Token webhook failed authentication or validation.');
+        }
+
+        return [$this->toNotification($payload, $payload['environment'] ?? 'test')];
+    }
+
+    private function toNotification(array $payload, string $mode): Notification
     {
         $notification = $this->notificationFactory->create();
 
@@ -91,18 +98,6 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
         }
 
         return $notification;
-    }
-
-    /**
-     * @throws AuthenticationException
-     */
-    public function toNotificationList(array $payload): array
-    {
-        if (!$this->validate($payload)) {
-            throw new AuthenticationException('Token webhook failed authentication or validation.');
-        }
-
-        return [$this->toNotification($payload, $payload['environment'] ?? 'test')];
     }
 
     private function getNestedValue(array $array, array $path): mixed
