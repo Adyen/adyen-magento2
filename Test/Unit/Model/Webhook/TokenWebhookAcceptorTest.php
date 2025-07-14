@@ -101,7 +101,7 @@ final class TokenWebhookAcceptorTest extends TestCase
         $this->expectException(AuthenticationException::class);
         $this->expectExceptionMessage('Token webhook failed authentication or validation.');
 
-        $this->acceptor->toNotificationList($this->getValidPayload());
+        $this->acceptor->getNotifications($this->getValidPayload());
     }
 
     public function testToNotificationListReturnsNotification(): void
@@ -123,7 +123,7 @@ final class TokenWebhookAcceptorTest extends TestCase
         $this->webhookHelperMock->method('isIpValid')->willReturn(true);
         $this->webhookHelperMock->method('isMerchantAccountValid')->willReturn(true);
 
-        $result = $this->acceptor->toNotificationList($payload);
+        $result = $this->acceptor->getNotifications($payload);
 
         $this->assertCount(1, $result);
         $this->assertSame($notification, $result[0]);

@@ -102,7 +102,7 @@ final class StandardWebhookAcceptorTest extends TestCase
         $this->expectException(AuthenticationException::class);
         $this->expectExceptionMessage('Invalid notification mode.');
 
-        $this->acceptor->toNotificationList(['live' => 'invalid', 'notificationItems' => []]);
+        $this->acceptor->getNotifications(['live' => 'invalid', 'notificationItems' => []]);
     }
 
     public function testToNotificationListThrowsOnInvalidNotification(): void
@@ -142,7 +142,7 @@ final class StandardWebhookAcceptorTest extends TestCase
         $this->expectException(AuthenticationException::class);
         $this->expectExceptionMessage('Notification failed authentication or validation.');
 
-        $this->acceptor->toNotificationList([
+        $this->acceptor->getNotifications([
             'live' => 'true',
             'notificationItems' => [
                 ['NotificationRequestItem' => ['eventCode' => 'AUTHORISATION']]
@@ -173,7 +173,7 @@ final class StandardWebhookAcceptorTest extends TestCase
         $this->hmacSignatureMock->method('isHmacSupportedEventCode')->willReturn(false);
         $this->serializerMock->method('serialize')->willReturn('{"key":"value"}');
 
-        $result = $this->acceptor->toNotificationList([
+        $result = $this->acceptor->getNotifications([
             'live' => 'true',
             'notificationItems' => [
                 ['NotificationRequestItem' => $payload]

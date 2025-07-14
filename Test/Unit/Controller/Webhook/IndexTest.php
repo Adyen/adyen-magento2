@@ -82,7 +82,7 @@ final class IndexTest extends AbstractAdyenTestCase
         $notification->expects($this->once())->method('save');
 
         $acceptorMock = $this->createMock(WebhookAcceptorInterface::class);
-        $acceptorMock->method('toNotificationList')->willReturn([$notification]);
+        $acceptorMock->method('getNotifications')->willReturn([$notification]);
 
         $payload = [
             'notificationItems' => [
@@ -121,7 +121,7 @@ final class IndexTest extends AbstractAdyenTestCase
         $notification->expects($this->once())->method('save');
 
         $acceptorMock = $this->createMock(WebhookAcceptorInterface::class);
-        $acceptorMock->method('toNotificationList')->willReturn([$notification]);
+        $acceptorMock->method('getNotifications')->willReturn([$notification]);
 
         $payload = ['type' => 'token.created'];
 
@@ -216,7 +216,7 @@ final class IndexTest extends AbstractAdyenTestCase
         ];
 
         $acceptorMock = $this->createMock(WebhookAcceptorInterface::class);
-        $acceptorMock->method('toNotificationList')->willThrowException(
+        $acceptorMock->method('getNotifications')->willThrowException(
             new \Adyen\Payment\Exception\AuthenticationException('Auth error')
         );
 
@@ -244,7 +244,7 @@ final class IndexTest extends AbstractAdyenTestCase
         ];
 
         $acceptorMock = $this->createMock(WebhookAcceptorInterface::class);
-        $acceptorMock->method('toNotificationList')->willThrowException(new \RuntimeException('something went wrong'));
+        $acceptorMock->method('getNotifications')->willThrowException(new \RuntimeException('something went wrong'));
 
         $this->requestMock->method('getContent')->willReturn(json_encode($payload));
         $this->webhookAcceptorFactoryMock->method('getAcceptor')->willReturn($acceptorMock);
