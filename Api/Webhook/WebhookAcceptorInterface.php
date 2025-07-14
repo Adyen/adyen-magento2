@@ -10,7 +10,6 @@ interface WebhookAcceptorInterface
 
     /**
      * Converts the incoming payload into one or more Notification objects.
-     * Should throw UnauthorizedWebhookException on failure.
      *
      * @param array $payload
      * @return Notification[]
