@@ -43,7 +43,7 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
 
     public function toNotificationList(array $payload): array
     {
-        $isLive = $payload['environment'] === 'live';
+        $isLive = $payload['environment'] === 'live' ? 'true' : 'false';
 
         return [$this->toNotification($payload, $isLive)];
     }
