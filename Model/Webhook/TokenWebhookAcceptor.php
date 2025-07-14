@@ -56,6 +56,7 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
         $merchantReference = $payload['data']['shopperReference'] ?? null;
 
         $notification->setPspreference($pspReference);
+        $notification->setEventCode($payload['type']);
 
         if (isset($payload['eventId'])) {
             $notification->setOriginalReference($payload['eventId']);
@@ -63,14 +64,6 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
 
         if (isset($merchantReference)) {
             $notification->setMerchantReference($merchantReference);
-        }
-
-        if (isset($payload['eventType'])) {
-            $notification->setEventCode($payload['eventType']);
-        } elseif (isset($payload['type'])) {
-            $notification->setEventCode($payload['type']);
-        } else {
-            $notification->setEventCode('TOKEN');
         }
 
         if (isset($payload['data']['type'])) {
