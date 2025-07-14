@@ -118,7 +118,6 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
         $notification->setEventCode($payload['type']);
         $notification->setLive($isLive);
         $notification->setSuccess('true');
-        $notification->setReason('Token lifecycle event');
         $notification->setPaymentMethod($payload['data']['type']);
 
         $formattedDate = date('Y-m-d H:i:s');
