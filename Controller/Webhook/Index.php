@@ -13,12 +13,10 @@ namespace Adyen\Payment\Controller\Webhook;
 
 use Adyen\Payment\Exception\AuthenticationException;
 use Adyen\Payment\Helper\Config;
-use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Webhook;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Webhook\WebhookAcceptorFactory;
 use Adyen\Payment\Model\Webhook\WebhookAcceptorType;
-use Adyen\Webhook\Receiver\NotificationReceiver;
 use Magento\Framework\App\ActionInterface;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\CsrfAwareActionInterface;
@@ -27,26 +25,22 @@ use Magento\Framework\Exception\LocalizedException;
 
 class Index implements ActionInterface
 {
-    private Context $context;
-
     /**
      * Json constructor.
      *
      * @param Context $context
      * @param AdyenLogger $adyenLogger
      * @param Config $configHelper
-     * @param NotificationReceiver $notificationReceiver
      * @param WebhookAcceptorFactory $webhookAcceptorFactory
+     * @param Webhook $webhookHelper
      */
     public function __construct(
-        Context $context,
+        private readonly Context $context,
         private readonly AdyenLogger $adyenLogger,
         private readonly Config $configHelper,
-        private readonly NotificationReceiver $notificationReceiver,
         private readonly WebhookAcceptorFactory $webhookAcceptorFactory,
         private readonly Webhook $webhookHelper
     ) {
-        $this->context = $context;
         $this->enforceAjaxHeaderForMagento23Compatibility();
     }
 
@@ -81,6 +75,11 @@ class Index implements ActionInterface
         try {
             $webhookType = $this->getWebhookType($rawPayload);
             $acceptor = $this->webhookAcceptorFactory->getAcceptor($webhookType);
+
+            if (!$acceptor->validate($rawPayload)) {
+                $this->return401();
+                return;
+            }
 
             $notifications = $acceptor->toNotificationList($rawPayload);
 

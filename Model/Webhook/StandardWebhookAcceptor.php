@@ -3,7 +3,6 @@
 namespace Adyen\Payment\Model\Webhook;
 
 use Adyen\Payment\Api\Webhook\WebhookAcceptorInterface;
-use Adyen\Payment\Exception\AuthenticationException;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
@@ -32,18 +31,33 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
      */
     public function validate(array $payload): bool
     {
-        $hasHmac = $this->configHelper->getNotificationsHmacKey() &&
-            $this->hmacSignature->isHmacSupportedEventCode($payload);
+        $mode = $payload['live'] ?? '';
 
-        if ($hasHmac && !$this->notificationReceiver->validateHmac(
-                $payload,
-                $this->configHelper->getNotificationsHmacKey()
-            )) {
-            $this->adyenLogger->addAdyenNotification("HMAC validation failed", $payload);
+        if (!$this->notificationReceiver->validateNotificationMode(
+            $mode,
+            $this->configHelper->isDemoMode()
+        )) {
             return false;
         }
 
-        return true;
+        foreach ($payload['notificationItems'] as $notificationItemWrapper) {
+            $item = $notificationItemWrapper['NotificationRequestItem'];
+
+            $hasHmac = $this->configHelper->getNotificationsHmacKey() &&
+                $this->hmacSignature->isHmacSupportedEventCode($item);
+
+            if ($hasHmac && !$this->notificationReceiver->validateHmac(
+                    $item,
+                    $this->configHelper->getNotificationsHmacKey()
+                )) {
+                $this->adyenLogger->addAdyenNotification("HMAC validation failed", $item);
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
 
@@ -103,33 +117,14 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
         return $notification;
     }
 
-
-    /**
-     * @throws AuthenticationException
-     * @throws InvalidDataException
-     * @throws HMACKeyValidationException
-     */
     public function toNotificationList(array $payload): array
     {
-        $mode = $payload['live'] ?? '';
-
-        if (!$this->notificationReceiver->validateNotificationMode(
-            $mode,
-            $this->configHelper->isDemoMode()
-        )) {
-            throw new AuthenticationException('Invalid notification mode.');
-        }
-
         $notifications = [];
 
         foreach ($payload['notificationItems'] as $notificationItemWrapper) {
             $item = $notificationItemWrapper['NotificationRequestItem'] ?? $notificationItemWrapper;
 
-            if (!$this->validate($item)) {
-                throw new AuthenticationException('Notification failed authentication or validation.');
-            }
-
-            $notifications[] = $this->toNotification($item, $mode);
+            $notifications[] = $this->toNotification($item, $payload['live']);
         }
 
         return $notifications;

@@ -2,7 +2,6 @@
 
 namespace Adyen\Payment\Model\Webhook;
 
-use Adyen\Payment\Exception\AuthenticationException;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\NotificationFactory;
 use Adyen\Payment\Logger\AdyenLogger;
@@ -42,15 +41,8 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
         return $this->webhookHelper->isMerchantAccountValid($incomingMerchantAccount, $payload, 'token webhook');
     }
 
-    /**
-     * @throws AuthenticationException
-     */
     public function toNotificationList(array $payload): array
     {
-        if (!$this->validate($payload)) {
-            throw new AuthenticationException('Token webhook failed authentication or validation.');
-        }
-
         return [$this->toNotification($payload, $payload['environment'] ?? 'test')];
     }
 
