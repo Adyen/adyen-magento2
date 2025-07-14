@@ -119,18 +119,6 @@ class Index implements ActionInterface
         throw new \UnexpectedValueException('Unable to determine webhook type from payload.');
     }
 
-    private function isNotificationModeValid(array $payload): bool
-    {
-        if (!isset($payload['live'])) {
-            return false;
-        }
-
-        return $this->notificationReceiver->validateNotificationMode(
-            $payload['live'],
-            $this->configHelper->isDemoMode()
-        );
-    }
-
     private function return401(string $message = 'Unauthorized'): void
     {
         $response = $this->context->getResponse();
