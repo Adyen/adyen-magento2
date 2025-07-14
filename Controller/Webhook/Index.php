@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Controller\Webhook;
 
+use Adyen\AdyenException;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Webhook;
 use Adyen\Payment\Logger\AdyenLogger;
@@ -92,7 +93,14 @@ class Index implements ActionInterface
                 ->setHeader('Content-Type', 'text/html')
                 ->setBody($acceptedMessage);
             return;
+        } catch (AdyenException $e) {
+            $this->adyenLogger->addAdyenNotification($e->getMessage());
 
+            $this->context->getResponse()
+                ->setHttpResponseCode(500)
+                ->setBody(__('An error occurred while handling this notification!'));
+
+            return;
         } catch (\Throwable $e) {
             throw new LocalizedException(__('Webhook processing failed: %1', $e->getMessage()));
         }

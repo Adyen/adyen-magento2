@@ -2,10 +2,11 @@
 
 namespace Adyen\Payment\Model\Webhook;
 
+use Adyen\AdyenException;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\NotificationFactory;
 use Adyen\Payment\Logger\AdyenLogger;
-use Magento\Framework\Serialize\SerializerInterface;
+use Adyen\Payment\Model\Sales\Order\Payment\PaymentRepository;
 use Adyen\Payment\Api\Webhook\WebhookAcceptorInterface;
 use Adyen\Payment\Helper\Webhook;
 
@@ -23,9 +24,9 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
 
     public function __construct(
         private readonly NotificationFactory $notificationFactory,
-        private readonly SerializerInterface $serializer,
         private readonly AdyenLogger $adyenLogger,
-        private readonly Webhook $webhookHelper
+        private readonly Webhook $webhookHelper,
+        private readonly PaymentRepository $paymentRepository
     ) {}
 
     public function validate(array $payload): bool
@@ -48,32 +49,30 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
         return [$this->toNotification($payload, $isLive)];
     }
 
+    /**
+     * @throws AdyenException
+     */
     private function toNotification(array $payload, string $isLive): Notification
     {
         $notification = $this->notificationFactory->create();
 
         $pspReference = $payload['data']['storedPaymentMethodId'];
-        $merchantReference = $payload['data']['shopperReference'] ?? null;
 
+        $payment = $this->paymentRepository->getPaymentByCcTransId($pspReference);
+        if (empty($payment)) {
+            throw new AdyenException(
+                __("Order with pspReference %1 not found!", $pspReference)
+            );
+        }
+
+        $notification->setMerchantReference($payment->getOrder()->getIncrementId());
         $notification->setPspreference($pspReference);
+        $notification->setOriginalReference($payload['eventId']);
         $notification->setEventCode($payload['type']);
-
-        if (isset($payload['eventId'])) {
-            $notification->setOriginalReference($payload['eventId']);
-        }
-
-        if (isset($merchantReference)) {
-            $notification->setMerchantReference($merchantReference);
-        }
-
-        if (isset($payload['data']['type'])) {
-            $notification->setPaymentMethod($payload['data']['type']);
-        }
-
         $notification->setLive($isLive);
         $notification->setSuccess('true');
         $notification->setReason('Token lifecycle event');
-        $notification->setAdditionalData($this->serializer->serialize($payload));
+        $notification->setPaymentMethod($payload['data']['type']);
 
         $formattedDate = date('Y-m-d H:i:s');
         $notification->setCreatedAt($formattedDate);
