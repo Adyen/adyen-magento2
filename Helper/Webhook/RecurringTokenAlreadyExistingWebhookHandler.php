@@ -37,7 +37,7 @@ class RecurringTokenAlreadyExistingWebhookHandler implements WebhookHandlerInter
                 __('Recurring token already existed and was linked to this customer successfully.')
             );
 
-            $this->adyenLogger->info(sprintf(
+            $this->adyenLogger->addAdyenNotification(sprintf(
                 'Handled recurring.token.alreadyExisting webhook for order %s (pspReference: %s)',
                 $order->getIncrementId(),
                 $notification->getPspreference()
