@@ -13,7 +13,7 @@
   "require": {
     "php": "~8.2.0||~8.3.0||~8.4.0",
     "adyen/php-api-library": "^28.1.0",
-    "adyen/php-webhook-module": "^1",
+    "adyen/php-webhook-module": "^1.1.0",
     "magento/framework": ">=103.0.8",
     "magento/module-vault": ">=101.2.8",
     "magento/module-multishipping": ">=100.4.8",
