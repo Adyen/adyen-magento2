@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2025 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -36,6 +36,7 @@ class Index implements ActionInterface
      * @param Config $configHelper
      * @param WebhookAcceptorFactory $webhookAcceptorFactory
      * @param Webhook $webhookHelper
+     * @param ResultFactory $resultFactory
      */
     public function __construct(
         private readonly Context $context,
@@ -86,14 +87,19 @@ class Index implements ActionInterface
 
             foreach ($notifications as $notification) {
                 $notification->save();
-                $this->adyenLogger->addAdyenResult(sprintf("Notification %s is accepted", $notification->getId()));
+                $this->adyenLogger->addAdyenResult(
+                    sprintf("Notification %s is accepted", $notification->getId())
+                );
             }
 
             return $this->prepareResponse($acceptedMessage, 200);
         } catch (Exception $e) {
             $this->adyenLogger->addAdyenNotification($e->getMessage());
 
-            return $this->prepareResponse(__('An error occurred while handling this notification!'), 500);
+            return $this->prepareResponse(
+                __('An error occurred while handling this notification!'),
+                500
+            );
         }
     }
 
@@ -115,13 +121,6 @@ class Index implements ActionInterface
 
         throw new AdyenException(__('Unable to determine webhook type from payload.'));
     }
-
-//    private function return401(string $message = 'Unauthorized'): void
-//    {
-//        $response = $this->context->getResponse();
-//        $response->setHttpResponseCode(401);
-//        $response->setBody($message);
-//    }
 
     private function prepareResponse($message, $responseCode): ResultInterface
     {
@@ -161,5 +160,4 @@ class Index implements ActionInterface
         }
         return true;
     }
-
 }
