@@ -171,12 +171,17 @@ class CheckoutDataBuilder implements BuilderInterface
          * if the combo card type is debit then add the funding source
          * and unset the installments & brand fields
          */
-        if (!empty($comboCardType) && $comboCardType === 'debit') {
-            $requestBody['paymentMethod']['fundingSource'] = 'debit';
-            unset($requestBody['paymentMethod']['brand']);
-            unset($requestBody['installments']);
-        } else if (!empty($comboCardType) && $comboCardType === 'credit') {
-            $requestBody['paymentMethod']['fundingSource'] = 'credit';
+        if (!empty($comboCardType)) {
+            switch ($comboCardType) {
+                case 'debit':
+                    $requestBody['paymentMethod']['fundingSource'] = 'debit';
+                    unset($requestBody['paymentMethod']['brand']);
+                    unset($requestBody['installments']);
+                    break;
+                case 'credit':
+                    $requestBody['paymentMethod']['fundingSource'] = 'credit';
+                    break;
+            }
         }
 
         $threeDSFlow = $this->configHelper->getThreeDSFlow($order->getStoreId());
