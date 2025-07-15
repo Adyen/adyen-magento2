@@ -19,6 +19,7 @@ use DateInterval;
 use DateTime;
 use DateTimeZone;
 use Exception;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Model\InfoInterface;
 use Magento\Sales\Api\Data\OrderPaymentExtensionInterface;
 use Magento\Sales\Api\Data\OrderPaymentExtensionInterfaceFactory;
@@ -28,6 +29,7 @@ use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Vault\Model\PaymentTokenManagement;
+use Magento\Vault\Model\ResourceModel\PaymentToken as PaymentTokenResourceModel;
 use Magento\Vault\Model\Ui\VaultConfigProvider;
 
 class Vault
@@ -54,32 +56,28 @@ class Vault
     const MODE_MAGENTO_VAULT = 'Magento Vault';
     const MODE_ADYEN_TOKENIZATION = 'Adyen Tokenization';
 
-    private AdyenLogger $adyenLogger;
-    private PaymentTokenManagement $paymentTokenManagement;
-    private PaymentTokenFactoryInterface $paymentTokenFactory;
-    private PaymentTokenRepositoryInterface $paymentTokenRepository;
-    private Config $config;
-    private PaymentMethods $paymentMethodsHelper;
-    private StateData $stateData;
-    private OrderPaymentExtensionInterfaceFactory $paymentExtensionFactory;
-
+    /**
+     * @param AdyenLogger $adyenLogger
+     * @param PaymentTokenManagement $paymentTokenManagement
+     * @param PaymentTokenFactoryInterface $paymentTokenFactory
+     * @param PaymentTokenRepositoryInterface $paymentTokenRepository
+     * @param PaymentTokenResourceModel $paymentTokenResourceModel
+     * @param OrderPaymentExtensionInterfaceFactory $paymentExtensionFactory
+     * @param Config $config
+     * @param PaymentMethods $paymentMethodsHelper
+     * @param StateData $stateData
+     */
     public function __construct(
-        AdyenLogger $adyenLogger,
-        PaymentTokenManagement $paymentTokenManagement,
-        PaymentTokenFactoryInterface $paymentTokenFactory,
-        PaymentTokenRepositoryInterface $paymentTokenRepository,
-        Config $config,
-        PaymentMethods $paymentMethodsHelper,
-        StateData $stateData
-    ) {
-        $this->adyenLogger = $adyenLogger;
-        $this->paymentTokenManagement = $paymentTokenManagement;
-        $this->paymentTokenFactory = $paymentTokenFactory;
-        $this->paymentTokenRepository = $paymentTokenRepository;
-        $this->config = $config;
-        $this->paymentMethodsHelper = $paymentMethodsHelper;
-        $this->stateData = $stateData;
-    }
+        private readonly AdyenLogger $adyenLogger,
+        private readonly PaymentTokenManagement $paymentTokenManagement,
+        private readonly PaymentTokenFactoryInterface $paymentTokenFactory,
+        private readonly PaymentTokenRepositoryInterface $paymentTokenRepository,
+        private readonly PaymentTokenResourceModel $paymentTokenResourceModel,
+        private readonly OrderPaymentExtensionInterfaceFactory  $paymentExtensionFactory,
+        private readonly Config $config,
+        private readonly PaymentMethods $paymentMethodsHelper,
+        private readonly StateData $stateData
+    ) { }
 
     /**
      * @return string[]
@@ -322,5 +320,31 @@ class Vault
                 );
             }
         }
+    }
+
+    /**
+     * Fetches the vault payment token using `storePaymentMethodId` property only.
+     *
+     * This method has been implemented as the related Magento payment method can not be extracted
+     * from `recurring.token.disabled` webhooks even though this field is required to get the vault token
+     * by PaymentTokenManagement::getByGatewayToken() method. This method is the simplified version of
+     * `getByGatewayToken()` method for the webhook processing purpose.
+     *
+     * @param string $storedPaymentMethodId
+     * @return PaymentTokenInterface|null
+     * @throws LocalizedException
+     */
+    public function getVaultTokenByStoredPaymentMethodId(string $storedPaymentMethodId): ?PaymentTokenInterface
+    {
+        $connection = $this->paymentTokenResourceModel->getConnection();
+
+        $select = $connection
+            ->select()
+            ->from($this->paymentTokenResourceModel->getMainTable())
+            ->where('gateway_token = ?', $storedPaymentMethodId);
+
+        $result = $connection->fetchRow($select);
+
+        return !empty($result) ? $this->paymentTokenFactory->create(['data' => $result]) : null;
     }
 }

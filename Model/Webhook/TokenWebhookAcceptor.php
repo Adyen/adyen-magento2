@@ -12,7 +12,6 @@
 
 namespace Adyen\Payment\Model\Webhook;
 
-use Adyen\AdyenException;
 use Adyen\Payment\Exception\AuthenticationException;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Model\Notification;
@@ -24,6 +23,7 @@ use Adyen\Payment\Helper\Webhook;
 use Adyen\Webhook\Exception\InvalidDataException;
 use Adyen\Webhook\Receiver\NotificationReceiver;
 use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\Serialize\SerializerInterface;
 
 class TokenWebhookAcceptor implements WebhookAcceptorInterface
 {
@@ -45,6 +45,7 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
      * @param Config $configHelper
      * @param NotificationReceiver $notificationReceiver
      * @param PaymentRepository $paymentRepository
+     * @param SerializerInterface $serializer
      */
     public function __construct(
         private readonly NotificationFactory $notificationFactory,
@@ -52,7 +53,8 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
         private readonly Webhook $webhookHelper,
         private readonly Config $configHelper,
         private readonly NotificationReceiver $notificationReceiver,
-        private readonly PaymentRepository $paymentRepository
+        private readonly PaymentRepository $paymentRepository,
+        private readonly SerializerInterface $serializer
     ) { }
 
     public function getNotifications(array $payload): array
@@ -95,7 +97,6 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
     }
 
     /**
-     * @throws AdyenException
      * @throws AlreadyExistsException
      */
     private function toNotification(array $payload, string $isLive): Notification
@@ -106,19 +107,21 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
         $originalReference = $payload['eventId'];
 
         $payment = $this->paymentRepository->getPaymentByCcTransId($originalReference);
-        if (empty($payment)) {
-            throw new AdyenException(
-                __("Order with pspReference %1 not found while handling the webhook!", $originalReference)
-            );
+        if (isset($payment)) {
+            $notification->setMerchantReference($payment->getOrder()->getIncrementId());
         }
 
-        $notification->setMerchantReference($payment->getOrder()->getIncrementId());
         $notification->setPspreference($pspReference);
         $notification->setOriginalReference($originalReference);
         $notification->setEventCode($payload['type']);
         $notification->setLive($isLive);
         $notification->setSuccess('true');
         $notification->setPaymentMethod($payload['data']['type']);
+
+        $additionalData = [
+            'shopperReference' => $payload['data']['shopperReference']
+        ];
+        $notification->setAdditionalData($this->serializer->serialize($additionalData));
 
         $formattedDate = date('Y-m-d H:i:s');
         $notification->setCreatedAt($formattedDate);

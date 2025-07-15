@@ -12,32 +12,32 @@
 
 namespace Adyen\Payment\Helper\Webhook;
 
+use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
-use Magento\Vault\Model\PaymentTokenManagement;
 
 class RecurringTokenDisabledWebhookHandler implements WebhookHandlerInterface
 {
     /**
      * @param AdyenLogger $adyenLogger
-     * @param PaymentTokenManagement $paymentTokenManagement
      * @param PaymentTokenRepositoryInterface $paymentTokenRepository
+     * @param Vault $vaultHelper
      */
     public function __construct(
         private readonly AdyenLogger $adyenLogger,
-        private readonly PaymentTokenManagement $paymentTokenManagement,
-        private readonly PaymentTokenRepositoryInterface $paymentTokenRepository
+        private readonly PaymentTokenRepositoryInterface $paymentTokenRepository,
+        private readonly Vault  $vaultHelper
     ) { }
 
+    /**
+     * @throws LocalizedException
+     */
     public function handleWebhook(Order $order, Notification $notification, string $transitionState): Order
     {
-        $vaultToken = $this->paymentTokenManagement->getByGatewayToken(
-            $notification->getPspreference(),
-            $order->getPayment()->getMethodInstance()->getCode(),
-            $order->getCustomerId()
-        );
+        $vaultToken = $this->vaultHelper->getVaultTokenByStoredPaymentMethodId($notification->getPspreference());
 
         if (isset($vaultToken)) {
             $vaultToken->setIsActive(false);
@@ -50,10 +50,7 @@ class RecurringTokenDisabledWebhookHandler implements WebhookHandlerInterface
                     "Vault payment token with entity_id: %s disabled due to the failing %s webhook notification.",
                     $vaultToken->getEntityId(),
                     $notification->getEventCode()
-                ),
-                [
-                    'merchantReference' => $notification->getMerchantReference()
-                ]
+                )
             );
         }
 
