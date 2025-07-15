@@ -33,7 +33,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Prepare the next main release
-        uses: Adyen/release-automation-action@v1.3.1
+        uses: Adyen/release-automation-action@v1.4.0
         with:
           token: ${{ secrets.ADYEN_RELEASE_AUTOMATION_USER_TOKEN }}
           develop-branch: main
