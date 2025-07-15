@@ -47,7 +47,7 @@ class CheckoutDataBuilder implements BuilderInterface
      * @param CartRepositoryInterface $cartRepository
      * @param ChargedCurrency $chargedCurrency
      * @param Config $configHelper
-     * @param OpenInvoice $openInvoiceHelper
+     * @param PaymentMethods $paymentMethodsHelper
      * @param Image $imageHelper
      */
     public function __construct(
@@ -56,7 +56,6 @@ class CheckoutDataBuilder implements BuilderInterface
         private readonly CartRepositoryInterface $cartRepository,
         private readonly ChargedCurrency $chargedCurrency,
         private readonly Config $configHelper,
-        private readonly OpenInvoice $openInvoiceHelper,
         private readonly PaymentMethods $paymentMethodsHelper,
         private readonly Image $imageHelper
     ) { }
@@ -163,7 +162,7 @@ class CheckoutDataBuilder implements BuilderInterface
         $numberOfInstallments = $payment->getAdditionalInformation(
             AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS
         ) ?: 0;
-        $comboCardType = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::COMBO_CARD_TYPE) ?: 'credit';
+        $comboCardType = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::COMBO_CARD_TYPE);
         if ($numberOfInstallments > 0) {
             $requestBody['installments']['value'] = $numberOfInstallments;
         }
@@ -172,10 +171,12 @@ class CheckoutDataBuilder implements BuilderInterface
          * if the combo card type is debit then add the funding source
          * and unset the installments & brand fields
          */
-        if ($comboCardType == 'debit') {
+        if (!empty($comboCardType) && $comboCardType === 'debit') {
             $requestBody['paymentMethod']['fundingSource'] = 'debit';
             unset($requestBody['paymentMethod']['brand']);
             unset($requestBody['installments']);
+        } else if (!empty($comboCardType) && $comboCardType === 'credit') {
+            $requestBody['paymentMethod']['fundingSource'] = 'credit';
         }
 
         $threeDSFlow = $this->configHelper->getThreeDSFlow($order->getStoreId());
