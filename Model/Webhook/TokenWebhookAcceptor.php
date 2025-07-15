@@ -12,7 +12,6 @@
 
 namespace Adyen\Payment\Model\Webhook;
 
-use Adyen\Payment\Exception\AuthenticationException;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\NotificationFactory;
@@ -20,8 +19,10 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Sales\Order\Payment\PaymentRepository;
 use Adyen\Payment\Api\Webhook\WebhookAcceptorInterface;
 use Adyen\Payment\Helper\Webhook;
+use Adyen\Webhook\Exception\AuthenticationException;
 use Adyen\Webhook\Exception\InvalidDataException;
 use Adyen\Webhook\Receiver\NotificationReceiver;
+use Magento\Framework\App\Request\Http;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Serialize\SerializerInterface;
 
@@ -46,6 +47,7 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
      * @param NotificationReceiver $notificationReceiver
      * @param PaymentRepository $paymentRepository
      * @param SerializerInterface $serializer
+     * @param Http $request
      */
     public function __construct(
         private readonly NotificationFactory $notificationFactory,
@@ -54,7 +56,8 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
         private readonly Config $configHelper,
         private readonly NotificationReceiver $notificationReceiver,
         private readonly PaymentRepository $paymentRepository,
-        private readonly SerializerInterface $serializer
+        private readonly SerializerInterface $serializer,
+        private readonly Http $request
     ) { }
 
     public function getNotifications(array $payload): array
@@ -69,6 +72,7 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
      * Validates the webhook environment mode, the required fields and the webhook merchantAccount
      *
      * @throws InvalidDataException
+     * @throws AuthenticationException
      */
     private function validate(array $payload): void
     {
@@ -93,6 +97,20 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
                 $payload
             );
             throw new InvalidDataException();
+        }
+
+        $webhookHmacKey = $this->configHelper->getNotificationsHmacKey();
+
+        if ($webhookHmacKey) {
+            $webhookHmacSignature = $this->request->getHeader('hmacsignature');
+            $expectedSignature = base64_encode(
+                hash_hmac('sha256', json_encode($payload), pack("H*", $webhookHmacKey), true)
+            );
+
+            if (strcmp($expectedSignature, $webhookHmacSignature) !== 0) {
+                $this->adyenLogger->addAdyenNotification("HMAC validation failed", $payload);
+                throw new AuthenticationException();
+            }
         }
     }
 
