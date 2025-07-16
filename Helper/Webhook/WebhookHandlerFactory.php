@@ -40,6 +40,7 @@ class WebhookHandlerFactory
     private CaptureFailedWebhookHandler $captureFailedWebhookHandler;
     private RecurringTokenAlreadyExistingWebhookHandler $recurringTokenAlreadyExistingWebhookHandler;
     private RecurringTokenDisabledWebhookHandler $recurringTokenDisabledWebhookHandler;
+    private RecurringTokenCreatedWebhookHandler $recurringTokenCreatedWebhookHandler;
 
     public function __construct(
         AdyenLogger $adyenLogger,
@@ -63,7 +64,8 @@ class WebhookHandlerFactory
         NotificationOfChargebackWebhookHandler $notificationOfChargebackWebhookHandler,
         CaptureFailedWebhookHandler $captureFailedWebhookHandler,
         RecurringTokenAlreadyExistingWebhookHandler $recurringTokenAlreadyExistingWebhookHandler,
-        RecurringTokenDisabledWebhookHandler $recurringTokenDisabledWebhookHandler
+        RecurringTokenDisabledWebhookHandler $recurringTokenDisabledWebhookHandler,
+        RecurringTokenCreatedWebhookHandler $recurringTokenCreatedWebhookHandler
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->authorisationWebhookHandler = $authorisationWebhookHandler;
@@ -87,6 +89,7 @@ class WebhookHandlerFactory
         $this->captureFailedWebhookHandler = $captureFailedWebhookHandler;
         $this->recurringTokenAlreadyExistingWebhookHandler = $recurringTokenAlreadyExistingWebhookHandler;
         $this->recurringTokenDisabledWebhookHandler = $recurringTokenDisabledWebhookHandler;
+        $this->recurringTokenCreatedWebhookHandler = $recurringTokenCreatedWebhookHandler;
     }
 
     /**
@@ -138,6 +141,8 @@ class WebhookHandlerFactory
                 return $this->recurringTokenAlreadyExistingWebhookHandler;
             case Notification::RECURRING_TOKEN_DISABLED:
                 return $this->recurringTokenDisabledWebhookHandler;
+            case Notification::RECURRING_TOKEN_CREATED:
+                return $this->recurringTokenCreatedWebhookHandler;
         }
 
         $exceptionMessage = sprintf(
