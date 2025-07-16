@@ -1,59 +1,112 @@
 <?php
+/**
+ *
+ * Adyen Payment Module
+ *
+ * Copyright (c) 2025 Adyen N.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
 
 namespace Adyen\Payment\Model\Webhook;
 
 use Adyen\Payment\Api\Webhook\WebhookAcceptorInterface;
-use Adyen\Payment\Exception\AuthenticationException;
 use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\Webhook;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\NotificationFactory;
+use Adyen\Webhook\Exception\AuthenticationException;
 use Adyen\Webhook\Exception\HMACKeyValidationException;
 use Adyen\Webhook\Exception\InvalidDataException;
 use Adyen\Webhook\Receiver\NotificationReceiver;
 use Adyen\Webhook\Receiver\HmacSignature;
+use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Serialize\SerializerInterface;
-use Adyen\Payment\Helper\Webhook;
 
 class StandardWebhookAcceptor implements WebhookAcceptorInterface
 {
+    /**
+     * @param NotificationFactory $notificationFactory
+     * @param AdyenLogger $adyenLogger
+     * @param Webhook $webhookHelper
+     * @param Config $configHelper
+     * @param NotificationReceiver $notificationReceiver
+     * @param HmacSignature $hmacSignature
+     * @param SerializerInterface $serializer
+     */
     public function __construct(
-        private readonly Config      $configHelper,
-        private readonly NotificationFactory  $notificationFactory,
+        private readonly NotificationFactory $notificationFactory,
+        private readonly AdyenLogger $adyenLogger,
+        private readonly Webhook $webhookHelper,
+        private readonly Config $configHelper,
         private readonly NotificationReceiver $notificationReceiver,
-        private readonly HmacSignature        $hmacSignature,
-        private readonly SerializerInterface  $serializer,
-        private readonly AdyenLogger          $adyenLogger,
-        private readonly Webhook              $webhookHelper
-    ) {}
-
+        private readonly HmacSignature  $hmacSignature,
+        private readonly SerializerInterface $serializer
+    ) { }
 
     /**
+     * @throws AuthenticationException
+     * @throws InvalidDataException
+     * @throws AlreadyExistsException|HMACKeyValidationException
+     */
+    public function getNotifications(array $payload): array
+    {
+        $notifications = [];
+        $isLive = $payload['live'];
+
+        foreach ($payload['notificationItems'] as $notificationItemWrapper) {
+            $item = $notificationItemWrapper['NotificationRequestItem'] ?? $notificationItemWrapper;
+            $this->validate($item, $isLive);
+
+            $notifications[] = $this->toNotification($item, $isLive);
+        }
+
+        return $notifications;
+    }
+
+    /**
+     * Validates the webhook environment mode and the HMAC signature
+     *
      * @throws InvalidDataException
      * @throws HMACKeyValidationException
+     * @throws AuthenticationException
      */
-    public function validate(array $payload): bool
+    private function validate(array $item, string $isLiveMode): void
     {
-        if (!$this->webhookHelper->isIpValid($payload, 'standard webhook')) {
-            return false;
+        if (!$this->notificationReceiver->validateNotificationMode($isLiveMode, $this->configHelper->isDemoMode())) {
+            $this->adyenLogger->addAdyenNotification("Invalid environment for the webhook!", $item);
+            throw new InvalidDataException();
+        }
+
+        $incomingMerchantAccount = $item['merchantAccountCode'];
+        if (!$this->webhookHelper->isMerchantAccountValid($incomingMerchantAccount, $item)) {
+            $this->adyenLogger->addAdyenNotification(
+                "Merchant account mismatch while handling the webhook!",
+                $item
+            );
+            throw new InvalidDataException();
         }
 
         $hasHmac = $this->configHelper->getNotificationsHmacKey() &&
-            $this->hmacSignature->isHmacSupportedEventCode($payload);
+            $this->hmacSignature->isHmacSupportedEventCode($item);
 
         if ($hasHmac && !$this->notificationReceiver->validateHmac(
-                $payload,
+                $item,
                 $this->configHelper->getNotificationsHmacKey()
             )) {
-            $this->adyenLogger->addAdyenNotification("HMAC validation failed", $payload);
-            return false;
-        }
+            $this->adyenLogger->addAdyenNotification("HMAC validation failed", $item);
 
-        return true;
+            throw new AuthenticationException();
+        }
     }
 
-
-    private function toNotification(array $payload, string $mode): Notification
+    /**
+     * @throws AlreadyExistsException
+     */
+    private function toNotification(array $payload, string $isLive): Notification
     {
         $notification = $this->notificationFactory->create();
 
@@ -102,42 +155,12 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
         $notification->setCreatedAt($formattedDate);
         $notification->setUpdatedAt($formattedDate);
 
+        $notification->setLive($isLive);
+
         if ($notification->isDuplicate()) {
-            throw new \RuntimeException('Duplicate notification');
+            throw new AlreadyExistsException(__('Webhook already exists!'));
         }
 
         return $notification;
-    }
-
-
-    /**
-     * @throws AuthenticationException
-     * @throws InvalidDataException
-     * @throws HMACKeyValidationException
-     */
-    public function toNotificationList(array $payload): array
-    {
-        $mode = $payload['live'] ?? '';
-
-        if (!$this->notificationReceiver->validateNotificationMode(
-            $mode,
-            $this->configHelper->isDemoMode()
-        )) {
-            throw new AuthenticationException('Invalid notification mode.');
-        }
-
-        $notifications = [];
-
-        foreach ($payload['notificationItems'] as $notificationItemWrapper) {
-            $item = $notificationItemWrapper['NotificationRequestItem'] ?? $notificationItemWrapper;
-
-            if (!$this->validate($item)) {
-                throw new AuthenticationException('Notification failed authentication or validation.');
-            }
-
-            $notifications[] = $this->toNotification($item, $mode);
-        }
-
-        return $notifications;
     }
 }

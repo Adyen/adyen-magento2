@@ -32,6 +32,7 @@ use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\OrderFactory;
 use Magento\Sales\Model\OrderRepository;
 
 class Webhook
@@ -66,11 +67,12 @@ class Webhook
      * @param WebhookHandlerFactory $webhookHandlerFactory
      * @param OrderHelper $orderHelper
      * @param OrderRepository $orderRepository
+     * @param OrderStatusHistory $orderStatusHistoryHelper
      * @param PaymentMethods $paymentMethodsHelper
      * @param AdyenNotificationRepositoryInterface $notificationRepository
-     * @param OrderStatusHistory $orderStatusHistoryHelper
      * @param IpAddress $ipAddressHelper
      * @param RemoteAddress $remoteAddress
+     * @param OrderFactory $orderFactory
      */
     public function __construct(
         private readonly SerializerInterface $serializer,
@@ -85,6 +87,7 @@ class Webhook
         private readonly AdyenNotificationRepositoryInterface $notificationRepository,
         private readonly IpAddress $ipAddressHelper,
         private readonly RemoteAddress $remoteAddress,
+        private readonly OrderFactory $orderFactory
     ) {
         $this->klarnaReservationNumber = null;
         $this->ratepayDescriptor = null;
@@ -95,6 +98,10 @@ class Webhook
      */
     public function processNotification(Notification $notification): bool
     {
+        if (strcmp($notification->getEventCode(), Notification::RECURRING_TOKEN_DISABLED) === 0) {
+            return $this->processRecurringTokenDisabledWebhook($notification);
+        }
+
         // check if merchant reference is set
         if (is_null($notification->getMerchantReference())) {
             $errorMessage = sprintf(
@@ -505,5 +512,60 @@ class Webhook
         }
 
         return true;
+    }
+
+    /**
+     * Processes `recurring.token.disabled` webhook and returns the result
+     *
+     * This method needs to be introduced as the `recurring.token.disabled` webhook does not have
+     * `merchantReference` or `originalPspReference` fields in its payload. Therefore, it's not possible
+     * to create an association with any order. However, this webhook can be processed without having an
+     * associated order or payment object.
+     *
+     * @param NotificationEntity $notification
+     * @return bool
+     */
+    private function processRecurringTokenDisabledWebhook(NotificationEntity $notification): bool
+    {
+        try {
+            $this->updateNotification($notification, true, false);
+            $this->logger
+                ->addAdyenNotification(
+                    sprintf(
+                        "Processing %s notification %s",
+                        $notification->getEventCode(),
+                        $notification->getEntityId(),
+                    ),
+                    ['pspReference' => $notification->getPspreference()],
+                );
+
+            $webhookHandler = $this->webhookHandlerFactory->create($notification->getEventCode());
+
+            // Create an empty Order object to comply with the WebhookHandlerInterface::handleWebhook() method
+            $order = $this->orderFactory->create();
+
+            $webhookHandler->handleWebhook($order, $notification, '');
+
+            $this->updateNotification($notification, false, true);
+            $this->logger->addAdyenNotification(
+                sprintf("Notification %s was processed", $notification->getEntityId()),
+            );
+
+            return true;
+        } catch (Exception $e) {
+            $this->updateNotification($notification, false, false);
+
+            $this->logger->addAdyenNotification(
+                sprintf(
+                    "Critical error occurred. Notification %s had an error: %s \n %s",
+                    $notification->getEntityId(),
+                    $e->getMessage(),
+                    $e->getTraceAsString()
+                ),
+                ['pspReference' => $notification->getPspReference()]
+            );
+
+            return false;
+        }
     }
 }
