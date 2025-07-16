@@ -18,7 +18,7 @@ use Adyen\Webhook\Receiver\NotificationReceiver;
 use Magento\Framework\Serialize\SerializerInterface;
 use PHPUnit\Framework\TestCase;
 
-final class StandardWebhookAcceptorTest extends TestCase
+class StandardWebhookAcceptorTest extends TestCase
 {
     private StandardWebhookAcceptor $acceptor;
     private Config $configMock;

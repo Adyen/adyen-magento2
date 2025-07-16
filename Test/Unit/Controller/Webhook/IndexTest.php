@@ -22,7 +22,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 
 #[CoversClass(Index::class)]
-final class IndexTest extends AbstractAdyenTestCase
+class IndexTest extends AbstractAdyenTestCase
 {
     private Index $controller;
 
