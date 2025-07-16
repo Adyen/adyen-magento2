@@ -68,8 +68,7 @@ class Index implements ActionInterface
             }
 
             $rawPayload = json_decode($rawContent, true);
-
-            if (!is_array($rawPayload)) {
+            if (json_last_error() !== JSON_ERROR_NONE) {
                 throw new InvalidDataException();
             }
 
@@ -95,7 +94,7 @@ class Index implements ActionInterface
         } catch (AlreadyExistsException $e) {
             return $this->prepareResponse(__('Webhook already exists!'), 400);
         } catch (Exception $e) {
-            $this->adyenLogger->addAdyenNotification($e->getMessage(), $rawPayload);
+            $this->adyenLogger->addAdyenNotification($e->getMessage(), $rawPayload ?? []);
 
             return $this->prepareResponse(
                 __('An error occurred while handling this webhook!'),
@@ -105,7 +104,7 @@ class Index implements ActionInterface
     }
 
     /**
-     * @throws AdyenException
+     * @throws InvalidDataException
      */
     private function getWebhookType(array $payload): WebhookAcceptorType
     {
@@ -120,7 +119,7 @@ class Index implements ActionInterface
             return WebhookAcceptorType::TOKEN;
         }
 
-        throw new AdyenException(__('Unable to determine webhook type from payload.'));
+        throw new InvalidDataException(__('Unable to determine webhook type from payload.'));
     }
 
     /**
@@ -166,5 +165,4 @@ class Index implements ActionInterface
         }
         return true;
     }
-
 }

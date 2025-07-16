@@ -4,68 +4,112 @@ declare(strict_types=1);
 
 namespace Adyen\Payment\Test\Unit\Controller\Webhook;
 
+use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
 use Adyen\Payment\Controller\Webhook\Index;
 use Adyen\Payment\Helper\Config;
-use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Webhook;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Webhook\TokenWebhookAcceptor;
 use Adyen\Payment\Model\Webhook\WebhookAcceptorFactory;
 use Adyen\Payment\Model\Webhook\WebhookAcceptorType;
 use Adyen\Payment\Model\Notification;
-use Adyen\Webhook\Receiver\NotificationReceiver;
 use Magento\Framework\App\Action\Context;
+use Magento\Framework\App\Request\Http;
 use Magento\Framework\App\Request\Http as HttpRequest;
-use Magento\Framework\HTTP\PhpEnvironment\Response;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\MockObject\Exception;
+use Magento\Framework\Controller\Result\Raw;
+use Magento\Framework\Controller\ResultFactory;
+use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\Exception\NotFoundException;
 use Adyen\Payment\Api\Webhook\WebhookAcceptorInterface;
-use Magento\Framework\Exception\LocalizedException;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use PHPUnit\Framework\MockObject\Exception;
+use PHPUnit\Framework\MockObject\MockObject;
 
-#[CoversClass(Index::class)]
 class IndexTest extends AbstractAdyenTestCase
 {
-    private Index $controller;
-
+    private ?Index $controller;
     private HttpRequest $requestMock;
-    private Response $responseMock;
-    private AdyenLogger $adyenLoggerMock;
-    private Config $configHelperMock;
-    private NotificationReceiver $notificationReceiverMock;
-    private WebhookAcceptorFactory $webhookAcceptorFactoryMock;
+    private AdyenLogger|MockObject $adyenLoggerMock;
+    private Config|MockObject $configHelperMock;
+    private Webhook|MockObject $webhookHelperMock;
+    private ResultFactory|MockObject $resultFactoryMock;
+    private ResultInterface|MockObject $resultMock;
+    private WebhookAcceptorFactory|MockObject $webhookAcceptorFactoryMock;
+    private AdyenNotificationRepositoryInterface|MockObject $adyenNotificationRepositoryMock;
 
+    /**
+     * @return void
+     * @throws Exception
+     */
     protected function setUp(): void
     {
-        $this->requestMock = $this->getMockBuilder(HttpRequest::class)
-            ->onlyMethods(['getContent', 'isPost', 'setParam', 'getHeaders'])
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $this->responseMock = $this->getMockBuilder(Response::class)
-            ->onlyMethods(['setHeader', 'setBody', 'clearHeader', 'setHttpResponseCode'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->requestMock = $this->createMock(Http::class);
 
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
         $this->configHelperMock = $this->createMock(Config::class);
-        $this->notificationReceiverMock = $this->createMock(NotificationReceiver::class);
+        $this->webhookHelperMock = $this->createMock(Webhook::class);
         $this->webhookAcceptorFactoryMock = $this->createMock(WebhookAcceptorFactory::class);
-        $adyenHelperMock = $this->createMock(Data::class);
+        $this->adyenNotificationRepositoryMock = $this->createMock(AdyenNotificationRepositoryInterface::class);
 
         $contextMock = $this->createMock(Context::class);
         $contextMock->method('getRequest')->willReturn($this->requestMock);
-        $contextMock->method('getResponse')->willReturn($this->responseMock);
+
+        $this->resultMock = $this->createMock(Raw::class);
+        $this->resultFactoryMock = $this->createMock(ResultFactory::class);
+        $this->resultFactoryMock->method('create')
+            ->with(ResultFactory::TYPE_RAW)
+            ->willReturn($this->resultMock);
 
         $this->controller = new Index(
             $contextMock,
             $this->adyenLoggerMock,
             $this->configHelperMock,
-            $this->notificationReceiverMock,
             $this->webhookAcceptorFactoryMock,
-            $adyenHelperMock
+            $this->webhookHelperMock,
+            $this->resultFactoryMock,
+            $this->adyenNotificationRepositoryMock
         );
     }
 
-    public function testExecuteProcessesValidStandardWebhook(): void
+    /**
+     * @return void
+     */
+    protected function tearDown(): void
+    {
+        $this->controller = null;
+    }
+
+    public static function dataProviderProcessValidWebhook(): array
+    {
+        return [
+            [
+                'payload' => [
+                    'notificationItems' => [
+                        ['NotificationRequestItem' => ['eventCode' => 'AUTHORISATION']]
+                    ]
+                ],
+                'eventType' => WebhookAcceptorType::STANDARD
+            ],
+            [
+                'payload' => [
+                    'type' => 'token.created'
+                ],
+                'eventType' => WebhookAcceptorType::TOKEN
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider dataProviderProcessValidWebhook
+     *
+     * @param $payload
+     * @param $eventType
+     * @return void
+     * @throws Exception
+     * @throws NotFoundException
+     */
+    public function testExecuteProcessesValidWebhook($payload, $eventType): void
     {
         $_SERVER['PHP_AUTH_USER'] = 'user';
         $_SERVER['PHP_AUTH_PW'] = 'pass';
@@ -73,103 +117,63 @@ class IndexTest extends AbstractAdyenTestCase
         $this->configHelperMock->method('getNotificationsUsername')->willReturn('user');
         $this->configHelperMock->method('getNotificationsPassword')->willReturn('pass');
 
-        $notification = $this->getMockBuilder(Notification::class)
-            ->onlyMethods(['getId', 'save'])
-            ->disableOriginalConstructor()
-            ->getMock();
-
+        $notification = $this->createMock(Notification::class);
         $notification->method('getId')->willReturn('123');
-        $notification->expects($this->once())->method('save');
+
+        $this->adyenNotificationRepositoryMock->method('save')
+            ->with($notification)
+            ->willReturn($notification);
 
         $acceptorMock = $this->createMock(WebhookAcceptorInterface::class);
         $acceptorMock->method('getNotifications')->willReturn([$notification]);
 
-        $payload = [
-            'notificationItems' => [
-                ['NotificationRequestItem' => ['eventCode' => 'AUTHORISATION']]
-            ]
-        ];
-
         $this->requestMock->method('getContent')->willReturn(json_encode($payload));
-        $this->webhookAcceptorFactoryMock->method('getAcceptor')->with(WebhookAcceptorType::STANDARD)->willReturn($acceptorMock);
+        $this->webhookAcceptorFactoryMock->method('getAcceptor')
+            ->with($eventType)
+            ->willReturn($acceptorMock);
 
         $this->adyenLoggerMock->expects($this->once())
             ->method('addAdyenResult')
             ->with('Notification 123 is accepted');
 
-        $this->responseMock->expects($this->once())->method('clearHeader')->with('Content-Type')->willReturnSelf();
-        $this->responseMock->expects($this->once())->method('setHeader')->with('Content-Type', 'text/html')->willReturnSelf();
-        $this->responseMock->expects($this->once())->method('setBody')->with('[accepted]')->willReturnSelf();
+        $this->webhookHelperMock->method('isIpValid')->willReturn(true);
 
-        $this->controller->execute();
+        $this->resultMock->expects($this->once())->method('setStatusHeader')->with(200);
+        $this->resultMock->expects($this->once())->method('setContents')->with('[accepted]');
+        $this->assertInstanceOf(ResultInterface::class, $this->controller->execute());
     }
 
-    public function testExecuteProcessesTokenLifecycleWebhook(): void
+    public function testWebhookUnidentifiedEventType(): void
     {
         $_SERVER['PHP_AUTH_USER'] = 'user';
         $_SERVER['PHP_AUTH_PW'] = 'pass';
 
         $this->configHelperMock->method('getNotificationsUsername')->willReturn('user');
         $this->configHelperMock->method('getNotificationsPassword')->willReturn('pass');
-
-        $notification = $this->getMockBuilder(Notification::class)
-            ->onlyMethods(['getId', 'save'])
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $notification->method('getId')->willReturn('token-456');
-        $notification->expects($this->once())->method('save');
-
-        $acceptorMock = $this->createMock(WebhookAcceptorInterface::class);
-        $acceptorMock->method('getNotifications')->willReturn([$notification]);
-
-        $payload = ['type' => 'token.created'];
-
-        $this->requestMock->method('getContent')->willReturn(json_encode($payload));
-        $this->webhookAcceptorFactoryMock->method('getAcceptor')->with(WebhookAcceptorType::TOKEN)->willReturn($acceptorMock);
-
-        $this->adyenLoggerMock->expects($this->once())
-            ->method('addAdyenResult')
-            ->with('Notification token-456 is accepted');
-
-        $this->responseMock->expects($this->once())->method('clearHeader')->with('Content-Type')->willReturnSelf();
-        $this->responseMock->expects($this->once())->method('setHeader')->with('Content-Type', 'text/html')->willReturnSelf();
-        $this->responseMock->expects($this->once())->method('setBody')->with('[accepted]')->willReturnSelf();
-
-        $this->controller->execute();
-    }
-
-    public function testExecuteThrowsLocalizedExceptionOnUnexpectedPayload(): void
-    {
-        $_SERVER['PHP_AUTH_USER'] = 'user';
-        $_SERVER['PHP_AUTH_PW'] = 'pass';
-
-        $this->configHelperMock->method('getNotificationsUsername')->willReturn('user');
-        $this->configHelperMock->method('getNotificationsPassword')->willReturn('pass');
+        $this->webhookHelperMock->method('isIpValid')->willReturn(true);
 
         $payload = ['foo' => 'bar']; // malformed payload
 
         $this->requestMock->method('getContent')->willReturn(json_encode($payload));
 
-        $this->expectException(LocalizedException::class);
-        $this->expectExceptionMessage('Webhook processing failed: Unable to determine webhook type from payload.');
-
-        $this->controller->execute();
+        $this->resultMock->expects($this->once())->method('setStatusHeader')->with(400);
+        $this->resultMock->expects($this->once())->method('setContents')
+            ->with('The request does not contain a valid webhook!');
+        $this->assertInstanceOf(ResultInterface::class, $this->controller->execute());
     }
 
-    public function testExecuteReturns401IfAuthenticationFails(): void
+    public function testAuthenticationFails(): void
     {
         unset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
 
         $this->requestMock->method('getContent')->willReturn('{}');
 
-        $this->responseMock->expects($this->once())->method('setHttpResponseCode')->with(401);
-        $this->responseMock->expects($this->once())->method('setBody')->with('Unauthorized');
-
-        $this->controller->execute();
+        $this->resultMock->expects($this->once())->method('setStatusHeader')->with(401);
+        $this->resultMock->expects($this->once())->method('setContents')->with('Unauthorized');
+        $this->assertInstanceOf(ResultInterface::class, $this->controller->execute());
     }
 
-    public function testExecuteThrowsLocalizedExceptionOnEmptyBody(): void
+    public function testExecuteOnEmptyBody(): void
     {
         $_SERVER['PHP_AUTH_USER'] = 'user';
         $_SERVER['PHP_AUTH_PW'] = 'pass';
@@ -179,13 +183,13 @@ class IndexTest extends AbstractAdyenTestCase
 
         $this->requestMock->method('getContent')->willReturn('');
 
-        $this->expectException(LocalizedException::class);
-        $this->expectExceptionMessage('Empty request body.');
-
-        $this->controller->execute();
+        $this->resultMock->expects($this->once())->method('setStatusHeader')->with(400);
+        $this->resultMock->expects($this->once())->method('setContents')
+            ->with('The request does not contain a valid webhook!');
+        $this->assertInstanceOf(ResultInterface::class, $this->controller->execute());
     }
 
-    public function testExecuteThrowsLocalizedExceptionOnInvalidJson(): void
+    public function testExecuteOnInvalidJson(): void
     {
         $_SERVER['PHP_AUTH_USER'] = 'user';
         $_SERVER['PHP_AUTH_PW'] = 'pass';
@@ -195,13 +199,13 @@ class IndexTest extends AbstractAdyenTestCase
 
         $this->requestMock->method('getContent')->willReturn('invalid-json');
 
-        $this->expectException(LocalizedException::class);
-        $this->expectExceptionMessage('Invalid JSON payload.');
-
-        $this->controller->execute();
+        $this->resultMock->expects($this->once())->method('setStatusHeader')->with(400);
+        $this->resultMock->expects($this->once())->method('setContents')
+            ->with('The request does not contain a valid webhook!');
+        $this->assertInstanceOf(ResultInterface::class, $this->controller->execute());
     }
 
-    public function testExecuteReturns401OnAuthenticationException(): void
+    public function testExecuteOnInvalidIpOrigin(): void
     {
         $_SERVER['PHP_AUTH_USER'] = 'user';
         $_SERVER['PHP_AUTH_PW'] = 'pass';
@@ -209,27 +213,15 @@ class IndexTest extends AbstractAdyenTestCase
         $this->configHelperMock->method('getNotificationsUsername')->willReturn('user');
         $this->configHelperMock->method('getNotificationsPassword')->willReturn('pass');
 
-        $payload = [
-            'notificationItems' => [
-                ['NotificationRequestItem' => ['eventCode' => 'AUTHORISATION']]
-            ]
-        ];
+        $this->requestMock->method('getContent')->willReturn('{"foo":"bar"}');
+        $this->webhookHelperMock->method('isIpValid')->willReturn(false);
 
-        $acceptorMock = $this->createMock(WebhookAcceptorInterface::class);
-        $acceptorMock->method('getNotifications')->willThrowException(
-            new \Adyen\Payment\Exception\AuthenticationException('Auth error')
-        );
-
-        $this->requestMock->method('getContent')->willReturn(json_encode($payload));
-        $this->webhookAcceptorFactoryMock->method('getAcceptor')->willReturn($acceptorMock);
-
-        $this->responseMock->expects($this->once())->method('setHttpResponseCode')->with(401);
-        $this->responseMock->expects($this->once())->method('setBody')->with('Unauthorized');
-
-        $this->controller->execute();
+        $this->resultMock->expects($this->once())->method('setStatusHeader')->with(401);
+        $this->resultMock->expects($this->once())->method('setContents')->with('Unauthorized');
+        $this->assertInstanceOf(ResultInterface::class, $this->controller->execute());
     }
 
-    public function testExecuteThrowsLocalizedExceptionOnGenericError(): void
+    public function testExecuteOnGenericError(): void
     {
         $_SERVER['PHP_AUTH_USER'] = 'user';
         $_SERVER['PHP_AUTH_PW'] = 'pass';
@@ -237,22 +229,35 @@ class IndexTest extends AbstractAdyenTestCase
         $this->configHelperMock->method('getNotificationsUsername')->willReturn('user');
         $this->configHelperMock->method('getNotificationsPassword')->willReturn('pass');
 
-        $payload = [
-            'notificationItems' => [
-                ['NotificationRequestItem' => ['eventCode' => 'AUTHORISATION']]
-            ]
-        ];
+        $this->requestMock->method('getContent')->willthrowException(new \Exception());
 
-        $acceptorMock = $this->createMock(WebhookAcceptorInterface::class);
-        $acceptorMock->method('getNotifications')->willThrowException(new \RuntimeException('something went wrong'));
+        $this->adyenLoggerMock->expects($this->once())->method('addAdyenNotification');
 
-        $this->requestMock->method('getContent')->willReturn(json_encode($payload));
-        $this->webhookAcceptorFactoryMock->method('getAcceptor')->willReturn($acceptorMock);
-
-        $this->expectException(LocalizedException::class);
-        $this->expectExceptionMessage('Webhook processing failed: something went wrong');
-
-        $this->controller->execute();
+        $this->resultMock->expects($this->once())->method('setStatusHeader')->with(500);
+        $this->resultMock->expects($this->once())->method('setContents')
+            ->with('An error occurred while handling this webhook!');
+        $this->assertInstanceOf(ResultInterface::class, $this->controller->execute());
     }
 
+    public function testExecuteOnDuplicateWebhook(): void
+    {
+        $_SERVER['PHP_AUTH_USER'] = 'user';
+        $_SERVER['PHP_AUTH_PW'] = 'pass';
+
+        $this->configHelperMock->method('getNotificationsUsername')->willReturn('user');
+        $this->configHelperMock->method('getNotificationsPassword')->willReturn('pass');
+        $this->webhookHelperMock->method('isIpValid')->willReturn(true);
+
+        $payload = ['type' => 'token.created'];
+        $this->requestMock->method('getContent')->willReturn(json_encode($payload));
+
+        $acceptorMock = $this->createMock(TokenWebhookAcceptor::class);
+        $acceptorMock->method('getNotifications')->willThrowException(new AlreadyExistsException());
+        $this->webhookAcceptorFactoryMock->method('getAcceptor')->willReturn($acceptorMock);
+
+        $this->resultMock->expects($this->once())->method('setStatusHeader')->with(400);
+        $this->resultMock->expects($this->once())->method('setContents')
+            ->with('Webhook already exists!');
+        $this->assertInstanceOf(ResultInterface::class, $this->controller->execute());
+    }
 }
