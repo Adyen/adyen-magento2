@@ -73,7 +73,7 @@ class Vault
         private readonly PaymentTokenFactoryInterface $paymentTokenFactory,
         private readonly PaymentTokenRepositoryInterface $paymentTokenRepository,
         private readonly PaymentTokenResourceModel $paymentTokenResourceModel,
-        private readonly OrderPaymentExtensionInterfaceFactory  $paymentExtensionFactory,
+        private readonly OrderPaymentExtensionInterfaceFactory $paymentExtensionFactory,
         private readonly Config $config,
         private readonly PaymentMethods $paymentMethodsHelper,
         private readonly StateData $stateData

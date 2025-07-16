@@ -18,10 +18,12 @@ use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Method\Adapter;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Magento\Sales\Api\Data\OrderPaymentExtensionInterfaceFactory;
 use Magento\Sales\Model\Order;
 use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Vault\Model\PaymentTokenManagement;
+use Magento\Vault\Model\ResourceModel\PaymentToken as PaymentTokenResourceModel;
 
 class VaultTest extends AbstractAdyenTestCase
 {
@@ -33,6 +35,8 @@ class VaultTest extends AbstractAdyenTestCase
     private $config;
     private $paymentMethodsHelper;
     private $stateData;
+    private $paymentTokenResourceModelMock;
+    private $orderPaymentExtensionInterfaceFactoryMock;
 
     protected function setUp(): void
     {
@@ -46,12 +50,17 @@ class VaultTest extends AbstractAdyenTestCase
         $this->paymentTokenRepository = $this->createMock(PaymentTokenRepositoryInterface::class);
         $this->config = $this->createMock(Config::class);
         $this->paymentMethodsHelper = $this->createMock(PaymentMethods::class);
+        $this->paymentTokenResourceModelMock = $this->createMock(PaymentTokenResourceModel::class);
+        $this->orderPaymentExtensionInterfaceFactoryMock =
+            $this->createMock(OrderPaymentExtensionInterfaceFactory::class);
 
         $this->vault = new Vault(
             $this->adyenLogger,
             $this->paymentTokenManagement,
             $this->paymentTokenFactory,
             $this->paymentTokenRepository,
+            $this->paymentTokenResourceModelMock,
+            $this->orderPaymentExtensionInterfaceFactoryMock,
             $this->config,
             $this->paymentMethodsHelper,
             $this->stateData
