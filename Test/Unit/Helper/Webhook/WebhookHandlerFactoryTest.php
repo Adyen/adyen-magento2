@@ -18,6 +18,7 @@ use Adyen\Payment\Helper\Webhook\OrderOpenedWebhookHandler;
 use Adyen\Payment\Helper\Webhook\PendingWebhookHandler;
 use Adyen\Payment\Helper\Webhook\RecurringContractWebhookHandler;
 use Adyen\Payment\Helper\Webhook\RecurringTokenAlreadyExistingWebhookHandler;
+use Adyen\Payment\Helper\Webhook\RecurringTokenCreatedWebhookHandler;
 use Adyen\Payment\Helper\Webhook\RecurringTokenDisabledWebhookHandler;
 use Adyen\Payment\Helper\Webhook\RefundFailedWebhookHandler;
 use Adyen\Payment\Helper\Webhook\RefundWebhookHandler;
@@ -53,7 +54,8 @@ class WebhookHandlerFactoryTest extends AbstractAdyenTestCase
             [Notification::SECOND_CHARGEBACK, SecondChargebackWebhookHandler::class],
             [Notification::CAPTURE_FAILED, CaptureFailedWebhookHandler::class],
             [Notification::RECURRING_TOKEN_DISABLED, RecurringTokenDisabledWebhookHandler::class],
-            [Notification::RECURRING_TOKEN_ALREADY_EXISTING, RecurringTokenAlreadyExistingWebhookHandler::class]
+            [Notification::RECURRING_TOKEN_ALREADY_EXISTING, RecurringTokenAlreadyExistingWebhookHandler::class],
+            [Notification::RECURRING_TOKEN_CREATED, RecurringTokenCreatedWebhookHandler::class]
         ];
     }
 
@@ -85,6 +87,7 @@ class WebhookHandlerFactoryTest extends AbstractAdyenTestCase
         $recurringTokenDisabledWebhookHandler = $this->createMock(RecurringTokenDisabledWebhookHandler::class);
         $recurringTokenAlreadyExistingWebhookHandler =
             $this->createMock(RecurringTokenAlreadyExistingWebhookHandler::class);
+        $recurringTokenCreatedWebhookHandler = $this->createMock(RecurringTokenCreatedWebhookHandler::class);
 
         $factory = new WebhookHandlerFactory(
             $adyenLogger,
@@ -108,7 +111,8 @@ class WebhookHandlerFactoryTest extends AbstractAdyenTestCase
             $notificationOfChargebackWebhookHandler,
             $captureFailedWebhookHandler,
             $recurringTokenAlreadyExistingWebhookHandler,
-            $recurringTokenDisabledWebhookHandler
+            $recurringTokenDisabledWebhookHandler,
+            $recurringTokenCreatedWebhookHandler
         );
 
         $handler = $factory->create($notificationType);

@@ -33,6 +33,8 @@ class RecurringTokenDisabledWebhookHandler implements WebhookHandlerInterface
     ) { }
 
     /**
+     * Handle the recurring.token.disabled webhook.
+     *
      * @throws LocalizedException
      */
     public function handleWebhook(Order $order, Notification $notification, string $transitionState): Order

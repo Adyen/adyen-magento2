@@ -50,6 +50,7 @@ class Notification extends AbstractModel implements NotificationInterface
     const CHARGEBACK_REVERSED = "CHARGEBACK_REVERSED";
     const REQUEST_FOR_INFORMATION = "REQUEST_FOR_INFORMATION";
     const NOTIFICATION_OF_CHARGEBACK = "NOTIFICATION_OF_CHARGEBACK";
+    const RECURRING_TOKEN_CREATED = 'recurring.token.created';
     const RECURRING_TOKEN_DISABLED = 'recurring.token.disabled';
     const RECURRING_TOKEN_ALREADY_EXISTING  = "recurring.token.alreadyExisting";
     const STATE_ADYEN_AUTHORIZED = "adyen_authorized";
