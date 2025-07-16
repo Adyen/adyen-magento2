@@ -11,23 +11,23 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\NotificationFactory;
 use Adyen\Payment\Model\Webhook\StandardWebhookAcceptor;
-use Adyen\Webhook\Exception\HMACKeyValidationException;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Webhook\Exception\InvalidDataException;
 use Adyen\Webhook\Receiver\HmacSignature;
 use Adyen\Webhook\Receiver\NotificationReceiver;
 use Magento\Framework\Serialize\SerializerInterface;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\MockObject\MockObject;
 
-final class StandardWebhookAcceptorTest extends TestCase
+class StandardWebhookAcceptorTest extends AbstractAdyenTestCase
 {
-    private StandardWebhookAcceptor $acceptor;
-    private Config $configMock;
-    private NotificationFactory $notificationFactoryMock;
-    private NotificationReceiver $notificationReceiverMock;
-    private HmacSignature $hmacSignatureMock;
-    private SerializerInterface $serializerMock;
-    private AdyenLogger $adyenLoggerMock;
-    private Webhook $webhookHelperMock;
+    private ?StandardWebhookAcceptor $acceptor;
+    private Config|MockObject $configMock;
+    private NotificationFactory|MockObject $notificationFactoryMock;
+    private NotificationReceiver|MockObject $notificationReceiverMock;
+    private HmacSignature|MockObject $hmacSignatureMock;
+    private SerializerInterface|MockObject $serializerMock;
+    private AdyenLogger|MockObject $adyenLoggerMock;
+    private Webhook|MockObject $webhookHelperMock;
 
     protected function setUp(): void
     {
@@ -40,114 +40,19 @@ final class StandardWebhookAcceptorTest extends TestCase
         $this->webhookHelperMock = $this->createMock(Webhook::class);
 
         $this->acceptor = new StandardWebhookAcceptor(
-            $this->configMock,
             $this->notificationFactoryMock,
+            $this->adyenLoggerMock,
+            $this->webhookHelperMock,
+            $this->configMock,
             $this->notificationReceiverMock,
             $this->hmacSignatureMock,
-            $this->serializerMock,
-            $this->adyenLoggerMock,
-            $this->webhookHelperMock
+            $this->serializerMock
         );
     }
 
-    public function testValidateReturnsFalseIfIpInvalid(): void
+    protected  function tearDown(): void
     {
-        $this->webhookHelperMock->method('isIpValid')->willReturn(false);
-
-        $result = $this->acceptor->validate(['eventCode' => 'AUTHORISATION']);
-        $this->assertFalse($result);
-    }
-
-    public function testValidateReturnsTrueIfNoHmac(): void
-    {
-        $this->webhookHelperMock->method('isIpValid')->willReturn(true);
-        $this->configMock->method('getNotificationsHmacKey')->willReturn('');
-        $this->hmacSignatureMock->method('isHmacSupportedEventCode')->willReturn(false);
-
-        $result = $this->acceptor->validate(['eventCode' => 'AUTHORISATION']);
-        $this->assertTrue($result);
-    }
-
-    public function testValidateReturnsFalseIfHmacFails(): void
-    {
-        $this->webhookHelperMock->method('isIpValid')->willReturn(true);
-        $this->configMock->method('getNotificationsHmacKey')->willReturn('secret');
-        $this->hmacSignatureMock->method('isHmacSupportedEventCode')->willReturn(true);
-        $this->notificationReceiverMock->method('validateHmac')->willReturn(false);
-
-        $this->adyenLoggerMock->expects($this->once())->method('addAdyenNotification');
-
-        $result = $this->acceptor->validate(['eventCode' => 'AUTHORISATION']);
-        $this->assertFalse($result);
-    }
-
-    public function testValidateReturnsTrueIfHmacSucceeds(): void
-    {
-        $this->webhookHelperMock->method('isIpValid')->willReturn(true);
-        $this->configMock->method('getNotificationsHmacKey')->willReturn('secret');
-        $this->hmacSignatureMock->method('isHmacSupportedEventCode')->willReturn(true);
-        $this->notificationReceiverMock->method('validateHmac')->willReturn(true);
-
-        $result = $this->acceptor->validate(['eventCode' => 'AUTHORISATION']);
-        $this->assertTrue($result);
-    }
-
-    public function testToNotificationListThrowsAuthenticationExceptionOnInvalidMode(): void
-    {
-        $this->configMock->method('isDemoMode')->willReturn(false);
-        $this->notificationReceiverMock
-            ->method('validateNotificationMode')
-            ->willReturn(false);
-
-        $this->expectException(AuthenticationException::class);
-        $this->expectExceptionMessage('Invalid notification mode.');
-
-        $this->acceptor->toNotificationList(['live' => 'invalid', 'notificationItems' => []]);
-    }
-
-    public function testToNotificationListThrowsOnInvalidNotification(): void
-    {
-        $this->configMock->method('isDemoMode')->willReturn(false);
-        $this->notificationReceiverMock->method('validateNotificationMode')->willReturn(true);
-        $this->webhookHelperMock->method('isIpValid')->willReturn(true);
-        $this->configMock->method('getNotificationsHmacKey')->willReturn('');
-        $this->hmacSignatureMock->method('isHmacSupportedEventCode')->willReturn(false);
-
-        $this->acceptor = new StandardWebhookAcceptor(
-            $this->configMock,
-            $this->notificationFactoryMock,
-            $this->notificationReceiverMock,
-            $this->hmacSignatureMock,
-            $this->serializerMock,
-            $this->adyenLoggerMock,
-            $this->webhookHelperMock
-        );
-
-        $this->webhookHelperMock->method('isIpValid')->willReturn(true);
-        $this->acceptor = $this->getMockBuilder(StandardWebhookAcceptor::class)
-            ->setConstructorArgs([
-                $this->configMock,
-                $this->notificationFactoryMock,
-                $this->notificationReceiverMock,
-                $this->hmacSignatureMock,
-                $this->serializerMock,
-                $this->adyenLoggerMock,
-                $this->webhookHelperMock
-            ])
-            ->onlyMethods(['validate'])
-            ->getMock();
-
-        $this->acceptor->method('validate')->willReturn(false);
-
-        $this->expectException(AuthenticationException::class);
-        $this->expectExceptionMessage('Notification failed authentication or validation.');
-
-        $this->acceptor->toNotificationList([
-            'live' => 'true',
-            'notificationItems' => [
-                ['NotificationRequestItem' => ['eventCode' => 'AUTHORISATION']]
-            ]
-        ]);
+        $this->acceptor = null;
     }
 
     public function testToNotificationListReturnsValidNotifications(): void
@@ -156,24 +61,22 @@ final class StandardWebhookAcceptorTest extends TestCase
             'pspReference' => 'test_psp',
             'eventCode' => 'AUTHORISATION',
             'amount' => ['value' => 1000, 'currency' => 'EUR'],
-            'additionalData' => ['key' => 'value']
+            'additionalData' => ['key' => 'value'],
+            'merchantAccountCode' => 'MOCK_MERCHANT_ACCOUNT'
         ];
 
-        $notification = $this->getMockBuilder(Notification::class)
-            ->onlyMethods(['isDuplicate', 'setCreatedAt', 'setUpdatedAt'])
-            ->disableOriginalConstructor()
-            ->getMock();
-
+        $notification = $this->createMock(Notification::class);
         $notification->method('isDuplicate')->willReturn(false);
 
         $this->notificationFactoryMock->method('create')->willReturn($notification);
         $this->notificationReceiverMock->method('validateNotificationMode')->willReturn(true);
+
         $this->configMock->method('isDemoMode')->willReturn(false);
-        $this->webhookHelperMock->method('isIpValid')->willReturn(true);
-        $this->hmacSignatureMock->method('isHmacSupportedEventCode')->willReturn(false);
+        $this->webhookHelperMock->method('isMerchantAccountValid')->willReturn(true);
+
         $this->serializerMock->method('serialize')->willReturn('{"key":"value"}');
 
-        $result = $this->acceptor->toNotificationList([
+        $result = $this->acceptor->getNotifications([
             'live' => 'true',
             'notificationItems' => [
                 ['NotificationRequestItem' => $payload]
@@ -182,5 +85,51 @@ final class StandardWebhookAcceptorTest extends TestCase
 
         $this->assertCount(1, $result);
         $this->assertInstanceOf(Notification::class, $result[0]);
+    }
+
+    public function testValidateThrowsExceptionOnInvalidNotificationMode(): void
+    {
+        $this->expectException(InvalidDataException::class);
+
+        $this->notificationReceiverMock->method('validateNotificationMode')->willReturn(false);
+        $this->webhookHelperMock->method('isMerchantAccountValid')->willReturn(false);
+
+        $this->acceptor->getNotifications([
+            'live' => 'true',
+            'notificationItems' => [
+                ['NotificationRequestItem' => ['MOCK_PAYLOAD']]
+            ]
+        ]);
+    }
+
+    public function testValidateThrowsExceptionOnInvalidMerchantAccount(): void
+    {
+        $this->expectException(InvalidDataException::class);
+
+        $this->notificationReceiverMock->method('validateNotificationMode')->willReturn(true);
+
+        $this->acceptor->getNotifications([
+            'live' => 'true',
+            'notificationItems' => [
+                ['NotificationRequestItem' => ['merchantAccountCode' =>  'MOCK_MERCHANT_ACCOUNT']]
+            ]
+        ]);
+    }
+
+    public function testValidateThrowsExceptionOnInvalidHmacKey(): void
+    {
+        $this->expectException(InvalidDataException::class);
+
+        $this->notificationReceiverMock->method('validateNotificationMode')->willReturn(true);
+        $this->configMock->method('getNotificationsHmacKey')->willReturn('MOCK_HMAC_KEY');
+        $this->hmacSignatureMock->method('isHmacSupportedEventCode')->willReturn(true);
+        $this->notificationReceiverMock->method('validateHmac')->willReturn(false);
+
+        $this->acceptor->getNotifications([
+            'live' => 'true',
+            'notificationItems' => [
+                ['NotificationRequestItem' => ['merchantAccountCode' =>  'MOCK_MERCHANT_ACCOUNT']]
+            ]
+        ]);
     }
 }

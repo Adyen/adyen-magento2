@@ -3,10 +3,10 @@ run-name: Main
 
 on:
   pull_request:
-    branches: [main, develop-10]
+    branches: [main, develop-10, feature-v10/token-lifecycle-webhooks]
   # on-push trigger is required to analyse long-living branches on SonarCloud
   push:
-    branches: [main, develop-10]
+    branches: [main, develop-10, feature-v10/token-lifecycle-webhooks]
   pull_request_target:
     branches: [main, develop-10]
 

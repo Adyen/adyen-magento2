@@ -14,6 +14,7 @@ use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Payment\Model\MethodInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
+use Magento\Sales\Model\OrderFactory;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
@@ -33,6 +34,7 @@ class WebhookTest extends AbstractAdyenTestCase
     {
         $notification = $this->createMock(Notification::class);
         $notification->method('getMerchantReference')->willReturn(null);
+        $notification->method('getEventCode')->willReturn(Notification::AUTHORISATION);
 
         $logger = $this->createMock(AdyenLogger::class);
         $logger->expects($this->once())
@@ -57,6 +59,7 @@ class WebhookTest extends AbstractAdyenTestCase
     {
         $merchantReference = 'TestMerchant';
         $notification = $this->createMock(Notification::class);
+        $notification->method('getEventCode')->willReturn(Notification::AUTHORISATION);
         $notification->method('getMerchantReference')->willReturn($merchantReference);
 
         $orderHelper = $this->createMock(OrderHelper::class);
@@ -738,11 +741,9 @@ class WebhookTest extends AbstractAdyenTestCase
         $adyenNotificationRepositoryMock = null,
         $orderStatusHistoryHelperMock = null,
         $ipAddressHelperMock = null,
-        $remoteAddressMock = null
+        $remoteAddressMock = null,
+        $orderFactoryMock = null
     ): Webhook {
-        if (is_null($mockAdyenHelper)) {
-            $mockAdyenHelper = $this->createMock(Data::class);
-        }
         if (is_null($mockSerializer)) {
             $mockSerializer = $this->createMock(SerializerInterface::class);
         }
@@ -751,9 +752,6 @@ class WebhookTest extends AbstractAdyenTestCase
         }
         if (is_null($mockConfigHelper)) {
             $mockConfigHelper = $this->createMock(ConfigHelper::class);
-        }
-        if (is_null($mockChargedCurrency)) {
-            $mockChargedCurrency = $this->createMock(ChargedCurrency::class);
         }
         if (is_null($mockLogger)) {
             $mockLogger = $this->createMock(AdyenLogger::class);
@@ -782,6 +780,9 @@ class WebhookTest extends AbstractAdyenTestCase
         if (is_null($remoteAddressMock)) {
             $remoteAddressMock = $this->createMock(\Magento\Framework\HTTP\PhpEnvironment\RemoteAddress::class);
         }
+        if (is_null($orderFactoryMock)) {
+            $orderFactoryMock = $this->createMock(OrderFactory::class);
+        }
 
         return new Webhook(
             $mockSerializer,
@@ -795,15 +796,8 @@ class WebhookTest extends AbstractAdyenTestCase
             $paymentMethodsHelperMock,
             $adyenNotificationRepositoryMock,
             $ipAddressHelperMock,
-            $remoteAddressMock
+            $remoteAddressMock,
+            $orderFactoryMock
         );
-    }
-
-    private function setProperty(object $object, string $property, mixed $value): void
-    {
-        $ref = new \ReflectionClass($object);
-        $prop = $ref->getProperty($property);
-        $prop->setAccessible(true);
-        $prop->setValue($object, $value);
     }
 }

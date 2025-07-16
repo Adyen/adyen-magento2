@@ -1,101 +1,111 @@
 <?php
 /**
  *
- * Adyen Payment module (https://www.adyen.com/)
+ * Adyen Payment Module
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
- * See LICENSE.txt for license details.
+ * Copyright (c) 2025 Adyen N.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
 namespace Adyen\Payment\Controller\Webhook;
 
-use Adyen\Payment\Exception\AuthenticationException;
+use Adyen\AdyenException;
+use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
 use Adyen\Payment\Helper\Config;
-use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Webhook;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Webhook\WebhookAcceptorFactory;
 use Adyen\Payment\Model\Webhook\WebhookAcceptorType;
-use Adyen\Webhook\Receiver\NotificationReceiver;
+use Adyen\Webhook\Exception\AuthenticationException;
+use Adyen\Webhook\Exception\InvalidDataException;
+use Exception;
 use Magento\Framework\App\ActionInterface;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\Framework\App\Request\Http;
-use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Controller\ResultFactory;
+use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\Exception\AlreadyExistsException;
 
 class Index implements ActionInterface
 {
-    private Context $context;
     /**
      * Json constructor.
      *
      * @param Context $context
      * @param AdyenLogger $adyenLogger
      * @param Config $configHelper
-     * @param NotificationReceiver $notificationReceiver
      * @param WebhookAcceptorFactory $webhookAcceptorFactory
-     * @param Data $adyenHelper
+     * @param Webhook $webhookHelper
+     * @param ResultFactory $resultFactory
+     * @param AdyenNotificationRepositoryInterface $adyenNotificationRepository
      */
     public function __construct(
-        Context $context,
+        private readonly Context $context,
         private readonly AdyenLogger $adyenLogger,
         private readonly Config $configHelper,
-        private readonly NotificationReceiver $notificationReceiver,
         private readonly WebhookAcceptorFactory $webhookAcceptorFactory,
-        private readonly Data $adyenHelper
+        private readonly Webhook $webhookHelper,
+        private readonly ResultFactory $resultFactory,
+        private readonly AdyenNotificationRepositoryInterface $adyenNotificationRepository
     ) {
-        $this->context = $context;
         $this->enforceAjaxHeaderForMagento23Compatibility();
     }
 
-    /**
-     * @throws LocalizedException
-     */
-    public function execute(): void
+    public function execute(): ResultInterface
     {
-        if (!$this->authenticateRequest()) {
-            $this->return401();
-            return;
-        }
-
-        $rawContent = (string) $this->context->getRequest()->getContent();
-        if (empty($rawContent)) {
-            throw new LocalizedException(__('Empty request body.'));
-        }
-
-        $rawPayload = json_decode($rawContent, true);
-
-        if (!is_array($rawPayload)) {
-            throw new LocalizedException(__('Invalid JSON payload.'));
-        }
-        $acceptedMessage = '[accepted]';
-
         try {
+            if (!$this->authenticateRequest()) {
+                throw new AuthenticationException();
+            }
+
+            $rawContent = (string) $this->context->getRequest()->getContent();
+            if (empty($rawContent)) {
+                throw new InvalidDataException();
+            }
+
+            $rawPayload = json_decode($rawContent, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new InvalidDataException();
+            }
+
+            if (!$this->webhookHelper->isIpValid($rawPayload)) {
+                throw new AuthenticationException();
+            }
+
             $webhookType = $this->getWebhookType($rawPayload);
             $acceptor = $this->webhookAcceptorFactory->getAcceptor($webhookType);
 
-            $notifications = $acceptor->toNotificationList($rawPayload);
+            $notifications = $acceptor->getNotifications($rawPayload);
 
             foreach ($notifications as $notification) {
-                $notification->save();
+                $notification = $this->adyenNotificationRepository->save($notification);
                 $this->adyenLogger->addAdyenResult(sprintf("Notification %s is accepted", $notification->getId()));
             }
 
-            $this->context->getResponse()
-                ->clearHeader('Content-Type')
-                ->setHeader('Content-Type', 'text/html')
-                ->setBody($acceptedMessage);
-            return;
+            return $this->prepareResponse('[accepted]', 200);
+        } catch (AuthenticationException $e) {
+            return $this->prepareResponse(__('Unauthorized'), 401);
+        } catch (InvalidDataException $e) {
+            return $this->prepareResponse(__('The request does not contain a valid webhook!'), 400);
+        } catch (AlreadyExistsException $e) {
+            return $this->prepareResponse(__('Webhook already exists!'), 400);
+        } catch (Exception $e) {
+            $this->adyenLogger->addAdyenNotification($e->getMessage(), $rawPayload ?? []);
 
-        } catch (AuthenticationException) {
-            $this->return401();
-            return;
-        } catch (\Throwable $e) {
-            throw new LocalizedException(__('Webhook processing failed: %1', $e->getMessage()));
+            return $this->prepareResponse(
+                __('An error occurred while handling this webhook!'),
+                500
+            );
         }
     }
 
+    /**
+     * @throws InvalidDataException
+     */
     private function getWebhookType(array $payload): WebhookAcceptorType
     {
         if (
@@ -109,26 +119,22 @@ class Index implements ActionInterface
             return WebhookAcceptorType::TOKEN;
         }
 
-        throw new \UnexpectedValueException('Unable to determine webhook type from payload.');
+        throw new InvalidDataException(__('Unable to determine webhook type from payload.'));
     }
 
-    private function isNotificationModeValid(array $payload): bool
+    /**
+     * @param string $message
+     * @param int $responseCode
+     * @return ResultInterface
+     */
+    private function prepareResponse(string $message, int $responseCode): ResultInterface
     {
-        if (!isset($payload['live'])) {
-            return false;
-        }
+        $result = $this->resultFactory->create(ResultFactory::TYPE_RAW);
+        $result->setHeader('Content-Type', 'text/html');
+        $result->setStatusHeader($responseCode);
+        $result->setContents($message);
 
-        return $this->notificationReceiver->validateNotificationMode(
-            $payload['live'],
-            $this->configHelper->isDemoMode()
-        );
-    }
-
-    private function return401(string $message = 'Unauthorized'): void
-    {
-        $response = $this->context->getResponse();
-        $response->setHttpResponseCode(401);
-        $response->setBody($message);
+        return $result;
     }
 
     private function enforceAjaxHeaderForMagento23Compatibility(): void
@@ -159,5 +165,4 @@ class Index implements ActionInterface
         }
         return true;
     }
-
 }
