@@ -48,8 +48,7 @@ class RecurringTokenCreatedWebhookHandler implements WebhookHandlerInterface
             );
             $extensionAttributes = $this->vaultHelper->getExtensionAttributes($order->getPayment());
             $extensionAttributes->setVaultPaymentToken($paymentToken);
-        }
-        else{
+        } else {
             $this->adyenLogger->addAdyenNotification(
                 'The vault token has not been stored as the recurring configuration is disabled.',
                 [
