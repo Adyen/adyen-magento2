@@ -1,24 +1,22 @@
 <?php
+/**
+ *
+ * Adyen Payment Module
+ *
+ * Copyright (c) 2025 Adyen N.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
 
 namespace Adyen\Payment\Helper\Webhook;
 
-use Adyen\Payment\Logger\AdyenLogger;
-use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Adyen\Payment\Model\Notification;
+
 class RecurringTokenAlreadyExistingWebhookHandler implements WebhookHandlerInterface
 {
-    private OrderRepositoryInterface $orderRepository;
-    private AdyenLogger $adyenLogger;
-
-    public function __construct(
-        OrderRepositoryInterface $orderRepository,
-        AdyenLogger $adyenLogger
-    ) {
-        $this->orderRepository = $orderRepository;
-        $this->adyenLogger = $adyenLogger;
-    }
-
     /**
      * Handle the recurring.token.alreadyExisting webhook.
      *
@@ -27,28 +25,10 @@ class RecurringTokenAlreadyExistingWebhookHandler implements WebhookHandlerInter
      * @param string $transitionState
      * @return Order
      */
-    public function handleWebhook(
-        Order $order,
-        Notification $notification,
-        string $transitionState
-    ): Order {
-        try {
-            $order->addCommentToStatusHistory(
-                __('Recurring token already existed and was linked to this customer successfully.')
-            );
-
-            $this->adyenLogger->addAdyenNotification(sprintf(
-                'Handled recurring.token.alreadyExisting webhook for order %s (pspReference: %s)',
-                $order->getIncrementId(),
-                $notification->getPspreference()
-            ));
-        } catch (\Exception $e) {
-            $this->adyenLogger->error(sprintf(
-                'Error handling recurring.token.alreadyExisting webhook for order %s: %s',
-                $order->getIncrementId(),
-                $e->getMessage()
-            ));
-        }
+    public function handleWebhook(Order $order, Notification $notification, string $transitionState): Order {
+        $order->addCommentToStatusHistory(
+            __('Recurring token already existed and was linked to this customer successfully.')
+        );
 
         return $order;
     }
