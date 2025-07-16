@@ -90,7 +90,7 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
             throw new InvalidDataException();
         }
 
-        $incomingMerchantAccount = $payload['data']['merchantAccount'] ?? null;
+        $incomingMerchantAccount = $payload['data']['merchantAccount'];
         if (!$this->webhookHelper->isMerchantAccountValid($incomingMerchantAccount, $payload)) {
             $this->adyenLogger->addAdyenNotification(
                 "Merchant account mismatch while handling the webhook!",
