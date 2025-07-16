@@ -62,7 +62,7 @@ class WebhookHandlerFactory
         SecondChargebackWebhookHandler $secondChargebackWebhookHandler,
         NotificationOfChargebackWebhookHandler $notificationOfChargebackWebhookHandler,
         CaptureFailedWebhookHandler $captureFailedWebhookHandler,
-        RecurringTokenAlreadyExistingWebhookHandler  $recurringTokenAlreadyExistingWebhookHandler,
+        RecurringTokenAlreadyExistingWebhookHandler $recurringTokenAlreadyExistingWebhookHandler,
         RecurringTokenDisabledWebhookHandler $recurringTokenDisabledWebhookHandler
     ) {
         $this->adyenLogger = $adyenLogger;
