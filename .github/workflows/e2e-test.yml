@@ -3,9 +3,9 @@ run-name: E2E test workflow with test suite branch ${{inputs.testBranch || 'main
 
 on:
   pull_request:
-    branches: [main,develop-10]
+    branches: [main,main-9]
   pull_request_target:
-    branches: [main, develop-10]
+    branches: [main, main-9]
   workflow_dispatch:
     inputs:
       testBranch:
