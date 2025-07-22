@@ -128,15 +128,30 @@ class CheckoutDataBuilder implements BuilderInterface
             $requestBody['deliveryDate'] = $deliveryDate;
         }
 
-        $comboCardType = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::COMBO_CARD_TYPE) ?: 'credit';
+        // if installments is set and card type is credit card add it into the request
+        $numberOfInstallments = $payment->getAdditionalInformation(
+            AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS
+        ) ?: 0;
+        $comboCardType = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::COMBO_CARD_TYPE);
+        if ($numberOfInstallments > 0) {
+            $requestBody['installments']['value'] = $numberOfInstallments;
+        }
 
         /*
          * if the combo card type is debit then add the funding source
          * and unset the installments & brand fields
          */
-        if ($comboCardType == 'debit') {
-            $requestBody['paymentMethod']['fundingSource'] = 'debit';
-            unset($requestBody['paymentMethod']['brand']);
+        if (!empty($comboCardType)) {
+            switch ($comboCardType) {
+                case 'debit':
+                    $requestBody['paymentMethod']['fundingSource'] = 'debit';
+                    unset($requestBody['paymentMethod']['brand']);
+                    unset($requestBody['installments']);
+                    break;
+                case 'credit':
+                    $requestBody['paymentMethod']['fundingSource'] = 'credit';
+                    break;
+            }
         }
 
         $threeDSFlow = $this->configHelper->getThreeDSFlow($order->getStoreId());
