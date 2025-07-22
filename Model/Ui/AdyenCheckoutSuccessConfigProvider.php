@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Model\Ui;
 
 use Magento\Checkout\Model\ConfigProviderInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\StoreManagerInterface;
 
 class AdyenCheckoutSuccessConfigProvider implements ConfigProviderInterface
@@ -29,6 +30,7 @@ class AdyenCheckoutSuccessConfigProvider implements ConfigProviderInterface
 
     /**
      * @return array
+     * @throws NoSuchEntityException
      */
     public function getConfig()
     {

@@ -25,6 +25,7 @@ define([
     'Adyen_Payment/js/model/adyen-checkout',
     'Adyen_Payment/js/model/adyen-payment-modal',
     'Adyen_Payment/js/model/installments',
+    'Adyen_Payment/js/helper/currencyHelper'
 ], function (
     $,
     ko,
@@ -40,7 +41,8 @@ define([
     adyenConfiguration,
     adyenCheckout,
     adyenPaymentModal,
-    installmentsHelper
+    installmentsHelper,
+    currencyHelper
 ) {
     'use strict';
 
@@ -51,15 +53,12 @@ define([
         defaults: {
             template: 'Adyen_Payment/payment/cc-vault-form',
             modalLabel: null,
-            installment: ''
         },
         checkoutComponent: null,
 
         initObservable: function () {
             this._super()
                 .observe([
-                    'installment',
-                    'installments',
                     'adyenVaultPaymentMethod'
                 ]);
 
@@ -117,9 +116,11 @@ define([
         createCheckoutComponent: async function() {
             if (!this.checkoutComponent) {
                 const paymentMethodsResponse = adyenPaymentService.getPaymentMethods();
+                const countryCode = quote.billingAddress().countryId;
 
                 this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
                     paymentMethodsResponse(),
+                    countryCode,
                     this.handleOnAdditionalDetails.bind(this)
                 );
             }
@@ -151,49 +152,29 @@ define([
 
             let requireCvc = window.checkoutConfig.payment.adyenCc.requireCvc;
 
-            self.installments(0);
-
             let allInstallments = self.getAllInstallments();
+
+            let currency = quote.totals().quote_currency_code;
 
             let componentConfig = {
                 hideCVC: !requireCvc,
                 brand: this.getCardType(),
+                amount: {
+                    value: currencyHelper.formatAmount(
+                        self.grandTotal(),
+                        currency),
+                    currency: currency
+                },
                 storedPaymentMethodId: this.getGatewayToken(),
                 expiryMonth: this.getExpirationMonth(),
                 expiryYear: this.getExpirationYear(),
+                supportedShopperInteractions: ["Ecommerce"],
+                showPayButton: false,
+                installmentOptions: installmentsHelper.formatInstallmentsConfig(allInstallments,
+                    window.checkoutConfig.payment.adyenCc.adyenCcTypes,
+                    self.grandTotal()) ,
+                showInstallmentAmounts: true,
                 onChange: this.handleOnChange.bind(this),
-                onBrand: function(state) {
-                    let creditCardType = self.getCcCodeByAltCode(
-                        state.brand);
-                    if (creditCardType) {
-                        let numberOfInstallments = [];
-
-                        if (creditCardType in allInstallments) {
-                            let cardInstallments = allInstallments[creditCardType];
-                            let grandTotal = self.grandTotal();
-                            let precision = quote.getPriceFormat().precision;
-                            let currencyCode = quote.totals().quote_currency_code;
-
-                            numberOfInstallments = installmentsHelper.getInstallmentsWithPrices(
-                                cardInstallments, grandTotal,
-                                precision, currencyCode);
-                        }
-
-                        if (numberOfInstallments) {
-                            self.installments(numberOfInstallments);
-                        } else {
-                            self.installments(0);
-                        }
-                    } else {
-                        self.installments(0);
-                    }
-                }
-            }
-
-            if (!requireCvc) {
-                componentConfig.onBrand({
-                    brand: self.getCardType()
-                });
             }
 
             self.component = adyenCheckout.mountPaymentMethodComponent(
@@ -248,19 +229,23 @@ define([
 
         getData: function () {
             const self = this;
-            let stateData = self.component.data;
-            stateData = JSON.stringify(stateData);
-            window.sessionStorage.setItem('adyen.stateData', stateData);
-            return {
+            const componentData = self.component.data;
+
+            let data = {
                 method: this.code,
                 additional_data: {
-                    stateData: stateData,
+                    stateData: JSON.stringify(componentData),
                     public_hash: this.publicHash,
-                    'number_of_installments': self.installment(),
                     frontendType: 'default',
-                    'cc_type': self.getCcCodeByAltCode(self.getCardType())
+                    cc_type: componentData.paymentMethod?.brand
                 },
             };
+
+            if (componentData.installments?.value) {
+                data.additional_data.number_of_installments = componentData.installments?.value;
+            }
+
+            return data;
         },
 
         handleAdyenResult: function (responseJSON, orderId) {
@@ -345,19 +330,6 @@ define([
 
         getCode: function() {
             return window.checkoutConfig.payment.adyenCc.methodCode;
-        },
-
-        getCcCodeByAltCode: function(altCode) {
-            let ccTypes = window.checkoutConfig.payment.ccform.availableTypesByAlt[this.getCode()];
-            if (ccTypes.hasOwnProperty(altCode)) {
-                return ccTypes[altCode];
-            }
-
-            return '';
-        },
-
-        hasInstallments: function() {
-            return !!window.checkoutConfig.payment.adyenCc.hasInstallments;
         },
 
         getAllInstallments: function() {

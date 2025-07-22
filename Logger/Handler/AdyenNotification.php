@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2025 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -11,20 +11,12 @@
 
 namespace Adyen\Payment\Logger\Handler;
 
-use Monolog\Logger;
-use Adyen\Payment\Logger\AdyenLogger;
+use Magento\Framework\Logger\Handler\Base;
+use Monolog\Level;
 
-class AdyenNotification extends AdyenBase
+class AdyenNotification extends Base
 {
-    /**
-     * @var string
-     */
     protected $fileName = '/var/log/adyen/notification.log';
-
-    /**
-     * @var int
-     */
-    protected $loggerType = AdyenLogger::ADYEN_NOTIFICATION;
-
-    protected $level = AdyenLogger::ADYEN_NOTIFICATION;
+    protected $loggerType = Level::Info;
+    protected Level $level = Level::Info;
 }

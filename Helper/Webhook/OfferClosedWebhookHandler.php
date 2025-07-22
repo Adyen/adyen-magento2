@@ -12,6 +12,8 @@
 
 namespace Adyen\Payment\Helper\Webhook;
 
+use Adyen\AdyenException;
+use Adyen\Payment\Api\CleanupAdditionalInformationInterface;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Order;
 use Adyen\Payment\Helper\PaymentMethods;
@@ -21,40 +23,28 @@ use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order as MagentoOrder;
 
-
 class OfferClosedWebhookHandler implements WebhookHandlerInterface
 {
-    /** @var PaymentMethods */
-    private $paymentMethodsHelper;
-
-    /** @var AdyenLogger */
-    private $adyenLogger;
-
-    /** @var Config */
-    private $configHelper;
-
-    /** @var Order */
-    private $orderHelper;
-
-    /** @var OrderPaymentResourceModel */
-    protected $orderPaymentResourceModel;
-
+    /**
+     * @param PaymentMethods $paymentMethodsHelper
+     * @param AdyenLogger $adyenLogger
+     * @param Config $configHelper
+     * @param Order $orderHelper
+     * @param OrderPaymentResourceModel $orderPaymentResourceModel
+     * @param CleanupAdditionalInformationInterface $cleanupAdditionalInformation
+     */
     public function __construct(
-        PaymentMethods $paymentMethodsHelper,
-        AdyenLogger $adyenLogger,
-        Config $configHelper,
-        Order $orderHelper,
-        OrderPaymentResourceModel $orderPaymentResourceModel
-    ) {
-        $this->paymentMethodsHelper = $paymentMethodsHelper;
-        $this->adyenLogger = $adyenLogger;
-        $this->configHelper = $configHelper;
-        $this->orderHelper = $orderHelper;
-        $this->orderPaymentResourceModel = $orderPaymentResourceModel;
-    }
+        private readonly PaymentMethods $paymentMethodsHelper,
+        private readonly AdyenLogger $adyenLogger,
+        private readonly Config $configHelper,
+        private readonly Order $orderHelper,
+        private readonly OrderPaymentResourceModel $orderPaymentResourceModel,
+        private readonly CleanupAdditionalInformationInterface $cleanupAdditionalInformation
+    ) { }
 
     /**
      * @throws LocalizedException
+     * @throws AdyenException
      */
     public function handleWebhook(MagentoOrder $order, Notification $notification, string $transitionState): MagentoOrder
     {
@@ -88,12 +78,14 @@ class OfferClosedWebhookHandler implements WebhookHandlerInterface
         );
 
         if (!$identicalPaymentMethods) {
+            $paymentMethodInstance = $order->getPayment()->getMethodInstance();
             $this->adyenLogger->addAdyenNotification(sprintf(
                 'Payment method of notification %s (%s) does not match the payment method (%s) of order %s',
                 $notification->getId(),
                 $notification->getPaymentMethod(),
                 $order->getIncrementId(),
-                $order->getPayment()->getCcType()
+                $this->paymentMethodsHelper->getAlternativePaymentMethodTxVariant(
+                    $paymentMethodInstance)
             ),
                 [
                     'pspReference' => $notification->getPspreference(),
@@ -111,6 +103,9 @@ class OfferClosedWebhookHandler implements WebhookHandlerInterface
         ) {
             $order->setState(MagentoOrder::STATE_NEW);
         }
+
+        // Clean-up the data temporarily stored in `additional_information`
+        $this->cleanupAdditionalInformation->execute($order->getPayment());
 
         $this->orderHelper->holdCancelOrder($order, true);
 

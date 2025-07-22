@@ -12,6 +12,8 @@
 
 namespace Adyen\Payment\Helper\Webhook;
 
+use Adyen\Payment\Api\CleanupAdditionalInformationInterface;
+use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\CaseManagement;
 use Adyen\Payment\Helper\Config;
@@ -39,6 +41,8 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
      * @param Invoice $invoiceHelper
      * @param PaymentMethods $paymentMethodsHelper
      * @param CartRepositoryInterface $cartRepository
+     * @param AdyenNotificationRepositoryInterface $notificationRepository
+     * @param CleanupAdditionalInformationInterface $cleanupAdditionalInformation
      */
     public function __construct(
         private readonly AdyenOrderPayment $adyenOrderPaymentHelper,
@@ -49,7 +53,9 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         private readonly Config $configHelper,
         private readonly Invoice $invoiceHelper,
         private readonly PaymentMethods $paymentMethodsHelper,
-        private readonly CartRepositoryInterface $cartRepository
+        private readonly CartRepositoryInterface $cartRepository,
+        private readonly AdyenNotificationRepositoryInterface $notificationRepository,
+        private readonly CleanupAdditionalInformationInterface $cleanupAdditionalInformation
     ) { }
 
     /**
@@ -110,6 +116,9 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
             // Set authorized amount in sales_order_payment
             $order->getPayment()->setAmountAuthorized($order->getGrandTotal());
             $order->getPayment()->setBaseAmountAuthorized($order->getBaseGrandTotal());
+
+            // Clean-up the data temporarily stored in `additional_information`
+            $this->cleanupAdditionalInformation->execute($order->getPayment());
         } else {
             $this->orderHelper->addWebhookStatusHistoryComment($order, $notification);
         }
@@ -183,6 +192,9 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
             $order->setState(Order::STATE_NEW);
         }
 
+        // Clean-up the data temporarily stored in `additional_information`
+        $this->cleanupAdditionalInformation->execute($order->getPayment());
+
         return $this->orderHelper->holdCancelOrder($order, true);
     }
 
@@ -197,7 +209,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
     {
         $this->invoiceHelper->createInvoice($order, $notification, true);
         if ($requireFraudManualReview) {
-             $order = $this->caseManagementHelper->markCaseAsPendingReview($order, $notification->getPspreference(), true);
+            $order = $this->caseManagementHelper->markCaseAsPendingReview($order, $notification->getPspreference(), true);
         } else {
             $order = $this->orderHelper->finalizeOrder($order, $notification);
         }
@@ -250,7 +262,8 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
 
         $notification->setDone(true);
         $notification->setProcessing(false);
-        $notification->save();
+
+        $this->notificationRepository->save($notification);
 
         $order->addStatusHistoryComment(__(sprintf(
             "Order wasn't cancelled by this webhook notification. Pay by Link failure count: %s/%s",

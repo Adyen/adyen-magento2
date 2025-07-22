@@ -9,28 +9,25 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-// @codingStandardsIgnoreFile
 /**
  * @var Giftcard $block
  */
 
+use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Block\Info\Giftcard;
 
 ?>
-<?php $_info = $block->getInfo(); ?>
 
 <dl class="payment-method adyen_hpp">
-    <?php if ($block->getPartialPayments()): ?>
-        <dt class="title"><?= $block->escapeHtml($_info->getMethodInstance()->getTitle()); ?></dt>
-        <dt class="title"><b><?= $block->escapeHtml(__("Partial Payments")) ?></b></dt>
-        <?php foreach ($block->getPartialPayments() as $payment): ?>
-            <dt class="title">
-                <?= $block->escapeHtml(sprintf("%s - %s", ucwords($payment->getPaymentMethod()), $payment->getFormattedAmountWithCurrency())) ?>
-            </dt>
-        <?php endforeach; ?>
-    <?php else: ?>
-        <dt class="title">
-            <?= $block->escapeHtml(sprintf("%s: %s", $_info->getMethodInstance()->getTitle(), ucwords($_info->getAdditionalInformation('brand_code')))); ?>
-        </dt>
+    <?php if ($block->getPartialPayments()->getSize() > 1): ?>
+       <?= $block->renderPartialPaymentsHtml(); ?>
+    <?php elseif ($block->getPartialPayments()->getSize() === 1): ?>
+        <?php
+            /** @var OrderPaymentInterface $payment */
+            $payment = $block->getPartialPayments()->getFirstItem();
+            echo $block->escapeHtml(
+                sprintf("%s: %s", $block->getMethod()->getTitle(), ucwords($payment->getPaymentMethod()))
+            );
+        ?>
     <?php endif; ?>
 </dl>

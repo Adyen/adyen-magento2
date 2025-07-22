@@ -18,13 +18,13 @@ define(
         'Adyen_Payment/js/model/installments',
         'mage/url',
         'Magento_Vault/js/view/payment/vault-enabler',
-        'Magento_Checkout/js/model/url-builder',
         'Magento_Checkout/js/model/full-screen-loader',
         'Magento_Checkout/js/model/error-processor',
         'Adyen_Payment/js/model/adyen-payment-service',
         'Adyen_Payment/js/model/adyen-configuration',
         'Adyen_Payment/js/model/adyen-payment-modal',
-        'Adyen_Payment/js/model/adyen-checkout'
+        'Adyen_Payment/js/model/adyen-checkout',
+        'Adyen_Payment/js/helper/currencyHelper'
     ],
     function(
         $,
@@ -36,13 +36,13 @@ define(
         installmentsHelper,
         url,
         VaultEnabler,
-        urlBuilder,
         fullScreenLoader,
         errorProcessor,
         adyenPaymentService,
         adyenConfiguration,
         AdyenPaymentModal,
-        adyenCheckout
+        adyenCheckout,
+        currencyHelper
     ) {
         'use strict';
         return Component.extend({
@@ -55,7 +55,6 @@ define(
 
             defaults: {
                 template: 'Adyen_Payment/payment/cc-form',
-                installment: '', // keep it until the component implements installments
                 orderId: 0, // TODO is this the best place to store it?
                 storeCc: false,
                 modalLabel: 'cc_actionModal'
@@ -63,8 +62,6 @@ define(
             initObservable: function() {
                 this._super().observe([
                     'creditCardType',
-                    'installment',
-                    'installments',
                     'placeOrderAllowed',
                     'adyenCCMethod',
                     'logo'
@@ -143,9 +140,11 @@ define(
             createCheckoutComponent: async function () {
                 if (!this.checkoutComponent) {
                     const paymentMethodsResponse = adyenPaymentService.getPaymentMethods();
+                    const countryCode = quote.billingAddress().countryId;
 
                     this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
                         paymentMethodsResponse(),
+                        countryCode,
                         this.handleOnAdditionalDetails.bind(this)
                     )
                 }
@@ -185,16 +184,25 @@ define(
                     return false;
                 }
 
-                this.installments(0);
                 let allInstallments = this.getAllInstallments();
-
+                let currency = quote.totals().quote_currency_code;
                 let componentConfig = {
-                    showPayButton: false,
                     enableStoreDetails: this.getEnableStoreDetails(),
                     brands: this.getBrands(),
+                    amount: {
+                        value: currencyHelper.formatAmount(
+                            self.grandTotal(),
+                            currency),
+                        currency: currency
+                    },
                     hasHolderName: adyenConfiguration.getHasHolderName(),
                     holderNameRequired: adyenConfiguration.getHasHolderName() &&
                         adyenConfiguration.getHolderNameRequired(),
+                    showPayButton: false,
+                    installmentOptions: installmentsHelper.formatInstallmentsConfig(allInstallments,
+                        window.checkoutConfig.payment.adyenCc.adyenCcTypes,
+                        self.grandTotal()) ,
+                    showInstallmentAmounts: true,
                     onChange: function(state, component) {
                         self.placeOrderAllowed(!!state.isValid);
                         self.storeCc = !!state.data.storePaymentMethod;
@@ -202,44 +210,6 @@ define(
                     // Required for Click to Pay
                     onSubmit: function () {
                         self.placeOrder();
-                    },
-                    // Keep onBrand as is until checkout component supports installments
-                    onBrand: function(state) {
-                        // Define the card type
-                        // translate adyen card type to magento card type
-                        let creditCardType = self.getCcCodeByAltCode(
-                            state.brand);
-                        if (creditCardType) {
-                            // If the credit card type is already set, check if it changed or not
-                            if (!self.creditCardType() ||
-                                self.creditCardType() &&
-                                self.creditCardType() != creditCardType) {
-                                let numberOfInstallments = [];
-
-                                if (creditCardType in allInstallments) {
-                                    // get for the creditcard the installments
-                                    let cardInstallments = allInstallments[creditCardType];
-                                    let grandTotal = self.grandTotal();
-                                    let precision = quote.getPriceFormat().precision;
-                                    let currencyCode = quote.totals().quote_currency_code;
-
-                                    numberOfInstallments = installmentsHelper.getInstallmentsWithPrices(
-                                        cardInstallments, grandTotal,
-                                        precision, currencyCode);
-                                }
-
-                                if (numberOfInstallments) {
-                                    self.installments(numberOfInstallments);
-                                } else {
-                                    self.installments(0);
-                                }
-                            }
-
-                            self.creditCardType(creditCardType);
-                        } else {
-                            self.creditCardType('');
-                            self.installments(0);
-                        }
                     }
                 }
 
@@ -306,20 +276,23 @@ define(
                     additional_data: {
                         'stateData': {},
                         'guestEmail': quote.guestEmail,
-                        'cc_type': this.creditCardType(),
                         'combo_card_type': this.comboCardOption(),
                         //This is required by magento to store the token
                         'is_active_payment_token_enabler' : this.storeCc,
-                        'number_of_installments': this.installment(),
                         'frontendType': 'default'
                     }
                 };
 
                 // Get state data only if the checkout component is ready,
                 if (this.checkoutComponent) {
-                    const stateData = JSON.stringify(this.cardComponent.data)
-                    data.additional_data.stateData = stateData;
-                    window.sessionStorage.setItem('adyen.stateData', stateData);
+                    const componentData = this.cardComponent.data;
+
+                    data.additional_data.stateData = JSON.stringify(componentData);
+                    data.additional_data.cc_type = componentData.paymentMethod?.brand;
+
+                    if (componentData.installments?.value) {
+                        data.additional_data.number_of_installments = componentData.installments?.value;
+                    }
                 }
 
                 return data;
@@ -430,21 +403,6 @@ define(
             },
 
             /**
-             * Translates the card type alt code (used in Adyen) to card type code (used in Magento) if it's available
-             *
-             * @param altCode
-             * @returns {*}
-             */
-            getCcCodeByAltCode: function(altCode) {
-                let ccTypes = window.checkoutConfig.payment.ccform.availableTypesByAlt[this.getCode()];
-                if (ccTypes.hasOwnProperty(altCode)) {
-                    return ccTypes[altCode];
-                }
-
-                return '';
-            },
-
-            /**
              * Fetches the brands array of the credit cards
              *
              * @returns {array}
@@ -470,6 +428,23 @@ define(
             getCode: function() {
                 return window.checkoutConfig.payment.adyenCc.methodCode;
             },
+
+            getTitle: function () {
+                const paymentMethodsObservable = adyenPaymentService.getPaymentMethods();
+                const methods = paymentMethodsObservable?.()?.paymentMethodsResponse?.paymentMethods;
+
+                if (Array.isArray(methods)) {
+                    const schemeMethod = methods.find(function (pm) {
+                        return pm.type === 'scheme';
+                    });
+                    if (schemeMethod && schemeMethod.name) {
+                        return schemeMethod.name;
+                    }
+                }
+
+                return this._super();
+            },
+
             isCardRecurringEnabled: function () {
                 if (customer.isLoggedIn()) {
                     return window.checkoutConfig.payment.adyenCc.isCardRecurringEnabled;
@@ -492,10 +467,6 @@ define(
                     type)
                     ? window.checkoutConfig.payment.adyenCc.icons[type]
                     : false;
-            },
-            hasInstallments: function() {
-                return this.comboCardOption() === 'credit' &&
-                    window.checkoutConfig.payment.adyenCc.hasInstallments;
             },
             getAllInstallments: function() {
                 return window.checkoutConfig.payment.adyenCc.installments;

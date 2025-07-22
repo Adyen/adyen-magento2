@@ -4,12 +4,12 @@ namespace Adyen\Payment\Test\Unit\Console\Command;
 
 use Adyen\Payment\Console\Command\WebhookProcessorCommand;
 use Adyen\Payment\Cron\WebhookProcessor;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Console\Cli;
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class WebhookProcessorCommandTest extends TestCase
+class WebhookProcessorCommandTest extends AbstractAdyenTestCase
 {
     /**
      * Test the execute method with successful webhook processing.

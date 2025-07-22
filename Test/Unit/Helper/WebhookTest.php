@@ -1,6 +1,8 @@
 <?php
 namespace Adyen\Payment\Test\Unit\Helper;
 
+use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
+use Adyen\Payment\Helper\OrderStatusHistory;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\Webhook;
 use Adyen\Payment\Helper\Webhook\WebhookHandlerInterface;
@@ -109,46 +111,23 @@ class WebhookTest extends AbstractAdyenTestCase
         $orderHelper = $this->createMock(OrderHelper::class);
         $orderHelper->method('getOrderByIncrementId')->willReturn($order);
 
-        $payment->expects($this->once())
-            ->method('setAdditionalInformation')
-            ->with('payment_method', $notification->getPaymentMethod());
-
         $logger = $this->createMock(AdyenLogger::class);
         $logger->method('getOrderContext')->with($order);
 
         $webhookHandlerFactory = $this->createMock(WebhookHandlerFactory::class);
 
-        $paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
-        $paymentMethodsHelperMock->method('isAdyenPayment')
-            ->with('adyen_cc')
-            ->willReturn(true);
+        $webhook = $this->createWebhookHelper(
+            null,
+            null,
+            null,
+            null,
+            null,
+            $logger,
+            $webhookHandlerFactory,
+            $orderHelper
+        );
 
-        $webhookHandler = $this->getMockBuilder(Webhook::class)
-            ->setConstructorArgs([
-                $this->createMock(Data::class),
-                $this->createMock(SerializerInterface::class),
-                $this->createMock(TimezoneInterface::class),
-                $this->createMock(ConfigHelper::class),
-                $this->createMock(ChargedCurrency::class),
-                $logger,
-                $webhookHandlerFactory,
-                $orderHelper,
-                $this->createMock(OrderRepository::class),
-                $paymentMethodsHelperMock
-            ])
-            ->onlyMethods([
-                'updateNotification',
-                'addNotificationDetailsHistoryComment',
-                'updateAdyenAttributes',
-                'getCurrentState',
-                'getTransitionState',
-                'handleNotificationError'
-            ])
-            ->getMock();
-
-        $result = $webhookHandler->processNotification($notification);
-
-        $this->assertFalse($result);
+        $this->assertFalse($webhook->processNotification($notification));
     }
 
     public function testAddNotificationDetailsHistoryComment()
@@ -380,32 +359,20 @@ class WebhookTest extends AbstractAdyenTestCase
             ->with('adyen_cc')
             ->willReturn(true);
 
-        $webhookHandler = $this->getMockBuilder(Webhook::class)
-            ->setConstructorArgs([
-                $this->createMock(Data::class),
-                $this->createMock(SerializerInterface::class),
-                $this->createMock(TimezoneInterface::class),
-                $this->createMock(ConfigHelper::class),
-                $this->createMock(ChargedCurrency::class),
-                $logger,
-                $webhookHandlerFactory,
-                $orderHelper,
-                $this->createMock(OrderRepository::class),
-                $paymentMethodsHelperMock
-            ])
-            ->onlyMethods([
-                'updateNotification',
-                'addNotificationDetailsHistoryComment',
-                'updateAdyenAttributes',
-                'getCurrentState',
-                'getTransitionState',
-                'handleNotificationError'
-            ])
-            ->getMock();
+        $webbookHelper = $this->createWebhookHelper(
+            null,
+            null,
+            null,
+            null,
+            null,
+            $logger,
+            $webhookHandlerFactory,
+            $orderHelper,
+            null,
+            $paymentMethodsHelperMock
+        );
 
-        $result = $webhookHandler->processNotification($notification);
-
-        $this->assertFalse($result);
+        $this->assertFalse($webbookHelper->processNotification($notification));
     }
 
     public function testProcessNotificationWithGeneralException()
@@ -456,32 +423,20 @@ class WebhookTest extends AbstractAdyenTestCase
             ->with('adyen_cc')
             ->willReturn(true);
 
-        $webhookHandler = $this->getMockBuilder(Webhook::class)
-            ->setConstructorArgs([
-                $this->createMock(Data::class),
-                $this->createMock(SerializerInterface::class),
-                $this->createMock(TimezoneInterface::class),
-                $this->createMock(ConfigHelper::class),
-                $this->createMock(ChargedCurrency::class),
-                $logger,
-                $webhookHandlerFactory,
-                $orderHelper,
-                $this->createMock(OrderRepository::class),
-                $paymentMethodsHelperMock
-            ])
-            ->onlyMethods([
-                'updateNotification',
-                'addNotificationDetailsHistoryComment',
-                'updateAdyenAttributes',
-                'getCurrentState',
-                'getTransitionState',
-                'handleNotificationError'
-            ])
-            ->getMock();
+        $webbookHelper = $this->createWebhookHelper(
+            null,
+            null,
+            null,
+            null,
+            null,
+            $logger,
+            $webhookHandlerFactory,
+            $orderHelper,
+            null,
+            $paymentMethodsHelperMock
+        );
 
-        $result = $webhookHandler->processNotification($notification);
-
-        $this->assertFalse($result);
+        $this->assertFalse($webbookHelper->processNotification($notification));
     }
 
     public function testAddNotificationDetailsHistoryCommentWithFullRefund()
@@ -526,13 +481,6 @@ class WebhookTest extends AbstractAdyenTestCase
             ->willReturn(100);
         $notificationMock->method('isSuccessful')
             ->willReturn(true);
-
-        $orderMock->expects($this->once())
-            ->method('setData')
-            ->with(
-                'adyen_notification_event_code',
-                $this->stringContains('REFUND : TRUE')
-            );
 
         $reflection = new \ReflectionClass(get_class($webhook));
         $method = $reflection->getMethod('addNotificationDetailsHistoryComment');
@@ -584,7 +532,7 @@ class WebhookTest extends AbstractAdyenTestCase
         $method->setAccessible(true);
 
         $orderMock->expects($this->once())
-            ->method('addStatusHistoryComment')
+            ->method('addCommentToStatusHistory')
             ->with(
                 $this->anything(),
                 'pending_status_value'
@@ -618,14 +566,13 @@ class WebhookTest extends AbstractAdyenTestCase
         $method = $reflection->getMethod('updateOrderPaymentWithAdyenAttributes');
         $method->setAccessible(true);
 
-        $paymentMock->expects($this->exactly(4))
-        ->method('setAdditionalInformation')
-            ->withConsecutive(
-                ['adyen_avs_result', 'avs_result_value'],
-                ['adyen_cvc_result', 'cvc_result_value'],
-                ['pspReference', 'pspReference'],
-                ['adyen_ratepay_descriptor', $this->anything()]
-            );
+        $paymentMock->expects($this->exactly(3))
+            ->method('setAdditionalInformation')
+            ->willReturnMap([
+                ['adyen_avs_result', 'avs_result_value', $paymentMock],
+                ['adyen_cvc_result', 'cvc_result_value', $paymentMock],
+                ['pspReference', 'pspReference', $paymentMock]
+            ]);
 
         $method->invokeArgs($webhook, [$paymentMock, $notificationMock, $additionalData]);
     }
@@ -682,7 +629,9 @@ class WebhookTest extends AbstractAdyenTestCase
         $mockWebhookHandlerFactory = null,
         $mockOrderHelper = null,
         $mockOrderRepository = null,
-        $paymentMethodsHelperMock = null
+        $paymentMethodsHelperMock = null,
+        $adyenNotificationRepositoryMock = null,
+        $orderStatusHistoryHelperMock = null
     ): Webhook {
         if (is_null($mockAdyenHelper)) {
             $mockAdyenHelper = $this->createMock(Data::class);
@@ -714,17 +663,24 @@ class WebhookTest extends AbstractAdyenTestCase
         if (is_null($paymentMethodsHelperMock)) {
             $paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
         }
+        if (is_null($adyenNotificationRepositoryMock)) {
+            $adyenNotificationRepositoryMock = $this->createMock(AdyenNotificationRepositoryInterface::class);
+        }
+        if (is_null($orderStatusHistoryHelperMock)) {
+            $orderStatusHistoryHelperMock = $this->createMock(OrderStatusHistory::class);
+        }
+
         return new Webhook(
-            $mockAdyenHelper,
             $mockSerializer,
             $mockTimezone,
             $mockConfigHelper,
-            $mockChargedCurrency,
             $mockLogger,
             $mockWebhookHandlerFactory,
             $mockOrderHelper,
             $mockOrderRepository,
-            $paymentMethodsHelperMock
+            $orderStatusHistoryHelperMock,
+            $paymentMethodsHelperMock,
+            $adyenNotificationRepositoryMock
         );
     }
 }

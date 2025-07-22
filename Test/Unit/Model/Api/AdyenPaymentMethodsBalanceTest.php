@@ -18,13 +18,13 @@ use Magento\Framework\Serialize\Serializer\Json;
 
 class AdyenPaymentMethodsBalanceTest extends AbstractAdyenTestCase
 {
-
     private StoreManager $storeManager;
     private Config $config;
     private Data $adyenHelper;
     private AdyenLogger $adyenLogger;
     private OrdersApi $ordersApi;
     private BalanceCheckResponse $response;
+    private Json $jsonSerializer;
 
     protected function setUp(): void
     {
@@ -34,7 +34,7 @@ class AdyenPaymentMethodsBalanceTest extends AbstractAdyenTestCase
             [
                 'getStore' => $this->createConfiguredMock(
                     Store::class, [
-                        'getId' => 'StoreId'
+                        'getId' => 1
                     ]
                 ),
             ]
@@ -53,7 +53,6 @@ class AdyenPaymentMethodsBalanceTest extends AbstractAdyenTestCase
             'initializeOrdersApi' => $this->ordersApi
         ]);
         $this->adyenLogger = $this->createMock(AdyenLogger::class);
-        $this->merchantAccount = 'my-merchant-account';
     }
 
     public function testSuccessfulGetBalance()

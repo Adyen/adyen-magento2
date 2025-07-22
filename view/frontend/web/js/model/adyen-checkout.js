@@ -15,25 +15,25 @@ define(
     function (
         $,
         adyenConfiguration,
-        AdyenCheckout,
+        AdyenWeb
     ) {
         'use strict';
         return {
             buildCheckoutComponent: function (
                 paymentMethodsResponse,
+                countryCode,
                 handleOnAdditionalDetails,
-                handleOnCancel = undefined,
                 handleOnSubmit = undefined,
                 handleOnError = undefined
             ) {
                 if (!!paymentMethodsResponse.paymentMethodsResponse) {
-                    return AdyenCheckout({
+                    return window.AdyenWeb.AdyenCheckout({
                             locale: adyenConfiguration.getLocale(),
+                            countryCode: countryCode,
                             clientKey: adyenConfiguration.getClientKey(),
                             environment: adyenConfiguration.getCheckoutEnvironment(),
                             paymentMethodsResponse: paymentMethodsResponse.paymentMethodsResponse,
                             onAdditionalDetails: handleOnAdditionalDetails,
-                            onCancel: handleOnCancel,
                             onSubmit: handleOnSubmit,
                             onError: handleOnError
                         }
@@ -50,10 +50,11 @@ define(
                             return false;
                         }
 
-                        const paymentMethodComponent = checkoutComponent.create(
+                        const paymentMethodComponent = window.AdyenWeb.createComponent(
                             paymentMethodType,
+                            checkoutComponent,
                             configuration
-                        )
+                        );
 
                         if ('isAvailable' in paymentMethodComponent) {
                             paymentMethodComponent.isAvailable().then(() => {

@@ -90,9 +90,11 @@ class RecurringVaultDataBuilderTest extends AbstractAdyenTestCase
         $paymentTokenMock->method('getGatewayToken')->willReturn("ABC1234567");
         $paymentTokenMock->method('getType')->willReturn($tokenType);
 
-        $extensionAttributesMock = $this->createGeneratedMock(ExtensionAttributesInterface::class, [
-            'getVaultPaymentToken'
-        ]);
+        $extensionAttributesMock = $this->createGeneratedMock(
+            ExtensionAttributesInterface::class,
+            [],
+            ['getVaultPaymentToken']
+        );
         $extensionAttributesMock->method('getVaultPaymentToken')->willReturn($paymentTokenMock);
 
         $paymentMock = $this->createMock(Payment::class);

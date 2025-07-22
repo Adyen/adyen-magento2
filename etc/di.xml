@@ -193,8 +193,8 @@
             <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
             <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\Boleto</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentBoletoValueHandlerPool</argument>
-            <argument name="validatorPool" xsi:type="object">AdyenPaymentBoletoValidatorPool</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentBoletoCommandPool</argument>
+            <argument name="validatorPool" xsi:type="object">AdyenPaymentValidatorPool</argument>
+            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentPosCloudFacade" type="Adyen\Payment\Model\Method\Adapter">
@@ -847,7 +847,7 @@
             <argument name="requestBuilder" xsi:type="object">AdyenPaymentCcVaultAuthorizeRequest</argument>
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPayment</argument>
-            <argument name="validator" xsi:type="object">CheckoutResponseValidator</argument>
+            <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\CheckoutResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentResponseHandlerComposite</argument>
         </arguments>
     </virtualType>
@@ -887,19 +887,8 @@
             <argument name="requestBuilder" xsi:type="object">AdyenPaymentVaultAuthorizeRequest</argument>
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPayment</argument>
-            <argument name="validator" xsi:type="object">CheckoutResponseValidator</argument>
-            <argument name="handler" xsi:type="object">AdyenPaymentVaultResponseHandlerComposite</argument>
-        </arguments>
-    </virtualType>
-    <virtualType name="AdyenPaymentBoletoCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
-        <arguments>
-            <argument name="commands" xsi:type="array">
-                <item name="authorize" xsi:type="string">AdyenPaymentBoletoAuthorizeCommand</item>
-                <item name="capture" xsi:type="string">AdyenPaymentCaptureCommand</item>
-                <item name="void" xsi:type="string">AdyenPaymentCancelCommand</item>
-                <item name="refund" xsi:type="string">AdyenPaymentRefundCommand</item>
-                <item name="cancel" xsi:type="string">AdyenPaymentCancelCommand</item>
-            </argument>
+            <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\CheckoutResponseValidator</argument>
+            <argument name="handler" xsi:type="object">AdyenPaymentResponseHandlerComposite</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentPosCloudCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
@@ -929,8 +918,8 @@
             <argument name="requestBuilder" xsi:type="object">AdyenPaymentPayByLinkInitializeRequest</argument>
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPaymentLinks</argument>
-            <argument name="validator" xsi:type="object">PaymentLinksResponseValidator</argument>
-            <argument name="handler" xsi:type="object">Adyen\Payment\Gateway\Response\PayByLinkResponseHandler</argument>
+            <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\PaymentLinksResponseValidator</argument>
+            <argument name="handler" xsi:type="object">Adyen\Payment\Gateway\Response\CheckoutPaymentLinksResponseHandler</argument>
         </arguments>
     </virtualType>
     <!-- Authorization command  -->
@@ -939,7 +928,7 @@
             <argument name="requestBuilder" xsi:type="object">AdyenPaymentCcAuthorizeRequest</argument>
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPayment</argument>
-            <argument name="validator" xsi:type="object">CheckoutResponseValidator</argument>
+            <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\CheckoutResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentResponseHandlerComposite</argument>
         </arguments>
     </virtualType>
@@ -948,7 +937,7 @@
             <argument name="requestBuilder" xsi:type="object">AdyenPaymentMotoAuthorizeRequest</argument>
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPayment</argument>
-            <argument name="validator" xsi:type="object">CheckoutResponseValidator</argument>
+            <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\CheckoutResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentResponseHandlerComposite</argument>
         </arguments>
     </virtualType>
@@ -957,7 +946,7 @@
             <argument name="requestBuilder" xsi:type="object">AdyenPaymentOneclickAuthorizeRequest</argument>
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPayment</argument>
-            <argument name="validator" xsi:type="object">CheckoutResponseValidator</argument>
+            <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\CheckoutResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentResponseHandlerComposite</argument>
         </arguments>
     </virtualType>
@@ -966,7 +955,7 @@
             <argument name="requestBuilder" xsi:type="object">AdyenPaymentAuthorizeRequest</argument>
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPayment</argument>
-            <argument name="validator" xsi:type="object">CheckoutResponseValidator</argument>
+            <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\CheckoutResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentResponseHandlerComposite</argument>
         </arguments>
     </virtualType>
@@ -975,17 +964,8 @@
             <argument name="requestBuilder" xsi:type="object">AdyenPaymentGiftcardAuthorizeRequest</argument>
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPayment</argument>
-            <argument name="validator" xsi:type="object">CheckoutResponseValidator</argument>
+            <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\CheckoutResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentResponseHandlerComposite</argument>
-        </arguments>
-    </virtualType>
-    <virtualType name="AdyenPaymentBoletoAuthorizeCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
-        <arguments>
-            <argument name="requestBuilder" xsi:type="object">AdyenPaymentBoletoAuthorizeRequest</argument>
-            <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
-            <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPayment</argument>
-            <argument name="validator" xsi:type="object">CheckoutResponseValidator</argument>
-            <argument name="handler" xsi:type="object">AdyenPaymentBoletoResponseHandlerComposite</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentPosCloudAuthorizeCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
@@ -1003,7 +983,7 @@
             <argument name="requestBuilder" xsi:type="object">AdyenPaymentCaptureRequest</argument>
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionCapture</argument>
-            <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\CaptureResponseValidator</argument>
+            <argument name="validator" xsi:type="object">AdyenPaymentCaptureResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentCaptureResponseHandlerComposite</argument>
         </arguments>
     </virtualType>
@@ -1012,7 +992,7 @@
             <argument name="requestBuilder" xsi:type="object">AdyenPaymentMotoCaptureRequest</argument>
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionCapture</argument>
-            <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\CaptureResponseValidator</argument>
+            <argument name="validator" xsi:type="object">AdyenPaymentCaptureResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentCaptureResponseHandlerComposite</argument>
         </arguments>
     </virtualType>
@@ -1022,7 +1002,7 @@
             <argument name="requestBuilder" xsi:type="object">AdyenPaymentRefundRequest</argument>
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionRefund</argument>
-            <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\RefundResponseValidator</argument>
+            <argument name="validator" xsi:type="object">AdyenPaymentRefundResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentRefundResponseHandlerComposite</argument>
         </arguments>
     </virtualType>
@@ -1031,7 +1011,7 @@
             <argument name="requestBuilder" xsi:type="object">AdyenPaymentMotoRefundRequest</argument>
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionRefund</argument>
-            <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\RefundResponseValidator</argument>
+            <argument name="validator" xsi:type="object">AdyenPaymentRefundResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentRefundResponseHandlerComposite</argument>
         </arguments>
     </virtualType>
@@ -1040,7 +1020,7 @@
             <argument name="requestBuilder" xsi:type="object">AdyenPaymentCancelRequest</argument>
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionCancel</argument>
-            <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\CancelResponseValidator</argument>
+            <argument name="validator" xsi:type="object">AdyenPaymentCancelResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentCancelResponseHandlerComposite</argument>
         </arguments>
     </virtualType>
@@ -1049,10 +1029,36 @@
             <argument name="requestBuilder" xsi:type="object">AdyenPaymentMotoCancelRequest</argument>
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionCancel</argument>
-            <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\CancelResponseValidator</argument>
+            <argument name="validator" xsi:type="object">AdyenPaymentCancelResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentCancelResponseHandlerComposite</argument>
         </arguments>
     </virtualType>
+    <!-- Modification Response Validators -->
+    <virtualType name="AdyenPaymentCaptureResponseValidator" type="Adyen\Payment\Gateway\Validator\AbstractModificationsResponseValidator">
+        <arguments>
+            <argument name="modificationType" xsi:type="string">capture</argument>
+            <argument name="validStatuses" xsi:type="array">
+                <item name="received" xsi:type="const">Adyen\Model\Checkout\PaymentCaptureResponse::STATUS_RECEIVED</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentRefundResponseValidator" type="Adyen\Payment\Gateway\Validator\AbstractModificationsResponseValidator">
+        <arguments>
+            <argument name="modificationType" xsi:type="string">refund</argument>
+            <argument name="validStatuses" xsi:type="array">
+                <item name="received" xsi:type="const">Adyen\Model\Checkout\PaymentRefundResponse::STATUS_RECEIVED</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentCancelResponseValidator" type="Adyen\Payment\Gateway\Validator\AbstractModificationsResponseValidator">
+        <arguments>
+            <argument name="modificationType" xsi:type="string">cancel</argument>
+            <argument name="validStatuses" xsi:type="array">
+                <item name="received" xsi:type="const">Adyen\Model\Checkout\PaymentCancelResponse::STATUS_RECEIVED</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <!-- End Modification Repsonse Validators -->
     <!--Donate command-->
     <virtualType name="AdyenPaymentDonateCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
         <arguments>
@@ -1170,14 +1176,6 @@
             </argument>
         </arguments>
     </virtualType>
-    <virtualType name="AdyenPaymentVaultResponseHandlerComposite" type="Magento\Payment\Gateway\Response\HandlerChain">
-        <arguments>
-            <argument name="handlers" xsi:type="array">
-                <item name="payment_details" xsi:type="string">Adyen\Payment\Gateway\Response\PaymentAuthorisationDetailsHandler</item>
-                <item name="payment_comments" xsi:type="string">Adyen\Payment\Gateway\Response\PaymentCommentHistoryHandler</item>
-            </argument>
-        </arguments>
-    </virtualType>
     <virtualType name="AdyenPaymentOneclickAuthorizeRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
         <arguments>
             <argument name="builders" xsi:type="array">
@@ -1249,28 +1247,7 @@
         <arguments>
             <argument name="builders" xsi:type="array">
                 <item name="donation" xsi:type="string">Adyen\Payment\Gateway\Request\DonationDataBuilder</item>
-            </argument>
-        </arguments>
-    </virtualType>
-    <virtualType name="AdyenPaymentBoletoAuthorizeRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
-        <arguments>
-            <argument name="builders" xsi:type="array">
-                <item name="merchantaccount" xsi:type="string">Adyen\Payment\Gateway\Request\MerchantAccountDataBuilder</item>
-                <item name="customer" xsi:type="string">Adyen\Payment\Gateway\Request\CustomerDataBuilder</item>
-                <item name="customerip" xsi:type="string">Adyen\Payment\Gateway\Request\CustomerIpDataBuilder</item>
-                <item name="address" xsi:type="string">Adyen\Payment\Gateway\Request\AddressDataBuilder</item>
-                <item name="payment" xsi:type="string">Adyen\Payment\Gateway\Request\PaymentDataBuilder</item>
-                <item name="risk" xsi:type="string">Adyen\Payment\Gateway\Request\RiskDataBuilder</item>
-                <item name="browserinfo" xsi:type="string">Adyen\Payment\Gateway\Request\BrowserInfoDataBuilder</item>
-                <item name="recurring" xsi:type="string">Adyen\Payment\Gateway\Request\RecurringDataBuilder</item>
-                <item name="shopperinteraction" xsi:type="string">Adyen\Payment\Gateway\Request\ShopperInteractionDataBuilder</item>
-                <item name="transaction" xsi:type="string">Adyen\Payment\Gateway\Request\CheckoutDataBuilder</item>
                 <item name="header" xsi:type="string">Adyen\Payment\Gateway\Request\Header\HeaderDataBuilder</item>
-                <item name="returnurl" xsi:type="string">Adyen\Payment\Gateway\Request\ReturnUrlDataBuilder</item>
-                <item name="channel" xsi:type="string">Adyen\Payment\Gateway\Request\ChannelDataBuilder</item>
-                <item name="origin" xsi:type="string">Adyen\Payment\Gateway\Request\OriginDataBuilder</item>
-                <item name="giftcard" xsi:type="string">Adyen\Payment\Gateway\Request\GiftcardDataBuilder</item>
-                <item name="company" xsi:type="string">Adyen\Payment\Gateway\Request\CompanyDataBuilder</item>
             </argument>
         </arguments>
     </virtualType>
@@ -1285,7 +1262,6 @@
     <virtualType name="AdyenPaymentCaptureRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
         <arguments>
             <argument name="builders" xsi:type="array">
-                <item name="merchantaccount" xsi:type="string">Adyen\Payment\Gateway\Request\MerchantAccountDataBuilder</item>
                 <item name="capture" xsi:type="string">Adyen\Payment\Gateway\Request\CaptureDataBuilder</item>
                 <item name="header" xsi:type="string">Adyen\Payment\Gateway\Request\Header\HeaderDataBuilder</item>
             </argument>
@@ -1294,7 +1270,6 @@
     <virtualType name="AdyenPaymentMotoCaptureRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
         <arguments>
             <argument name="builders" xsi:type="array">
-                <item name="moto_merchant_account" xsi:type="string">Adyen\Payment\Gateway\Request\MotoMerchantAccountDataBuilder</item>
                 <item name="moto_client" xsi:type="string">Adyen\Payment\Gateway\Request\MotoClientConfigBuilder</item>
                 <item name="capture" xsi:type="string">Adyen\Payment\Gateway\Request\CaptureDataBuilder</item>
             </argument>
@@ -1338,20 +1313,33 @@
     <virtualType name="AdyenPaymentResponseHandlerComposite" type="Magento\Payment\Gateway\Response\HandlerChain">
         <arguments>
             <argument name="handlers" xsi:type="array">
-                <item name="payment_details" xsi:type="string">Adyen\Payment\Gateway\Response\CheckoutPaymentsDetailsHandler</item>
-                <item name="vault_details" xsi:type="string">Adyen\Payment\Gateway\Response\VaultDetailsHandler</item>
-                <item name="payment_comments" xsi:type="string">Adyen\Payment\Gateway\Response\CheckoutPaymentCommentHistoryHandler</item>
-                <item name="state_data" xsi:type="string">Adyen\Payment\Gateway\Response\StateDataHandler</item>
+                <item name="payments" xsi:type="string">Adyen\Payment\Gateway\Response\CheckoutPaymentsResponseHandler</item>
+                <item name="order_status_history" xsi:type="string">AdyenPaymentAuthorisationOrderStatusHistoryHandler</item>
             </argument>
         </arguments>
     </virtualType>
-    <virtualType name="AdyenPaymentBoletoResponseHandlerComposite" type="Magento\Payment\Gateway\Response\HandlerChain">
+    <virtualType name="AdyenPaymentAuthorisationOrderStatusHistoryHandler" type="Adyen\Payment\Gateway\Response\AbstractOrderStatusHistoryHandler">
         <arguments>
-            <argument name="handlers" xsi:type="array">
-                <item name="payment_details" xsi:type="string">Adyen\Payment\Gateway\Response\CheckoutPaymentsDetailsHandler</item>
-                <item name="vault_details" xsi:type="string">Adyen\Payment\Gateway\Response\VaultDetailsHandler</item>
-                <item name="payment_comments" xsi:type="string">Adyen\Payment\Gateway\Response\CheckoutPaymentCommentHistoryHandler</item>
-            </argument>
+            <argument name="actionDescription" xsi:type="string">Start Adyen transaction</argument>
+            <argument name="apiEndpoint" xsi:type="string">/payments</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentCaptureOrderStatusHistoryHandler" type="Adyen\Payment\Gateway\Response\AbstractOrderStatusHistoryHandler">
+        <arguments>
+            <argument name="actionDescription" xsi:type="string">Capture authorised Adyen payment</argument>
+            <argument name="apiEndpoint" xsi:type="string">/captures</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentRefundOrderStatusHistoryHandler" type="Adyen\Payment\Gateway\Response\AbstractOrderStatusHistoryHandler">
+        <arguments>
+            <argument name="actionDescription" xsi:type="string">Refund captured Adyen payment</argument>
+            <argument name="apiEndpoint" xsi:type="string">/refunds</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentCancellationOrderStatusHistoryHandler" type="Adyen\Payment\Gateway\Response\AbstractOrderStatusHistoryHandler">
+        <arguments>
+            <argument name="actionDescription" xsi:type="string">Cancel authorised Adyen payment</argument>
+            <argument name="apiEndpoint" xsi:type="string">/cancels</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentPosCloudResponseHandlerComposite" type="Magento\Payment\Gateway\Response\HandlerChain">
@@ -1364,24 +1352,24 @@
     <virtualType name="AdyenPaymentCaptureResponseHandlerComposite" type="Magento\Payment\Gateway\Response\HandlerChain">
         <arguments>
             <argument name="handlers" xsi:type="array">
-                <item name="capture" xsi:type="string">Adyen\Payment\Gateway\Response\PaymentCaptureDetailsHandler</item>
-                <item name="payment_comments" xsi:type="string">Adyen\Payment\Gateway\Response\PaymentCommentHistoryHandler</item>
+                <item name="capture" xsi:type="string">Adyen\Payment\Gateway\Response\ModificationsCapturesResponseHandler</item>
+                <item name="order_comment_history" xsi:type="string">AdyenPaymentCaptureOrderStatusHistoryHandler</item>
             </argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentRefundResponseHandlerComposite" type="Magento\Payment\Gateway\Response\HandlerChain">
         <arguments>
             <argument name="handlers" xsi:type="array">
-                <item name="capture" xsi:type="string">Adyen\Payment\Gateway\Response\PaymentRefundDetailsHandler</item>
-                <item name="payment_comments" xsi:type="string">Adyen\Payment\Gateway\Response\PaymentCommentHistoryRefundHandler</item>
+                <item name="capture" xsi:type="string">Adyen\Payment\Gateway\Response\ModificationsRefundsResponseHandler</item>
+                <item name="order_status_history" xsi:type="string">AdyenPaymentRefundOrderStatusHistoryHandler</item>
             </argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentCancelResponseHandlerComposite" type="Magento\Payment\Gateway\Response\HandlerChain">
         <arguments>
             <argument name="handlers" xsi:type="array">
-                <item name="cancel" xsi:type="string">Adyen\Payment\Gateway\Response\PaymentCancelDetailsHandler</item>
-                <item name="payment_comments" xsi:type="string">Adyen\Payment\Gateway\Response\PaymentCommentHistoryHandler</item>
+                <item name="cancel" xsi:type="string">Adyen\Payment\Gateway\Response\ModificationsCancelsResponseHandler</item>
+                <item name="order_status_history" xsi:type="string">AdyenPaymentCancellationOrderStatusHistoryHandler</item>
             </argument>
         </arguments>
     </virtualType>
@@ -1390,7 +1378,7 @@
         <arguments>
             <argument name="validators" xsi:type="array">
                 <item name="country" xsi:type="string">AdyenCcCountryValidator</item>
-                <item name="global" xsi:type="string">Adyen\Payment\Gateway\Validator\InstallmentValidator</item>
+                <item name="global" xsi:type="string">Adyen\Payment\Gateway\Validator\InstallmentRequestValidator</item>
             </argument>
         </arguments>
     </virtualType>
@@ -1398,7 +1386,7 @@
         <arguments>
             <argument name="validators" xsi:type="array">
                 <item name="country" xsi:type="string">AdyenCcCountryValidator</item>
-                <item name="global" xsi:type="string">Adyen\Payment\Gateway\Validator\InstallmentValidator</item>
+                <item name="global" xsi:type="string">Adyen\Payment\Gateway\Validator\InstallmentRequestValidator</item>
             </argument>
         </arguments>
     </virtualType>
@@ -1411,7 +1399,7 @@
         <arguments>
             <argument name="validators" xsi:type="array">
                 <item name="country" xsi:type="string">AdyenOneclickCountryValidator</item>
-                <item name="global" xsi:type="string">Adyen\Payment\Gateway\Validator\InstallmentValidator</item>
+                <item name="global" xsi:type="string">Adyen\Payment\Gateway\Validator\InstallmentRequestValidator</item>
             </argument>
         </arguments>
     </virtualType>
@@ -1432,18 +1420,6 @@
             <argument name="config" xsi:type="object">AdyenPaymentHppConfig</argument>
         </arguments>
     </virtualType>
-    <virtualType name="AdyenPaymentBoletoValidatorPool" type="Magento\Payment\Gateway\Validator\ValidatorPool">
-        <arguments>
-            <argument name="validators" xsi:type="array">
-                <item name="country" xsi:type="string">AdyenBoletoCountryValidator</item>
-            </argument>
-        </arguments>
-    </virtualType>
-    <virtualType name="AdyenBoletoCountryValidator" type="Magento\Payment\Gateway\Validator\CountryValidator">
-        <arguments>
-            <argument name="config" xsi:type="object">AdyenPaymentBoletoConfig</argument>
-        </arguments>
-    </virtualType>
     <virtualType name="AdyenPaymentPosCloudValidatorPool" type="Magento\Payment\Gateway\Validator\ValidatorPool">
         <arguments>
             <argument name="validators" xsi:type="array">
@@ -1459,20 +1435,8 @@
     <virtualType name="AdyenPaymentPayByLinkValidatorPool" type="Magento\Payment\Gateway\Validator\ValidatorPool">
         <arguments>
             <argument name="validators" xsi:type="array">
-                <item name="global" xsi:type="string">Adyen\Payment\Gateway\Validator\PayByLinkValidator</item>
+                <item name="global" xsi:type="string">Adyen\Payment\Gateway\Validator\PaymentLinksRequestValidator</item>
             </argument>
-        </arguments>
-    </virtualType>
-    <!--Checkout Response validator-->
-    <virtualType name="CheckoutResponseValidator" type="Adyen\Payment\Gateway\Validator\CheckoutResponseValidator">
-        <arguments>
-            <argument name="loggerInterface" xsi:type="object">Adyen\Payment\Logger\AdyenLogger</argument>
-        </arguments>
-    </virtualType>
-    <!--Payment Links Response Validator-->
-    <virtualType name="PaymentLinksResponseValidator" type="Adyen\Payment\Gateway\Validator\PaymentLinksResponseValidator">
-        <arguments>
-            <argument name="loggerInterface" xsi:type="object">Adyen\Payment\Logger\AdyenLogger</argument>
         </arguments>
     </virtualType>
     <virtualType name="PosCloudResponseValidator" type="Adyen\Payment\Gateway\Validator\PosCloudResponseValidator">
@@ -1481,7 +1445,6 @@
         </arguments>
     </virtualType>
     <preference for="Magento\Payment\Gateway\Data\Order\AddressAdapter" type="Adyen\Payment\Gateway\Data\Order\AddressAdapter" />
-    <preference for="Magento\Payment\Gateway\Data\Order\OrderAdapter" type="Adyen\Payment\Gateway\Data\Order\OrderAdapter" />
     <preference for="Adyen\Payment\Api\InstantPurchase\PaymentMethodIntegration\AdyenAvailabilityCheckerInterface" type="Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker" />
     <type name="Adyen\Payment\Logger\Handler\AdyenDebug">
         <arguments>
@@ -1515,7 +1478,6 @@
     </type>
     <type name="Adyen\Payment\Logger\AdyenLogger">
         <arguments>
-            <argument name="name" xsi:type="string">AdyenLoggerTest</argument>
             <argument name="handlers" xsi:type="array">
                 <item name="adyenDebug" xsi:type="object">Adyen\Payment\Logger\Handler\AdyenDebug</item>
                 <item name="adyenNotification" xsi:type="object">Adyen\Payment\Logger\Handler\AdyenNotification</item>
@@ -1546,7 +1508,6 @@
     <type name="Adyen\Payment\Helper\Data">
         <arguments>
             <argument name="dataStorage" xsi:type="object">adyenPaymentConfigDataStorage</argument>
-            <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
     </type>
     <type name="Adyen\Payment\Model\Config\Backend\Installments">
@@ -1559,7 +1520,7 @@
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
     </type>
-    <type name="Adyen\Payment\Gateway\Validator\InstallmentValidator">
+    <type name="Adyen\Payment\Gateway\Validator\InstallmentRequestValidator">
         <arguments>
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
@@ -1710,12 +1671,18 @@
     <preference for="Adyen\Payment\Api\GuestAdyenGiftcardInterface" type="Adyen\Payment\Model\Api\GuestAdyenGiftcard" />
     <preference for="Adyen\Payment\Api\AdyenDonationsInterface" type="Adyen\Payment\Model\Api\AdyenDonations" />
     <preference for="Adyen\Payment\Api\GuestAdyenDonationsInterface" type="Adyen\Payment\Model\Api\GuestAdyenDonations" />
+    <preference for="Adyen\Payment\Api\AdyenDonationCampaignsInterface" type="Adyen\Payment\Model\Api\AdyenDonationCampaigns" />
+    <preference for="Adyen\Payment\Api\GuestAdyenDonationCampaignsInterface" type="Adyen\Payment\Model\Api\GuestAdyenDonationCampaigns" />
     <preference for="Adyen\Payment\Api\AdyenPosCloudInterface" type="Adyen\Payment\Model\Api\AdyenPosCloud" />
     <preference for="Adyen\Payment\Api\GuestAdyenPosCloudInterface" type="Adyen\Payment\Model\Api\GuestAdyenPosCloud" />
     <preference for="Adyen\Payment\Api\Data\NotificationInterface" type="Adyen\Payment\Model\Notification" />
     <preference for="Adyen\Payment\Api\AdyenPaymentMethodsBalanceInterface" type="Adyen\Payment\Model\Api\AdyenPaymentMethodsBalance" />
     <preference for="Adyen\Payment\Api\TokenDeactivateInterface" type="Adyen\Payment\Model\Api\TokenDeactivate" />
+    <preference for="Adyen\Payment\Api\CleanupAdditionalInformationInterface" type="Adyen\Payment\Model\CleanupAdditionalInformation" />
     <preference for="Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface" type="Adyen\Payment\Model\AdyenNotificationRepository" />
+    <preference for="Adyen\Payment\Api\Repository\AdyenInvoiceRepositoryInterface" type="Adyen\Payment\Model\AdyenInvoiceRepository" />
+    <preference for="Adyen\Payment\Api\Repository\AdyenCreditmemoRepositoryInterface" type="Adyen\Payment\Model\AdyenCreditmemoRepository" />
+    <preference for="Adyen\Payment\Api\Repository\AdyenOrderPaymentRepositoryInterface" type="Adyen\Payment\Model\AdyenOrderPaymentRepository" />
     <type name="Magento\Vault\Api\PaymentTokenRepositoryInterface">
         <plugin name="AdyenPaymentVaultDeleteToken" type="Adyen\Payment\Plugin\PaymentVaultDeleteToken" sortOrder="10" />
     </type>

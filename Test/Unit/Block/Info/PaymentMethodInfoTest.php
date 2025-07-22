@@ -14,30 +14,60 @@ namespace Adyen\Payment\Test\Block\Info;
 use Adyen\Payment\Block\Info\PaymentMethodInfo;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
-use Adyen\Payment\Model\AdyenAmountCurrency;
-use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory;
+use Adyen\Payment\Model\ResourceModel\Order\Payment\Collection as OrderPaymentCollection;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\View\Element\AbstractBlock;
 use Magento\Framework\View\Element\Template\Context;
-use Magento\Sales\Model\Order;
-use Magento\Sales\Model\Order\Payment;
+use Magento\Framework\View\LayoutInterface;
+use Magento\Payment\Model\InfoInterface;
+use Magento\Sales\Api\Data\OrderInterface;
+use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
 
 class PaymentMethodInfoTest extends AbstractAdyenTestCase
 {
-    protected ?PaymentMethodInfo $paymentMethodInfo;
-    protected MockObject|CollectionFactory $collectionFactoryMock;
-    protected MockObject|Config $configHelperMock;
-    protected MockObject|Context $contextMock;
-    protected MockObject|ChargedCurrency $chargedCurrencyMock;
+    protected ?PaymentMethodInfo $abstractInfo;
+    protected Config|MockObject $configHelperMock;
+    protected CollectionFactory|MockObject $adyenOrderPaymentCollectionFactoryMock;
+    protected Context|MockObject $contextMock;
+    protected ChargedCurrency|MockObject $chargedCurrencyMock;
+    protected InfoInterface|MockObject $infoBlockMock;
+    protected LayoutInterface|MockObject $layoutMock;
     protected array $data = [];
 
     /**
      * @return void
+     * @throws Exception
      */
-    public function generateSut(): void
+    protected function setUp(): void
     {
-        $this->paymentMethodInfo = new PaymentMethodInfo(
-            $this->collectionFactoryMock,
+        $this->layoutMock = $this->createMock(LayoutInterface::class);
+        $this->contextMock = $this->createMock(Context::class);
+        $this->contextMock->method('getLayout')->willReturn($this->layoutMock);
+        $this->configHelperMock = $this->createMock(Config::class);
+        $this->adyenOrderPaymentCollectionFactoryMock = $this->createMock(CollectionFactory::class);
+        $this->chargedCurrencyMock = $this->createMock(ChargedCurrency::class);
+        $this->infoBlockMock = $this->createGeneratedMock(
+            InfoInterface::class,
+            [
+                'encrypt',
+                'decrypt',
+                'setAdditionalInformation',
+                'hasAdditionalInformation',
+                'unsAdditionalInformation',
+                'getAdditionalInformation',
+                'getMethodInstance'
+            ],
+            ['getAdyenPspReference', 'getOrder', 'getId']
+        );
+        $this->data = [
+            'info' => $this->infoBlockMock
+        ];
+
+        $this->abstractInfo = new PaymentMethodInfo(
+            $this->adyenOrderPaymentCollectionFactoryMock,
             $this->configHelperMock,
             $this->contextMock,
             $this->chargedCurrencyMock,
@@ -48,146 +78,89 @@ class PaymentMethodInfoTest extends AbstractAdyenTestCase
     /**
      * @return void
      */
-    protected function setUp(): void
-    {
-        $this->collectionFactoryMock = $this->createGeneratedMock(CollectionFactory::class, ['create']);
-        $this->configHelperMock = $this->createMock(Config::class);
-        $this->contextMock = $this->createMock(Context::class);
-        $this->chargedCurrencyMock = $this->createMock(ChargedCurrency::class);
-    }
-
-    /**
-     * @return void
-     */
     protected function tearDown(): void
     {
-        $this->paymentMethodInfo = null;
+        $this->abstractInfo = null;
     }
 
     /**
      * @return void
+     * @throws LocalizedException
      */
-    public function testGetBankTransferData()
+    public function testGetAdyenPspReference()
     {
-        $paymentMock = $this->createMock(Payment::class);
-        $paymentMock->method('getAdditionalInformation')
-            ->willReturnMap([
-                ['bankTransfer.owner', 'John Doe'],
-                [null, ['bankTransfer.owner' => 'John Doe']]
-            ]);
+        $psprefereceMock = 'PSP_REFERENCE_MOCK';
 
-        $orderMock = $this->createMock(Order::class);
-        $orderMock->method('getPayment')->willReturn($paymentMock);
+        $this->infoBlockMock->expects($this->once())
+            ->method('getAdyenPspReference')
+            ->willReturn($psprefereceMock);
 
-        $paymentMock->method('getOrder')->willReturn($orderMock);
-
-        $this->data = [
-            'info' => $paymentMock
-        ];
-
-        $this->generateSut();
-
-        $result = $this->paymentMethodInfo->getBankTransferData();
-        $this->assertArrayHasKey('bankTransfer.owner', $result);
-    }
-
-    /**
-     * @return array[]
-     */
-    private static function getMultibancoDataDataProvider(): array
-    {
-        return [
-            [
-                'actionMock' => [
-                    'entity' => '123456',
-                    'reference' => '111 222 333',
-                    'expiresAt' => '2025-10-29T10:45:00'
-                ]
-            ],
-            [
-                'actionMock' => [
-                    'entity' => '123456',
-                    'reference' => '111 222 333',
-                    'expiresAt' => '29.10.2025'
-                ]
-            ],
-        ];
-    }
-
-    /**
-     * @dataProvider getMultibancoDataDataProvider
-     *
-     * @param $actionMock
-     * @return void
-     */
-    public function testsGetMultibancoData($actionMock)
-    {
-        $paymentMock = $this->createMock(Payment::class);
-        $paymentMock->method('getAdditionalInformation')
-            ->with('action')
-            ->willReturn($actionMock);
-
-        $orderMock = $this->createMock(Order::class);
-        $orderMock->method('getPayment')->willReturn($paymentMock);
-
-        $paymentMock->method('getOrder')->willReturn($orderMock);
-
-        $this->data = [
-            'info' => $paymentMock
-        ];
-
-        $this->generateSut();
-
-        $result = $this->paymentMethodInfo->getMultibancoData();
-
-        $this->assertArrayHasKey('entity', $result);
-        $this->assertArrayHasKey('reference', $result);
-        $this->assertArrayHasKey('expiresAt', $result);
+        $this->assertEquals($psprefereceMock, $this->abstractInfo->getAdyenPspReference());
     }
 
     /**
      * @return void
+     * @throws Exception
+     * @throws LocalizedException
      */
-    public function testGetOrder()
+    public function testIsDemoMode()
     {
-        $orderMock = $this->createMock(Order::class);
+        $storeId = 1;
+        $isDemoMode = true;
 
-        $paymentMock = $this->createMock(Payment::class);
-        $paymentMock->method('getOrder')->willReturn($orderMock);
+        $orderMock = $this->createMock(OrderInterface::class);
+        $orderMock->expects($this->once())->method('getStoreId')->willReturn($storeId);
 
-        $this->data = [
-            'info' => $paymentMock
-        ];
+        $this->infoBlockMock->expects($this->once())->method('getOrder')->willReturn($orderMock);
+        $this->configHelperMock->expects($this->once())
+            ->method('getAdyenAbstractConfigDataFlag')
+            ->willReturn('demo_mode', $storeId)
+            ->willReturn($isDemoMode);
 
-        $this->generateSut();
-
-        $result = $this->paymentMethodInfo->getOrder();
-        $this->assertInstanceOf(Order::class, $result);
+        $this->assertEquals($isDemoMode, $this->abstractInfo->isDemoMode());
     }
 
     /**
      * @return void
+     * @throws Exception
+     * @throws LocalizedException
      */
-    public function testGetOrderAmountCurrency()
+    public function testGetPartialPayments()
     {
-        $orderMock = $this->createMock(Order::class);
+        $paymentId = 1;
 
-        $paymentMock = $this->createMock(Payment::class);
-        $paymentMock->method('getOrder')->willReturn($orderMock);
+        $this->infoBlockMock->expects($this->once())->method('getId')->willReturn($paymentId);
 
-        $this->data = [
-            'info' => $paymentMock
-        ];
+        $orderPaymentCollection = $this->createMock(OrderPaymentCollection::class);
+        $orderPaymentCollection->expects($this->once())
+            ->method('addPaymentFilterAscending')
+            ->with($paymentId)
+            ->willReturnSelf();
 
-        $adyenOrderAmountCurrency = $this->createMock(AdyenAmountCurrency::class);
+        $this->adyenOrderPaymentCollectionFactoryMock->expects($this->once())
+            ->method('create')
+            ->willReturn($orderPaymentCollection);
 
-        $this->chargedCurrencyMock->method('getOrderAmountCurrency')
-            ->with($orderMock)
-            ->willReturn($adyenOrderAmountCurrency);
+        $this->assertInstanceOf(OrderPaymentCollection::class, $this->abstractInfo->getPartialPayments());
+    }
 
-        $this->generateSut();
+    public function testRenderPartialPaymentsHtml()
+    {
+        $htmlMock = '<div>dummy</div>';
 
-        $result = $this->paymentMethodInfo->getOrderAmountCurrency();
-        $this->assertInstanceOf(AdyenAmountCurrency::class, $result);
+        $blockMock = $this->createGeneratedMock(
+            AbstractBlock::class,
+            ['toHtml', 'getLayout'],
+            ['setInfoBlock']
+        );
+        $blockMock->method('setInfoBlock')->willReturnSelf();
+        $blockMock->method('toHtml')->willReturn($htmlMock);
+
+        $this->layoutMock->expects($this->once())
+            ->method('createBlock', '', [])
+            ->with("Adyen\Payment\Block\Info\PartialPayments")
+            ->willReturn($blockMock);
+
+        $this->assertEquals($htmlMock, $this->abstractInfo->renderPartialPaymentsHtml());
     }
 }

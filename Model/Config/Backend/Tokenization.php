@@ -11,11 +11,8 @@
 
 namespace Adyen\Payment\Model\Config\Backend;
 
-use Adyen\Payment\Gateway\Request\PosCloudBuilder;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Model\Method\PaymentMethodInterface;
-use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
-use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Value;
@@ -33,29 +30,32 @@ use Magento\Payment\Helper\Data;
  */
 class Tokenization extends Value
 {
-    private SerializerInterface $serializer;
-    protected Random $mathRandom;
-    private PaymentMethods $paymentMethodsHelper;
-    private Data $dataHelper;
-
+    /**
+     * @param Context $context
+     * @param Registry $registry
+     * @param ScopeConfigInterface $config
+     * @param TypeListInterface $cacheTypeList
+     * @param Random $mathRandom
+     * @param SerializerInterface $serializer
+     * @param PaymentMethods $paymentMethodsHelper
+     * @param Data $dataHelper
+     * @param AbstractResource|null $resource
+     * @param AbstractDb|null $resourceCollection
+     * @param array $data
+     */
     public function __construct(
         Context $context,
         Registry $registry,
         ScopeConfigInterface $config,
         TypeListInterface $cacheTypeList,
-        Random $mathRandom,
-        SerializerInterface $serializer,
-        PaymentMethods $paymentMethodsHelper,
-        Data $dataHelper,
-        AbstractResource $resource = null,
-        AbstractDb $resourceCollection = null,
+        protected readonly Random $mathRandom,
+        private readonly SerializerInterface $serializer,
+        private readonly PaymentMethods $paymentMethodsHelper,
+        private readonly Data $dataHelper,
+        ?AbstractResource $resource = null,
+        ?AbstractDb $resourceCollection = null,
         array $data = []
     ) {
-        $this->mathRandom = $mathRandom;
-        $this->serializer = $serializer;
-        $this->paymentMethodsHelper = $paymentMethodsHelper;
-        $this->dataHelper = $dataHelper;
-
         parent::__construct($context, $registry, $config, $cacheTypeList, $resource, $resourceCollection, $data);
     }
 
