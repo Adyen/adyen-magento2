@@ -13,8 +13,7 @@ Inside Adyen toggle the following settings on inside the API and Responses secti
 * Variant
 
 ## Requirements
-This plugin is compatible with Magento 2.4.8 
-
+This plugin is compatible with Magento version 2.4.8 only.
 
 ## Releases
 
