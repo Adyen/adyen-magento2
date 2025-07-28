@@ -125,6 +125,7 @@
                 <item name="adyen_doku_mandiri_va" xsi:type="string">doku_mandiri_va</item>
                 <item name="adyen_afterpaytouch_US" xsi:type="string">afterpaytouch_US</item>
                 <item name="adyen_paybybank_ais_dd" xsi:type="string">paybybank_AIS_DD</item>
+                <item name="adyen_scalapay_3x" xsi:type="string">scalapay_3x</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
