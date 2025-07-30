@@ -2677,7 +2677,7 @@
             <adyen_scalapay_3x>
                 <active>0</active>
                 <model>AdyenPaymentScalapay3xFacade</model>
-                <title>ScalaPay pay in three</title>
+                <title>Scalapay pay in three</title>
                 <allowspecific>0</allowspecific>
                 <sort_order>0</sort_order>
                 <payment_action>authorize</payment_action>
@@ -2701,7 +2701,7 @@
             <adyen_scalapay_4x>
                 <active>0</active>
                 <model>AdyenPaymentScalapay4xFacade</model>
-                <title>ScalaPay pay in four</title>
+                <title>Scalapay pay in four</title>
                 <allowspecific>0</allowspecific>
                 <sort_order>0</sort_order>
                 <payment_action>authorize</payment_action>
