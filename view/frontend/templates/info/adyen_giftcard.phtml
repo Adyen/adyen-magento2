@@ -29,5 +29,7 @@ use Adyen\Payment\Block\Info\Giftcard;
                 sprintf("%s: %s", $block->getMethod()->getTitle(), ucwords($payment->getPaymentMethod()))
             );
         ?>
+    <?php else: ?>
+        <?= $block->escapeHtml($block->getInfo()->getMethodInstance()->getTitle()); ?>
     <?php endif; ?>
 </dl>
