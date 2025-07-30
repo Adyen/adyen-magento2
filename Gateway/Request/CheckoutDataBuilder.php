@@ -90,9 +90,7 @@ class CheckoutDataBuilder implements BuilderInterface
                 $requestBody['captureDelayHours'] = 0;
             }
 
-            if (str_contains($payment->getMethod(), PaymentMethods::KLARNA) ||
-                $payment->getMethod() === AdyenPayByLinkConfigProvider::CODE
-            ) {
+            if ($payment->getMethod() === AdyenPayByLinkConfigProvider::CODE) {
                 $otherDeliveryInformation = $this->getOtherDeliveryInformation($order);
                 if (isset($otherDeliveryInformation)) {
                     $requestBody['additionalData']['openinvoicedata.merchantData'] =
