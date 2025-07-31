@@ -106,6 +106,8 @@
                 <item name="adyen_doku_mandiri_va" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
                 <item name="adyen_afterpaytouch_US" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
                 <item name="adyen_paybybank_ais_dd" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_scalapay_3x" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_scalapay_4x" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
             </argument>
         </arguments>
     </type>
