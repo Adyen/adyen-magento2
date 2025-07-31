@@ -89,16 +89,6 @@ class CheckoutDataBuilder implements BuilderInterface
                 $this->configHelper->getAutoCaptureOpenInvoice($storeId)) {
                 $requestBody['captureDelayHours'] = 0;
             }
-
-            if (str_contains($payment->getMethod(), PaymentMethods::KLARNA) ||
-                $payment->getMethod() === AdyenPayByLinkConfigProvider::CODE
-            ) {
-                $otherDeliveryInformation = $this->getOtherDeliveryInformation($order);
-                if (isset($otherDeliveryInformation)) {
-                    $requestBody['additionalData']['openinvoicedata.merchantData'] =
-                        base64_encode(json_encode($otherDeliveryInformation));
-                }
-            }
         }
 
         // Ratepay specific Fingerprint
@@ -163,29 +153,6 @@ class CheckoutDataBuilder implements BuilderInterface
         return [
             'body' => $requestBody
         ];
-    }
-
-    /**
-     * @param Order $order
-     * @return array|null
-     */
-    private function getOtherDeliveryInformation(Order $order): ?array
-    {
-        $shippingAddress = $order->getShippingAddress();
-
-        if ($shippingAddress) {
-            $otherDeliveryInformation = [
-                "shipping_method" => $order->getShippingMethod(),
-                "first_name" => $order->getCustomerFirstname(),
-                "last_name" => $order->getCustomerLastname(),
-                "street_address" => implode(' ', $shippingAddress->getStreet()),
-                "postal_code" => $shippingAddress->getPostcode(),
-                "city" => $shippingAddress->getCity(),
-                "country" => $shippingAddress->getCountryId()
-            ];
-        }
-
-        return $otherDeliveryInformation ?? null;
     }
 
     /**
