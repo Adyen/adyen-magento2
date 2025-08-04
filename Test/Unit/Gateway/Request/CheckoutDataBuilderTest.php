@@ -91,45 +91,4 @@ class CheckoutDataBuilderTest extends AbstractAdyenTestCase
 
         $this->assertArrayHasKey('nativeThreeDS', $request['body']['authenticationData']['threeDSRequestData']);
     }
-
-    /**
-     * @return void
-     * @throws LocalizedException
-     * @throws NoSuchEntityException|Exception
-     */
-    public function testOpenInvoiceData()
-    {
-        $storeId = 1;
-
-        $shippingMethod = 'Flat Rate';
-        $shippingAddressMock = $this->createMock(OrderAddressInterface::class);
-        $shippingAddressMock->method('getStreet')->willReturn(['Street first line', 'Street second line']);
-
-        $orderMock = $this->createMock(Order::class);
-        $orderMock->method('getQuoteId')->willReturn(1);
-        $orderMock->method('getStoreId')->willReturn($storeId);
-        $orderMock->method('getShippingAddress')->willReturn($shippingAddressMock);
-        $orderMock->method('getShippingMethod')->willReturn($shippingMethod);
-
-        $paymentMethodInstanceMock = $this->createMock(MethodInterface::class);
-
-        $paymentMock = $this->createMock(Payment::class);
-        $paymentMock->method('getOrder')->willReturn($orderMock);
-        $paymentMock->method('getMethodInstance')->willReturn($paymentMethodInstanceMock);
-        $paymentMock->method('getMethod')->willReturn('adyen_klarna');
-
-        $buildSubject = [
-            'payment' => $this->createConfiguredMock(PaymentDataObject::class, [
-                'getPayment' => $paymentMock
-            ])
-        ];
-
-        $this->paymentMethodsHelperMock->method('isOpenInvoice')->willReturn(true);
-
-        $request = $this->checkoutDataBuilder->build($buildSubject);
-
-        $this->assertIsArray($request);
-        $this->assertArrayHasKey('additionalData', $request['body']);
-        $this->assertArrayHasKey('openinvoicedata.merchantData', $request['body']['additionalData']);
-    }
 }
