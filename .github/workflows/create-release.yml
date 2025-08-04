@@ -21,7 +21,7 @@ on:
     types:
       - closed
     branches:
-      - main
+      - main-9
 
 jobs:
   release:
