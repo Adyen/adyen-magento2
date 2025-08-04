@@ -30,7 +30,17 @@ use Adyen\Payment\Block\Info\Giftcard;
         <?php endforeach; ?>
     <?php else: ?>
         <dt class="title">
-            <?= $block->escapeHtml(sprintf("%s: %s", $_info->getMethodInstance()->getTitle(), ucwords($_info->getAdditionalInformation('brand_code')))); ?>
+            <?php
+            $brandCode = $_info->getAdditionalInformation('brand_code');
+
+            if (!empty($brandCode)) {
+                $html =  sprintf("%s: %s", $_info->getMethodInstance()->getTitle(), ucwords($brandCode));
+            } else {
+                $html = $_info->getMethodInstance()->getTitle();
+            }
+
+            echo $block->escapeHtml($html);
+            ?>
         </dt>
     <?php endif; ?>
 </dl>
