@@ -311,5 +311,8 @@
         <method name="adyen_scalapay_4x">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="adyen_paynow">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>
