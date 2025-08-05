@@ -152,7 +152,7 @@ define([
             let requireCvc = window.checkoutConfig.payment.adyenCc.requireCvc;
             const allInstallments = self.getAllInstallments();
 
-            let componentConfig = {
+            const componentConfig = {
                 hideCVC: !requireCvc,
                 brand: this.getCardType(),
                 storedPaymentMethodId: this.getGatewayToken(),
