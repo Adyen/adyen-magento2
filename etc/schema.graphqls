@@ -35,6 +35,10 @@ type Mutation {
         stateDataId: Int! @doc(description: "ID of the state data to remove.")
         cartId: String! @doc(description: "Cart ID associated with the state data.")
     ): AdyenStateData @resolver(class: "Adyen\\Payment\\Model\\Resolver\\RemoveAdyenStateData")
+
+    posPayment(
+        cartId: String! @doc(description: "Cart ID associated with the POS payment.")
+    ): AdyenPaymentStatus @resolver(class: "Adyen\\Payment\\Model\\Resolver\\InitiatePosPayment")
 }
 
 type AdyenPaymentStatus {
