@@ -144,13 +144,12 @@ define([
         },
 
         renderCheckoutComponent: function () {
-            let self = this;
             if (!this.getClientKey()) {
                 return false;
             }
 
             let requireCvc = window.checkoutConfig.payment.adyenCc.requireCvc;
-            const allInstallments = self.getAllInstallments();
+            const allInstallments = this.getAllInstallments();
 
             const componentConfig = {
                 hideCVC: !requireCvc,
@@ -162,33 +161,29 @@ define([
             };
 
             // Always try to initialize installments based on the stored card type
-            const brand = self.getCardType();
-            const creditCardType = self.getCcCodeByAltCode(brand);
+            const brand = this.getCardType();
+            const creditCardType = this.getCcCodeByAltCode(brand);
             let numberOfInstallments = [];
+            const cardInstallments = allInstallments[creditCardType];
+            if (cardInstallments) {
+                const grandTotal = this.grandTotal();
+                const precision = quote.getPriceFormat().precision;
+                const currencyCode = quote.totals().quote_currency_code;
 
-            if (creditCardType) {
-                if (creditCardType in allInstallments) {
-                    const cardInstallments = allInstallments[creditCardType];
-                    const grandTotal = self.grandTotal();
-                    const precision = quote.getPriceFormat().precision;
-                    const currencyCode = quote.totals().quote_currency_code;
-
-                    numberOfInstallments = installmentsHelper.getInstallmentsWithPrices(
-                        cardInstallments, grandTotal,
-                        precision, currencyCode
-                    );
-                }
+                numberOfInstallments = installmentsHelper.getInstallmentsWithPrices(
+                    cardInstallments, grandTotal, precision, currencyCode
+                );
             }
 
-            self.installments(numberOfInstallments.length ? numberOfInstallments : 0);
+            this.installments(numberOfInstallments);
 
-            self.component = adyenCheckout.mountPaymentMethodComponent(
+            this.component = adyenCheckout.mountPaymentMethodComponent(
                 this.checkoutComponent,
                 'card',
                 componentConfig,
                 '#cvcContainer-' + this.getId()
             )
-            this.component = self.component
+            this.component = this.component
 
             return true
         },
