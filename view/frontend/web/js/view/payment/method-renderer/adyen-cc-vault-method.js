@@ -146,14 +146,11 @@ define([
         renderCheckoutComponent: function () {
             let self = this;
             if (!this.getClientKey()) {
-                return false
+                return false;
             }
 
             let requireCvc = window.checkoutConfig.payment.adyenCc.requireCvc;
-
-            self.installments(0);
-
-            let allInstallments = self.getAllInstallments();
+            const allInstallments = self.getAllInstallments();
 
             let componentConfig = {
                 hideCVC: !requireCvc,
@@ -161,40 +158,29 @@ define([
                 storedPaymentMethodId: this.getGatewayToken(),
                 expiryMonth: this.getExpirationMonth(),
                 expiryYear: this.getExpirationYear(),
-                onChange: this.handleOnChange.bind(this),
-                onBrand: function(state) {
-                    let creditCardType = self.getCcCodeByAltCode(
-                        state.brand);
-                    if (creditCardType) {
-                        let numberOfInstallments = [];
+                onChange: this.handleOnChange.bind(this)
+            };
 
-                        if (creditCardType in allInstallments) {
-                            let cardInstallments = allInstallments[creditCardType];
-                            let grandTotal = self.grandTotal();
-                            let precision = quote.getPriceFormat().precision;
-                            let currencyCode = quote.totals().quote_currency_code;
+            // Always try to initialize installments based on the stored card type
+            const brand = self.getCardType();
+            const creditCardType = self.getCcCodeByAltCode(brand);
+            let numberOfInstallments = [];
 
-                            numberOfInstallments = installmentsHelper.getInstallmentsWithPrices(
-                                cardInstallments, grandTotal,
-                                precision, currencyCode);
-                        }
+            if (creditCardType) {
+                if (creditCardType in allInstallments) {
+                    const cardInstallments = allInstallments[creditCardType];
+                    const grandTotal = self.grandTotal();
+                    const precision = quote.getPriceFormat().precision;
+                    const currencyCode = quote.totals().quote_currency_code;
 
-                        if (numberOfInstallments) {
-                            self.installments(numberOfInstallments);
-                        } else {
-                            self.installments(0);
-                        }
-                    } else {
-                        self.installments(0);
-                    }
+                    numberOfInstallments = installmentsHelper.getInstallmentsWithPrices(
+                        cardInstallments, grandTotal,
+                        precision, currencyCode
+                    );
                 }
             }
 
-            if (!requireCvc) {
-                componentConfig.onBrand({
-                    brand: self.getCardType()
-                });
-            }
+            self.installments(numberOfInstallments.length ? numberOfInstallments : 0);
 
             self.component = adyenCheckout.mountPaymentMethodComponent(
                 this.checkoutComponent,
