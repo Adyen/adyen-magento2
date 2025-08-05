@@ -144,65 +144,46 @@ define([
         },
 
         renderCheckoutComponent: function () {
-            let self = this;
             if (!this.getClientKey()) {
-                return false
+                return false;
             }
 
             let requireCvc = window.checkoutConfig.payment.adyenCc.requireCvc;
+            const allInstallments = this.getAllInstallments();
 
-            self.installments(0);
-
-            let allInstallments = self.getAllInstallments();
-
-            let componentConfig = {
+            const componentConfig = {
                 hideCVC: !requireCvc,
                 brand: this.getCardType(),
                 storedPaymentMethodId: this.getGatewayToken(),
                 expiryMonth: this.getExpirationMonth(),
                 expiryYear: this.getExpirationYear(),
-                onChange: this.handleOnChange.bind(this),
-                onBrand: function(state) {
-                    let creditCardType = self.getCcCodeByAltCode(
-                        state.brand);
-                    if (creditCardType) {
-                        let numberOfInstallments = [];
+                onChange: this.handleOnChange.bind(this)
+            };
 
-                        if (creditCardType in allInstallments) {
-                            let cardInstallments = allInstallments[creditCardType];
-                            let grandTotal = self.grandTotal();
-                            let precision = quote.getPriceFormat().precision;
-                            let currencyCode = quote.totals().quote_currency_code;
+            // Always try to initialize installments based on the stored card type
+            const brand = this.getCardType();
+            const creditCardType = this.getCcCodeByAltCode(brand);
+            let numberOfInstallments = [];
+            const cardInstallments = allInstallments[creditCardType];
+            if (cardInstallments) {
+                const grandTotal = this.grandTotal();
+                const precision = quote.getPriceFormat().precision;
+                const currencyCode = quote.totals().quote_currency_code;
 
-                            numberOfInstallments = installmentsHelper.getInstallmentsWithPrices(
-                                cardInstallments, grandTotal,
-                                precision, currencyCode);
-                        }
-
-                        if (numberOfInstallments) {
-                            self.installments(numberOfInstallments);
-                        } else {
-                            self.installments(0);
-                        }
-                    } else {
-                        self.installments(0);
-                    }
-                }
+                numberOfInstallments = installmentsHelper.getInstallmentsWithPrices(
+                    cardInstallments, grandTotal, precision, currencyCode
+                );
             }
 
-            if (!requireCvc) {
-                componentConfig.onBrand({
-                    brand: self.getCardType()
-                });
-            }
+            this.installments(numberOfInstallments);
 
-            self.component = adyenCheckout.mountPaymentMethodComponent(
+            this.component = adyenCheckout.mountPaymentMethodComponent(
                 this.checkoutComponent,
                 'card',
                 componentConfig,
                 '#cvcContainer-' + this.getId()
             )
-            this.component = self.component
+            this.component = this.component
 
             return true
         },
