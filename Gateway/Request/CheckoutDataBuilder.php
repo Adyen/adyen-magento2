@@ -18,6 +18,7 @@ use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\OpenInvoice;
 use Adyen\Payment\Model\Config\Source\ThreeDSFlow;
+use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
@@ -162,24 +163,24 @@ class CheckoutDataBuilder implements BuilderInterface
         $numberOfInstallments = $payment->getAdditionalInformation(
             AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS
         ) ?: 0;
-        $comboCardType = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::COMBO_CARD_TYPE);
         if ($numberOfInstallments > 0) {
             $requestBody['installments']['value'] = $numberOfInstallments;
         }
 
-        /*
-         * if the combo card type is debit then add the funding source
-         * and unset the installments & brand fields
-         */
-        if (!empty($comboCardType)) {
+        $comboCardType = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::COMBO_CARD_TYPE);
+        if (!empty($comboCardType) && strcmp($payment->getMethod(), AdyenCcConfigProvider::CODE) === 0) {
             switch ($comboCardType) {
-                case 'debit':
-                    $requestBody['paymentMethod']['fundingSource'] = 'debit';
-                    unset($requestBody['paymentMethod']['brand']);
-                    unset($requestBody['installments']);
+                case PaymentMethods::FUNDING_SOURCE_DEBIT:
+                    // Remove installments if the fundingSource is debit and the country code is Brazil
+                    if (strcmp($order->getBillingAddress()->getCountryId(), 'BR') === 0) {
+                        unset($requestBody['paymentMethod']['brand']);
+                        unset($requestBody['installments']);
+                    }
+
+                    $requestBody['paymentMethod']['fundingSource'] = $comboCardType;
                     break;
-                case 'credit':
-                    $requestBody['paymentMethod']['fundingSource'] = 'credit';
+                case PaymentMethods::FUNDING_SOURCE_CREDIT:
+                    $requestBody['paymentMethod']['fundingSource'] = $comboCardType;
                     break;
             }
         }
