@@ -49,7 +49,7 @@ define(
             // need to duplicate as without the button will never activate on first time page view
             isPlaceOrderActionAllowed: ko.observable(
                 quote.billingAddress() != null),
-            comboCardOption: ko.observable('credit'),
+            comboCardOption: ko.observable(),
             checkoutComponent: null,
             cardComponent: null,
 
@@ -306,14 +306,26 @@ define(
                     additional_data: {
                         'stateData': {},
                         'guestEmail': quote.guestEmail,
-                        'cc_type': this.creditCardType(),
-                        'combo_card_type': this.comboCardOption(),
-                        //This is required by magento to store the token
-                        'is_active_payment_token_enabler' : this.storeCc,
-                        'number_of_installments': this.installment(),
                         'frontendType': 'default'
                     }
                 };
+
+                if (!!this.comboCardOption()) {
+                    data.additional_data.combo_card_type = this.comboCardOption();
+                }
+
+                if (!!this.creditCardType()) {
+                    data.additional_data.cc_type = this.creditCardType();
+                }
+
+                if (!!this.installment()) {
+                    data.additional_data.number_of_installments = this.installment();
+                }
+
+                // This is required by magento to store the token
+                if (this.storeCc) {
+                    data.additional_data.is_active_payment_token_enabler = true;
+                }
 
                 // Get state data only if the checkout component is ready,
                 if (this.checkoutComponent) {
@@ -494,7 +506,7 @@ define(
                     : false;
             },
             hasInstallments: function() {
-                return this.comboCardOption() === 'credit' &&
+                return this.comboCardOption() !== 'debit' &&
                     window.checkoutConfig.payment.adyenCc.hasInstallments;
             },
             getAllInstallments: function() {
@@ -507,8 +519,7 @@ define(
                 let countryId = quote.billingAddress().countryId;
                 let currencyCode = quote.totals().quote_currency_code;
                 let allowedCurrenciesByCountry = {
-                    'BR': 'BRL',
-                    'MX': 'MXN',
+                    'BR': 'BRL'
                 };
                 return allowedCurrenciesByCountry[countryId] &&
                     currencyCode === allowedCurrenciesByCountry[countryId];

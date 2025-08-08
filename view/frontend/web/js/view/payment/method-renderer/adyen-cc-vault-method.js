@@ -232,16 +232,21 @@ define([
             let stateData = self.component.data;
             stateData = JSON.stringify(stateData);
             window.sessionStorage.setItem('adyen.stateData', stateData);
-            return {
+            let data = {
                 method: this.code,
                 additional_data: {
                     stateData: stateData,
                     public_hash: this.publicHash,
-                    'number_of_installments': self.installment(),
                     frontendType: 'default',
                     'cc_type': self.getCcCodeByAltCode(self.getCardType())
                 },
             };
+
+            if (!!this.installment()) {
+                data.additional_data.number_of_installments = this.installment();
+            }
+
+            return data;
         },
 
         handleAdyenResult: function (responseJSON, orderId) {
