@@ -97,8 +97,10 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
         $data = $this->readDataArgument($observer);
         $paymentInfo = $this->readPaymentModelArgument($observer);
 
-        // Remove cc_type information from the previous payment
-        $paymentInfo->unsAdditionalInformation('cc_type');
+        // Remove the following information from the previous payment
+        $paymentInfo->unsAdditionalInformation(self::CC_TYPE);
+        $paymentInfo->unsAdditionalInformation(self::NUMBER_OF_INSTALLMENTS);
+        $paymentInfo->unsAdditionalInformation(self::COMBO_CARD_TYPE);
 
         // Get additional data array
         $additionalData = $data->getData(PaymentInterface::KEY_ADDITIONAL_DATA);
