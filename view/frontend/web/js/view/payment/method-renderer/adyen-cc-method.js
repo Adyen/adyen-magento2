@@ -50,6 +50,7 @@ define(
             isPlaceOrderActionAllowed: ko.observable(
                 quote.billingAddress() != null),
             comboCardOption: ko.observable(),
+            installments: ko.observable(),
             checkoutComponent: null,
             cardComponent: null,
 
@@ -90,6 +91,16 @@ define(
                 if(!!paymentMethodsObserver()) {
                     self.enablePaymentMethod(paymentMethodsObserver());
                 }
+
+                this.comboCardOption.subscribe(
+                    function () {
+                        if (!!self.cardComponent) {
+                            self.cardComponent.unmount();
+                            self.cardComponent = null;
+                            self.renderCCPaymentMethod();
+                        }
+                    }
+                );
             },
             isSchemePaymentsEnabled: function (paymentMethod) {
                 return paymentMethod.type === "scheme";
@@ -184,7 +195,6 @@ define(
                     return false;
                 }
 
-                let allInstallments = this.getAllInstallments();
                 let currency = quote.totals().quote_currency_code;
                 let componentConfig = {
                     enableStoreDetails: this.getEnableStoreDetails(),
@@ -199,10 +209,6 @@ define(
                     holderNameRequired: adyenConfiguration.getHasHolderName() &&
                         adyenConfiguration.getHolderNameRequired(),
                     showPayButton: false,
-                    installmentOptions: installmentsHelper.formatInstallmentsConfig(allInstallments,
-                        window.checkoutConfig.payment.adyenCc.adyenCcTypes,
-                        self.grandTotal()) ,
-                    showInstallmentAmounts: true,
                     onChange: function(state, component) {
                         self.placeOrderAllowed(!!state.isValid);
                         self.storeCc = !!state.data.storePaymentMethod;
@@ -211,6 +217,15 @@ define(
                     onSubmit: function () {
                         self.placeOrder();
                     }
+                }
+
+                if (this.comboCardOption() !== 'debit') {
+                    componentConfig.installmentOptions = installmentsHelper.formatInstallmentsConfig(
+                        window.checkoutConfig.payment.adyenCc.installments,
+                        window.checkoutConfig.payment.adyenCc.adyenCcTypes,
+                        self.grandTotal()
+                    );
+                    componentConfig.showInstallmentAmounts = true;
                 }
 
                 if (this.isClickToPayEnabled()) {
@@ -473,9 +488,6 @@ define(
                     type)
                     ? window.checkoutConfig.payment.adyenCc.icons[type]
                     : false;
-            },
-            getAllInstallments: function() {
-                return window.checkoutConfig.payment.adyenCc.installments;
             },
             areComboCardsEnabled: function() {
                 if (quote.billingAddress() === null) {
