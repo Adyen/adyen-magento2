@@ -3,12 +3,12 @@ run-name: Main
 
 on:
   pull_request:
-    branches: [main, develop-10, feature-v10/token-lifecycle-webhooks]
+    branches: [main, main-9, feature-v10/token-lifecycle-webhooks]
   # on-push trigger is required to analyse long-living branches on SonarCloud
   push:
-    branches: [main, develop-10, feature-v10/token-lifecycle-webhooks]
+    branches: [main, main-9, feature-v10/token-lifecycle-webhooks]
   pull_request_target:
-    branches: [main, develop-10]
+    branches: [main, main-9, feature-v10/token-lifecycle-webhooks]
 
 jobs:
   build-main:
@@ -20,6 +20,8 @@ jobs:
         magento-version: ["2.4.8"]
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
     env:
       PHP_VERSION: ${{ matrix.php-version }}
       MAGENTO_VERSION: ${{ matrix.magento-version }}

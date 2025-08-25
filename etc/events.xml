@@ -344,4 +344,13 @@
     <event name="payment_method_assign_data_adyen_paybybank_ais_dd">
         <observer name="adyen_paybybank_ais_dd_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_scalapay_3x">
+        <observer name="adyen_scalapay_3x_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
+    <event name="payment_method_assign_data_adyen_scalapay_4x">
+        <observer name="adyen_scalapay_4x_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
+    <event name="payment_method_assign_data_adyen_paynow">
+        <observer name="adyen_paynow_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
 </config>
