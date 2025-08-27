@@ -34,6 +34,7 @@ RUN apt-get update \
         libzip-dev \
         libssl-dev \
         libxslt-dev \
+        libicu-dev \
         default-mysql-client \
         ssl-cert \
         wget \
