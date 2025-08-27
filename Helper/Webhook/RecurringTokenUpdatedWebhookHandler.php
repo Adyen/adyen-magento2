@@ -25,7 +25,8 @@ class RecurringTokenUpdatedWebhookHandler implements WebhookHandlerInterface
      * @param string $transitionState
      * @return Order
      */
-    public function handleWebhook(Order $order, Notification $notification, string $transitionState): Order {
+    public function handleWebhook(Order $order, Notification $notification, string $transitionState): Order
+    {
         $order->addCommentToStatusHistory(
             __('Recurring token has been updated successfully.')
         );
