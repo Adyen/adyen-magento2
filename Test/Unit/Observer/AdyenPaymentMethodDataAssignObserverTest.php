@@ -72,7 +72,8 @@ class AdyenPaymentMethodDataAssignObserverTest extends AbstractAdyenTestCase
             [AbstractDataAssignObserver::DATA_CODE, $dataObject],
             [AbstractDataAssignObserver::MODEL_CODE, $this->paymentInfo],
         ]);
-        $this->paymentInfo->expects($this->once())->method('unsAdditionalInformation')->with('cc_type');
+
+        $this->paymentInfo->expects($this->exactly(3))->method('unsAdditionalInformation');
 
         $this->paymentInfo->method('getData')
             ->with('quote_id')
