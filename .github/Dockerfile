@@ -40,18 +40,10 @@ RUN apt-get update \
         cron \
         unzip
 
+RUN apk add icu-dev
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg
-
-RUN docker-php-ext-install -j$(nproc) bcmath
-RUN docker-php-ext-install -j$(nproc) gd
-RUN docker-php-ext-install -j$(nproc) pdo_mysql
-RUN docker-php-ext-install -j$(nproc) simplexml
-RUN docker-php-ext-install -j$(nproc) soap
-RUN docker-php-ext-install -j$(nproc) sockets
-RUN docker-php-ext-install -j$(nproc) xsl
-RUN docker-php-ext-install -j$(nproc) zip
-RUN docker-php-ext-install -j$(nproc) ftp
-
+RUN docker-php-ext-configure intl
+RUN docker-php-ext-install -j$(nproc) bcmath gd intl pdo_mysql simplexml soap sockets xsl zip ftp
 RUN pecl install xdebug && docker-php-ext-enable xdebug
 
 RUN a2enmod ssl
