@@ -42,7 +42,6 @@ RUN apt-get update \
         unzip
 
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg
-RUN docker-php-ext-configure intl
 RUN docker-php-ext-install -j$(nproc) bcmath gd intl pdo_mysql simplexml soap sockets xsl zip ftp
 RUN pecl install xdebug && docker-php-ext-enable xdebug
 
