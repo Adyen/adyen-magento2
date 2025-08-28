@@ -27,6 +27,7 @@
                 <include path="Adyen_Payment::system/adyen_order_management.xml"/>
                 <include path="Adyen_Payment::system/adyen_payment_optimization.xml"/>
                 <include path="Adyen_Payment::system/adyen_testing_performance.xml"/>
+                <include path="Adyen_Payment::system/adyen_testing_refusal_reason.xml"/>
             </group>
         </section>
     </system>
