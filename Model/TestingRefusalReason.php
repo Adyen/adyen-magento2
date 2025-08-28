@@ -73,7 +73,6 @@ class TestingRefusalReason
         $value = match ($root) {
             'shipping' => $order->getShippingAddress(),
             'billing' => $order->getBillingAddress(),
-            'payment' => $order->getPayment(),
         };
 
         if (!$value instanceof DataObject) {

@@ -51,7 +51,7 @@ class Testing
         );
 
         $callback = null;
-        if (is_string($value) || $value !== '') {
+        if (is_string($value) && !empty($value)) {
             $callback = CallbackOrderProperty::tryFrom($value);
         }
 
