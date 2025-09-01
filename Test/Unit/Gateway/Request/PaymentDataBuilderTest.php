@@ -92,7 +92,8 @@ class PaymentDataBuilderTest extends AbstractAdyenTestCase
         $this->quotePaymentMock->expects($this->once())
             ->method('getAdditionalInformation')
             ->with('shopper_conversion_id')
-            ->willReturn($this->mockShopperConversionId);
+            ->willReturn(json_encode($this->mockShopperConversionId));
+
 
         // Mock Adyen Requests Helper call
         $expectedRequestData = [
@@ -141,5 +142,6 @@ class PaymentDataBuilderTest extends AbstractAdyenTestCase
         $this->assertIsArray($result);
         $this->assertArrayHasKey('body', $result);
         $this->assertEquals($expectedRequestData, $result['body']);
+        $this->addToAssertionCount(1);
     }
 }
