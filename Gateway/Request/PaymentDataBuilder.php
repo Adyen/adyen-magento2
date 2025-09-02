@@ -14,7 +14,6 @@ namespace Adyen\Payment\Gateway\Request;
 use Adyen\Exception\MissingDataException;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Requests;
-use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
@@ -22,36 +21,21 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
 
 class PaymentDataBuilder implements BuilderInterface
 {
-    /**
-     * @var Requests
-     */
-    private $adyenRequestsHelper;
-
-    /**
-     * @var ChargedCurrency
-     */
-    private $chargedCurrency;
-
-    /**
-     * @var CheckoutSession
-     */
-    private CheckoutSession $checkoutSession;
+    private Requests $adyenRequestsHelper;
+    private ChargedCurrency $chargedCurrency;
 
     /**
      * PaymentDataBuilder constructor.
      *
      * @param Requests $adyenRequestsHelper
      * @param ChargedCurrency $chargedCurrency
-     * @param CheckoutSession $checkoutSession
      */
     public function __construct(
         Requests $adyenRequestsHelper,
-        ChargedCurrency $chargedCurrency,
-        CheckoutSession $checkoutSession
+        ChargedCurrency $chargedCurrency
     ) {
         $this->adyenRequestsHelper = $adyenRequestsHelper;
         $this->chargedCurrency = $chargedCurrency;
-        $this->checkoutSession = $checkoutSession;
     }
 
     /**
@@ -66,23 +50,23 @@ class PaymentDataBuilder implements BuilderInterface
         $paymentDataObject = SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
         $fullOrder = $payment->getOrder();
-        $quote = $this->checkoutSession->getQuote();
         $amountCurrency = $this->chargedCurrency->getOrderAmountCurrency($fullOrder);
         $currencyCode = $amountCurrency->getCurrencyCode();
         $amount = $amountCurrency->getAmount();
         $reference = $fullOrder->getIncrementId();
 
-        $shopperConversionIdData = $quote->getPayment()->getAdditionalInformation('shopper_conversion_id');
-
-        $shopperConversionId = !empty($shopperConversionIdData) ? (string) json_decode($shopperConversionIdData, true) : '';
+        $shopperConversionId = $payment->getAdditionalInformation('shopper_conversion_id');
 
         $request['body'] = $this->adyenRequestsHelper->buildPaymentData(
             $amount,
             $currencyCode,
             $reference,
-            $shopperConversionId,
             []
         );
+
+        if (!empty($shopperConversionId)) {
+            $request['body']['shopperConversionId'] = $shopperConversionId;
+        }
 
         return $request;
     }

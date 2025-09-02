@@ -7,60 +7,36 @@ use Adyen\Payment\Gateway\Request\PaymentDataBuilder;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Requests;
 use Adyen\Payment\Model\AdyenAmountCurrency;
-use Adyen\Payment\Model\Method\Adapter;
-use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
-use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Payment\Gateway\Data\OrderAdapterInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
-use Magento\Payment\Model\InfoInterface;
-use Magento\Quote\Model\Quote;
-use Magento\Quote\Model\Quote\Payment;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Payment as OrderPayment;
 use PHPUnit\Framework\MockObject\MockObject;
 
 class PaymentDataBuilderTest extends AbstractAdyenTestCase
 {
-    private ?PaymentDataBuilder $paymentDataBuilder;
-    private MockObject|Requests $adyenRequestsHelperMock;
-    private MockObject|ChargedCurrency $chargedCurrencyMock;
-    private MockObject|CheckoutSession $checkoutSessionMock;
-    private MockObject|PaymentDataObject $paymentDataObjectMock;
-    private MockObject|OrderAdapterInterface $orderMock;
-    private MockObject|InfoInterface $paymentMock;
-    private MockObject|Quote $quoteMock;
-    private MockObject|Payment $quotePaymentMock;
-    private string $mockShopperConversionId = 'mock-shopper-conversion-id';
+    private ?PaymentDataBuilder $paymentDataBuilder = null;
 
-    /**
-     * Set up the test environment
-     */
+    /** @var MockObject&Requests */
+    private $adyenRequestsHelperMock;
+
+    /** @var MockObject&ChargedCurrency */
+    private $chargedCurrencyMock;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->adyenRequestsHelperMock = $this->createMock(Requests::class);
-        $this->chargedCurrencyMock = $this->createMock(ChargedCurrency::class);
-        $this->checkoutSessionMock = $this->createMock(CheckoutSession::class);
+        $this->chargedCurrencyMock     = $this->createMock(ChargedCurrency::class);
 
         $this->paymentDataBuilder = new PaymentDataBuilder(
             $this->adyenRequestsHelperMock,
-            $this->chargedCurrencyMock,
-            $this->checkoutSessionMock
+            $this->chargedCurrencyMock
         );
-
-        // Mock PaymentDataObject
-        $this->paymentDataObjectMock = $this->createMock(PaymentDataObject::class);
-        $this->orderMock = $this->createMock(OrderAdapterInterface::class);
-        $this->paymentMock = $this->createMock(InfoInterface::class);
-        $this->quoteMock = $this->createMock(Quote::class);
-        $this->quotePaymentMock = $this->createMock(Payment::class);
     }
 
-    /**
-     * Tear down the test environment
-     */
     protected function tearDown(): void
     {
         $this->paymentDataBuilder = null;
@@ -68,50 +44,89 @@ class PaymentDataBuilderTest extends AbstractAdyenTestCase
     }
 
     /**
-     * Test build() method
+     * When shopperConversionId is present on payment additional info,
+     * it should be included in the request body.
      *
      * @throws MissingDataException
      * @throws LocalizedException
      */
-    public function testBuild(): void
+    public function testBuildAddsShopperConversionIdWhenPresent(): void
     {
         $mockCurrencyCode = 'EUR';
-        $mockAmount = 100.00;
-        $mockReference = '000000123';
+        $mockAmount       = 100.00;
+        $mockReference    = '000000123';
+        $mockShopperConv  = 'mock-shopper-conversion-id';
 
-        // Mock CheckoutSession interaction
-        $this->checkoutSessionMock->expects($this->once())
-            ->method('getQuote')
-            ->willReturn($this->quoteMock);
+        // Order + OrderPayment
+        $orderMock = $this->createMock(Order::class);
+        $orderMock->method('getIncrementId')->willReturn($mockReference);
 
-        // Mock Quote Payment Additional Information
-        $this->quoteMock->expects($this->once())
-            ->method('getPayment')
-            ->willReturn($this->quotePaymentMock);
-
-        $this->quotePaymentMock->expects($this->once())
-            ->method('getAdditionalInformation')
+        $orderPaymentMock = $this->createMock(OrderPayment::class);
+        $orderPaymentMock->method('getOrder')->willReturn($orderMock);
+        $orderPaymentMock->method('getAdditionalInformation')
             ->with('shopper_conversion_id')
-            ->willReturn(json_encode($this->mockShopperConversionId));
+            ->willReturn($mockShopperConv);
 
+        // PaymentDataObject
+        $paymentDataObject = $this->createConfiguredMock(PaymentDataObject::class, [
+            'getPayment' => $orderPaymentMock,
+        ]);
 
-        // Mock Adyen Requests Helper call
-        $expectedRequestData = [
-                'amount' => [
-                    'currency' => $mockCurrencyCode,
-                    'value' => $mockAmount, // Ensure the formatted value matches
-                ],
-                'reference' => $mockReference,
-                'shopperConversionId' => $this->mockShopperConversionId,
+        // Charged currency
+        $adyenAmountCurrencyMock = $this->createMock(AdyenAmountCurrency::class);
+        $adyenAmountCurrencyMock->method('getCurrencyCode')->willReturn($mockCurrencyCode);
+        $adyenAmountCurrencyMock->method('getAmount')->willReturn($mockAmount);
+
+        $this->chargedCurrencyMock->method('getOrderAmountCurrency')
+            ->with($orderMock)
+            ->willReturn($adyenAmountCurrencyMock);
+
+        // Requests helper returns base body; builder adds shopperConversionId if present
+        $baseBody = [
+            'amount'    => ['currency' => $mockCurrencyCode, 'value' => $mockAmount],
+            'reference' => $mockReference,
         ];
 
+        $this->adyenRequestsHelperMock->expects($this->once())
+            ->method('buildPaymentData')
+            ->with($mockAmount, $mockCurrencyCode, $mockReference, [])
+            ->willReturn($baseBody);
+
+        $result = $this->paymentDataBuilder->build(['payment' => $paymentDataObject]);
+
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('body', $result);
+        $this->assertSame($mockReference, $result['body']['reference']);
+        $this->assertSame($mockCurrencyCode, $result['body']['amount']['currency']);
+        $this->assertSame($mockAmount, $result['body']['amount']['value']);
+        $this->assertArrayHasKey('shopperConversionId', $result['body']);
+        $this->assertSame($mockShopperConv, $result['body']['shopperConversionId']);
+    }
+
+    /**
+     * When shopperConversionId is NOT present, it should not be in the request body.
+     *
+     * @throws MissingDataException
+     * @throws LocalizedException
+     */
+    public function testBuildOmitsShopperConversionIdWhenAbsent(): void
+    {
+        $mockCurrencyCode = 'USD';
+        $mockAmount       = 55.55;
+        $mockReference    = '000000999';
 
         $orderMock = $this->createMock(Order::class);
         $orderMock->method('getIncrementId')->willReturn($mockReference);
 
+        $orderPaymentMock = $this->createMock(OrderPayment::class);
+        $orderPaymentMock->method('getOrder')->willReturn($orderMock);
+        $orderPaymentMock->method('getAdditionalInformation')
+            ->with('shopper_conversion_id')
+            ->willReturn(null);
 
-        $paymentMock = $this->createMock(\Magento\Sales\Model\Order\Payment::class);
-        $paymentMock->method('getOrder')->willReturn($orderMock);
+        $paymentDataObject = $this->createConfiguredMock(PaymentDataObject::class, [
+            'getPayment' => $orderPaymentMock,
+        ]);
 
         $adyenAmountCurrencyMock = $this->createMock(AdyenAmountCurrency::class);
         $adyenAmountCurrencyMock->method('getCurrencyCode')->willReturn($mockCurrencyCode);
@@ -121,27 +136,23 @@ class PaymentDataBuilderTest extends AbstractAdyenTestCase
             ->with($orderMock)
             ->willReturn($adyenAmountCurrencyMock);
 
-        $buildSubject = [
-            'payment' => $this->createConfiguredMock(PaymentDataObject::class, [
-                'getPayment' => $paymentMock
-            ])
+        $baseBody = [
+            'amount'    => ['currency' => $mockCurrencyCode, 'value' => $mockAmount],
+            'reference' => $mockReference,
         ];
 
         $this->adyenRequestsHelperMock->expects($this->once())
             ->method('buildPaymentData')
-            ->with(
-                $mockAmount,
-                $mockCurrencyCode,
-                $mockReference,
-                $this->mockShopperConversionId,
-                []
-            )
-            ->willReturn($expectedRequestData);
+            ->with($mockAmount, $mockCurrencyCode, $mockReference, [])
+            ->willReturn($baseBody);
 
-        $result = $this->paymentDataBuilder->build($buildSubject);
+        $result = $this->paymentDataBuilder->build(['payment' => $paymentDataObject]);
+
         $this->assertIsArray($result);
         $this->assertArrayHasKey('body', $result);
-        $this->assertEquals($expectedRequestData, $result['body']);
-        $this->addToAssertionCount(1);
+        $this->assertSame($mockReference, $result['body']['reference']);
+        $this->assertSame($mockCurrencyCode, $result['body']['amount']['currency']);
+        $this->assertSame($mockAmount, $result['body']['amount']['value']);
+        $this->assertArrayNotHasKey('shopperConversionId', $result['body']);
     }
 }

@@ -12,8 +12,6 @@ use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\App\RequestInterface;
-use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\View\DesignInterface;
 use Magento\Framework\View\Asset\{Repository, Source, LocalInterface};
@@ -21,7 +19,7 @@ use Magento\Framework\View\Design\{Theme\ThemeProviderInterface};
 use Magento\Payment\Helper\Data as MagentoDataHelper;
 use Magento\Payment\Model\MethodInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Quote\Model\{Quote, Quote\Address};
+use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -31,7 +29,7 @@ use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use ReflectionClass;
 use ReflectionMethod;
 use Magento\Checkout\Model\Session as CheckoutSession;
-use Adyen\Payment\Helper\GenerateShopperConversionId;
+use Adyen\Payment\Helper\ShopperConversionId;
 
 #[CoversClass(PaymentMethods::class)]
 class PaymentMethodsTest extends AbstractAdyenTestCase
@@ -94,7 +92,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
 
         // NEW: extra deps
         $this->cartRepository = $this->createMock(CartRepositoryInterface::class);
-        $this->generateShopperConversionId = $this->createMock(GenerateShopperConversionId::class);
+        $this->generateShopperConversionId = $this->createMock(ShopperConversionId::class);
         $this->checkoutSession = $this->createMock(CheckoutSession::class);
 
         // Default: the session quote has NO shopper_conversion_id
@@ -685,11 +683,6 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $this->localeHelper->method('getCurrentLocaleCode')->willReturn($shopperLocale);
         $this->dataHelper->method('padShopperReference')->willReturn('123456');
 
-        // Ensure session has NO shopper_conversion_id -> no shopperConversionId in request
-        $this->generateShopperConversionId->expects($this->never())->method('getShopperConversionId');
-
-        // The helper reads shopperReference from $this->getQuote()
-        // and amount from the Quote passed to the method.
         $this->invokeMethod($this->helper, 'setQuote', [$this->quoteMock]);
 
         $expected = [
@@ -697,7 +690,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             "merchantAccount" => $merchantAccount,
             "countryCode" => $country,
             "shopperLocale" => $shopperLocale,
-            "amount" => ["currency" => $currencyCode] // no 'value' because formatAmount not stubbed
+            "amount" => ["currency" => $currencyCode]
         ];
 
         $getPaymentMethodsRequest = $this->getPrivateMethod(PaymentMethods::class, 'getPaymentMethodsRequest');

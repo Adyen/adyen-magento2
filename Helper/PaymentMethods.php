@@ -103,7 +103,7 @@ class PaymentMethods extends AbstractHelper
      * @param PaymentTokenRepositoryInterface $paymentTokenRepository
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param Locale $localeHelper
-     * @param GenerateShopperConversionId $generateShopperConversionId
+     * @param ShopperConversionId $generateShopperConversionId
      * @param CheckoutSession $checkoutSession
      */
     public function __construct(
@@ -113,18 +113,18 @@ class PaymentMethods extends AbstractHelper
         protected readonly Data $adyenHelper,
         protected readonly AdyenLogger $adyenLogger,
         protected readonly Repository $assetRepo,
-        protected readonly Source $assetSource,
-        protected readonly DesignInterface $design,
-        protected readonly ThemeProviderInterface $themeProvider,
-        protected readonly ChargedCurrency $chargedCurrency,
-        protected readonly Config $configHelper,
-        protected readonly MagentoDataHelper $dataHelper,
-        protected readonly SerializerInterface $serializer,
+        protected readonly Source                          $assetSource,
+        protected readonly DesignInterface                 $design,
+        protected readonly ThemeProviderInterface          $themeProvider,
+        protected readonly ChargedCurrency                 $chargedCurrency,
+        protected readonly Config                          $configHelper,
+        protected readonly MagentoDataHelper               $dataHelper,
+        protected readonly SerializerInterface             $serializer,
         protected readonly PaymentTokenRepositoryInterface $paymentTokenRepository,
-        protected readonly SearchCriteriaBuilder $searchCriteriaBuilder,
-        protected readonly Locale $localeHelper,
-        protected readonly GenerateShopperConversionId $generateShopperConversionId,
-        protected readonly CheckoutSession $checkoutSession
+        protected readonly SearchCriteriaBuilder           $searchCriteriaBuilder,
+        protected readonly Locale                          $localeHelper,
+        protected readonly ShopperConversionId             $generateShopperConversionId,
+        protected readonly CheckoutSession                 $checkoutSession
     ) {
         parent::__construct($context);
     }
@@ -451,6 +451,8 @@ class PaymentMethods extends AbstractHelper
      * @param string|null $channel
      * @return array
      * @throws AdyenException
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
     protected function getPaymentMethodsRequest(
         $merchantAccount,
@@ -465,7 +467,7 @@ class PaymentMethods extends AbstractHelper
         $channel = in_array($channel, self::VALID_CHANNELS, true) ? $channel : "Web";
 
         $paymentMethodRequest = [
-            "channel" => $channel ?? "Web",
+            "channel" => $channel,
             "merchantAccount" => $merchantAccount,
             "countryCode" => $country ?? $this->getCurrentCountryCode($store),
             "shopperLocale" => $shopperLocale ?? $this->localeHelper->getCurrentLocaleCode($store->getId()),
@@ -479,17 +481,11 @@ class PaymentMethods extends AbstractHelper
                 $this->adyenHelper->padShopperReference($this->getCurrentShopperReference());
         }
 
-        $quote = $this->checkoutSession->getQuote();
+        $shopperConversionId = $this->generateShopperConversionId->getShopperConversionId($quote);
 
-        $shopperConversionIdData = $quote->getPayment()->getAdditionalInformation('shopper_conversion_id');
-
-        $shopperConversionId = !empty($shopperConversionIdData) ? (string) json_decode($shopperConversionIdData, true) : '';
-
-        if(!empty($shopperConversionId)) {
-            $shopperConversionId = $this->generateShopperConversionId->getShopperConversionId();
+        if (!empty($shopperConversionId)) {
             $paymentMethodRequest["shopperConversionId"] = $shopperConversionId;
         }
-
 
         $amountValue = $this->adyenHelper->formatAmount($this->getCurrentPaymentAmount(), $currencyCode);
 
@@ -873,7 +869,7 @@ class PaymentMethods extends AbstractHelper
 
         $notificationPaymentMethod = $notification->getPaymentMethod();
 
-        // Returns if the payment method is wallet like wechatpayWeb, amazonpay, applepay, paywithgoogle
+        // Returns if the payment method is wallet like wechatpayWeb, amazonpay, paywithgoogle
         $isWalletPaymentMethod = $this->isWalletPaymentMethod($paymentMethodInstance);
         $isCardPaymentMethod = $order->getPayment()->getMethod() === self::ADYEN_CC || $order->getPayment()->getMethod() === self::ADYEN_ONE_CLICK;
 

@@ -16,7 +16,6 @@ use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Customer\Api\CustomerRepositoryInterface;
-use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\Request\Http;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -40,17 +39,19 @@ class RequestsTest extends AbstractAdyenTestCase
 
     protected function setUp(): void
     {
-        $this->adyenHelper = $this->createMock(Data::class);
-        $this->adyenConfig = $this->createMock(Config::class);
-        $this->addressHelper = $this->createMock(Address::class);
-        $this->stateData = $this->createMock(StateData::class);
-        $this->vaultHelper = $this->createMock(Vault::class);
-        $this->request = $this->createMock(Http::class);
-        $this->chargedCurrency = $this->createMock(ChargedCurrency::class);
+        parent::setUp();
+
+        $this->adyenHelper          = $this->createMock(Data::class);
+        $this->adyenConfig          = $this->createMock(Config::class);
+        $this->addressHelper        = $this->createMock(Address::class);
+        $this->stateData            = $this->createMock(StateData::class);
+        $this->vaultHelper          = $this->createMock(Vault::class);
+        $this->request              = $this->createMock(Http::class);
+        $this->chargedCurrency      = $this->createMock(ChargedCurrency::class);
         $this->paymentMethodsHelper = $this->createMock(PaymentMethods::class);
-        $this->localeHelper = $this->createMock(Locale::class);
-        $this->context = $this->createMock(Context::class);
-        $this->customerRepository = $this->createMock(CustomerRepositoryInterface::class);
+        $this->localeHelper         = $this->createMock(Locale::class);
+        $this->context              = $this->createMock(Context::class);
+        $this->customerRepository   = $this->createMock(CustomerRepositoryInterface::class);
 
         // AbstractHelper uses $this->_request via Context::getRequest()
         $this->context->method('getRequest')->willReturn($this->request);
@@ -65,8 +66,7 @@ class RequestsTest extends AbstractAdyenTestCase
             $this->chargedCurrency,
             $this->paymentMethodsHelper,
             $this->localeHelper,
-            $this->request,                 // NEW ctor arg
-            $this->customerRepository       // NEW ctor arg
+            $this->customerRepository
         );
     }
 
@@ -99,12 +99,11 @@ class RequestsTest extends AbstractAdyenTestCase
             ->with(15.99, 'EUR')
             ->willReturn(1599);
 
-        // UPDATED: include shopperConversionId
-        $result = $this->requests->buildPaymentData(15.99, 'EUR', 'ref123', 'scid-123');
+        $result = $this->requests->buildPaymentData(15.99, 'EUR', 'ref123');
 
         $this->assertSame(['currency' => 'EUR', 'value' => 1599], $result['amount']);
         $this->assertSame('ref123', $result['reference']);
-        $this->assertSame('scid-123', $result['shopperConversionId']);
+        $this->assertArrayNotHasKey('shopperConversionId', $result);
     }
 
     #[Test]
@@ -171,9 +170,8 @@ class RequestsTest extends AbstractAdyenTestCase
         $this->adyenHelper->method('padShopperReference')->willReturn('user_1');
         $this->addressHelper->method('getAdyenCountryCode')->willReturn('NL');
 
-        // NEW: buildCustomerData($customerId=1) now calls CustomerRepository::getById(1)
-        $customer = $this->createConfiguredMock(CustomerInterface::class, [
-            'getDob' => null, // or '1980-01-01' if you want dateOfBirth set
+        $customer = $this->createConfiguredMock(\Magento\Customer\Api\Data\CustomerInterface::class, [
+            'getDob' => null,
         ]);
         $this->customerRepository->method('getById')->with(1)->willReturn($customer);
 
@@ -271,11 +269,11 @@ class RequestsTest extends AbstractAdyenTestCase
     #[Test]
     public function buildDonationDataReturnsCorrectStructure(): void
     {
-        $storeId = 1;
-        $currency = 'EUR';
-        $amount = ['currency' => $currency, 'value' => 1000];
+        $storeId   = 1;
+        $currency  = 'EUR';
+        $amount    = ['currency' => $currency, 'value' => 1000];
         $returnUrl = 'https://example.com';
-        $payload = ['amount' => $amount, 'returnUrl' => $returnUrl];
+        $payload   = ['amount' => $amount, 'returnUrl' => $returnUrl];
 
         $payment = $this->createMock(\Magento\Sales\Model\Order\Payment::class);
         $order = $this->createMock(\Magento\Sales\Model\Order::class);
