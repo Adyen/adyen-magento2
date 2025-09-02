@@ -3,12 +3,12 @@ run-name: Main
 
 on:
   pull_request:
-    branches: [main, main-9]
+    branches: [main, main-9, feature-v10/support-uplift]
   # on-push trigger is required to analyse long-living branches on SonarCloud
   push:
-    branches: [main, main-9]
+    branches: [main, main-9, feature-v10/support-uplift]
   pull_request_target:
-    branches: [main, main-9]
+    branches: [main, main-9, feature-v10/support-uplift]
 
 jobs:
   build-main:
