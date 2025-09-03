@@ -39,7 +39,7 @@ class RecurringTokenAlreadyExistingWebhookHandlerTest extends AbstractAdyenTestC
 
         $orderMock->expects($this->once())
             ->method('addCommentToStatusHistory')
-            ->with(__('Recurring token already existed and was linked to this customer successfully.'));
+            ->with(__('Recurring token already exists and had been linked to this customer.'));
 
         $result = $this->handler->handleWebhook($orderMock, $notificationMock, '');
 

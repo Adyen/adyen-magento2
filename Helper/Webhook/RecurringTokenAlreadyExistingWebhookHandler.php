@@ -27,7 +27,7 @@ class RecurringTokenAlreadyExistingWebhookHandler implements WebhookHandlerInter
      */
     public function handleWebhook(Order $order, Notification $notification, string $transitionState): Order {
         $order->addCommentToStatusHistory(
-            __('Recurring token already existed and was linked to this customer successfully.')
+            __('Recurring token already exists and had been linked to this customer.')
         );
 
         return $order;
