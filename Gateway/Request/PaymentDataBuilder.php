@@ -14,6 +14,7 @@ namespace Adyen\Payment\Gateway\Request;
 use Adyen\Exception\MissingDataException;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Requests;
+use Adyen\Payment\Helper\ShopperConversionId;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
@@ -55,7 +56,7 @@ class PaymentDataBuilder implements BuilderInterface
         $amount = $amountCurrency->getAmount();
         $reference = $fullOrder->getIncrementId();
 
-        $shopperConversionId = $payment->getAdditionalInformation('shopper_conversion_id');
+        $shopperConversionId = $payment->getAdditionalInformation(ShopperConversionId::SHOPPER_CONVERSION_ID);
 
         $request['body'] = $this->adyenRequestsHelper->buildPaymentData(
             $amount,
