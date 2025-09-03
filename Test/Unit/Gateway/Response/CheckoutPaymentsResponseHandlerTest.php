@@ -8,6 +8,7 @@ use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Payment\Gateway\Response\CheckoutPaymentsResponseHandler;
 use Magento\Payment\Gateway\Data\OrderAdapterInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
+use Magento\Payment\Model\MethodInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -19,18 +20,27 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
     private Order|MockObject $orderMock;
     private PaymentDataObject|MockObject $paymentDataObject;
     private Vault|MockObject $vaultMock;
+    private PaymentMethods|MockObject $paymentMethodsMock;
     private array $handlingSubject;
 
     protected function setUp(): void
     {
         $this->vaultMock = $this->createMock(Vault::class);
-        $this->checkoutPaymentsDetailsHandler = new CheckoutPaymentsResponseHandler($this->vaultMock);
+        $this->paymentMethodsMock = $this->createMock(PaymentMethods::class);
+
+        $this->checkoutPaymentsDetailsHandler = new CheckoutPaymentsResponseHandler(
+            $this->vaultMock,
+            $this->paymentMethodsMock
+        );
+
+        $paymentMethodInstance = $this->createMock(MethodInterface::class);
 
         $orderAdapterMock = $this->createMock(OrderAdapterInterface::class);
         $this->orderMock = $this->createMock(Order::class);
 
         $this->paymentMock = $this->createMock(Payment::class);
         $this->paymentMock->method('getOrder')->willReturn($this->orderMock);
+        $this->paymentMock->method('getMethodInstance')->willReturn($paymentMethodInstance);
         $this->paymentDataObject = new PaymentDataObject($orderAdapterMock, $this->paymentMock);
 
         $this->handlingSubject  = [
@@ -62,6 +72,39 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
             ->with(false);
 
         $this->applyGenericMockExpectations();
+
+        $this->checkoutPaymentsDetailsHandler->handle($this->handlingSubject, $responseCollection);
+    }
+
+    public function testIfGeneralFlowIsHandledCorrectlyForWallets()
+    {
+        $walletVariant = 'visa_googlepay';
+
+        // prepare Handler input.
+        $responseCollection = [
+            0 => [
+                'additionalData' => [
+                    'paymentMethod' => $walletVariant
+                ],
+                'amount' => [],
+                'resultCode' => 'Authorised',
+            ]
+        ];
+
+        $this->paymentMock
+            ->expects($this->any())
+            ->method('getMethod')
+            ->willReturn('any_method');
+
+        $this->orderMock
+            ->expects($this->once())
+            ->method('setCanSendNewEmailFlag')
+            ->with(false);
+
+        $this->applyGenericMockExpectations();
+
+        $this->paymentMethodsMock->method('isWalletPaymentMethod')->willReturn(true);
+        $this->paymentMock->expects($this->once())->method('setCcType')->with($walletVariant);
 
         $this->checkoutPaymentsDetailsHandler->handle($this->handlingSubject, $responseCollection);
     }
