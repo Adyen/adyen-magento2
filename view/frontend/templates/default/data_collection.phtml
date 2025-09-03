@@ -1,0 +1,23 @@
+<?php
+/**
+ *
+ * Adyen Payment Module
+ *
+ * Copyright (c) 2025 Adyen N.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+
+use Adyen\Payment\Block\Default\DataCollection;
+use Magento\Framework\Escaper;
+
+/** @var $block DataCollection */
+/** @var $escaper Escaper */
+
+?>
+
+<?php if ($block->isEnabled()): ?>
+    <script src="https://checkoutshopper-<?= $escaper->escapeHtmlAttr($block->getEnvironment()) ?>.adyen.com/checkoutshopper/assets/js/datacollection/datacollection.js"></script>
+<?php endif; ?>
