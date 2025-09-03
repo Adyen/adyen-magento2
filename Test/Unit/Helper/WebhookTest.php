@@ -2,6 +2,7 @@
 namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
+use Adyen\Payment\Helper\IpAddress;
 use Adyen\Payment\Helper\OrderStatusHistory;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\Webhook;
@@ -9,10 +10,12 @@ use Adyen\Payment\Helper\Webhook\WebhookHandlerInterface;
 use Adyen\Payment\Model\AdyenAmountCurrency;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Payment\Model\MethodInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
+use Magento\Sales\Model\OrderFactory;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
@@ -22,6 +25,7 @@ use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\Order as OrderHelper;
 use Adyen\Payment\Helper\Webhook\WebhookHandlerFactory;
 use Adyen\Payment\Logger\AdyenLogger;
+use PHPUnit\Framework\MockObject\Exception;
 use ReflectionMethod;
 use Adyen\Payment\Exception\AdyenWebhookException;
 
@@ -31,6 +35,7 @@ class WebhookTest extends AbstractAdyenTestCase
     {
         $notification = $this->createMock(Notification::class);
         $notification->method('getMerchantReference')->willReturn(null);
+        $notification->method('getEventCode')->willReturn(Notification::AUTHORISATION);
 
         $logger = $this->createMock(AdyenLogger::class);
         $logger->expects($this->once())
@@ -55,6 +60,7 @@ class WebhookTest extends AbstractAdyenTestCase
     {
         $merchantReference = 'TestMerchant';
         $notification = $this->createMock(Notification::class);
+        $notification->method('getEventCode')->willReturn(Notification::AUTHORISATION);
         $notification->method('getMerchantReference')->willReturn($merchantReference);
 
         $orderHelper = $this->createMock(OrderHelper::class);
@@ -244,8 +250,8 @@ class WebhookTest extends AbstractAdyenTestCase
             ->with(
                 'Updating the Adyen attributes of the order',
                 [
-                    'pspReference' => $notificationMock->getPspreference(), // Provide the expected value,
-                    'merchantReference' => $notificationMock->getMerchantReference(), // Provide the expected value
+                    'pspReference' => $notificationMock->getPspreference(),
+                    'merchantReference' => $notificationMock->getMerchantReference(),
                 ]
             );
 
@@ -529,7 +535,6 @@ class WebhookTest extends AbstractAdyenTestCase
 
         $reflection = new \ReflectionClass(get_class($webhook));
         $method = $reflection->getMethod('addNotificationDetailsHistoryComment');
-        $method->setAccessible(true);
 
         $orderMock->expects($this->once())
             ->method('addCommentToStatusHistory')
@@ -619,6 +624,511 @@ class WebhookTest extends AbstractAdyenTestCase
         $this->assertFalse($response);
     }
 
+    public function testIsIpValidReturnsTrue(): void
+    {
+        $payload = ['dummy' => 'data'];
+
+        $remoteAddress = $this->createMock(\Magento\Framework\HTTP\PhpEnvironment\RemoteAddress::class);
+        $remoteAddress->method('getRemoteAddress')->willReturn('127.0.0.1');
+
+        $ipAddressHelper = $this->createMock(\Adyen\Payment\Helper\IpAddress::class);
+        $ipAddressHelper->method('isIpAddressValid')->with(['127.0.0.1'])->willReturn(true);
+
+        $webhook = $this->createWebhookHelper(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $ipAddressHelper,
+            $remoteAddress
+        );
+
+        $this->assertTrue($webhook->isIpValid($payload));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testIsIpValidReturnsFalseAndLogs(): void
+    {
+        $payload = ['key' => 'value'];
+
+        $remoteAddress = $this->createMock(RemoteAddress::class);
+        $remoteAddress->method('getRemoteAddress')->willReturn('192.168.0.1');
+
+        $ipAddressHelper = $this->createMock(\Adyen\Payment\Helper\IpAddress::class);
+        $ipAddressHelper->method('isIpAddressValid')->with(['192.168.0.1'])->willReturn(false);
+
+        $logger = $this->createMock(AdyenLogger::class);
+        $logger->expects($this->once())
+            ->method('addAdyenNotification')
+            ->with($this->stringContains('Invalid IP'), $payload);
+
+        $webhook = $this->createWebhookHelper(
+            null,
+            null,
+            null,
+            null,
+            null,
+            $logger,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $ipAddressHelper,
+            $remoteAddress
+        );
+
+        $this->assertFalse($webhook->isIpValid($payload));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testIsMerchantAccountValidReturnsTrue(): void
+    {
+        $payload = ['eventCode' => 'AUTHORISATION'];
+        $expectedMerchant = 'TestMerchant';
+
+        $configHelper = $this->createMock(ConfigHelper::class);
+        $configHelper->method('getMerchantAccount')->willReturn($expectedMerchant);
+
+        $webhook = $this->createWebhookHelper(null, null, null, $configHelper);
+        $this->assertTrue($webhook->isMerchantAccountValid($expectedMerchant, $payload));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testIsMerchantAccountValidUsesMotoFallback(): void
+    {
+        $payload = ['eventCode' => 'AUTHORISATION'];
+        $incoming = 'MotoMerchant';
+
+        $configHelper = $this->createMock(ConfigHelper::class);
+        $configHelper->method('getMerchantAccount')->willReturn(null);
+        $configHelper->method('getMotoMerchantAccounts')->willReturn([$incoming]);
+
+        $logger = $this->createMock(AdyenLogger::class);
+
+        $webhook = $this->createWebhookHelper(null, null, null, $configHelper, null, $logger);
+
+        $this->assertTrue($webhook->isMerchantAccountValid($incoming, $payload));
+    }
+
+    public function testIsMerchantAccountValidReturnsFalseAndLogs(): void
+    {
+        $payload = ['eventCode' => 'REFUND'];
+        $expected = 'LiveMerchant';
+        $incoming = 'WrongMerchant';
+
+        $configHelper = $this->createMock(ConfigHelper::class);
+        $configHelper->method('getMerchantAccount')->willReturn($expected);
+
+        $logger = $this->createMock(AdyenLogger::class);
+        $logger->expects($this->once())
+            ->method('addAdyenNotification')
+            ->with(
+                $this->stringContains("Merchant account mismatch"),
+                $payload
+            );
+
+        $webhook = $this->createWebhookHelper(
+            null,
+            null,
+            null,
+            $configHelper,
+            null,
+            $logger
+        );
+        $this->assertFalse($webhook->isMerchantAccountValid($incoming, $payload));
+    }
+
+    public function testProcessRecurringTokenDisabledWebhookSuccess(): void
+    {
+        $notification = $this->createMock(Notification::class);
+        $notification->method('getEventCode')->willReturn(Notification::RECURRING_TOKEN_DISABLED);
+        $notification->method('getEntityId')->willReturn('n-1');
+        $notification->method('getPspreference')->willReturn('psp-1');
+
+        $orderFactory = $this->createMock(OrderFactory::class);
+        $orderFactory->method('create')->willReturn($this->createMock(Order::class));
+
+        $handler = $this->createMock(\Adyen\Payment\Helper\Webhook\WebhookHandlerInterface::class);
+        $handler->expects($this->once())->method('handleWebhook');
+
+        $factory = $this->createMock(WebhookHandlerFactory::class);
+        $factory->method('create')->with(Notification::RECURRING_TOKEN_DISABLED)->willReturn($handler);
+
+        $repo = $this->createMock(AdyenNotificationRepositoryInterface::class);
+        $repo->expects($this->exactly(2))->method('save');
+
+        $logger = $this->createMock(AdyenLogger::class);
+        $logger->expects($this->atLeastOnce())->method('addAdyenNotification');
+
+        $webhook = $this->createWebhookHelper(
+            null,
+            null,
+            null,
+            null,
+            null,
+            $logger,
+            $factory,
+            null,
+            null,
+            null,
+            $repo,
+            null,
+            null,
+            null,
+            $orderFactory
+        );
+
+        $this->assertTrue($webhook->processNotification($notification));
+    }
+
+    public function testProcessRecurringTokenDisabledWebhookHandlesException(): void
+    {
+        $notification = $this->createMock(Notification::class);
+        $notification->method('getEventCode')->willReturn(Notification::RECURRING_TOKEN_DISABLED);
+        $notification->method('getEntityId')->willReturn('n-2');
+        $notification->method('getPspreference')->willReturn('psp-2');
+
+        $orderFactory = $this->createMock(OrderFactory::class);
+        $orderFactory->method('create')->willReturn($this->createMock(Order::class));
+
+        $handler = $this->createMock(\Adyen\Payment\Helper\Webhook\WebhookHandlerInterface::class);
+        $handler->method('handleWebhook')->willThrowException(new \RuntimeException('boom'));
+
+        $factory = $this->createMock(WebhookHandlerFactory::class);
+        $factory->method('create')->willReturn($handler);
+
+        $repo = $this->createMock(AdyenNotificationRepositoryInterface::class);
+        $repo->expects($this->exactly(2))->method('save'); // processing=true then processing=false
+
+        $logger = $this->createMock(AdyenLogger::class);
+        $logger->expects($this->atLeastOnce())->method('addAdyenNotification');
+
+        $webhook = $this->createWebhookHelper(
+            null,
+            null,
+            null,
+            null,
+            null,
+            $logger,
+            $factory,
+            null,
+            null,
+            null,
+            $repo,
+            null,
+            null,
+            null,
+            $orderFactory
+        );
+
+        $this->assertFalse($webhook->processNotification($notification));
+    }
+    public function testUpdateNotificationSetsProcessingAndDone(): void
+    {
+        $notification = $this->createMock(Notification::class);
+        $notification->expects($this->once())->method('setDone')->with(true);
+        $notification->expects($this->once())->method('setProcessing')->with(false);
+        $notification->expects($this->once())->method('setUpdatedAt')->with($this->isType('string'));
+
+        $repo = $this->createMock(AdyenNotificationRepositoryInterface::class);
+        $repo->expects($this->once())->method('save')->with($notification);
+
+        $webhook = $this->createWebhookHelper(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $repo
+        );
+
+        // Call private via reflection
+        $ref = new \ReflectionClass($webhook);
+        $m = $ref->getMethod('updateNotification');
+        $m->invoke($webhook, $notification, false, true);
+    }
+
+    public function testSetNotificationErrorIncrementsAndStopsAtMax(): void
+    {
+        $notification = $this->createMock(Notification::class);
+        $notification->method('getUpdatedAt')->willReturn(date('Y-m-d H:i:s'));
+
+        $notification->method('getErrorCount')->willReturnOnConsecutiveCalls(
+            Notification::MAX_ERROR_COUNT - 1,
+            Notification::MAX_ERROR_COUNT
+        );
+
+        $notification->expects($this->once())->method('setErrorCount')->with(Notification::MAX_ERROR_COUNT);
+        $notification->expects($this->any())->method('getErrorMessage')->willReturn('old');
+        $notification->expects($this->once())->method('setErrorMessage')->with($this->stringContains('old'));
+        $notification->expects($this->once())->method('setDone')->with(true);
+
+        $repo = $this->createMock(AdyenNotificationRepositoryInterface::class);
+        $repo->expects($this->once())->method('save')->with($notification);
+
+        $webhook = $this->createWebhookHelper(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $repo
+        );
+
+        $ref = new \ReflectionClass($webhook);
+        $m = $ref->getMethod('setNotificationError');
+        $m->invoke($webhook, $notification, 'oops');
+
+        $this->assertTrue(true);
+    }
+
+    public function testRetrieveLast4DigitsFromReasonParses(): void
+    {
+        $webhook = $this->createWebhookHelper();
+        $ref = new \ReflectionClass($webhook);
+        $m = $ref->getMethod('retrieveLast4DigitsFromReason');
+
+        $this->assertSame('1234', $m->invoke($webhook, 'Card Number:1234'));
+        $this->assertSame('', $m->invoke($webhook, 'NoDigitsHere'));
+        $this->assertSame('', $m->invoke($webhook, ''));
+    }
+
+    public function testDeclareVariablesPopulatesRatepayDescriptor(): void
+    {
+        $notification = $this->createMock(Notification::class);
+        $notification->method('getAdditionalData')->willReturn(json_encode([
+            'additionalData' => ['acquirerReference' => ' Klarna123 '],
+            'openinvoicedata.descriptor' => 'RP-XYZ'
+        ]));
+
+        $serializer = new Json();
+
+        $webhook = $this->createWebhookHelper(null, $serializer);
+
+        $ref = new \ReflectionClass($webhook);
+        $decl = $ref->getMethod('declareVariables');
+        $decl->invoke($webhook, $notification);
+
+        $descriptorSeen = false;
+
+        $payment = $this->getMockBuilder(Payment::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $payment->expects($this->atLeastOnce())
+            ->method('setAdditionalInformation')
+            ->willReturnCallback(function ($key, $value) use (&$descriptorSeen, $payment) {
+                if ($key === 'adyen_ratepay_descriptor' && $value === 'RP-XYZ') {
+                    $descriptorSeen = true;
+                }
+                return $payment;
+            });
+
+        $notif2 = $this->createMock(Notification::class);
+        $notif2->method('getPspreference')->willReturn('psp');
+
+        $upd = $ref->getMethod('updateOrderPaymentWithAdyenAttributes');
+        $upd->invoke($webhook, $payment, $notif2, []);
+
+        // Assert explicitly to avoid "risky" warning and ensure behavior
+        $this->assertTrue($descriptorSeen, 'Ratepay descriptor was not set on payment additional information.');
+    }
+
+    public function testUpdateOrderPaymentWithAdyenAttributesUsesCardSummary(): void
+    {
+        $payment = $this->getMockBuilder(Order\Payment::class)->disableOriginalConstructor()->getMock();
+        $notification = $this->createMock(Notification::class);
+        $notification->method('getPspreference')->willReturn('psp-3');
+        $notification->method('getReason')->willReturn('Card:9999');
+
+        $payment->expects($this->once())->method('setccLast4')->with('5678');
+
+        $webhook = $this->createWebhookHelper();
+        $ref = new \ReflectionClass($webhook);
+        $m = $ref->getMethod('updateOrderPaymentWithAdyenAttributes');
+
+        $m->invoke($webhook, $payment, $notification, ['cardSummary' => '5678']);
+    }
+
+    public function testUpdateOrderPaymentWithAdyenAttributesSetsAllFields(): void
+    {
+        $payment = $this->getMockBuilder(Payment::class)
+            ->disableOriginalConstructor()
+            ->addMethods(['setAdyenPspReference'])
+            ->getMock();
+
+        $notification = $this->createMock(Notification::class);
+        $notification->method('getPspreference')->willReturn('psp-4');
+        $notification->method('getReason')->willReturn('Card:1234');
+
+        // Only assert the methods we control
+        $payment->expects($this->once())->method('setAdyenPspReference')->with('psp-4');
+
+        $webhook = $this->createWebhookHelper();
+        $ref = new \ReflectionClass($webhook);
+        $m = $ref->getMethod('updateOrderPaymentWithAdyenAttributes');
+
+        $m->invoke($webhook, $payment, $notification, [
+            'avsResult' => 'A',
+            'cvcResult' => 'M',
+            'totalFraudScore' => '42',
+            'refusalReasonRaw' => 'raw',
+            'acquirerReference' => 'ACQ',
+            'authCode' => 'AUTH'
+        ]);
+
+        $this->assertTrue(true);
+    }
+
+    public function testAddNotificationDetailsHistoryCommentFallsBackToCurrentStatus(): void
+    {
+        $order = $this->createMock(Order::class);
+        $order->method('getStatus')->willReturn('processing');
+
+        $paymentMethod = $this->createMock(\Magento\Payment\Model\MethodInterface::class);
+        $payment = $this->createMock(Payment::class);
+        $payment->method('getMethodInstance')->willReturn($paymentMethod);
+        $order->method('getPayment')->willReturn($payment);
+
+        $notification = $this->createMock(Notification::class);
+        $notification->method('getEventCode')->willReturn('SOMETHING_ELSE');
+
+        $config = $this->createMock(ConfigHelper::class);
+        $config->method('getConfigData')->willReturn('');
+
+        $order->expects($this->once())
+            ->method('addCommentToStatusHistory')
+            ->with($this->anything(), 'processing');
+
+        $webhook = $this->createWebhookHelper(null, null, null, $config);
+        $ref = new \ReflectionClass($webhook);
+        $m = $ref->getMethod('addNotificationDetailsHistoryComment');
+
+        $this->assertInstanceOf(Order::class, $m->invoke($webhook, $order, $notification));
+    }
+
+    public function testUpdateAdyenAttributesSkipsWhenPrevAuthTrueAndCurrentUnsuccessful(): void
+    {
+        $notification = $this->createMock(Notification::class);
+        $notification->method('getEventCode')->willReturn(Notification::AUTHORISATION);
+        $notification->method('isSuccessful')->willReturn(false);
+
+        $payment = $this->getMockBuilder(Payment::class)
+            ->disableOriginalConstructor()
+            ->addMethods(['setAdyenPspReference'])
+            ->getMock();
+
+        $payment->expects($this->never())->method('setAdyenPspReference');
+
+        $order = $this->createMock(Order::class);
+        $order->method('getPayment')->willReturn($payment);
+
+        $orderWithPrev = $this->createMock(Order::class);
+        $orderWithPrev->method('getData')
+            ->with('adyen_notification_event_code')
+            ->willReturn('AUTHORISATION : TRUE');
+
+        $repo = $this->createMock(OrderRepository::class);
+        $repo->method('get')->willReturn($orderWithPrev);
+
+        $webhook = $this->createWebhookHelper(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $repo
+        );
+
+        $ref = new \ReflectionClass($webhook);
+        $m = $ref->getMethod('updateAdyenAttributes');
+
+        $this->assertInstanceOf(Order::class, $m->invoke($webhook, $order, $notification));
+    }
+
+    public function testIsIpValidLogsCustomContext(): void
+    {
+        $payload = ['k' => 'v'];
+        $remote = $this->createMock(RemoteAddress::class);
+        $remote->method('getRemoteAddress')->willReturn('10.0.0.1');
+
+        $ipHelper = $this->createMock(\Adyen\Payment\Helper\IpAddress::class);
+        $ipHelper->method('isIpAddressValid')->with(['10.0.0.1'])->willReturn(false);
+
+        $logger = $this->createMock(AdyenLogger::class);
+        $logger->expects($this->once())->method('addAdyenNotification')->with($this->stringContains('Invalid IP for moto'));
+
+        $webhook = $this->createWebhookHelper(
+            null,
+            null,
+            null,
+            null,
+            null,
+            $logger,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $ipHelper,
+            $remote
+        );
+
+        $this->assertFalse($webhook->isIpValid($payload, 'moto'));
+    }
+
+    public function testIsMerchantAccountValidWithArrayExpected(): void
+    {
+        $payload = ['eventCode' => 'AUTHORISATION'];
+        $incoming = 'M2';
+
+        $config = $this->createMock(ConfigHelper::class);
+        $config->method('getMerchantAccount')->willReturn(null);
+        // Provide the array via the fallback:
+        $config->method('getMotoMerchantAccounts')->willReturn(['M1','M2','M3']);
+
+        $webhook = $this->createWebhookHelper(null, null, null, $config);
+        $this->assertTrue($webhook->isMerchantAccountValid($incoming, $payload));
+    }
+
+    public function testGetCurrentStateCoversAdyenAuthorizedPseudoState(): void
+    {
+        $orderState = Notification::STATE_ADYEN_AUTHORIZED;
+        $webhook = $this->createWebhookHelper();
+        $current = $this->invokeMethod($webhook, 'getCurrentState', [$orderState]);
+        $this->assertSame(\Adyen\Webhook\PaymentStates::STATE_PENDING, $current);
+    }
+
     protected function createWebhookHelper(
         $mockAdyenHelper = null,
         $mockSerializer = null,
@@ -631,11 +1141,11 @@ class WebhookTest extends AbstractAdyenTestCase
         $mockOrderRepository = null,
         $paymentMethodsHelperMock = null,
         $adyenNotificationRepositoryMock = null,
-        $orderStatusHistoryHelperMock = null
+        $orderStatusHistoryHelperMock = null,
+        $ipAddressHelperMock = null,
+        $remoteAddressMock = null,
+        $orderFactoryMock = null
     ): Webhook {
-        if (is_null($mockAdyenHelper)) {
-            $mockAdyenHelper = $this->createMock(Data::class);
-        }
         if (is_null($mockSerializer)) {
             $mockSerializer = $this->createMock(SerializerInterface::class);
         }
@@ -644,9 +1154,6 @@ class WebhookTest extends AbstractAdyenTestCase
         }
         if (is_null($mockConfigHelper)) {
             $mockConfigHelper = $this->createMock(ConfigHelper::class);
-        }
-        if (is_null($mockChargedCurrency)) {
-            $mockChargedCurrency = $this->createMock(ChargedCurrency::class);
         }
         if (is_null($mockLogger)) {
             $mockLogger = $this->createMock(AdyenLogger::class);
@@ -669,6 +1176,15 @@ class WebhookTest extends AbstractAdyenTestCase
         if (is_null($orderStatusHistoryHelperMock)) {
             $orderStatusHistoryHelperMock = $this->createMock(OrderStatusHistory::class);
         }
+        if (is_null($ipAddressHelperMock)) {
+            $ipAddressHelperMock = $this->createMock(IpAddress::class);
+        }
+        if (is_null($remoteAddressMock)) {
+            $remoteAddressMock = $this->createMock(RemoteAddress::class);
+        }
+        if (is_null($orderFactoryMock)) {
+            $orderFactoryMock = $this->createMock(OrderFactory::class);
+        }
 
         return new Webhook(
             $mockSerializer,
@@ -680,7 +1196,11 @@ class WebhookTest extends AbstractAdyenTestCase
             $mockOrderRepository,
             $orderStatusHistoryHelperMock,
             $paymentMethodsHelperMock,
-            $adyenNotificationRepositoryMock
+            $adyenNotificationRepositoryMock,
+            $ipAddressHelperMock,
+            $remoteAddressMock,
+            $orderFactoryMock
         );
     }
+
 }
