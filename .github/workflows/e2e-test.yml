@@ -89,7 +89,7 @@ jobs:
         with:
           repository: Adyen/adyen-magento2-dev
           ref: "main"
-          token: ${{ secrets.ADYEN_AUTOMATION_BOT_TEST_ACCESS_TOKEN }}
+          token: ${{ secrets.ADYEN_RELEASE_AUTOMATION_USER_TOKEN }}
           path: Developer
 
       - name: Make the folder for dev module
