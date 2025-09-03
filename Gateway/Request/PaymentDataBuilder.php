@@ -21,15 +21,8 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
 
 class PaymentDataBuilder implements BuilderInterface
 {
-    /**
-     * @var Requests
-     */
-    private $adyenRequestsHelper;
-
-    /**
-     * @var ChargedCurrency
-     */
-    private $chargedCurrency;
+    private Requests $adyenRequestsHelper;
+    private ChargedCurrency $chargedCurrency;
 
     /**
      * PaymentDataBuilder constructor.
@@ -55,15 +48,14 @@ class PaymentDataBuilder implements BuilderInterface
     {
         /** @var PaymentDataObject $paymentDataObject */
         $paymentDataObject = SubjectReader::readPayment($buildSubject);
-
-        $order = $paymentDataObject->getOrder();
         $payment = $paymentDataObject->getPayment();
         $fullOrder = $payment->getOrder();
-
         $amountCurrency = $this->chargedCurrency->getOrderAmountCurrency($fullOrder);
         $currencyCode = $amountCurrency->getCurrencyCode();
         $amount = $amountCurrency->getAmount();
-        $reference = $order->getOrderIncrementId();
+        $reference = $fullOrder->getIncrementId();
+
+        $shopperConversionId = $payment->getAdditionalInformation('shopper_conversion_id');
 
         $request['body'] = $this->adyenRequestsHelper->buildPaymentData(
             $amount,
@@ -71,6 +63,10 @@ class PaymentDataBuilder implements BuilderInterface
             $reference,
             []
         );
+
+        if (!empty($shopperConversionId)) {
+            $request['body']['shopperConversionId'] = $shopperConversionId;
+        }
 
         return $request;
     }

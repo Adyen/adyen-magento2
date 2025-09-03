@@ -15,14 +15,13 @@ use Adyen\AdyenException;
 use Adyen\Payment\Model\Config\Source\CcType;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
-use Adyen\Util\Uuid;
+use Adyen\Payment\Helper\Util\Uuid;
 use DateTime;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\App\Request\Http as Http;
 
 class Requests extends AbstractHelper
 {
@@ -48,7 +47,6 @@ class Requests extends AbstractHelper
      * @param ChargedCurrency $chargedCurrency
      * @param PaymentMethods $paymentMethodsHelper
      * @param Locale $localeHelper
-     * @param Http $request
      * @param CustomerRepositoryInterface $customerRepository
      */
     public function __construct(
@@ -61,7 +59,6 @@ class Requests extends AbstractHelper
         protected readonly ChargedCurrency $chargedCurrency,
         protected readonly PaymentMethods $paymentMethodsHelper,
         protected readonly Locale $localeHelper,
-        private readonly Http $request,
         private readonly CustomerRepositoryInterface $customerRepository
     ) {
         parent::__construct($context);
@@ -86,14 +83,15 @@ class Requests extends AbstractHelper
     }
 
     /**
-     * @param int $customerId
      * @param $billingAddress
      * @param $storeId
-     * @param \Magento\Sales\Model\Order\Payment\|null $payment
+     * @param int $customerId
+     * @param null $payment
      * @param null $additionalData
      * @param array $request
      * @return array
-     * @return array
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
     public function buildCustomerData(
         $billingAddress,
@@ -301,13 +299,13 @@ class Requests extends AbstractHelper
     }
 
     /**
-     * @param array $request
      * @param $amount
      * @param $currencyCode
      * @param $reference
+     * @param array $request
      * @return array
      */
-    public function buildPaymentData($amount, $currencyCode, $reference, array $request = [])
+    public function buildPaymentData($amount, $currencyCode, $reference, array $request = []): array
     {
         $request['amount'] = [
             'currency' => $currencyCode,
