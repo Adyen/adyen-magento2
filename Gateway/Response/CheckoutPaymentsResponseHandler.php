@@ -20,8 +20,13 @@ use Magento\Sales\Model\Order\Payment;
 
 class CheckoutPaymentsResponseHandler implements HandlerInterface
 {
+    /**
+     * @param Vault $vaultHelper
+     * @param PaymentMethods $paymentMethodsHelper
+     */
     public function __construct(
-        private readonly Vault $vaultHelper
+        private readonly Vault $vaultHelper,
+        private readonly PaymentMethods $paymentMethodsHelper
     ) { }
 
     /**
@@ -38,6 +43,7 @@ class CheckoutPaymentsResponseHandler implements HandlerInterface
         $paymentDataObject = SubjectReader::readPayment($handlingSubject);
         /** @var Payment $payment */
         $payment = $paymentDataObject->getPayment();
+        $paymentMethodInstance = $payment->getMethodInstance();
 
         $payment->getOrder()->setAdyenResulturlEventCode($response['resultCode']);
         $payment->setAdditionalInformation('resultCode', $response['resultCode']);
@@ -57,10 +63,19 @@ class CheckoutPaymentsResponseHandler implements HandlerInterface
             $payment->setAdditionalInformation('pspReference', $response['pspReference']);
         }
 
-        if ($payment->getMethod() === PaymentMethods::ADYEN_CC &&
-            !empty($response['additionalData']['paymentMethod']) &&
-            $payment->getCcType() == null) {
-            $payment->setCcType($response['additionalData']['paymentMethod']);
+        $ccType = $payment->getAdditionalInformation('cc_type');
+
+        $isWalletPaymentMethod = $this->paymentMethodsHelper->isWalletPaymentMethod($paymentMethodInstance);
+        $isCardPaymentMethod = $payment->getMethod() === PaymentMethods::ADYEN_CC ||
+            $payment->getMethod() === PaymentMethods::ADYEN_CC_VAULT;
+
+        if (!empty($response['additionalData']['paymentMethod']) &&
+            is_null($ccType) &&
+            ($isWalletPaymentMethod || $isCardPaymentMethod)
+        ) {
+            $ccType = $response['additionalData']['paymentMethod'];
+            $payment->setAdditionalInformation('cc_type', $ccType);
+            $payment->setCcType($ccType);
         }
 
         if (!empty($response['action'])) {
