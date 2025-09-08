@@ -16,3 +16,13 @@ jobs:
 
       - name: Initialise static tests
         uses: ./.github/actions/static-tests
+        env:
+          ADYEN_API_KEY: ${{ secrets.ADYEN_API_KEY }}
+          ADYEN_CLIENT_KEY: ${{ secrets.ADYEN_CLIENT_KEY }}
+          ADYEN_MERCHANT: ${{ secrets.ADYEN_MERCHANT }}
+          ADMIN_USERNAME: ${{ secrets.MAGENTO_ADMIN_USERNAME }}
+          ADMIN_PASSWORD: ${{ secrets.MAGENTO_ADMIN_PASSWORD }}
+          DONATION_ACCOUNT: ${{ secrets.DONATION_ACCOUNT }}
+          PHP_VERSION: "8.3"
+          MAGENTO_VERSION: "2.4.8-p2"
+          DEPLOY_SAMPLEDATA: 1
