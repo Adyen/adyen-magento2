@@ -6,6 +6,7 @@ runs:
   steps:
     - name: Install Magento
       run: docker compose -f .github/docker-compose.yml run --rm web make magento
+      shell: bash
       env:
         PHP_VERSION: "8.3"
         MAGENTO_VERSION: "2.4.8-p2"
@@ -13,15 +14,19 @@ runs:
 
     - name: Start web server in background
       run: docker compose -f .github/docker-compose.yml up -d web
+      shell: bash
 
     - name: Setup permissions
       run: docker exec magento2-container make fs
+      shell: bash
 
     - name: Check install
       run: docker exec magento2-container make sys-check
+      shell: bash
 
     - name: Install plugin
       run: docker exec -u www-data magento2-container make plugin
+      shell: bash
       env:
         ADYEN_API_KEY: ${{ secrets.ADYEN_API_KEY }}
         ADYEN_CLIENT_KEY: ${{ secrets.ADYEN_CLIENT_KEY }}
@@ -32,6 +37,8 @@ runs:
 
     - name: Kill Cron Jobs
       run: docker exec magento2-container /etc/init.d/cron stop
+      shell: bash
 
     - name: Run PHPUnit
       run: docker exec magento2-container make phpunit-run
+      shell: bash
