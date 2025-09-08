@@ -37,32 +37,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
 
-      - name: Install Magento
-        run: docker compose -f .github/docker-compose.yml run --rm web make magento
 
-      - name: Start web server in background
-        run: docker compose -f .github/docker-compose.yml up -d web
-
-      - name: Setup permissions
-        run: docker exec magento2-container make fs
-
-      - name: Check install
-        run: docker exec magento2-container make sys-check
-
-      - name: Install plugin
-        run: docker exec -u www-data magento2-container make plugin
-
-      - name: Kill Cron Jobs
-        run: docker exec magento2-container /etc/init.d/cron stop
-
-      - name: Setup permissions
-        run: docker exec magento2-container make fs
-
-      - name: Run PHP_Codesniffer
-        run: docker exec magento2-container make codesniffer-run
-
-      - name: Run PHPUnit
-        run: docker exec magento2-container make phpunit-run
 
       - name: Format PHPUnit coverage reports
         run: docker exec magento2-container make phpunit-fix-report
@@ -76,3 +51,6 @@ jobs:
 
       - name: Run PHPStan
         run: docker exec magento2-container make phpstan-run
+
+      - name: Initialise static tests
+        uses: ./.github/actions/static-tests
