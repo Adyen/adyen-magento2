@@ -1,0 +1,33 @@
+name: "Static tests for Adyen Magento 2 payment plugin"
+description: "This action triggers the static tests flow"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Magento
+      run: docker compose -f .github/docker-compose.yml run --rm web make magento
+      shell: bash
+
+    - name: Start web server in background
+      run: docker compose -f .github/docker-compose.yml up -d web
+      shell: bash
+
+    - name: Setup permissions
+      run: docker exec magento2-container make fs
+      shell: bash
+
+    - name: Check install
+      run: docker exec magento2-container make sys-check
+      shell: bash
+
+    - name: Install plugin
+      run: docker exec -u www-data magento2-container make plugin
+      shell: bash
+
+    - name: Kill Cron Jobs
+      run: docker exec magento2-container /etc/init.d/cron stop
+      shell: bash
+
+    - name: Run PHPUnit
+      run: docker exec magento2-container make phpunit-run
+      shell: bash
