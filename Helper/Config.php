@@ -62,6 +62,7 @@ class Config
     const XML_PLATFORM_INTEGRATOR = 'platform_integrator';
     const XML_HAS_PLATFORM_INTEGRATOR = 'has_platform_integrator';
     const XML_OUTSIDE_CHECKOUT_DATA_COLLECTION = 'outside_checkout_data_collection';
+    const XML_IGNORE_EXPIRE_WEBHOOK = 'ignore_expire_webhook';
 
     /**
      * @param ScopeConfigInterface $scopeConfig
@@ -651,6 +652,20 @@ class Config
     {
         return $this->getConfigData(
             self::XML_OUTSIDE_CHECKOUT_DATA_COLLECTION,
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId,
+            true
+        );
+    }
+
+    /**
+     * @param int|null $storeId
+     * @return bool
+     */
+    public function isExpireWebhookIgnored(?int $storeId = null): bool
+    {
+        return $this->getConfigData(
+            self::XML_IGNORE_EXPIRE_WEBHOOK,
             Config::XML_ADYEN_ABSTRACT_PREFIX,
             $storeId,
             true

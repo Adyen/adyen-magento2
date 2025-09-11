@@ -54,6 +54,7 @@ class Notification extends AbstractModel implements NotificationInterface
     const RECURRING_TOKEN_DISABLED = 'recurring.token.disabled';
     const RECURRING_TOKEN_ALREADY_EXISTING = 'recurring.token.alreadyExisting';
     const RECURRING_TOKEN_UPDATED = 'recurring.token.updated';
+    const EXPIRE = "EXPIRE";
     const STATE_ADYEN_AUTHORIZED = "adyen_authorized";
     const MAX_ERROR_COUNT = 5;
 

@@ -37,6 +37,7 @@
                 <remove_processed_webhooks>0</remove_processed_webhooks>
                 <processed_webhook_removal_time>90</processed_webhook_removal_time>
                 <outside_checkout_data_collection>0</outside_checkout_data_collection>
+                <ignore_expire_webhook>1</ignore_expire_webhook>
             </adyen_abstract>
             <adyen_cc>
                 <active>0</active>
