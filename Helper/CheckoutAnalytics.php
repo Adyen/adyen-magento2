@@ -17,7 +17,6 @@ use Exception;
 use Magento\Framework\Exception\InvalidArgumentException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\HTTP\ClientInterface;
-use Magento\Framework\UrlInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
 class CheckoutAnalytics
@@ -29,50 +28,31 @@ class CheckoutAnalytics
     const CHECKOUT_ATTEMPT_ID = 'checkoutAttemptId';
     const FLAVOR_COMPONENT = 'component';
     const INTEGRATOR_ADYEN = 'Adyen';
-    const EXTRA_PARAMS_INIT_ENDPOINT = [
-        'version',
-        'channel',
-        'platform',
-        'component',
-        'deviceModel',
-        'deviceBrand',
-        'systemVersion'
-    ];
-    const MESSAGE_PARAMS = [
-        'errors',
-        'info',
-        'logs'
-    ];
 
     /**
      * @param Config $configHelper
-     * @param Data $adyenHelper
+     * @param PlatformInfo $platformInfoHelper
      * @param StoreManagerInterface $storeManager
      * @param AdyenLogger $adyenLogger
-     * @param Locale $locale
-     * @param UrlInterface $urlHelper
      * @param ClientInterface $curl
      */
     public function __construct(
         private readonly Config $configHelper,
-        private readonly Data $adyenHelper,
+        private readonly PlatformInfo $platformInfoHelper,
         private readonly StoreManagerInterface $storeManager,
         private readonly AdyenLogger $adyenLogger,
-        private readonly Locale $locale,
-        private readonly UrlInterface $urlHelper,
         private readonly ClientInterface $curl
     ) { }
 
     /**
      * Makes the initial API call to CheckoutAnalytics to obtain checkoutAttemptId
      *
-     * @param array $extraParams
      * @return string|null
      */
-    public function initiateCheckoutAttempt(array $extraParams = []): ?string
+    public function initiateCheckoutAttempt(): ?string
     {
         try {
-            $request = $this->buildInitiateCheckoutRequest($extraParams);
+            $request = $this->buildInitiateCheckoutRequest();
             $endpoint = $this->getInitiateAnalyticsUrl();
 
             $response = $this->sendRequest($endpoint, $request);
@@ -92,27 +72,27 @@ class CheckoutAnalytics
      * Sends info, log or error messages to CheckoutAnalytics
      *
      * @param string $checkoutAttemptId
-     * @param array $message Contains `info`, `log` and `errors` objects for payload
+     * @param array $events
      * @param string|null $channel
      * @param string|null $platform
      * @return void
      */
     public function sendAnalytics(
         string $checkoutAttemptId,
-        array $message,
+        array $events,
         ?string $channel = null,
         ?string $platform = null
     ): void {
         try {
-            $request = $this->buildSendAnalyticsRequest($message, $channel, $platform);
+            $request = $this->buildSendAnalyticsRequest($events, $channel, $platform);
             $endpoint = $this->getSendAnalyticsUrl($checkoutAttemptId);
-
             $this->sendRequest($endpoint, $request);
         } catch (Exception $exception) {
             $errorMessage = __('Error while sending checkout analytic metrics: %s', $exception->getMessage());
             $this->adyenLogger->error($errorMessage);
         }
     }
+
 
     /**
      * Builds the endpoint URL for sending analytics messages to CheckoutAnalytics
@@ -144,37 +124,76 @@ class CheckoutAnalytics
     /**
      * Builds the request for sending analytics messages to CheckoutAnalytics
      *
-     * @param array $message Contains `info`, `log` and `errors` objects for payload
+     * @param array $events
      * @param string|null $channel
      * @param string|null $platform
      * @return array
      * @throws InvalidArgumentException
      */
+    // Replace buildSendAnalyticsRequest() with this
     private function buildSendAnalyticsRequest(
-        array $message,
+        array $events,
         ?string $channel = null,
         ?string $platform = null
     ): array {
-        if (empty($message)) {
-            throw new InvalidArgumentException(__('Message can not be empty!'));
+        if (empty($events)) {
+            throw new InvalidArgumentException(__('Events array cannot be empty!'));
         }
 
-        $request = [
-            'channel' => $channel ?? 'Web',
-            'platform' => $platform ?? 'Web'
-        ];
+        $info   = [];
+        $errors = [];
 
-        $isMessageParamAdded = false;
+        foreach ($events as $event) {
+            $createdAt  = $this->getField($event, 'createdAt');
+            $uuid       = (string)$this->getField($event, 'uuid');
+            $topic      = (string)$this->getField($event, 'topic');
+            $type       = (string)$this->getField($event, 'type');
+            $relationId = (string)$this->getField($event, 'relationId');
 
-        foreach (self::MESSAGE_PARAMS as $key) {
-            if (isset($message[$key])) {
-                $request[$key] = $message[$key];
-                $isMessageParamAdded = true;
+            // Validate required bits (per schema mapping)
+            if ($createdAt === null || $uuid === '' || $topic === '' || $type === '' || $relationId === '') {
+                // Skip malformed event instead of failing the batch
+                continue;
+            }
+
+            $timestampMs = $this->toUnixMillisString($createdAt);
+
+            // INFO: cap at 50
+            if (count($info) < 50) {
+                $info[] = [
+                    'timestamp' => $timestampMs,
+                    'type'      => $type,
+                    'target'    => $relationId,
+                    'id'        => $uuid,
+                    'component' => $topic,
+                ];
+            }
+
+            // ERRORS: only for unexpectedEnd, cap at 5
+            if ($type === 'unexpectedEnd' && count($errors) < 5) {
+                $errors[] = [
+                    'timestamp' => $timestampMs,
+                    'id'        => $uuid,
+                    'component' => $topic,
+                    'errorType' => 'Plugin',
+                ];
             }
         }
 
-        if (!$isMessageParamAdded) {
-            throw new InvalidArgumentException(__('Message does not contain required fields!'));
+        if (empty($info) && empty($errors)) {
+            throw new InvalidArgumentException(__('No valid analytics events to send!'));
+        }
+
+        $request = [
+            'channel'  => $channel ?? 'Web',
+            'platform' => $platform ?? 'Web',
+        ];
+
+        if (!empty($info)) {
+            $request['info'] = $info;
+        }
+        if (!empty($errors)) {
+            $request['errors'] = $errors;
         }
 
         return $request;
@@ -203,28 +222,22 @@ class CheckoutAnalytics
 
     /**
      * Builds the request array for initiate checkout attempt
-     * For extra fields, see constant EXTRA_PARAMS_INIT_ENDPOINT.
      *
-     * @param array $extraParams
      * @return array
-     * @throws NoSuchEntityException
      */
-    private function buildInitiateCheckoutRequest(array $extraParams = []): array
+    private function buildInitiateCheckoutRequest(): array
     {
-        $storeId = $this->storeManager->getStore()->getId();
-        $platformData = $this->adyenHelper->getMagentoDetails();
-        $storeLocale = $this->adyenHelper->getStoreLocale($storeId);
-        $mappedLocale = $this->locale->mapLocaleCode($storeLocale);
-        $url = $this->urlHelper->getCurrentUrl();
+        $platformData = $this->platformInfoHelper->getMagentoDetails();
 
         $request = [
-            'locale' => $mappedLocale,
-            'flavor' => self::FLAVOR_COMPONENT,
-            'referrer' => $url,
+            'channel' => 'Web',
+            'platform' => 'Web',
+            'pluginVersion' => $this->platformInfoHelper->getModuleVersion(),
+            'plugin' => 'adobeCommerce',
             'applicationInfo' => [
                 'merchantApplication' => [
-                    'name' => $this->adyenHelper->getModuleName(),
-                    'version' => $this->adyenHelper->getModuleVersion()
+                    'name' => $this->platformInfoHelper->getModuleName(),
+                    'version' => $this->platformInfoHelper->getModuleVersion()
                 ],
                 'externalPlatform' => [
                     'name' => $platformData['name'],
@@ -233,12 +246,6 @@ class CheckoutAnalytics
                 ]
             ]
         ];
-
-        foreach (self::EXTRA_PARAMS_INIT_ENDPOINT as $key) {
-            if (array_key_exists($key, $extraParams)) {
-                $request[$key] = $extraParams[$key];
-            }
-        }
 
         return $request;
     }
@@ -294,4 +301,48 @@ class CheckoutAnalytics
             return json_decode($result, true);
         }
     }
+
+    // Add these helpers in the class
+
+    /**
+     * Get a field from an event that may be an object (with getter/public prop) or array.
+     */
+    private function getField($event, string $name)
+    {
+        $getter = 'get' . str_replace(' ', '', ucwords(str_replace(['_', '-'], ' ', $name)));
+        if (is_object($event)) {
+            if (method_exists($event, $getter)) {
+                return $event->{$getter}();
+            }
+            if (isset($event->{$name})) {
+                return $event->{$name};
+            }
+        } elseif (is_array($event)) {
+            return $event[$name] ?? null;
+        }
+        return null;
+    }
+
+    /**
+     * Convert DateTimeInterface|string|int to milliseconds since epoch as a string (schema requires string).
+     */
+    private function toUnixMillisString($value): string
+    {
+        if ($value instanceof \DateTimeInterface) {
+            return (string)($value->getTimestamp() * 1000);
+        }
+        if (is_int($value)) {
+            // if seconds (10 digits), convert; if already ms (13 digits), keep
+            return strlen((string)$value) >= 13 ? (string)$value : (string)($value * 1000);
+        }
+        // string: try to detect ms vs seconds vs date string
+        $trim = trim((string)$value);
+        if (ctype_digit($trim)) {
+            return strlen($trim) >= 13 ? $trim : (string)((int)$trim * 1000);
+        }
+        $ts = strtotime($trim);
+        return $ts !== false ? (string)($ts * 1000) : '0';
+    }
+
+
 }
