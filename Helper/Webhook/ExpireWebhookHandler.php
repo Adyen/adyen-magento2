@@ -49,7 +49,8 @@ class ExpireWebhookHandler implements WebhookHandlerInterface
 
         if ($isExpireWebhookIgnored) {
             $orderComment = __(
-                'The remaining uncaptured authorisation for this payment has expired but the order has not been cancelled since the %1 webhook was skipped.',
+                'The remaining uncaptured authorisation with amount %1 has expired but the order has not been cancelled since the %2 webhook was skipped.',
+                $notification->getFormattedAmountCurrency(),
                 $notification->getEventCode()
             );
             $logMessage = __(
@@ -65,13 +66,19 @@ class ExpireWebhookHandler implements WebhookHandlerInterface
             if ($order->getTotalDue() == $amount) {
                 $order = $this->orderHelper->holdCancelOrder($order, false);
 
-                $orderComment = __('This order has been completed/cancelled as the remaining uncaptured authorisation has expired.');
+                $orderComment = __(
+                    'This order has been completed/cancelled as the remaining uncaptured authorisation with amount %1 has expired.',
+                    $notification->getFormattedAmountCurrency()
+                );
                 $logMessage = __(
                     'The %1 webhook has completed/cancelled the order due to the expired remaining uncaptured authorisation.',
                     $notification->getEventCode()
                 );
             } else {
-                $orderComment = __('The remaining uncaptured authorisation has expired but the order has not been cancelled due to the amount mismatch. The order needs to be finalised manually.');
+                $orderComment = __(
+                    'The remaining uncaptured authorisation with amount %1 has expired but the order has not been cancelled due to the amount mismatch. The order needs to be finalised manually.',
+                    $notification->getFormattedAmountCurrency()
+                );
                 $logMessage = __(
                     'The %1 webhook was skipped due to the amount mismatch. The order needs to be finalised manually.',
                     $notification->getEventCode()
