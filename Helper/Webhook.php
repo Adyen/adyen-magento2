@@ -20,6 +20,7 @@ use Adyen\Payment\Helper\Webhook\WebhookHandlerFactory;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Config\Source\PreAuthorized;
 use Adyen\Payment\Model\Notification;
+use Adyen\Payment\Model\Sales\Order\Payment\PaymentRepository;
 use Adyen\Webhook\Exception\InvalidDataException;
 use Adyen\Webhook\Notification as WebhookNotification;
 use Adyen\Webhook\PaymentStates;
@@ -73,6 +74,7 @@ class Webhook
      * @param IpAddress $ipAddressHelper
      * @param RemoteAddress $remoteAddress
      * @param OrderFactory $orderFactory
+     * @param PaymentRepository $paymentRepository
      */
     public function __construct(
         private readonly SerializerInterface $serializer,
@@ -87,7 +89,8 @@ class Webhook
         private readonly AdyenNotificationRepositoryInterface $notificationRepository,
         private readonly IpAddress $ipAddressHelper,
         private readonly RemoteAddress $remoteAddress,
-        private readonly OrderFactory $orderFactory
+        private readonly OrderFactory $orderFactory,
+        private readonly PaymentRepository $paymentRepository
     ) {
         $this->klarnaReservationNumber = null;
         $this->ratepayDescriptor = null;
@@ -492,10 +495,25 @@ class Webhook
 
     public function isMerchantAccountValid(string $incoming, array $payload, string $context = 'webhook'): bool
     {
-        $expected = $this->configHelper->getMerchantAccount();
+        $originalReference = $payload['pspReference'] ?? $payload['data']['storedPaymentMethodId'] ?? null;
+        $payment = null;
+
+        if ($originalReference) {
+            try {
+                $payment = $this->paymentRepository->getPaymentByCcTransId($originalReference);
+            } catch (\Throwable $e) {
+                $this->logger->addAdyenNotification(
+                    sprintf('Could not load payment for reference %s: %s', $originalReference, $e->getMessage()),
+                    $payload
+                );
+            }
+        }
+        $storeId = $payment->getOrder()->getStoreId();
+
+        $expected = $this->configHelper->getMerchantAccount($storeId);
 
         if ($expected === null) {
-            $expected = $this->configHelper->getMotoMerchantAccounts();
+            $expected = $this->configHelper->getMotoMerchantAccounts($storeId);
         }
 
         $isValid = is_array($expected)

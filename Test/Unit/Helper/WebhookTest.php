@@ -28,6 +28,7 @@ use Adyen\Payment\Logger\AdyenLogger;
 use PHPUnit\Framework\MockObject\Exception;
 use ReflectionMethod;
 use Adyen\Payment\Exception\AdyenWebhookException;
+use Adyen\Payment\Model\Sales\Order\Payment\PaymentRepository;
 
 class WebhookTest extends AbstractAdyenTestCase
 {
@@ -692,56 +693,91 @@ class WebhookTest extends AbstractAdyenTestCase
         $this->assertFalse($webhook->isIpValid($payload));
     }
 
-    /**
-     * @throws Exception
-     */
-    public function testIsMerchantAccountValidReturnsTrue(): void
+    public function testIsMerchantAccountValidReturnsTrueWithStoreScope(): void
     {
-        $payload = ['eventCode' => 'AUTHORISATION'];
+        // Arrange
+        $payload = ['pspReference' => 'PSP-123'];
         $expectedMerchant = 'TestMerchant';
+        $storeId = 3;
 
         $configHelper = $this->createMock(ConfigHelper::class);
-        $configHelper->method('getMerchantAccount')->willReturn($expectedMerchant);
+        // Expect store-scoped call
+        $configHelper->expects($this->once())
+            ->method('getMerchantAccount')
+            ->with($storeId)
+            ->willReturn($expectedMerchant);
 
-        $webhook = $this->createWebhookHelper(null, null, null, $configHelper);
+        $logger = $this->createMock(AdyenLogger::class);
+
+        // Payment + Order mock to provide storeId
+        $order = $this->createConfiguredMock(Order::class, ['getStoreId' => $storeId]);
+        $payment = $this->createConfiguredMock(\Magento\Sales\Model\Order\Payment::class, [
+            'getOrder' => $order
+        ]);
+
+        // PaymentRepository returns our payment for the provided PSP reference
+        $paymentRepo = $this->createMock(PaymentRepository::class);
+        $paymentRepo->expects($this->once())
+            ->method('getPaymentByCcTransId')
+            ->with($payload['pspReference'])
+            ->willReturn($payment);
+
+        // Create helper with our mocks (pass $paymentRepo in the right slot for your factory/helper)
+        $webhook = $this->createWebhookHelper(
+             null,
+             null,
+             null,
+             $configHelper,
+             null,
+             $logger,
+             null,
+             null,
+             null,
+             null,
+             null,
+             null,
+             null,
+             null,
+             null,
+             $paymentRepo
+        );
+
         $this->assertTrue($webhook->isMerchantAccountValid($expectedMerchant, $payload));
     }
 
-    /**
-     * @throws Exception
-     */
-    public function testIsMerchantAccountValidUsesMotoFallback(): void
+    public function testIsMerchantAccountValidUsesMotoFallbackWithStoreScope(): void
     {
-        $payload = ['eventCode' => 'AUTHORISATION'];
+        // Arrange
+        $payload = ['pspReference' => 'PSP-456'];
         $incoming = 'MotoMerchant';
+        $storeId = 5;
 
         $configHelper = $this->createMock(ConfigHelper::class);
-        $configHelper->method('getMerchantAccount')->willReturn(null);
-        $configHelper->method('getMotoMerchantAccounts')->willReturn([$incoming]);
+
+        // Primary returns null => fallback to MOTO accounts (store-scoped)
+        $configHelper->expects($this->once())
+            ->method('getMerchantAccount')
+            ->with($storeId)
+            ->willReturn(null);
+
+        $configHelper->expects($this->once())
+            ->method('getMotoMerchantAccounts')
+            ->with($storeId)
+            ->willReturn([$incoming]);
 
         $logger = $this->createMock(AdyenLogger::class);
 
-        $webhook = $this->createWebhookHelper(null, null, null, $configHelper, null, $logger);
+        // Payment + Order mock to provide storeId
+        $order = $this->createConfiguredMock(Order::class, ['getStoreId' => $storeId]);
+        $payment = $this->createConfiguredMock(\Magento\Sales\Model\Order\Payment::class, [
+            'getOrder' => $order
+        ]);
 
-        $this->assertTrue($webhook->isMerchantAccountValid($incoming, $payload));
-    }
-
-    public function testIsMerchantAccountValidReturnsFalseAndLogs(): void
-    {
-        $payload = ['eventCode' => 'REFUND'];
-        $expected = 'LiveMerchant';
-        $incoming = 'WrongMerchant';
-
-        $configHelper = $this->createMock(ConfigHelper::class);
-        $configHelper->method('getMerchantAccount')->willReturn($expected);
-
-        $logger = $this->createMock(AdyenLogger::class);
-        $logger->expects($this->once())
-            ->method('addAdyenNotification')
-            ->with(
-                $this->stringContains("Merchant account mismatch"),
-                $payload
-            );
+        $paymentRepo = $this->createMock(PaymentRepository::class);
+        $paymentRepo->expects($this->once())
+            ->method('getPaymentByCcTransId')
+            ->with($payload['pspReference'])
+            ->willReturn($payment);
 
         $webhook = $this->createWebhookHelper(
             null,
@@ -749,8 +785,75 @@ class WebhookTest extends AbstractAdyenTestCase
             null,
             $configHelper,
             null,
-            $logger
+            $logger,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $paymentRepo
         );
+
+        $this->assertTrue($webhook->isMerchantAccountValid($incoming, $payload));
+    }
+
+    public function testIsMerchantAccountValidReturnsFalseAndLogsWithStoreScope(): void
+    {
+        // Arrange
+        $payload = ['pspReference' => 'PSP-789'];
+        $expected = 'LiveMerchant';
+        $incoming = 'WrongMerchant';
+        $storeId = 2;
+
+        $configHelper = $this->createMock(ConfigHelper::class);
+        $configHelper->expects($this->once())
+            ->method('getMerchantAccount')
+            ->with($storeId)
+            ->willReturn($expected);
+
+        $logger = $this->createMock(AdyenLogger::class);
+        $logger->expects($this->once())
+            ->method('addAdyenNotification')
+            ->with(
+                $this->stringContains('Merchant account mismatch'),
+                $payload
+            );
+
+        // Payment + Order mock to provide storeId
+        $order = $this->createConfiguredMock(Order::class, ['getStoreId' => $storeId]);
+        $payment = $this->createConfiguredMock(\Magento\Sales\Model\Order\Payment::class, [
+            'getOrder' => $order
+        ]);
+
+        $paymentRepo = $this->createMock(PaymentRepository::class);
+        $paymentRepo->expects($this->once())
+            ->method('getPaymentByCcTransId')
+            ->with($payload['pspReference'])
+            ->willReturn($payment);
+
+        $webhook = $this->createWebhookHelper(
+            null,
+            null,
+            null,
+            $configHelper,
+            null,
+            $logger,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $paymentRepo
+        );
+
         $this->assertFalse($webhook->isMerchantAccountValid($incoming, $payload));
     }
 
@@ -1109,15 +1212,46 @@ class WebhookTest extends AbstractAdyenTestCase
 
     public function testIsMerchantAccountValidWithArrayExpected(): void
     {
-        $payload = ['eventCode' => 'AUTHORISATION'];
+        $storeId = 1;
+        $payload = ['eventCode' => 'AUTHORISATION',
+            'pspReference' => 'ACQ'];
         $incoming = 'M2';
+        // Payment + Order mock to provide storeId
+        $order = $this->createConfiguredMock(Order::class, ['getStoreId' => $storeId]);
+        $payment = $this->createConfiguredMock(\Magento\Sales\Model\Order\Payment::class, [
+            'getOrder' => $order
+        ]);
+
+        $paymentRepo = $this->createMock(PaymentRepository::class);
+        $paymentRepo->expects($this->once())
+            ->method('getPaymentByCcTransId')
+            ->with($payload['pspReference'])
+            ->willReturn($payment);
+
 
         $config = $this->createMock(ConfigHelper::class);
         $config->method('getMerchantAccount')->willReturn(null);
         // Provide the array via the fallback:
         $config->method('getMotoMerchantAccounts')->willReturn(['M1','M2','M3']);
 
-        $webhook = $this->createWebhookHelper(null, null, null, $config);
+        $webhook = $this->createWebhookHelper(
+            null,
+            null,
+            null,
+            $config,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $paymentRepo
+        );
         $this->assertTrue($webhook->isMerchantAccountValid($incoming, $payload));
     }
 
@@ -1144,7 +1278,8 @@ class WebhookTest extends AbstractAdyenTestCase
         $orderStatusHistoryHelperMock = null,
         $ipAddressHelperMock = null,
         $remoteAddressMock = null,
-        $orderFactoryMock = null
+        $orderFactoryMock = null,
+        $paymentRepositoryMock = null
     ): Webhook {
         if (is_null($mockSerializer)) {
             $mockSerializer = $this->createMock(SerializerInterface::class);
@@ -1185,6 +1320,9 @@ class WebhookTest extends AbstractAdyenTestCase
         if (is_null($orderFactoryMock)) {
             $orderFactoryMock = $this->createMock(OrderFactory::class);
         }
+        if (is_null($paymentRepositoryMock)) {
+            $paymentRepositoryMock = $this->createMock(PaymentRepository::class);
+        }
 
         return new Webhook(
             $mockSerializer,
@@ -1199,7 +1337,8 @@ class WebhookTest extends AbstractAdyenTestCase
             $adyenNotificationRepositoryMock,
             $ipAddressHelperMock,
             $remoteAddressMock,
-            $orderFactoryMock
+            $orderFactoryMock,
+            $paymentRepositoryMock
         );
     }
 
