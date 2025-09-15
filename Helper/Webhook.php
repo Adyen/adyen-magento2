@@ -501,7 +501,7 @@ class Webhook
         if ($originalReference) {
             try {
                 $payment = $this->paymentRepository->getPaymentByCcTransId($originalReference);
-                $storeId = $payment->getOrder()->getStoreId();
+                $storeId = $payment?->getOrder()->getStoreId();
             } catch (\Throwable $e) {
                 $this->logger->addAdyenNotification(
                     sprintf('Could not load payment for reference %s: %s', $originalReference, $e->getMessage()),
