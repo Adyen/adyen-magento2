@@ -496,11 +496,12 @@ class Webhook
     public function isMerchantAccountValid(string $incoming, array $payload, string $context = 'webhook'): bool
     {
         $originalReference = $payload['pspReference'] ?? $payload['data']['storedPaymentMethodId'] ?? null;
-        $payment = null;
+        $storeId = null;
 
         if ($originalReference) {
             try {
                 $payment = $this->paymentRepository->getPaymentByCcTransId($originalReference);
+                $storeId = $payment->getOrder()->getStoreId();
             } catch (\Throwable $e) {
                 $this->logger->addAdyenNotification(
                     sprintf('Could not load payment for reference %s: %s', $originalReference, $e->getMessage()),
@@ -508,7 +509,6 @@ class Webhook
                 );
             }
         }
-        $storeId = $payment->getOrder()->getStoreId();
 
         $expected = $this->configHelper->getMerchantAccount($storeId);
 
