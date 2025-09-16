@@ -11,34 +11,34 @@
 
 namespace Adyen\Payment\Model\Config\Source;
 
-class CaptureMode implements \Magento\Framework\Option\ArrayInterface
+use Adyen\Payment\Helper\Data;
+use Magento\Framework\Data\OptionSourceInterface;
+
+class CaptureMode implements OptionSourceInterface
 {
-    /**
-     * @var \Adyen\Payment\Helper\Data
-     */
-    protected $_adyenHelper;
+    const CAPTURE_MODE_MANUAL = 'manual';
+    const CAPTURE_MODE_AUTO = 'auto';
+    const CAPTURE_MODE_ONSHIPMENT = 'onshipment';
 
     /**
      * CaptureMode constructor.
      *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param Data $adyenHelper
      */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
-    ) {
-        $this->_adyenHelper = $adyenHelper;
-    }
+        protected readonly Data $adyenHelper
+    ) { }
 
     /**
      * @return array
      */
-    public function toOptionArray()
+    public function toOptionArray(): array
     {
-        $recurringTypes = $this->_adyenHelper->getCaptureModes();
+        $captureModes = $this->adyenHelper->getCaptureModes();
 
-        foreach ($recurringTypes as $code => $label) {
+        foreach ($captureModes as $code => $label) {
             $options[] = ['value' => $code, 'label' => $label];
         }
-        return $options;
+        return $options ?? [];
     }
 }
