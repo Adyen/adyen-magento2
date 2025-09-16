@@ -71,7 +71,9 @@ class OrderStatusHistoryTest extends AbstractAdyenTestCase
             'getSuccess' => '1',
             'isSuccessful' => true,
             'getReason' => 'Authorized',
-            'getAmountValue' => 1000
+            'getAmountValue' => 1000,
+            'getAmountCurrency' => 'USD',
+            'getFormattedAmountCurrency' => '$10.00'
         ]);
 
         $reservation = 'ABS123';
@@ -87,5 +89,6 @@ class OrderStatusHistoryTest extends AbstractAdyenTestCase
         $this->assertStringContainsString('Event status', $result);
         $this->assertStringContainsString('Reason', $result);
         $this->assertStringContainsString('Reservation number', $result);
+        $this->assertStringContainsString('Amount', $result);
     }
 }
