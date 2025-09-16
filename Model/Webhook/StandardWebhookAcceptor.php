@@ -96,7 +96,7 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
      * @throws HMACKeyValidationException
      * @throws AuthenticationException
      */
-    private function validate(array $item, string $isLiveMode, $storeId): void
+    private function validate(array $item, string $isLiveMode, ?int $storeId): void
     {
         if (!$this->notificationReceiver->validateNotificationMode($isLiveMode, $this->configHelper->isDemoMode($storeId))) {
             $this->adyenLogger->addAdyenNotification("Invalid environment for the webhook!", $item);
@@ -105,8 +105,7 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
 
         $incomingMerchantAccount = $item['merchantAccountCode'];
 
-
-        if (!$this->webhookHelper->isMerchantAccountValid($incomingMerchantAccount, $item, $storeId)) {
+        if (!$this->webhookHelper->isMerchantAccountValid($incomingMerchantAccount, $item, 'webhook', $storeId)) {
             $this->adyenLogger->addAdyenNotification(
                 "Merchant account mismatch while handling the webhook!",
                 $item

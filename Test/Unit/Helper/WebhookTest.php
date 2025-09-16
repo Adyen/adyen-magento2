@@ -717,7 +717,7 @@ class WebhookTest extends AbstractAdyenTestCase
             $logger
         );
 
-        $this->assertTrue($webhook->isMerchantAccountValid($expectedMerchant, $payload, $storeId));
+        $this->assertTrue($webhook->isMerchantAccountValid($expectedMerchant, $payload, 'webhook', $storeId));
     }
 
     public function testIsMerchantAccountValidUsesMotoFallbackWithStoreScope(): void
@@ -747,7 +747,7 @@ class WebhookTest extends AbstractAdyenTestCase
             $logger
         );
 
-        $this->assertTrue($webhook->isMerchantAccountValid($incoming, $payload, $storeId));
+        $this->assertTrue($webhook->isMerchantAccountValid($incoming, $payload, 'webhook', $storeId));
     }
 
     public function testIsMerchantAccountValidReturnsFalseAndLogsWithStoreScope(): void
@@ -777,7 +777,7 @@ class WebhookTest extends AbstractAdyenTestCase
             $logger
         );
 
-        $this->assertFalse($webhook->isMerchantAccountValid($incoming, $payload, $storeId));
+        $this->assertFalse($webhook->isMerchantAccountValid($incoming, $payload, 'webhook', $storeId));
     }
 
     public function testProcessRecurringTokenDisabledWebhookSuccess(): void
@@ -1144,7 +1144,7 @@ class WebhookTest extends AbstractAdyenTestCase
 
         $webhook = $this->createWebhookHelper(null, null, null, $config);
 
-        $this->assertTrue($webhook->isMerchantAccountValid($incoming, $payload, $storeId));
+        $this->assertTrue($webhook->isMerchantAccountValid($incoming, $payload, 'webhook', $storeId));
     }
 
     public function testGetCurrentStateCoversAdyenAuthorizedPseudoState(): void
@@ -1328,7 +1328,7 @@ class WebhookTest extends AbstractAdyenTestCase
 
         $webhook = $this->createWebhookHelper(null, null, null, $config, null, $logger);
 
-        $this->assertFalse($webhook->isMerchantAccountValid($incoming, $payload, $storeId));
+        $this->assertFalse($webhook->isMerchantAccountValid($incoming, $payload, 'webhook', $storeId));
     }
 
     /**

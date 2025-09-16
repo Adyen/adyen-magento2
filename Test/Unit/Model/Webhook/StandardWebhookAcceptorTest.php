@@ -56,14 +56,14 @@ class StandardWebhookAcceptorTest extends AbstractAdyenTestCase
      */
     protected function setUp(): void
     {
-        $this->notificationFactoryMock = $this->createMock(NotificationFactory::class);
-        $this->serializerMock          = $this->createMock(SerializerInterface::class);
-        $this->adyenLoggerMock         = $this->createMock(AdyenLogger::class);
-        $this->webhookHelperMock       = $this->createMock(Webhook::class);
-        $this->configHelperMock        = $this->createMock(Config::class);
+        $this->notificationFactoryMock  = $this->createMock(NotificationFactory::class);
+        $this->serializerMock           = $this->createMock(SerializerInterface::class);
+        $this->adyenLoggerMock          = $this->createMock(AdyenLogger::class);
+        $this->webhookHelperMock        = $this->createMock(Webhook::class);
+        $this->configHelperMock         = $this->createMock(Config::class);
         $this->notificationReceiverMock = $this->createMock(NotificationReceiver::class);
-        $this->hmacSignatureMock       = $this->createMock(HmacSignature::class);
-        $this->orderHelperMock         = $this->createMock(OrderHelper::class);
+        $this->hmacSignatureMock        = $this->createMock(HmacSignature::class);
+        $this->orderHelperMock          = $this->createMock(OrderHelper::class);
 
         $this->serializerMock->method('serialize')
             ->willReturnCallback(static fn($v) => json_encode($v));
@@ -130,7 +130,7 @@ class StandardWebhookAcceptorTest extends AbstractAdyenTestCase
         // Merchant validation with storeId
         $this->webhookHelperMock->expects($this->once())
             ->method('isMerchantAccountValid')
-            ->with('TestMerchant', $item, 10)
+            ->with('TestMerchant', $item, 'webhook', 10)
             ->willReturn(true);
 
         // HMAC: supported + valid
@@ -213,7 +213,7 @@ class StandardWebhookAcceptorTest extends AbstractAdyenTestCase
         // Merchant invalid
         $this->webhookHelperMock->expects($this->once())
             ->method('isMerchantAccountValid')
-            ->with('TestMerchant', $item, null)
+            ->with('TestMerchant', $item, 'webhook', null)
             ->willReturn(false);
 
         $this->adyenLoggerMock->expects($this->once())->method('addAdyenNotification');
@@ -240,7 +240,7 @@ class StandardWebhookAcceptorTest extends AbstractAdyenTestCase
         $this->orderHelperMock->method('getOrderByIncrementId')->willReturn(null);
         $this->configHelperMock->method('isDemoMode')->with(null)->willReturn(true);
         $this->notificationReceiverMock->method('validateNotificationMode')->with('false', true)->willReturn(true);
-        $this->webhookHelperMock->method('isMerchantAccountValid')->with('TestMerchant', $item, null)->willReturn(true);
+        $this->webhookHelperMock->method('isMerchantAccountValid')->with('TestMerchant', $item, 'webhook', null)->willReturn(true);
 
         // HMAC present+supported but invalid
         $this->configHelperMock->method('getNotificationsHmacKey')->willReturn('deadbeef');
@@ -269,7 +269,7 @@ class StandardWebhookAcceptorTest extends AbstractAdyenTestCase
         $this->orderHelperMock->method('getOrderByIncrementId')->willReturn(null);
         $this->configHelperMock->method('isDemoMode')->with(null)->willReturn(true);
         $this->notificationReceiverMock->method('validateNotificationMode')->with('false', true)->willReturn(true);
-        $this->webhookHelperMock->method('isMerchantAccountValid')->with('TestMerchant', $item, null)->willReturn(true);
+        $this->webhookHelperMock->method('isMerchantAccountValid')->with('TestMerchant', $item, 'webhook', null)->willReturn(true);
 
         // HMAC check disabled (no key) to keep test focused
         $this->configHelperMock->method('getNotificationsHmacKey')->willReturn(null);
@@ -297,11 +297,40 @@ class StandardWebhookAcceptorTest extends AbstractAdyenTestCase
         $this->orderHelperMock->method('getOrderByIncrementId')->willReturn(null);
         $this->configHelperMock->method('isDemoMode')->with(null)->willReturn(true);
         $this->notificationReceiverMock->method('validateNotificationMode')->with('false', true)->willReturn(true);
-        $this->webhookHelperMock->method('isMerchantAccountValid')->with('TestMerchant', $item, null)->willReturn(true);
+        $this->webhookHelperMock->method('isMerchantAccountValid')->with('TestMerchant', $item, 'webhook', null)->willReturn(true);
 
         // HMAC key present but event not supported -> skip validateHmac
         $this->configHelperMock->method('getNotificationsHmacKey')->willReturn('deadbeef');
         $this->hmacSignatureMock->method('isHmacSupportedEventCode')->with($item)->willReturn(false);
+        $this->notificationReceiverMock->expects($this->never())->method('validateHmac');
+
+        $notification = $this->createMock(Notification::class);
+        $notification->method('isDuplicate')->willReturn(false);
+        $this->notificationFactoryMock->method('create')->willReturn($notification);
+
+        $result = $this->acceptor->getNotifications($payload);
+
+        $this->assertCount(1, $result);
+        $this->assertSame($notification, $result[0]);
+    }
+
+    /**
+     * If HMAC key is missing entirely, we skip HMAC validation.
+     */
+    public function testHmacNotValidatedWhenKeyMissing(): void
+    {
+        $payload = $this->getValidPayload();
+        $item = $payload['notificationItems'][0]['NotificationRequestItem'];
+
+        // Env OK & merchant OK
+        $this->orderHelperMock->method('getOrderByIncrementId')->willReturn(null);
+        $this->configHelperMock->method('isDemoMode')->with(null)->willReturn(true);
+        $this->notificationReceiverMock->method('validateNotificationMode')->with('false', true)->willReturn(true);
+        $this->webhookHelperMock->method('isMerchantAccountValid')->with('TestMerchant', $item, 'webhook', null)->willReturn(true);
+
+        // HMAC key missing -> skip validateHmac entirely
+        $this->configHelperMock->method('getNotificationsHmacKey')->willReturn(null);
+        $this->hmacSignatureMock->expects($this->never())->method('isHmacSupportedEventCode');
         $this->notificationReceiverMock->expects($this->never())->method('validateHmac');
 
         $notification = $this->createMock(Notification::class);

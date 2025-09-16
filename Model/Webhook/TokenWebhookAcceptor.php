@@ -25,6 +25,7 @@ use Adyen\Webhook\Receiver\NotificationReceiver;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Sales\Model\Order;
 
 class TokenWebhookAcceptor implements WebhookAcceptorInterface
 {
@@ -38,6 +39,9 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
         'data.shopperReference',
         'data.merchantAccount'
     ];
+
+    /** @var Order|null */
+    private ?Order $order = null;
 
     /**
      * @param NotificationFactory $notificationFactory
@@ -67,28 +71,14 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
      */
     public function getNotifications(array $payload): array
     {
-        $order = null;
-        $storeId = null;
-
         if (!isset($payload['eventId'])) {
             $this->adyenLogger->addAdyenNotification('Missing required field [eventId] in token webhook', $payload);
             throw new InvalidDataException();
         }
 
-        try {
-            $payment = $this->paymentRepository->getPaymentByCcTransId($payload['eventId']);
-            $order = $payment?->getOrder();
-            $storeId = $order?->getStoreId();
-        } catch (\Throwable $e) {
-            $this->adyenLogger->addAdyenNotification(
-                sprintf('Could not load payment for reference %s: %s', $payload['eventId'], $e->getMessage()),
-                $payload
-            );
-        }
-
         $isLive = $payload['environment'] === 'live' ? 'true' : 'false';
-        $this->validate($payload, $isLive, $storeId);
-        return [$this->toNotification($payload, $isLive, $order)];
+        $this->validate($payload, $isLive);
+        return [$this->toNotification($payload, $isLive)];
     }
 
     /**
@@ -97,13 +87,28 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
      * @throws InvalidDataException
      * @throws AuthenticationException
      */
-    private function validate(array $payload, $isLive, $storeId): void
+    private function validate(array $payload, string $isLive): void
     {
         foreach (self::REQUIRED_FIELDS as $fieldPath) {
             if (!$this->getNestedValue($payload, explode('.', $fieldPath))) {
                 $this->adyenLogger->addAdyenNotification("Missing required field [$fieldPath] in token webhook", $payload);
                 throw new InvalidDataException();
             }
+        }
+
+        // Resolve order & store and keep them as class state
+        $this->order = null;
+        $storeId = null;
+
+        try {
+            $payment = $this->paymentRepository->getPaymentByCcTransId($payload['eventId']);
+            $this->order = $payment?->getOrder();
+            $storeId = $this->order?->getStoreId();
+        } catch (\Throwable $e) {
+            $this->adyenLogger->addAdyenNotification(
+                sprintf('Could not load payment for reference %s: %s', $payload['eventId'], $e->getMessage()),
+                $payload
+            );
         }
 
         if (!$this->notificationReceiver->validateNotificationMode($isLive, $this->configHelper->isDemoMode($storeId))) {
@@ -120,7 +125,7 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
         // for this specific event type.
 
         if (strcmp($payload['type'], Notification::RECURRING_TOKEN_DISABLED) !== 0) {
-            if (!$this->webhookHelper->isMerchantAccountValid($incomingMerchantAccount, $payload, $storeId)) {
+            if (!$this->webhookHelper->isMerchantAccountValid($incomingMerchantAccount, $payload, 'webhook', $storeId)) {
                 $this->adyenLogger->addAdyenNotification(
                     "Merchant account mismatch while handling the webhook!",
                     $payload
@@ -147,15 +152,15 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
     /**
      * @throws AlreadyExistsException
      */
-    private function toNotification(array $payload, string $isLive, $order): Notification
+    private function toNotification(array $payload, string $isLive): Notification
     {
         $notification = $this->notificationFactory->create();
 
         $pspReference = $payload['data']['storedPaymentMethodId'];
         $originalReference = $payload['eventId'];
 
-        if (isset($order)) {
-            $notification->setMerchantReference($order->getIncrementId());
+        if ($this->order) {
+            $notification->setMerchantReference($this->order->getIncrementId());
         }
 
         $notification->setPspreference($pspReference);
