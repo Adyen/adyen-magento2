@@ -64,12 +64,15 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
         foreach ($payload['notificationItems'] as $notificationItemWrapper) {
             //Get the order here from the increment id
             $order = null;
-            $merchantReference =  $notificationItemWrapper['NotificationRequestItem']['merchantReference'];
-            if (!isset($merchantReference)) {
-                $this->adyenLogger->addAdyenNotification('Missing required field [merchantReference] in token webhook', $payload);
+            $item = $notificationItemWrapper['NotificationRequestItem'] ?? $notificationItemWrapper;
+            if (empty($item['merchantReference'])) {
+                $this->adyenLogger->addAdyenNotification(
+                    'Missing required field [merchantReference] in token webhook',
+                    $payload
+                );
                 throw new InvalidDataException();
             }
-
+            $merchantReference = $item['merchantReference'];
             try {
                 $order = $this->orderHelper->getOrderByIncrementId($merchantReference);
                 $storeId = $order?->getStoreId();
@@ -80,7 +83,7 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
                 );
             }
 
-            $item = $notificationItemWrapper['NotificationRequestItem'] ?? $notificationItemWrapper;
+
             $this->validate($item, $isLive, $storeId);
 
             $notifications[] = $this->toNotification($item, $isLive);
