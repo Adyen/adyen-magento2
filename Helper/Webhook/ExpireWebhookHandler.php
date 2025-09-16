@@ -12,6 +12,7 @@
 
 namespace Adyen\Payment\Helper\Webhook;
 
+use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Order as OrderHelper;
@@ -27,12 +28,14 @@ class ExpireWebhookHandler implements WebhookHandlerInterface
      * @param OrderHelper $orderHelper
      * @param Data $dataHelper
      * @param AdyenLogger $adyenLogger
+     * @param ChargedCurrency $chargedCurrency
      */
     public function __construct(
         private readonly Config $configHelper,
         private readonly OrderHelper $orderHelper,
         private readonly Data $dataHelper,
-        private readonly AdyenLogger $adyenLogger
+        private readonly AdyenLogger $adyenLogger,
+        private readonly ChargedCurrency $chargedCurrency
     ) { }
 
     /**
@@ -49,7 +52,7 @@ class ExpireWebhookHandler implements WebhookHandlerInterface
 
         if ($isExpireWebhookIgnored) {
             $orderComment = __(
-                'The remaining uncaptured authorisation with amount %1 has expired but the order has not been cancelled since the %2 webhook was skipped.',
+                'The remaining uncaptured authorisation with amount %1 has expired but no action has been been taken as the %2 webhook was skipped.',
                 $notification->getFormattedAmountCurrency(),
                 $notification->getEventCode()
             );
@@ -58,29 +61,40 @@ class ExpireWebhookHandler implements WebhookHandlerInterface
                 $notification->getEventCode()
             );
         } else {
-            $amount = $this->dataHelper->originalAmount(
-                $notification->getAmountValue(),
-                $notification->getAmountCurrency()
-            );
+            // Indicates whether if the order has shipment or not
+            $orderHasShipment = $order->getShipmentsCollection() && $order->getShipmentsCollection()->getSize() > 0;
 
-            if ($order->getTotalDue() == $amount) {
+            $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order);
+            $orderAmountInMinorUnits = $this->dataHelper->formatAmount(
+                $orderAmountCurrency->getAmount(),
+                $orderAmountCurrency->getCurrencyCode()
+            );
+            // Indicates whether if the expired amount is equal to order grand total or not
+            $expiredAmountEqualsToOrderAmount = $orderAmountInMinorUnits === $notification->getAmountValue();
+
+            /*
+             * The order can only be cancelled if the full amount has expired and there is no shipment.
+             * In case of partial expirations and the cases with shipment, the plugin only logs
+             * the relevant message and leaves the responsibility to merchants.
+             */
+            if ($expiredAmountEqualsToOrderAmount && !$orderHasShipment) {
                 $order = $this->orderHelper->holdCancelOrder($order, false);
 
                 $orderComment = __(
-                    'This order has been completed/cancelled as the remaining uncaptured authorisation with amount %1 has expired.',
+                    'This order has been cancelled as the remaining uncaptured authorisation with amount %1 has expired.',
                     $notification->getFormattedAmountCurrency()
                 );
                 $logMessage = __(
-                    'The %1 webhook has completed/cancelled the order due to the expired remaining uncaptured authorisation.',
+                    'The %1 webhook has cancelled the order due to the expired remaining uncaptured authorisation.',
                     $notification->getEventCode()
                 );
             } else {
                 $orderComment = __(
-                    'The remaining uncaptured authorisation with amount %1 has expired but the order has not been cancelled due to the amount mismatch. The order needs to be finalised manually.',
+                    'The remaining uncaptured authorisation with amount %1 has expired but no action has been taken due to shipment or partial capture. The order needs to be finalised manually.',
                     $notification->getFormattedAmountCurrency()
                 );
                 $logMessage = __(
-                    'The %1 webhook was skipped due to the amount mismatch. The order needs to be finalised manually.',
+                    'The %1 webhook was skipped due to shipment or partial capture.',
                     $notification->getEventCode()
                 );
             }
