@@ -20,7 +20,6 @@ use Adyen\Payment\Helper\Webhook\WebhookHandlerFactory;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Config\Source\PreAuthorized;
 use Adyen\Payment\Model\Notification;
-use Adyen\Payment\Model\Sales\Order\Payment\PaymentRepository;
 use Adyen\Webhook\Exception\InvalidDataException;
 use Adyen\Webhook\Notification as WebhookNotification;
 use Adyen\Webhook\PaymentStates;
@@ -74,7 +73,6 @@ class Webhook
      * @param IpAddress $ipAddressHelper
      * @param RemoteAddress $remoteAddress
      * @param OrderFactory $orderFactory
-     * @param PaymentRepository $paymentRepository
      */
     public function __construct(
         private readonly SerializerInterface $serializer,
@@ -89,8 +87,7 @@ class Webhook
         private readonly AdyenNotificationRepositoryInterface $notificationRepository,
         private readonly IpAddress $ipAddressHelper,
         private readonly RemoteAddress $remoteAddress,
-        private readonly OrderFactory $orderFactory,
-        private readonly PaymentRepository $paymentRepository
+        private readonly OrderFactory $orderFactory
     ) {
         $this->klarnaReservationNumber = null;
         $this->ratepayDescriptor = null;
@@ -493,22 +490,9 @@ class Webhook
         return true;
     }
 
-    public function isMerchantAccountValid(string $incoming, array $payload, string $context = 'webhook'): bool
+    public function isMerchantAccountValid(string $incoming, array $payload, $order, string $context = 'webhook'): bool
     {
-        $originalReference = $payload['pspReference'] ?? $payload['data']['storedPaymentMethodId'] ?? null;
-        $storeId = null;
-
-        if ($originalReference) {
-            try {
-                $payment = $this->paymentRepository->getPaymentByCcTransId($originalReference);
-                $storeId = $payment?->getOrder()->getStoreId();
-            } catch (\Throwable $e) {
-                $this->logger->addAdyenNotification(
-                    sprintf('Could not load payment for reference %s: %s', $originalReference, $e->getMessage()),
-                    $payload
-                );
-            }
-        }
+        $storeId = $order?->getStoreId();
 
         $expected = $this->configHelper->getMerchantAccount($storeId);
 
