@@ -343,6 +343,60 @@ class StandardWebhookAcceptorTest extends AbstractAdyenTestCase
         $this->assertSame($notification, $result[0]);
     }
 
+    public function testLogsAndContinuesWhenOrderLoadThrows(): void
+    {
+        $payload = $this->getValidPayload();
+        $item = $payload['notificationItems'][0]['NotificationRequestItem'];
+        $merchantRef = $item['merchantReference'];
+
+        // Simulate failure while loading order (hits the catch block)
+        $this->orderHelperMock->expects($this->once())
+            ->method('getOrderByIncrementId')
+            ->with($merchantRef)
+            ->willThrowException(new \RuntimeException('DB down'));
+
+        // Expect a log line with the formatted message and payload
+        $this->adyenLoggerMock->expects($this->once())
+            ->method('addAdyenNotification')
+            ->with(
+                $this->callback(function ($msg) use ($merchantRef) {
+                    return str_contains($msg, "Could not load order for reference {$merchantRef}: DB down");
+                }),
+                $this->equalTo($payload)
+            );
+
+        // Since order load failed, storeId should be null in the rest of the flow
+        $this->configHelperMock->expects($this->once())
+            ->method('isDemoMode')
+            ->with(null)
+            ->willReturn(true);
+
+        $this->notificationReceiverMock->expects($this->once())
+            ->method('validateNotificationMode')
+            ->with('false', true)
+            ->willReturn(true);
+
+        $this->webhookHelperMock->expects($this->once())
+            ->method('isMerchantAccountValid')
+            ->with('TestMerchant', $item, 'webhook', null)
+            ->willReturn(true);
+
+        // Keep HMAC path simple: no key => no validation
+        $this->configHelperMock->method('getNotificationsHmacKey')->willReturn(null);
+        $this->hmacSignatureMock->expects($this->never())->method('isHmacSupportedEventCode');
+        $this->notificationReceiverMock->expects($this->never())->method('validateHmac');
+
+        // Create a non-duplicate notification so the flow completes
+        $notification = $this->createMock(Notification::class);
+        $notification->method('isDuplicate')->willReturn(false);
+        $this->notificationFactoryMock->method('create')->willReturn($notification);
+
+        $result = $this->acceptor->getNotifications($payload);
+
+        $this->assertCount(1, $result);
+        $this->assertSame($notification, $result[0]);
+    }
+
     private function getValidPayload(): array
     {
         return [

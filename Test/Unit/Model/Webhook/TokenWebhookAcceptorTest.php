@@ -282,6 +282,51 @@ class TokenWebhookAcceptorTest extends AbstractAdyenTestCase
         $this->acceptor->getNotifications($payload);
     }
 
+    public function testLogsAndContinuesWhenPaymentLoadThrows(): void
+    {
+        $payload = $this->getValidPayload();
+        $eventId = $payload['eventId'];
+
+        // Force the catch block
+        $this->paymentRepositoryMock->expects($this->once())
+            ->method('getPaymentByCcTransId')
+            ->with($eventId)
+            ->willThrowException(new \RuntimeException('DB down'));
+
+        // Expect a log line with the formatted message and full payload
+        $this->adyenLoggerMock->expects($this->once())
+            ->method('addAdyenNotification')
+            ->with(
+                $this->callback(function (string $msg) use ($eventId) {
+                    return str_contains($msg, "Could not load payment for reference {$eventId}: DB down");
+                }),
+                $this->equalTo($payload)
+            );
+
+        // Since payment/order resolution failed, storeId must be null
+        $this->configHelperMock->expects($this->once())
+            ->method('isDemoMode')
+            ->with(null)
+            ->willReturn(true);
+
+        // Merchant validation still runs with storeId = null
+        $this->webhookHelperMock->expects($this->once())
+            ->method('isMerchantAccountValid')
+            ->with('TestMerchant', $payload, 'webhook', null)
+            ->willReturn(true);
+
+        // HMAC path: use the pre-configured valid signature from setUp()
+        // Notification creation (not duplicate) to allow completion
+        $notification = $this->createMock(Notification::class);
+        $notification->method('isDuplicate')->willReturn(false);
+        $this->notificationFactoryMock->method('create')->willReturn($notification);
+
+        $result = $this->acceptor->getNotifications($payload);
+
+        $this->assertCount(1, $result);
+        $this->assertSame($notification, reset($result));
+    }
+
     private function getValidPayload(): array
     {
         return [
