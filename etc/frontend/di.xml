@@ -128,6 +128,7 @@
                 <item name="adyen_scalapay_3x" xsi:type="string">scalapay_3x</item>
                 <item name="adyen_scalapay_4x" xsi:type="string">scalapay_4x</item>
                 <item name="adyen_paynow" xsi:type="string">paynow</item>
+                <item name="adyen_riverty" xsi:type="string">riverty</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
