@@ -64,7 +64,7 @@ class ExpireWebhookHandler implements WebhookHandlerInterface
             $logMessage = $orderComment;
         } elseif ($isExpireWebhookIgnored) {
             $orderComment = __(
-                'The remaining uncaptured authorisation with amount %1 has expired but no action has been been taken as the %2 webhook was skipped.',
+                'The remaining uncaptured authorisation with amount %1 has expired but no action has been taken as the %2 webhook was skipped.',
                 $notification->getFormattedAmountCurrency(),
                 $notification->getEventCode()
             );
