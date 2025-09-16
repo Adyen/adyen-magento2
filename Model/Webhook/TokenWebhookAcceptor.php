@@ -68,6 +68,7 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
     public function getNotifications(array $payload): array
     {
         $order = null;
+        $storeId = null;
 
         if (!isset($payload['eventId'])) {
             $this->adyenLogger->addAdyenNotification('Missing required field [eventId] in token webhook', $payload);
@@ -77,6 +78,7 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
         try {
             $payment = $this->paymentRepository->getPaymentByCcTransId($payload['eventId']);
             $order = $payment?->getOrder();
+            $storeId = $order?->getStoreId();
         } catch (\Throwable $e) {
             $this->adyenLogger->addAdyenNotification(
                 sprintf('Could not load payment for reference %s: %s', $payload['eventId'], $e->getMessage()),
@@ -85,7 +87,7 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
         }
 
         $isLive = $payload['environment'] === 'live' ? 'true' : 'false';
-        $this->validate($payload, $isLive, $order);
+        $this->validate($payload, $isLive, $storeId);
         return [$this->toNotification($payload, $isLive, $order)];
     }
 
@@ -95,7 +97,7 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
      * @throws InvalidDataException
      * @throws AuthenticationException
      */
-    private function validate(array $payload, $isLive, $order): void
+    private function validate(array $payload, $isLive, $storeId): void
     {
         foreach (self::REQUIRED_FIELDS as $fieldPath) {
             if (!$this->getNestedValue($payload, explode('.', $fieldPath))) {
@@ -104,7 +106,7 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
             }
         }
 
-        if (!$this->notificationReceiver->validateNotificationMode($isLive, $this->configHelper->isDemoMode())) {
+        if (!$this->notificationReceiver->validateNotificationMode($isLive, $this->configHelper->isDemoMode($storeId))) {
             $this->adyenLogger->addAdyenNotification("Invalid environment for the webhook!", $payload);
             throw new InvalidDataException();
         }
@@ -118,7 +120,7 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
         // for this specific event type.
 
         if (strcmp($payload['type'], Notification::RECURRING_TOKEN_DISABLED) !== 0) {
-            if (!$this->webhookHelper->isMerchantAccountValid($incomingMerchantAccount, $payload, $order)) {
+            if (!$this->webhookHelper->isMerchantAccountValid($incomingMerchantAccount, $payload, $storeId)) {
                 $this->adyenLogger->addAdyenNotification(
                     "Merchant account mismatch while handling the webhook!",
                     $payload
