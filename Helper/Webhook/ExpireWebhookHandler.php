@@ -52,7 +52,7 @@ class ExpireWebhookHandler implements WebhookHandlerInterface
         $isExpireWebhookIgnored = $this->configHelper->isExpireWebhookIgnored($storeId);
         $captureMode = $this->configHelper->getCaptureMode($storeId);
 
-        if (strcmp($captureMode, CaptureMode::CAPTURE_MODE_MANUAL) !== 0) {
+        if (strcmp($captureMode, CaptureMode::CAPTURE_MODE_AUTO) === 0) {
             /*
              * Expire webhook should not be obtained if auto capture is enabled.
              * If so, it might be an indicator of an incorrect plugin configuration.
