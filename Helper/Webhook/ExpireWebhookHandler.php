@@ -73,9 +73,6 @@ class ExpireWebhookHandler implements WebhookHandlerInterface
                 $notification->getEventCode()
             );
         } else {
-            // Indicates whether if the order has shipment or not
-            $orderHasShipment = $order->getShipmentsCollection() && $order->getShipmentsCollection()->getSize() > 0;
-
             $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order);
             $orderAmountInMinorUnits = $this->dataHelper->formatAmount(
                 $orderAmountCurrency->getAmount(),
@@ -89,7 +86,7 @@ class ExpireWebhookHandler implements WebhookHandlerInterface
              * In case of partial expirations and the cases with shipment, the plugin only logs
              * the relevant message and leaves the responsibility to merchants.
              */
-            if ($expiredAmountEqualsToOrderAmount && !$orderHasShipment) {
+            if ($expiredAmountEqualsToOrderAmount && !$order->hasShipments()) {
                 $order = $this->orderHelper->holdCancelOrder($order, false);
 
                 $orderComment = __(
