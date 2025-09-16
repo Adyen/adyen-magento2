@@ -71,8 +71,8 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
      */
     public function getNotifications(array $payload): array
     {
-        if (!isset($payload['eventId'])) {
-            $this->adyenLogger->addAdyenNotification('Missing required field [eventId] in token webhook', $payload);
+        if (!isset($payload['environment'])) {
+            $this->adyenLogger->addAdyenNotification('Missing required field [environment] in token webhook', $payload);
             throw new InvalidDataException();
         }
 
@@ -96,8 +96,6 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
             }
         }
 
-        // Resolve order & store and keep them as class state
-        $this->order = null;
         $storeId = null;
 
         try {
@@ -124,14 +122,15 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
         // incoming merchantAccount against the store configuration. Therefore, we temporarily skip merchantAccount validation
         // for this specific event type.
 
-        if (strcmp($payload['type'], Notification::RECURRING_TOKEN_DISABLED) !== 0) {
-            if (!$this->webhookHelper->isMerchantAccountValid($incomingMerchantAccount, $payload, 'webhook', $storeId)) {
-                $this->adyenLogger->addAdyenNotification(
-                    "Merchant account mismatch while handling the webhook!",
-                    $payload
-                );
-                throw new InvalidDataException();
-            }
+        if (
+            strcmp($payload['type'], Notification::RECURRING_TOKEN_DISABLED) !== 0
+            && !$this->webhookHelper->isMerchantAccountValid($incomingMerchantAccount, $payload, 'webhook', $storeId)
+        ) {
+            $this->adyenLogger->addAdyenNotification(
+                "Merchant account mismatch while handling the webhook!",
+                $payload
+            );
+            throw new InvalidDataException();
         }
 
         $webhookHmacKey = $this->configHelper->getNotificationsHmacKey();
