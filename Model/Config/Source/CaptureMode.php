@@ -17,8 +17,11 @@ use Magento\Framework\Data\OptionSourceInterface;
 class CaptureMode implements OptionSourceInterface
 {
     const CAPTURE_MODE_MANUAL = 'manual';
+    const CAPTURE_MODE_MANUAL_LABEL = 'Manual';
     const CAPTURE_MODE_AUTO = 'auto';
+    const CAPTURE_MODE_AUTO_LABEL = 'Immediate';
     const CAPTURE_MODE_ONSHIPMENT = 'onshipment';
+    const CAPTURE_MODE_ONSHIPMENT_LABEL = 'On shipment';
 
     /**
      * CaptureMode constructor.

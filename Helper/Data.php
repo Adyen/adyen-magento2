@@ -118,17 +118,17 @@ class Data extends AbstractHelper
     public function getCaptureModes()
     {
         return [
-            'auto' => 'Immediate',
-            'manual' => 'Manual'
+            CaptureMode::CAPTURE_MODE_AUTO => CaptureMode::CAPTURE_MODE_AUTO_LABEL,
+            CaptureMode::CAPTURE_MODE_MANUAL => CaptureMode::CAPTURE_MODE_MANUAL_LABEL
         ];
     }
 
     public function getOpenInvoiceCaptureModes()
     {
         return [
-            CaptureMode::CAPTURE_MODE_AUTO => 'Immediate',
-            CaptureMode::CAPTURE_MODE_MANUAL => 'Manual',
-            CaptureMode::CAPTURE_MODE_ONSHIPMENT => 'On shipment'
+            CaptureMode::CAPTURE_MODE_AUTO => CaptureMode::CAPTURE_MODE_AUTO_LABEL,
+            CaptureMode::CAPTURE_MODE_MANUAL => CaptureMode::CAPTURE_MODE_MANUAL,
+            CaptureMode::CAPTURE_MODE_ONSHIPMENT => CaptureMode::CAPTURE_MODE_ONSHIPMENT_LABEL
         ];
     }
 
