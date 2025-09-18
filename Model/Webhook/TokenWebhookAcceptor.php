@@ -25,6 +25,7 @@ use Adyen\Webhook\Receiver\NotificationReceiver;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Sales\Model\Order;
 
 class TokenWebhookAcceptor implements WebhookAcceptorInterface
 {
@@ -38,6 +39,9 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
         'data.shopperReference',
         'data.merchantAccount'
     ];
+
+    /** @var Order|null */
+    private ?Order $order = null;
 
     /**
      * @param NotificationFactory $notificationFactory
@@ -60,11 +64,20 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
         private readonly Http $request
     ) { }
 
+    /**
+     * @throws AlreadyExistsException
+     * @throws InvalidDataException
+     * @throws AuthenticationException
+     */
     public function getNotifications(array $payload): array
     {
-        $this->validate($payload);
+        if (!isset($payload['environment'])) {
+            $this->adyenLogger->addAdyenNotification('Missing required field [environment] in token webhook', $payload);
+            throw new InvalidDataException();
+        }
 
         $isLive = $payload['environment'] === 'live' ? 'true' : 'false';
+        $this->validate($payload, $isLive);
         return [$this->toNotification($payload, $isLive)];
     }
 
@@ -74,7 +87,7 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
      * @throws InvalidDataException
      * @throws AuthenticationException
      */
-    private function validate(array $payload): void
+    private function validate(array $payload, string $isLive): void
     {
         foreach (self::REQUIRED_FIELDS as $fieldPath) {
             if (!$this->getNestedValue($payload, explode('.', $fieldPath))) {
@@ -83,15 +96,36 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
             }
         }
 
-        $isLiveMode = $payload['environment'] === 'live' ? 'true' : 'false';
+        $storeId = null;
 
-        if (!$this->notificationReceiver->validateNotificationMode($isLiveMode, $this->configHelper->isDemoMode())) {
+        try {
+            $payment = $this->paymentRepository->getPaymentByCcTransId($payload['eventId']);
+            $this->order = $payment?->getOrder();
+            $storeId = $this->order?->getStoreId();
+        } catch (\Throwable $e) {
+            $this->adyenLogger->addAdyenNotification(
+                sprintf('Could not load payment for reference %s: %s', $payload['eventId'], $e->getMessage()),
+                $payload
+            );
+        }
+
+        if (!$this->notificationReceiver->validateNotificationMode($isLive, $this->configHelper->isDemoMode($storeId))) {
             $this->adyenLogger->addAdyenNotification("Invalid environment for the webhook!", $payload);
             throw new InvalidDataException();
         }
 
         $incomingMerchantAccount = $payload['data']['merchantAccount'];
-        if (!$this->webhookHelper->isMerchantAccountValid($incomingMerchantAccount, $payload)) {
+
+        // TODO: Skip merchantAccount validation for `recurring.token.disabled` token webhook notifications.
+        // Reason: The token-lifecycle `recurring.token.disabled` payload does not include the original payment PSP reference
+        // or any order/payment association. Without that, we cannot reliably resolve the store scope to validate the
+        // incoming merchantAccount against the store configuration. Therefore, we temporarily skip merchantAccount validation
+        // for this specific event type.
+
+        if (
+            strcmp($payload['type'], Notification::RECURRING_TOKEN_DISABLED) !== 0
+            && !$this->webhookHelper->isMerchantAccountValid($incomingMerchantAccount, $payload, 'webhook', $storeId)
+        ) {
             $this->adyenLogger->addAdyenNotification(
                 "Merchant account mismatch while handling the webhook!",
                 $payload
@@ -124,9 +158,8 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
         $pspReference = $payload['data']['storedPaymentMethodId'];
         $originalReference = $payload['eventId'];
 
-        $payment = $this->paymentRepository->getPaymentByCcTransId($originalReference);
-        if (isset($payment)) {
-            $notification->setMerchantReference($payment->getOrder()->getIncrementId());
+        if ($this->order) {
+            $notification->setMerchantReference($this->order->getIncrementId());
         }
 
         $notification->setPspreference($pspReference);

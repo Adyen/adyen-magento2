@@ -490,12 +490,12 @@ class Webhook
         return true;
     }
 
-    public function isMerchantAccountValid(string $incoming, array $payload, string $context = 'webhook'): bool
+    public function isMerchantAccountValid(string $incoming, array $payload, string $context = 'webhook', ?int $storeId = null): bool
     {
-        $expected = $this->configHelper->getMerchantAccount();
+        $expected = $this->configHelper->getMerchantAccount($storeId);
 
         if ($expected === null) {
-            $expected = $this->configHelper->getMotoMerchantAccounts();
+            $expected = $this->configHelper->getMotoMerchantAccounts($storeId);
         }
 
         $isValid = is_array($expected)
