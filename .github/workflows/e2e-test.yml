@@ -3,9 +3,9 @@ run-name: E2E test workflow with test suite branch ${{inputs.testBranch || 'main
 
 on:
   pull_request:
-    branches: [main,develop-10]
+    branches: [main,main-9]
   pull_request_target:
-    branches: [main, develop-10]
+    branches: [main, main-9]
   workflow_dispatch:
     inputs:
       testBranch:
@@ -89,7 +89,7 @@ jobs:
         with:
           repository: Adyen/adyen-magento2-dev
           ref: "main"
-          token: ${{ secrets.ADYEN_AUTOMATION_BOT_TEST_ACCESS_TOKEN }}
+          token: ${{ secrets.ADYEN_RELEASE_AUTOMATION_USER_TOKEN }}
           path: Developer
 
       - name: Make the folder for dev module

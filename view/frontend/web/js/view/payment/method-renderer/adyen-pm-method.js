@@ -234,23 +234,23 @@ define(
                 }
             },
 
-            handleOnSubmit: async function(state, component) {
+            handleOnSubmit: async function(state, component, actions) {
                 if (this.validate()) {
                     let data = {};
                     data.method = this.getCode();
 
                     let additionalData = {};
-                    let stateData = component.data;
+                    let stateData = state.data;
                     additionalData.stateData = JSON.stringify(stateData);
                     data.additional_data = additionalData;
 
-                    await this.placeRedirectOrder(data, component);
+                    await this.placeRedirectOrder(data, component, actions);
+                } else {
+                    actions.reject();
                 }
-
-                return false;
             },
 
-            handleOnAdditionalDetails: function(state, component) {
+            handleOnAdditionalDetails: function(state, component, actions) {
                 const self = this;
                 adyenPaymentModal.hideModalLabel(this.modalLabel);
                 fullScreenLoader.startLoader();
@@ -260,11 +260,20 @@ define(
                     request = state.data;
                 }
 
-                adyenPaymentService.paymentDetails(request, self.orderId).done(function() {
+                adyenPaymentService.paymentDetails(request, self.orderId).done(function(responseJSON) {
+                    if (!!actions) {
+                        const response = JSON.parse(responseJSON);
+                        actions.resolve({resultCode: response.resultCode});
+                    }
+
                     $.mage.redirect(
                         window.checkoutConfig.payment.adyen.successPage,
                     );
                 }).fail(function(response) {
+                    if (!!actions) {
+                        actions.reject();
+                    }
+
                     fullScreenLoader.stopLoader();
                     if (self.popupModal) {
                         self.closeModal(self.popupModal);
@@ -336,7 +345,7 @@ define(
                 return false;
             },
 
-            placeRedirectOrder: async function(data, component) {
+            placeRedirectOrder: async function(data, component, actions = null) {
                 const self = this;
 
                 fullScreenLoader.startLoader();
@@ -346,8 +355,17 @@ define(
                 try {
                     const orderId = await placeOrderAction(data, self.currentMessageContainer);
                     const responseJSON = await adyenPaymentService.getOrderPaymentStatus(orderId);
+
+                    if (!!actions) {
+                        const response = JSON.parse(responseJSON);
+                        actions.resolve({resultCode: response.resultCode});
+                    }
+
                     self.validateActionOrPlaceOrder(responseJSON, orderId, component);
                 } catch (response) {
+                    if (!!actions) {
+                        actions.reject();
+                    }
                     self.handleOnFailure(response, component);
                 }
             },

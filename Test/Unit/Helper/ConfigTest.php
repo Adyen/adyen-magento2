@@ -245,6 +245,27 @@ class ConfigTest extends AbstractAdyenTestCase
         $this->assertEquals($mockIntegratorName, $this->configHelper->getPlatformIntegratorName());
     }
 
+    public function testIsOutsideCheckoutDataCollectionEnabled()
+    {
+        $storeId = PHP_INT_MAX;
+        $expectedResult = true;
+
+        $path = sprintf(
+            "%s/%s/%s",
+            Config::XML_PAYMENT_PREFIX,
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            Config::XML_OUTSIDE_CHECKOUT_DATA_COLLECTION
+        );
+
+        $this->scopeConfigMock->expects($this->once())
+            ->method('isSetFlag')
+            ->with($this->equalTo($path), $this->equalTo(ScopeInterface::SCOPE_STORE), $this->equalTo($storeId))
+            ->willReturn($expectedResult);
+
+        $result = $this->configHelper->isOutsideCheckoutDataCollectionEnabled($storeId);
+        $this->assertEquals($expectedResult, $result);
+    }
+
     public function testIsReliabilityDataCollectionEnabled()
     {
         $isfeatureEnabled = true;

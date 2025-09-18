@@ -49,7 +49,8 @@ define(
             // need to duplicate as without the button will never activate on first time page view
             isPlaceOrderActionAllowed: ko.observable(
                 quote.billingAddress() != null),
-            comboCardOption: ko.observable('credit'),
+            comboCardOption: ko.observable(),
+            installments: ko.observable(),
             checkoutComponent: null,
             cardComponent: null,
 
@@ -90,6 +91,16 @@ define(
                 if(!!paymentMethodsObserver()) {
                     self.enablePaymentMethod(paymentMethodsObserver());
                 }
+
+                this.comboCardOption.subscribe(
+                    function () {
+                        if (!!self.cardComponent) {
+                            self.cardComponent.unmount();
+                            self.cardComponent = null;
+                            self.renderCCPaymentMethod();
+                        }
+                    }
+                );
             },
             isSchemePaymentsEnabled: function (paymentMethod) {
                 return paymentMethod.type === "scheme";
@@ -184,7 +195,6 @@ define(
                     return false;
                 }
 
-                let allInstallments = this.getAllInstallments();
                 let currency = quote.totals().quote_currency_code;
                 let componentConfig = {
                     enableStoreDetails: this.getEnableStoreDetails(),
@@ -199,10 +209,6 @@ define(
                     holderNameRequired: adyenConfiguration.getHasHolderName() &&
                         adyenConfiguration.getHolderNameRequired(),
                     showPayButton: false,
-                    installmentOptions: installmentsHelper.formatInstallmentsConfig(allInstallments,
-                        window.checkoutConfig.payment.adyenCc.adyenCcTypes,
-                        self.grandTotal()) ,
-                    showInstallmentAmounts: true,
                     onChange: function(state, component) {
                         self.placeOrderAllowed(!!state.isValid);
                         self.storeCc = !!state.data.storePaymentMethod;
@@ -211,6 +217,15 @@ define(
                     onSubmit: function () {
                         self.placeOrder();
                     }
+                }
+
+                if (this.comboCardOption() !== 'debit') {
+                    componentConfig.installmentOptions = installmentsHelper.formatInstallmentsConfig(
+                        window.checkoutConfig.payment.adyenCc.installments,
+                        window.checkoutConfig.payment.adyenCc.adyenCcTypes,
+                        self.grandTotal()
+                    );
+                    componentConfig.showInstallmentAmounts = true;
                 }
 
                 if (this.isClickToPayEnabled()) {
@@ -276,12 +291,18 @@ define(
                     additional_data: {
                         'stateData': {},
                         'guestEmail': quote.guestEmail,
-                        'combo_card_type': this.comboCardOption(),
-                        //This is required by magento to store the token
-                        'is_active_payment_token_enabler' : this.storeCc,
                         'frontendType': 'default'
                     }
                 };
+
+                if (!!this.comboCardOption()) {
+                    data.additional_data.combo_card_type = this.comboCardOption();
+                }
+
+                // This is required by magento to store the token
+                if (this.storeCc) {
+                    data.additional_data.is_active_payment_token_enabler = true;
+                }
 
                 // Get state data only if the checkout component is ready,
                 if (this.checkoutComponent) {
@@ -468,9 +489,6 @@ define(
                     ? window.checkoutConfig.payment.adyenCc.icons[type]
                     : false;
             },
-            getAllInstallments: function() {
-                return window.checkoutConfig.payment.adyenCc.installments;
-            },
             areComboCardsEnabled: function() {
                 if (quote.billingAddress() === null) {
                     return false;
@@ -478,8 +496,7 @@ define(
                 let countryId = quote.billingAddress().countryId;
                 let currencyCode = quote.totals().quote_currency_code;
                 let allowedCurrenciesByCountry = {
-                    'BR': 'BRL',
-                    'MX': 'MXN',
+                    'BR': 'BRL'
                 };
                 return allowedCurrenciesByCountry[countryId] &&
                     currencyCode === allowedCurrenciesByCountry[countryId];

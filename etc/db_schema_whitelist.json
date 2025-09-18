@@ -109,6 +109,9 @@
         },
         "constraint": {
             "PRIMARY": true
+        },
+        "index": {
+            "ADYEN_PAYMENT_RESPONSE_MERCHANT_REFERENCE": true
         }
     },
     "adyen_analytics_event": {
