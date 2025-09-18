@@ -174,7 +174,7 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
         return __('Payment Failed');
     }
 
-    public function isAdyenPayment(): ?bool
+    public function isAdyenPayment(): bool
     {
         return $this->isAdyenPayment;
     }
