@@ -127,7 +127,7 @@ class Data extends AbstractHelper
     {
         return [
             CaptureMode::CAPTURE_MODE_AUTO => CaptureMode::CAPTURE_MODE_AUTO_LABEL,
-            CaptureMode::CAPTURE_MODE_MANUAL => CaptureMode::CAPTURE_MODE_MANUAL,
+            CaptureMode::CAPTURE_MODE_MANUAL => CaptureMode::CAPTURE_MODE_MANUAL_LABEL,
             CaptureMode::CAPTURE_MODE_ONSHIPMENT => CaptureMode::CAPTURE_MODE_ONSHIPMENT_LABEL
         ];
     }
