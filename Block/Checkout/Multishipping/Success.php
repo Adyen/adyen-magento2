@@ -28,7 +28,8 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 
 class Success extends \Magento\Multishipping\Block\Checkout\Success
 {
-    private bool $isAdyenPayment;
+    private bool $isAdyenPayment = false;
+    private ?string $billingCountryCode = null;
     private ?array $paymentResponseEntities;
     private ?array $ordersInfo;
     private Data $adyenHelper;
@@ -40,11 +41,6 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
     private Config $configHelper;
     private PaymentMethods $paymentMethodsHelper;
     private Locale $localeHelper;
-
-    /**
-     * @var
-     */
-    private $billingCountryCode = null;
 
     public function __construct(
         Collection $paymentResponseCollection,
