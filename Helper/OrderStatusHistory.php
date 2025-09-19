@@ -102,6 +102,10 @@ class OrderStatusHistory
             $comment .= __("Payment method: %1", $notification->getPaymentMethod()) . '<br />';
         }
 
+        if (!empty($notification->getFormattedAmountCurrency())) {
+            $comment .= __("Amount: %1", $notification->getFormattedAmountCurrency()) . '<br />';
+        }
+
         if (!empty($notification->getSuccess())) {
             $status = $notification->isSuccessful() ? 'Successful' : 'Failed';
             $comment .= __("Event status: %1", $status) . '<br />';

@@ -16,6 +16,7 @@ use Adyen\Client;
 use Adyen\Environment;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Config\Source\CaptureMode;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
 use Adyen\Service\Checkout\ModificationsApi;
 use Adyen\Service\Checkout\OrdersApi;
@@ -117,17 +118,17 @@ class Data extends AbstractHelper
     public function getCaptureModes()
     {
         return [
-            'auto' => 'Immediate',
-            'manual' => 'Manual'
+            CaptureMode::CAPTURE_MODE_AUTO => CaptureMode::CAPTURE_MODE_AUTO_LABEL,
+            CaptureMode::CAPTURE_MODE_MANUAL => CaptureMode::CAPTURE_MODE_MANUAL_LABEL
         ];
     }
 
     public function getOpenInvoiceCaptureModes()
     {
         return [
-            'auto' => 'Immediate',
-            'manual' => 'Manual',
-            'onshipment' => 'On shipment'
+            CaptureMode::CAPTURE_MODE_AUTO => CaptureMode::CAPTURE_MODE_AUTO_LABEL,
+            CaptureMode::CAPTURE_MODE_MANUAL => CaptureMode::CAPTURE_MODE_MANUAL_LABEL,
+            CaptureMode::CAPTURE_MODE_ONSHIPMENT => CaptureMode::CAPTURE_MODE_ONSHIPMENT_LABEL
         ];
     }
 
