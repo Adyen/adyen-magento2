@@ -23,10 +23,14 @@ interface AnalyticsEventInterface
     const TYPE = 'type';
     const TOPIC = 'topic';
     const MESSAGE = 'message';
+    const ERROR_TYPE = 'error_type';
+    const ERROR_CODE = 'error_code';
     const ERROR_COUNT = 'error_count';
     const STATUS = 'status';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
+    const SCHEDULED_PROCESSING_TIME = 'scheduled_processing_time';
+    const MAX_ERROR_COUNT = 5;
 
     public function getEntityId();
 
@@ -52,19 +56,33 @@ interface AnalyticsEventInterface
 
     public function setMessage(?string $message = null): AnalyticsEventInterface;
 
+    public function getErrorType(): ?string;
+
+    public function setErrorType(?string $errorType = null): AnalyticsEventInterface;
+
+    public function getErrorCode(): ?string;
+
+    public function setErrorCode(?string $errorCode = null): AnalyticsEventInterface;
+
     public function getErrorCount(): int;
 
     public function setErrorCount(int $errorCount): AnalyticsEventInterface;
 
-    public function getStatus(): int;
+    public function getStatus(): string;
 
-    public function setStatus(int $status): AnalyticsEventInterface;
+    public function setStatus(string $status): AnalyticsEventInterface;
 
-    public function getCreatedAt(): DateTime;
+    public function getCreatedAt(): string;
 
-    public function setCreatedAt(DateTime $createdAt): AnalyticsEventInterface;
+    public function setCreatedAt(string $createdAt): AnalyticsEventInterface;
 
-    public function getUpdatedAt(): ?DateTime;
+    public function getCreatedAtTimestamp(): int;
 
-    public function setUpdatedAt(?DateTime $updatedAt = null): AnalyticsEventInterface;
+    public function getUpdatedAt(): ?string;
+
+    public function setUpdatedAt(?string $updatedAt = null): AnalyticsEventInterface;
+
+    public function getScheduledProcessingTime(): ?string;
+
+    public function setScheduledProcessingTime(?string $scheduledProcessingTime = null): AnalyticsEventInterface;
 }

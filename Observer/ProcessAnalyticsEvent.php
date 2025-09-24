@@ -13,16 +13,16 @@ namespace Adyen\Payment\Observer;
 
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
-use Adyen\Payment\Api\AdyenAnalyticsRepositoryInterface;
+use Adyen\Payment\Api\AnalyticsEventRepositoryInterface;
 use Adyen\Payment\Model\AnalyticsEventFactory;
 use Psr\Log\LoggerInterface;
 
 class ProcessAnalyticsEvent implements ObserverInterface
 {
     public function __construct(
-        protected readonly AdyenAnalyticsRepositoryInterface $adyenAnalyticsRepository,
-        protected readonly AnalyticsEventFactory $analyticsEventFactory,
-        protected readonly LoggerInterface $logger
+        protected readonly AnalyticsEventRepositoryInterface $adyenAnalyticsRepository,
+        protected readonly AnalyticsEventFactory             $analyticsEventFactory,
+        protected readonly LoggerInterface                   $logger
     ) { }
 
     public function execute(Observer $observer)
