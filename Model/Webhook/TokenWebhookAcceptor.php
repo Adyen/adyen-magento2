@@ -23,7 +23,6 @@ use Adyen\Webhook\Exception\AuthenticationException;
 use Adyen\Webhook\Exception\InvalidDataException;
 use Adyen\Webhook\Receiver\NotificationReceiver;
 use Magento\Framework\App\Request\Http;
-use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Sales\Model\Order;
 
@@ -65,7 +64,6 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
     ) { }
 
     /**
-     * @throws AlreadyExistsException
      * @throws InvalidDataException
      * @throws AuthenticationException
      */
@@ -149,7 +147,9 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
     }
 
     /**
-     * @throws AlreadyExistsException
+     * @param array $payload
+     * @param string $isLive
+     * @return Notification
      */
     private function toNotification(array $payload, string $isLive): Notification
     {
@@ -178,14 +178,14 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
         $notification->setCreatedAt($formattedDate);
         $notification->setUpdatedAt($formattedDate);
 
-        // 💡 Add duplicate check here
-        if ($notification->isDuplicate()) {
-            throw new AlreadyExistsException(__('Webhook already exists!'));
-        }
-
         return $notification;
     }
 
+    /**
+     * @param array $array
+     * @param array $path
+     * @return mixed
+     */
     private function getNestedValue(array $array, array $path): mixed
     {
         foreach ($path as $key) {

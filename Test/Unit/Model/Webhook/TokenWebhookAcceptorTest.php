@@ -266,22 +266,6 @@ class TokenWebhookAcceptorTest extends AbstractAdyenTestCase
         $this->acceptor->getNotifications($payload);
     }
 
-    public function testToNotificationThrowsExceptionOnDuplicate(): void
-    {
-        $this->expectException(AlreadyExistsException::class);
-
-        $payload = $this->getValidPayload();
-
-        $notification = $this->createMock(Notification::class);
-        $notification->method('isDuplicate')->willReturn(true);
-        $this->notificationFactoryMock->method('create')->willReturn($notification);
-
-        $this->configHelperMock->method('isDemoMode')->willReturn(true);
-        $this->webhookHelperMock->method('isMerchantAccountValid')->willReturn(true);
-
-        $this->acceptor->getNotifications($payload);
-    }
-
     public function testLogsAndContinuesWhenPaymentLoadThrows(): void
     {
         $payload = $this->getValidPayload();

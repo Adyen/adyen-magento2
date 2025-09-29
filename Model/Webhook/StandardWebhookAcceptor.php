@@ -24,8 +24,8 @@ use Adyen\Webhook\Exception\HMACKeyValidationException;
 use Adyen\Webhook\Exception\InvalidDataException;
 use Adyen\Webhook\Receiver\NotificationReceiver;
 use Adyen\Webhook\Receiver\HmacSignature;
-use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Serialize\SerializerInterface;
+use Throwable;
 
 class StandardWebhookAcceptor implements WebhookAcceptorInterface
 {
@@ -38,7 +38,7 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
      * @param HmacSignature $hmacSignature
      * @param SerializerInterface $serializer
      * @param OrderHelper $orderHelper
- */
+    */
     public function __construct(
         private readonly NotificationFactory $notificationFactory,
         private readonly AdyenLogger $adyenLogger,
@@ -53,7 +53,7 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
     /**
      * @throws AuthenticationException
      * @throws InvalidDataException
-     * @throws AlreadyExistsException|HMACKeyValidationException
+     * @throws HMACKeyValidationException
      */
     public function getNotifications(array $payload): array
     {
@@ -76,13 +76,12 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
             try {
                 $order = $this->orderHelper->getOrderByIncrementId($merchantReference);
                 $storeId = $order?->getStoreId();
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $this->adyenLogger->addAdyenNotification(
                     sprintf('Could not load order for reference %s: %s', $merchantReference, $e->getMessage()),
                     $payload
                 );
             }
-
 
             $this->validate($item, $isLive, $storeId);
 
@@ -130,7 +129,9 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
     }
 
     /**
-     * @throws AlreadyExistsException
+     * @param array $payload
+     * @param string $isLive
+     * @return Notification
      */
     private function toNotification(array $payload, string $isLive): Notification
     {
@@ -182,10 +183,6 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
         $notification->setUpdatedAt($formattedDate);
 
         $notification->setLive($isLive);
-
-        if ($notification->isDuplicate()) {
-            throw new AlreadyExistsException(__('Webhook already exists!'));
-        }
 
         return $notification;
     }
