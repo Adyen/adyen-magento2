@@ -42,7 +42,9 @@ jobs:
         run: docker exec magento2-container make sys-check
 
       - name: Install plugin
-        run: docker exec -u www-data magento2-container make plugin
+        run: |
+              docker exec -u www-data magento2-container make plugin
+              echo "The Admin Username is $ADMIN_USERNAME and the API key is $ADYEN_API_KEY"
 
       - run: docker exec magento2-container /etc/init.d/cron stop
 
