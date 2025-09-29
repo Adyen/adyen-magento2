@@ -143,6 +143,49 @@ class IndexTest extends AbstractAdyenTestCase
         $this->assertInstanceOf(ResultInterface::class, $this->controller->execute());
     }
 
+    /**
+     * @dataProvider dataProviderProcessValidWebhook
+     *
+     * @param $payload
+     * @param $eventType
+     * @return void
+     * @throws Exception
+     * @throws NotFoundException
+     */
+    public function testExecuteProcessesDuplicateWebhook($payload, $eventType): void
+    {
+        $_SERVER['PHP_AUTH_USER'] = 'user';
+        $_SERVER['PHP_AUTH_PW'] = 'pass';
+
+        $this->configHelperMock->method('getNotificationsUsername')->willReturn('user');
+        $this->configHelperMock->method('getNotificationsPassword')->willReturn('pass');
+
+        $notification = $this->createMock(Notification::class);
+        $notification->method('getPspreference')->willReturn('ABC12345678XYZ');
+        $notification->method('isDuplicate')->willReturn(true);
+
+        $this->adyenNotificationRepositoryMock->expects($this->never())->method('save');
+
+        $acceptorMock = $this->createMock(WebhookAcceptorInterface::class);
+        $acceptorMock->method('getNotifications')->willReturn([$notification]);
+
+        $this->requestMock->method('getContent')->willReturn(json_encode($payload));
+        $this->webhookAcceptorFactoryMock->method('getAcceptor')
+            ->with($eventType)
+            ->willReturn($acceptorMock);
+
+        $this->adyenLoggerMock->expects($this->once())
+            ->method('addAdyenResult')
+            ->with('Duplicate notification with pspReference ABC12345678XYZ has been skipped.');
+
+        $this->webhookHelperMock->method('isIpValid')->willReturn(true);
+
+        $this->resultMock->expects($this->once())->method('setStatusHeader')->with(200);
+        $this->resultMock->expects($this->once())->method('setContents')->with('[accepted]');
+
+        $this->assertInstanceOf(ResultInterface::class, $this->controller->execute());
+    }
+
     public function testWebhookUnidentifiedEventType(): void
     {
         $_SERVER['PHP_AUTH_USER'] = 'user';
@@ -236,28 +279,6 @@ class IndexTest extends AbstractAdyenTestCase
         $this->resultMock->expects($this->once())->method('setStatusHeader')->with(500);
         $this->resultMock->expects($this->once())->method('setContents')
             ->with('An error occurred while handling this webhook!');
-        $this->assertInstanceOf(ResultInterface::class, $this->controller->execute());
-    }
-
-    public function testExecuteOnDuplicateWebhook(): void
-    {
-        $_SERVER['PHP_AUTH_USER'] = 'user';
-        $_SERVER['PHP_AUTH_PW'] = 'pass';
-
-        $this->configHelperMock->method('getNotificationsUsername')->willReturn('user');
-        $this->configHelperMock->method('getNotificationsPassword')->willReturn('pass');
-        $this->webhookHelperMock->method('isIpValid')->willReturn(true);
-
-        $payload = ['type' => 'token.created'];
-        $this->requestMock->method('getContent')->willReturn(json_encode($payload));
-
-        $acceptorMock = $this->createMock(TokenWebhookAcceptor::class);
-        $acceptorMock->method('getNotifications')->willThrowException(new AlreadyExistsException());
-        $this->webhookAcceptorFactoryMock->method('getAcceptor')->willReturn($acceptorMock);
-
-        $this->resultMock->expects($this->once())->method('setStatusHeader')->with(400);
-        $this->resultMock->expects($this->once())->method('setContents')
-            ->with('Webhook already exists!');
         $this->assertInstanceOf(ResultInterface::class, $this->controller->execute());
     }
 }
