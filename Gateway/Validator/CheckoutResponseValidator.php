@@ -14,7 +14,6 @@ namespace Adyen\Payment\Gateway\Validator;
 use Adyen\Model\Checkout\PaymentResponse;
 use Adyen\Payment\Exception\AbstractAdyenException;
 use Adyen\Payment\Logger\AdyenLogger;
-use Magento\Framework\Exception\ValidatorException;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Validator\AbstractValidator;
 use Magento\Payment\Gateway\Validator\ResultInterface;
@@ -46,46 +45,54 @@ class CheckoutResponseValidator extends AbstractValidator
     /**
      * @param array $validationSubject
      * @return ResultInterface
-     * @throws ValidatorException
      */
     public function validate(array $validationSubject): ResultInterface
     {
         $responseCollection = SubjectReader::readResponse($validationSubject);
 
-        if (empty($responseCollection)) {
-            throw new ValidatorException(__("No responses were provided"));
-        }
+        $errorCodes = [];
 
-        foreach ($responseCollection as $response) {
-            if (empty($response['resultCode'])) {
-                $this->handleEmptyResultCode($response);
-            } else {
-                $this->validateResultCode($response['resultCode']);
+        if (empty($responseCollection)) {
+            $errorCodes[] = 'authError_empty_response';
+        } else {
+            foreach ($responseCollection as $response) {
+                if (empty($response['resultCode'])) {
+                    $errorCodes[] = $this->handleEmptyResultCode($response);
+                } else {
+                    $errorMessage = $this->validateResultCode($response['resultCode']);
+                    if (isset($errorMessage)) {
+                        $errorCodes[] = $errorMessage;
+                    }
+                }
             }
         }
 
-        return $this->createResult(true);
+        // Gateway's error code mapping is being used. Please check `etc/authorize_error_mapping.xml` for details.
+        return $this->createResult(empty($errorCodes), [], $errorCodes);
     }
 
     /**
-     * @throws ValidatorException
+     * Returns `null` if the resultCode is valid. Otherwise, returns a string with the error code.
+     *
+     * @param string $resultCode
+     * @return string|null
      */
-    private function validateResultCode(string $resultCode): void
+    private function validateResultCode(string $resultCode): ?string
     {
         if (strcmp($resultCode, PaymentResponse::RESULT_CODE_REFUSED) === 0) {
-            $errorMsg = __('The payment is REFUSED.');
-            // this will result the specific error
-            throw new ValidatorException($errorMsg);
+            $errorCode = 'authError_refused';
         } elseif (!in_array($resultCode, self::VALID_RESULT_CODES, true)) {
-            $errorMsg = __('Error with payment method, please select a different payment method.');
-            throw new ValidatorException($errorMsg);
+            $errorCode = 'authError_generic';
         }
+
+        return $errorCode ?? null;
     }
 
     /**
-     * @throws ValidatorException
+     * @param array $response
+     * @return string
      */
-    private function handleEmptyResultCode(array $response): void
+    private function handleEmptyResultCode(array $response): string
     {
         if (!empty($response['error'])) {
             $this->adyenLogger->error($response['error']);
@@ -94,11 +101,11 @@ class CheckoutResponseValidator extends AbstractValidator
         if (!empty($response['errorCode']) &&
             !empty($response['error']) &&
             in_array($response['errorCode'], AbstractAdyenException::SAFE_ERROR_CODES, true)) {
-            $errorMsg = __($response['error']);
+            return $response['errorCode'];
         } else {
-            $errorMsg = __('Error with payment method, please select a different payment method.');
+            $errorCode = 'authError_generic';
         }
 
-        throw new ValidatorException($errorMsg);
+        return $errorCode;
     }
 }
