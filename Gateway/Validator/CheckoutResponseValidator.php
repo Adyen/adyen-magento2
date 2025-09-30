@@ -67,7 +67,7 @@ class CheckoutResponseValidator extends AbstractValidator
             }
         }
 
-        // Gateway's error code mapping is being used. Please check `error_mappings.xml` for details.
+        // Gateway's error code mapping is being used. Please check `etc/authorize_error_mapping.xml` for details.
         return $this->createResult(empty($errorCodes), [], $errorCodes);
     }
 
