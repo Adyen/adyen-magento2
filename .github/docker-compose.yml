@@ -18,10 +18,11 @@ services:
       - backend
     ports:
       - 9200:9200
-      - 9300:9300
     environment:
       - "discovery.type=single-node"
-      - "ES_JAVA_OPTS=-Xms750m -Xmx750m"
+      - "OPENSEARCH_JAVA_OPTS=-Xms750m -Xmx750m"
+      - "plugins.security.disabled=true"
+      - "bootstrap.memory_lock=true"
   web:
     build:
       context: .
