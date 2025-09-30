@@ -19,5 +19,5 @@ class AbstractAdyenException extends LocalizedException
      * Error codes that are safe to display to the shopper.
      * @see https://docs.adyen.com/development-resources/error-codes
      */
-    const SAFE_ERROR_CODES = [000, 124];
+    const SAFE_ERROR_CODES = [124];
 }
