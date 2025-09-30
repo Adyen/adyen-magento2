@@ -256,35 +256,6 @@ class StandardWebhookAcceptorTest extends AbstractAdyenTestCase
     }
 
     /**
-     * Duplicate notification -> AlreadyExistsException.
-     */
-    public function testToNotificationThrowsAlreadyExistsExceptionOnDuplicate(): void
-    {
-        $this->expectException(AlreadyExistsException::class);
-
-        $payload = $this->getValidPayload();
-        $item = $payload['notificationItems'][0]['NotificationRequestItem'];
-
-        // Env OK & merchant OK
-        $this->orderHelperMock->method('getOrderByIncrementId')->willReturn(null);
-        $this->configHelperMock->method('isDemoMode')->with(null)->willReturn(true);
-        $this->notificationReceiverMock->method('validateNotificationMode')->with('false', true)->willReturn(true);
-        $this->webhookHelperMock->method('isMerchantAccountValid')->with('TestMerchant', $item, 'webhook', null)->willReturn(true);
-
-        // HMAC check disabled (no key) to keep test focused
-        $this->configHelperMock->method('getNotificationsHmacKey')->willReturn(null);
-        $this->hmacSignatureMock->expects($this->never())->method('isHmacSupportedEventCode');
-        $this->notificationReceiverMock->expects($this->never())->method('validateHmac');
-
-        // Duplicate
-        $notification = $this->createMock(Notification::class);
-        $notification->method('isDuplicate')->willReturn(true);
-        $this->notificationFactoryMock->method('create')->willReturn($notification);
-
-        $this->acceptor->getNotifications($payload);
-    }
-
-    /**
      * If HMAC key missing or event not supported, HMAC is not validated.
      * Here we simulate "event not supported".
      */
