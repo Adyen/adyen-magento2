@@ -21,8 +21,7 @@ services:
     environment:
       - "discovery.type=single-node"
       - "OPENSEARCH_JAVA_OPTS=-Xms750m -Xmx750m"
-      - "plugins.security.disabled=true"
-      - "bootstrap.memory_lock=true"
+      - "DISABLE_SECURITY_PLUGIN=true"
   web:
     build:
       context: .
