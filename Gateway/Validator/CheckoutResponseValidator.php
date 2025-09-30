@@ -50,6 +50,8 @@ class CheckoutResponseValidator extends AbstractValidator
     {
         $responseCollection = SubjectReader::readResponse($validationSubject);
 
+        $errorCodes = [];
+
         if (empty($responseCollection)) {
             $errorCodes[] = 'authError_empty_response';
         } else {
@@ -66,7 +68,7 @@ class CheckoutResponseValidator extends AbstractValidator
         }
 
         // Gateway's error code mapping is being used. Please check `error_mappings.xml` for details.
-        return $this->createResult(empty($errorCodes), [], $errorCodes ?? []);
+        return $this->createResult(empty($errorCodes), [], $errorCodes);
     }
 
     /**
