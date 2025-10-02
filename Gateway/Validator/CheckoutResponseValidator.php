@@ -25,7 +25,7 @@ class CheckoutResponseValidator extends AbstractValidator
 {
     private AdyenLogger $adyenLogger;
     private Data $adyenHelper;
-    private array $errorCodes = [];
+    private array $errorCodes;
 
     /**
      * @var array
@@ -55,6 +55,9 @@ class CheckoutResponseValidator extends AbstractValidator
      */
     public function validate(array $validationSubject): ResultInterface
     {
+        // Reset the errorCodes in-case of a shared instance of this object
+        $this->errorCodes = [];
+
         // Extract all the payment responses
         $responseCollection = $validationSubject['response'];
         unset($validationSubject['response']);
@@ -69,16 +72,16 @@ class CheckoutResponseValidator extends AbstractValidator
             $this->errorCodes[] = 'authError_empty_response';
         }
 
-        try {
-            foreach ($responseCollection as $thisResponse) {
+        foreach ($responseCollection as $thisResponse) {
+            try {
                 $responseSubject = array_merge($commandSubject, ['response' => $thisResponse]);
                 $this->validateResponse($responseSubject);
+            } catch (Exception $e) {
+                $this->adyenLogger->error(
+                    sprintf("An error occurred while processing payment response: %s", $e->getMessage())
+                );
+                $this->errorCodes[] = 'authError_generic';
             }
-        } catch (Exception $e) {
-            $this->adyenLogger->error(
-                sprintf("An error occurred while processing payment response: %s", $e->getMessage())
-            );
-            $this->errorCodes[] = 'authError_generic';
         }
 
         return $this->createResult(empty($this->errorCodes), [], $this->errorCodes);

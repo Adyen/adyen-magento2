@@ -6,9 +6,11 @@ use Adyen\Payment\Gateway\Validator\CheckoutResponseValidator;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
-use Magento\Framework\Exception\ValidatorException;
+use Exception;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Data\OrderAdapterInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
+use Magento\Payment\Gateway\Data\PaymentDataObjectInterface;
 use Magento\Payment\Gateway\Validator\Result;
 use Magento\Payment\Gateway\Validator\ResultInterface;
 use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
@@ -19,6 +21,9 @@ class CheckoutResponseValidatorTest extends AbstractAdyenTestCase
     private $checkoutResponseValidator;
     private $resultFactoryMock;
     private $paymentDataObject;
+    private $adyenLoggerMock;
+    private $adyenHelperMock;
+
 
     protected function setUp(): void
     {
@@ -286,5 +291,33 @@ class CheckoutResponseValidatorTest extends AbstractAdyenTestCase
 
             $this->checkoutResponseValidator->validate($validationSubject);
         }
+    }
+
+    public function testIfValidationFailsOnException()
+    {
+        $mockPaymentDataObject = $this->createMock(PaymentDataObjectInterface::class);
+        $mockPaymentDataObject->method('getPayment')->willThrowException(new Exception());
+
+        $validationSubject = [
+            'payment' => $mockPaymentDataObject,
+            'stateObject' => [],
+            'response' => [
+                0 => [
+                    'error' => 'Mock error message',
+                    'errorCode' => '9999'
+                ]
+            ]
+        ];
+
+        $resultMock = $this->createMock(ResultInterface::class);
+        $this->resultFactoryMock->expects($this->once())->method('create')
+            ->with([
+                'isValid' => false,
+                'failsDescription' => [],
+                'errorCodes' => ['authError_generic']
+            ])
+            ->willReturn($resultMock);
+
+        $this->checkoutResponseValidator->validate($validationSubject);
     }
 }
