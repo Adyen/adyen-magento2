@@ -6,7 +6,7 @@ if [ "$DB_SERVER" != "<will be defined>" ]; then
 	RET=1
 	while [ $RET -ne 0 ]; do
 		echo "Checking if $DB_SERVER is available."
-		mysql -h "$DB_SERVER" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWORD" -e "status" >/dev/null 2>&1
+		mysql --skip_ssl  -h "$DB_SERVER" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWORD" -e "status" >/dev/null 2>&1
 		RET=$?
 
 		if [ $RET -ne 0 ]; then

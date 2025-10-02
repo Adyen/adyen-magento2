@@ -1,11 +1,11 @@
 name: E2E test workflow
-run-name: E2E test workflow with test suite branch ${{inputs.testBranch || 'main'}}
+run-name: E2E test workflow with test suite branch ${{inputs.testBranch || 'develop'}}
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main-9]
   pull_request_target:
-    branches: [main]
+    branches: [main-9]
   workflow_dispatch:
     inputs:
       testBranch:
@@ -32,8 +32,8 @@ jobs:
     environment: ${{ (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) && 'external' || 'internal' }}
     strategy:
       matrix:
-        php-version: ["8.3"]
-        magento-version: ["2.4.7-p2"]
+        php-version: ["8.2"]
+        magento-version: ["2.4.7-p7"]
     runs-on:
       group: larger-runners
       labels: ubuntu-latest-8-cores
@@ -88,7 +88,7 @@ jobs:
         with:
           repository: Adyen/adyen-magento2-dev
           ref: "main"
-          token: ${{ secrets.ADYEN_AUTOMATION_BOT_TEST_ACCESS_TOKEN }}
+          token: ${{ secrets.ADYEN_RELEASE_AUTOMATION_USER_TOKEN }}
           path: Developer
 
       - name: Make the folder for dev module

@@ -2,9 +2,9 @@ name: Functional Tests
 on:
   workflow_dispatch:
   pull_request:
-    branches: [main]
+    branches: [main-9]
   pull_request_target:
-    branches: [main]
+    branches: [main-9]
 
 jobs:
   build:
@@ -13,8 +13,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - php-version: '8.3'
-            magento-version: '2.4.7-p2'
+          - php-version: '8.2'
+            magento-version: '2.4.6-p7'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     permissions:
