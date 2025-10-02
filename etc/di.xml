@@ -849,6 +849,7 @@
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPayment</argument>
             <argument name="validator" xsi:type="object">CheckoutResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentResponseHandlerComposite</argument>
+            <argument name="errorMessageMapper" xsi:type="object">AdyenAuthorizeErrorMessageMapper</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentDonationsCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
@@ -889,6 +890,7 @@
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPayment</argument>
             <argument name="validator" xsi:type="object">CheckoutResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentVaultResponseHandlerComposite</argument>
+            <argument name="errorMessageMapper" xsi:type="object">AdyenAuthorizeErrorMessageMapper</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentBoletoCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
@@ -941,6 +943,7 @@
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPayment</argument>
             <argument name="validator" xsi:type="object">CheckoutResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentResponseHandlerComposite</argument>
+            <argument name="errorMessageMapper" xsi:type="object">AdyenAuthorizeErrorMessageMapper</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentMotoAuthorizeCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
@@ -950,6 +953,7 @@
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPayment</argument>
             <argument name="validator" xsi:type="object">CheckoutResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentResponseHandlerComposite</argument>
+            <argument name="errorMessageMapper" xsi:type="object">AdyenAuthorizeErrorMessageMapper</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentOneclickAuthorizeCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
@@ -959,6 +963,7 @@
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPayment</argument>
             <argument name="validator" xsi:type="object">CheckoutResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentResponseHandlerComposite</argument>
+            <argument name="errorMessageMapper" xsi:type="object">AdyenAuthorizeErrorMessageMapper</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentAuthorizeCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
@@ -968,6 +973,7 @@
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPayment</argument>
             <argument name="validator" xsi:type="object">CheckoutResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentResponseHandlerComposite</argument>
+            <argument name="errorMessageMapper" xsi:type="object">AdyenAuthorizeErrorMessageMapper</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentGiftcardAuthorizeCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
@@ -977,6 +983,7 @@
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPayment</argument>
             <argument name="validator" xsi:type="object">CheckoutResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentResponseHandlerComposite</argument>
+            <argument name="errorMessageMapper" xsi:type="object">AdyenAuthorizeErrorMessageMapper</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentBoletoAuthorizeCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
@@ -986,6 +993,7 @@
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPayment</argument>
             <argument name="validator" xsi:type="object">CheckoutResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentBoletoResponseHandlerComposite</argument>
+            <argument name="errorMessageMapper" xsi:type="object">AdyenAuthorizeErrorMessageMapper</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentPosCloudAuthorizeCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
@@ -997,6 +1005,24 @@
             <argument name="handler" xsi:type="object">AdyenPaymentPosCloudResponseHandlerComposite</argument>
         </arguments>
     </virtualType>
+    <!-- Error code mapping for authorize command -->
+    <virtualType name="Adyen\Payment\Gateway\ErrorMapper\VirtualConfigReader" type="Magento\Payment\Gateway\ErrorMapper\VirtualConfigReader">
+        <arguments>
+            <argument name="fileName" xsi:type="string">authorize_error_mapping.xml</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Adyen\Payment\Gateway\ErrorMapper\VirtualMappingData" type="Magento\Payment\Gateway\ErrorMapper\MappingData">
+        <arguments>
+            <argument name="reader" xsi:type="object">Adyen\Payment\Gateway\ErrorMapper\VirtualConfigReader</argument>
+            <argument name="cacheId" xsi:type="string">adyen_error_mapper</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenAuthorizeErrorMessageMapper" type="Magento\Payment\Gateway\ErrorMapper\ErrorMessageMapper">
+        <arguments>
+            <argument name="messageMapping" xsi:type="object">Adyen\Payment\Gateway\ErrorMapper\VirtualMappingData</argument>
+        </arguments>
+    </virtualType>
+    <!-- End of error code mapping for authorize command -->
     <!-- Capture command  -->
     <virtualType name="AdyenPaymentCaptureCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
         <arguments>
