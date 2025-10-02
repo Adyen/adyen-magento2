@@ -1,11 +1,11 @@
 name: E2E test workflow
-run-name: E2E test workflow with test suite branch ${{inputs.testBranch || 'main'}}
+run-name: E2E test workflow with test suite branch ${{inputs.testBranch || 'develop'}}
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main-9]
   pull_request_target:
-    branches: [main]
+    branches: [main-9]
   workflow_dispatch:
     inputs:
       testBranch:
