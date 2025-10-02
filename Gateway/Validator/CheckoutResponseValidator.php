@@ -13,26 +13,22 @@ namespace Adyen\Payment\Gateway\Validator;
 
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
-use Magento\Framework\Exception\ValidatorException;
+use Exception;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Validator\AbstractValidator;
 use Magento\Payment\Gateway\Validator\ResultInterface;
 use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
+use Magento\Sales\Model\Order\Payment;
 
 class CheckoutResponseValidator extends AbstractValidator
 {
-    /**
-     * @var AdyenLogger
-     */
-    private $adyenLogger;
+    private AdyenLogger $adyenLogger;
+    private Data $adyenHelper;
+    private array $errorCodes = [];
 
     /**
-     * @var Data
-     */
-    private $adyenHelper;
-
-    /**
-     * @var Array
+     * @var array
      */
     const ALLOWED_ERROR_CODES = ['124'];
 
@@ -70,24 +66,34 @@ class CheckoutResponseValidator extends AbstractValidator
         $commandSubject = $validationSubject;
 
         if (empty($responseCollection)) {
-            throw new ValidatorException(__("No responses were provided"));
+            $this->errorCodes[] = 'authError_empty_response';
         }
 
-        foreach ($responseCollection as $thisResponse) {
-            $responseSubject = array_merge($commandSubject, ['response' => $thisResponse]);
-            $this->validateResponse($responseSubject);
+        try {
+            foreach ($responseCollection as $thisResponse) {
+                $responseSubject = array_merge($commandSubject, ['response' => $thisResponse]);
+                $this->validateResponse($responseSubject);
+            }
+        } catch (Exception $e) {
+            $this->adyenLogger->error(
+                sprintf("An error occurred while processing payment response: %s", $e->getMessage())
+            );
+            $this->errorCodes[] = 'authError_generic';
         }
 
-        return $this->createResult(true);
+        return $this->createResult(empty($this->errorCodes), [], $this->errorCodes);
     }
 
     /**
-     * @throws ValidatorException
+     * @param array $responseSubject
+     * @return void
+     * @throws LocalizedException
      */
-    private function validateResponse($responseSubject): void
+    private function validateResponse(array $responseSubject): void
     {
         $response = SubjectReader::readResponse($responseSubject);
         $paymentDataObjectInterface = SubjectReader::readPayment($responseSubject);
+        /** @var Payment $payment */
         $payment = $paymentDataObjectInterface->getPayment();
 
         $payment->setAdditionalInformation('3dActive', false);
@@ -95,16 +101,19 @@ class CheckoutResponseValidator extends AbstractValidator
         // Handle empty result for unexpected cases
         if (empty($response['resultCode'])) {
             $this->handleEmptyResultCode($response);
+        } else {
+            // Handle the `/payments` response
+            $this->validateResult($response, $payment);
         }
-
-        // Handle the `/payments` response
-        $this->validateResult($response, $payment);
     }
 
     /**
-     * @throws ValidatorException
+     * @param array $response
+     * @param Payment $payment
+     * @return void
+     * @throws LocalizedException
      */
-    private function validateResult($response, $payment)
+    private function validateResult(array $response, Payment $payment): void
     {
         $resultCode = $response['resultCode'];
         $payment->setAdditionalInformation('resultCode', $resultCode);
@@ -149,30 +158,28 @@ class CheckoutResponseValidator extends AbstractValidator
                 // nothing extra
                 break;
             case "Refused":
-                $errorMsg = __('The payment is REFUSED.');
                 // this will result the specific error
-                throw new ValidatorException($errorMsg);
+                $this->errorCodes[] = 'authError_refused';
+                break;
             default:
-                $errorMsg = __('Error with payment method please select different payment method.');
-                throw new ValidatorException($errorMsg);
+                $this->errorCodes[] = 'authError_generic';
         }
     }
 
     /**
-     * @throws ValidatorException
+     * @param array $response
+     * @return void
      */
-    private function handleEmptyResultCode($response): never
+    private function handleEmptyResultCode(array $response): void
     {
         if (!empty($response['error'])) {
             $this->adyenLogger->error($response['error']);
         }
 
-        if (!empty($response['errorCode']) && !empty($response['error']) && in_array($response['errorCode'], self::ALLOWED_ERROR_CODES, true)) {
-            $errorMsg = __($response['error']);
+        if (isset($response['errorCode']) && in_array($response['errorCode'], self::ALLOWED_ERROR_CODES)) {
+            $this->errorCodes[] = $response['errorCode'];
         } else {
-            $errorMsg = __('Error with payment method, please select a different payment method.');
+            $this->errorCodes[] = 'authError_generic';
         }
-
-        throw new ValidatorException($errorMsg);
     }
 }

@@ -10,6 +10,7 @@ use Magento\Framework\Exception\ValidatorException;
 use Magento\Payment\Gateway\Data\OrderAdapterInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Validator\Result;
+use Magento\Payment\Gateway\Validator\ResultInterface;
 use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
 use Magento\Sales\Model\Order\Payment;
 
@@ -46,8 +47,14 @@ class CheckoutResponseValidatorTest extends AbstractAdyenTestCase
             'response' => []
         ];
 
-        $this->expectException(ValidatorException::class);
-        $this->expectExceptionMessage("No responses were provided");
+        $resultMock = $this->createMock(ResultInterface::class);
+        $this->resultFactoryMock->expects($this->once())->method('create')
+            ->with([
+                'isValid' => false,
+                'failsDescription' => [],
+                'errorCodes' => ['authError_empty_response']
+            ])
+            ->willReturn($resultMock);
 
         $this->checkoutResponseValidator->validate($validationSubject);
     }
@@ -93,8 +100,14 @@ class CheckoutResponseValidatorTest extends AbstractAdyenTestCase
             ]
         ];
 
-        $this->expectException(ValidatorException::class);
-        $this->expectExceptionMessage("The payment is REFUSED.");
+        $resultMock = $this->createMock(ResultInterface::class);
+        $this->resultFactoryMock->expects($this->once())->method('create')
+            ->with([
+                'isValid' => false,
+                'failsDescription' => [],
+                'errorCodes' => ['authError_refused']
+            ])
+            ->willReturn($resultMock);
 
         $this->checkoutResponseValidator->validate($validationSubject);
     }
@@ -114,8 +127,14 @@ class CheckoutResponseValidatorTest extends AbstractAdyenTestCase
             ]
         ];
 
-        $this->expectException(ValidatorException::class);
-        $this->expectExceptionMessage("Error with payment method please select different payment method.");
+        $resultMock = $this->createMock(ResultInterface::class);
+        $this->resultFactoryMock->expects($this->once())->method('create')
+            ->with([
+                'isValid' => false,
+                'failsDescription' => [],
+                'errorCodes' => ['authError_generic']
+            ])
+            ->willReturn($resultMock);
 
         $this->checkoutResponseValidator->validate($validationSubject);
     }
@@ -132,13 +151,19 @@ class CheckoutResponseValidatorTest extends AbstractAdyenTestCase
                     'resultCode' => '',
                     'pspReference' => 'ABC12345',
                     'errorCode' => '124',
-                    'error' => 'No result code present in response.'
+                    'error' => 'Invalid phone number'
                 ]
             ]
         ];
 
-        $this->expectException(ValidatorException::class);
-        $this->expectExceptionMessage("No result code present in response.");
+        $resultMock = $this->createMock(ResultInterface::class);
+        $this->resultFactoryMock->expects($this->once())->method('create')
+            ->with([
+                'isValid' => false,
+                'failsDescription' => [],
+                'errorCodes' => ['124']
+            ])
+            ->willReturn($resultMock);
 
         $this->checkoutResponseValidator->validate($validationSubject);
     }
@@ -214,8 +239,14 @@ class CheckoutResponseValidatorTest extends AbstractAdyenTestCase
              ]
          ];
 
-         $this->expectException(ValidatorException::class);
-         $this->expectExceptionMessage("The payment is REFUSED.");
+         $resultMock = $this->createMock(ResultInterface::class);
+         $this->resultFactoryMock->expects($this->once())->method('create')
+             ->with([
+                 'isValid' => false,
+                 'failsDescription' => [],
+                 'errorCodes' => ['authError_refused']
+             ])
+            ->willReturn($resultMock);
 
          $this->checkoutResponseValidator->validate($validationSubject);
      }

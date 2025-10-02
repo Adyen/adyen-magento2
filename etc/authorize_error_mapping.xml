@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<mapping xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Payment:etc/error_mapping.xsd">
+    <message_list>
+        <message code="124" translate="true">Invalid phone number</message>
+        <message code="authError_refused" translate="true">The payment is REFUSED.</message>
+        <message code="authError_empty_response" translate="true">No responses were provided</message>
+        <message code="authError_generic" translate="true">Error with payment method, please select a different payment method.</message>
+    </message_list>
+</mapping>
