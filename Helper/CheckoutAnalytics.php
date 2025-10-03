@@ -23,9 +23,9 @@ use Magento\Store\Model\StoreManagerInterface;
 class CheckoutAnalytics
 {
     const CHECKOUT_ANALYTICS_TEST_ENDPOINT =
-        'https://checkoutanalytics-test.adyen.com//checkoutanalytics/v3/analytics';
+        'https://checkoutanalytics-test.adyen.com/checkoutanalytics/v3/analytics';
     const CHECKOUT_ANALYTICS_LIVE_ENDPOINT =
-        'https://checkoutanalytics.adyen.com//checkoutanalytics/v3/analytics';
+        'https://checkoutanalytics.adyen.com/checkoutanalytics/v3/analytics';
     const CHECKOUT_ATTEMPT_ID = 'checkoutAttemptId';
     const FLAVOR_COMPONENT = 'component';
     const INTEGRATOR_ADYEN = 'Adyen';
@@ -94,8 +94,6 @@ class CheckoutAnalytics
         string $context
     ): ?array {
         try {
-            $this->validateEventsAndContext($events, $context);
-
             $request = $this->buildSendAnalyticsRequest($events, $context);
             $endpoint = $this->getSendAnalyticsUrl($checkoutAttemptId);
 
@@ -143,11 +141,14 @@ class CheckoutAnalytics
      * @param AnalyticsEventInterface[] $events
      * @param string $context Type of the analytics event [info, errors, logs]
      * @return array
+     * @throws ValidatorException
      */
     private function buildSendAnalyticsRequest(
         array $events,
         string $context
     ): array {
+        $this->validateEventsAndContext($events, $context);
+
         $items = [];
 
         foreach ($events as $event) {
@@ -239,8 +240,12 @@ class CheckoutAnalytics
      */
     private function validateInitiateCheckoutAttemptResponse(array $response): void
     {
-        if(!array_key_exists('checkoutAttemptId', $response)) {
+        if (!array_key_exists('checkoutAttemptId', $response)) {
             throw new ValidatorException(__('checkoutAttemptId is missing in the response!'));
+        }
+
+        if (empty($response['checkoutAttemptId'])) {
+            throw new ValidatorException(__('checkoutAttemptId is empty in the response!'));
         }
     }
 
@@ -294,9 +299,9 @@ class CheckoutAnalytics
 
         $hasFailed = !in_array($httpStatus, array(200, 201, 202, 204));
 
-        if ($hasFailed && $result) {
+        if ($hasFailed && !empty($result)) {
             throw new AdyenException(__("Checkout Analytics API HTTP request failed (%1): %2", $httpStatus, $result));
-        } elseif ($hasFailed && !$result) {
+        } elseif ($hasFailed && empty($result)) {
             throw new AdyenException(__("Checkout Analytics API HTTP request failed with responseCode: %1)", $httpStatus));
         }
 
