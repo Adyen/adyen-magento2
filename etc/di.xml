@@ -1723,7 +1723,7 @@
     <preference for="Adyen\Payment\Api\Repository\AdyenCreditmemoRepositoryInterface" type="Adyen\Payment\Model\AdyenCreditmemoRepository" />
     <preference for="Adyen\Payment\Api\Repository\AdyenOrderPaymentRepositoryInterface" type="Adyen\Payment\Model\AdyenOrderPaymentRepository" />
     <preference for="Adyen\Payment\Api\Data\AnalyticsEventInterface" type="Adyen\Payment\Model\AnalyticsEvent"/>
-    <preference for="Adyen\Payment\Api\AdyenAnalyticsRepositoryInterface" type="Adyen\Payment\Model\AdyenAnalyticsRepository"/>
+    <preference for="Adyen\Payment\Api\AnalyticsEventRepositoryInterface" type="Adyen\Payment\Model\AnalyticsEventRepository"/>
     <type name="Magento\Vault\Api\PaymentTokenRepositoryInterface">
         <plugin name="AdyenPaymentVaultDeleteToken" type="Adyen\Payment\Plugin\PaymentVaultDeleteToken" sortOrder="10" />
     </type>
@@ -1770,6 +1770,18 @@
             </argument>
         </arguments>
     </virtualType>
+    <type name="Adyen\Payment\Cron\SubmitAnalyticsEvents">
+        <arguments>
+            <argument name="providers" xsi:type="array">
+                <item name="pendingInfoEvents" xsi:type="object">
+                    Adyen\Payment\Cron\Providers\PendingInfoAnalyticsEventsProvider
+                </item>
+                <item name="pendingErrorsEvents" xsi:type="object">
+                    Adyen\Payment\Cron\Providers\PendingErrorsAnalyticsEventsProvider
+                </item>
+            </argument>
+        </arguments>
+    </type>
     <!--Notifications overview-->
     <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
         <arguments>

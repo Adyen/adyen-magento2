@@ -3,40 +3,45 @@ declare(strict_types=1);
 
 namespace Adyen\Payment\Test\Unit\Helper;
 
+use Adyen\AdyenException;
+use Adyen\Payment\Api\Data\AnalyticsEventInterface;
 use Adyen\Payment\Helper\CheckoutAnalytics;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\PlatformInfo;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Exception;
 use Magento\Framework\HTTP\ClientInterface;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 
 /**
  * PHPUnit 10-compliant tests for CheckoutAnalytics helper
  */
 class CheckoutAnalyticsTest extends AbstractAdyenTestCase
 {
-    private Config $configHelperMock;
-    private PlatformInfo $platformInfoMock;
-    private StoreManagerInterface $storeManagerMock;
-    private AdyenLogger $loggerMock;
-    private ClientInterface $httpClient;
+    protected CheckoutAnalytics $checkoutAnalytics;
+    protected Config|MockObject $configHelperMock;
+    protected PlatformInfo|MockObject $platformInfoMock;
+    protected StoreManagerInterface|MockObject $storeManagerMock;
+    protected AdyenLogger|MockObject $adyenLoggerMock;
+    protected ClientInterface|MockObject $httpClient;
 
-    private const STORE_ID   = 1;
-    private const CLIENT_KEY = 'client_key_mock_XYZ1234567890';
-    private const LIVE_URL   = 'https://checkoutanalytics.adyen.com//checkoutanalytics/v3/analytics';
-    private const TEST_URL   = 'https://checkoutanalytics-test.adyen.com//checkoutanalytics/v3/analytics';
+    protected const STORE_ID = 1;
+    protected const CLIENT_KEY = 'client_key_mock_XYZ1234567890';
+    protected const LIVE_URL = 'https://checkoutanalytics.adyen.com/checkoutanalytics/v3/analytics';
+    protected const TEST_URL = 'https://checkoutanalytics-test.adyen.com/checkoutanalytics/v3/analytics';
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->configHelperMock  = $this->createMock(Config::class);
-        $this->platformInfoMock  = $this->createMock(PlatformInfo::class);
-        $this->storeManagerMock  = $this->createMock(StoreManagerInterface::class);
-        $this->loggerMock        = $this->createMock(AdyenLogger::class);
-        $this->httpClient        = $this->createMock(ClientInterface::class);
+        $this->configHelperMock = $this->createMock(Config::class);
+        $this->platformInfoMock = $this->createMock(PlatformInfo::class);
+        $this->storeManagerMock = $this->createMock(StoreManagerInterface::class);
+        $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
+        $this->httpClient = $this->createMock(ClientInterface::class);
 
         // Store
         $store = $this->createMock(StoreInterface::class);
@@ -50,23 +55,62 @@ class CheckoutAnalyticsTest extends AbstractAdyenTestCase
         ]);
         $this->platformInfoMock->method('getModuleName')->willReturn('Adyen_Payment');
         $this->platformInfoMock->method('getModuleVersion')->willReturn('9.9.9');
-    }
 
-    private function makeSut(): CheckoutAnalytics
-    {
-        return new CheckoutAnalytics(
+        $this->checkoutAnalytics = new CheckoutAnalytics(
             $this->configHelperMock,
             $this->platformInfoMock,
             $this->storeManagerMock,
-            $this->loggerMock,
+            $this->adyenLoggerMock,
             $this->httpClient
         );
     }
 
-    public function testInitiateCheckoutAttempt_Live_SendsExpectedPayload_AndParsesResponse(): void
+    /**
+     * @return void
+     * @throws AdyenException
+     */
+    public function testClientKeyNotSet(): void
     {
-        $this->configHelperMock->method('isDemoMode')->with(self::STORE_ID)->willReturn(false);
-        $this->configHelperMock->method('getClientKey')->with('live', self::STORE_ID)->willReturn(self::CLIENT_KEY);
+        $this->expectException(AdyenException::class);
+
+        $this->configHelperMock->method('isDemoMode')
+            ->with(self::STORE_ID)
+            ->willReturn(true);
+        $this->configHelperMock->method('getClientKey')
+            ->with('test', self::STORE_ID)
+            ->willReturn(null);
+
+        $this->checkoutAnalytics->initiateCheckoutAttempt();
+    }
+
+    /**
+     * @return array
+     */
+    public static function initiateCheckoutAttemptDataProvider(): array
+    {
+        return [
+            ['isDemoMode' => false],
+            ['isDemoMode' => true]
+        ];
+    }
+
+    /**
+     * @dataProvider initiateCheckoutAttemptDataProvider
+     *
+     * @param bool $isDemoMode
+     * @return void
+     * @throws AdyenException
+     */
+    public function testInitiateCheckoutAttempt(bool $isDemoMode): void
+    {
+        $environment = $isDemoMode ? 'test' : 'live';
+
+        $this->configHelperMock->method('isDemoMode')
+            ->with(self::STORE_ID)
+            ->willReturn($isDemoMode);
+        $this->configHelperMock->method('getClientKey')
+            ->with($environment, self::STORE_ID)
+            ->willReturn(self::CLIENT_KEY);
 
         // Expect POST with the exact payload
         $expectedPayload = [
@@ -87,211 +131,284 @@ class CheckoutAnalyticsTest extends AbstractAdyenTestCase
             ]
         ];
 
-        $expectedUrl = sprintf('%s?clientKey=%s', self::LIVE_URL, self::CLIENT_KEY);
+        $endpoint = $isDemoMode ? self::TEST_URL : self::LIVE_URL;
+        $expectedUrl = sprintf('%s?clientKey=%s', $endpoint, self::CLIENT_KEY);
 
-        $this->httpClient->expects($this->once())->method('post')
+        $this->httpClient->expects($this->once())
+            ->method('post')
             ->with($expectedUrl, json_encode($expectedPayload));
 
         // Response body
         $this->httpClient->method('getBody')->willReturn('{"checkoutAttemptId":"abc123"}');
+        $this->httpClient->method('getStatus')->willReturn(200);
 
-        $sut = $this->makeSut();
-        $this->assertSame('abc123', $sut->initiateCheckoutAttempt());
+        $this->assertSame('abc123', $this->checkoutAnalytics->initiateCheckoutAttempt());
     }
 
-    public function testInitiateCheckoutAttempt_TestEnv_Works(): void
+    public static function failingHttpStatusDataProvider(): array
     {
-        $this->configHelperMock->method('isDemoMode')->with(self::STORE_ID)->willReturn(true);
-        $this->configHelperMock->method('getClientKey')->with('test', self::STORE_ID)->willReturn(self::CLIENT_KEY);
-
-        $expectedUrl = sprintf('%s?clientKey=%s', self::TEST_URL, self::CLIENT_KEY);
-
-        // We don't assert payload again here; the previous test covers it.
-        $this->httpClient->expects($this->once())->method('post')
-            ->with($expectedUrl, $this->anything());
-
-        $this->httpClient->method('getBody')->willReturn('{"checkoutAttemptId":"test_env"}');
-
-        $sut = $this->makeSut();
-        $this->assertSame('test_env', $sut->initiateCheckoutAttempt());
+        return [
+            ['response' => 'Invalid request!'],
+            ['response' => '']
+        ];
     }
 
-    public function testInitiateCheckoutAttempt_IncorrectResponse_LogsError_AndReturnsNull(): void
+    /**
+     * @dataProvider failingHttpStatusDataProvider
+     *
+     * @param string $response
+     * @return void
+     * @throws AdyenException
+     */
+    public function testFailingHttpStatus(string $response): void
     {
-        $this->configHelperMock->method('isDemoMode')->with(self::STORE_ID)->willReturn(false);
-        $this->configHelperMock->method('getClientKey')->with('live', self::STORE_ID)->willReturn(self::CLIENT_KEY);
+        $this->expectException(AdyenException::class);
 
-        $this->httpClient->method('getBody')->willReturn('{"someOtherKey":"x"}');
+        $this->configHelperMock->method('isDemoMode')
+            ->with(self::STORE_ID)
+            ->willReturn(true);
+        $this->configHelperMock->method('getClientKey')
+            ->with('test', self::STORE_ID)
+            ->willReturn(self::CLIENT_KEY);
 
-        $this->loggerMock->expects($this->once())->method('error');
+        $this->httpClient->method('getBody')->willReturn($response);
+        $this->httpClient->method('getStatus')->willReturn(400);
 
-        $sut = $this->makeSut();
-        $this->assertNull($sut->initiateCheckoutAttempt());
+        $this->checkoutAnalytics->initiateCheckoutAttempt();
     }
 
-    public function testInitiateCheckoutAttempt_MissingClientKey_LogsError_AndReturnsNull(): void
+    /**
+     * @return void
+     * @throws AdyenException
+     */
+    public function testInitiateCheckoutAttemptHandleException(): void
     {
-        $this->configHelperMock->method('isDemoMode')->with(self::STORE_ID)->willReturn(false);
-        $this->configHelperMock->method('getClientKey')->with('live', self::STORE_ID)->willReturn(null);
+        $this->expectException(AdyenException::class);
 
-        $this->loggerMock->expects($this->once())->method('error');
+        $this->adyenLoggerMock->expects($this->once())->method('error');
+        $this->platformInfoMock->method('getMagentoDetails')->willThrowException(new Exception());
 
-        $sut = $this->makeSut();
-        $this->assertNull($sut->initiateCheckoutAttempt());
+        $this->checkoutAnalytics->initiateCheckoutAttempt();
     }
 
-    public function testSendAnalytics_BuildsPayloadWithCaps_AndPosts(): void
+    /**
+     * @return array[]
+     */
+    public static function validateInitiateCheckoutAttemptResponseDataProvider(): array
     {
-        $this->configHelperMock->method('isDemoMode')->with(self::STORE_ID)->willReturn(false);
-        $this->configHelperMock->method('getClientKey')->with('live', self::STORE_ID)->willReturn(self::CLIENT_KEY);
+        return [
+            ['response' => '{"checkoutAttemptId":""}'],
+            ['response' => '{"result":"Success"}']
+        ];
+    }
 
-        $checkoutAttemptId = 'attempt_0123456789';
-        $expectedUrl = sprintf('%s/%s?clientKey=%s', self::LIVE_URL, $checkoutAttemptId, self::CLIENT_KEY);
+    /**
+     * @dataProvider validateInitiateCheckoutAttemptResponseDataProvider
+     *
+     * @param string $response
+     * @return void
+     * @throws AdyenException
+     */
+    public function testValidateInitiateCheckoutAttemptResponse(string $response): void
+    {
+        $this->expectException(AdyenException::class);
 
-        // Build 55 info-capable events and 7 unexpectedEnd (errors-capable)
-        $baseCreatedAt = new \DateTimeImmutable('@1700000000'); // 1700000000 seconds -> 1700000000000 ms
+        $this->httpClient->method('getBody')->willReturn($response);
+        $this->httpClient->method('getStatus')->willReturn(200);
+
+        $this->checkoutAnalytics->initiateCheckoutAttempt();
+    }
+
+    public static function validateEventsAndContextDataProvider(): array
+    {
+        return [
+            ['context' => 'errors'],
+            ['context' => 'logs'],
+            ['context' => 'info']
+        ];
+    }
+
+    /**
+     * @dataProvider validateEventsAndContextDataProvider
+     *
+     * @param string $context
+     * @return void
+     */
+    public function testValidateMaxNumberOfEvents(string $context): void
+    {
+        switch ($context) {
+            case CheckoutAnalytics::CONTEXT_TYPE_ERRORS:
+                $maxNumberOfEvents = CheckoutAnalytics::CONTEXT_MAX_ITEMS[CheckoutAnalytics::CONTEXT_TYPE_ERRORS];
+                break;
+            case CheckoutAnalytics::CONTEXT_TYPE_INFO:
+                $maxNumberOfEvents = CheckoutAnalytics::CONTEXT_MAX_ITEMS[CheckoutAnalytics::CONTEXT_TYPE_INFO];
+                break;
+            case CheckoutAnalytics::CONTEXT_TYPE_LOGS:
+                $maxNumberOfEvents = CheckoutAnalytics::CONTEXT_MAX_ITEMS[CheckoutAnalytics::CONTEXT_TYPE_LOGS];
+                break;
+        }
+
         $events = [];
-
-        // 55 informational (various types) – should cap to 50 in 'info'
-        $types = ['expectedStart', 'unexpectedStart', 'expectedEnd'];
-        for ($i = 0; $i < 55; $i++) {
-            $events[] = [
-                'createdAt'  => $baseCreatedAt->modify("+{$i} seconds"),
-                'uuid'       => "uuid-info-{$i}",
-                'topic'      => "component-{$i}",
-                'type'       => $types[$i % count($types)],
-                'relationId' => "rel-{$i}",
-            ];
+        for ($i = 0; $i <= $maxNumberOfEvents; $i++) {
+            $events[] = 'MOCK_EVENT';
         }
 
-        // 7 unexpectedEnd (should cap to 5 in 'errors')
-        for ($j = 0; $j < 7; $j++) {
-            $events[] = [
-                'createdAt'  => $baseCreatedAt->modify("+{$j} minutes"),
-                'uuid'       => "uuid-err-{$j}",
-                'topic'      => "component-err-{$j}",
-                'type'       => 'unexpectedEnd',
-                'relationId' => "rel-err-{$j}",
-            ];
-        }
+        $checkoutAttemptId = 'XYZ123456789ABC';
 
-        // One malformed event (missing relationId) -> must be skipped
-        $events[] = [
-            'createdAt' => $baseCreatedAt,
-            'uuid'      => 'uuid-bad',
-            'topic'     => 'component-bad',
-            'type'      => 'expectedStart',
-            // 'relationId' missing
-        ];
+        $result = $this->checkoutAnalytics->sendAnalytics(
+            $checkoutAttemptId,
+            $events,
+            $context
+        );
 
-        // We’ll capture the actual JSON body passed to the HTTP client to assert caps & mapping.
-        $this->httpClient->expects($this->once())->method('post')
-            ->with(
-                $expectedUrl,
-                $this->callback(function (string $json) use ($baseCreatedAt) {
-                    $payload = json_decode($json, true);
-
-                    // Basic required fields
-                    if (($payload['channel'] ?? null) !== 'Web') return false;
-                    if (($payload['platform'] ?? null) !== 'Web') return false;
-
-                    // Caps
-                    if (!isset($payload['info']) || count($payload['info']) !== 50) return false;
-                    if (!isset($payload['errors']) || count($payload['errors']) !== 5) return false;
-
-                    // Spot-check first info item mapping
-                    $first = $payload['info'][0];
-                    // createdAt base is 1700000000 -> ms string
-                    if ($first['timestamp'] !== (string)(1700000000 * 1000)) return false;
-                    if (!isset($first['type'])) return false;
-                    if (!isset($first['target'])) return false;
-                    if (!isset($first['id'])) return false;
-                    if (!isset($first['component'])) return false;
-
-                    // Spot-check an errors item mapping (must have errorType Plugin, no type/target)
-                    $err = $payload['errors'][0];
-                    if (($err['errorType'] ?? null) !== 'Plugin') return false;
-                    if (isset($err['type']) || isset($err['target'])) return false;
-
-                    return true;
-                })
-            );
-
-        // Response body irrelevant for send; just make it non-empty to avoid null
-        $this->httpClient->method('getBody')->willReturn('{"ok":true}');
-
-        $sut = $this->makeSut();
-        $sut->sendAnalytics($checkoutAttemptId, $events);
+        $this->assertArrayHasKey('error', $result);
     }
 
-    public function testSendAnalytics_MissingClientKey_LogsError(): void
+    /**
+     * @return void
+     */
+    public function testValidateInvalidContext(): void
     {
-        $this->configHelperMock->method('isDemoMode')->with(self::STORE_ID)->willReturn(false);
-        $this->configHelperMock->method('getClientKey')->with('live', self::STORE_ID)->willReturn(null);
+        $events[] = 'MOCK_EVENT';
+        $context = 'INVALID_CONTEXT';
 
-        $this->loggerMock->expects($this->once())->method('error');
+        $checkoutAttemptId = 'XYZ123456789ABC';
 
-        $sut = $this->makeSut();
-        $sut->sendAnalytics('attempt_X', [
-            [
-                'createdAt'  => new \DateTimeImmutable('@1700000000'),
-                'uuid'       => 'uuid-1',
-                'topic'      => 'component-1',
-                'type'       => 'expectedStart',
-                'relationId' => 'rel-1',
-            ]
+        $result = $this->checkoutAnalytics->sendAnalytics(
+            $checkoutAttemptId,
+            $events,
+            $context
+        );
+
+        $this->assertArrayHasKey('error', $result);
+    }
+
+    public static function buildSendAnalyticsRequestDataProvider(): array
+    {
+        return [
+            ['context' => 'errors'],
+            ['context' => 'logs'],
+            ['context' => 'info']
+        ];
+    }
+
+    /**
+     * @dataProvider buildSendAnalyticsRequestDataProvider
+     *
+     * @param string $context
+     * @return void
+     * @throws \PHPUnit\Framework\MockObject\Exception
+     */
+    public function testBuildSendAnalyticsRequestInfoContext(string $context): void
+    {
+        $this->configHelperMock->method('isDemoMode')
+            ->with(self::STORE_ID)
+            ->willReturn(true);
+        $this->configHelperMock->method('getClientKey')
+            ->with('demo', self::STORE_ID)
+            ->willReturn(self::CLIENT_KEY);
+
+        $checkoutAttemptId = 'XYZ123456789ABC';
+
+        $events[] = $this->createConfiguredMock(AnalyticsEventInterface::class, [
+            'getCreatedAt' => '2025-01-01 01:00:00',
+            'getTopic' => 'MOCK_TOPIC',
+            'getUuid' => 'MOCK_UUID',
+            'getType' => 'expectedStart',
+            'getRelationId' => 'MOCK_TARGET',
+            'getMessage' => 'MOCK_MESSAGE',
+            'getErrorType' => 'MOCK_ERROR_TYPE',
+            'getErrorCode' => 'MOCK_CODE',
         ]);
+
+        $this->checkoutAnalytics->sendAnalytics($checkoutAttemptId, $events, $context);
+
+        switch ($context) {
+            case 'errors':
+                $payload = [
+                    'channel' => 'Web',
+                    'platform' => 'Web',
+                    'errors' => [
+                        'timestamp' => '2025-01-01 01:00:00',
+                        'component' => 'MOCK_TOPIC',
+                        'id' => 'MOCK_UUID',
+                        'message' => 'MOCK_MESSAGE',
+                        'errorType' => 'MOCK_ERROR_TYPE',
+                        'code' => 'MOCK_CODE'
+                    ]
+                ];
+                break;
+            case 'info':
+                $payload = [
+                    'channel' => 'Web',
+                    'platform' => 'Web',
+                    'info' => [
+                        'timestamp' => '2025-01-01 01:00:00',
+                        'component' => 'MOCK_TOPIC',
+                        'id' => 'MOCK_UUID',
+                        'type' => 'expectedStart',
+                        'target' => 'MOCK_TARGET'
+                    ]
+                ];
+                break;
+            case 'logs':
+                $payload = [
+                    'channel' => 'Web',
+                    'platform' => 'Web',
+                    'logs' => [
+                        'timestamp' => '2025-01-01 01:00:00',
+                        'component' => 'MOCK_TOPIC',
+                        'id' => 'MOCK_UUID',
+                        'type' => 'expectedStart',
+                        'message' => 'MOCK_MESSAGE'
+                    ]
+                ];
+                break;
+        }
+
+        $expectedUrl = sprintf(
+            '%s/%s?clientKey=%s',
+            self::TEST_URL,
+            $checkoutAttemptId,
+            self::CLIENT_KEY
+        );
+
+        $this->httpClient->method('post')->with($expectedUrl, $payload);
     }
 
-    public function testSendAnalytics_EmptyEvents_LogsError(): void
+    /**
+     * @return void
+     */
+    public function testClientKeyNotSetSendAnalyticsUrl(): void
     {
-        $this->configHelperMock->method('isDemoMode')->with(self::STORE_ID)->willReturn(false);
+        $this->configHelperMock->method('isDemoMode')
+            ->with(self::STORE_ID)
+            ->willReturn(true);
+        $this->configHelperMock->method('getClientKey')
+            ->with('test', self::STORE_ID)
+            ->willReturn(null);
 
-        $this->loggerMock->expects($this->once())->method('error');
+        $events[] = $this->createConfiguredMock(AnalyticsEventInterface::class, [
+            'getCreatedAt' => '2025-01-01 01:00:00',
+            'getTopic' => 'MOCK_TOPIC',
+            'getUuid' => 'MOCK_UUID',
+            'getType' => 'expectedStart',
+            'getRelationId' => 'MOCK_TARGET',
+            'getMessage' => 'MOCK_MESSAGE',
+            'getErrorType' => 'MOCK_ERROR_TYPE',
+            'getErrorCode' => 'MOCK_CODE',
+        ]);
 
-        $sut = $this->makeSut();
-        $sut->sendAnalytics('attempt_X', []); // should trigger InvalidArgumentException and be logged
+        $result = $this->checkoutAnalytics->sendAnalytics(
+            'XYZ123456789ABC',
+            $events,
+            'info'
+        );
+
+        $this->assertArrayHasKey('error', $result);
     }
 
-    public function testSendAnalytics_SkipsMalformedEvents_ButStillSendsIfAnyValid(): void
-    {
-        $this->configHelperMock->method('isDemoMode')->with(self::STORE_ID)->willReturn(false);
-        $this->configHelperMock->method('getClientKey')->with('live', self::STORE_ID)->willReturn(self::CLIENT_KEY);
 
-        $checkoutAttemptId = 'attempt_valid_partial';
-        $expectedUrl = sprintf('%s/%s?clientKey=%s', self::LIVE_URL, $checkoutAttemptId, self::CLIENT_KEY);
 
-        $events = [
-            // malformed (missing uuid)
-            [
-                'createdAt'  => new \DateTimeImmutable('@1700000000'),
-                'topic'      => 'component-x',
-                'type'       => 'expectedStart',
-                'relationId' => 'rel-x',
-            ],
-            // valid
-            [
-                'createdAt'  => new \DateTimeImmutable('@1700000001'),
-                'uuid'       => 'uuid-ok',
-                'topic'      => 'component-ok',
-                'type'       => 'expectedEnd',
-                'relationId' => 'rel-ok',
-            ],
-        ];
 
-        $this->httpClient->expects($this->once())->method('post')
-            ->with(
-                $expectedUrl,
-                $this->callback(function (string $json) {
-                    $payload = json_decode($json, true);
-                    return isset($payload['info']) && count($payload['info']) === 1
-                        && !isset($payload['errors']); // expectedEnd -> not an error
-                })
-            );
-
-        $this->httpClient->method('getBody')->willReturn('{"ok":true}');
-
-        $sut = $this->makeSut();
-        $sut->sendAnalytics($checkoutAttemptId, $events);
-    }
 }

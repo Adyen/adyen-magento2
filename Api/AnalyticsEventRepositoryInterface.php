@@ -3,7 +3,7 @@ namespace Adyen\Payment\Api;
 
 use Adyen\Payment\Api\Data\AnalyticsEventInterface;
 
-interface AdyenAnalyticsRepositoryInterface
+interface AnalyticsEventRepositoryInterface
 {
     public function save(AnalyticsEventInterface $analyticsEvent): AnalyticsEventInterface;
 

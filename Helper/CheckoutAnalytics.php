@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2024 Adyen N.V. (https://www.adyen.com/)
+ * Copyright (c) 2025 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -12,22 +12,34 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
+use Adyen\Payment\Api\Data\AnalyticsEventInterface;
 use Adyen\Payment\Logger\AdyenLogger;
 use Exception;
-use Magento\Framework\Exception\InvalidArgumentException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Exception\ValidatorException;
 use Magento\Framework\HTTP\ClientInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
 class CheckoutAnalytics
 {
     const CHECKOUT_ANALYTICS_TEST_ENDPOINT =
-        'https://checkoutanalytics-test.adyen.com//checkoutanalytics/v3/analytics';
+        'https://checkoutanalytics-test.adyen.com/checkoutanalytics/v3/analytics';
     const CHECKOUT_ANALYTICS_LIVE_ENDPOINT =
-        'https://checkoutanalytics.adyen.com//checkoutanalytics/v3/analytics';
+        'https://checkoutanalytics.adyen.com/checkoutanalytics/v3/analytics';
     const CHECKOUT_ATTEMPT_ID = 'checkoutAttemptId';
     const FLAVOR_COMPONENT = 'component';
     const INTEGRATOR_ADYEN = 'Adyen';
+    const PLUGIN_ADOBE_COMMERCE = 'adobeCommerce';
+    const CHANNEL_WEB = 'Web';
+    const PLATFORM_WEB = 'Web';
+    const CONTEXT_TYPE_INFO = 'info';
+    const CONTEXT_TYPE_LOGS = 'logs';
+    const CONTEXT_TYPE_ERRORS = 'errors';
+    const CONTEXT_MAX_ITEMS = [
+        self::CONTEXT_TYPE_INFO => 50,
+        self::CONTEXT_TYPE_LOGS => 10,
+        self::CONTEXT_TYPE_ERRORS => 5
+    ];
 
     /**
      * @param Config $configHelper
@@ -47,25 +59,25 @@ class CheckoutAnalytics
     /**
      * Makes the initial API call to CheckoutAnalytics to obtain checkoutAttemptId
      *
-     * @return string|null
+     * @return string
+     * @throws AdyenException
      */
-    public function initiateCheckoutAttempt(): ?string
+    public function initiateCheckoutAttempt(): string
     {
         try {
             $request = $this->buildInitiateCheckoutRequest();
             $endpoint = $this->getInitiateAnalyticsUrl();
 
             $response = $this->sendRequest($endpoint, $request);
+            $this->validateInitiateCheckoutAttemptResponse($response);
 
-            if ($this->validateInitiateCheckoutAttemptResponse($response)) {
-                return $response[self::CHECKOUT_ATTEMPT_ID];
-            }
+            return $response[self::CHECKOUT_ATTEMPT_ID];
         } catch (Exception $exception) {
             $errorMessage = __('Error while initiating checkout attempt: %s.', $exception->getMessage());
             $this->adyenLogger->error($errorMessage);
-        }
 
-        return null;
+            throw new AdyenException($errorMessage);
+        }
     }
 
     /**
@@ -73,26 +85,28 @@ class CheckoutAnalytics
      *
      * @param string $checkoutAttemptId
      * @param array $events
-     * @param string|null $channel
-     * @param string|null $platform
-     * @return void
+     * @param string $context
+     * @return array|null
      */
     public function sendAnalytics(
         string $checkoutAttemptId,
         array $events,
-        ?string $channel = null,
-        ?string $platform = null
-    ): void {
+        string $context
+    ): ?array {
         try {
-            $request = $this->buildSendAnalyticsRequest($events, $channel, $platform);
+            $request = $this->buildSendAnalyticsRequest($events, $context);
             $endpoint = $this->getSendAnalyticsUrl($checkoutAttemptId);
-            $this->sendRequest($endpoint, $request);
+
+            return $this->sendRequest($endpoint, $request);
         } catch (Exception $exception) {
             $errorMessage = __('Error while sending checkout analytic metrics: %s', $exception->getMessage());
             $this->adyenLogger->error($errorMessage);
+
+            return [
+                'error' => $errorMessage
+            ];
         }
     }
-
 
     /**
      * Builds the endpoint URL for sending analytics messages to CheckoutAnalytics
@@ -124,79 +138,52 @@ class CheckoutAnalytics
     /**
      * Builds the request for sending analytics messages to CheckoutAnalytics
      *
-     * @param array $events
-     * @param string|null $channel
-     * @param string|null $platform
+     * @param AnalyticsEventInterface[] $events
+     * @param string $context Type of the analytics event [info, errors, logs]
      * @return array
-     * @throws InvalidArgumentException
+     * @throws ValidatorException
      */
-    // Replace buildSendAnalyticsRequest() with this
     private function buildSendAnalyticsRequest(
         array $events,
-        ?string $channel = null,
-        ?string $platform = null
+        string $context
     ): array {
-        if (empty($events)) {
-            throw new InvalidArgumentException(__('Events array cannot be empty!'));
-        }
+        $this->validateEventsAndContext($events, $context);
 
-        $info   = [];
-        $errors = [];
+        $items = [];
 
         foreach ($events as $event) {
-            $createdAt  = $this->getField($event, 'createdAt');
-            $uuid       = (string)$this->getField($event, 'uuid');
-            $topic      = (string)$this->getField($event, 'topic');
-            $type       = (string)$this->getField($event, 'type');
-            $relationId = (string)$this->getField($event, 'relationId');
+            // Generic fields
+            $contextPayload = [
+                'timestamp' => strval($event->getCreatedAtTimestamp() * 1000),
+                'component' => $event->getTopic(),
+                'id' => $event->getUuid()
+            ];
 
-            // Validate required bits (per schema mapping)
-            if ($createdAt === null || $uuid === '' || $topic === '' || $type === '' || $relationId === '') {
-                // Skip malformed event instead of failing the batch
-                continue;
+            // Context specific fields
+            switch ($context) {
+                case self::CONTEXT_TYPE_INFO:
+                    $contextPayload['type'] = $event->getType();
+                    $contextPayload['target'] = $event->getRelationId();
+                    break;
+                case self::CONTEXT_TYPE_LOGS:
+                    $contextPayload['type'] = $event->getType();
+                    $contextPayload['message'] = $event->getMessage();
+                    break;
+                case self::CONTEXT_TYPE_ERRORS:
+                    $contextPayload['message'] = $event->getMessage();
+                    $contextPayload['errorType'] = $event->getErrorType();
+                    $contextPayload['code'] = $event->getErrorCode();
+                    break;
             }
 
-            $timestampMs = $this->toUnixMillisString($createdAt);
-
-            // INFO: cap at 50
-            if (count($info) < 50) {
-                $info[] = [
-                    'timestamp' => $timestampMs,
-                    'type'      => $type,
-                    'target'    => $relationId,
-                    'id'        => $uuid,
-                    'component' => $topic,
-                ];
-            }
-
-            // ERRORS: only for unexpectedEnd, cap at 5
-            if ($type === 'unexpectedEnd' && count($errors) < 5) {
-                $errors[] = [
-                    'timestamp' => $timestampMs,
-                    'id'        => $uuid,
-                    'component' => $topic,
-                    'errorType' => 'Plugin',
-                ];
-            }
+            $items[] = $contextPayload;
         }
 
-        if (empty($info) && empty($errors)) {
-            throw new InvalidArgumentException(__('No valid analytics events to send!'));
-        }
-
-        $request = [
-            'channel'  => $channel ?? 'Web',
-            'platform' => $platform ?? 'Web',
+        return [
+            'channel'  => self::CHANNEL_WEB,
+            'platform' => self::PLATFORM_WEB,
+            $context => $items
         ];
-
-        if (!empty($info)) {
-            $request['info'] = $info;
-        }
-        if (!empty($errors)) {
-            $request['errors'] = $errors;
-        }
-
-        return $request;
     }
 
     /**
@@ -229,11 +216,11 @@ class CheckoutAnalytics
     {
         $platformData = $this->platformInfoHelper->getMagentoDetails();
 
-        $request = [
-            'channel' => 'Web',
-            'platform' => 'Web',
+        return [
+            'channel' => self::CHANNEL_WEB,
+            'platform' => self::PLATFORM_WEB,
             'pluginVersion' => $this->platformInfoHelper->getModuleVersion(),
-            'plugin' => 'adobeCommerce',
+            'plugin' => self::PLUGIN_ADOBE_COMMERCE,
             'applicationInfo' => [
                 'merchantApplication' => [
                     'name' => $this->platformInfoHelper->getModuleName(),
@@ -246,22 +233,35 @@ class CheckoutAnalytics
                 ]
             ]
         ];
-
-        return $request;
     }
 
     /**
-     * @param $response
-     * @return bool
-     * @throws InvalidArgumentException
+     * @throws ValidatorException
      */
-    private function validateInitiateCheckoutAttemptResponse($response): bool
+    private function validateInitiateCheckoutAttemptResponse(array $response): void
     {
-        if(!array_key_exists('checkoutAttemptId', $response)) {
-            throw new InvalidArgumentException(__('checkoutAttemptId is missing in the response!'));
+        if (!array_key_exists('checkoutAttemptId', $response)) {
+            throw new ValidatorException(__('checkoutAttemptId is missing in the response!'));
         }
 
-        return true;
+        if (empty($response['checkoutAttemptId'])) {
+            throw new ValidatorException(__('checkoutAttemptId is empty in the response!'));
+        }
+    }
+
+    /**
+     * @throws ValidatorException
+     */
+    private function validateEventsAndContext(array $events, string $context): void
+    {
+        if (!in_array($context, array_keys(self::CONTEXT_MAX_ITEMS))) {
+            throw new ValidatorException(__('The analytics context %1 is invalid!', $context));
+        } elseif (count($events) > self::CONTEXT_MAX_ITEMS[$context]) {
+            throw new ValidatorException(__(
+                'There are too many events provided for %1 analytics context!',
+                $context
+            ));
+        }
     }
 
     /**
@@ -287,6 +287,7 @@ class CheckoutAnalytics
      * @param string $endpoint
      * @param array $payload
      * @return array|null
+     * @throws AdyenException
      */
     private function sendRequest(string $endpoint, array $payload): ?array
     {
@@ -294,55 +295,16 @@ class CheckoutAnalytics
 
         $this->curl->post($endpoint, json_encode($payload));
         $result = $this->curl->getBody();
+        $httpStatus = $this->curl->getStatus();
 
-        if (empty($result)) {
-            return null;
-        } else {
-            return json_decode($result, true);
+        $hasFailed = !in_array($httpStatus, array(200, 201, 202, 204));
+
+        if ($hasFailed && !empty($result)) {
+            throw new AdyenException(__("Checkout Analytics API HTTP request failed (%1): %2", $httpStatus, $result));
+        } elseif ($hasFailed && empty($result)) {
+            throw new AdyenException(__("Checkout Analytics API HTTP request failed with responseCode: %1)", $httpStatus));
         }
+
+        return json_decode($result, true);
     }
-
-    // Add these helpers in the class
-
-    /**
-     * Get a field from an event that may be an object (with getter/public prop) or array.
-     */
-    private function getField($event, string $name)
-    {
-        $getter = 'get' . str_replace(' ', '', ucwords(str_replace(['_', '-'], ' ', $name)));
-        if (is_object($event)) {
-            if (method_exists($event, $getter)) {
-                return $event->{$getter}();
-            }
-            if (isset($event->{$name})) {
-                return $event->{$name};
-            }
-        } elseif (is_array($event)) {
-            return $event[$name] ?? null;
-        }
-        return null;
-    }
-
-    /**
-     * Convert DateTimeInterface|string|int to milliseconds since epoch as a string (schema requires string).
-     */
-    private function toUnixMillisString($value): string
-    {
-        if ($value instanceof \DateTimeInterface) {
-            return (string)($value->getTimestamp() * 1000);
-        }
-        if (is_int($value)) {
-            // if seconds (10 digits), convert; if already ms (13 digits), keep
-            return strlen((string)$value) >= 13 ? (string)$value : (string)($value * 1000);
-        }
-        // string: try to detect ms vs seconds vs date string
-        $trim = trim((string)$value);
-        if (ctype_digit($trim)) {
-            return strlen($trim) >= 13 ? $trim : (string)((int)$trim * 1000);
-        }
-        $ts = strtotime($trim);
-        return $ts !== false ? (string)($ts * 1000) : '0';
-    }
-
-
 }

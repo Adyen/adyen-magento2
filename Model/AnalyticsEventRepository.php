@@ -12,12 +12,12 @@
 
 namespace Adyen\Payment\Model;
 
-use Adyen\Payment\Api\AdyenAnalyticsRepositoryInterface;
+use Adyen\Payment\Api\AnalyticsEventRepositoryInterface;
 use Adyen\Payment\Api\Data\AnalyticsEventInterface;
 use Adyen\Payment\Model\ResourceModel\AnalyticsEvent as AnalyticsEventResourceModel;
 use Magento\Framework\Exception\NoSuchEntityException;
 
-class AdyenAnalyticsRepository implements AdyenAnalyticsRepositoryInterface
+class AnalyticsEventRepository implements AnalyticsEventRepositoryInterface
 {
     public function __construct(
         protected readonly AnalyticsEventResourceModel $resourceModel,

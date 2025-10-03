@@ -122,10 +122,13 @@
             "type": true,
             "topic": true,
             "message": true,
+            "error_type": true,
+            "error_code": true,
             "error_count": true,
             "status": true,
             "created_at": true,
-            "updated_at": true
+            "updated_at": true,
+            "scheduled_processing_time": true
         },
         "constraint": {
             "PRIMARY": true
@@ -133,7 +136,7 @@
         "index": {
             "ADYEN_ANALYTICS_EVENT_TYPE": true,
             "ADYEN_ANALYTICS_EVENT_STATUS": true,
-            "ADYEN_ANALYTICS_EVENT_TYPE_STATUS": true
+            "ADYEN_ANALYTICS_EVENT_TYPE_STATUS_ERROR_COUNT_SCHEDULED_PROCESSING_TIME": true
         }
     }
 }
