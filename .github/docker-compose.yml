@@ -12,16 +12,16 @@ services:
       MARIADB_USER: magento
       MARIADB_PASSWORD: magento
   opensearch:
-    image: bitnami/opensearch:2
+    image: opensearchproject/opensearch:2
     container_name: opensearch-container
     networks:
       - backend
     ports:
       - 9200:9200
-      - 9300:9300
     environment:
       - "discovery.type=single-node"
-      - "ES_JAVA_OPTS=-Xms750m -Xmx750m"
+      - "OPENSEARCH_JAVA_OPTS=-Xms750m -Xmx750m"
+      - "DISABLE_SECURITY_PLUGIN=true"
   web:
     build:
       context: .
