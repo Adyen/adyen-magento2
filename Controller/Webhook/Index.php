@@ -82,8 +82,17 @@ class Index implements ActionInterface
             $notifications = $acceptor->getNotifications($rawPayload);
 
             foreach ($notifications as $notification) {
-                $notification = $this->adyenNotificationRepository->save($notification);
-                $this->adyenLogger->addAdyenResult(sprintf("Notification %s is accepted", $notification->getId()));
+                if ($notification->isDuplicate()) {
+                    $this->adyenLogger->addAdyenResult(sprintf(
+                        "Duplicate notification with pspReference %s has been skipped.",
+                        $notification->getPspReference()
+                    ));
+                } else {
+                    $notification = $this->adyenNotificationRepository->save($notification);
+                    $this->adyenLogger->addAdyenResult(
+                        sprintf("Notification %s is accepted", $notification->getId())
+                    );
+                }
             }
 
             return $this->prepareResponse('[accepted]', 200);
@@ -91,8 +100,6 @@ class Index implements ActionInterface
             return $this->prepareResponse(__('Unauthorized'), 401);
         } catch (InvalidDataException $e) {
             return $this->prepareResponse(__('The request does not contain a valid webhook!'), 400);
-        } catch (AlreadyExistsException $e) {
-            return $this->prepareResponse(__('Webhook already exists!'), 400);
         } catch (Exception $e) {
             $this->adyenLogger->addAdyenNotification($e->getMessage(), $rawPayload ?? []);
 

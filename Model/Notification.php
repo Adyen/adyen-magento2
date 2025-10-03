@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Api\Data\NotificationInterface;
+use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Model\ResourceModel\Notification as NotificationResourceModel;
 use DateTime;
 use Magento\Framework\Data\Collection\AbstractDb;
@@ -54,6 +55,7 @@ class Notification extends AbstractModel implements NotificationInterface
     const RECURRING_TOKEN_DISABLED = 'recurring.token.disabled';
     const RECURRING_TOKEN_ALREADY_EXISTING = 'recurring.token.alreadyExisting';
     const RECURRING_TOKEN_UPDATED = 'recurring.token.updated';
+    const EXPIRE = "EXPIRE";
     const STATE_ADYEN_AUTHORIZED = "adyen_authorized";
     const MAX_ERROR_COUNT = 5;
 
@@ -61,6 +63,7 @@ class Notification extends AbstractModel implements NotificationInterface
      * @param Context $context
      * @param Registry $registry
      * @param NotificationResourceModel $notificationResourceModel
+     * @param Data $adyenHelper
      * @param AbstractResource|null $resource
      * @param AbstractDb|null $resourceCollection
      * @param array $data
@@ -70,6 +73,7 @@ class Notification extends AbstractModel implements NotificationInterface
         Context $context,
         Registry $registry,
         private readonly NotificationResourceModel $notificationResourceModel,
+        private readonly Data $adyenHelper,
         ?AbstractResource $resource = null,
         ?AbstractDb $resourceCollection = null,
         array $data = []
@@ -302,5 +306,22 @@ class Notification extends AbstractModel implements NotificationInterface
         $tenMinutesAgo = new DateTime('-10 minutes');
 
         return $createdAt >= $tenMinutesAgo;
+    }
+
+    /**
+     * Returns the original amount formatted with the notification currency
+     *
+     * @return string|null
+     */
+    public function getFormattedAmountCurrency(): ?string
+    {
+        if (!empty($this->getAmountValue()) && !empty($this->getAmountCurrency())) {
+            $amount = $this->adyenHelper->originalAmount($this->getAmountValue(), $this->getAmountCurrency());
+            $decimalPoints = $this->adyenHelper->decimalNumbers($this->getAmountCurrency());
+
+            return sprintf("%s %s", number_format($amount, $decimalPoints), $this->getAmountCurrency());
+        } else {
+            return null;
+        }
     }
 }

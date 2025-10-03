@@ -32,12 +32,14 @@
                 <payment_pre_authorized>adyen_authorized</payment_pre_authorized>
                 <payment_authorized>processing</payment_authorized>
                 <payment_cancelled>canceled</payment_cancelled>
+                <capture_mode>auto</capture_mode>
                 <capture_for_openinvoice>manual</capture_for_openinvoice>
                 <allow_multistore_tokens>1</allow_multistore_tokens>
                 <remove_processed_webhooks>0</remove_processed_webhooks>
                 <processed_webhook_removal_time>90</processed_webhook_removal_time>
                 <reliability_data_collection>0</reliability_data_collection>
                 <outside_checkout_data_collection>0</outside_checkout_data_collection>
+                <ignore_expire_webhook>1</ignore_expire_webhook>
             </adyen_abstract>
             <adyen_cc>
                 <active>0</active>
