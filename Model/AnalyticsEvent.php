@@ -1,4 +1,14 @@
 <?php
+/**
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2025 Adyen N.V. (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+
 namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Api\Data\AnalyticsEventInterface;
@@ -62,6 +72,38 @@ class AnalyticsEvent extends AbstractModel implements AnalyticsEventInterface
         return $this->setData(self::MESSAGE, $message);
     }
 
+    public function getErrorType(): ?string
+    {
+        return $this->getData(self::ERROR_TYPE);
+    }
+
+    /**
+     * This field refers to exception type related to the unexpected exception in case of `error` logging
+     *
+     * @param string|null $errorType
+     * @return AnalyticsEventInterface
+     */
+    public function setErrorType(?string $errorType = null): AnalyticsEventInterface
+    {
+        return $this->setData(self::ERROR_TYPE, $errorType);
+    }
+
+    public function getErrorCode(): ?string
+    {
+        return $this->getData(self::ERROR_CODE);
+    }
+
+    /**
+     * This field refers to code related to the unexpected exception in case of `error` logging
+     *
+     * @param string|null $errorCode
+     * @return AnalyticsEventInterface
+     */
+    public function setErrorCode(?string $errorCode = null): AnalyticsEventInterface
+    {
+        return $this->setData(self::ERROR_CODE, $errorCode);
+    }
+
     public function getErrorCount(): int
     {
         return $this->getData(self::ERROR_COUNT);
@@ -72,33 +114,49 @@ class AnalyticsEvent extends AbstractModel implements AnalyticsEventInterface
         return $this->setData(self::ERROR_COUNT, $errorCount);
     }
 
-    public function getStatus(): int
+    public function getStatus(): string
     {
         return $this->getData(self::STATUS);
     }
 
-    public function setStatus(int $status): AnalyticsEventInterface
+    public function setStatus(string $status): AnalyticsEventInterface
     {
         return $this->setData(self::STATUS, $status);
     }
 
-    public function getCreatedAt(): DateTime
+    public function getCreatedAt(): string
     {
         return $this->getData(self::CREATED_AT);
     }
 
-    public function setCreatedAt(DateTime $createdAt): AnalyticsEventInterface
+    public function setCreatedAt(string $createdAt): AnalyticsEventInterface
     {
         return $this->setData(self::CREATED_AT, $createdAt);
     }
 
-    public function getUpdatedAt(): ?DateTime
+    public function getCreatedAtTimestamp(): int
+    {
+        $dateTime = new DateTime($this->getCreatedAt());
+        return $dateTime->getTimestamp();
+    }
+
+    public function getUpdatedAt(): ?string
     {
         return $this->getData(self::UPDATED_AT);
     }
 
-    public function setUpdatedAt(?DateTime $updatedAt = null): AnalyticsEventInterface
+    public function setUpdatedAt(?string $updatedAt = null): AnalyticsEventInterface
     {
         return $this->setData(self::UPDATED_AT, $updatedAt);
+    }
+
+    public function getScheduledProcessingTime(): ?string
+    {
+        return $this->getData(self::SCHEDULED_PROCESSING_TIME);
+    }
+
+    public function setScheduledProcessingTime(?string $scheduledProcessingTime = null): AnalyticsEventInterface
+    {
+        return $this->setData(self::SCHEDULED_PROCESSING_TIME, $scheduledProcessingTime);
     }
 }
