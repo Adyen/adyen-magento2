@@ -14,6 +14,7 @@ namespace Adyen\Payment\Plugin;
 use Adyen\AdyenException;
 use Adyen\Payment\Api\Data\AnalyticsEventTypeEnum;
 use Adyen\Payment\Helper\AnalyticsEventState;
+use Adyen\Payment\Logger\AdyenLogger;
 use Exception;
 use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\Exception\NotFoundException;
@@ -27,10 +28,17 @@ class RestApiReliabilityTracker
     const ADYEN_PAYMENT_NAMESPACE = 'Adyen\Payment';
     const ADYEN_EXPRESS_NAMESPACE = 'Adyen\ExpressCheckout';
 
+    /**
+     * @param AnalyticsEventState $analyticsEventState
+     * @param InputParamsResolver $inputParamsResolver
+     * @param ManagerInterface $eventManager
+     * @param AdyenLogger $adyenLogger
+     */
     public function __construct(
         private readonly AnalyticsEventState $analyticsEventState,
         private readonly InputParamsResolver $inputParamsResolver,
-        protected readonly ManagerInterface  $eventManager
+        private readonly ManagerInterface  $eventManager,
+        private readonly AdyenLogger $adyenLogger
     ) {}
 
     /**
@@ -44,12 +52,19 @@ class RestApiReliabilityTracker
 
         if (str_starts_with($serviceClassName, self::ADYEN_PAYMENT_NAMESPACE) ||
             str_starts_with($serviceClassName, self::ADYEN_EXPRESS_NAMESPACE)) {
-            $this->analyticsEventState->setTopic($serviceClassName);
-            $this->eventManager->dispatch(AnalyticsEventState::EVENT_NAME, ['data' => [
-                'relationId' => $this->analyticsEventState->getRelationId(),
-                'type' => AnalyticsEventTypeEnum::EXPECTED_START->value,
-                'topic' => $serviceClassName
-            ]]);
+            try {
+                $this->analyticsEventState->setTopic($serviceClassName);
+                $this->eventManager->dispatch(AnalyticsEventState::EVENT_NAME, ['data' => [
+                    'relationId' => $this->analyticsEventState->getRelationId(),
+                    'type' => AnalyticsEventTypeEnum::EXPECTED_START->value,
+                    'topic' => $serviceClassName
+                ]]);
+            } catch (Exception $exception) {
+                $this->adyenLogger->error(sprintf(
+                    'Error occurred while dispatching analytics event: %s',
+                    $exception->getMessage()
+                ));
+            }
         }
 
         try {
