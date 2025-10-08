@@ -15,7 +15,6 @@ namespace Adyen\Payment\Model\Webhook;
 use Adyen\Payment\Api\Webhook\WebhookAcceptorInterface;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Order as OrderHelper;
-use Adyen\Payment\Helper\Webhook;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\NotificationFactory;
@@ -25,24 +24,21 @@ use Adyen\Webhook\Exception\InvalidDataException;
 use Adyen\Webhook\Receiver\NotificationReceiver;
 use Adyen\Webhook\Receiver\HmacSignature;
 use Magento\Framework\Serialize\SerializerInterface;
-use Throwable;
 
 class StandardWebhookAcceptor implements WebhookAcceptorInterface
 {
     /**
      * @param NotificationFactory $notificationFactory
      * @param AdyenLogger $adyenLogger
-     * @param Webhook $webhookHelper
      * @param Config $configHelper
      * @param NotificationReceiver $notificationReceiver
      * @param HmacSignature $hmacSignature
      * @param SerializerInterface $serializer
      * @param OrderHelper $orderHelper
-    */
+     */
     public function __construct(
         private readonly NotificationFactory $notificationFactory,
         private readonly AdyenLogger $adyenLogger,
-        private readonly Webhook $webhookHelper,
         private readonly Config $configHelper,
         private readonly NotificationReceiver $notificationReceiver,
         private readonly HmacSignature  $hmacSignature,
@@ -59,28 +55,15 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
     {
         $notifications = [];
         $isLive = $payload['live'];
-        $storeId = null;
 
         foreach ($payload['notificationItems'] as $notificationItemWrapper) {
-            //Get the order here from the increment id
             $order = null;
-            $item = $notificationItemWrapper['NotificationRequestItem'] ?? $notificationItemWrapper;
-            if (empty($item['merchantReference'])) {
-                $this->adyenLogger->addAdyenNotification(
-                    'Missing required field [merchantReference] in token webhook',
-                    $payload
-                );
-                throw new InvalidDataException();
-            }
-            $merchantReference = $item['merchantReference'];
-            try {
-                $order = $this->orderHelper->getOrderByIncrementId($merchantReference);
+            $storeId = null;
+            $item = $notificationItemWrapper['NotificationRequestItem'];
+
+            if (!empty($item['merchantReference'])) {
+                $order = $this->orderHelper->getOrderByIncrementId($item['merchantReference']);
                 $storeId = $order?->getStoreId();
-            } catch (Throwable $e) {
-                $this->adyenLogger->addAdyenNotification(
-                    sprintf('Could not load order for reference %s: %s', $merchantReference, $e->getMessage()),
-                    $payload
-                );
             }
 
             $this->validate($item, $isLive, $storeId);
@@ -102,16 +85,6 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
     {
         if (!$this->notificationReceiver->validateNotificationMode($isLiveMode, $this->configHelper->isDemoMode($storeId))) {
             $this->adyenLogger->addAdyenNotification("Invalid environment for the webhook!", $item);
-            throw new InvalidDataException();
-        }
-
-        $incomingMerchantAccount = $item['merchantAccountCode'];
-
-        if (!$this->webhookHelper->isMerchantAccountValid($incomingMerchantAccount, $item, 'webhook', $storeId)) {
-            $this->adyenLogger->addAdyenNotification(
-                "Merchant account mismatch while handling the webhook!",
-                $item
-            );
             throw new InvalidDataException();
         }
 

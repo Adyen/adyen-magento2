@@ -18,7 +18,6 @@ use Adyen\Payment\Model\NotificationFactory;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Sales\Order\Payment\PaymentRepository;
 use Adyen\Payment\Api\Webhook\WebhookAcceptorInterface;
-use Adyen\Payment\Helper\Webhook;
 use Adyen\Webhook\Exception\AuthenticationException;
 use Adyen\Webhook\Exception\InvalidDataException;
 use Adyen\Webhook\Receiver\NotificationReceiver;
@@ -45,7 +44,6 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
     /**
      * @param NotificationFactory $notificationFactory
      * @param AdyenLogger $adyenLogger
-     * @param Webhook $webhookHelper
      * @param Config $configHelper
      * @param NotificationReceiver $notificationReceiver
      * @param PaymentRepository $paymentRepository
@@ -55,7 +53,6 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
     public function __construct(
         private readonly NotificationFactory $notificationFactory,
         private readonly AdyenLogger $adyenLogger,
-        private readonly Webhook $webhookHelper,
         private readonly Config $configHelper,
         private readonly NotificationReceiver $notificationReceiver,
         private readonly PaymentRepository $paymentRepository,
@@ -109,25 +106,6 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
 
         if (!$this->notificationReceiver->validateNotificationMode($isLive, $this->configHelper->isDemoMode($storeId))) {
             $this->adyenLogger->addAdyenNotification("Invalid environment for the webhook!", $payload);
-            throw new InvalidDataException();
-        }
-
-        $incomingMerchantAccount = $payload['data']['merchantAccount'];
-
-        // TODO: Skip merchantAccount validation for `recurring.token.disabled` token webhook notifications.
-        // Reason: The token-lifecycle `recurring.token.disabled` payload does not include the original payment PSP reference
-        // or any order/payment association. Without that, we cannot reliably resolve the store scope to validate the
-        // incoming merchantAccount against the store configuration. Therefore, we temporarily skip merchantAccount validation
-        // for this specific event type.
-
-        if (
-            strcmp($payload['type'], Notification::RECURRING_TOKEN_DISABLED) !== 0
-            && !$this->webhookHelper->isMerchantAccountValid($incomingMerchantAccount, $payload, 'webhook', $storeId)
-        ) {
-            $this->adyenLogger->addAdyenNotification(
-                "Merchant account mismatch while handling the webhook!",
-                $payload
-            );
             throw new InvalidDataException();
         }
 

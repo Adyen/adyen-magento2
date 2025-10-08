@@ -490,8 +490,21 @@ class Webhook
         return true;
     }
 
-    public function isMerchantAccountValid(string $incoming, array $payload, string $context = 'webhook', ?int $storeId = null): bool
-    {
+    /**
+     * @deprecated This method will be removed on V11.
+     *
+     * @param string $incoming
+     * @param array $payload
+     * @param string $context
+     * @param int|null $storeId
+     * @return bool
+     */
+    public function isMerchantAccountValid(
+        string $incoming,
+        array $payload,
+        string $context = 'webhook',
+        ?int $storeId = null
+    ): bool {
         $expected = $this->configHelper->getMerchantAccount($storeId);
 
         if ($expected === null) {
