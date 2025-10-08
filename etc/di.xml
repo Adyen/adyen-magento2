@@ -828,6 +828,7 @@
                 <item name="adyen_directEbanking" xsi:type="string">AdyenPaymentCommandManager</item>
                 <item name="adyen_dana" xsi:type="string">AdyenPaymentCommandManager</item>
                 <item name="adyen_paybybank_ais_dd" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_payto" xsi:type="string">AdyenPaymentCommandManager</item>
             </argument>
         </arguments>
     </type>
@@ -4784,6 +4785,59 @@
     <virtualType name="AdyenPaymentRivertyConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
             <argument name="methodCode" xsi:type="string">adyen_riverty</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentPaytoFacade" type="Adyen\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="string">adyen_payto</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\PaymentMethodInfo</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentPaytoValueHandlerPool</argument>
+            <argument name="validatorPool" xsi:type="object">AdyenPaymentValidatorPool</argument>
+            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentPaytoValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AdyenPaymentPaytoConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentPaytoConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AdyenPaymentPaytoConfig</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentPaytoConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="string">adyen_payto</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentPaytoVaultFacade" type="Adyen\Payment\Model\Method\PaymentMethodVault">
+        <arguments>
+            <argument name="code" xsi:type="string">adyen_payto_vault</argument>
+            <argument name="config" xsi:type="object">AdyenPaymentPaytoVaultConfig</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentPaytoVaultValueHandlerPool</argument>
+            <argument name="vaultProvider" xsi:type="object">AdyenPaymentPaytoFacade</argument>
+            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentPaytoVaultValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AdyenPaymentPaytoVaultConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentPaytoVaultConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AdyenPaymentPaytoVaultConfig</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentPaytoVaultConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="string">adyen_payto_vault</argument>
         </arguments>
     </virtualType>
 </config>
