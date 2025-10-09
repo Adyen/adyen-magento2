@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2025 Adyen N.V. (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="adyen_for_platforms" translate="label" type="text" sortOrder="500" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label><![CDATA[Adyen for Platforms]]></label>
+        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+        <comment><![CDATA[This section allows you to configure the <a href="https://docs.adyen.com/adyen-for-platforms-model" target="_blank">Adyen for Plaforms</a> integration.]]></comment>
+        <field id="adyen_for_platforms_store" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Store</label>
+            <config_path>payment/adyen_for_platforms/store</config_path>
+            <tooltip><![CDATA[This is your `reference` on balance platform or `storeReference` in the classic integration.]]></tooltip>
+        </field>
+    </group>
+</include>
