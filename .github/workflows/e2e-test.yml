@@ -1,5 +1,5 @@
 name: E2E test workflow
-run-name: E2E test workflow with test suite branch ${{inputs.testBranch || 'develop'}}
+run-name: E2E test workflow with test suite branch ${{inputs.testBranch || 'develop-9'}}
 
 on:
   pull_request:
@@ -11,7 +11,7 @@ on:
       testBranch:
         description: "Integration Test Repository branch"
         required: true
-        default: "develop"
+        default: "develop-9"
       testGroup:
         description: "Test group"
         required: true
