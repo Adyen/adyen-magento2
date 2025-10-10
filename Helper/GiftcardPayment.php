@@ -38,7 +38,8 @@ class GiftcardPayment
         'shopperInteraction',
         'returnUrl',
         'channel',
-        'origin'
+        'origin',
+        'store'
     ];
 
     private StateDataCollection $adyenStateData;

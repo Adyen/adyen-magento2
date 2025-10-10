@@ -64,6 +64,8 @@ class Config
     const XML_HAS_PLATFORM_INTEGRATOR = 'has_platform_integrator';
     const XML_OUTSIDE_CHECKOUT_DATA_COLLECTION = 'outside_checkout_data_collection';
     const XML_IGNORE_EXPIRE_WEBHOOK = 'ignore_expire_webhook';
+    const XML_ADYEN_FOR_PLATFORMS_PREFIX = "adyen_for_platforms";
+    const XML_ADYEN_FOR_PLATFORMS_STORE = 'store';
 
     /**
      * @param ScopeConfigInterface $scopeConfig
@@ -680,6 +682,21 @@ class Config
     public function getCaptureMode(?int $storeId = null): ?string
     {
         return $this->getConfigData(self::XML_CAPTURE_MODE, Config::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
+    }
+
+    /**
+     * Returns the `store` value required for platforms model.
+     *
+     * @param int|null $storeId
+     * @return string|null
+     */
+    public function getPlatformsStore(?int $storeId = null): ?string
+    {
+        return $this->getConfigData(
+            self::XML_ADYEN_FOR_PLATFORMS_STORE,
+            Config::XML_ADYEN_FOR_PLATFORMS_PREFIX,
+            $storeId
+        );
     }
 
     public function getConfigData(string $field, string $xmlPrefix, ?int $storeId, bool $flag = false): mixed

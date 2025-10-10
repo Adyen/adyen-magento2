@@ -307,4 +307,27 @@ class ConfigTest extends AbstractAdyenTestCase
 
         $this->assertEquals($captureMode, $this->configHelper->getCaptureMode($storeId));
     }
+
+    /**
+     * @return void
+     */
+    public function testGetPlatformsStore()
+    {
+        $storeId = PHP_INT_MAX;
+        $platformsStore = 'MOCK_AFP_STORE';
+
+        $path = sprintf(
+            "%s/%s/%s",
+            Config::XML_PAYMENT_PREFIX,
+            Config::XML_ADYEN_FOR_PLATFORMS_PREFIX,
+            Config::XML_ADYEN_FOR_PLATFORMS_STORE
+        );
+
+        $this->scopeConfigMock->expects($this->once())
+            ->method('getValue')
+            ->with($path, ScopeInterface::SCOPE_STORE, $storeId)
+            ->willReturn($platformsStore);
+
+        $this->assertEquals($platformsStore, $this->configHelper->getPlatformsStore($storeId));
+    }
 }
