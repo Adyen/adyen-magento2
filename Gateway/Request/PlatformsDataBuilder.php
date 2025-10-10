@@ -32,7 +32,6 @@ class PlatformsDataBuilder implements BuilderInterface
         /** @var PaymentDataObject $paymentDataObject */
         $paymentDataObject = SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
-        /** @var Order $order */
         $storeId = $payment->getOrder()->getStoreId();
 
         $request = [];
