@@ -112,7 +112,9 @@ class Index implements ActionInterface
         } catch (AuthenticationException $e) {
             return $this->prepareResponse(__('Unauthorized'), 401);
         } catch (Exception $e) {
-            $this->adyenLogger->addAdyenNotification($e->getMessage(), $rawPayload ?? []);
+            $this->adyenLogger->addAdyenNotification(
+                __('An error occurred while processing the webhook. %1', $e->getMessage())
+            );
 
             return $this->prepareResponse(
                 __('An error occurred while handling this webhook!'),
