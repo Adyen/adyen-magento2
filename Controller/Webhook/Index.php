@@ -97,7 +97,7 @@ class Index implements ActionInterface
                 }
             }
 
-            return $this->prepareResponse('[accepted]', 200);
+            return $this->prepareResponse('[accepted]', 202);
         } catch (InvalidDataException $e) {
             $this->adyenLogger->addAdyenResult(
                 __('Notification has been accepted but not been stored. See the notification logs.')
@@ -106,7 +106,7 @@ class Index implements ActionInterface
                 __('The webhook has been accepted but not been stored: %1', $e->getMessage())
             );
 
-            return $this->prepareResponse('[accepted]', 200);
+            return $this->prepareResponse('[accepted]', 202);
         } catch (LocalizedException $e) {
             return $this->prepareResponse($e->getMessage(), 400);
         } catch (AuthenticationException $e) {
