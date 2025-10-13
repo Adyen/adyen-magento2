@@ -160,7 +160,7 @@ class Index implements ActionInterface
         $expectedUsername = $this->configHelper->getNotificationsUsername();
         $expectedPassword = $this->configHelper->getNotificationsPassword();
 
-        if (!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW'])) {
+        if (!isset($expectedUsername, $expectedPassword, $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'])) {
             return false;
         }
 
