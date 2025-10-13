@@ -25,5 +25,6 @@
         <include path="Adyen_Payment::system/adyen_inperson_payments.xml"/>
         <include path="Adyen_Payment::system/adyen_admin_orders.xml"/>
         <include path="Adyen_Payment::system/adyen_giving.xml"/>
+        <include path="Adyen_Payment::system/adyen_for_platforms.xml"/>
     </group>
 </include>
