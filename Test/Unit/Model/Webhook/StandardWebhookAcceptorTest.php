@@ -203,6 +203,37 @@ class StandardWebhookAcceptorTest extends AbstractAdyenTestCase
     }
 
     /**
+     * HMAC supported & invalid -> AuthenticationException.
+     *
+     * @throws AlreadyExistsException
+     * @throws AuthenticationException
+     * @throws LocalizedException
+     */
+    public function testValidateThrowsAuthenticationExceptionWhenHmacInvalidOnTest(): void
+    {
+        $this->expectException(AuthenticationException::class);
+
+        $payload = $this->getValidPayload();
+        $item = $payload['notificationItems'][0]['NotificationRequestItem'];
+
+        // Env OK & merchant OK
+        $this->orderHelperMock->method('getOrderByIncrementId')->willReturn(null);
+        $this->configHelperMock->method('isDemoMode')->with(null)->willReturn(true);
+        $this->notificationReceiverMock->method('validateNotificationMode')->with('false', true)->willReturn(true);
+
+        // HMAC present+supported but invalid
+        $this->configHelperMock->method('getNotificationsHmacKey')->willReturn('deadbeef');
+        $this->hmacSignatureMock->method('isHmacSupportedEventCode')->with($item)->willReturn(true);
+        $this->notificationReceiverMock->expects($this->once())
+            ->method('validateHmac')
+            ->willThrowException(new HMACKeyValidationException());
+
+        $this->adyenLoggerMock->expects($this->once())->method('addAdyenNotification');
+
+        $this->acceptor->getNotifications($payload);
+    }
+
+    /**
      * If HMAC key missing or event not supported, HMAC is not validated.
      * Here we simulate "event not supported".
      */
