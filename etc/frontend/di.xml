@@ -128,6 +128,8 @@
                 <item name="adyen_scalapay_3x" xsi:type="string">scalapay_3x</item>
                 <item name="adyen_scalapay_4x" xsi:type="string">scalapay_4x</item>
                 <item name="adyen_paynow" xsi:type="string">paynow</item>
+                <item name="adyen_riverty" xsi:type="string">riverty</item>
+                <item name="adyen_payto" xsi:type="string">payto</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
@@ -178,6 +180,7 @@
                 <item name="adyen_ach" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
                 <item name="adyen_dana" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
                 <item name="adyen_paybybank_ais_dd" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
+                <item name="adyen_payto" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
             </argument>
         </arguments>
     </type>

@@ -314,5 +314,11 @@
         <method name="adyen_paynow">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="adyen_riverty">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_payto">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>
