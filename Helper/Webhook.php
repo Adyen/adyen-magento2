@@ -480,6 +480,13 @@ class Webhook
         return $order;
     }
 
+    /**
+     * @deprecated This method will be removed on V11.
+     *
+     * @param array $payload
+     * @param string $context
+     * @return bool
+     */
     public function isIpValid(array $payload, string $context = 'webhook'): bool
     {
         $ip = explode(',', (string) $this->remoteAddress->getRemoteAddress());

@@ -12,10 +12,9 @@
 
 namespace Adyen\Payment\Controller\Webhook;
 
-use Adyen\AdyenException;
 use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
 use Adyen\Payment\Helper\Config;
-use Adyen\Payment\Helper\Webhook;
+use Adyen\Payment\Helper\IpAddress;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Webhook\WebhookAcceptorFactory;
 use Adyen\Payment\Model\Webhook\WebhookAcceptorType;
@@ -28,7 +27,7 @@ use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Controller\ResultInterface;
-use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 
 class Index implements ActionInterface
 {
@@ -39,18 +38,20 @@ class Index implements ActionInterface
      * @param AdyenLogger $adyenLogger
      * @param Config $configHelper
      * @param WebhookAcceptorFactory $webhookAcceptorFactory
-     * @param Webhook $webhookHelper
      * @param ResultFactory $resultFactory
      * @param AdyenNotificationRepositoryInterface $adyenNotificationRepository
+     * @param IpAddress $ipAddressHelper
+     * @param RemoteAddress $remoteAddress
      */
     public function __construct(
         private readonly Context $context,
         private readonly AdyenLogger $adyenLogger,
         private readonly Config $configHelper,
         private readonly WebhookAcceptorFactory $webhookAcceptorFactory,
-        private readonly Webhook $webhookHelper,
         private readonly ResultFactory $resultFactory,
-        private readonly AdyenNotificationRepositoryInterface $adyenNotificationRepository
+        private readonly AdyenNotificationRepositoryInterface $adyenNotificationRepository,
+        private readonly IpAddress $ipAddressHelper,
+        private readonly RemoteAddress $remoteAddress
     ) {
         $this->enforceAjaxHeaderForMagento23Compatibility();
     }
@@ -58,6 +59,11 @@ class Index implements ActionInterface
     public function execute(): ResultInterface
     {
         try {
+            if (!$this->ipAddressHelper->isIpAddressValid(
+                explode(',', (string) $this->remoteAddress->getRemoteAddress()))) {
+                throw new AuthenticationException();
+            }
+
             if (!$this->authenticateRequest()) {
                 throw new AuthenticationException();
             }
@@ -70,10 +76,6 @@ class Index implements ActionInterface
             $rawPayload = json_decode($rawContent, true);
             if (json_last_error() !== JSON_ERROR_NONE) {
                 throw new InvalidDataException();
-            }
-
-            if (!$this->webhookHelper->isIpValid($rawPayload)) {
-                throw new AuthenticationException();
             }
 
             $webhookType = $this->getWebhookType($rawPayload);
