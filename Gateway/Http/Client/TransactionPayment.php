@@ -130,6 +130,8 @@ class TransactionPayment implements ClientInterface
         $responseCollection = [];
 
         try {
+            $requestData['applicationInfo'] = $this->platformInfo->buildApplicationInfo($client);
+            
             list($requestData, $giftcardResponseCollection) = $this->processGiftcards($requestData, $service);
 
             /** @var array $responseCollection */
@@ -141,7 +143,6 @@ class TransactionPayment implements ClientInterface
                 }
             }
 
-            $requestData['applicationInfo'] = $this->platformInfo->buildApplicationInfo($client);
             $paymentRequest = new PaymentRequest($requestData);
 
             $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(

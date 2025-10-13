@@ -19,6 +19,7 @@ use Magento\Framework\Pricing\Helper\Data as PricingData;
 class GiftcardPayment
 {
     const VALID_GIFTCARD_REQUEST_FIELDS = [
+        'applicationInfo',
         'merchantAccount',
         'shopperReference',
         'shopperEmail',
