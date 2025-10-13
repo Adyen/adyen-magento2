@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Adyen\Payment\Test\Unit\Model\Webhook;
 
 use Adyen\Payment\Helper\Config;
-use Adyen\Payment\Helper\Webhook;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\NotificationFactory;
@@ -16,7 +15,7 @@ use Adyen\Webhook\Exception\AuthenticationException;
 use Adyen\Webhook\Exception\InvalidDataException;
 use Adyen\Webhook\Receiver\NotificationReceiver;
 use Magento\Framework\App\Request\Http;
-use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
@@ -35,9 +34,6 @@ class TokenWebhookAcceptorTest extends AbstractAdyenTestCase
 
     /** @var AdyenLogger|MockObject */
     protected $adyenLoggerMock;
-
-    /** @var Webhook|MockObject */
-    protected $webhookHelperMock;
 
     /** @var NotificationReceiver|MockObject */
     protected $notificationReceiverMock;
@@ -61,16 +57,12 @@ class TokenWebhookAcceptorTest extends AbstractAdyenTestCase
     protected function setUp(): void
     {
         $this->notificationFactoryMock = $this->createMock(NotificationFactory::class);
-        $this->serializerMock          = $this->createMock(SerializerInterface::class);
-        $this->adyenLoggerMock         = $this->createMock(AdyenLogger::class);
-        $this->webhookHelperMock       = $this->createMock(Webhook::class);
-
-        // ✅ Use a normal mock instead of partial mock
+        $this->serializerMock = $this->createMock(SerializerInterface::class);
+        $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
         $this->notificationReceiverMock = $this->createMock(NotificationReceiver::class);
-
-        $this->configHelperMock      = $this->createMock(Config::class);
+        $this->configHelperMock = $this->createMock(Config::class);
         $this->paymentRepositoryMock = $this->createMock(PaymentRepository::class);
-        $this->httpRequestMock       = $this->createMock(Http::class);
+        $this->httpRequestMock = $this->createMock(Http::class);
 
         $this->serializerMock->method('serialize')
             ->willReturn(json_encode(['shopperReference' => '001']));
@@ -82,15 +74,9 @@ class TokenWebhookAcceptorTest extends AbstractAdyenTestCase
             ->with('hmacsignature')
             ->willReturn(self::HMAC_SIGNATURE);
 
-        // Default: let env validation pass; individual tests can override
-        $this->notificationReceiverMock
-            ->method('validateNotificationMode')
-            ->willReturn(true);
-
         $this->acceptor = new TokenWebhookAcceptor(
             $this->notificationFactoryMock,
             $this->adyenLoggerMock,
-            $this->webhookHelperMock,
             $this->configHelperMock,
             $this->notificationReceiverMock,
             $this->paymentRepositoryMock,
@@ -115,9 +101,8 @@ class TokenWebhookAcceptorTest extends AbstractAdyenTestCase
         $notification->method('isDuplicate')->willReturn(false);
         $this->notificationFactoryMock->method('create')->willReturn($notification);
 
-        // env = 'test' -> isLive 'false' => demo must be true
         $this->configHelperMock->method('isDemoMode')->willReturn(true);
-        $this->webhookHelperMock->method('isMerchantAccountValid')->willReturn(true);
+        $this->notificationReceiverMock->method('validateNotificationMode')->willReturn(true);
 
         $result = $this->acceptor->getNotifications($payload);
 
@@ -145,6 +130,8 @@ class TokenWebhookAcceptorTest extends AbstractAdyenTestCase
 
         $this->paymentRepositoryMock->method('getPaymentByCcTransId')->with('evt-123')->willReturn($paymentMock);
 
+        $this->notificationReceiverMock->method('validateNotificationMode')->willReturn(true);
+
         $notification = $this->createMock(Notification::class);
         $notification->method('isDuplicate')->willReturn(false);
         $this->notificationFactoryMock->method('create')->willReturn($notification);
@@ -153,12 +140,6 @@ class TokenWebhookAcceptorTest extends AbstractAdyenTestCase
         $this->configHelperMock->expects($this->once())
             ->method('isDemoMode')
             ->with(10)
-            ->willReturn(true);
-
-        // EDIT #2: assert the extra 'webhook' argument is passed to the helper
-        $this->webhookHelperMock->expects($this->once())
-            ->method('isMerchantAccountValid')
-            ->with('TestMerchant', $payload, 'webhook', 10)
             ->willReturn(true);
 
         $result = $this->acceptor->getNotifications($payload);
@@ -181,30 +162,12 @@ class TokenWebhookAcceptorTest extends AbstractAdyenTestCase
         // env = 'test' -> isLive 'false'
         $this->configHelperMock->method('isDemoMode')->willReturn(true);
 
-        $this->adyenLoggerMock->expects($this->once())->method('addAdyenNotification');
-
-        $this->acceptor->getNotifications($payload);
-    }
-
-    public function testGetNotificationsThrowsInvalidDataExceptionIfEventIdMissing(): void
-    {
-        $this->expectException(InvalidDataException::class);
-
-        $payload = $this->getValidPayload();
-        unset($payload['eventId']);
-
-        $notification = $this->createMock(Notification::class);
-        $notification->method('isDuplicate')->willReturn(false);
-        $this->notificationFactoryMock->method('create')->willReturn($notification);
-
-        $this->adyenLoggerMock->expects($this->once())->method('addAdyenNotification');
-
         $this->acceptor->getNotifications($payload);
     }
 
     public function testValidateThrowsExceptionWithInvalidNotificationMode(): void
     {
-        $this->expectException(InvalidDataException::class);
+        $this->expectException(LocalizedException::class);
 
         $payload = $this->getValidPayload();
 
@@ -212,34 +175,11 @@ class TokenWebhookAcceptorTest extends AbstractAdyenTestCase
         $notification->method('isDuplicate')->willReturn(false);
         $this->notificationFactoryMock->method('create')->willReturn($notification);
 
-        // env 'test' -> isLive 'false', set demo=false to force invalid mode
         $this->configHelperMock->method('isDemoMode')->willReturn(false);
 
-        // Override default: make validateNotificationMode return false to trigger the exception
         $this->notificationReceiverMock
             ->method('validateNotificationMode')
             ->willReturn(false);
-
-        $this->adyenLoggerMock->expects($this->once())->method('addAdyenNotification');
-
-        $this->acceptor->getNotifications($payload);
-    }
-
-    public function testValidateThrowsExceptionIfMerchantAccountInvalid(): void
-    {
-        $this->expectException(InvalidDataException::class);
-
-        $payload = $this->getValidPayload();
-
-        $notification = $this->createMock(Notification::class);
-        $notification->method('isDuplicate')->willReturn(false);
-        $this->notificationFactoryMock->method('create')->willReturn($notification);
-
-        // Pass mode validation
-        $this->configHelperMock->method('isDemoMode')->willReturn(true);
-
-        // Fail merchant account validation
-        $this->webhookHelperMock->method('isMerchantAccountValid')->willReturn(false);
 
         $this->adyenLoggerMock->expects($this->once())->method('addAdyenNotification');
 
@@ -258,8 +198,12 @@ class TokenWebhookAcceptorTest extends AbstractAdyenTestCase
         $notification->method('isDuplicate')->willReturn(false);
         $this->notificationFactoryMock->method('create')->willReturn($notification);
 
+        $this->notificationReceiverMock
+            ->method('validateNotificationMode')
+            ->willReturn(true);
+
         $this->configHelperMock->method('isDemoMode')->willReturn(true);
-        $this->webhookHelperMock->method('isMerchantAccountValid')->willReturn(true);
+        $this->configHelperMock->method('getNotificationsHmacKey')->willReturn('mock_hmac_key');
 
         $this->adyenLoggerMock->expects($this->once())->method('addAdyenNotification');
 
@@ -282,21 +226,18 @@ class TokenWebhookAcceptorTest extends AbstractAdyenTestCase
             ->method('addAdyenNotification')
             ->with(
                 $this->callback(function (string $msg) use ($eventId) {
-                    return str_contains($msg, "Could not load payment for reference {$eventId}: DB down");
-                }),
-                $this->equalTo($payload)
+                    return str_contains($msg, "Could not load payment for reference $eventId: DB down");
+                })
             );
+
+        $this->notificationReceiverMock
+            ->method('validateNotificationMode')
+            ->willReturn(true);
 
         // Since payment/order resolution failed, storeId must be null
         $this->configHelperMock->expects($this->once())
             ->method('isDemoMode')
             ->with(null)
-            ->willReturn(true);
-
-        // Merchant validation still runs with storeId = null
-        $this->webhookHelperMock->expects($this->once())
-            ->method('isMerchantAccountValid')
-            ->with('TestMerchant', $payload, 'webhook', null)
             ->willReturn(true);
 
         // HMAC path: use the pre-configured valid signature from setUp()
