@@ -272,15 +272,14 @@ class Config
     /**
      * Retrieve flag for notifications_ip_check
      *
-     * @param int|null $storeId
      * @return bool
      */
-    public function getNotificationsIpCheck(?int $storeId = null): bool
+    public function getNotificationsIpCheck(): bool
     {
         return (bool) $this->getConfigData(
             self::XML_NOTIFICATIONS_IP_CHECK,
             self::XML_ADYEN_ABSTRACT_PREFIX,
-            $storeId,
+            null,
             true
         );
     }
