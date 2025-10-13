@@ -23,6 +23,7 @@ use Adyen\Webhook\Exception\HMACKeyValidationException;
 use Adyen\Webhook\Exception\InvalidDataException;
 use Adyen\Webhook\Receiver\NotificationReceiver;
 use Adyen\Webhook\Receiver\HmacSignature;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\SerializerInterface;
 
 class StandardWebhookAcceptor implements WebhookAcceptorInterface
@@ -48,8 +49,7 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
 
     /**
      * @throws AuthenticationException
-     * @throws InvalidDataException
-     * @throws HMACKeyValidationException
+     * @throws LocalizedException
      */
     public function getNotifications(array $payload): array
     {
@@ -77,25 +77,47 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
     /**
      * Validates the webhook environment mode and the HMAC signature
      *
-     * @throws InvalidDataException
-     * @throws HMACKeyValidationException
      * @throws AuthenticationException
+     * @throws LocalizedException
      */
     private function validate(array $item, string $isLiveMode, ?int $storeId): void
     {
-        if (!$this->notificationReceiver->validateNotificationMode($isLiveMode, $this->configHelper->isDemoMode($storeId))) {
-            $this->adyenLogger->addAdyenNotification("Invalid environment for the webhook!", $item);
-            throw new InvalidDataException();
+        $isModeValid = $this->notificationReceiver->validateNotificationMode(
+            $isLiveMode,
+            $this->configHelper->isDemoMode($storeId)
+        );
+
+        if (!$isModeValid) {
+            $message = __('Mismatch between Live/Test modes of Magento store and the Adyen platform');
+
+            $this->adyenLogger->addAdyenNotification($message, [
+                'pspReference' => $item['pspReference'],
+                'merchantReference' => $item['merchantReference'] ?? null
+            ]);
+
+            throw new LocalizedException($message);
         }
 
-        $hasHmac = $this->configHelper->getNotificationsHmacKey() &&
-            $this->hmacSignature->isHmacSupportedEventCode($item);
+        try {
+            $hasHmac = $this->configHelper->getNotificationsHmacKey($storeId) &&
+                $this->hmacSignature->isHmacSupportedEventCode($item);
 
-        if ($hasHmac && !$this->notificationReceiver->validateHmac(
-                $item,
-                $this->configHelper->getNotificationsHmacKey()
-            )) {
-            $this->adyenLogger->addAdyenNotification("HMAC validation failed", $item);
+            if ($hasHmac && !$this->notificationReceiver->validateHmac(
+                    $item,
+                    $this->configHelper->getNotificationsHmacKey($storeId)
+                )) {
+                $this->adyenLogger->addAdyenNotification("HMAC validation failed", [
+                    'pspReference' => $item['pspReference'],
+                    'merchantReference' => $item['merchantReference'] ?? null
+                ]);
+
+                throw new AuthenticationException();
+            }
+        } catch (InvalidDataException|HMACKeyValidationException $e) {
+            $this->adyenLogger->addAdyenNotification("HMAC validation failed", [
+                'pspReference' => $item['pspReference'],
+                'merchantReference' => $item['merchantReference'] ?? null
+            ]);
 
             throw new AuthenticationException();
         }
