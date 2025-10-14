@@ -272,6 +272,8 @@ class Config
     /**
      * Retrieve flag for notifications_ip_check
      *
+     * TODO:: `storeId` field should be removed. This field must be configured only on the default level (ECP-9838).
+     *
      * @param int|null $storeId
      * @return bool
      */
