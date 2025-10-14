@@ -18,13 +18,14 @@ use Adyen\Payment\Model\NotificationFactory;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Sales\Order\Payment\PaymentRepository;
 use Adyen\Payment\Api\Webhook\WebhookAcceptorInterface;
-use Adyen\Payment\Helper\Webhook;
 use Adyen\Webhook\Exception\AuthenticationException;
 use Adyen\Webhook\Exception\InvalidDataException;
 use Adyen\Webhook\Receiver\NotificationReceiver;
 use Magento\Framework\App\Request\Http;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Sales\Model\Order;
+use Throwable;
 
 class TokenWebhookAcceptor implements WebhookAcceptorInterface
 {
@@ -45,7 +46,6 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
     /**
      * @param NotificationFactory $notificationFactory
      * @param AdyenLogger $adyenLogger
-     * @param Webhook $webhookHelper
      * @param Config $configHelper
      * @param NotificationReceiver $notificationReceiver
      * @param PaymentRepository $paymentRepository
@@ -55,7 +55,6 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
     public function __construct(
         private readonly NotificationFactory $notificationFactory,
         private readonly AdyenLogger $adyenLogger,
-        private readonly Webhook $webhookHelper,
         private readonly Config $configHelper,
         private readonly NotificationReceiver $notificationReceiver,
         private readonly PaymentRepository $paymentRepository,
@@ -66,17 +65,12 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
     /**
      * @throws InvalidDataException
      * @throws AuthenticationException
+     * @throws LocalizedException
      */
     public function getNotifications(array $payload): array
     {
-        if (!isset($payload['environment'])) {
-            $this->adyenLogger->addAdyenNotification('Missing required field [environment] in token webhook', $payload);
-            throw new InvalidDataException();
-        }
-
-        $isLive = $payload['environment'] === 'live' ? 'true' : 'false';
-        $this->validate($payload, $isLive);
-        return [$this->toNotification($payload, $isLive)];
+        $this->validate($payload);
+        return [$this->toNotification($payload)];
     }
 
     /**
@@ -84,13 +78,17 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
      *
      * @throws InvalidDataException
      * @throws AuthenticationException
+     * @throws LocalizedException
      */
-    private function validate(array $payload, string $isLive): void
+    private function validate(array $payload): void
     {
         foreach (self::REQUIRED_FIELDS as $fieldPath) {
             if (!$this->getNestedValue($payload, explode('.', $fieldPath))) {
-                $this->adyenLogger->addAdyenNotification("Missing required field [$fieldPath] in token webhook", $payload);
-                throw new InvalidDataException();
+                throw new InvalidDataException(__(
+                    'Missing required field `%1` in token webhook with originalReference %2',
+                    $fieldPath,
+                    $payload['eventId'] ?? null
+                ));
             }
         }
 
@@ -100,38 +98,30 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
             $payment = $this->paymentRepository->getPaymentByCcTransId($payload['eventId']);
             $this->order = $payment?->getOrder();
             $storeId = $this->order?->getStoreId();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->adyenLogger->addAdyenNotification(
-                sprintf('Could not load payment for reference %s: %s', $payload['eventId'], $e->getMessage()),
-                $payload
+                sprintf('Could not load payment for reference %s: %s', $payload['eventId'], $e->getMessage())
             );
         }
 
-        if (!$this->notificationReceiver->validateNotificationMode($isLive, $this->configHelper->isDemoMode($storeId))) {
-            $this->adyenLogger->addAdyenNotification("Invalid environment for the webhook!", $payload);
-            throw new InvalidDataException();
+        $isLive = $payload['environment'] === 'live' ? 'true' : 'false';
+        $isModeValid = $this->notificationReceiver->validateNotificationMode(
+            $isLive,
+            $this->configHelper->isDemoMode($storeId)
+        );
+
+        if (!$isModeValid) {
+            $message = __('Mismatch between Live/Test modes of Magento store and the Adyen platform');
+
+            $this->adyenLogger->addAdyenNotification($message, [
+                'originalReference' => $payload['eventId'],
+                'pspReference' => $payload['data']['storedPaymentMethodId']
+            ]);
+
+            throw new LocalizedException($message);
         }
 
-        $incomingMerchantAccount = $payload['data']['merchantAccount'];
-
-        // TODO: Skip merchantAccount validation for `recurring.token.disabled` token webhook notifications.
-        // Reason: The token-lifecycle `recurring.token.disabled` payload does not include the original payment PSP reference
-        // or any order/payment association. Without that, we cannot reliably resolve the store scope to validate the
-        // incoming merchantAccount against the store configuration. Therefore, we temporarily skip merchantAccount validation
-        // for this specific event type.
-
-        if (
-            strcmp($payload['type'], Notification::RECURRING_TOKEN_DISABLED) !== 0
-            && !$this->webhookHelper->isMerchantAccountValid($incomingMerchantAccount, $payload, 'webhook', $storeId)
-        ) {
-            $this->adyenLogger->addAdyenNotification(
-                "Merchant account mismatch while handling the webhook!",
-                $payload
-            );
-            throw new InvalidDataException();
-        }
-
-        $webhookHmacKey = $this->configHelper->getNotificationsHmacKey();
+        $webhookHmacKey = $this->configHelper->getNotificationsHmacKey($storeId);
 
         if ($webhookHmacKey) {
             $webhookHmacSignature = $this->request->getHeader('hmacsignature');
@@ -140,7 +130,10 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
             );
 
             if (strcmp($expectedSignature, $webhookHmacSignature) !== 0) {
-                $this->adyenLogger->addAdyenNotification("HMAC validation failed", $payload);
+                $this->adyenLogger->addAdyenNotification("HMAC validation failed", [
+                    'originalReference' => $payload['eventId']
+                ]);
+
                 throw new AuthenticationException();
             }
         }
@@ -148,15 +141,15 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
 
     /**
      * @param array $payload
-     * @param string $isLive
      * @return Notification
      */
-    private function toNotification(array $payload, string $isLive): Notification
+    private function toNotification(array $payload): Notification
     {
         $notification = $this->notificationFactory->create();
 
         $pspReference = $payload['data']['storedPaymentMethodId'];
         $originalReference = $payload['eventId'];
+        $isLive = $payload['environment'] === 'live' ? 'true' : 'false';
 
         if ($this->order) {
             $notification->setMerchantReference($this->order->getIncrementId());
