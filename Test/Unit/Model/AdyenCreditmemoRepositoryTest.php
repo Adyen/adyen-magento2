@@ -199,6 +199,12 @@ class AdyenCreditmemoRepositoryTest extends AbstractAdyenTestCase
                 'isResultValid' => true
             ],
             [
+                'eventCode' => 'CANCEL_OR_REFUND',
+                'isExpectedType' => true,
+                'creditmemoId' => "1",
+                'isResultValid' => true
+            ],
+            [
                 'eventCode' => 'CAPTURE',
                 'isExpectedType' => false,
                 'creditmemoId' => "1",

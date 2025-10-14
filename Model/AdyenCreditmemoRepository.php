@@ -103,7 +103,7 @@ class AdyenCreditmemoRepository implements AdyenCreditmemoRepositoryInterface
      */
     public function getByRefundWebhook(NotificationInterface $notification): ?CreditmemoInterface
     {
-        if (in_array($notification->getPspreference(), [EventCodes::REFUND, EventCodes::CANCEL_OR_REFUND])) {
+        if (!in_array($notification->getEventCode(), [EventCodes::REFUND, EventCodes::CANCEL_OR_REFUND])) {
             throw new AdyenException(sprintf(
                 'REFUND or CANCEL_OR_REFUND webhook is expected to get the adyen_creditmemo, %s notification given.',
                 $notification->getEventCode()
