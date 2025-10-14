@@ -30,9 +30,7 @@ class Requests extends AbstractHelper
     const RECURRING_DETAIL_REFERENCE = 'recurringDetailReference';
     const DONATION_PAYMENT_METHOD_CODE_MAPPING = [
         'ideal' => 'sepadirectdebit',
-        'storedPaymentMethods' => 'scheme',
         'googlepay' => 'scheme',
-        'paywithgoogle' => 'scheme',
         'applepay' => 'scheme'
     ];
     const SHOPPER_INTERACTION_CONTAUTH = 'ContAuth';
@@ -464,7 +462,7 @@ class Requests extends AbstractHelper
             'reference' => Uuid::generateV4(),
             'shopperReference' => $shopperReference,
             'paymentMethod' => [
-                'type' => $paymentMethodCode
+                'type' => self::DONATION_PAYMENT_METHOD_CODE_MAPPING[$paymentMethodCode] ?? $paymentMethodCode,
             ],
             'donationToken' => $payload['donationToken'],
             'donationCampaignId' => $payload['donationCampaignId'],
