@@ -67,6 +67,8 @@ class InstallationTimestamp implements DataPatchInterface
                 'relationId' => ConfigurationEventType::PLUGIN_INSTALLATION->value
             ]]);
         }
+
+        $this->moduleDataSetup->getConnection()->endSetup();
     }
 
     public static function getDependencies()
