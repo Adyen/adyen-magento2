@@ -29,6 +29,7 @@ use Magento\Framework\App\Request\Http;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\Exception\NotFoundException;
 
 class Index implements ActionInterface
 {

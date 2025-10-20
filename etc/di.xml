@@ -1751,6 +1751,12 @@
     <type name="Magento\InstantPurchase\PaymentMethodIntegration\Integration">
         <plugin name="InstantPurchateIntegration" type="Adyen\Payment\Plugin\InstantPurchaseIntegration" sortOrder="10" />
     </type>
+    <type name="Magento\Webapi\Controller\Rest\SynchronousRequestProcessor">
+        <plugin name="RestApiReliabilityTracker" type="Adyen\Payment\Plugin\RestApiReliabilityTracker" sortOrder="10" />
+    </type>
+    <type name="Magento\Framework\App\FrontController">
+        <plugin name="FrontendControllerReliabilityTracker" type="Adyen\Payment\Plugin\FrontendControllerReliabilityTracker" sortOrder="10" />
+    </type>
     <type name="Adyen\Payment\Model\AdyenNotificationRepository">
         <arguments>
             <argument name="resourceModel" xsi:type="string">Adyen\Payment\Model\ResourceModel\Notification</argument>

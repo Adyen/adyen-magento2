@@ -14,12 +14,10 @@ namespace Adyen\Payment\Cron;
 use Adyen\AdyenException;
 use Adyen\Payment\Api\AnalyticsEventRepositoryInterface;
 use Adyen\Payment\Api\Data\AnalyticsEventInterface;
-use Adyen\Payment\Api\Data\AnalyticsEventInterfaceFactory;
 use Adyen\Payment\Api\Data\AnalyticsEventStatusEnum;
-use Adyen\Payment\Api\Data\AnalyticsEventTypeEnum;
 use Adyen\Payment\Cron\Providers\AnalyticsEventProviderInterface;
 use Adyen\Payment\Helper\CheckoutAnalytics;
-use Adyen\Payment\Helper\Util\Uuid;
+use Adyen\Payment\Logger\AdyenLogger;
 use Exception;
 
 class SubmitAnalyticsEvents
@@ -29,20 +27,18 @@ class SubmitAnalyticsEvents
     /**
      * @param AnalyticsEventProviderInterface[] $providers
      * @param CheckoutAnalytics $checkoutAnalyticsHelper
-     * @param AnalyticsEventInterfaceFactory $analyticsEventFactory
      * @param AnalyticsEventRepositoryInterface $analyticsEventRepository
+     * @param AdyenLogger $adyenLogger
      */
     public function __construct(
-        protected readonly array $providers,
-        protected readonly CheckoutAnalytics $checkoutAnalyticsHelper,
-        protected readonly AnalyticsEventInterfaceFactory $analyticsEventFactory,
-        protected readonly AnalyticsEventRepositoryInterface $analyticsEventRepository,
+        private readonly array $providers,
+        private readonly CheckoutAnalytics $checkoutAnalyticsHelper,
+        private readonly AnalyticsEventRepositoryInterface $analyticsEventRepository,
+        private readonly AdyenLogger $adyenLogger
     ) { }
 
     public function execute(): void
     {
-        $this->createTestData();
-
         try {
             foreach ($this->providers as $provider) {
                 $analyticsEvents = array_values($provider->provide());
@@ -96,7 +92,7 @@ class SubmitAnalyticsEvents
                 }
             }
         } catch (Exception $e) {
-            //TODO:: Handle unexpected cases
+            $this->adyenLogger->error('Error while submitting analytics events: ' . $e->getMessage());
         }
     }
 
@@ -110,24 +106,5 @@ class SubmitAnalyticsEvents
         }
 
         return $this->checkoutAttemptId;
-    }
-
-    // TODO:: Remove this test method before merging the PR!
-    private function createTestData()
-    {
-        $counter = 100;
-
-        for ($i = 0; $i < $counter; $i++) {
-            /** @var AnalyticsEventInterface $analyticsEvent */
-            $analyticsEvent = $this->analyticsEventFactory->create();
-
-            $analyticsEvent->setRelationId('MOCK_RELATION_ID');
-            $analyticsEvent->setUuid(Uuid::generateV4());
-            $analyticsEvent->setType(AnalyticsEventTypeEnum::EXPECTED_START->value);
-            $analyticsEvent->setTopic('MOCK_TOPIC');
-            $analyticsEvent->setStatus(AnalyticsEventStatusEnum::PENDING->value);
-
-            $this->analyticsEventRepository->save($analyticsEvent);
-        }
     }
 }
