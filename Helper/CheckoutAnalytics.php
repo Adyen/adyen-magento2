@@ -35,6 +35,7 @@ class CheckoutAnalytics
     const CONTEXT_TYPE_INFO = 'info';
     const CONTEXT_TYPE_LOGS = 'logs';
     const CONTEXT_TYPE_ERRORS = 'errors';
+    const TOPIC_PLUGIN_CONFIGURATION_TIME = 'Adyen-ConfigurationTime';
     const CONTEXT_MAX_ITEMS = [
         self::CONTEXT_TYPE_INFO => 50,
         self::CONTEXT_TYPE_LOGS => 10,
