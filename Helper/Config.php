@@ -13,6 +13,7 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
 use Adyen\Payment\Model\Config\Source\NotificationProcessor;
+use DateTimeInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
@@ -65,6 +66,8 @@ class Config
     const XML_OUTSIDE_CHECKOUT_DATA_COLLECTION = 'outside_checkout_data_collection';
     const XML_RELIABILITY_DATA_COLLECTION = 'reliability_data_collection';
     const XML_IGNORE_EXPIRE_WEBHOOK = 'ignore_expire_webhook';
+    const XML_ADYEN_ANALYTICS_PREFIX = "adyen_analytics";
+    const XML_INSTALLATION_TIME = 'installation_time';
 
     /**
      * @param ScopeConfigInterface $scopeConfig
@@ -108,9 +111,9 @@ class Config
     public function getIsPaymentMethodsActive(?int $storeId = null): bool
     {
         return $this->getConfigData(
-            self::XML_PAYMENT_METHODS_ACTIVE,
-            self::XML_ADYEN_ABSTRACT_PREFIX,
-            $storeId
+                self::XML_PAYMENT_METHODS_ACTIVE,
+                self::XML_ADYEN_ABSTRACT_PREFIX,
+                $storeId
             ) === '1';
     }
 
@@ -455,10 +458,10 @@ class Config
     public function useQueueProcessor(?int $storeId = null): bool
     {
         return $this->getConfigData(
-            self::XML_WEBHOOK_NOTIFICATION_PROCESSOR,
-            self::XML_ADYEN_ABSTRACT_PREFIX,
-            $storeId
-        ) === NotificationProcessor::QUEUE;
+                self::XML_WEBHOOK_NOTIFICATION_PROCESSOR,
+                self::XML_ADYEN_ABSTRACT_PREFIX,
+                $storeId
+            ) === NotificationProcessor::QUEUE;
     }
 
     public function getConfigurationMode(int $storeId): string
@@ -609,7 +612,7 @@ class Config
 
     public function getIsCvcRequiredForRecurringCardPayments(?int $storeId = null): bool
     {
-         return (bool) $this->getConfigData(
+        return (bool) $this->getConfigData(
             'require_cvc',
             Config::XML_ADYEN_CC_VAULT,
             $storeId,
@@ -697,6 +700,31 @@ class Config
     public function getCaptureMode(?int $storeId = null): ?string
     {
         return $this->getConfigData(self::XML_CAPTURE_MODE, Config::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getInstallationTime(): ?string
+    {
+        return $this->getConfigData(
+            self::XML_INSTALLATION_TIME,
+            Config::XML_ADYEN_ANALYTICS_PREFIX,
+            null
+        );
+    }
+
+    /**
+     * @param DateTimeInterface $pluginInstallationTime
+     * @return void
+     */
+    public function setInstallationTime(DateTimeInterface $pluginInstallationTime): void
+    {
+        $this->setConfigData(
+            $pluginInstallationTime->format(DateTimeInterface::ISO8601_EXPANDED),
+            self::XML_INSTALLATION_TIME,
+            self::XML_ADYEN_ANALYTICS_PREFIX
+        );
     }
 
     public function getConfigData(string $field, string $xmlPrefix, ?int $storeId, bool $flag = false): mixed
