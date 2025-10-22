@@ -13,6 +13,8 @@ namespace Adyen\Payment\Gateway\Validator;
 
 use Adyen\Model\Checkout\PaymentResponse;
 use Adyen\Payment\Exception\AbstractAdyenException;
+use Adyen\Payment\Helper\OrdersApi;
+use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Validator\AbstractValidator;
@@ -34,10 +36,12 @@ class CheckoutResponseValidator extends AbstractValidator
     /**
      * @param ResultInterfaceFactory $resultFactory
      * @param AdyenLogger $adyenLogger
+     * @param OrdersApi $ordersApi
      */
     public function __construct(
         ResultInterfaceFactory $resultFactory,
-        private readonly AdyenLogger $adyenLogger
+        private readonly AdyenLogger $adyenLogger,
+        private readonly OrdersApi $ordersApi
     ) {
         parent::__construct($resultFactory);
     }
@@ -67,6 +71,15 @@ class CheckoutResponseValidator extends AbstractValidator
             }
         }
 
+        // Cancel Checkout API Order in case of partial payments if the payment is refused
+        $ordersResponse = $this->ordersApi->getCheckoutApiOrder();
+        if (!empty($errorCodes) && isset($ordersResponse)) {
+            $paymentData = SubjectReader::readPayment($validationSubject);
+            $order = $paymentData->getPayment()->getOrder();
+
+            $this->ordersApi->cancelOrder($order, $ordersResponse['pspReference'], $ordersResponse['orderData']);
+        }
+
         // Gateway's error code mapping is being used. Please check `etc/authorize_error_mapping.xml` for details.
         return $this->createResult(empty($errorCodes), [], $errorCodes);
     }
@@ -81,6 +94,8 @@ class CheckoutResponseValidator extends AbstractValidator
     {
         if (strcmp($resultCode, PaymentResponse::RESULT_CODE_REFUSED) === 0) {
             $errorCode = 'authError_refused';
+        } elseif (strcmp($resultCode, PaymentResponseHandler::GIFTCARD_REFUSED) === 0) {
+            $errorCode = 'authError_giftcard_refused';
         } elseif (!in_array($resultCode, self::VALID_RESULT_CODES, true)) {
             $errorCode = 'authError_generic';
         }

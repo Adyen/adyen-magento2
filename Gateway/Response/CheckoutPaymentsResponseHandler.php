@@ -11,7 +11,9 @@
 
 namespace Adyen\Payment\Gateway\Response;
 
+use Adyen\Payment\Helper\OrdersApi;
 use Adyen\Payment\Helper\PaymentMethods;
+use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Helper\Vault;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Helper\SubjectReader;
@@ -23,10 +25,12 @@ class CheckoutPaymentsResponseHandler implements HandlerInterface
     /**
      * @param Vault $vaultHelper
      * @param PaymentMethods $paymentMethodsHelper
+     * @param OrdersApi $ordersApi
      */
     public function __construct(
         private readonly Vault $vaultHelper,
-        private readonly PaymentMethods $paymentMethodsHelper
+        private readonly PaymentMethods $paymentMethodsHelper,
+        private readonly OrdersApi $ordersApi
     ) { }
 
     /**
@@ -92,6 +96,15 @@ class CheckoutPaymentsResponseHandler implements HandlerInterface
 
         if (!empty($response['donationToken'])) {
             $payment->setAdditionalInformation('donationToken', $response['donationToken']);
+        }
+
+        // Store Checkout API Order data to be used in case of cancellation after `/payments/details` call.
+        if (!empty($this->ordersApi->getCheckoutApiOrder()) &&
+            in_array($response['resultCode'], PaymentResponseHandler::ACTION_REQUIRED_STATUSES)) {
+            $payment->setAdditionalInformation(
+                OrdersApi::DATA_KEY_CHECKOUT_API_ORDER,
+                $this->ordersApi->getCheckoutApiOrder()
+            );
         }
 
         // Handle recurring payment details
