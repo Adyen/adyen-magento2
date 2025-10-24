@@ -455,6 +455,7 @@
                 <can_refund>1</can_refund>
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
+                <requires_line_items>1</requires_line_items>
                 <group>adyen</group>
             </adyen_pay_by_link>
             <adyen_boleto>
