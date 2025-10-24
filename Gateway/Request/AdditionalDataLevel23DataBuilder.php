@@ -67,12 +67,6 @@ class AdditionalDataLevel23DataBuilder implements BuilderInterface
             $order = $payment->getOrder();
             $currencyCode = $this->chargedCurrency->getOrderAmountCurrency($order)->getCurrencyCode();
 
-            // `totalTaxAmount` field is required and L2/L3 data can not be generated without this field.
-            if (empty($order->getTaxAmount()) || $order->getTaxAmount() < 0 || $order->getTaxAmount() === 0) {
-                $this->adyenLogger->warning(__('L2/L3 data can not be generated if tax amount is zero.'));
-                return $request;
-            }
-
             $additionalDataLevel23 = [
                 self::ENHANCED_SCHEME_DATA_PREFIX . '.orderDate' => date('dmy', time()),
                 self::ENHANCED_SCHEME_DATA_PREFIX . '.customerReference' =>
