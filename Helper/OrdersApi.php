@@ -15,9 +15,7 @@ use Adyen\AdyenException;
 use Adyen\Model\Checkout\CancelOrderRequest;
 use Adyen\Model\Checkout\CreateOrderRequest;
 use Adyen\Client;
-use Adyen\Model\Checkout\CreateOrderResponse;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Service\Checkout\OrdersApi as CheckoutOrdersApi;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Api\Data\OrderInterface;
 use Throwable;
@@ -60,7 +58,7 @@ class OrdersApi
         $request = $this->buildOrdersRequest($amount, $currency, $merchantReference, $storeId);
 
         $client = $this->adyenHelper->initializeAdyenClient($storeId);
-        $checkoutService = new CheckoutOrdersApi($client);
+        $checkoutService = $this->adyenHelper->initializeOrdersApi($client);
 
         try {
             $this->adyenHelper->logRequest($request, Client::API_CHECKOUT_VERSION, '/orders');
