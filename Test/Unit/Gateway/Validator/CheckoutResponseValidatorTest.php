@@ -3,6 +3,7 @@
 namespace Adyen\Payment\Test\Unit\Gateway\Validator;
 
 use Adyen\Payment\Gateway\Validator\CheckoutResponseValidator;
+use Adyen\Payment\Helper\OrdersApi;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Payment\Gateway\Data\OrderAdapterInterface;
@@ -18,18 +19,23 @@ class CheckoutResponseValidatorTest extends AbstractAdyenTestCase
     private ResultInterfaceFactory|MockObject $resultFactoryMock;
     private PaymentDataObject $paymentDataObject;
     private AdyenLogger|MockObject $adyenLoggerMock;
+    private OrdersApi|MockObject $ordersApiHelperMock;
 
     protected function setUp(): void
     {
+        $this->resultFactoryMock = $this->createMock(ResultInterfaceFactory::class);
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
         $this->resultFactoryMock = $this->createMock(ResultInterfaceFactory::class);
+        $this->ordersApiHelperMock = $this->createMock(OrdersApi::class);
+
         $orderAdapterMock = $this->createMock(OrderAdapterInterface::class);
         $paymentMock = $this->createMock(Payment::class);
         $this->paymentDataObject = new PaymentDataObject($orderAdapterMock, $paymentMock);
 
         $this->checkoutResponseValidator = new CheckoutResponseValidator(
             $this->resultFactoryMock,
-            $this->adyenLoggerMock
+            $this->adyenLoggerMock,
+            $this->ordersApiHelperMock
         );
     }
 

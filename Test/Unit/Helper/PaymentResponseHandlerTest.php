@@ -11,11 +11,11 @@
 
 namespace Adyen\Payment\Test\Unit\Helper;
 
+use Adyen\Payment\Helper\OrdersApi;
 use Adyen\Payment\Helper\OrderStatusHistory;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Helper\Vault;
-use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Quote;
 use Adyen\Payment\Helper\Order as OrderHelper;
 use Adyen\Payment\Model\Method\Adapter;
@@ -23,6 +23,7 @@ use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Exception;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\InputException;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\Order\Payment;
@@ -30,8 +31,6 @@ use Magento\Sales\Model\Order\Status\History;
 use Magento\Sales\Model\OrderRepository;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Model\ResourceModel\PaymentResponse\Collection;
-use Adyen\Payment\Model\ResourceModel\PaymentResponse\CollectionFactory;
-use Adyen\Payment\Helper\Config;
 use PHPUnit\Framework\MockObject\MockObject;
 use Adyen\Payment\Helper\PaymentMethods;
 use ReflectionClass;
@@ -39,6 +38,8 @@ use ReflectionException;
 
 class PaymentResponseHandlerTest extends AbstractAdyenTestCase
 {
+    const MERCHANT_REFERENCE = '00123456';
+
     private Payment $paymentMock;
     private MagentoOrder $orderMock;
     private AdyenLogger $adyenLoggerMock;
@@ -46,30 +47,27 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
     private OrderRepository $orderRepositoryMock;
     private StateData $stateDataHelperMock;
     private PaymentResponseHandler $paymentResponseHandler;
-    private Config $configHelperMock;
-    private Collection $paymentResponseMockForFactory;
-    private CollectionFactory $paymentResponseCollectionFactoryMock;
     private Adapter|MockObject $paymentMethodInstanceMock;
     private PaymentMethods|MockObject $paymentMethodsHelperMock;
+    private OrdersApi|MockObject $ordersApiHelperMock;
 
     protected function setUp(): void
     {
-        $this->paymentMock  = $this->createMock(Payment::class);
-        $this->orderMock = $this->createMock(MagentoOrder::class);
-        $this->paymentMethodInstanceMock = $this->createMock(Adapter::class);
+        // Constructor argument mocks
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
         $vaultHelperMock = $this->createMock(Vault::class);
-        $dataHelperMock = $this->createMock(Data::class);
         $this->quoteHelperMock = $this->createMock(Quote::class);
         $orderHelperMock = $this->createMock(OrderHelper::class);
         $this->orderRepositoryMock = $this->createMock(OrderRepository::class);
-
         $this->stateDataHelperMock = $this->createMock(StateData::class);
-        $this->configHelperMock = $this->createMock(Config::class);
         $this->paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
+        $orderStatusHistoryMock = $this->createMock(OrderStatusHistory::class);
+        $this->ordersApiHelperMock = $this->createMock(OrdersApi::class);
 
-        $this->paymentResponseMockForFactory = $this->createMock(Collection::class);
-        $this->paymentResponseCollectionFactoryMock = $this->createGeneratedMock(CollectionFactory::class, ['create']);
+        // Other functional mocks
+        $this->paymentMock  = $this->createMock(Payment::class);
+        $this->orderMock = $this->createMock(MagentoOrder::class);
+        $this->paymentMethodInstanceMock = $this->createMock(Adapter::class);
 
         $orderHistory = $this->createMock(History::class);
         $orderHistory->method('setStatus')->willReturnSelf();
@@ -80,25 +78,21 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         $this->orderMock->method('getQuoteId')->willReturn(1);
         $this->orderMock->method('getPayment')->willReturn($this->paymentMock);
         $this->orderMock->method('getStatus')->willReturn('pending');
-        $this->orderMock->method('getIncrementId')->willReturn('00123456');
+        $this->orderMock->method('getIncrementId')->willReturn(self::MERCHANT_REFERENCE);
         $this->paymentMock->method('getMethodInstance')->willReturn($this->paymentMethodInstanceMock);
 
         $orderHelperMock->method('setStatusOrderCreation')->willReturn($this->orderMock);
 
-        $orderStatusHistoryMock = $this->createMock(OrderStatusHistory::class);
-
         $this->paymentResponseHandler = new PaymentResponseHandler(
             $this->adyenLoggerMock,
             $vaultHelperMock,
-            $dataHelperMock,
             $this->quoteHelperMock,
             $orderHelperMock,
             $this->orderRepositoryMock,
             $this->stateDataHelperMock,
-            $this->paymentResponseCollectionFactoryMock,
-            $this->configHelperMock,
             $this->paymentMethodsHelperMock,
-            $orderStatusHistoryMock
+            $orderStatusHistoryMock,
+            $this->ordersApiHelperMock
         );
     }
 
@@ -264,7 +258,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
                 'someData' => 'someValue'
             ],
             'donationToken' => 'XYZ123456789',
-            'merchantReference' => '00123456'
+            'merchantReference' => self::MERCHANT_REFERENCE
         ];
 
         $this->quoteHelperMock->method('disableQuote')->willThrowException(new Exception());
@@ -307,7 +301,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
             'paymentMethod' => [
                 'brand' => $paymentMethodCode
             ],
-            'merchantReference' => '00123456'
+            'merchantReference' => self::MERCHANT_REFERENCE
         ];
 
         $result = $this->paymentResponseHandler->handlePaymentsDetailsResponse(
@@ -341,7 +335,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
             'paymentMethod' => [
                 'brand' => $paymentMethodCode
             ],
-            'merchantReference' => '00123456'
+            'merchantReference' => self::MERCHANT_REFERENCE
         ];
 
         $result = $this->paymentResponseHandler->handlePaymentsDetailsResponse(
@@ -377,7 +371,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
             'paymentMethod' => [
                 'brand' => 'ideal'
             ],
-            'merchantReference' => '00123456',
+            'merchantReference' => self::MERCHANT_REFERENCE,
             'action' => [
                 'actionData' => 'actionValue'
             ]
@@ -405,7 +399,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
      * @return void
      * @throws AlreadyExistsException
      * @throws InputException
-     * @throws NoSuchEntityException|ReflectionException
+     * @throws NoSuchEntityException|LocalizedException
      * @dataProvider handlePaymentsDetailsActionCancelledOrRefusedProvider
      */
     public function testHandlePaymentsDetailsResponseCancelOrRefused($resultCode)
@@ -416,64 +410,11 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
             'paymentMethod' => [
                 'brand' => 'ideal'
             ],
-            'merchantReference' => '00123456',
+            'merchantReference' => self::MERCHANT_REFERENCE,
             'action' => [
                 'actionData' => 'actionValue'
             ]
         ];
-
-        $this->paymentResponseMockForFactory->expects($this->any())
-            ->method('addFieldToFilter')
-            ->willReturn($this->paymentResponseMockForFactory);
-
-        $this->paymentResponseMockForFactory->expects($this->any())
-            ->method('getSize')
-            ->willReturn(1); // Simulate there is at least one record
-
-        // Mock getData to return the desired array of data from the database
-        $this->paymentResponseMockForFactory->expects($this->any())
-            ->method('getData')
-            ->willReturn([
-                [
-                    'merchant_reference' => '12345',
-                    'result_code' => 'Authorised',
-                    'response' => '{
-                        "additionalData":{"paymentMethod":"svs","merchantReference":"123","acquirerCode":"Test"},
-                        "amount":{"currency":"EUR","value":5000},
-                        "merchantReference":"123",
-                        "order":{"amount":{"currency":"EUR","value":17800},"expiresAt":"2024-10-10T13:11:37Z",
-                        "orderData":"orderData....",
-                        "pspReference":"XYZ654",
-                        "reference":"123",
-                        "remainingAmount":{"currency":"EUR","value":12800}},
-                        "paymentMethod":{"brand":"svs","type":"giftcard"},
-                        "pspReference":"ABC123",
-                        "resultCode":"Authorised"
-                      }'
-                ]
-            ]);
-
-        $this->paymentResponseCollectionFactoryMock->expects($this->any())
-            ->method('create')
-            ->willReturn($this->paymentResponseMockForFactory);
-
-        $merchantAccount = 'mock_merchant_account';
-        $storeId = 1;
-        $this->orderMock->expects($this->once())->method('getStoreId')->willReturn($storeId);
-        $this->configHelperMock->method('getAdyenAbstractConfigData')
-            ->willReturnMap([
-                ['merchant_account', $storeId, $merchantAccount],
-                ['payment_cancelled', null, MagentoOrder::STATE_CANCELED]
-            ]);
-
-
-        // Create an instance of the class that has the private method
-        $class = new \ReflectionClass(PaymentResponseHandler::class);
-        $instance = $class->newInstanceWithoutConstructor();
-
-        // Inject the mocked factory into the instance if necessary
-        $property = $class->getProperty('paymentResponseCollectionFactory');
-        $property->setValue($instance, $this->paymentResponseCollectionFactoryMock);
 
         // Mock order cancellation
         $this->orderMock->expects($this->any())
@@ -563,7 +504,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
             'paymentMethod' => [
                 'brand' => 'ideal'
             ],
-            'merchantReference' => '00123456'
+            'merchantReference' => self::MERCHANT_REFERENCE
         ];
         // Mock the isValidMerchantReference to return true
         $reflectionClass = new ReflectionClass(PaymentResponseHandler::class);
@@ -602,7 +543,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
     {
         // Arrange
         $paymentsDetailsResponse = [
-            'merchantReference' => '00123456'
+            'merchantReference' => self::MERCHANT_REFERENCE
         ];
 
         // Mock the logger to expect an error to be logged
@@ -625,7 +566,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
     public function testOrderStatusUpdateWhenResponseIsValid()
     {
         $paymentsDetailsResponse = [
-            'merchantReference' => '00123456',
+            'merchantReference' => self::MERCHANT_REFERENCE,
             'resultCode' => 'AUTHORISED'
         ];
 
@@ -660,7 +601,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
             'paymentMethod' => [
                 'brand' => 'VI'
             ],
-            'merchantReference' => '00123456'
+            'merchantReference' => self::MERCHANT_REFERENCE
         ];
 
         // Expect the `setCcType` method to be called on the payment object with the correct value

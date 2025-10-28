@@ -2,6 +2,7 @@
 
 namespace Test\Unit\Gateway\Response;
 
+use Adyen\Payment\Helper\OrdersApi;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
@@ -21,16 +22,19 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
     private PaymentDataObject|MockObject $paymentDataObject;
     private Vault|MockObject $vaultMock;
     private PaymentMethods|MockObject $paymentMethodsMock;
+    private OrdersApi|MockObject $ordersApiHelperMock;
     private array $handlingSubject;
 
     protected function setUp(): void
     {
         $this->vaultMock = $this->createMock(Vault::class);
         $this->paymentMethodsMock = $this->createMock(PaymentMethods::class);
+        $this->ordersApiHelperMock = $this->createMock(OrdersApi::class);
 
         $this->checkoutPaymentsDetailsHandler = new CheckoutPaymentsResponseHandler(
             $this->vaultMock,
-            $this->paymentMethodsMock
+            $this->paymentMethodsMock,
+            $this->ordersApiHelperMock
         );
 
         $paymentMethodInstance = $this->createMock(MethodInterface::class);
