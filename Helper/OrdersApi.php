@@ -153,7 +153,7 @@ class OrdersApi
     /**
      * Returns the value of the Create Order API call from the temporary storage
      *
-     * @return CreateOrderResponse|null
+     * @return array|null
      */
     public function getCheckoutApiOrder(): ?array
     {
