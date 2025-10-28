@@ -16,6 +16,7 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Exception;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\InputException;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\OrderRepository;
@@ -114,7 +115,7 @@ class PaymentResponseHandler
      * @return bool
      * @throws AlreadyExistsException
      * @throws InputException
-     * @throws NoSuchEntityException
+     * @throws NoSuchEntityException|LocalizedException
      */
     public function handlePaymentsDetailsResponse(
         array $paymentsDetailsResponse,
