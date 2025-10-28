@@ -31,7 +31,7 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
     /**
      * @var bool
      */
-    private $isAdyenPayment;
+    private $isAdyenPayment = false;
 
     /**
      * @var PaymentResponse[]
