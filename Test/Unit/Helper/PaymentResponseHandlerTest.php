@@ -245,14 +245,17 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
      */
     public function testHandlePaymentsDetailsResponseAuthorised()
     {
+        $ccType = 'visa';
+        
         $paymentsDetailsResponse = [
             'resultCode' => PaymentResponseHandler::AUTHORISED,
             'pspReference' => 'ABC123456789',
             'paymentMethod' => [
-                'brand' => 'ideal'
+                'brand' => 'visa'
             ],
             'additionalData' => [
-                'someData' => 'someValue'
+                'someData' => 'someValue',
+                'paymentMethod' => $ccType
             ],
             'details' => [
                 'someData' => 'someValue'
@@ -260,6 +263,24 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
             'donationToken' => 'XYZ123456789',
             'merchantReference' => self::MERCHANT_REFERENCE
         ];
+
+        // Mock that cc_type is initially null
+        $this->paymentMock->method('getAdditionalInformation')
+            ->willReturnCallback(function ($key) {
+                if ($key === 'cc_type') {
+                    return null;
+                }
+                return null;
+            });
+
+        // Mock that this is a card payment method (ADYEN_CC)
+        $this->paymentMock->method('getMethod')
+            ->willReturn(PaymentMethods::ADYEN_CC);
+
+        // Expect setCcType to be called with the payment method from additionalData
+        $this->paymentMock->expects($this->atLeastOnce())
+            ->method('setCcType')
+            ->with($ccType);
 
         $this->quoteHelperMock->method('disableQuote')->willThrowException(new Exception());
         $this->adyenLoggerMock->expects($this->atLeastOnce())->method('error');
@@ -404,6 +425,11 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
      */
     public function testHandlePaymentsDetailsResponseCancelOrRefused($resultCode)
     {
+        $checkoutApiOrderData = [
+            'pspReference' => 'ORDER_PSP_REF_999',
+            'orderData' => 'encoded_checkout_order_data'
+        ];
+
         $paymentsDetailsResponse = [
             'resultCode' => $resultCode,
             'pspReference' => 'ABC123456789',
@@ -415,6 +441,24 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
                 'actionData' => 'actionValue'
             ]
         ];
+
+        // Mock that checkout API order data exists in payment additional information
+        $this->paymentMock->method('getAdditionalInformation')
+            ->willReturnCallback(function ($key) use ($checkoutApiOrderData) {
+                if ($key === OrdersApi::DATA_KEY_CHECKOUT_API_ORDER) {
+                    return $checkoutApiOrderData;
+                }
+                return null;
+            });
+
+        // Expect cancelOrder to be called with the checkout API order data
+        $this->ordersApiHelperMock->expects($this->once())
+            ->method('cancelOrder')
+            ->with(
+                $this->equalTo($this->orderMock),
+                $this->equalTo($checkoutApiOrderData['pspReference']),
+                $this->equalTo($checkoutApiOrderData['orderData'])
+            );
 
         // Mock order cancellation
         $this->orderMock->expects($this->any())
@@ -429,6 +473,51 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         );
 
         $this->assertFalse($result);
+    }
+
+    /**
+     * @return void
+     * @throws AlreadyExistsException
+     * @throws InputException
+     * @throws NoSuchEntityException|LocalizedException
+     * @dataProvider handlePaymentsDetailsActionCancelledOrRefusedProvider
+     */
+    public function testHandlePaymentsDetailsResponseCancelOrRefusedWhenOrderCannotBeCancelled($resultCode)
+    {
+        $paymentsDetailsResponse = [
+            'resultCode' => $resultCode,
+            'pspReference' => 'ABC123456789',
+            'paymentMethod' => [
+                'brand' => 'ideal'
+            ],
+            'merchantReference' => self::MERCHANT_REFERENCE
+        ];
+
+        // Mock that order cannot be cancelled
+        $this->orderMock->expects($this->any())
+            ->method('canCancel')
+            ->willReturn(false);
+
+        // Track that the specific message is logged
+        $cannotBeCancelledLogged = false;
+
+        // Expect the logger to be called with multiple messages including the "cannot be cancelled" message
+        $this->adyenLoggerMock->expects($this->atLeastOnce())
+            ->method('addAdyenResult')
+            ->willReturnCallback(function ($message) use (&$cannotBeCancelledLogged) {
+                if ($message === 'The order cannot be cancelled') {
+                    $cannotBeCancelledLogged = true;
+                }
+                return true;
+            });
+
+        $result = $this->paymentResponseHandler->handlePaymentsDetailsResponse(
+            $paymentsDetailsResponse,
+            $this->orderMock
+        );
+
+        $this->assertFalse($result);
+        $this->assertTrue($cannotBeCancelledLogged, 'Expected "The order cannot be cancelled" message to be logged');
     }
 
     /**
