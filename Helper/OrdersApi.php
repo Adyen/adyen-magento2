@@ -144,8 +144,10 @@ class OrdersApi
      */
     public function setCheckoutApiOrder(string $pspReference, string $orderData): void
     {
-        $this->checkoutApiOrder['pspReference'] = $pspReference;
-        $this->checkoutApiOrder['orderData'] = $orderData;
+        $this->checkoutApiOrder = [
+            'pspReference' => $pspReference,
+            'orderData' => $orderData
+        ];
     }
 
     /**
