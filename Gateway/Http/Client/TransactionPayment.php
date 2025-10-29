@@ -191,8 +191,8 @@ class TransactionPayment implements ClientInterface
             if (strcmp($response->getResultCode(), CheckoutApiPaymentResponse::RESULT_CODE_AUTHORISED) !== 0) {
                 /*
                  * Stop executing the command pool and return the value immediately to the validator pool.
-                 * There is point of authorizing the rest of the payment instruments as the partial payment order
-                 * on Adyen will fail in any case after expiry.
+                 * There is no point of authorizing the rest of the payment instruments as
+                 * the partial payment order on Adyen will fail in any case after expiry.
                  */
                 throw new GiftcardPaymentException();
             }
