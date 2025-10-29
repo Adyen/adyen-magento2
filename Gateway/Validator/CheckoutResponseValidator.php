@@ -92,15 +92,15 @@ class CheckoutResponseValidator extends AbstractValidator
      */
     private function validateResultCode(string $resultCode): ?string
     {
-        if (strcmp($resultCode, PaymentResponse::RESULT_CODE_REFUSED) === 0) {
-            $errorCode = 'authError_refused';
-        } elseif (strcmp($resultCode, PaymentResponseHandler::GIFTCARD_REFUSED) === 0) {
-            $errorCode = 'authError_giftcard_refused';
-        } elseif (!in_array($resultCode, self::VALID_RESULT_CODES, true)) {
-            $errorCode = 'authError_generic';
+        if (in_array($resultCode, self::VALID_RESULT_CODES, true)) {
+            return null;
+        } else {
+            return match ($resultCode) {
+                PaymentResponse::RESULT_CODE_REFUSED => 'authError_refused',
+                PaymentResponseHandler::GIFTCARD_REFUSED => 'authError_giftcard_refused',
+                default => 'authError_generic'
+            };
         }
-
-        return $errorCode ?? null;
     }
 
     /**
