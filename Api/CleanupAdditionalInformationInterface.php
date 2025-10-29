@@ -12,6 +12,7 @@
 
 namespace Adyen\Payment\Api;
 
+use Adyen\Payment\Helper\OrdersApi;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
 
 interface CleanupAdditionalInformationInterface
@@ -31,7 +32,8 @@ interface CleanupAdditionalInformationInterface
         self::FIELD_FRONTEND_TYPE,
         self::FIELD_COMBO_CARD_TYPE,
         self::FIELD_CC_TYPE,
-        self::FIELD_RESULT_CODE
+        self::FIELD_RESULT_CODE,
+        OrdersApi::DATA_KEY_CHECKOUT_API_ORDER
     ];
 
     /**

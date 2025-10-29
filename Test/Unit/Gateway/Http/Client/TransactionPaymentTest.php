@@ -15,6 +15,8 @@ use Adyen\AdyenException;
 use Adyen\Model\Checkout\ApplicationInfo;
 use Adyen\Model\Checkout\PaymentRequest;
 use Adyen\Model\Checkout\PaymentResponse as CheckoutPaymentResponse;
+use Adyen\Payment\Exception\GiftcardPaymentException;
+use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Api\Data\PaymentResponseInterface;
 use Adyen\Payment\Helper\PlatformInfo;
 use Adyen\Payment\Model\PaymentResponse;
@@ -284,5 +286,121 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
             ->willReturn($orderData);
 
         return $this->transactionPayment->processGiftcards($originalRequest, $serviceMock);
+    }
+
+    /**
+     * Test that GiftcardPaymentException is thrown when giftcard payment is not authorized
+     * This covers line 197 of TransactionPayment.php
+     */
+    public function testProcessGiftCardsThrowsExceptionWhenGiftcardNotAuthorized()
+    {
+        $amount = 250;
+        $store = $this->createConfiguredMock(StoreInterface::class, [
+            'getId' => 12
+        ]);
+        $this->storeManagerMock->method('getStore')->willReturn($store);
+
+        $originalRequest = [
+            'reference' => '0000020',
+            'giftcardRequestParameters' => [
+                [
+                    'state_data' => '{"paymentMethod":{"type": "giftcard"}, "giftcard": {"balance": {"value": 100}, "currency": "EUR"}}'
+                ]
+            ],
+            'amount' => [
+                'value' => $amount,
+                'currency' => 'EUR'
+            ]
+        ];
+
+        // Mock response with non-Authorised result code (e.g., Refused)
+        $response = new CheckoutPaymentResponse();
+        $response->setResultCode('Refused');
+        $response->setMerchantReference('PSPDMDM2222');
+
+        $serviceMock = $this->createMock(PaymentsApi::class);
+        $serviceMock->expects($this->once())
+            ->method('payments')
+            ->willReturn($response);
+
+        $reflector = new \ReflectionProperty(TransactionPayment::class, 'remainingOrderAmount');
+        $reflector->setAccessible(true);
+        $reflector->setValue($this->transactionPayment, $amount);
+
+        $orderData = [
+            'pspReference' => 'pspReference!23',
+            'orderData' => 'orderData....'
+        ];
+
+        $this->orderApiHelperMock
+            ->expects($this->once())
+            ->method('createOrder')
+            ->willReturn($orderData);
+
+        // Expect GiftcardPaymentException to be thrown (line 197)
+        $this->expectException(GiftcardPaymentException::class);
+
+        // This should throw GiftcardPaymentException
+        $this->transactionPayment->processGiftcards($originalRequest, $serviceMock);
+    }
+
+    /**
+     * Test that GiftcardPaymentException is caught and handled properly in placeRequest
+     * This covers lines 122-123 of TransactionPayment.php
+     */
+    public function testPlaceRequestHandlesGiftcardPaymentException()
+    {
+        $amount = 250;
+        $store = $this->createConfiguredMock(StoreInterface::class, [
+            'getId' => 12
+        ]);
+        $this->storeManagerMock->method('getStore')->willReturn($store);
+
+        $requestBody = [
+            'reference' => '0000020',
+            'giftcardRequestParameters' => [
+                [
+                    'state_data' => '{"paymentMethod":{"type": "giftcard"}, "giftcard": {"balance": {"value": 100}, "currency": "EUR"}}'
+                ]
+            ],
+            'amount' => [
+                'value' => $amount,
+                'currency' => 'EUR'
+            ]
+        ];
+
+        $transferObjectMock = $this->createConfiguredMock(TransferInterface::class, [
+            'getBody' => $requestBody,
+            'getClientConfig' => ['storeId' => 1],
+            'getHeaders' => []
+        ]);
+
+        // Mock response with non-Authorised result code to trigger GiftcardPaymentException
+        $giftcardResponse = new CheckoutPaymentResponse();
+        $giftcardResponse->setResultCode('Refused');
+        $giftcardResponse->setMerchantReference('PSPDMDM2222');
+
+        $serviceMock = $this->createMock(PaymentsApi::class);
+        $serviceMock->expects($this->once())
+            ->method('payments')
+            ->willReturn($giftcardResponse);
+
+        $this->adyenHelperMock->method('initializePaymentsApi')->willReturn($serviceMock);
+
+        $orderData = [
+            'pspReference' => 'pspReference!23',
+            'orderData' => 'orderData....'
+        ];
+
+        $this->orderApiHelperMock->expects($this->once())
+            ->method('createOrder')
+            ->willReturn($orderData);
+
+        $response = $this->transactionPayment->placeRequest($transferObjectMock);
+
+        // Verify that the response contains GIFTCARD_REFUSED result code (lines 122-123)
+        $this->assertIsArray($response);
+        $this->assertArrayHasKey('resultCode', $response[0]);
+        $this->assertEquals(PaymentResponseHandler::GIFTCARD_REFUSED, $response[0]['resultCode']);
     }
 }
