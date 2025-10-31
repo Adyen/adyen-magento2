@@ -278,7 +278,6 @@
             <argument name="config" xsi:type="object">AdyenPaymentSepadirectdebitVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentSepadirectdebitVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentSepadirectdebitFacade</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
         </arguments>
     </virtualType>
     <!-- Vault methods end -->
@@ -807,25 +806,31 @@
         <arguments>
             <argument name="executors" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">AdyenPaymentCcCommandManager</item>
-                <item name="adyen_hpp" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_ideal" xsi:type="string">AdyenPaymentCommandManager</item>
                 <item name="adyen_paypal" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_klarna" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_bcmc_mobile" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_amazonpay" xsi:type="string">AdyenPaymentCommandManager</item>
                 <item name="adyen_googlepay" xsi:type="string">AdyenPaymentCommandManager</item>
                 <item name="adyen_sepadirectdebit" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_cashapp" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_boleto" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_bcmc" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_momo" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_carnet" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_gcash" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_twint" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_paybybank" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_klarna_paynow" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_klarna_account_vault" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_kakaopay" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_giropay" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_eps" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_pos_cloud" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_applepay" xsi:type="string">AdyenPaymentCommandManager</item>
                 <item name="adyen_directEbanking" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_eps" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_giropay" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_kakaopay" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_klarna" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_klarna_account" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_klarna_paynow" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_paybybank" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_trustly" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_twint" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_zip" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_gcash" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_carnet" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_momo_wallet" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_bcmc" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_cashapp" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_ach" xsi:type="string">AdyenPaymentCommandManager</item>
                 <item name="adyen_dana" xsi:type="string">AdyenPaymentCommandManager</item>
                 <item name="adyen_paybybank_ais_dd" xsi:type="string">AdyenPaymentCommandManager</item>
                 <item name="adyen_payto" xsi:type="string">AdyenPaymentCommandManager</item>
