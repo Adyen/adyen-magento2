@@ -2,6 +2,7 @@
 
 namespace Test\Unit\Gateway\Response;
 
+use Adyen\Payment\Helper\OrdersApi;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
@@ -21,16 +22,19 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
     private PaymentDataObject|MockObject $paymentDataObject;
     private Vault|MockObject $vaultMock;
     private PaymentMethods|MockObject $paymentMethodsMock;
+    private OrdersApi|MockObject $ordersApiHelperMock;
     private array $handlingSubject;
 
     protected function setUp(): void
     {
         $this->vaultMock = $this->createMock(Vault::class);
         $this->paymentMethodsMock = $this->createMock(PaymentMethods::class);
+        $this->ordersApiHelperMock = $this->createMock(OrdersApi::class);
 
         $this->checkoutPaymentsDetailsHandler = new CheckoutPaymentsResponseHandler(
             $this->vaultMock,
-            $this->paymentMethodsMock
+            $this->paymentMethodsMock,
+            $this->ordersApiHelperMock
         );
 
         $paymentMethodInstance = $this->createMock(MethodInterface::class);
@@ -52,12 +56,15 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
 
     public function testIfGeneralFlowIsHandledCorrectly()
     {
+        $donationToken = 'donation_token_12345';
+
         // prepare Handler input.
         $responseCollection = [
             0 => [
                 'additionalData' => [],
                 'amount' => [],
                 'resultCode' => 'Authorised',
+                'donationToken' => $donationToken
             ]
         ];
 
@@ -70,6 +77,16 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
             ->expects($this->once())
             ->method('setCanSendNewEmailFlag')
             ->with(false);
+
+        $this->paymentMock
+            ->expects($this->atLeastOnce())
+            ->method('setAdditionalInformation')
+            ->willReturnCallback(function ($key, $value) use ($donationToken) {
+                if ($key === 'donationToken') {
+                    $this->assertEquals($donationToken, $value);
+                }
+                return null;
+            });
 
         $this->applyGenericMockExpectations();
 
@@ -131,6 +148,90 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
             ->expects($this->never())
             ->method('setCanSendNewEmailFlag')
             ->with(false);
+
+        $this->applyGenericMockExpectations();
+
+        $this->checkoutPaymentsDetailsHandler->handle($this->handlingSubject, $responseCollection);
+    }
+
+    public function testIfActionIsStoredForRedirectShopper()
+    {
+        $actionData = [
+            'type' => 'redirect',
+            'url' => 'https://test.adyen.com/hpp/redirectShopper.shtml',
+            'method' => 'GET'
+        ];
+
+        $detailsData = [
+            [
+                'key' => 'redirectResult',
+                'type' => 'text'
+            ]
+        ];
+
+        // prepare Handler input.
+        $responseCollection = [
+            0 => [
+                'additionalData' => [],
+                'amount' => [],
+                'resultCode' => 'RedirectShopper',
+                'pspReference' => 'ABC12345',
+                'action' => $actionData,
+                'details' => $detailsData
+            ]
+        ];
+
+        $this->paymentMock
+            ->expects($this->atLeastOnce())
+            ->method('setAdditionalInformation')
+            ->willReturnCallback(function ($key, $value) use ($actionData, $detailsData) {
+                if ($key === 'action') {
+                    $this->assertEquals($actionData, $value);
+                }
+                if ($key === 'details') {
+                    $this->assertEquals($detailsData, $value);
+                }
+                return null;
+            });
+
+        $this->applyGenericMockExpectations();
+
+        $this->checkoutPaymentsDetailsHandler->handle($this->handlingSubject, $responseCollection);
+    }
+
+    public function testIfCheckoutApiOrderIsStoredForActionRequiredStatuses()
+    {
+        $checkoutApiOrderData = [
+            'pspReference' => 'ORDER_PSP_REF_789',
+            'orderData' => 'encoded_order_data_for_partial_payment'
+        ];
+
+        // prepare Handler input.
+        $responseCollection = [
+            0 => [
+                'additionalData' => [],
+                'amount' => [],
+                'resultCode' => 'RedirectShopper',
+                'pspReference' => 'ABC12345'
+            ]
+        ];
+
+        // Mock ordersApi to return checkout API order data
+        $this->ordersApiHelperMock
+            ->expects($this->atLeastOnce())
+            ->method('getCheckoutApiOrder')
+            ->willReturn($checkoutApiOrderData);
+
+        // Verify that checkout API order data is stored in payment additional information
+        $this->paymentMock
+            ->expects($this->atLeastOnce())
+            ->method('setAdditionalInformation')
+            ->willReturnCallback(function ($key, $value) use ($checkoutApiOrderData) {
+                if ($key === OrdersApi::DATA_KEY_CHECKOUT_API_ORDER) {
+                    $this->assertEquals($checkoutApiOrderData, $value);
+                }
+                return null;
+            });
 
         $this->applyGenericMockExpectations();
 
