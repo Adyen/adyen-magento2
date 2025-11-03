@@ -110,7 +110,9 @@ class PaymentMethodUtil
         'ratepay',
         'ratepay_directdebit',
         'walley',
-        'walley_b2b'
+        'walley_b2b',
+        'girocard',
+        'girocard_applepay'
     ];
 
     /**
