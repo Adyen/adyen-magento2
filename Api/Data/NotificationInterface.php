@@ -234,9 +234,4 @@ interface NotificationInterface
      * @return NotificationInterface
      */
     public function setUpdatedAt(string $timestamp): NotificationInterface;
-
-    /**
-     * @return string|null
-     */
-    public function getFormattedAmountCurrency(): ?string;
 }
