@@ -78,6 +78,23 @@ define(
                     self.enablePaymentMethod(paymentMethodsObserver());
                 }
 
+                this._lastGrandTotal = quote.totals() ? quote.totals().grand_total : null;
+
+                quote.totals.subscribe(function (totals) {
+                    if (!totals) {
+                        return;
+                    }
+                    const newGrandTotal = totals.grand_total;
+                    if (Number(newGrandTotal) !== Number(self._lastGrandTotal)) {
+                        self._lastGrandTotal = newGrandTotal;
+
+                        // Rebuild component with updated configuration
+                        if (self.isChecked() === self.getCode()) {
+                            self.rebuildComponentAfterAmountChange();
+                        }
+                    }
+                });
+
                 paymentComponentStates().initializeState(this.getMethodCode());
             },
 
@@ -128,6 +145,22 @@ define(
                 this._super();
                 this.createCheckoutComponent();
                 return true;
+            },
+
+            rebuildComponentAfterAmountChange: function () {
+                // Unmount existing component if present
+                if (this.paymentComponent && typeof this.paymentComponent.unmount === 'function') {
+                    try {
+                        this.paymentComponent.unmount();
+                    } catch (e) {
+                        console.warn('Failed to unmount Adyen component:', e);
+                    }
+                }
+                this.paymentComponent = null;
+                this.checkoutComponent = null;
+
+                // Force re-create component with updated configuration
+                this.createCheckoutComponent(true);
             },
 
             /*
