@@ -52,20 +52,15 @@ class PaymentMethodUtil
         'twint',
         'carnet',
         'pix',
-        'klarna',
         'oney',
-        'affirm',
         'bright',
         'amazonpay',
         'applepay',
         'googlepay',
         'mobilepay',
         'vipps',
-        'walley',
-        'walley_b2b',
         'mc_clicktopay',
         'visa_clicktopay',
-        'ach',
         'visa_amazonpay',
         'mc_amazonpay',
         'amex_amazonpay',
@@ -110,7 +105,9 @@ class PaymentMethodUtil
         'ratepay',
         'ratepay_directdebit',
         'walley',
-        'walley_b2b'
+        'walley_b2b',
+        'girocard',
+        'girocard_applepay'
     ];
 
     /**
