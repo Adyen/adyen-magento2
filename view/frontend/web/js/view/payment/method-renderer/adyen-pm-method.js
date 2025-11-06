@@ -78,7 +78,7 @@ define(
                     self.enablePaymentMethod(paymentMethodsObserver());
                 }
 
-                this._lastGrandTotal = quote.totals() ? quote.totals().grand_total : null;
+                this._lastGrandTotal = undefined;
 
                 quote.totals.subscribe(function (totals) {
                     if (!totals) {
