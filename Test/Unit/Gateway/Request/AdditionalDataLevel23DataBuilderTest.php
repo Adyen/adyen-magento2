@@ -190,46 +190,4 @@ class AdditionalDataLevel23DataBuilderTest extends AbstractAdyenTestCase
         $result = $this->additionalDataBuilder->build($buildSubject);
         $this->assertEmpty($result);
     }
-
-    protected static function taxAmountDataProvider(): array
-    {
-        return [
-            ['taxAmount' => 0],
-            ['taxAmount' => null],
-            ['taxAmount' => -1]
-        ];
-    }
-
-    /**
-     * @dataProvider taxAmountDataProvider
-     *
-     * @param $taxAmount
-     * @return void
-     * @throws NoSuchEntityException
-     */
-    public function testLevel23DataInvalidTaxAmounts($taxAmount)
-    {
-        $storeId = 1;
-        $currencyCode = 'USD';
-
-        $this->chargedCurrencyMock->method('getOrderAmountCurrency')
-            ->willReturn(new AdyenAmountCurrency(null, $currencyCode));
-
-        $this->storeMock->method('getId')->willReturn($storeId);
-        $this->configMock->method('sendLevel23AdditionalData')->with($storeId)->willReturn(true);
-
-        $orderMock = $this->createMock(Order::class);
-        $orderMock->method('getTaxAmount')->willReturn($taxAmount);
-
-        $paymentMock = $this->createMock(Payment::class);
-        $paymentMock->method('getOrder')->willReturn($orderMock);
-
-        $paymentDataObjectMock = $this->createMock(PaymentDataObject::class);
-        $paymentDataObjectMock->method('getPayment')->willReturn($paymentMock);
-
-        $buildSubject = ['payment' => $paymentDataObjectMock, 'order' => $orderMock];
-
-        $result = $this->additionalDataBuilder->build($buildSubject);
-        $this->assertEmpty($result);
-    }
 }

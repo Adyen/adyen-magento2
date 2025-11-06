@@ -123,6 +123,8 @@ class TransactionPayment implements ClientInterface
         $responseCollection['hasOnlyGiftCards'] = false;
 
         try {
+            $requestData['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($client);
+
             list($requestData, $giftcardResponseCollection) = $this->processGiftcards($requestData, $service);
 
             /** @var array $responseCollection */
@@ -135,7 +137,6 @@ class TransactionPayment implements ClientInterface
                 }
             }
 
-            $requestData['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($client);
             $paymentRequest = new PaymentRequest($requestData);
 
             $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
