@@ -44,7 +44,7 @@ class GettingStarted extends Fieldset
             <li>Adyen Adobe Commerce plugin integration demo in GitHub <a href="https://github.com/adyen-examples/adyen-magento-plugin-demo" target="_blank">integration demo in GitHub</a></li>
             <li><a target="_blank" href="https://docs.adyen.com/plugins/adobe-commerce">Documentation for setting up the module</a></li>
             <li>Adyen Customer Area for <a target="_blank" href="https://ca-test.adyen.com">TEST</a> and Adyen Customer Area for <a target="_blank" href="https://ca-live.adyen.com">LIVE</a></li>
-            <li>If you have any further question, reach out to our support team by filling out the <a target="_parent" href="' . $supportFormUrl . '">support form</a></li>
+            <li>For questions, reach out to our support team by filling out the <a target="_parent" href="' . $supportFormUrl . '">support form</a></li>
         </ul>
         ';
         $element->setData("comment", $text);

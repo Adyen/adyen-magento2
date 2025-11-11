@@ -16,20 +16,20 @@
         <label><![CDATA[Card payments]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <comment>
-            <![CDATA[<p>Optmize your shopper’s security and elevate their experience with <a href="https://docs.adyen.com/plugins/adobe-commerce/set-up-the-payment-methods-in-adobe-commerce#card-payments" target="_blank">card payments</a>.</p>]]>
+            <![CDATA[<p>Optimize your shopper’s security and elevate their experience with <a href="https://docs.adyen.com/plugins/adobe-commerce/set-up-the-payment-methods-in-adobe-commerce#card-payments" target="_blank">card payments</a>.</p>]]>
         </comment>
         <field id="has_holder_name" translate="label" type="select" sortOrder="10" showInDefault="1"
                showInWebsite="1" showInStore="1">
-            <label>Show holder name field for card payment methods</label>
+            <label>Show cardholder name field for cards</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-            <tooltip>Set to Yes to show the input field for the card holder name</tooltip>
+            <tooltip>When set to Yes, the input field for cardholder name is shown at checkout. If you support Visa, you must show the cardholder name field.</tooltip>
             <config_path>payment/adyen_abstract/has_holder_name</config_path>
         </field>
         <field id="holder_name_required" translate="label" type="select" sortOrder="15" showInDefault="1"
                showInWebsite="1" showInStore="1">
-            <label>Holder name required</label>
+            <label>Require cardholder name</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-            <tooltip>Set to Yes to make the card holder name a required field</tooltip>
+            <tooltip>When set to Yes, the shopper is required to provide the cardholder name. If you support Visa, the cardholder name field must be required.</tooltip>
             <config_path>payment/adyen_abstract/holder_name_required</config_path>
             <depends>
                 <field id="has_holder_name">1</field>
@@ -37,9 +37,9 @@
         </field>
         <field id="enable_installments" translate="label" type="select" sortOrder="20" showInDefault="1"
                showInWebsite="1" showInStore="1">
-            <label>Enable Installments</label>
+            <label>Enable installments</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-            <tooltip>Enable installments for each credit card type.</tooltip>
+            <tooltip>When set to Yes, shoppers can choose to pay in installments.</tooltip>
             <config_path>payment/adyen_cc/enable_installments</config_path>
         </field>
         <field id="installments" translate="label" sortOrder="25" showInDefault="1" showInWebsite="1"
@@ -48,9 +48,9 @@
             <depends>
                 <field id="enable_installments">1</field>
             </depends>
-            <tooltip>Configure your installment for each credit card type: Insert the minimum amount required to
-                make the configured installment available in the amount range column.
-                Example: if the minimum amount is configured to 100 and the number of installments to 4x, the shopper
+            <tooltip>Configure installment rules for each credit card type. Insert the minimum total payment amount from which you want to offer installments and
+                the number of installments you want to offer for each credit card.
+                For example: if the minimum amount is 100 and the number of installments is 4x, the shopper
                 will see the 4x option only if the payment total is higher or equal than 100.
             </tooltip>
             <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\Field\Installments</frontend_model>
@@ -63,19 +63,32 @@
             <config_path>payment/adyen_abstract/send_level23_data</config_path>
             <comment>
                 <![CDATA[
-                If enabled level 2/level 3 data will be sent for credit card payments. Refer to
-                <a target="_blank" href="https://docs.adyen.com/payment-methods/cards/enhanced-scheme-data/l2-l3/">Adyen documentation</a>
-                for more information.
+                When set to Yes, <a target="_blank" href="https://docs.adyen.com/payment-methods/cards/enhanced-scheme-data/l2-l3/">level 2/3 enhanced scheme data </a>
+                will be sent for credit card payments.
                 ]]>
             </comment>
         </field>
         <field id="enable_click_to_pay" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1">
-            <label>Click to Pay Enabled</label>
+            <label>Enable Click to Pay</label>
+            <comment>
+                <![CDATA[
+                When set to Yes, shoppers can pay with <a target="_blank" href="https://docs.adyen.com/payment-methods/cards/click-to-pay">Click to Pay</a>.
+                ]]>
+            </comment>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_cc/enable_click_to_pay</config_path>
         </field>
         <field id="threeds_flow" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1">
             <label>3D Secure 2 authentication flow</label>
+            <comment>
+                <![CDATA[
+                Choose your preferred <a target="_blank" href="https://docs.adyen.com/online-payments/3d-secure">3D Secure 2 authentication implementation</a>.
+                ]]>
+            </comment>
+            <tooltip>
+                Select Native to perform 3D Secure 2 authentication natively on your website when available. Native authentication may require modifying your Content Security Policy (CSP) to load the 3D Secure 2
+                interfaces. If you do not want to adjust your CSP, select Redirect.
+            </tooltip>
             <source_model>Adyen\Payment\Model\Config\Source\ThreeDSFlow</source_model>
             <config_path>payment/adyen_cc/threeds_flow</config_path>
         </field>
