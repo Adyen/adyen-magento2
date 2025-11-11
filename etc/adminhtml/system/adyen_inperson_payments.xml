@@ -14,9 +14,12 @@
         <label><![CDATA[In-person payments]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <fieldset_css>adyen-method-adyen-cc</fieldset_css>
-        <comment>Process POS terminal transactions</comment>
+        <comment>
+            <![CDATA[Set up <a target="_blank" href="https://docs.adyen.com/point-of-sale">in-person payments</a> to accept payments in your physical store using terminals. See our <a target="_blank" href="https://docs.adyen.com/plugins/adobe-commerce/set-up-in-person-payments"> documentation</a> to
+            learn about the steps to set up in-person payments with the plugin.]]>
+        </comment>
         <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Enabled</label>
+            <label>Enable in-person payments</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_pos_cloud/active</config_path>
         </field>
@@ -30,9 +33,9 @@
             <config_path>payment/adyen_pos_cloud/sort_order</config_path>
         </field>
         <field id="pos_merchant_account" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
-            <label>Merchant Account for POS terminal</label>
+            <label>Merchant account for in-person payments</label>
             <can_be_empty>1</can_be_empty>
-            <tooltip>Please insert your Merchant Account name used by your POS terminal. Please leave it blank if the Merchant Account is the same as the one configured in the Required Settings</tooltip>
+            <tooltip>The name of the merchant account to use for processing in-person payments. If you use the same merchant account for ecommerce and in-person payments, leave blank. The plugin then uses the merchant account you configured in the Initial Setup.</tooltip>
             <config_path>payment/adyen_pos_cloud/pos_merchant_account</config_path>
         </field>
         <field id="pos_store_id" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -42,28 +45,28 @@
             <config_path>payment/adyen_pos_cloud/pos_store_id</config_path>
         </field>
         <field id="api_key_test" translate="label" type="obscure" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
-            <label>API key for TEST</label>
+            <label>Test API key</label>
             <tooltip>Copy this from the Test Adyen Customer Area => Settings => Users => System => [web service user]=> Checkout API Key.</tooltip>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_pos_cloud/api_key_test</config_path>
             <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding" />
         </field>
         <field id="api_key_live" translate="label" type="obscure" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
-            <label>API key for LIVE</label>
+            <label>Live API key</label>
             <tooltip>Copy this from the Live Adyen Customer Area => Settings => Users => System => [web service user]=> Checkout API Key.</tooltip>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_pos_cloud/api_key_live</config_path>
             <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding" />
         </field>
         <field id="capture_mode_pos" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Capture Delay</label>
-            <tooltip>Please set your Capture Delay for POS transactions. Immediate is the default. Set to manual if you want to perform the capture of funds manually later. You need to change this setting as well in Adyen Customer Area => Settings => Merchant Settings => POS Capture Delay. If you have selected a capture delay of a couple of days in Adyen keep it here on immediate</tooltip>
+            <label>Capture delay</label>
+            <tooltip>The <a target="_blank" href="https://docs.adyen.com/plugins/adobe-commerce/set-up-in-person-payments#set-up-capture-delay-in-the-adyen-customer-area">capture delay that you have set up</a> in the Adyen Customer Area. Immediate is the default. Set to manual if you want to perform the capture of funds manually later. If you have selected a capture delay of a couple of days in Adyen keep it here on immediate</tooltip>
             <source_model>Adyen\Payment\Model\Config\Source\CaptureMode</source_model>
             <config_path>payment/adyen_pos_cloud/capture_mode_pos</config_path>
         </field>
         <field id="enable_installments" translate="label" type="select" sortOrder="90" showInDefault="1"
                showInWebsite="1" showInStore="1">
-            <label>Enable Installments</label>
+            <label>Enable installments</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <tooltip>Enable installments for each credit card type.</tooltip>
             <config_path>payment/adyen_pos_cloud/enable_installments</config_path>
@@ -74,9 +77,9 @@
             <depends>
                 <field id="enable_installments">1</field>
             </depends>
-            <tooltip>Configure your installment: Insert the minimum amount required to
-                make the configured installment available in the amount range column.
-                Example: if the minimum amount is configured to 100 and the number of installments to 4x, the shopper
+            <tooltip>Configure installment rules for each credit card type. Insert the minimum total payment amount from which you want to offer installments and
+                the number of installments you want to offer for each credit card.
+                For example: if the minimum amount is 100 and the number of installments is 4x, the shopper
                 will see the 4x option only if the payment total is higher or equal than 100.
             </tooltip>
             <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\Field\InstallmentsPosCloud</frontend_model>
@@ -86,9 +89,9 @@
         <field id="payment_action" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Order Creation Time</label>
             <tooltip>
-                <![CDATA[Defines the order creation time after <b>Place order</b> is selected.<br>
+                <![CDATA[Defines the order creation time after a shopper selects <b>Place order</b>.<br>
                 - Before payment: The plugin first creates an order, and then makes a payment authorization request.<br>
-                - After payment: The plugin first makes a payment authorization request, and then creates an order.]]>
+                - After payment: The plugin first makes a payment authorization request, and then creates an order. This is the default.]]>
             </tooltip>
             <source_model>Adyen\Payment\Model\Config\Source\PaymentAction</source_model>
             <config_path>payment/adyen_pos_cloud/payment_action</config_path>

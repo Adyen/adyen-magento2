@@ -15,12 +15,12 @@
     <group id="adyen_giving" translate="label" type="text" sortOrder="500" showInDefault="1" showInWebsite="1" showInStore="1">
         <label><![CDATA[Adyen Giving]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-        <comment><![CDATA[<p>Give your shoppers the option to donate to a charity during their payment. Not sure how to register to Adyen Giving? Contact your <a href="https://www.adyen.com/contact" target="_blank">Account Manager or Support</a>.</p>]]></comment>
+        <comment><![CDATA[<p>Give your shoppers the option to donate to a nonprofit when they pay. The plugin uses Adyen's <a target="_blank" href="https://docs.adyen.com/online-payments/donations#managing-donation-campaigns">Campaign Manager</a>.</p>]]></comment>
         <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Enabled</label>
+            <label>Enable donations</label>
+            <comment>Donations are enabled by default, and the plugin automatically fetches the donation campaigns that are active in your Adyen Customer Area. </comment>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_giving/active</config_path>
-            <tooltip><![CDATA[Set to Yes to enable Adyen Giving and offer the donation form in the order success page.]]></tooltip>
         </field>
     </group>
 </include>
