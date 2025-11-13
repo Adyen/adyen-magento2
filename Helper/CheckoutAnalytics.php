@@ -60,13 +60,14 @@ class CheckoutAnalytics
     /**
      * Makes the initial API call to CheckoutAnalytics to obtain checkoutAttemptId
      *
+     * @param string|null $version
      * @return string
      * @throws AdyenException
      */
-    public function initiateCheckoutAttempt(): string
+    public function initiateCheckoutAttempt(?string $version = null): string
     {
         try {
-            $request = $this->buildInitiateCheckoutRequest();
+            $request = $this->buildInitiateCheckoutRequest($version);
             $endpoint = $this->getInitiateAnalyticsUrl();
 
             $response = $this->sendRequest($endpoint, $request);
@@ -211,16 +212,17 @@ class CheckoutAnalytics
     /**
      * Builds the request array for initiate checkout attempt
      *
+     * @param string|null $version
      * @return array
      */
-    private function buildInitiateCheckoutRequest(): array
+    private function buildInitiateCheckoutRequest(?string $version = null): array
     {
         $platformData = $this->platformInfoHelper->getMagentoDetails();
 
         return [
             'channel' => self::CHANNEL_WEB,
             'platform' => self::PLATFORM_WEB,
-            'pluginVersion' => $this->platformInfoHelper->getModuleVersion(),
+            'pluginVersion' => $version ?? $this->platformInfoHelper->getModuleVersion(),
             'plugin' => self::PLUGIN_ADOBE_COMMERCE,
             'applicationInfo' => [
                 'merchantApplication' => [

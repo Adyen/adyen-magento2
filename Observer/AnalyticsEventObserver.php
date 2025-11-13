@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Observer;
 
+use Adyen\Payment\Helper\PlatformInfo;
 use Adyen\Payment\Helper\Util\Uuid;
 use Adyen\Payment\Logger\AdyenLogger;
 use Exception;
@@ -24,6 +25,7 @@ class AnalyticsEventObserver implements ObserverInterface
     public function __construct(
         private readonly AnalyticsEventRepositoryInterface $adyenAnalyticsRepository,
         private readonly AnalyticsEventFactory $analyticsEventFactory,
+        private readonly PlatformInfo $platformInfo,
         private readonly AdyenLogger $adyenLogger
     ) { }
 
@@ -41,6 +43,7 @@ class AnalyticsEventObserver implements ObserverInterface
             $analyticsEvent->setRelationId($eventData['relationId']);
             $analyticsEvent->setType($eventData['type']);
             $analyticsEvent->setTopic($eventData['topic']);
+            $analyticsEvent->setVersion($this->platformInfo->getModuleVersion());
             if (isset($eventData['message'])) {
                 $analyticsEvent->setMessage($eventData['message']);
             }
