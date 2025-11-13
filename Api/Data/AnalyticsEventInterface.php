@@ -23,6 +23,7 @@ interface AnalyticsEventInterface
     const TYPE = 'type';
     const TOPIC = 'topic';
     const MESSAGE = 'message';
+    const VERSION = 'version';
     const ERROR_TYPE = 'error_type';
     const ERROR_CODE = 'error_code';
     const ERROR_COUNT = 'error_count';
@@ -55,6 +56,10 @@ interface AnalyticsEventInterface
     public function getMessage(): ?string;
 
     public function setMessage(?string $message = null): AnalyticsEventInterface;
+
+    public function getVersion(): string;
+
+    public function setVersion(string $version): AnalyticsEventInterface;
 
     public function getErrorType(): ?string;
 

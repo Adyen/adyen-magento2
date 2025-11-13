@@ -72,6 +72,16 @@ class AnalyticsEvent extends AbstractModel implements AnalyticsEventInterface
         return $this->setData(self::MESSAGE, $message);
     }
 
+    public function getVersion(): string
+    {
+        return $this->getData(self::VERSION);
+    }
+
+    public function setVersion(string $version): AnalyticsEventInterface
+    {
+        return $this->setData(self::VERSION, $version);
+    }
+
     public function getErrorType(): ?string
     {
         return $this->getData(self::ERROR_TYPE);
