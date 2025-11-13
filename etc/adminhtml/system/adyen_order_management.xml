@@ -15,7 +15,7 @@
         <label><![CDATA[Order management]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <comment>
-            <![CDATA[<p>Choose how and when you want to capture payments and cancel orders.</p>]]>
+            <![CDATA[<p>Configure capture settings and define custom order status names for the plugin to assign to your orders.</p>]]>
         </comment>
         <include path="Adyen_Payment::system/adyen_capture_settings.xml"/>
         <include path="Adyen_Payment::system/adyen_order_status.xml"/>

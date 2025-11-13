@@ -161,7 +161,7 @@
         </field>
         <field id="notification_hmac_key_test" translate="label" type="obscure" sortOrder="90" showInDefault="1"
                showInWebsite="1" showInStore="1">
-            <label>HMAC key test</label>
+            <label>Test HMAC key</label>
             <depends>
                 <field id="demo_mode">1</field>
                 <field id="configuration_mode">manual</field>
@@ -170,14 +170,13 @@
             <config_path>payment/adyen_abstract/notification_hmac_key_test</config_path>
             <tooltip>
                 <![CDATA[
-                Set HMAC key at first on Adyen so new webhooks are sent with the key. To learn more about these settings refer to
-                <a target="_blank" href="https://docs.adyen.com/development-resources/webhooks/verify-hmac-signatures">Adyen documentation</a>.
+                The <a target ="_blank" href="https://docs.adyen.com/development-resources/webhooks/secure-webhooks/verify-hmac-signatures">HMAC  key</a> you generated in your test Adyen Customer Area.
                 ]]>
             </tooltip>
         </field>
         <field id="notification_hmac_key_live" translate="label" type="obscure" sortOrder="100" showInDefault="1"
                showInWebsite="1" showInStore="1">
-            <label>HMAC key live</label>
+            <label>Live HMAC key</label>
             <depends>
                 <field id="demo_mode">0</field>
                 <field id="configuration_mode">manual</field>
@@ -186,8 +185,7 @@
             <config_path>payment/adyen_abstract/notification_hmac_key_live</config_path>
             <tooltip>
                 <![CDATA[
-                Set HMAC key at first on Adyen so new webhooks are sent with the key. To learn more about these settings refer to
-                <a target="_blank" href="https://docs.adyen.com/development-resources/webhooks/verify-hmac-signatures">Adyen documentation</a>.
+                The <a target ="_blank" href="https://docs.adyen.com/development-resources/webhooks/secure-webhooks/verify-hmac-signatures">HMAC  key</a> you generated in your live Adyen Customer Area.
                 ]]>
             </tooltip>
         </field>
@@ -200,7 +198,8 @@
             <source_model>Adyen\Payment\Model\Config\Source\CheckoutFrontendRegion</source_model>
             <config_path>payment/adyen_abstract/checkout_frontend_region</config_path>
             <tooltip>
-                <![CDATA[This is the region from where Adyen components will fetch front end resources. It needs to match your store’s region.]]></tooltip>
+                <![CDATA[This is the region from where Adyen components will fetch front end resources. It needs to be the closest region to where your shoppers are located, and
+                match the region of your <a target="_blank" href="https://docs.adyen.com/development-resources/live-endpoints#view-your-live-endpoints>live URL prefix</a>.]]></tooltip>
         </field>
         <field id="charged_currency" translate="label" type="hidden" sortOrder="120" showInDefault="1" showInWebsite="1"
                showInStore="1">
@@ -209,7 +208,7 @@
                 <field id="configuration_mode">manual</field>
             </depends>
             <comment>
-                <![CDATA[Currency used for Adyen payment processing. This setting is hidden to ensure processing of payments in the expected currency (Display by default), see <a target="_blank" href="https://docs.adyen.com/developers/plugins/magento-2/set-up-the-plugin-in-magento#selecting-charged-currency">Adyen docs</a> for more information.]]></comment>
+                <![CDATA[Currency to use for processing payments. This setting is hidden to ensure processing of payments in the expected currency, you can only change it outside of the user interface.<br><ul>Display currency(default): the store view or display currency.</li><li>Global/Website currency : The base currency is used. Depending on how Adobe Commerce is configured, this will be either the Global or the Website currency.</li></ul>]]></comment>
             <source_model>Adyen\Payment\Model\Config\Source\ChargedCurrency</source_model>
             <config_path>payment/adyen_abstract/charged_currency</config_path>
         </field>

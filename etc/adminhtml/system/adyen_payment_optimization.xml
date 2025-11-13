@@ -15,7 +15,7 @@
         <label><![CDATA[Payment optimization]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <comment>
-            <![CDATA[<p>Enhance your payment process and streamline the overall experience for your shoppers.</p>]]>
+            <![CDATA[<p>Enhance the experience of your shoppers by enabling tokenization and risk management features.</p>]]>
         </comment>
         <include path="Adyen_Payment::system/adyen_tokenization.xml"/>
         <include path="Adyen_Payment::system/adyen_risk_management.xml"/>

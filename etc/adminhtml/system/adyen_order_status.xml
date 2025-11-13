@@ -19,14 +19,14 @@
         </comment>
         <field id="order_status" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>Order creation</label>
-            <tooltip>Status given to newly created orders before payment result confirmation via server webhooks from Adyen.</tooltip>
+            <tooltip>Status of orders that have been created before the payment result is confirmed with a webhook from Adyen.</tooltip>
             <source_model>Magento\Sales\Model\Config\Source\Order\Status\NewStatus</source_model>
             <backend_model>Adyen\Payment\Model\Config\Backend\OrderStatus</backend_model>
             <config_path>payment/adyen_abstract/order_status</config_path>
         </field>
         <field id="payment_pre_authorized" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>Payment authorisation</label>
-            <tooltip>Status given to orders after authorisation confirmed by an AUTHORISATION webhook from Adyen. Note: an authorisation status via the result URL does not yet trigger this status.</tooltip>
+            <tooltip>Status of orders for which an AUTHORISATION webhook from Adyen confirmed that the payment amount has been authorized. Note: an authorisation status via the result URL does not trigger this status.</tooltip>
             <source_model>Adyen\Payment\Model\Config\Source\PreAuthorized</source_model>
             <config_path>payment/adyen_abstract/payment_pre_authorized</config_path>
         </field>
