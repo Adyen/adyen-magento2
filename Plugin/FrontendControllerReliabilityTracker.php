@@ -19,10 +19,8 @@ use Adyen\Webhook\Exception\InvalidDataException;
 use Exception;
 use Magento\Framework\App\FrontController;
 use Magento\Framework\App\RequestInterface;
-use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NotFoundException;
 use Throwable;
 
 class FrontendControllerReliabilityTracker
@@ -42,7 +40,7 @@ class FrontendControllerReliabilityTracker
         FrontController $subject,
         callable $proceed,
         RequestInterface $request
-    ): ResultInterface {
+    ) {
         $serviceUri = $request->getPathInfo();
 
         if (str_starts_with($serviceUri, self::ADYEN_CONTROLLER_URI)) {
@@ -52,35 +50,37 @@ class FrontendControllerReliabilityTracker
                 'type' => AnalyticsEventTypeEnum::EXPECTED_START->value,
                 'topic' => $serviceUri
             ]]);
-        }
 
-        try {
-            $returnValue = $proceed($request);
+            try {
+                $returnValue = $proceed($request);
 
-            $this->eventManager->dispatch(AnalyticsEventState::EVENT_NAME, ['data' => [
-                'relationId' => $this->analyticsEventState->getRelationId(),
-                'type' => AnalyticsEventTypeEnum::EXPECTED_END->value,
-                'topic' => $serviceUri
-            ]]);
+                $this->eventManager->dispatch(AnalyticsEventState::EVENT_NAME, ['data' => [
+                    'relationId' => $this->analyticsEventState->getRelationId(),
+                    'type' => AnalyticsEventTypeEnum::EXPECTED_END->value,
+                    'topic' => $serviceUri
+                ]]);
 
-            return $returnValue;
-        } catch (AdyenException|InvalidDataException|AuthenticationException|LocalizedException $exception) {
-            $this->eventManager->dispatch(AnalyticsEventState::EVENT_NAME, ['data' => [
-                'relationId' => $this->analyticsEventState->getRelationId(),
-                'type' => AnalyticsEventTypeEnum::EXPECTED_END->value,
-                'topic' => $serviceUri
-            ]]);
+                return $returnValue;
+            } catch (AdyenException|InvalidDataException|AuthenticationException|LocalizedException $exception) {
+                $this->eventManager->dispatch(AnalyticsEventState::EVENT_NAME, ['data' => [
+                    'relationId' => $this->analyticsEventState->getRelationId(),
+                    'type' => AnalyticsEventTypeEnum::EXPECTED_END->value,
+                    'topic' => $serviceUri
+                ]]);
 
-            throw $exception;
-        } catch (Throwable $exception) {
-            $this->eventManager->dispatch(AnalyticsEventState::EVENT_NAME, ['data' => [
-                'relationId' => $this->analyticsEventState->getRelationId(),
-                'type' => AnalyticsEventTypeEnum::UNEXPECTED_END->value,
-                'topic' => $serviceUri,
-                'message' => $exception->getMessage()
-            ]]);
+                throw $exception;
+            } catch (Throwable $exception) {
+                $this->eventManager->dispatch(AnalyticsEventState::EVENT_NAME, ['data' => [
+                    'relationId' => $this->analyticsEventState->getRelationId(),
+                    'type' => AnalyticsEventTypeEnum::UNEXPECTED_END->value,
+                    'topic' => $serviceUri,
+                    'message' => $exception->getMessage()
+                ]]);
 
-            throw $exception;
+                throw $exception;
+            }
+        } else {
+            return $proceed($request);
         }
     }
 }
