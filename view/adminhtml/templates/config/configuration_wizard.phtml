@@ -47,26 +47,23 @@
 
             function renderAutoConfiguration() {
                 if (configMode[0].value === 'manual') {
-                    let demoMode = $(demoModeSelector).val();
-                    $(demoModeSelector).prop('disabled', false);
+                    const demoMode = $(demoModeSelector).val();
 
                     if (parseInt(demoMode)) {
-                        $(testApiKeySelector).prop('disabled', false);
+                        $(testApiKeySelector).prop('readonly', false);
                     } else {
-                        $(liveApiKeySelector).prop('disabled', false);
+                        $(liveApiKeySelector).prop('readonly', false);
                     }
                     return;
                 }
                 if (configured) {
                     let demoMode = $(demoModeSelector).val();
 
-                    showConfigField($(demoModeSelector), false);
-
                     if (parseInt(demoMode)) {
-                        showConfigField($(testApiKeySelector), false);
+                        $(testApiKeySelector).prop('readonly', true);
                         showConfigField($(testClientKeySelector), false);
                     } else {
-                        showConfigField($(liveApiKeySelector), false);
+                        $(liveApiKeySelector).prop('readonly', true);
                         showConfigField($(liveClientKeySelector), false);
                         showConfigField($(livePrefixUrlSelector), false);
                     }
@@ -85,13 +82,11 @@
             function resetAutoConfiguration() {
                 let demoMode = $(demoModeSelector).val();
 
-                $(demoModeSelector).prop('disabled', false);
-
                 if (parseInt(demoMode)) {
-                    $(testApiKeySelector).prop('disabled', false);
+                    $(testApiKeySelector).prop('readonly', false);
                     hideConfigField($(testClientKeySelector));
                 } else {
-                    $(liveApiKeySelector).prop('disabled', false);
+                    $(liveApiKeySelector).prop('readonly', false);
                     hideConfigField($(liveClientKeySelector));
                     hideConfigField($(livePrefixUrlSelector));
                 }
@@ -250,8 +245,6 @@
                 field.show();
                 if (enable) {
                     field.prop('disabled', false);
-                } else {
-                    field.prop('disabled', true);
                 }
             }
 
