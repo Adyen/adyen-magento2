@@ -57,7 +57,8 @@ define(
                     'paymentMethodsExtraInfo',
                     'adyenPaymentMethod',
                     'isPlaceOrderActionAllowed',
-                    'placeOrderAllowed'
+                    'placeOrderAllowed',
+                    'isAvailable'
                 ]);
 
                 return this;
@@ -132,6 +133,8 @@ define(
                             method: this.getTxVariant()
                         });
                     }
+
+                    this.isAvailable(true);
 
                     fullScreenLoader.stopLoader();
                 }
@@ -251,7 +254,8 @@ define(
                         this.checkoutComponent,
                         this.getTxVariant(),
                         configuration,
-                        containerId
+                        containerId,
+                        this
                     );
 
                     if (this.paymentComponent) {
