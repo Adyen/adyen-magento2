@@ -15,7 +15,6 @@ namespace Adyen\Payment\Model\Webhook;
 use Adyen\Payment\Api\Webhook\WebhookAcceptorInterface;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Order as OrderHelper;
-use Adyen\Payment\Helper\Webhook;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\NotificationFactory;
@@ -24,25 +23,23 @@ use Adyen\Webhook\Exception\HMACKeyValidationException;
 use Adyen\Webhook\Exception\InvalidDataException;
 use Adyen\Webhook\Receiver\NotificationReceiver;
 use Adyen\Webhook\Receiver\HmacSignature;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\SerializerInterface;
-use Throwable;
 
 class StandardWebhookAcceptor implements WebhookAcceptorInterface
 {
     /**
      * @param NotificationFactory $notificationFactory
      * @param AdyenLogger $adyenLogger
-     * @param Webhook $webhookHelper
      * @param Config $configHelper
      * @param NotificationReceiver $notificationReceiver
      * @param HmacSignature $hmacSignature
      * @param SerializerInterface $serializer
      * @param OrderHelper $orderHelper
-    */
+     */
     public function __construct(
         private readonly NotificationFactory $notificationFactory,
         private readonly AdyenLogger $adyenLogger,
-        private readonly Webhook $webhookHelper,
         private readonly Config $configHelper,
         private readonly NotificationReceiver $notificationReceiver,
         private readonly HmacSignature  $hmacSignature,
@@ -52,35 +49,21 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
 
     /**
      * @throws AuthenticationException
-     * @throws InvalidDataException
-     * @throws HMACKeyValidationException
+     * @throws LocalizedException
      */
     public function getNotifications(array $payload): array
     {
         $notifications = [];
         $isLive = $payload['live'];
-        $storeId = null;
 
         foreach ($payload['notificationItems'] as $notificationItemWrapper) {
-            //Get the order here from the increment id
             $order = null;
-            $item = $notificationItemWrapper['NotificationRequestItem'] ?? $notificationItemWrapper;
-            if (empty($item['merchantReference'])) {
-                $this->adyenLogger->addAdyenNotification(
-                    'Missing required field [merchantReference] in token webhook',
-                    $payload
-                );
-                throw new InvalidDataException();
-            }
-            $merchantReference = $item['merchantReference'];
-            try {
-                $order = $this->orderHelper->getOrderByIncrementId($merchantReference);
+            $storeId = null;
+            $item = $notificationItemWrapper['NotificationRequestItem'];
+
+            if (!empty($item['merchantReference'])) {
+                $order = $this->orderHelper->getOrderByIncrementId($item['merchantReference']);
                 $storeId = $order?->getStoreId();
-            } catch (Throwable $e) {
-                $this->adyenLogger->addAdyenNotification(
-                    sprintf('Could not load order for reference %s: %s', $merchantReference, $e->getMessage()),
-                    $payload
-                );
             }
 
             $this->validate($item, $isLive, $storeId);
@@ -94,35 +77,47 @@ class StandardWebhookAcceptor implements WebhookAcceptorInterface
     /**
      * Validates the webhook environment mode and the HMAC signature
      *
-     * @throws InvalidDataException
-     * @throws HMACKeyValidationException
      * @throws AuthenticationException
+     * @throws LocalizedException
      */
     private function validate(array $item, string $isLiveMode, ?int $storeId): void
     {
-        if (!$this->notificationReceiver->validateNotificationMode($isLiveMode, $this->configHelper->isDemoMode($storeId))) {
-            $this->adyenLogger->addAdyenNotification("Invalid environment for the webhook!", $item);
-            throw new InvalidDataException();
+        $isModeValid = $this->notificationReceiver->validateNotificationMode(
+            $isLiveMode,
+            $this->configHelper->isDemoMode($storeId)
+        );
+
+        if (!$isModeValid) {
+            $message = __('Mismatch between Live/Test modes of Magento store and the Adyen platform');
+
+            $this->adyenLogger->addAdyenNotification($message, [
+                'pspReference' => $item['pspReference'],
+                'merchantReference' => $item['merchantReference'] ?? null
+            ]);
+
+            throw new LocalizedException($message);
         }
 
-        $incomingMerchantAccount = $item['merchantAccountCode'];
+        try {
+            $hasHmac = $this->configHelper->getNotificationsHmacKey($storeId) &&
+                $this->hmacSignature->isHmacSupportedEventCode($item);
 
-        if (!$this->webhookHelper->isMerchantAccountValid($incomingMerchantAccount, $item, 'webhook', $storeId)) {
-            $this->adyenLogger->addAdyenNotification(
-                "Merchant account mismatch while handling the webhook!",
-                $item
-            );
-            throw new InvalidDataException();
-        }
+            if ($hasHmac && !$this->notificationReceiver->validateHmac(
+                    $item,
+                    $this->configHelper->getNotificationsHmacKey($storeId)
+                )) {
+                $this->adyenLogger->addAdyenNotification("HMAC validation failed", [
+                    'pspReference' => $item['pspReference'],
+                    'merchantReference' => $item['merchantReference'] ?? null
+                ]);
 
-        $hasHmac = $this->configHelper->getNotificationsHmacKey() &&
-            $this->hmacSignature->isHmacSupportedEventCode($item);
-
-        if ($hasHmac && !$this->notificationReceiver->validateHmac(
-                $item,
-                $this->configHelper->getNotificationsHmacKey()
-            )) {
-            $this->adyenLogger->addAdyenNotification("HMAC validation failed", $item);
+                throw new AuthenticationException();
+            }
+        } catch (InvalidDataException|HMACKeyValidationException $e) {
+            $this->adyenLogger->addAdyenNotification("HMAC validation failed", [
+                'pspReference' => $item['pspReference'],
+                'merchantReference' => $item['merchantReference'] ?? null
+            ]);
 
             throw new AuthenticationException();
         }

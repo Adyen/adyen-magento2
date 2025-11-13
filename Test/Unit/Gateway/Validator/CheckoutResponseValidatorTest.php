@@ -3,6 +3,8 @@
 namespace Adyen\Payment\Test\Unit\Gateway\Validator;
 
 use Adyen\Payment\Gateway\Validator\CheckoutResponseValidator;
+use Adyen\Payment\Helper\OrdersApi;
+use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Payment\Gateway\Data\OrderAdapterInterface;
@@ -18,18 +20,23 @@ class CheckoutResponseValidatorTest extends AbstractAdyenTestCase
     private ResultInterfaceFactory|MockObject $resultFactoryMock;
     private PaymentDataObject $paymentDataObject;
     private AdyenLogger|MockObject $adyenLoggerMock;
+    private OrdersApi|MockObject $ordersApiHelperMock;
 
     protected function setUp(): void
     {
+        $this->resultFactoryMock = $this->createMock(ResultInterfaceFactory::class);
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
         $this->resultFactoryMock = $this->createMock(ResultInterfaceFactory::class);
+        $this->ordersApiHelperMock = $this->createMock(OrdersApi::class);
+
         $orderAdapterMock = $this->createMock(OrderAdapterInterface::class);
         $paymentMock = $this->createMock(Payment::class);
         $this->paymentDataObject = new PaymentDataObject($orderAdapterMock, $paymentMock);
 
         $this->checkoutResponseValidator = new CheckoutResponseValidator(
             $this->resultFactoryMock,
-            $this->adyenLoggerMock
+            $this->adyenLoggerMock,
+            $this->ordersApiHelperMock
         );
     }
 
@@ -240,8 +247,22 @@ class CheckoutResponseValidatorTest extends AbstractAdyenTestCase
 
      public function testValidateForFailedPartialPayments()
      {
+         $ordersResponse = [
+             'pspReference' => 'ORDER_PSP_REF_999',
+             'orderData' => 'encoded_checkout_order_data'
+         ];
+
+         // Create a mock order to be returned by payment->getOrder()
+         $orderMock = $this->createMock(\Magento\Sales\Api\Data\OrderInterface::class);
+
+         // Create a new payment data object with order mocked
+         $orderAdapterMock = $this->createMock(OrderAdapterInterface::class);
+         $paymentMock = $this->createMock(Payment::class);
+         $paymentMock->method('getOrder')->willReturn($orderMock);
+         $paymentDataObject = new PaymentDataObject($orderAdapterMock, $paymentMock);
+
          $validationSubject = [
-             'payment' => $this->paymentDataObject,
+             'payment' => $paymentDataObject,
              'stateObject' => [],
              'response' => [
                  0 => [
@@ -267,12 +288,50 @@ class CheckoutResponseValidatorTest extends AbstractAdyenTestCase
              ]
          ];
 
+         // Mock ordersApi to return checkout API order data
+         $this->ordersApiHelperMock->expects($this->once())
+             ->method('getCheckoutApiOrder')
+             ->willReturn($ordersResponse);
+
+         // Expect cancelOrder to be called since there are error codes and orders response exists
+         $this->ordersApiHelperMock->expects($this->once())
+             ->method('cancelOrder')
+             ->with(
+                 $this->identicalTo($orderMock),
+                 $this->equalTo($ordersResponse['pspReference']),
+                 $this->equalTo($ordersResponse['orderData'])
+             );
+
          $resultMock = $this->createMock(ResultInterface::class);
          $this->resultFactoryMock->expects($this->once())->method('create')
              ->with([
                  'isValid' => false,
                  'failsDescription' => [],
                  'errorCodes' => ['authError_refused']
+             ])
+             ->willReturn($resultMock);
+
+         $this->checkoutResponseValidator->validate($validationSubject);
+     }
+
+     public function testValidateForGiftcardRefused()
+     {
+         $validationSubject = [
+             'payment' => $this->paymentDataObject,
+             'stateObject' => [],
+             'response' => [
+                 0 => [
+                     'resultCode' => PaymentResponseHandler::GIFTCARD_REFUSED
+                 ]
+             ]
+         ];
+
+         $resultMock = $this->createMock(ResultInterface::class);
+         $this->resultFactoryMock->expects($this->once())->method('create')
+             ->with([
+                 'isValid' => false,
+                 'failsDescription' => [],
+                 'errorCodes' => ['authError_giftcard_refused']
              ])
              ->willReturn($resultMock);
 

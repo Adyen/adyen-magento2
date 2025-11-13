@@ -12,10 +12,9 @@
 
 namespace Adyen\Payment\Controller\Webhook;
 
-use Adyen\AdyenException;
 use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
 use Adyen\Payment\Helper\Config;
-use Adyen\Payment\Helper\Webhook;
+use Adyen\Payment\Helper\IpAddress;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Webhook\WebhookAcceptorFactory;
 use Adyen\Payment\Model\Webhook\WebhookAcceptorType;
@@ -28,8 +27,8 @@ use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Controller\ResultInterface;
-use Magento\Framework\Exception\AlreadyExistsException;
-use Magento\Framework\Exception\NotFoundException;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 
 class Index implements ActionInterface
 {
@@ -40,18 +39,20 @@ class Index implements ActionInterface
      * @param AdyenLogger $adyenLogger
      * @param Config $configHelper
      * @param WebhookAcceptorFactory $webhookAcceptorFactory
-     * @param Webhook $webhookHelper
      * @param ResultFactory $resultFactory
      * @param AdyenNotificationRepositoryInterface $adyenNotificationRepository
+     * @param IpAddress $ipAddressHelper
+     * @param RemoteAddress $remoteAddress
      */
     public function __construct(
         private readonly Context $context,
         private readonly AdyenLogger $adyenLogger,
         private readonly Config $configHelper,
         private readonly WebhookAcceptorFactory $webhookAcceptorFactory,
-        private readonly Webhook $webhookHelper,
         private readonly ResultFactory $resultFactory,
-        private readonly AdyenNotificationRepositoryInterface $adyenNotificationRepository
+        private readonly AdyenNotificationRepositoryInterface $adyenNotificationRepository,
+        private readonly IpAddress $ipAddressHelper,
+        private readonly RemoteAddress $remoteAddress
     ) {
         $this->enforceAjaxHeaderForMagento23Compatibility();
     }
@@ -59,22 +60,27 @@ class Index implements ActionInterface
     public function execute(): ResultInterface
     {
         try {
+            if (!$this->ipAddressHelper->isIpAddressValid(
+                explode(',', (string) $this->remoteAddress->getRemoteAddress()))) {
+                throw new AuthenticationException();
+            }
+
             if (!$this->authenticateRequest()) {
                 throw new AuthenticationException();
             }
 
             $rawContent = (string) $this->context->getRequest()->getContent();
             if (empty($rawContent)) {
-                throw new InvalidDataException();
+                throw new InvalidDataException(
+                    __('The webhook payload can not be empty!')
+                );
             }
 
             $rawPayload = json_decode($rawContent, true);
             if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new InvalidDataException();
-            }
-
-            if (!$this->webhookHelper->isIpValid($rawPayload)) {
-                throw new AuthenticationException();
+                throw new InvalidDataException(
+                    __('The webhook payload contains invalid JSON!')
+                );
             }
 
             $webhookType = $this->getWebhookType($rawPayload);
@@ -83,12 +89,7 @@ class Index implements ActionInterface
             $notifications = $acceptor->getNotifications($rawPayload);
 
             foreach ($notifications as $notification) {
-                if ($notification->isDuplicate()) {
-                    $this->adyenLogger->addAdyenResult(sprintf(
-                        "Duplicate notification with pspReference %s has been skipped.",
-                        $notification->getPspReference()
-                    ));
-                } else {
+                if (!$notification->isDuplicate()) {
                     $notification = $this->adyenNotificationRepository->save($notification);
                     $this->adyenLogger->addAdyenResult(
                         sprintf("Notification %s is accepted", $notification->getId())
@@ -96,13 +97,24 @@ class Index implements ActionInterface
                 }
             }
 
-            return $this->prepareResponse('[accepted]', 200);
+            return $this->prepareResponse('[accepted]', 202);
+        } catch (InvalidDataException $e) {
+            $this->adyenLogger->addAdyenResult(
+                __('Notification has been accepted but not been stored. See the notification logs.')
+            );
+            $this->adyenLogger->addAdyenNotification(
+                __('The webhook has been accepted but not been stored: %1', $e->getMessage())
+            );
+
+            return $this->prepareResponse('[accepted]', 202);
+        } catch (LocalizedException $e) {
+            return $this->prepareResponse($e->getMessage(), 400);
         } catch (AuthenticationException $e) {
             return $this->prepareResponse(__('Unauthorized'), 401);
-        } catch (InvalidDataException $e) {
-            return $this->prepareResponse(__('The request does not contain a valid webhook!'), 400);
         } catch (Exception $e) {
-            $this->adyenLogger->addAdyenNotification($e->getMessage(), $rawPayload ?? []);
+            $this->adyenLogger->addAdyenNotification(
+                __('An error occurred while processing the webhook. %1', $e->getMessage())
+            );
 
             return $this->prepareResponse(
                 __('An error occurred while handling this webhook!'),
@@ -161,7 +173,7 @@ class Index implements ActionInterface
         $expectedUsername = $this->configHelper->getNotificationsUsername();
         $expectedPassword = $this->configHelper->getNotificationsPassword();
 
-        if (!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW'])) {
+        if (!isset($expectedUsername, $expectedPassword, $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'])) {
             return false;
         }
 

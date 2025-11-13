@@ -50,6 +50,7 @@
             <config_path>payment/adyen_abstract/webhook_notification_processor</config_path>
             <comment>Use cron or queue (async) to process webhook notifications. Queue performs better if you have AMQP service installed, like RabbitMQ.</comment>
         </field>
+        <!-- TODO:: This field must be configured only on the default level (ECP-9838) -->
         <field id="notifications_ip_check" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Check webhook's IP address</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
