@@ -199,7 +199,7 @@ class SuccessTest extends AbstractAdyenTestCase
         $this->order->method('getIncrementId')->willReturn(123);
 
         // Act
-        $message = $this->block->getPendingMessage();
+        $message = (string) $this->block->getPendingMessage();
 
         // Assert
         $this->assertStringContainsString('123', $message);
