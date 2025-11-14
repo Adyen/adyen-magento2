@@ -17,94 +17,124 @@ use Adyen\Payment\Api\Data\AnalyticsEventInterface;
 use Adyen\Payment\Api\Data\AnalyticsEventStatusEnum;
 use Adyen\Payment\Cron\Providers\AnalyticsEventProviderInterface;
 use Adyen\Payment\Helper\CheckoutAnalytics;
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Logger\AdyenLogger;
 use Exception;
+use Magento\Store\Model\StoreManagerInterface;
 
 class SubmitAnalyticsEvents
 {
-    private ?string $checkoutAttemptId = null;
-
     /**
      * @param AnalyticsEventProviderInterface[] $providers
      * @param CheckoutAnalytics $checkoutAnalyticsHelper
      * @param AnalyticsEventRepositoryInterface $analyticsEventRepository
+     * @param Config $configHelper
+     * @param StoreManagerInterface $storeManager
      * @param AdyenLogger $adyenLogger
      */
     public function __construct(
         private readonly array $providers,
         private readonly CheckoutAnalytics $checkoutAnalyticsHelper,
         private readonly AnalyticsEventRepositoryInterface $analyticsEventRepository,
+        private readonly Config $configHelper,
+        private readonly StoreManagerInterface $storeManager,
         private readonly AdyenLogger $adyenLogger
     ) { }
 
     public function execute(): void
     {
-        try {
-            foreach ($this->providers as $provider) {
-                $analyticsEvents = array_values($provider->provide());
-                $context = $provider->getAnalyticsContext();
-                $numberOfEvents = count($analyticsEvents);
+        $storeId = $this->storeManager->getStore()->getId();
+        $isReliabilityDataCollectionEnabled = $this->configHelper->isReliabilityDataCollectionEnabled($storeId);
 
-                if ($numberOfEvents > 0) {
-                    $checkoutAttemptId = $this->getCheckoutAttemptId();
-                    $maxNumber = CheckoutAnalytics::CONTEXT_MAX_ITEMS[$context];
-                    $subsetOfEvents = [];
+        if ($isReliabilityDataCollectionEnabled) {
+            try {
+                foreach ($this->providers as $provider) {
+                    $analyticsEvents = array_values($provider->provide());
+                    $context = $provider->getAnalyticsContext();
+                    $numberOfEvents = count($analyticsEvents);
 
-                    for ($i = 0; $i < count($analyticsEvents); $i++) {
-                        $event = $analyticsEvents[$i];
-                        $event->setStatus(AnalyticsEventStatusEnum::PROCESSING->value);
-                        $event = $this->analyticsEventRepository->save($event);
+                    if ($numberOfEvents > 0) {
+                        $analyticsEventsGroupedByVersion = $this->groupByVersion($analyticsEvents);
 
-                        $subsetOfEvents[] = $event;
-
-                        if (count($subsetOfEvents) === $maxNumber || (($numberOfEvents - $i + 1) < $maxNumber)) {
-                            $response = $this->checkoutAnalyticsHelper->sendAnalytics(
-                                $checkoutAttemptId,
-                                $subsetOfEvents,
-                                $context
-                            );
-
-                            foreach ($subsetOfEvents as $subsetOfEvent) {
-                                if (isset($response['error'])) {
-                                    $subsetOfEvent->setErrorCount($subsetOfEvent->getErrorCount() + 1);
-
-                                    if ($subsetOfEvent->getErrorCount() === AnalyticsEventInterface::MAX_ERROR_COUNT) {
-                                        $subsetOfEvent->setScheduledProcessingTime();
-                                        $subsetOfEvent->setStatus(AnalyticsEventStatusEnum::DONE->value);
-                                    } else {
-                                        $nextScheduledTime = date(
-                                            'Y-m-d H:i:s',
-                                            time() + (60 * 60 * $subsetOfEvent->getErrorCount() / 2)
-                                        );
-                                        $subsetOfEvent->setScheduledProcessingTime($nextScheduledTime);
-                                        $subsetOfEvent->setStatus(AnalyticsEventStatusEnum::PENDING->value);
-                                    }
-                                } else {
-                                    $subsetOfEvent->setStatus(AnalyticsEventStatusEnum::DONE->value);
-                                }
-
-                                $this->analyticsEventRepository->save($subsetOfEvent);
-                            }
-
+                        foreach ($analyticsEventsGroupedByVersion as $version => $items) {
+                            $checkoutAttemptId = $this->getCheckoutAttemptId($version);
+                            $maxNumber = CheckoutAnalytics::CONTEXT_MAX_ITEMS[$context];
                             $subsetOfEvents = [];
+
+                            for ($i = 0; $i < count($items); $i++) {
+                                $event = $items[$i];
+                                $event->setStatus(AnalyticsEventStatusEnum::PROCESSING->value);
+                                $event = $this->analyticsEventRepository->save($event);
+
+                                $subsetOfEvents[] = $event;
+
+                                if (count($subsetOfEvents) === $maxNumber || ((count($items) - ($i + 1)) === 0)) {
+                                    $response = $this->checkoutAnalyticsHelper->sendAnalytics(
+                                        $checkoutAttemptId,
+                                        $subsetOfEvents,
+                                        $context
+                                    );
+
+                                    foreach ($subsetOfEvents as $subsetOfEvent) {
+                                        if (isset($response['error'])) {
+                                            $subsetOfEvent->setErrorCount(
+                                                $subsetOfEvent->getErrorCount() + 1
+                                            );
+
+                                            if ($subsetOfEvent->getErrorCount() ===
+                                                AnalyticsEventInterface::MAX_ERROR_COUNT) {
+                                                $subsetOfEvent->setScheduledProcessingTime();
+                                                $subsetOfEvent->setStatus(AnalyticsEventStatusEnum::DONE->value);
+                                            } else {
+                                                $nextScheduledTime = date(
+                                                    'Y-m-d H:i:s',
+                                                    time() + (60 * 60 * $subsetOfEvent->getErrorCount() / 2)
+                                                );
+                                                $subsetOfEvent->setScheduledProcessingTime($nextScheduledTime);
+                                                $subsetOfEvent->setStatus(AnalyticsEventStatusEnum::PENDING->value);
+                                            }
+                                        } else {
+                                            $subsetOfEvent->setStatus(AnalyticsEventStatusEnum::DONE->value);
+                                        }
+
+                                        $this->analyticsEventRepository->save($subsetOfEvent);
+                                    }
+
+                                    $subsetOfEvents = [];
+                                }
+                            }
                         }
                     }
                 }
+            } catch (Exception $e) {
+                $this->adyenLogger->error('Error while submitting analytics events: ' . $e->getMessage());
             }
-        } catch (Exception $e) {
-            $this->adyenLogger->error('Error while submitting analytics events: ' . $e->getMessage());
         }
     }
 
     /**
      * @throws AdyenException
      */
-    private function getCheckoutAttemptId(): string
+    private function getCheckoutAttemptId($version): string
     {
-        if (empty($this->checkoutAttemptId)) {
-            $this->checkoutAttemptId = $this->checkoutAnalyticsHelper->initiateCheckoutAttempt();
+        return $this->checkoutAnalyticsHelper->initiateCheckoutAttempt($version);
+    }
+
+    /**
+     * This function groups analytics events by version
+     *
+     * @param array $analyticsEvents
+     * @return array
+     */
+    private function groupByVersion(array $analyticsEvents): array
+    {
+        $groupedAnalyticsEvents = [];
+
+        foreach ($analyticsEvents as $item) {
+            $version = $item->getVersion();
+            $groupedAnalyticsEvents[$version][] = $item;
         }
 
-        return $this->checkoutAttemptId;
+        return $groupedAnalyticsEvents;
     }
 }

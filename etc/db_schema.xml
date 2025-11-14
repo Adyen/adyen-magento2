@@ -134,6 +134,7 @@
     <column xsi:type="varchar" name="type" length="50" nullable="false" comment="Type"/>
     <column xsi:type="varchar" name="topic" length="255" nullable="false" comment="Topic"/>
     <column xsi:type="text" name="message" nullable="true" comment="Message"/>
+    <column xsi:type="varchar" name="version" length="50" nullable="false" comment="Version"/>
     <column xsi:type="varchar" name="error_type" nullable="true" comment="Error Type"/>
     <column xsi:type="varchar" name="error_code" nullable="true" comment="Error Code"/>
     <column xsi:type="int" name="error_count" nullable="false" default="0" comment="Error Count"/>
