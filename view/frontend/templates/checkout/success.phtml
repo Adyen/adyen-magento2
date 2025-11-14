@@ -9,10 +9,9 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-/**
- * @var \Adyen\Payment\Block\Checkout\Success $block
- */
-// Script 1: Reload cart
+/** @var \Adyen\Payment\Block\Checkout\Success $block */
+/** @var \Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer */
+
 $scriptCartReload = <<<script
     require(['Magento_Customer/js/customer-data'], function (customerData) {
         'use strict';
@@ -23,14 +22,41 @@ script;
 
 <?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptCartReload, false) ?>
 
+<?php
+// Show Adyen "payment pending" info & clean up default success message
+if ($block->isIntermediateResult()):
+    $pendingMsgHtml       = $block->escapeHtml($block->getPendingMessage());
+    ?>
+    <div class="adyen-pending-message">
+        <p><?= $pendingMsgHtml ?></p>
+    </div>
+
+    <?php
+    $scriptTitleAndCleanup = <<<JS
+    require(['jquery'], function($) {
+    try {
+        $('.checkout-success')
+            .children('p, h1, .page-title-wrapper, .print, .actions-toolbar')
+            .not('.adyen-pending-message, .adyen-pending-message *')
+            .remove();
+
+        $('.adyen-pending-message').show();
+
+    } catch (e) {}
+});
+JS;
+    ?>
+    <?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptTitleAndCleanup, false) ?>
+<?php endif; ?>
+
 <?php if ($block->renderAction()): ?>
     <div id="ActionContainer"></div>
     <?php
-    $actionJson = json_encode($block->getAction());
-    $locale = $block->escapeJs($block->getLocale());
+    $actionJson  = json_encode($block->getAction());
+    $locale      = $block->escapeJs($block->getLocale());
     $countryCode = $block->escapeJs($block->getOrder()->getBillingAddress()->getCountryId());
     $environment = $block->escapeJs($block->getEnvironment());
-    $clientKey = $block->escapeJs($block->getClientKey());
+    $clientKey   = $block->escapeJs($block->getClientKey());
 
     $scriptAction = <<<script
         require([
@@ -62,22 +88,22 @@ script;
     <div id="donation-container"></div>
 
     <?php
-    $checkoutConfig = $block->getSerializedCheckoutConfig();
+    $checkoutConfig       = $block->getSerializedCheckoutConfig();
     $scriptCheckoutConfig = "window.checkoutConfig = $checkoutConfig;";
     ?>
 
     <?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptCheckoutConfig, false) ?>
 
     <?php
-    $orderId = $block->escapeJs($block->getOrder()->getId());
-    $isLoggedIn = (int) $block->getIsCustomerLoggedIn(); // use int to safely cast for Boolean
+    $orderId       = $block->escapeJs($block->getOrder()->getId());
+    $isLoggedIn    = (int) $block->getIsCustomerLoggedIn(); // safe cast for Boolean
     $maskedQuoteId = $block->escapeJs($block->getMaskedQuoteId());
-    $currency = $block->escapeJs($block->getOrder()->getOrderCurrencyCode());
-    $locale =  $block->escapeJs($block->getLocale());
-    $environment = $block->escapeJs($block->getEnvironment());
-    $clientKey = $block->escapeJs($block->getClientKey());
-    $countryCode = $block->escapeJs($block->getOrder()->getBillingAddress()->getCountryId());
-    $orderAmount = $block->escapeJs($block->getOrderAmount());
+    $currency      = $block->escapeJs($block->getOrder()->getOrderCurrencyCode());
+    $locale        = $block->escapeJs($block->getLocale());
+    $environment   = $block->escapeJs($block->getEnvironment());
+    $clientKey     = $block->escapeJs($block->getClientKey());
+    $countryCode   = $block->escapeJs($block->getOrder()->getBillingAddress()->getCountryId());
+    $orderAmount   = $block->escapeJs($block->getOrderAmount());
 
     $scriptGiving = <<<script
         require([
@@ -120,7 +146,7 @@ script;
                             onDonate: handleOnDonate,
                             onCancel: handleOnCancel
                         };
-                        if(campaign.donation.type == 'roundup') {
+                        if (campaign.donation.type == 'roundup') {
                             donationConfig.commercialTxAmount = '$orderAmount'
                         }
                         adyenGivingComponent = new window.AdyenWeb.Donation(
