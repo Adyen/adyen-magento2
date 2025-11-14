@@ -32,7 +32,7 @@ if ($block->isIntermediateResult()):
     </div>
 
     <?php
-    $scriptTitle = <<<JS
+    $scriptPendingMessage = <<<JS
     require(['jquery'], function($) {
     try {
         $('.adyen-pending-message').show();
@@ -42,7 +42,7 @@ if ($block->isIntermediateResult()):
 });
 JS;
     ?>
-    <?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptTitle, false) ?>
+    <?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptPendingMessage, false) ?>
 <?php endif; ?>
 
 <?php if ($block->renderAction()): ?>
