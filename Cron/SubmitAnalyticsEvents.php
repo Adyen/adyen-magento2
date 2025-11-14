@@ -131,7 +131,7 @@ class SubmitAnalyticsEvents
         $groupedAnalyticsEvents = [];
 
         foreach ($analyticsEvents as $item) {
-            $version = $item['version'];
+            $version = $item->getVersion();
             $groupedAnalyticsEvents[$version][] = $item;
         }
 
