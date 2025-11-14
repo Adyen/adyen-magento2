@@ -227,12 +227,11 @@ class Success extends Template
      * This message will be displayed when the payment is still being processed.
      * The message will contain the order increment id if available.
      *
-     * @return string
      * @throws LocalizedException
      */
-    public function getPendingMessage(): string
+    public function getPendingMessage()
     {
-        return (string)__(
+        return __(
             'We’ve received your order %1, but your payment is still being processed. You’ll get an email once it’s confirmed. If the payment isn’t completed, your order may be cancelled automatically.',
             $this->getOrder()->getIncrementId()
         );

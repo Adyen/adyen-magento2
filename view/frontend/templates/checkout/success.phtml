@@ -32,23 +32,17 @@ if ($block->isIntermediateResult()):
     </div>
 
     <?php
-    $scriptTitleAndCleanup = <<<JS
+    $scriptTitle = <<<JS
     require(['jquery'], function($) {
     try {
-        $('.checkout-success')
-            .children('p, h1, .page-title-wrapper, .print, .actions-toolbar')
-            .not('.adyen-pending-message, .adyen-pending-message *')
-            .remove();
-
         $('.adyen-pending-message').show();
-
     } catch (e) {
         /* no-op: silently ignore cleanup errors */
     }
 });
 JS;
     ?>
-    <?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptTitleAndCleanup, false) ?>
+    <?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptTitle, false) ?>
 <?php endif; ?>
 
 <?php if ($block->renderAction()): ?>
