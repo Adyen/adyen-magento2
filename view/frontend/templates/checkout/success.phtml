@@ -42,7 +42,9 @@ if ($block->isIntermediateResult()):
 
         $('.adyen-pending-message').show();
 
-    } catch (e) {}
+    } catch (e) {
+        /* no-op: silently ignore cleanup errors */
+    }
 });
 JS;
     ?>
@@ -52,11 +54,11 @@ JS;
 <?php if ($block->renderAction()): ?>
     <div id="ActionContainer"></div>
     <?php
-    $actionJson  = json_encode($block->getAction());
-    $locale      = $block->escapeJs($block->getLocale());
+    $actionJson = json_encode($block->getAction());
+    $locale = $block->escapeJs($block->getLocale());
     $countryCode = $block->escapeJs($block->getOrder()->getBillingAddress()->getCountryId());
     $environment = $block->escapeJs($block->getEnvironment());
-    $clientKey   = $block->escapeJs($block->getClientKey());
+    $clientKey = $block->escapeJs($block->getClientKey());
 
     $scriptAction = <<<script
         require([

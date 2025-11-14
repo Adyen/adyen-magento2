@@ -190,10 +190,7 @@ class Success extends Template
         return $this->customerSession->isLoggedIn();
     }
 
-    /**
-     * @return string[]|null
-     */
-    public function getResultCode(): ?string
+    public function getResultCode()
     {
         try {
             return $this->getOrder()->getPayment()->getAdditionalInformation('resultCode');
@@ -231,19 +228,13 @@ class Success extends Template
      * The message will contain the order increment id if available.
      *
      * @return string
+     * @throws LocalizedException
      */
     public function getPendingMessage(): string
     {
-        $incrementId = '';
-        try {
-            $incrementId = (string)$this->getOrder()->getIncrementId();
-        } catch (\Throwable $e) {
-            // ignore
-        }
-
         return (string)__(
             'We’ve received your order %1, but your payment is still being processed. You’ll get an email once it’s confirmed. If the payment isn’t completed, your order may be cancelled automatically.',
-            $incrementId ? "#{$incrementId}" : ''
+            $this->getOrder()->getIncrementId()
         );
     }
 

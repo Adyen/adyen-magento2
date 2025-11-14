@@ -196,13 +196,13 @@ class SuccessTest extends AbstractAdyenTestCase
         $this->setProperty($this->block, 'checkoutSession', $checkoutSession);
 
         // Arrange: order has an increment id
-        $this->order->method('getIncrementId')->willReturn('000000123');
+        $this->order->method('getIncrementId')->willReturn(123);
 
         // Act
         $message = $this->block->getPendingMessage();
 
         // Assert
-        $this->assertStringContainsString('#000000123', $message);
+        $this->assertStringContainsString('123', $message);
         $this->assertStringContainsString('payment is still being processed', $message);
     }
 
