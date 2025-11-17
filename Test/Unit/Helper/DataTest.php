@@ -1159,88 +1159,254 @@ class DataTest extends AbstractAdyenTestCase
         $this->assertArrayNotHasKey(HeaderDataBuilderInterface::EXTERNAL_PLATFORM_FRONTEND_TYPE, $result);
     }
 
-    public function testLogResponse()
+    public function testLogResponseInDemoMode(): void
     {
-        // Set up dummy data
-        $response = ['key' => 'value'];
-        $storeId = 1;
-        $isDemo = true;
+        $storeId = 4;
+        $response = [
+            'pspReference' => 'PSP123',
+            'resultCode' => 'Authorised',
+        ];
 
-        // Mock methods for store manager and config helper
         $this->store->method('getId')->willReturn($storeId);
         $this->storeManager->method('getStore')->willReturn($this->store);
-        $this->configHelper->method('isDemoMode')->with($storeId)->willReturn($isDemo);
 
-        // Assert that the logger was called with the correct parameters based on demo mode
-        $this->adyenLogger->expects($this->once())
-            ->method('info')
-            ->with('Response from Adyen API', ['body' => $response]);
-        // Call the method under test
+        $this->configHelper
+            ->expects($this->once())
+            ->method('isDemoMode')
+            ->with($storeId)
+            ->willReturn(true);
+
+        $this->adyenLogger
+            ->expects($this->once())
+            ->method('addAdyenInfoLog')
+            ->with(
+                'Response from Adyen API',
+                $this->callback(function (array $context) use ($response) {
+                    $this->assertArrayHasKey('body', $context);
+                    $this->assertSame($response, $context['body']);
+                    return true;
+                })
+            );
+
         $this->dataHelper->logResponse($response);
-
     }
 
-    public function testLogResponseWhenDemoModeFalse()
+    public function testLogResponseInLiveModeFiltersBodyAndKeepsWhitelistedKeys(): void
     {
-        // Set up dummy data
-        $storeId = 1;
-        $isDemo = false;
+        $storeId = 5;
+        $response = [
+            'pspReference' => 'PSP123',
+            'uniqueTerminalIds' => ['T001', 'T002'],
+            'resultCode' => 'Authorised',
+            'amount' => ['value' => 1000, 'currency' => 'EUR'],
+        ];
 
-        // Mock methods for store manager and config helper
         $this->store->method('getId')->willReturn($storeId);
         $this->storeManager->method('getStore')->willReturn($this->store);
-        $this->configHelper->method('isDemoMode')->with($storeId)->willReturn($isDemo);
 
-        // Expect filtering of references in the response
-        $filteredResponse = ['reference' => '123'];
-        // Mock the private method filterReferences using ReflectionClass
-        $reflectionClass = new ReflectionClass(Data::class);
-        $method = $reflectionClass->getMethod('filterReferences');
-        $method->setAccessible(true);
-        $filteredResponse = $method->invokeArgs($this->dataHelper, [$filteredResponse]);
+        $this->configHelper
+            ->expects($this->once())
+            ->method('isDemoMode')
+            ->with($storeId)
+            ->willReturn(false);
 
-        $this->adyenLogger->expects($this->once())
-            ->method('info')
-            ->with('Response from Adyen API', ['body' => $filteredResponse]);
-        // Call the method under test
-        $this->dataHelper->logResponse($filteredResponse);
+        $this->adyenLogger
+            ->expects($this->once())
+            ->method('addAdyenInfoLog')
+            ->with(
+                'Response from Adyen API',
+                $this->callback(function (array $context) {
+                    // In live mode, only filtered body is logged
+                    $this->assertArrayHasKey('body', $context);
+
+                    $expectedBody = [
+                        'pspReference' => 'PSP123',
+                        'uniqueTerminalIds' => ['T001', 'T002'],
+                    ];
+
+                    $this->assertSame($expectedBody, $context['body']);
+
+                    return true;
+                })
+            );
+
+        $this->dataHelper->logResponse($response);
     }
 
-    public function testLogRequest()
+    public function testLogResponseInLiveModeWithoutAllowedFieldsOmitsBody(): void
     {
-        // Set up dummy data
-        $request = ['reference' => '123', 'not_reference' => '456'];
+        $storeId = 6;
+        $response = [
+            'resultCode' => 'Authorised',
+            'amount' => ['value' => 1000, 'currency' => 'EUR'],
+        ];
+
+        $this->store->method('getId')->willReturn($storeId);
+        $this->storeManager->method('getStore')->willReturn($this->store);
+
+        $this->configHelper
+            ->expects($this->once())
+            ->method('isDemoMode')
+            ->with($storeId)
+            ->willReturn(false);
+
+        $this->adyenLogger
+            ->expects($this->once())
+            ->method('addAdyenInfoLog')
+            ->with(
+                'Response from Adyen API',
+                $this->callback(function (array $context) {
+                    // Live mode, but no reference / uniqueTerminalIds -> no body
+                    $this->assertArrayNotHasKey('body', $context);
+                    return true;
+                })
+            );
+
+        $this->dataHelper->logResponse($response);
+    }
+
+
+    public function testLogRequestInDemoMode(): void
+    {
+        $storeId = 1;
         $apiVersion = 'v1';
-        $endpoint = 'payment/authorise';
+        $endpoint = '/payments';
+        $request = [
+            'reference' => 'REF123',
+            'amount' => ['value' => 1000, 'currency' => 'EUR'],
+        ];
 
-        // Set up store ID and demo mode
-        $storeId = 1;
-        $isDemo = false;
-
-        // Mock methods for store manager and config helper
         $this->store->method('getId')->willReturn($storeId);
         $this->storeManager->method('getStore')->willReturn($this->store);
-        $this->configHelper->method('isDemoMode')->with($storeId)->willReturn($isDemo);
 
-        $this->configHelper->method('getLiveEndpointPrefix')->willReturn('live_prefix');
-        $reflectionClass = new ReflectionClass(Data::class);
-        $method = $reflectionClass->getMethod('filterReferences');
-        $method->setAccessible(true);
+        $this->configHelper
+            ->expects($this->once())
+            ->method('isDemoMode')
+            ->with($storeId)
+            ->willReturn(true);
 
-        $filteredResponse = $method->invokeArgs($this->dataHelper, [$request]);
+        // In demo mode we expect the full request body, without livePrefix
+        $this->adyenLogger
+            ->expects($this->once())
+            ->method('addAdyenInfoLog')
+            ->with(
+                'Request to Adyen API ' . $endpoint,
+                $this->callback(function (array $context) use ($apiVersion, $request) {
+                    $this->assertArrayHasKey('apiVersion', $context);
+                    $this->assertSame($apiVersion, $context['apiVersion']);
 
-        // Expect info method to be called on adyenLogger with correct context
-        $this->adyenLogger->expects($this->once())
-            ->method('info')
-            ->with('Request to Adyen API payment/authorise', [
-                'apiVersion' => $apiVersion,
-                'livePrefix' => 'live_prefix',
-                'body' => $filteredResponse
-            ]);
+                    // Demo: full body
+                    $this->assertArrayHasKey('body', $context);
+                    $this->assertSame($request, $context['body']);
 
-        // Call the method under test
+                    // No livePrefix in demo mode
+                    $this->assertArrayNotHasKey('livePrefix', $context);
+
+                    return true;
+                })
+            );
+
         $this->dataHelper->logRequest($request, $apiVersion, $endpoint);
     }
+
+    public function testLogRequestInLiveModeFiltersBodyAndAddsLivePrefix(): void
+    {
+        $storeId = 2;
+        $apiVersion = 'v2';
+        $endpoint = '/payments';
+        $livePrefix = 'live_prefix_value';
+
+        $request = [
+            'reference' => 'REF123',
+            'merchantAccount' => 'LiveMerchant',
+            'amount' => ['value' => 1000, 'currency' => 'EUR'],
+        ];
+
+        $this->store->method('getId')->willReturn($storeId);
+        $this->storeManager->method('getStore')->willReturn($this->store);
+
+        $this->configHelper
+            ->expects($this->once())
+            ->method('isDemoMode')
+            ->with($storeId)
+            ->willReturn(false);
+
+        $this->configHelper
+            ->expects($this->once())
+            ->method('getLiveEndpointPrefix')
+            ->with($storeId)
+            ->willReturn($livePrefix);
+
+        $this->adyenLogger
+            ->expects($this->once())
+            ->method('addAdyenInfoLog')
+            ->with(
+                'Request to Adyen API ' . $endpoint,
+                $this->callback(function (array $context) use ($apiVersion, $livePrefix) {
+                    $this->assertSame($apiVersion, $context['apiVersion']);
+                    $this->assertSame($livePrefix, $context['livePrefix']);
+
+                    // Body exists and only contains the reference key
+                    $this->assertArrayHasKey('body', $context);
+                    $this->assertSame(
+                        ['reference' => 'REF123'],
+                        $context['body']
+                    );
+
+                    return true;
+                })
+            );
+
+        $this->dataHelper->logRequest($request, $apiVersion, $endpoint);
+    }
+
+    public function testLogRequestInLiveModeWithoutAllowedFieldsOmitsBody(): void
+    {
+        $storeId = 3;
+        $apiVersion = 'v3';
+        $endpoint = '/connectedTerminals';
+        $livePrefix = 'live_prefix_value';
+
+        // No *reference* keys and no whitelisted extra keys
+        $request = [
+            'merchantAccount' => 'LiveMerchant',
+            'amount' => ['value' => 1000, 'currency' => 'EUR'],
+        ];
+
+        $this->store->method('getId')->willReturn($storeId);
+        $this->storeManager->method('getStore')->willReturn($this->store);
+
+        $this->configHelper
+            ->expects($this->once())
+            ->method('isDemoMode')
+            ->with($storeId)
+            ->willReturn(false);
+
+        $this->configHelper
+            ->expects($this->once())
+            ->method('getLiveEndpointPrefix')
+            ->with($storeId)
+            ->willReturn($livePrefix);
+
+        $this->adyenLogger
+            ->expects($this->once())
+            ->method('addAdyenInfoLog')
+            ->with(
+                'Request to Adyen API ' . $endpoint,
+                $this->callback(function (array $context) use ($apiVersion, $livePrefix) {
+                    $this->assertSame($apiVersion, $context['apiVersion']);
+                    $this->assertSame($livePrefix, $context['livePrefix']);
+
+                    // No allowed keys -> body should not be present at all
+                    $this->assertArrayNotHasKey('body', $context);
+
+                    return true;
+                })
+            );
+
+        $this->dataHelper->logRequest($request, $apiVersion, $endpoint);
+    }
+
 
     public function testPadShopperReference()
     {
@@ -1945,10 +2111,4 @@ class DataTest extends AbstractAdyenTestCase
         $this->assertInstanceOf(PaymentLinksApi::class, $service);
     }
 
-    public function testLogAdyenException()
-    {
-        $this->store->method('getId')->willReturn(1);
-        $this->adyenLogger->expects($this->once())->method('info');
-        $this->dataHelper->logAdyenException(new AdyenException('error message', 123));
-    }
 }
