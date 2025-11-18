@@ -94,6 +94,10 @@ class Data extends AbstractHelper
     const WALLEYB2B = 'walley_b2b';
     const WALLEY = 'walley';
 
+    /**
+     * Extra keys we explicitly allow in logs besides *reference fields
+     */
+    private const LOG_ALLOWED_EXTRA_KEYS = ['uniqueTerminalIds'];
 
     /**
      * @var EncryptorInterface
@@ -1557,30 +1561,52 @@ class Data extends AbstractHelper
     {
         $storeId = $this->storeManager->getStore()->getId();
         $isDemo = $this->configHelper->isDemoMode($storeId);
+
         $context = ['apiVersion' => $apiVersion];
-        if ($isDemo) {
-            $context['body'] = $request;
-        } else {
+
+        if (!$isDemo) {
             $context['livePrefix'] = $this->configHelper->getLiveEndpointPrefix($storeId);
-            $context['body'] = $this->filterReferences($request);
         }
 
-        $this->adyenLogger->info('Request to Adyen API ' . $endpoint, $context);
+        // Reuse shared body-building logic
+        $context = array_merge(
+            $context,
+            $this->buildLogBodyContext($request, $isDemo)
+        );
+
+        $this->adyenLogger->addAdyenInfoLog('Request to Adyen API ' . $endpoint, $context);
     }
 
     public function logResponse(array $response)
     {
         $storeId = $this->storeManager->getStore()->getId();
         $isDemo = $this->configHelper->isDemoMode($storeId);
-        $context = [];
+
+        // Only body-related context here
+        $context = $this->buildLogBodyContext($response, $isDemo);
+
+        $this->adyenLogger->addAdyenInfoLog('Response from Adyen API', $context);
+    }
+
+    /**
+     * Build the "body" part of the logging context depending on demo/live mode.
+     */
+    private function buildLogBodyContext(array $data, bool $isDemo): array
+    {
         if ($isDemo) {
-            $context['body'] = $response;
-        } else {
-            $context['body'] = $this->filterReferences($response);
+            return ['body' => $data];
         }
 
-        $this->adyenLogger->info('Response from Adyen API', $context);
+        $filtered = $this->filterReferences($data);
+
+        // Only add body if any field survived filtering
+        if (!empty($filtered)) {
+            return ['body' => $filtered];
+        }
+
+        return [];
     }
+
 
     public function logAdyenException(AdyenException $e)
     {
@@ -1592,9 +1618,14 @@ class Data extends AbstractHelper
 
     private function filterReferences(array $data): array
     {
-        return array_filter($data, function($value, $key) {
-            // Keep only reference keys, e.g. reference, pspReference, merchantReference etc.
-            return false !== strpos(strtolower($key), 'reference');
+        return array_filter($data, function ($value, $key) {
+            // Keep whitelisted keys (like uniqueTerminalIds)
+            if (in_array($key, self::LOG_ALLOWED_EXTRA_KEYS, true)) {
+                return true;
+            }
+
+            // Keep only keys that contain "reference" (reference, pspReference, merchantReference, etc.)
+            return str_contains(strtolower((string)$key), 'reference');
         }, ARRAY_FILTER_USE_BOTH);
     }
 }
