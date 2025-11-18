@@ -99,7 +99,7 @@ define([
 
             this.adyenVaultPaymentMethod(isTokenAllowed);
 
-            if (isTokenAllowed) {
+            if (paymentMethodsResponse?.paymentMethodsResponse) {
                 fullScreenLoader.stopLoader();
             }
         },
