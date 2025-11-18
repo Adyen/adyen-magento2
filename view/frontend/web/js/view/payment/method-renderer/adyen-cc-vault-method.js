@@ -88,14 +88,14 @@ define([
 
             const tokenBrand = this.details?.type?.toLowerCase();
 
+            let isTokenAllowed;
             if (!tokenBrand) {
-                this.adyenVaultPaymentMethod(true);
-                return;
+                isTokenAllowed = false;
+            } else {
+                isTokenAllowed = storedPaymentMethods.some(
+                    pm => pm.brand?.toLowerCase() === tokenBrand
+                );
             }
-
-            const isTokenAllowed = storedPaymentMethods.some(
-                pm => pm.brand?.toLowerCase() === tokenBrand
-            );
 
             this.adyenVaultPaymentMethod(isTokenAllowed);
 
