@@ -454,7 +454,8 @@ define(
             },
 
             isButtonActive: function() {
-                return paymentComponentStates().getIsPlaceOrderAllowed(this.getMethodCode());
+                return this.isPlaceOrderActionAllowed() &&
+                    paymentComponentStates().getIsPlaceOrderAllowed(this.getMethodCode());
             },
 
             /**
