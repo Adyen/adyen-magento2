@@ -84,19 +84,8 @@ define([
         },
 
         enablePaymentMethod: function (paymentMethodsResponse) {
-            const storedPaymentMethods = paymentMethodsResponse?.paymentMethodsResponse?.storedPaymentMethods || [];
-            const tokenBrand = this.details?.type?.toLowerCase();
-
-            if (!tokenBrand) {
+            if (!!paymentMethodsResponse.paymentMethodsResponse) {
                 this.adyenVaultPaymentMethod(true);
-                return;
-            }
-
-            const isTokenAllowed = storedPaymentMethods.some(pm => pm.brand?.toLowerCase() === tokenBrand);
-
-            this.adyenVaultPaymentMethod(isTokenAllowed);
-
-            if (isTokenAllowed) {
                 fullScreenLoader.stopLoader();
             }
         },
