@@ -83,11 +83,27 @@ define([
         },
 
         enablePaymentMethod: function (paymentMethodsResponse) {
-            if (!!paymentMethodsResponse.paymentMethodsResponse) {
-                this.adyenVaultPaymentMethod(true);
+            const storedPaymentMethods =
+                paymentMethodsResponse?.paymentMethodsResponse?.storedPaymentMethods || [];
+
+            const tokenBrand = this.details?.type?.toLowerCase();
+
+            let isTokenAllowed;
+            if (!tokenBrand) {
+                isTokenAllowed = false;
+            } else {
+                isTokenAllowed = storedPaymentMethods.some(
+                    pm => pm.brand?.toLowerCase() === tokenBrand
+                );
+            }
+
+            this.adyenVaultPaymentMethod(isTokenAllowed);
+
+            if (paymentMethodsResponse?.paymentMethodsResponse) {
                 fullScreenLoader.stopLoader();
             }
         },
+
 
         /*
          * Create generic AdyenCheckout library and mount payment method component
