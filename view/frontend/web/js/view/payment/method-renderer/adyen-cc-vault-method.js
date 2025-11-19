@@ -345,6 +345,21 @@ define([
             return this.details.type;
         },
 
+        getTitle: function (type) {
+            const paymentMethodsObservable = adyenPaymentService.getPaymentMethods();
+            const methods = paymentMethodsObservable?.()?.paymentMethodsResponse?.storedPaymentMethods;
+
+            // Find the stored payment method where brand matches the type
+            const match = methods.find(method => method.brand === type);
+
+            if (match && match.name) {
+                return match.name;
+            }
+
+            // Fallback: capitalize the type
+            return type ? type.charAt(0).toUpperCase() + type.slice(1) : '';
+        },
+
         getCode: function() {
             return window.checkoutConfig.payment.adyenCc.methodCode;
         },
