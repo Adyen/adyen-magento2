@@ -14,7 +14,7 @@ jobs:
       matrix:
         include:
           - php-version: '8.3'
-            magento-version: '2.4.8'
+            magento-version: '2.4.8-p3'
     runs-on:
       group: larger-runners
       labels: ubuntu-latest-8-cores
