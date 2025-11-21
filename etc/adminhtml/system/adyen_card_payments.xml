@@ -16,20 +16,22 @@
         <label><![CDATA[Card payments]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <comment>
-            <![CDATA[<p>Optimize your shopper’s security and elevate their experience with <a href="https://docs.adyen.com/plugins/adobe-commerce/set-up-the-payment-methods-in-adobe-commerce#card-payments" target="_blank">card payments</a>.</p>]]>
+            Configure card payments features like 3D Secure 2, installments, and Click to Pay to optimize your shopper’s experience.
         </comment>
         <field id="has_holder_name" translate="label" type="select" sortOrder="10" showInDefault="1"
                showInWebsite="1" showInStore="1">
-            <label>Show cardholder name field for cards</label>
+            <label>Show cardholder name field</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-            <tooltip>When set to Yes, the input field for cardholder name is shown at checkout. If you support Visa, you must show the cardholder name field.</tooltip>
+            <tooltip>When set to <strong>Yes</strong>, the input field for cardholder name is shown at checkout.</tooltip>
+            <comment>If you support Visa or JCB, it is mandatory show the cardholder name field.</comment>
             <config_path>payment/adyen_abstract/has_holder_name</config_path>
         </field>
         <field id="holder_name_required" translate="label" type="select" sortOrder="15" showInDefault="1"
                showInWebsite="1" showInStore="1">
             <label>Require cardholder name</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-            <tooltip>When set to Yes, the shopper is required to provide the cardholder name. If you support Visa, the cardholder name field must be required.</tooltip>
+            <tooltip>When set to <strong>Yes</strong>, the shopper is required to provide the cardholder name to pay.</tooltip>
+            <comment>If you support Visa or JCB, it is mandatory to collect the cardholder name.</comment>
             <config_path>payment/adyen_abstract/holder_name_required</config_path>
             <depends>
                 <field id="has_holder_name">1</field>
@@ -39,7 +41,7 @@
                showInWebsite="1" showInStore="1">
             <label>Enable installments</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-            <tooltip>When set to Yes, shoppers can choose to pay in installments.</tooltip>
+            <tooltip>When set to <strong>Yes</strong>, shoppers can pay in installments.</tooltip>
             <config_path>payment/adyen_cc/enable_installments</config_path>
         </field>
         <field id="installments" translate="label" sortOrder="25" showInDefault="1" showInWebsite="1"
@@ -48,10 +50,8 @@
             <depends>
                 <field id="enable_installments">1</field>
             </depends>
-            <tooltip>Configure installment rules for each credit card type. Insert the minimum total payment amount from which you want to offer installments and
-                the number of installments you want to offer for each credit card.
-                For example: if the minimum amount is 100 and the number of installments is 4x, the shopper
-                will see the 4x option only if the payment total is higher or equal than 100.
+            <tooltip>
+                <![CDATA[Configure installment rules for each credit card type. Insert the minimum total payment amount from which you want to offer installments and the number of installments you want to offer for each credit card. <br> For example: If the minimum amount is <strong>100</strong> and the number of installments is <strong>4x</strong>, the shopper will see the 4x option only if the payment total is higher than or equal to 100.]]>
             </tooltip>
             <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\Field\Installments</frontend_model>
             <backend_model>Adyen\Payment\Model\Config\Backend\Installments</backend_model>
@@ -61,20 +61,20 @@
             <label>Send Level 2/3 enhanced scheme data</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_abstract/send_level23_data</config_path>
-            <comment>
+            <tooltip>
                 <![CDATA[
-                When set to Yes, <a target="_blank" href="https://docs.adyen.com/payment-methods/cards/enhanced-scheme-data/l2-l3/">level 2/3 enhanced scheme data </a>
+                When set to <strong>Yes</strong>, <a target="_blank" href="https://docs.adyen.com/payment-methods/cards/enhanced-scheme-data/l2-l3/">level 2/3 enhanced scheme data </a>
                 will be sent for credit card payments.
                 ]]>
-            </comment>
+            </tooltip>
         </field>
         <field id="enable_click_to_pay" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1">
             <label>Enable Click to Pay</label>
-            <comment>
+            <tooltip>
                 <![CDATA[
-                When set to Yes, shoppers can pay with <a target="_blank" href="https://docs.adyen.com/payment-methods/cards/click-to-pay">Click to Pay</a>.
+                When set to <strong>Yes</strong>, shoppers can pay with <a target="_blank" href="https://docs.adyen.com/payment-methods/cards/click-to-pay">Click to Pay</a> with Visa and Mastercard for a faster checkout experience.
                 ]]>
-            </comment>
+            </tooltip>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_cc/enable_click_to_pay</config_path>
         </field>
@@ -86,8 +86,7 @@
                 ]]>
             </comment>
             <tooltip>
-                Select Native to perform 3D Secure 2 authentication natively on your website when available. Native authentication may require modifying your Content Security Policy (CSP) to load the 3D Secure 2
-                interfaces. If you do not want to adjust your CSP, select Redirect.
+                Select <strong>Native</strong> to perform 3D Secure 2 authentication on your website when available. Native authentication may require modifying your Content Security Policy (CSP) to load the 3D Secure 2 interfaces. If you do not want to adjust your CSP, select <strong>Redirect</strong>.
             </tooltip>
             <source_model>Adyen\Payment\Model\Config\Source\ThreeDSFlow</source_model>
             <config_path>payment/adyen_cc/threeds_flow</config_path>

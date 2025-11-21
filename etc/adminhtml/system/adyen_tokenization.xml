@@ -15,24 +15,33 @@
         <label><![CDATA[Tokenization]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <fieldset_css>adyen-method-adyen-cc</fieldset_css>
-        <comment><![CDATA[During checkout, shoppers can choose to have their payment details stored in Adyen’s highly secure platform. Adyen handles this process for its customers. Shoppers can then select the stored payment method during checkout.]]></comment>
+        <comment>
+            <![CDATA[During checkout, shoppers can choose to securely store their payment details on the Adyen platform. Shoppers can then select the stored payment method for future purchases.]]>
+        </comment>
         <field id="adyen_tokenization_rpm" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Recurring Payment Types</label>
+            <label>Recurring payment types</label>
             <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\Field\Tokenization</frontend_model>
             <backend_model>Adyen\Payment\Model\Config\Backend\Tokenization</backend_model>
             <config_path>payment/adyen_abstract/recurring_configuration</config_path>
+            <tooltip>
+                Select which payment methods should be available to store payment details (tokenize) for future use.
+            </tooltip>
         </field>
         <field id="require_cvc" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1"
                showInStore="1">
             <label>Require CVC for card payments</label>
-            <tooltip>Default is Yes. Processing recurring card payments without CVC requires additional configuration on our end, reach out to the Adyen support team if you want to set this field to No.</tooltip>
+            <tooltip>
+                <![CDATA[Processing recurring card payments without CVC requires additional configuration on our end, reach out to our support team. Default value is <strong>Yes></strong>.]]>
+            </tooltip>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_cc_vault/require_cvc</config_path>
         </field>
         <field id="allow_mutistore_tokens" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1"
             showInStore="1">
-            <label>Allow multistore tokens</label>
-            <tooltip>Set Yes to enable the usage of shopper tokens from a different store.</tooltip>
+            <label>Allow multistore token usage</label>
+            <tooltip>
+                <![CDATA[Set to <strong>Yes></strong>  to allow shopper tokens (stored payment details) created in one store to be used in other stores within the same Adobe Commerce instance.]]>
+            </tooltip>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_abstract/allow_multistore_tokens</config_path>
         </field>

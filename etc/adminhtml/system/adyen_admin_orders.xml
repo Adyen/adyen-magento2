@@ -19,24 +19,34 @@
             <![CDATA[<p>Allow shoppers to make purchases through payment links or phone calls by contacting your sales team.</p>]]>
         </comment>
         <field id="adyen_pbl_active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Pay by link enabled</label>
+            <label>Enable Pay by Link</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_pay_by_link/active</config_path>
+            <tooltip>
+                Set to <strong>Yes</strong> to enable Pay by Link, allowing you to generate a payment link from the admin panel to send to a shopper.
+            </tooltip>
         </field>
         <field id="adyen_pbl_title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Pay by Link title</label>
             <config_path>payment/adyen_pay_by_link/title</config_path>
+            <tooltip>
+                The title for the Pay by Link payment method that will appear on your checkout page.
+            </tooltip>
         </field>
         <field id="adyen_pbl_days_to_expire" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Default expiration days for Pay by Link</label>
+            <label>Pay by Link default expiration (days)</label>
             <frontend_class>validate-number</frontend_class>
             <config_path>payment/adyen_pay_by_link/days_to_expire</config_path>
-            <tooltip><![CDATA[Can be changed during order placement]]></tooltip>
+            <tooltip>
+                <![CDATA[The default number of days until a generated payment link expires. This value can be changed when creating an order.]]>
+            </tooltip>
         </field>
         <field id="adyen_moto_active" translate="label" type="select" sortOrder="40" showInDefault="1"
                showInWebsite="1" showInStore="1">
-            <label>MOTO enabled</label>
-            <tooltip><![CDATA[Set to Yes to enable MOTO and use this payment method while creating orders in the admin panel.]]></tooltip>
+            <label>Enable back-end orders (MOTO)</label>
+            <tooltip>
+                <![CDATA[Set to <strong>Yes</strong> to enable Mail Order/Telephone Order (MOTO) payments, allowing you to process card payments when creating orders in the admin panel.]]>
+            </tooltip>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_moto/active</config_path>
         </field>

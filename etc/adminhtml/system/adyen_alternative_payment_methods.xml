@@ -16,27 +16,24 @@
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <fieldset_css>adyen-method-adyen-cc</fieldset_css>
         <comment>
-            <![CDATA[<p>Set up alternative payment methods to accept online and <a href="https://docs.adyen.com/get-started-with-adyen/payment-glossary#in-app-payments-or-mobile-payments" target="_blank">in-app payments</a> without cards. These methods include bank transfers, direct debit, e-wallets, mobile payments, and lets you support the local payment methods that are popular in your shopper's regions.</p>]]>
+            <![CDATA[<p>Set up alternative payment methods, such as bank transfers, e-wallets, and local payment methods, to accept online and <a href="https://docs.adyen.com/get-started-with-adyen/payment-glossary#in-app-payments-or-mobile-payments" target="_blank">in-app payments</a> with non-card payment methods.</p>]]>
         </comment>
         <field id="apple_pay_certificate_download" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Apple Pay domain association file</label>
             <frontend_model>Adyen\Payment\Model\Config\Adminhtml\ApplePayDomainAssociationFileButton</frontend_model>
         </field>
         <field id="ratepay_id" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Ratepay Device Ident SId</label>
-            <tooltip>Your unique Ratepay ID provided by a Ratepay integration consultant.</tooltip>
+            <label>Ratepay device identifier</label>
+            <tooltip>Your unique Ratepay ID that is provided to you by your Ratepay contact.</tooltip>
             <config_path>payment/adyen_ratepay/ratepay_id</config_path>
         </field>
         <field id="partial_payments_refund_strategy" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Gift card refunds</label>
+            <label>Refunds for partial gift card payments</label>
             <tooltip>
-                <![CDATA[For gift cards, you can configure how to process refunds for cases where a part of the payment was completed with another payment method.]>
+                <![CDATA[You can configure how to process refunds for orders paid partially with gift cards and another payment method.]]>
             </tooltip>
             <source_model>Adyen\Payment\Model\Config\Source\PartialPaymentRefundStrategy</source_model>
             <config_path>payment/adyen_abstract/partial_payments_refund_strategy</config_path>
-            <comment>
-                <![CDATA[<p>If you support partial payments with gift cards, you can select how to process refunds.</p>]]>
-            </tooltip>
         </field>
         <field id="country_code" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>ISO Country Code (optional)</label>
@@ -44,8 +41,13 @@
             <config_path>payment/adyen_hpp/country_code</config_path>
         </field>
         <field id="shopper_locale" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Language locale (optional)</label>
-            <tooltip>This will override the default shopper locale of the Magento store (e.g. nl_NL). Leave empty to let Magento decide.</tooltip>
+            <label>Shopper locale (optional)</label>
+            <comment>
+                <![CDATA[Leave empty to use the default Adobe Commerce locale. Example: <strong>nl_NL</strong>]]>
+            </comment>
+            <tooltip>
+                The shopper locale determines the language used for the payment method interface. This field overrides the default locale of the Adobe Commerce store.
+            </tooltip>
             <config_path>payment/adyen_hpp/shopper_locale</config_path>
         </field>
         <field id="delivery_days" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">

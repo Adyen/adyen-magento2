@@ -17,7 +17,7 @@
         <fieldset_css>adyen_required_config_settings</fieldset_css>
         <label><![CDATA[Initial Setup]]></label>
         <comment>
-            <![CDATA[<p>Start by connecting your Customer Area to the Adyen Adobe Commerce plugin.</p>]]>
+            <![CDATA[<p>Start by connecting your Adyen Customer Area to the Adobe Commerce plugin.</p>]]>
         </comment>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <field id="configuration_mode" translate="label" type="select" sortOrder="5" showInDefault="1" showInWebsite="1"
@@ -26,6 +26,9 @@
             <source_model>Adyen\Payment\Model\Config\Source\ConfigurationModes</source_model>
             <config_path>payment/adyen_abstract/configuration_mode</config_path>
             <backend_model>Adyen\Payment\Model\Config\Backend\AutoConfiguration</backend_model>
+            <tooltip>
+                <![CDATA[Choose <strong>Automated</strong> if you want required settings to be configured for you automatically by using your API key, select <strong>Manual</strong> to configure all credentials manually.]]>
+            </tooltip>
         </field>
         <field id="demo_mode" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1"
                showInStore="1">
@@ -33,7 +36,7 @@
             <source_model>Adyen\Payment\Model\Config\Source\DemoMode</source_model>
             <config_path>payment/adyen_abstract/demo_mode</config_path>
             <tooltip>
-                <![CDATA[The Test option is only for you to check if everything is working well. After the test, you’ll need to reconfigure to Live option.]]>
+                <![CDATA[Select the environment for transactions. The <strong>Test</strong> environment is for testing and needs to be reconfigured to <strong>Live</strong> to process real payments.]]>
             </tooltip>
         </field>
         <field id="api_key_test" translate="label" type="obscure" sortOrder="20" showInDefault="1" showInWebsite="1"
@@ -42,7 +45,8 @@
                 <field id="demo_mode">1</field>
             </depends>
             <label>Test API key</label>
-            <tooltip>This is the API key that you generated in the Customer Area.
+            <tooltip>
+                <![CDATA[This is the API key that you generated in the test Customer Area > <strong>Developers</strong> > <strong>API credentials</strong>.]]>
             </tooltip>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_abstract/api_key_test</config_path>
@@ -59,7 +63,8 @@
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_abstract/api_key_live</config_path>
             <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding"/>
-            <tooltip>This is the API key that you generated in the Customer Area.
+            <tooltip>
+                <![CDATA[This is the API key that you generated in the live Customer Area > <strong>Developers</strong> > <strong>API credentials</strong>.]]>
             </tooltip>
         </field>
         <field id="client_key_test" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1"
@@ -68,8 +73,10 @@
                 <field id="demo_mode">1</field>
                 <field id="configuration_mode">manual</field>
             </depends>
-            <label>Test Client key</label>
-            <tooltip>This is the Client key that you generated in the Customer Area.</tooltip>
+            <label>Test client key</label>
+            <tooltip>
+                <![CDATA[The client key you generated in your test Customer Area > <strong>Developers</strong> > <strong>API credentials</strong>.]]>
+            </tooltip>
             <config_path>payment/adyen_abstract/client_key_test</config_path>
         </field>
         <field id="client_key_live" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1"
@@ -78,8 +85,8 @@
                 <field id="demo_mode">0</field>
                 <field id="configuration_mode">manual</field>
             </depends>
-            <label>Client key for Live environment</label>
-            <tooltip>This is the Client key that you generated in the Customer Area.</tooltip>
+            <label>Live client key</label>
+            <![CDATA[The client key you generated in your live Customer Area > <strong>Developers</strong> > <strong>API credentials</strong>.]]>
             <config_path>payment/adyen_abstract/client_key_live</config_path>
         </field>
         <field id="merchant_account_manual" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1"
@@ -90,7 +97,7 @@
             </depends>
             <config_path>payment/adyen_abstract/merchant_account</config_path>
             <tooltip>
-                <![CDATA[Merchant account is a sub-account under the company account, which represents your core business entity within Adyen.]]>
+                <![CDATA[Merchant account is a sub-account under your company account that represents your business entity within Adyen.]]>
             </tooltip>
         </field>
         <field id="merchant_account_auto" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1"
@@ -104,7 +111,7 @@
             <config_path>payment/adyen_abstract/merchant_account</config_path>
             <source_model>Adyen\Payment\Model\Config\Source\MerchantAccounts</source_model>
             <tooltip>
-                <![CDATA[Merchant account is a sub-account under the company account, which represents your core business entity  within Adyen.]]>
+                <![CDATA[Merchant account is a sub-account under your company account that represents your business entity within Adyen.]]>
             </tooltip>
         </field>
         <field id="live_endpoint_url_prefix" translate="label" type="text" sortOrder="50" showInDefault="1"
@@ -115,10 +122,10 @@
                 <field id="configuration_mode">manual</field>
             </depends>
             <tooltip>
-                <![CDATA[Your live endpoint URLs has a prefix that is unique to your company account.]]>
+                <![CDATA[This unique prefix is part of your live endpoint URLs and is specific to your company account.]]>
             </tooltip>
             <comment>
-                <![CDATA[Provide the unique live url prefix: <strong>[random]-[company name]</strong> from the Developers => API URLs menu in the Adyen Customer Area. For more information, please check <a href="https://docs.adyen.com/developers/development-resources/live-endpoints#checkoutendpoints">  our documentation</a>.]]>
+                <![CDATA[Provide your unique Live URL prefix: <strong>[random]-[company name]</strong>. Find it in your Customer Area under <strong>Developers</strong> > <strong>API URLs</strong>. For more information, please check <a href="https://docs.adyen.com/developers/development-resources/live-endpoints#checkoutendpoints">  our documentation</a>.]]>
             </comment>
             <config_path>payment/adyen_abstract/live_endpoint_url_prefix</config_path>
         </field>
@@ -140,9 +147,11 @@
                 <field id="configuration_mode">manual</field>
             </depends>
             <tooltip>
-                <![CDATA[This is the username you created under the Developers section in the Customer Area. If you’re using Auto configuration, it will be automatically updated.]]>
+                <![CDATA[The webhook username you created in your Customer Area > <strong>Developers</strong> > <strong>Webhooks</strong> to authenticate webhook requests.]]>
             </tooltip>
-            <comment>Note that if you change your username here, you will also need to update it in the Customer Area</comment>
+            <comment>
+                <![CDATA[This username must match the username you created in the Customer Area.]]>
+            </comment>
             <config_path>payment/adyen_abstract/notification_username</config_path>
             <backend_model>Adyen\Payment\Model\Config\Backend\WebhookCredentials</backend_model>
         </field>
@@ -155,9 +164,12 @@
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_abstract/notification_password</config_path>
             <tooltip>
-                <![CDATA[This is the password you created the Developers section in the Customer Area. If you’re using Auto configuration, it will be automatically updated.]]>
+                <![CDATA[The webhook password you created in your Customer Area > <strong>Developers</strong> > <strong>Webhooks</strong> to authenticate webhook requests.]]>
             </tooltip>
-            <comment>Note that if you change your password here, you will also need to update it in the Customer Area</comment>
+            <comment>
+                <![CDATA[This password must match the password you created in the Customer Area.]]>
+            </comment>
+
         </field>
         <field id="notification_hmac_key_test" translate="label" type="obscure" sortOrder="90" showInDefault="1"
                showInWebsite="1" showInStore="1">
@@ -170,7 +182,7 @@
             <config_path>payment/adyen_abstract/notification_hmac_key_test</config_path>
             <tooltip>
                 <![CDATA[
-                The <a target ="_blank" href="https://docs.adyen.com/development-resources/webhooks/secure-webhooks/verify-hmac-signatures">HMAC  key</a> you generated in your test Adyen Customer Area.
+                The <a target ="_blank" href="https://docs.adyen.com/development-resources/webhooks/secure-webhooks/verify-hmac-signatures">HMAC  key</a> you generated in your test Customer Area to secure your webhooks.
                 ]]>
             </tooltip>
         </field>
@@ -185,7 +197,7 @@
             <config_path>payment/adyen_abstract/notification_hmac_key_live</config_path>
             <tooltip>
                 <![CDATA[
-                The <a target ="_blank" href="https://docs.adyen.com/development-resources/webhooks/secure-webhooks/verify-hmac-signatures">HMAC  key</a> you generated in your live Adyen Customer Area.
+                The <a target ="_blank" href="https://docs.adyen.com/development-resources/webhooks/secure-webhooks/verify-hmac-signatures">HMAC  key</a> you generated in your live Customer Area to secure your webhooks.
                 ]]>
             </tooltip>
         </field>
@@ -198,8 +210,8 @@
             <source_model>Adyen\Payment\Model\Config\Source\CheckoutFrontendRegion</source_model>
             <config_path>payment/adyen_abstract/checkout_frontend_region</config_path>
             <tooltip>
-                <![CDATA[This is the region from where Adyen components will fetch front end resources. It needs to be the closest region to where your shoppers are located, and
-                match the region of your <a target="_blank" href="https://docs.adyen.com/development-resources/live-endpoints#view-your-live-endpoints>live URL prefix</a>.]]></tooltip>
+                <![CDATA[Select the region closest to your shoppers. This region must match the region of your <a target="_blank" href="https://docs.adyen.com/development-resources/live-endpoints#view-your-live-endpoints>live endpoint URL prefix</a>.]]>
+            </tooltip>
         </field>
         <field id="charged_currency" translate="label" type="hidden" sortOrder="120" showInDefault="1" showInWebsite="1"
                showInStore="1">

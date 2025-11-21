@@ -13,9 +13,9 @@
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
     <group id="adyen_payment_methods" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1"
            showInStore="1">
-        <label><![CDATA[Payment methods]]></label>
+        <label><![CDATA[Payment methods configuration]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-        <comment> <![CDATA[<p>By enabling your payment methods here, we can automatically retrieve the payment preferences already defined in your Customer Area.</p>]]>
+        <comment> <![CDATA[<p>Enable payment methods here, so we can automatically retrieve the payment methods you enabled in your Customer Area.</p>]]>
         </comment>
         <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1"
                showInStore="1">
