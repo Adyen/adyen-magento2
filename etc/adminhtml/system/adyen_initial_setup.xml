@@ -27,7 +27,7 @@
             <config_path>payment/adyen_abstract/configuration_mode</config_path>
             <backend_model>Adyen\Payment\Model\Config\Backend\AutoConfiguration</backend_model>
             <tooltip>
-                <![CDATA[Choose <strong>Automated</strong> if you want required settings to be configured for you automatically by using your API key, select <strong>Manual</strong> to configure all credentials manually.]]>
+                <![CDATA[Choose <b>Automated</b> if you want required settings to be configured for you automatically by using your API key, select <b>Manual</b> to configure all credentials manually.]]>
             </tooltip>
         </field>
         <field id="demo_mode" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1"
@@ -36,7 +36,7 @@
             <source_model>Adyen\Payment\Model\Config\Source\DemoMode</source_model>
             <config_path>payment/adyen_abstract/demo_mode</config_path>
             <tooltip>
-                <![CDATA[Select the environment for transactions. The <strong>Test</strong> environment is for testing and needs to be reconfigured to <strong>Live</strong> to process real payments.]]>
+                <![CDATA[Select the environment for transactions. The <b>Test</b> environment is for testing and needs to be reconfigured to <b>Live</b> to process real payments.]]>
             </tooltip>
         </field>
         <field id="api_key_test" translate="label" type="obscure" sortOrder="20" showInDefault="1" showInWebsite="1"
@@ -46,7 +46,7 @@
             </depends>
             <label>Test API key</label>
             <tooltip>
-                <![CDATA[This is the API key that you generated in the test Customer Area > <strong>Developers</strong> > <strong>API credentials</strong>.]]>
+                <![CDATA[This is the API key that you generated in the test Customer Area > <b>Developers</b> > <b>API credentials</b>.]]>
             </tooltip>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_abstract/api_key_test</config_path>
@@ -64,7 +64,7 @@
             <config_path>payment/adyen_abstract/api_key_live</config_path>
             <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding"/>
             <tooltip>
-                <![CDATA[This is the API key that you generated in the live Customer Area > <strong>Developers</strong> > <strong>API credentials</strong>.]]>
+                <![CDATA[This is the API key that you generated in the live Customer Area > <b>Developers</b> > <b>API credentials</b>.]]>
             </tooltip>
         </field>
         <field id="client_key_test" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1"
@@ -75,7 +75,7 @@
             </depends>
             <label>Test client key</label>
             <tooltip>
-                <![CDATA[The client key you generated in your test Customer Area > <strong>Developers</strong> > <strong>API credentials</strong>.]]>
+                <![CDATA[The client key you generated in your test Customer Area > <b>Developers</b> > <b>API credentials</b>.]]>
             </tooltip>
             <config_path>payment/adyen_abstract/client_key_test</config_path>
         </field>
@@ -86,7 +86,7 @@
                 <field id="configuration_mode">manual</field>
             </depends>
             <label>Live client key</label>
-            <![CDATA[The client key you generated in your live Customer Area > <strong>Developers</strong> > <strong>API credentials</strong>.]]>
+            <![CDATA[The client key you generated in your live Customer Area > <b>Developers</b> > <b>API credentials</b>.]]>
             <config_path>payment/adyen_abstract/client_key_live</config_path>
         </field>
         <field id="merchant_account_manual" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1"
@@ -125,7 +125,7 @@
                 <![CDATA[This unique prefix is part of your live endpoint URLs and is specific to your company account.]]>
             </tooltip>
             <comment>
-                <![CDATA[Provide your unique Live URL prefix: <strong>[random]-[company name]</strong>. Find it in your Customer Area under <strong>Developers</strong> > <strong>API URLs</strong>. For more information, please check <a href="https://docs.adyen.com/developers/development-resources/live-endpoints#checkoutendpoints">  our documentation</a>.]]>
+                <![CDATA[Provide your unique Live URL prefix: <b>[random]-[company name]</b>. Find it in your Customer Area under <b>Developers</b> > <b>API URLs</b>. For more information, please check <a href="https://docs.adyen.com/developers/development-resources/live-endpoints#checkoutendpoints">  our documentation</a>.]]>
             </comment>
             <config_path>payment/adyen_abstract/live_endpoint_url_prefix</config_path>
         </field>
@@ -147,7 +147,7 @@
                 <field id="configuration_mode">manual</field>
             </depends>
             <tooltip>
-                <![CDATA[The webhook username you created in your Customer Area > <strong>Developers</strong> > <strong>Webhooks</strong> to authenticate webhook requests.]]>
+                <![CDATA[The webhook username you created in your Customer Area > <b>Developers</b> > <b>Webhooks</b> to authenticate webhook requests.]]>
             </tooltip>
             <comment>
                 <![CDATA[This username must match the username you created in the Customer Area.]]>
@@ -164,7 +164,7 @@
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_abstract/notification_password</config_path>
             <tooltip>
-                <![CDATA[The webhook password you created in your Customer Area > <strong>Developers</strong> > <strong>Webhooks</strong> to authenticate webhook requests.]]>
+                <![CDATA[The webhook password you created in your Customer Area > <b>Developers</b> > <b>Webhooks</b> to authenticate webhook requests.]]>
             </tooltip>
             <comment>
                 <![CDATA[This password must match the password you created in the Customer Area.]]>

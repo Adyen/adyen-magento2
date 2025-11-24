@@ -15,18 +15,20 @@
         <label><![CDATA[Order status]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <comment>
-            <![CDATA[<p>Define all different statuses for your shoppers’ orders. This provides better understanding of the order’s progress and ensure a smooth experience. </p>]]>
+            <![CDATA[<p>Define shopper actions or payment statuses that trigger custom statuses that the plugin assigns to your orders. This provides better understanding of the order’s progress and ensures a smooth experience.</p>]]>
         </comment>
         <field id="order_status" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>Order creation</label>
-            <tooltip>Status of orders that have been created before the payment result is confirmed with a webhook from Adyen.</tooltip>
+            <tooltip>
+                The status assigned to orders that have been created, but the payment result has not yet been confirmed by a webhook from Adyen.
+            </tooltip>
             <source_model>Magento\Sales\Model\Config\Source\Order\Status\NewStatus</source_model>
             <backend_model>Adyen\Payment\Model\Config\Backend\OrderStatus</backend_model>
             <config_path>payment/adyen_abstract/order_status</config_path>
         </field>
         <field id="payment_pre_authorized" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>Payment authorisation</label>
-            <tooltip>Status of orders for which an AUTHORISATION webhook from Adyen confirmed that the payment amount has been authorized. Note: an authorisation status via the result URL does not trigger this status.</tooltip>
+            <tooltip>The status for orders for which an AUTHORISATION webhook from Adyen confirmed that the payment amount has been authorized. Note: an authorisation status via the result URL does not trigger this status.</tooltip>
             <source_model>Adyen\Payment\Model\Config\Source\PreAuthorized</source_model>
             <config_path>payment/adyen_abstract/payment_pre_authorized</config_path>
         </field>
@@ -38,13 +40,17 @@
         </field>
         <field id="pending_status" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Pending bank transfer/SEPA orders</label>
-            <tooltip>By default, Adyen does not inform your Magento store about pending payments. If you want these webhooks to be received, Go to Adyen Customer Area => Server Communication and add BankTransfer Pending Webhook and Direct-Debit Pending Webhook.</tooltip>
+            <tooltip>
+                <![CDATA[By default, Adyen does not inform your Adobe Commerce store about pending payments. If you want to receive these webhooks, go to the Adyen Customer Area and set up a <a href="https://docs.adyen.com/development-resources/webhooks/configure-and-manage" target="_blank">PENDING webhook</a> by enabling the <b>BankTransfer pending webhook</b> and the <b>Direct-debit pending webhook</b>.]]>
+            </tooltip>
             <source_model>Magento\Sales\Model\Config\Source\Order\Status\NewStatus</source_model>
             <config_path>payment/adyen_abstract/pending_status</config_path>
         </field>
         <field id="payment_authorized" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>Payment confirmed</label>
-            <tooltip>Status given to orders after capture result is confirmed by an AUTHORISATION webhook (if capture mode = immediate) or a CAPTURE webhook (if capture mode = manual capture) from Adyen.</tooltip>
+            <tooltip>
+                <![CDATA[Status assigned to orders after the capture result is confirmed with a webhook. For immediate captures, the <b>AUTHORISATION</b> webhook confirms a capture. For manual captures, the result is confirmed with a <b>CAPTURE</b> webhook.]]>
+            </tooltip>
             <source_model>Adyen\Payment\Model\Config\Source\PaymentConfirmed</source_model>
             <config_path>payment/adyen_abstract/payment_authorized</config_path>
         </field>
@@ -56,7 +62,7 @@
         </field>
         <field id="send_email_bank_sepa_on_pending" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Send order confirmation email for Bank Transfer/SEPA</label>
-            <tooltip>Send a confirmation mail after Bank Tranfer/SEPA is placed (not yet paid). If you want these webhooks to be received, Go to Adyen Customer Area => Server Communication and add BankTransfer Pending Webhook and Direct-Debit Pending Webhook.</tooltip>
+            <tooltip>If you enabled the <b>PENDING</b> webhook for transfer and SEPA payments, set to <b>Yes</b> to send a confirmation email to the shopper after the order is placed, while it is pending payment. </tooltip>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_abstract/send_email_bank_sepa_on_pending</config_path>
         </field>

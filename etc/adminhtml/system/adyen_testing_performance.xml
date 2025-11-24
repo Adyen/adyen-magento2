@@ -18,20 +18,26 @@
             <![CDATA[<p>Optimize your testing and performance measures to ensure Adyen’s plugin functionality.</p>]]>
         </comment>
         <field id="ignore_refund_notification" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Ignore refund webhook</label>
-            <tooltip>If the refund is done on the Adyen Platform it will send a refund webhook to Magento which automatically creates a credit memo. If you set this setting to 'Yes', this will not happen because it will not process any of the REFUND webhook that is received.</tooltip>
+            <label>Ignore REFUND webhook</label>
+            <tooltip>
+                <![CDATA[If a refund is processed in the Adyen Customer Area, it triggers a REFUND webhook to Adobe Commerce, which automatically creates a credit memo. Set to <b>Yes</b> to prevent the plugin from processing the REFUND webhook, stopping the automatic credit memo creation.]]>
+            </tooltip>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_abstract/ignore_refund_notification</config_path>
         </field>
         <field id="ignore_dispute_notification" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Ignore dispute webhook</label>
-            <tooltip>Setting to Yes will not process any of the DISPUTE notifications received.</tooltip>
+            <label>Ignore DISPUTE webhook</label>
+            <tooltip>
+                <![CDATA[Set to <b>Yes</b> to prevent the plugin from processing any DISPUTE webhooks received.]]>
+            </tooltip>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_abstract/ignore_dispute_notification</config_path>
         </field>
         <field id="ignore_expire_webhook" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Ignore expire webhook</label>
-            <tooltip>Setting to Yes will not process any of the EXPIRE webhook received.</tooltip>
+            <label>Ignore EXPIRE webhook</label>
+            <tooltip>
+                <![CDATA[Set to <b>Yes</b> to prevent the plugin from processing any EXPIRE webhooks received.]]>
+            </tooltip>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_abstract/ignore_expire_webhook</config_path>
         </field>
@@ -41,6 +47,9 @@
             <depends>
                 <field id="configuration_mode">manual</field>
             </depends>
+            <tooltip>
+                <![CDATA[Set to <b>Yes</b> to record detailed debug information in the Adyen logs (var/log/adyen/debug.log). This is useful for troubleshooting but should be disabled in the production environment.]]>
+            </tooltip>
             <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
             <config_path>payment/adyen_abstract/debug</config_path>
         </field>
@@ -48,19 +57,18 @@
             <label>Webhook processor</label>
             <source_model>Adyen\Payment\Model\Config\Source\NotificationProcessor</source_model>
             <config_path>payment/adyen_abstract/webhook_notification_processor</config_path>
-            <comment>Use cron or queue (async) to process webhook notifications. Queue performs better if you have AMQP service installed, like RabbitMQ.</comment>
+            <comment>Use cron or queue (async) to process webhook notifications. Queue performs better if you have an AMQP service installed, like RabbitMQ.</comment>
         </field>
         <!-- TODO:: This field must be configured only on the default level (ECP-9838) -->
         <field id="notifications_ip_check" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Check webhook's IP address</label>
+            <label>Validate webhook IP address</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_abstract/notifications_ip_check</config_path>
-            <comment>
+            <tooltip>
                 <![CDATA[
-                If enabled webhooks will be accepted only when the IP address matches Adyen's servers. To learn more about these settings refer to
-                <a target="_blank" href="https://docs.adyen.com/plugins/magento-2/set-up-the-plugin-in-magento">Adyen documentation</a>.
+                If enabled, webhooks will be accepted only when the sending IP address matches one of Adyen's known server ranges to enhance security.
                 ]]>
-            </comment>
+            </tooltip>
         </field>
         <field id="remove_processed_webhooks" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0">
             <label>Remove processed webhooks</label>
@@ -69,8 +77,7 @@
             <config_path>payment/adyen_abstract/remove_processed_webhooks</config_path>
             <comment model="Adyen\Payment\Model\Comment\WebhookRemovalNotice"/>
             <tooltip>
-                Processed webhooks older than a configured number of days will be removed from the database by a cronjob if this feature is enabled.
-                The default value is 90 days and this can be configured in the `Number of days to remove processed webhooks` configuration field.
+                When enabled, processed webhooks older than a configured number of days will be removed from the database by a cronjob.
             </tooltip>
         </field>
         <field id="processed_webhook_removal_time" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="0" showInStore="0">
@@ -81,7 +88,7 @@
             <frontend_class>validate-number</frontend_class>
             <config_path>payment/adyen_abstract/processed_webhook_removal_time</config_path>
             <tooltip>
-                This field determines the number of days after which processed webhooks will be removed by a cronjob. Note: Setting less than a reasonable number of days might reduce the desired visibility of webhooks in the Webhooks Overview.
+                The number of days after which processed webhooks will be removed by a cronjob. The default is 90 days. Setting a low number may reduce the desired visibility of webhooks in the webhooks overview.
             </tooltip>
         </field>
     </group>

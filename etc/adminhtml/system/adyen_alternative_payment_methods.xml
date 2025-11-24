@@ -43,7 +43,7 @@
         <field id="shopper_locale" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Shopper locale (optional)</label>
             <comment>
-                <![CDATA[Leave empty to use the default Adobe Commerce locale. Example: <strong>nl_NL</strong>]]>
+                <![CDATA[Leave empty to use the default Adobe Commerce locale. Example: <b>nl_NL</b>]]>
             </comment>
             <tooltip>
                 The shopper locale determines the language used for the payment method interface. This field overrides the default locale of the Adobe Commerce store.

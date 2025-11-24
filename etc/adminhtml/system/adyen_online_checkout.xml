@@ -14,41 +14,53 @@
     <group id="adyen_online_checkout" translate="label" type="text" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1">
         <label><![CDATA[Online checkout]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-        <comment><![CDATA[<p>Use these components to establish a more pleasant experience and stimulate brand recognition among shoppers during the checkout process.</p>]]></comment>
+        <comment>
+            <![CDATA[<p>Configure the appearance, routing, and behavior of the plugin during the checkout step, including settings for headless integrations.</p>]]>
+        </comment>
         <field id="title_renderer" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Payment method rendering in checkout</label>
-            <tooltip>Determines whether the payment methods will be displayed with its logo or just the name.</tooltip>
+            <tooltip>
+                Determines whether payment methods are displayed with their logo and name, or just the name.
+            </tooltip>
             <source_model>Adyen\Payment\Model\Config\Source\RenderMode</source_model>
             <config_path>payment/adyen_abstract/title_renderer</config_path>
         </field>
         <field id="return_path" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
             <label>Checkout return path</label>
             <config_path>payment/adyen_abstract/return_path</config_path>
-            <tooltip><![CDATA[The path the customer will be redirected to when payment was <b>not</b> successful. Default is <i>checkout/cart</i>.]]></tooltip>
+            <tooltip><![CDATA[The path the customer will be redirected to if a payment was not successful. Default is <b>checkout/cart</b>.]]></tooltip>
         </field>
         <field id="house_number_street_line" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
             <label>House number in checkout (address street field)</label>
             <config_path>payment/adyen_abstract/house_number_street_line</config_path>
             <source_model>Adyen\Payment\Model\Config\Source\HouseNumberStreetLine</source_model>
-            <tooltip><![CDATA[Select which of the address lines will be the house number. Make sure to enable enough "Number of Lines in a Street Address" in Magento's Customer Configuration]]></tooltip>
+            <tooltip>
+                <![CDATA[Select which of the address lines will be the house number. Make sure to enable enough "Number of Lines in a Street Address" in Magento's Customer Configuration]]>
+            </tooltip>
         </field>
         <group id="adyen_headless_integration" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
             <label><![CDATA[Headless integration]]></label>
             <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-            <comment><![CDATA[<p>With headless integration, you can build your front end using Adyen’s pre-configured back end.<br><a href="https://docs.adyen.com/plugins/adobe-commerce/headless-integration" target="_blank">Learn more about headless integration</a></p>]]></comment>
+            <comment><![CDATA[<p>With an headless integration, you build your own front end for your checkout flow and use the plugin's back end for processing the payment. These fields are only relevant if you have a headless integration. <br><a href="https://docs.adyen.com/plugins/adobe-commerce/headless-integration" target="_blank">Learn more about the headless integration</a></p>]]></comment>
             <field id="payments_origin_url" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Payment Origin URL</label>
-                <tooltip>Only relevant if you process payments from an external URL different to that of Magento</tooltip>
+                <tooltip>
+                    The default value is the Adobe Commerce store base URL. If you are using a separate front-end (headless) application, set this to the origin URL of the page where the 3D Secure Component is loaded.
+                </tooltip>
                 <config_path>payment/adyen_abstract/payment_origin_url</config_path>
             </field>
             <field id="payments_return_url" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Payment Return URL</label>
-                <tooltip>The URL that redirect payment methods will return to after the shopper completes a payment in a 3rd party gateway. Default return URL endpoint is {YOUR_MAGENTO_BASE_URL}/adyen/return</tooltip>
+                <label>Return URL for redirect payments</label>
+                <tooltip>
+                    <![CDATA[The URL that the shopper is redirected to after the shopper completes a payment in a third-party gateway. The default return URL endpoint is <b>{YOUR_MAGENTO_BASE_URL}/adyen/return</b>.]]>
+                </tooltip>
                 <config_path>payment/adyen_abstract/payment_return_url</config_path>
             </field>
             <field id="custom_success_redirect_path" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Custom Success Redirect Path</label>
-                <tooltip>Only relevant if the success path of your headless integration is not "checkout/onepage/success". If set, this will add the Order Increment ID as a query parameter.</tooltip>
+                <label>Custom success redirect path</label>
+                <tooltip>
+                    <![CDATA[Only relevant if the success path of your headless integration is not <b>checkout/onepage/success</b>. If set, the Order Increment ID will be added as a query parameter.]]>
+                </tooltip>
                 <config_path>payment/adyen_abstract/custom_success_redirect_path</config_path>
             </field>
         </group>

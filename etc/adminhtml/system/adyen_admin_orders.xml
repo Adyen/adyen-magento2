@@ -23,7 +23,7 @@
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_pay_by_link/active</config_path>
             <tooltip>
-                Set to <strong>Yes</strong> to enable Pay by Link, allowing you to generate a payment link from the admin panel to send to a shopper.
+                Set to <b>Yes</b> to enable Pay by Link, allowing you to generate a payment link from the admin panel to send to a shopper.
             </tooltip>
         </field>
         <field id="adyen_pbl_title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -45,7 +45,7 @@
                showInWebsite="1" showInStore="1">
             <label>Enable back-end orders (MOTO)</label>
             <tooltip>
-                <![CDATA[Set to <strong>Yes</strong> to enable Mail Order/Telephone Order (MOTO) payments, allowing you to process card payments when creating orders in the admin panel.]]>
+                <![CDATA[Set to <b>Yes</b> to enable Mail Order/Telephone Order (MOTO) payments, allowing you to process card payments when creating orders in the admin panel.]]>
             </tooltip>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_moto/active</config_path>

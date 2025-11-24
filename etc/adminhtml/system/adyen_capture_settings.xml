@@ -21,21 +21,21 @@
         <field id="capture_mode" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Capture delay</label>
             <tooltip>
-                <![CDATA[Set to <strong>Immediate</strong> (default) to automatically capture funds immediately after authorization. Set to <strong>Manual</strong> if you want to capture funds later. This setting affects cards and alternative payment methods, but not open invoice payment methods.]]>
+                <![CDATA[Set to <b>Immediate</b> (default) to automatically capture funds immediately after authorization. Set to <b>Manual</b> if you want to capture funds later. This setting affects cards and alternative payment methods, but not open invoice payment methods.]]>
             </tooltip>
             <source_model>Adyen\Payment\Model\Config\Source\CaptureMode</source_model>
             <config_path>payment/adyen_abstract/capture_mode</config_path>
         </field>
         <field id="capture_for_openinvoice" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Capture for open invoice payment methods</label>
-            <tooltip>Applicable for Klarna, Afterpay Touch, Ratepay, FacilyPay/Oney, Affirm, Clearpay, Zip and PayBright. Open invoice methods are set to manual capture by default. To use automatic capture, contact our support team. If you want to capture after goods are shipped, select <strong>On shipment</strong>.</tooltip>
+            <tooltip>Applicable for Klarna, Afterpay Touch, Ratepay, FacilyPay/Oney, Affirm, Clearpay, Zip and PayBright. Open invoice methods are set to manual capture by default. To use automatic capture, contact our support team. If you want to capture after goods are shipped, select <b>On shipment</b>.</tooltip>
             <source_model>Adyen\Payment\Model\Config\Source\OpenInvoiceCaptureMode</source_model>
             <config_path>payment/adyen_abstract/capture_for_openinvoice</config_path>
         </field>
         <field id="paypal_capture_mode" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Enable manual capture for PayPal</label>
             <tooltip>
-                <![CDATA[If you requested our support team to enable manual capture for PayPal for your account, set to <strong>Yes</strong>. Default is <strong>No</strong>.]]>
+                <![CDATA[If you requested our support team to enable manual capture for PayPal for your account, set to <b>Yes</b>. Default is <b>No</b>.]]>
             </tooltip>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_abstract/paypal_capture_mode</config_path>
