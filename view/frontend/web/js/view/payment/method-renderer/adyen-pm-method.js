@@ -57,8 +57,7 @@ define(
                     'paymentMethodsExtraInfo',
                     'adyenPaymentMethod',
                     'isPlaceOrderActionAllowed',
-                    'placeOrderAllowed',
-                    'isAvailable'
+                    'placeOrderAllowed'
                 ]);
 
                 return this;
@@ -115,7 +114,7 @@ define(
             },
 
             enablePaymentMethod: function (paymentMethodsResponse) {
-                if (!!paymentMethodsResponse.paymentMethodsResponse) {
+                if (this.checkBrowserCompatibility() && !!paymentMethodsResponse.paymentMethodsResponse) {
                     this.paymentMethod(
                         adyenPaymentService.getPaymentMethodFromResponse(
                             this.getTxVariant(),
@@ -133,8 +132,6 @@ define(
                             method: this.getTxVariant()
                         });
                     }
-
-                    this.isAvailable(true);
 
                     fullScreenLoader.stopLoader();
                 }
@@ -254,8 +251,7 @@ define(
                         this.checkoutComponent,
                         this.getTxVariant(),
                         configuration,
-                        containerId,
-                        this
+                        containerId
                     );
 
                     if (this.paymentComponent) {
@@ -554,6 +550,10 @@ define(
                     lastName: address.lastname,
                     telephone: address.telephone
                 };
+            },
+
+            checkBrowserCompatibility: function () {
+                return true;
             },
 
             getPaymentMethodComponent: function () {
