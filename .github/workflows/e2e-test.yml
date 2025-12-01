@@ -88,7 +88,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: Adyen/adyen-magento2-dev
-          ref: "ECP-9856"
+          ref: "main"
           token: ${{ secrets.ADYEN_RELEASE_AUTOMATION_USER_TOKEN }}
           path: Developer
 
