@@ -92,8 +92,6 @@ else
         --amqp-password="$RABBITMQ_PASSWORD" \
         --amqp-virtualhost="/" \
         --amqp-ssl="false" \
-        --amqp-secure="false" \
-        --amqp-ssl-options='{}'
 		--admin-firstname="$ADMIN_NAME" \
 		--admin-lastname="$ADMIN_LASTNAME" \
 		--admin-email="$ADMIN_EMAIL" \
