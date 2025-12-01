@@ -27,8 +27,9 @@ services:
     container_name: rabbitmq
     networks:
       - backend
-    ports:
-      - 15672:15672
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
   web:
     build:
       context: .
