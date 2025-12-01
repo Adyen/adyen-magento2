@@ -22,6 +22,7 @@ install:
 	bin/magento module:enable Adyen_Payment
 	bin/magento setup:upgrade
 	bin/magento setup:di:compile
+	bin/magento cron:install
 
 # Install developer module
 dev-module:
