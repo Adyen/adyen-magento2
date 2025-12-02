@@ -70,7 +70,6 @@ services:
       - composer:/usr/local/bin
       - magento:/var/www/html
       - ../build:/var/www/html/build
-      - ../app-logs:/var/www/html/var/log
 networks:
   backend:
 volumes:

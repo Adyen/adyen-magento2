@@ -137,13 +137,6 @@ jobs:
           echo "Running DeleteWebhook command after E2E tests for clean-up"
           docker exec -u www-data magento2-container php bin/magento adyen:management:delete-webhook
 
-      - name: Archive logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: logs
-          path: app-logs
-
       - name: Archive test result artifacts
         if: always()
         uses: actions/upload-artifact@v4
