@@ -81,9 +81,6 @@ jobs:
       - name: Install plugin
         run: docker exec -u www-data magento2-container make plugin
 
-      - name: Kill Cron Jobs
-        run: docker exec magento2-container /etc/init.d/cron stop
-
       - name: Checkout developer module
         uses: actions/checkout@v3
         with:
