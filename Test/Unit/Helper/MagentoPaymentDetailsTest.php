@@ -176,8 +176,10 @@ class MagentoPaymentDetailsTest extends AbstractAdyenTestCase
     public function testAddAdyenExtensionAttributes(): void
     {
         $quoteId = 1;
+        $storeId = 1;
         $quoteMock = $this->createConfiguredMock(CartInterface::class, [
             'getId' => $quoteId,
+            'getStoreId' => $storeId,
             'getBillingAddress' => $this->createConfiguredMock(Address::class, [
                 'getCountryId' => 1
             ])
@@ -211,6 +213,7 @@ class MagentoPaymentDetailsTest extends AbstractAdyenTestCase
         ]);
 
         $configHelperMock = $this->createConfiguredMock(Config::class, [
+            'getIsPaymentMethodsActive' => true,
             'getAdyenPosCloudConfigData' => true
         ]);
 
@@ -229,6 +232,46 @@ class MagentoPaymentDetailsTest extends AbstractAdyenTestCase
 
         $this->assertEquals(self::CONNECTED_TERMINALS, $adyenConnectedTerminals);
         $this->assertEquals(self::PAYMENT_METHODS_RESPONSE, $adyenPaymentMethodsResponse);
+    }
+
+    public function testAddAdyenExtensionAttributesReturnsEarlyWhenBothDisabled(): void
+    {
+        $quoteId = 1;
+        $storeId = 1;
+        $quoteMock = $this->createConfiguredMock(CartInterface::class, [
+            'getId' => $quoteId,
+            'getStoreId' => $storeId
+        ]);
+
+        $cartRepositoryInterfaceMock = $this->createConfiguredMock(CartRepositoryInterface::class, [
+            'get' => $quoteMock
+        ]);
+
+        $paymentDetailsMock = $this->createMock(PaymentDetails::class);
+
+        $configHelperMock = $this->createConfiguredMock(Config::class, [
+            'getIsPaymentMethodsActive' => false,
+            'getAdyenPosCloudConfigData' => false
+        ]);
+
+        $paymentMethodsFilterMock = $this->createMock(PaymentMethodsFilter::class);
+        $paymentMethodsFilterMock->expects($this->never())
+            ->method('sortAndFilterPaymentMethods');
+
+        $connectedTerminalsMock = $this->createMock(ConnectedTerminals::class);
+        $connectedTerminalsMock->expects($this->never())
+            ->method('getConnectedTerminals');
+
+        $magentoPaymentDetails = $this->createMagentoPaymentDetailsHelper(
+            $paymentMethodsFilterMock,
+            $configHelperMock,
+            $cartRepositoryInterfaceMock,
+            $connectedTerminalsMock
+        );
+
+        $result = $magentoPaymentDetails->addAdyenExtensionAttributes($paymentDetailsMock, $quoteId);
+
+        $this->assertSame($paymentDetailsMock, $result);
     }
 
     private function createMagentoPaymentDetailsHelper(
