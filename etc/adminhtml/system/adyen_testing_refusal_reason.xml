@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2023 Adyen N.V. (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="adyen_testing_performance">
+        <group id="adyen_testing_refusal_reason" translate="label" type="text" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label><![CDATA[Refusal reason]]></label>
+            <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+            <comment>
+                <![CDATA[
+                You can test how your integration can handle different responses to make sure your integration can handle failure scenarios. In such scenarios, you receive a result code and a refusal reason that tells you why a payment request did not succeed.
+                <a target="_blank" href="https://docs.adyen.com/development-resources/testing/result-codes/?tab=request_using_acquirer_response_code_1_2">Adyen documentation</a>. This feature is available only on testing environment.
+                ]]>
+            </comment>
+            <field id="refusal_reason_value_source" translate="label"
+                   type="select"
+                   sortOrder="10"
+                   showInDefault="1"
+                   showInWebsite="1"
+                   showInStore="0">
+                <label>Refusal reason value source</label>
+                <comment><![CDATA[Source which is used to find the refusal reason that needs to be tested]]></comment>
+                <config_path>payment/adyen_abstract/testing_refusal_reason_value_source</config_path>
+                <source_model>Adyen\Payment\Model\Config\Source\OrderCallbackProperty</source_model>
+            </field>
+            <field id="refusal_reason_mapping"
+                   translate="label"
+                   type="text"
+                   sortOrder="20"
+                   showInDefault="1"
+                   showInWebsite="1"
+                   showInStore="0">
+                <label>Refusal reason mapping</label>
+                <backend_model>Magento\Config\Model\Config\Backend\Serialized\ArraySerialized</backend_model>
+                <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\Field\RefusalReasonMapping</frontend_model>
+                <config_path>payment/adyen_abstract/testing_refusal_reason_mapping</config_path>
+            </field>
+        </group>
+    </group>
+</include>
