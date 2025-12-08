@@ -37,9 +37,9 @@ class MagentoPaymentDetails
     {
         $quote = $this->cartRepository->get($cartId);
         $storeId = $quote->getStoreId();
+        $isAdyenPosCloudEnabled = $this->configHelper->getAdyenPosCloudConfigData('active', $storeId, true);
 
-        if (!$this->configHelper->getIsPaymentMethodsActive($storeId) &&
-            !$this->configHelper->getAdyenPosCloudConfigData('active', $storeId, true)) {
+        if (!$this->configHelper->getIsPaymentMethodsActive($storeId) && !$isAdyenPosCloudEnabled) {
             return $result;
         }
         $magentoPaymentMethods = $result->getPaymentMethods();
@@ -51,8 +51,6 @@ class MagentoPaymentDetails
         $extensionAttributes = $result->getExtensionAttributes();
 
         $extensionAttributes->setAdyenPaymentMethodsResponse($adyenPaymentMethodsResponse);
-
-        $isAdyenPosCloudEnabled = $this->configHelper->getAdyenPosCloudConfigData('active', $storeId, true);
 
         if ($isAdyenPosCloudEnabled) {
             $connectedTerminals = $this->connectedTerminalsHelper->getConnectedTerminals($storeId);
