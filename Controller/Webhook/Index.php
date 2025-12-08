@@ -43,6 +43,7 @@ class Index implements ActionInterface
      * @param AdyenNotificationRepositoryInterface $adyenNotificationRepository
      * @param IpAddress $ipAddressHelper
      * @param RemoteAddress $remoteAddress
+     * @param Http $http
      */
     public function __construct(
         private readonly Context $context,
@@ -52,7 +53,8 @@ class Index implements ActionInterface
         private readonly ResultFactory $resultFactory,
         private readonly AdyenNotificationRepositoryInterface $adyenNotificationRepository,
         private readonly IpAddress $ipAddressHelper,
-        private readonly RemoteAddress $remoteAddress
+        private readonly RemoteAddress $remoteAddress,
+        private readonly Http $http
     ) {
         $this->enforceAjaxHeaderForMagento23Compatibility();
     }
@@ -173,12 +175,15 @@ class Index implements ActionInterface
         $expectedUsername = $this->configHelper->getNotificationsUsername();
         $expectedPassword = $this->configHelper->getNotificationsPassword();
 
-        if (!isset($expectedUsername, $expectedPassword, $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'])) {
+        $requestUsername = $this->http->getServer('PHP_AUTH_USER');
+        $requestPassword = $this->http->getServer('PHP_AUTH_PW');
+
+        if (!isset($expectedUsername, $expectedPassword, $requestUsername, $requestPassword)) {
             return false;
         }
 
-        $usernameIsValid = hash_equals($expectedUsername, $_SERVER['PHP_AUTH_USER']);
-        $passwordIsValid = hash_equals($expectedPassword, $_SERVER['PHP_AUTH_PW']);
+        $usernameIsValid = hash_equals($expectedUsername, $requestUsername);
+        $passwordIsValid = hash_equals($expectedPassword, $requestPassword);
 
         if (!$usernameIsValid || !$passwordIsValid) {
             return false;
