@@ -360,7 +360,7 @@ class GiftCardTest extends WebapiAbstract
                 'encryptedCardNumber' => 'test_4111111111111111',
                 'encryptedExpiryMonth' => 'test_03',
                 'encryptedExpiryYear' => 'test_2030',
-                'encryptedSecurityCode' => 'test_123'
+                'encryptedSecurityCode' => 'test_737'
             ]
         ];
     }
