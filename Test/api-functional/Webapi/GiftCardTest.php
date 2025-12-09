@@ -10,7 +10,7 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Test\Webapi\Giftcard;
+namespace Adyen\Payment\Test\Webapi;
 
 use Magento\Framework\Webapi\Rest\Request;
 use Magento\Integration\Api\CustomerTokenServiceInterface;
@@ -25,6 +25,11 @@ class GiftCardTest extends WebapiAbstract
     protected CustomerTokenServiceInterface $customerTokenService;
     protected QuoteIdToMaskedQuoteIdInterface $quoteIdToMaskedQuoteId;
 
+    /**
+     * Set up the required dependencies
+     *
+     * @return void
+     */
     protected function setUp(): void
     {
         $objectManager = Bootstrap::getObjectManager();
@@ -36,7 +41,7 @@ class GiftCardTest extends WebapiAbstract
 
     /**
      * Tests the following endpoint:
-     * - [POST] /V1/adyen/payment-methods/balance
+     * - [POST]     /V1/adyen/payment-methods/balance
      *
      * @return void
      */
@@ -49,22 +54,12 @@ class GiftCardTest extends WebapiAbstract
             ]
         ];
 
-        $payload = [
-            'paymentMethod' => [
-                'type'   => 'giftcard',
-                'brand'  => 'givex',
-                'number' => '6036280000000000000',
-                'cvc'    => '123'
-            ],
-            'amount' => [
-                'currency' => 'EUR',
-                'value'    => 5000
-            ],
-        ];
+        $response = $this->_webApiCall(
+            $serviceInfo,
+            ['payload' => json_encode($this->getBalanceRequest(5000))]
+        );
 
-        $response = $this->_webApiCall($serviceInfo, ['payload' => json_encode($payload)]);
         $decodedResponse = json_decode($response, true);
-
         $this->assertJson($response);
         $this->assertArrayHasKey('pspReference', $decodedResponse);
         $this->assertIsString($decodedResponse['pspReference']);
@@ -79,7 +74,7 @@ class GiftCardTest extends WebapiAbstract
 
     /**
      * Tests the following endpoint for insufficient balance:
-     * - [POST] /V1/adyen/payment-methods/balance
+     * - [POST]     /V1/adyen/payment-methods/balance
      *
      * @return void
      */
@@ -92,20 +87,10 @@ class GiftCardTest extends WebapiAbstract
             ]
         ];
 
-        $payload = [
-            'paymentMethod' => [
-                'type'   => 'giftcard',
-                'brand'  => 'givex',
-                'number' => '6036280000000000000',
-                'cvc'    => '123'
-            ],
-            'amount' => [
-                'currency' => 'EUR',
-                'value'    => 100000
-            ],
-        ];
-
-        $response = $this->_webApiCall($serviceInfo, ['payload' => json_encode($payload)]);
+        $response = $this->_webApiCall(
+            $serviceInfo,
+            ['payload' => json_encode($this->getBalanceRequest(100000))]
+        );
         $decodedResponse = json_decode($response, true);
 
         $this->assertJson($response);
@@ -121,14 +106,14 @@ class GiftCardTest extends WebapiAbstract
     }
 
     /**
-     * Tests the following endpoints:
+     * Composite tests the following endpoints:
      * - [POST]     /V1/adyen/guest-carts/:cartId/state-data
      * - [GET]      /V1/adyen/giftcards/guest-carts/:cartId
      * - [DELETE]   /V1/adyen/guest-carts/:cartId/state-data/:stateDataId
      *
      * @magentoDataFixture Magento/Quote/_files/empty_quote.php
      */
-    public function testSaveStateDataGuest()
+    public function testSaveReadRemoveStateDataGuest()
     {
         $cart = $this->getQuoteByReservedOrderId->execute('reserved_order_id');
         $cartId = $this->quoteIdToMaskedQuoteId->execute($cart->getId());
@@ -168,7 +153,7 @@ class GiftCardTest extends WebapiAbstract
     }
 
     /**
-     * Tests the following endpoints:
+     * Composite tests the following endpoints:
      * - [POST]     /V1/adyen/carts/mine/state-data
      * - [GET]      /V1/adyen/giftcards/mine
      * - [DELETE]   /V1/adyen/carts/mine/state-data/:stateDataId
@@ -176,7 +161,7 @@ class GiftCardTest extends WebapiAbstract
      * @magentoDataFixture Magento/Customer/_files/customer.php
      * @magentoDataFixture Magento/Customer/_files/quote.php
      */
-    public function testSaveAndRemoveStateDataCustomer()
+    public function testSaveReadRemoveStateDataCustomer()
     {
         $customerToken = $this->customerTokenService->createCustomerAccessToken('customer@example.com', 'password');
 
@@ -203,7 +188,6 @@ class GiftCardTest extends WebapiAbstract
         ];
 
         $getGiftcardsResponse = $this->_webApiCall($getGiftcardsServiceInfo);
-
         $this->assertGetRedeemedGiftcardsResponse($getGiftcardsResponse);
 
         $removeStateDataServiceInfo = [
@@ -216,6 +200,126 @@ class GiftCardTest extends WebapiAbstract
 
         $removeStateDataResponse = $this->_webApiCall($removeStateDataServiceInfo);
         $this->assertTrue($removeStateDataResponse);
+    }
+
+    /**
+     * Tests order placement using single giftcard
+     *
+     * @magentoDataFixture Magento/Checkout/_files/quote_with_address_and_shipping_method_saved.php
+     */
+    public function testSingleGiftcardPayment()
+    {
+        $cart = $this->getQuoteByReservedOrderId->execute('test_order_1');
+        $cartId = $this->quoteIdToMaskedQuoteId->execute($cart->getId());
+
+        $serviceInfo = [
+            'rest' => [
+                'resourcePath' => "/V1/guest-carts/{$cartId}/payment-information",
+                'httpMethod' => Request::HTTP_METHOD_POST
+            ]
+        ];
+
+        $payload = [
+            'email' => 'customer@example.com',
+            'paymentMethod' => [
+                'method' => 'adyen_giftcard',
+                'additional_data' => [
+                    'stateData' => json_encode($this->getValidGiftcardStateData())
+                ]
+            ]
+        ];
+
+        $saveStateDataResponse = $this->_webApiCall($serviceInfo, $payload);
+        $this->assertGreaterThan(0, intval($saveStateDataResponse));
+    }
+
+    /**
+     * Tests order placement using multiple giftcards
+     *
+     * @magentoDataFixture Magento/Checkout/_files/quote_with_address_and_shipping_method_saved.php
+     */
+    public function testMultiGiftcardPayment()
+    {
+        $cart = $this->getQuoteByReservedOrderId->execute('test_order_1');
+        $cartId = $this->quoteIdToMaskedQuoteId->execute($cart->getId());
+
+        $numberOfGiftcards = 2;
+
+        for ($i = 0; $i < $numberOfGiftcards; $i++) {
+            $saveStateDataServiceInfo = [
+                'rest' => [
+                    'resourcePath' => "/V1/adyen/guest-carts/{$cartId}/state-data",
+                    'httpMethod' => Request::HTTP_METHOD_POST
+                ]
+            ];
+
+            $this->_webApiCall(
+                $saveStateDataServiceInfo,
+                ['stateData' => json_encode($this->getValidGiftcardStateData())]
+            );
+        }
+
+        $serviceInfo = [
+            'rest' => [
+                'resourcePath' => "/V1/guest-carts/{$cartId}/payment-information",
+                'httpMethod' => Request::HTTP_METHOD_POST
+            ]
+        ];
+
+        $payload = [
+            'email' => 'customer@example.com',
+            'paymentMethod' => [
+                'method' => 'adyen_giftcard'
+            ]
+        ];
+
+        $saveStateDataResponse = $this->_webApiCall($serviceInfo, $payload);
+        $this->assertGreaterThan(0, intval($saveStateDataResponse));
+    }
+
+
+    /**
+     * Tests order placement using multiple giftcards
+     *
+     * @magentoDataFixture Magento/Checkout/_files/quote_with_address_and_shipping_method_saved.php
+     */
+    public function testPartialPaymentWithCard()
+    {
+        $cart = $this->getQuoteByReservedOrderId->execute('test_order_1');
+        $cartId = $this->quoteIdToMaskedQuoteId->execute($cart->getId());
+
+        // Redeem one giftcard
+        $saveStateDataServiceInfo = [
+            'rest' => [
+                'resourcePath' => "/V1/adyen/guest-carts/{$cartId}/state-data",
+                'httpMethod' => Request::HTTP_METHOD_POST
+            ]
+        ];
+
+        $this->_webApiCall(
+            $saveStateDataServiceInfo,
+            ['stateData' => json_encode($this->getValidGiftcardStateData())]
+        );
+
+        $serviceInfo = [
+            'rest' => [
+                'resourcePath' => "/V1/guest-carts/{$cartId}/payment-information",
+                'httpMethod' => Request::HTTP_METHOD_POST
+            ]
+        ];
+
+        $payload = [
+            'email' => 'customer@example.com',
+            'paymentMethod' => [
+                'method' => 'adyen_cc',
+                'additional_data' => [
+                    'stateData' => json_encode($this->getValidCardStateData())
+                ]
+            ]
+        ];
+
+        $placeOrderResponse = $this->_webApiCall($serviceInfo, $payload);
+        $this->assertGreaterThan(0, intval($placeOrderResponse));
     }
 
     /**
@@ -245,6 +349,23 @@ class GiftCardTest extends WebapiAbstract
     }
 
     /**
+     * @return array
+     */
+    protected function getValidCardStateData(): array
+    {
+        return [
+            'paymentMethod' => [
+                'type' => 'scheme',
+                'brand' => 'visa',
+                'encryptedCardNumber' => 'test_4111111111111111',
+                'encryptedExpiryMonth' => 'test_03',
+                'encryptedExpiryYear' => 'test_2030',
+                'encryptedSecurityCode' => 'test_123'
+            ]
+        ];
+    }
+
+    /**
      * @param string $getGiftcardsResponse
      * @return void
      */
@@ -268,5 +389,25 @@ class GiftCardTest extends WebapiAbstract
         $this->assertIsArray($getGiftcardsResponseDecoded['redeemedGiftcards'][0]['balance']);
         $this->assertArrayHasKey('currency', $getGiftcardsResponseDecoded['redeemedGiftcards'][0]['balance']);
         $this->assertArrayHasKey('value', $getGiftcardsResponseDecoded['redeemedGiftcards'][0]['balance']);
+    }
+
+    /**
+     * @param $amount
+     * @return array
+     */
+    protected function getBalanceRequest($amount): array
+    {
+        return [
+            'paymentMethod' => [
+                'type' => 'giftcard',
+                'brand' => 'givex',
+                'number' => '6036280000000000000',
+                'cvc' => '123'
+            ],
+            'amount' => [
+                'currency' => 'EUR',
+                'value' => $amount
+            ],
+        ];
     }
 }
