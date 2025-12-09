@@ -38,6 +38,7 @@ class IndexTest extends AbstractAdyenTestCase
     private AdyenNotificationRepositoryInterface|MockObject $adyenNotificationRepositoryMock;
     private IpAddress|MockObject $ipAddressHelperMock;
     private RemoteAddress|MockObject $remoteAddressMock;
+    private Http|MockObject $httpMock;
 
     /**
      * @return void
@@ -63,6 +64,8 @@ class IndexTest extends AbstractAdyenTestCase
             ->with(ResultFactory::TYPE_RAW)
             ->willReturn($this->resultMock);
 
+        $this->httpMock = $this->createMock(Http::class);
+
         $this->controller = new Index(
             $contextMock,
             $this->adyenLoggerMock,
@@ -71,7 +74,8 @@ class IndexTest extends AbstractAdyenTestCase
             $this->resultFactoryMock,
             $this->adyenNotificationRepositoryMock,
             $this->ipAddressHelperMock,
-            $this->remoteAddressMock
+            $this->remoteAddressMock,
+            $this->httpMock
         );
     }
 
@@ -114,8 +118,10 @@ class IndexTest extends AbstractAdyenTestCase
      */
     public function testExecuteProcessesValidWebhook($payload, $eventType): void
     {
-        $_SERVER['PHP_AUTH_USER'] = 'user';
-        $_SERVER['PHP_AUTH_PW'] = 'pass';
+        $this->httpMock->method('getServer')->willReturnMap([
+            ['PHP_AUTH_USER', null, 'user'],
+            ['PHP_AUTH_PW', null, 'pass'],
+        ]);
 
         $this->configHelperMock->method('getNotificationsUsername')->willReturn('user');
         $this->configHelperMock->method('getNotificationsPassword')->willReturn('pass');
@@ -156,8 +162,10 @@ class IndexTest extends AbstractAdyenTestCase
      */
     public function testExecuteProcessesDuplicateWebhook($payload, $eventType): void
     {
-        $_SERVER['PHP_AUTH_USER'] = 'user';
-        $_SERVER['PHP_AUTH_PW'] = 'pass';
+        $this->httpMock->method('getServer')->willReturnMap([
+            ['PHP_AUTH_USER', null, 'user'],
+            ['PHP_AUTH_PW', null, 'pass'],
+        ]);
 
         $this->configHelperMock->method('getNotificationsUsername')->willReturn('user');
         $this->configHelperMock->method('getNotificationsPassword')->willReturn('pass');
@@ -185,8 +193,10 @@ class IndexTest extends AbstractAdyenTestCase
 
     public function testWebhookUnidentifiedEventType(): void
     {
-        $_SERVER['PHP_AUTH_USER'] = 'user';
-        $_SERVER['PHP_AUTH_PW'] = 'pass';
+        $this->httpMock->method('getServer')->willReturnMap([
+            ['PHP_AUTH_USER', null, 'user'],
+            ['PHP_AUTH_PW', null, 'pass'],
+        ]);
 
         $this->configHelperMock->method('getNotificationsUsername')->willReturn('user');
         $this->configHelperMock->method('getNotificationsPassword')->willReturn('pass');
@@ -205,8 +215,6 @@ class IndexTest extends AbstractAdyenTestCase
 
     public function testAuthenticationFails(): void
     {
-        unset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
-
         $this->requestMock->method('getContent')->willReturn('{}');
         $this->ipAddressHelperMock->method('isIpAddressValid')->willReturn(true);
 
@@ -220,8 +228,10 @@ class IndexTest extends AbstractAdyenTestCase
 
     public function testExecuteOnEmptyBody(): void
     {
-        $_SERVER['PHP_AUTH_USER'] = 'user';
-        $_SERVER['PHP_AUTH_PW'] = 'pass';
+        $this->httpMock->method('getServer')->willReturnMap([
+            ['PHP_AUTH_USER', null, 'user'],
+            ['PHP_AUTH_PW', null, 'pass'],
+        ]);
 
         $this->configHelperMock->method('getNotificationsUsername')->willReturn('user');
         $this->configHelperMock->method('getNotificationsPassword')->willReturn('pass');
@@ -240,8 +250,10 @@ class IndexTest extends AbstractAdyenTestCase
 
     public function testExecuteOnInvalidJson(): void
     {
-        $_SERVER['PHP_AUTH_USER'] = 'user';
-        $_SERVER['PHP_AUTH_PW'] = 'pass';
+        $this->httpMock->method('getServer')->willReturnMap([
+            ['PHP_AUTH_USER', null, 'user'],
+            ['PHP_AUTH_PW', null, 'pass'],
+        ]);
 
         $this->configHelperMock->method('getNotificationsUsername')->willReturn('user');
         $this->configHelperMock->method('getNotificationsPassword')->willReturn('pass');
@@ -260,8 +272,10 @@ class IndexTest extends AbstractAdyenTestCase
 
     public function testExecuteEnvironmentModeMismatch(): void
     {
-        $_SERVER['PHP_AUTH_USER'] = 'user';
-        $_SERVER['PHP_AUTH_PW'] = 'pass';
+        $this->httpMock->method('getServer')->willReturnMap([
+            ['PHP_AUTH_USER', null, 'user'],
+            ['PHP_AUTH_PW', null, 'pass'],
+        ]);
 
         $this->configHelperMock->method('getNotificationsUsername')->willReturn('user');
         $this->configHelperMock->method('getNotificationsPassword')->willReturn('pass');
@@ -301,14 +315,16 @@ class IndexTest extends AbstractAdyenTestCase
 
     public function testExecuteOnGenericError(): void
     {
-        $_SERVER['PHP_AUTH_USER'] = 'user';
-        $_SERVER['PHP_AUTH_PW'] = 'pass';
+        $this->httpMock->method('getServer')->willReturnMap([
+            ['PHP_AUTH_USER', null, 'user'],
+            ['PHP_AUTH_PW', null, 'pass'],
+        ]);
 
         $this->configHelperMock->method('getNotificationsUsername')->willReturn('user');
         $this->configHelperMock->method('getNotificationsPassword')->willReturn('pass');
         $this->ipAddressHelperMock->method('isIpAddressValid')->willReturn(true);
 
-        $this->requestMock->method('getContent')->willthrowException(new \Exception());
+        $this->requestMock->method('getContent')->willThrowException(new \Exception());
 
         $this->adyenLoggerMock->expects($this->once())->method('addAdyenNotification');
 
