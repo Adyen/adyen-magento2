@@ -23,13 +23,13 @@ class BrowserInfoDataBuilderTest extends AbstractAdyenTestCase
 
     public function testBuild()
     {
-        $_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)';
-        $_SERVER['HTTP_ACCEPT'] = 'text/html,application/xhtml+xml';
+        $userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)';
+        $httpAccept = 'text/html,application/xhtml+xml';
 
         $browserData = [
             'browserInfo' => [
-                'userAgent' => $_SERVER['HTTP_USER_AGENT'],
-                'acceptHeader' => $_SERVER['HTTP_ACCEPT']
+                'userAgent' => $userAgent,
+                'acceptHeader' => $httpAccept
             ]
         ];
 
