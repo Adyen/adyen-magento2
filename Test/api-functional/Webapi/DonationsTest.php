@@ -1,33 +1,51 @@
 <?php
+/**
+ *
+ * Adyen Payment Module
+ *
+ * Copyright (c) 2025 Adyen N.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
 
 namespace Adyen\Payment\Test\Webapi;
 
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Webapi\Rest\Request;
-use Magento\GraphQl\Quote\GetMaskedQuoteIdByReservedOrderId;
-use Magento\Integration\Api\CustomerTokenServiceInterface;
+use Magento\Quote\Model\QuoteIdToMaskedQuoteIdInterface;
 use Magento\TestFramework\Helper\Bootstrap;
+use Magento\TestFramework\Quote\Model\GetQuoteByReservedOrderId;
 use Magento\TestFramework\TestCase\WebapiAbstract;
 
 class DonationsTest extends WebapiAbstract
 {
-    private GetMaskedQuoteIdByReservedOrderId $getMaskedQuoteIdByReservedOrderId;
-    private CustomerTokenServiceInterface $customerTokenService;
-    private ?string $maskedQuoteId;
+    protected GetQuoteByReservedOrderId $getQuoteByReservedOrderId;
+    protected QuoteIdToMaskedQuoteIdInterface $quoteIdToMaskedQuoteId;
 
     protected function setUp(): void
     {
         $objectManager = Bootstrap::getObjectManager();
-        $this->getMaskedQuoteIdByReservedOrderId = $objectManager->get(GetMaskedQuoteIdByReservedOrderId::class);
-        $this->customerTokenService = $objectManager->get(CustomerTokenServiceInterface::class);
+        $this->getQuoteByReservedOrderId = $objectManager->get(GetQuoteByReservedOrderId::class);
+        $this->quoteIdToMaskedQuoteId = $objectManager->get(QuoteIdToMaskedQuoteIdInterface::class);
     }
 
+    /**
+     * @return void
+     * @throws NoSuchEntityException
+     * @magentoDataFixture Magento/Checkout/_files/quote_with_address_and_shipping_method_saved.php
+     */
     public function testSuccessfulDonation()
     {
-        $this->placeOrder();
+        $cart = $this->getQuoteByReservedOrderId->execute('test_order_1');
+        $cartId = $this->quoteIdToMaskedQuoteId->execute($cart->getId());
+
+        $this->placeOrder($cartId);
 
         $serviceInfoDonationCampaigns = [
             'rest' => [
-                'resourcePath' => "/V1/adyen/orders/guest-carts/{$this->maskedQuoteId}/donation-campaigns",
+                'resourcePath' => "/V1/adyen/orders/guest-carts/{$cartId}/donation-campaigns",
                 'httpMethod' => Request::HTTP_METHOD_POST
             ]
         ];
@@ -36,88 +54,63 @@ class DonationsTest extends WebapiAbstract
 
         $serviceInfoDonations = [
             'rest' => [
-                'resourcePath' => "/V1/adyen/orders/guest-carts/{$this->maskedQuoteId}/donations",
+                'resourcePath' => "/V1/adyen/orders/guest-carts/{$cartId}/donations",
                 'httpMethod' => Request::HTTP_METHOD_POST
             ]
         ];
 
-        $payload = '{"amount":{"currency":"EUR","value":500},"returnUrl":"https://local.store/index.php/checkout/onepage/success/"}';
-        $response = $this->_webApiCall($serviceInfoDonations, ['payload' => $payload]);
+        $payload = [
+            'amount' => [
+                'currency' => 'EUR',
+                'value' => 500
+            ],
+            'returnUrl' => 'https://local.store/index.php/checkout/onepage/success/'
+        ];
 
+        $response = $this->_webApiCall($serviceInfoDonations, ['payload' => json_encode($payload)]);
         $this->assertEmpty($response);
     }
 
-    private function placeOrder()
+    /**
+     * @param string $cartId
+     * @return void
+     */
+    protected function placeOrder(string $cartId): void
     {
-        $this->maskedQuoteId = $this->createGuestCart();
-
-
-        $this->addItemToCart($this->maskedQuoteId);
-        $this->setBillingAddress($this->maskedQuoteId);
-        $this->setShippingInformation($this->maskedQuoteId);
-
-        $serviceInfo = [
+        $placeOrderServiceInfo = [
             'rest' => [
-                'resourcePath' => "/guest-carts/{$this->maskedQuoteId}/payment-information",
+                'resourcePath' => "/V1/guest-carts/{$cartId}/payment-information",
                 'httpMethod' => Request::HTTP_METHOD_POST
             ]
         ];
 
-        $payload = '{"email":"roni_cost@example.com","paymentMethod":{"method":"adyen_cc","additional_data":{"cc_brand":"VI","stateData":""}}}';
-        $decodedPayload = json_decode($payload, true);
-        $decodedPayload['paymentMethod']['additional_data']['stateData'] ="{\"paymentMethod\":{\"type\":\"scheme\",\"holderName\":\"Foo Bar\",\"encryptedCardNumber\":\"test_2222400070000005\",\"encryptedExpiryMonth\":\"test_03\",\"encryptedExpiryYear\":\"test_2030\",\"encryptedSecurityCode\":\"test_737\"},\"browserInfo\":{\"acceptHeader\":\"*/*\",\"colorDepth\":24,\"language\":\"en-US\",\"javaEnabled\":false,\"screenHeight\":1080,\"screenWidth\":1920,\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36\",\"timeZoneOffset\":-120},\"origin\":\"http://localhost\",\"clientStateDataIndicator\":true}";
+        $paymentInformationPayload = [
+            'email' => 'customer@example.com',
+            'paymentMethod' => [
+                'method' => 'adyen_cc',
+                'additional_data' => [
+                    'stateData' => json_encode($this->getValidCardStateData())
+                ]
+            ]
+        ];
 
-        $this->_webApiCall($serviceInfo, $decodedPayload, null, 'V1');
+        $this->_webApiCall($placeOrderServiceInfo, $paymentInformationPayload);
     }
 
-    private function createGuestCart(): string
+    /**
+     * @return array
+     */
+    protected function getValidCardStateData(): array
     {
-        $serviceInfo = [
-            'rest' => [
-                'resourcePath' => "/guest-carts",
-                'httpMethod' => Request::HTTP_METHOD_POST
+        return [
+            'paymentMethod' => [
+                'type' => 'scheme',
+                'brand' => 'visa',
+                'encryptedCardNumber' => 'test_4111111111111111',
+                'encryptedExpiryMonth' => 'test_03',
+                'encryptedExpiryYear' => 'test_2030',
+                'encryptedSecurityCode' => 'test_737'
             ]
         ];
-
-        return $this->_webApiCall($serviceInfo, [], null, 'V1');
-    }
-
-    private function addItemToCart(string $maskedQuoteId): array
-    {
-        $serviceInfo = [
-            'rest' => [
-                'resourcePath' => "/guest-carts/{$maskedQuoteId}/items",
-                'httpMethod' => Request::HTTP_METHOD_POST
-            ]
-        ];
-
-        $payload = '{"cartItem":{"qty":1,"sku":"24-MB04"}}';
-        return $this->_webApiCall($serviceInfo, json_decode($payload), null, 'V1');
-    }
-
-    private function setShippingInformation($maskedQuoteId): array
-    {
-        $serviceInfo = [
-            'rest' => [
-                'resourcePath' => "/guest-carts/{$maskedQuoteId}/shipping-information",
-                'httpMethod' => Request::HTTP_METHOD_POST
-            ]
-        ];
-
-        $payload = '{"addressInformation":{"shipping_address":{"firstname":"Veronica","lastname":"Costello","company":"Adyen","street":["Simon Carmiggeltstraat","Main Street"],"city":"Amsterdam","region":"Amsterdam","postcode":"1011 DK","country_id":"NL","telephone":"123456789"},"shipping_carrier_code":"flatrate","shipping_method_code":"flatrate"}}';
-        return $this->_webApiCall($serviceInfo, json_decode($payload), null, 'V1');
-    }
-
-    private function setBillingAddress($maskedQuoteId): int
-    {
-        $serviceInfo = [
-            'rest' => [
-                'resourcePath' => "/guest-carts/{$maskedQuoteId}/billing-address",
-                'httpMethod' => Request::HTTP_METHOD_POST
-            ]
-        ];
-
-        $payload = '{"address":{"firstname":"Veronica ","lastname":"Costello","company":"Adyen","street":["Simon Carmiggeltstraat","Main Street"],"city":"Amsterdam","region":"Amsterdam","postcode":"1011 DK","country_id":"NL","telephone":"123456789","email":"roni_cost@example.com"},"useForShipping":true}';
-        return $this->_webApiCall($serviceInfo, json_decode($payload), null, 'V1');
     }
 }
