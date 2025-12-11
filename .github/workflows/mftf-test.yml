@@ -2,7 +2,7 @@ name: Functional Tests
 on:
   workflow_dispatch:
   pull_request:
-    branches: [main, main-9]
+    branches: [main]
 
 jobs:
   build-mftf:
@@ -11,7 +11,6 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
       }}
-    environment: internal
     strategy:
       matrix:
         include:
@@ -37,8 +36,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2
-        with:
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
 
       - name: Install Magento
         run: docker compose -f .github/docker-compose.yml run --rm web make magento

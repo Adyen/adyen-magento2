@@ -11,9 +11,7 @@ on:
 jobs:
   build-main:
     if: |
-      github.event_name != 'pull_request' ||
-      github.event.pull_request.head.repo.full_name == github.repository
-    environment: internal
+      github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
 
     strategy:
       matrix:
@@ -72,7 +70,6 @@ jobs:
         run: docker exec magento2-container make phpunit-fix-report
 
       - name: SonarCloud Scan
-        if: ${{ env.SONAR_TOKEN != '' }}
         uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

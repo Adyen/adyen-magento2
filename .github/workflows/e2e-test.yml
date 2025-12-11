@@ -3,7 +3,7 @@ run-name: E2E test workflow with test suite branch ${{inputs.testBranch || 'deve
 
 on:
   pull_request:
-    branches: [main, main-9]
+    branches: [main]
   workflow_dispatch:
     inputs:
       testBranch:
@@ -29,7 +29,6 @@ jobs:
     # Only run for same-repo PRs and workflow_dispatch
     if: (github.event_name == 'workflow_dispatch') ||
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
-    environment: internal
     strategy:
       matrix:
         php-version: ["8.4"]
@@ -64,8 +63,7 @@ jobs:
         run: echo "E2E testing against test suite branch ${{env.TEST_BRANCH}} using group ${{env.TEST_GROUP}} ${{ env.EXPRESS_BRANCH && 'with express module branch' || '' }} ${{ env.EXPRESS_BRANCH || '' }}"
 
       - uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2
-        with:
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.ref }}
+
       - name: Install Magento
         run: docker compose -f .github/docker-compose.yml run --rm web make magento
 
