@@ -33,7 +33,6 @@ class ChannelParameterTest extends WebapiAbstract
 
     /**
      * @return void
-     * @magentoDataFixture Magento/Checkout/_files/simple_product.php
      * @magentoDataFixture Magento/Checkout/_files/quote_with_simple_product_saved.php
      * @throws NoSuchEntityException
      */
