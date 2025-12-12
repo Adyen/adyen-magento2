@@ -55,8 +55,5 @@ jobs:
 
       - run: docker exec magento2-container /etc/init.d/cron stop
 
-      - name: Configure GraphQL requirements
-        run: docker exec magento2-container make setup-graphql
-
       - name: Run GraphQL tests
         run: docker exec magento2-container make graphql
