@@ -33,12 +33,14 @@ class ChannelParameterTest extends WebapiAbstract
 
     /**
      * @return void
-     * @magentoDataFixture Magento/Checkout/_files/quote_with_address_and_shipping_method_saved.php
+     * @magentoDataFixture Magento/Checkout/_files/quote_with_simple_product_saved.php
      * @throws NoSuchEntityException
      */
     public function testApplePayExcludedForAndroidChannel()
     {
-        $cart = $this->getQuoteByReservedOrderId->execute('test_order_1');
+        $cart = $this->getQuoteByReservedOrderId->execute(
+            'test_order_with_simple_product_without_address'
+        );
         $cartId = $this->quoteIdToMaskedQuoteId->execute($cart->getId());
 
         $this->setShippingInformationWithChannel($cartId);
