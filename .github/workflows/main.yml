@@ -57,7 +57,7 @@ jobs:
 
       - name: SonarCloud Scan
         if: ${{ env.SONAR_TOKEN }}
-        uses: SonarSource/sonarqube-scan-action@5ac2dded753b8b299a5f54918aa4e9f25d7c57a5 # pinned instead of "master"
+        uses: SonarSource/sonarqube-scan-action@5ac2dded753b8b299a5f54918aa4e9f25d7c57a5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
