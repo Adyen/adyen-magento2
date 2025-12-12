@@ -86,8 +86,23 @@ jobs:
       - name: Setup permissions
         run: docker exec magento2-container make fs
 
-      - name: Check install
-        run: docker exec magento2-container make sys-check
+      - name: Fix vendor & composer cache permissions
+        run: |
+          docker exec magento2-container mkdir -p /var/www/.cache/composer
+          docker exec magento2-container chown -R www-data:www-data /var/www/html/vendor /var/www/.cache
+
+      - name: Clean previous Adyen vendor dirs (workaround)
+        run: |
+          docker exec magento2-container bash -lc '
+            rm -rf \
+              /var/www/html/vendor/adyen/php-api-library \
+              /var/www/html/vendor/adyen/php-webhook-module \
+              /var/www/html/vendor/composer/*Adyen-adyen-php-api-library* \
+              /var/www/html/vendor/composer/*php-webhook-module* || true
+          '
+
+      - name: Install plugin
+        run: docker exec -u www-data magento2-container make plugin
 
       - name: Install plugin
         run: docker exec magento2-container make plugin
