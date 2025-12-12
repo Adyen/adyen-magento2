@@ -32,7 +32,7 @@ jobs:
         uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2
 
       - name: Use PHP ${{ matrix.php-version }}
-        uses: shivammathur/setup-php@6d7209f44a25a59e904b1ee9f3b0c33ab2cd888b
+        uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
           tools: composer:v2
