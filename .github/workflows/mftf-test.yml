@@ -1,27 +1,32 @@
 name: Functional Tests
+
 on:
   workflow_dispatch:
   pull_request:
     branches: [main-9]
 
+# Default minimal permissions
+permissions:
+  contents: read
+
 jobs:
-  build-mftf:
-    if: >
-      ${{
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
-      }}
+  build:
+    if: github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository)
+
     strategy:
       matrix:
         include:
           - php-version: '8.2'
             magento-version: '2.4.6-p7'
-    runs-on:
-      group: larger-runners
-      labels: ubuntu-latest-8-cores
+
+    runs-on: ubuntu-latest
     timeout-minutes: 25
+
     permissions:
       contents: read
+
     env:
       PHP_VERSION: ${{ matrix.php-version }}
       MAGENTO_VERSION: ${{ matrix.magento-version }}
@@ -32,27 +37,24 @@ jobs:
       ADYEN_API_KEY: ${{ secrets.ADYEN_API_KEY }}
       ADYEN_CLIENT_KEY: ${{ secrets.ADYEN_CLIENT_KEY }}
       ADMIN_URLEXT: admin
-      USE_SSL: 0
 
     steps:
       - uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2
 
-      - name: Install Magento
-        run: docker compose -f .github/docker-compose.yml run --rm web make magento
+      - name: Start services
+        run: docker compose -f .github/docker-compose.yml -f .github/docker-compose.mftf.yml up -d
 
-      - name: Start web server in background
-        run: docker compose -f .github/docker-compose.yml up -d web
+      - name: Sleep for 120 seconds
+        run: sleep 120s
+        shell: bash
 
-      - name: Start Selenium in background
-        run: docker compose -f .github/docker-compose.mftf.yml up -d
+      - name: Show install logs
+        run: docker logs --tail 100 magento2-container
 
-      - name: Setup permissions
-        run: docker exec magento2-container make fs
-
-      - name: Kill Cron Jobs
+      - name: Prevent cron from interfering with test execution
         run: docker exec magento2-container /etc/init.d/cron stop
 
-      - name: Install plugin without configuring it
+      - name: Install plugin
         run: docker exec -u www-data magento2-container make install
 
       - name: Build MFTF project

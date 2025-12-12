@@ -1,79 +1,63 @@
-name: Main
-run-name: Main
+name: Main CI workflow
 
 on:
-  pull_request:
-    branches: [main]
   push:
-    branches: [main]
+    branches: [main-9]
+  pull_request:
   workflow_dispatch:
 
+# Default minimal permissions
+permissions:
+  contents: read
+
 jobs:
-  build-main:
-    if: |
-      github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+  build:
+    if: github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository)
 
     strategy:
       matrix:
-        php-version: ["8.3"]
-        magento-version: ["2.4.8-p3"]
+        php-version: ["8.2", "8.3"]
+
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
 
     permissions:
       contents: read
 
-    env:
-      PHP_VERSION: ${{ matrix.php-version }}
-      MAGENTO_VERSION: ${{ matrix.magento-version }}
-      ADYEN_API_KEY: ${{ secrets.ADYEN_API_KEY }}
-      ADYEN_CLIENT_KEY: ${{ secrets.ADYEN_CLIENT_KEY }}
-      ADYEN_MERCHANT: ${{ secrets.ADYEN_MERCHANT }}
-      ADMIN_USERNAME: ${{ secrets.MAGENTO_ADMIN_USERNAME }}
-      ADMIN_PASSWORD: ${{ secrets.MAGENTO_ADMIN_PASSWORD }}
-      DONATION_ACCOUNT: ${{ secrets.DONATION_ACCOUNT }}
-      DEPLOY_SAMPLEDATA: 1
-
     steps:
-      - uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2
+      - name: Checkout repository
+        uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2
+
+      - name: Use PHP ${{ matrix.php-version }}
+        uses: shivammathur/setup-php@6d7209f44a25a59e904b1ee9f3b0c33ab2cd888b
         with:
-          fetch-depth: 0
+          php-version: ${{ matrix.php-version }}
+          tools: composer:v2
 
-      - name: Install Magento
-        run: docker compose -f .github/docker-compose.yml run --rm web make magento
+      - name: Test plugin installation
+        run: |
+          echo "{\"http-basic\":{\"repo.magento.com\":{\"username\":\"${MAGENTO_USERNAME}\",\"password\":\"${MAGENTO_PASSWORD}\"}}}" > auth.json
+          composer install --prefer-dist
+        env:
+          CI: true
+          MAGENTO_USERNAME: ${{ secrets.MAGENTO_USERNAME }}
+          MAGENTO_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
 
-      - name: Start web server in background
-        run: docker compose -f .github/docker-compose.yml up -d web
-
-      - name: Setup permissions
-        run: docker exec magento2-container make fs
-
-      - name: Check install
-        run: docker exec magento2-container make sys-check
-
-      - name: Install plugin
-        run: docker exec -u www-data magento2-container make plugin
-
-      - name: Kill Cron Jobs
-        run: docker exec magento2-container /etc/init.d/cron stop
-
-      - name: Setup permissions
-        run: docker exec magento2-container make fs
-
-      - name: Run PHP_Codesniffer
-        run: docker exec magento2-container make codesniffer-run
+      - name: Code Sniffer
+        run: vendor/bin/phpcs .
 
       - name: Run PHPUnit
-        run: docker exec magento2-container make phpunit-run
+        run: vendor/bin/phpunit --coverage-clover=build/clover.xml --log-junit=build/tests-log.xml -c Test/phpunit.xml Test/Unit
 
-      - name: Format PHPUnit coverage reports
-        run: docker exec magento2-container make phpunit-fix-report
+      - name: Fix code coverage paths
+        run: sed -i "s;`pwd`/;;g" build/*.xml
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
+        if: ${{ env.SONAR_TOKEN }}
+        uses: SonarSource/sonarqube-scan-action@5ac2dded753b8b299a5f54918aa4e9f25d7c57a5 # pinned instead of "master"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-      - name: Run PHPStan
-        run: docker exec magento2-container make phpstan-run

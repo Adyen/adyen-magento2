@@ -1,19 +1,28 @@
 name: REST API Tests
 
-on: [pull_request]
+on:
+  pull_request:
+    branches: [main-9]
+
+# Default minimal permissions
+permissions:
+  contents: read
 
 jobs:
-  build-rest:
+  build:
     if: github.event.pull_request.head.repo.full_name == github.repository
 
     strategy:
       matrix:
         php-version: [8.2]
         magento-version: [2.4.6-p7]
+
     runs-on: ubuntu-latest
     timeout-minutes: 25
+
     permissions:
       contents: read
+
     env:
       PHP_VERSION: ${{ matrix.php-version }}
       MAGENTO_VERSION: ${{ matrix.magento-version }}
@@ -44,11 +53,8 @@ jobs:
       - name: Install plugin
         run: docker exec -u www-data magento2-container make plugin
 
-      - name: Stop cron
+      - name: Prevent cron from interfering with tests
         run: docker exec magento2-container /etc/init.d/cron stop
-
-      - name: Configure REST API requirements
-        run: docker exec magento2-container make setup-restapi
 
       - name: Run REST API tests
         run: docker exec magento2-container make restapi
