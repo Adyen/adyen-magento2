@@ -12,9 +12,13 @@
 
 namespace Adyen\Payment\Test\Webapi;
 
+use Magento\Catalog\Test\Fixture\Product;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Webapi\Rest\Request;
 use Magento\Quote\Model\QuoteIdToMaskedQuoteIdInterface;
+use Magento\Quote\Test\Fixture\AddProductToCart;
+use Magento\Quote\Test\Fixture\GuestCart;
+use Magento\TestFramework\Fixture\DataFixture;
 use Magento\TestFramework\Helper\Bootstrap;
 use Magento\TestFramework\Quote\Model\GetQuoteByReservedOrderId;
 use Magento\TestFramework\TestCase\WebapiAbstract;
@@ -31,16 +35,14 @@ class ChannelParameterTest extends WebapiAbstract
         $this->quoteIdToMaskedQuoteId = $objectManager->get(QuoteIdToMaskedQuoteIdInterface::class);
     }
 
-    /**
-     * @return void
-     * @magentoDataFixture Magento/Checkout/_files/quote_with_simple_product_saved.php
-     * @throws NoSuchEntityException
-     */
+    #[
+        DataFixture(Product::class, [], 'product1'),
+        DataFixture(GuestCart::class, ['reserved_order_id' => 'test_order_id'], 'guestCart1'),
+        DataFixture(AddProductToCart::class, ['cartId' => '$guestCart1.id$', 'product_id' => '$product1.id$'])
+    ]
     public function testApplePayExcludedForAndroidChannel()
     {
-        $cart = $this->getQuoteByReservedOrderId->execute(
-            'test_order_with_simple_product_without_address'
-        );
+        $cart = $this->getQuoteByReservedOrderId->execute('test_order_id');
         $cartId = $this->quoteIdToMaskedQuoteId->execute($cart->getId());
 
         $this->setShippingInformationWithChannel($cartId);
