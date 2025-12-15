@@ -34,16 +34,17 @@ class ChannelParameterTest extends WebapiAbstract
     protected function setUp(): void
     {
         $objectManager = Bootstrap::getObjectManager();
+
         $this->getQuoteByReservedOrderId = $objectManager->get(GetQuoteByReservedOrderId::class);
         $this->quoteIdToMaskedQuoteId = $objectManager->get(QuoteIdToMaskedQuoteIdInterface::class);
-        $this->fixtures = Bootstrap::getObjectManager()->get(DataFixtureStorageManager::class)->getStorage();
+        $this->fixtures = $objectManager->get(DataFixtureStorageManager::class)->getStorage();
     }
 
     #[
         DataFixture(Product::class, as: 'product1'),
         DataFixture(Indexer::class),
-        DataFixture(GuestCart::class, ['reserved_order_id' => 'test_order_id'], as: 'guestCart1'),
-        DataFixture(AddProductToCart::class, ['cart_id' => '$guestCart1.id$', 'product_id' => '$product1.id$', 'qty' => 5])
+        DataFixture(GuestCart::class, as: 'guestCart1'),
+        DataFixture(AddProductToCart::class, ['cart_id' => '$guestCart1.id$', 'product_id' => '$product1.id$'])
     ]
     public function testApplePayExcludedForAndroidChannel()
     {
