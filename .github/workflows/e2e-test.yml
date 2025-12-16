@@ -66,10 +66,3 @@ jobs:
           ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
           WEBHOOK_USERNAME: ${{secrets.WEBHOOK_USERNAME}}
           WEBHOOK_PASSWORD: ${{secrets.WEBHOOK_PASSWORD}}
-
-      - name: Archive test result artifacts
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: html-report
-          path: test-report
