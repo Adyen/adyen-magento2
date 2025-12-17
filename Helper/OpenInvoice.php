@@ -12,41 +12,53 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\AdyenAmountCurrency;
+use Exception;
 use Magento\Catalog\Helper\Image;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Item as OrderItem;
 use Magento\Sales\Model\Order\Invoice;
-use Magento\Sales\Model\Order\Invoice\Item;
+use Magento\Sales\Model\Order\Invoice\Item as InvoiceItem;
+use Magento\Sales\Model\Order\Creditmemo;
+use Magento\Sales\Model\Order\Creditmemo\Item as CreditmemoItem;
 use Magento\Quote\Model\Quote;
+use Magento\Quote\Model\Quote\Item as QuoteItem;
 
 class OpenInvoice
 {
+    const ITEM_CATEGORY_DIGITAL_GOODS = 'DIGITAL_GOODS';
+    const ITEM_CATEGORY_PHYSICAL_GOODS = 'PHYSICAL_GOODS';
+
     protected Data $adyenHelper;
     protected CartRepositoryInterface $cartRepository;
     protected ChargedCurrency $chargedCurrency;
     protected Config $configHelper;
     protected Image $imageHelper;
+    protected AdyenLogger $adyenLogger;
 
     public function __construct(
-        Data                    $adyenHelper,
+        Data $adyenHelper,
         CartRepositoryInterface $cartRepository,
-        ChargedCurrency         $chargedCurrency,
-        Config                  $configHelper,
-        Image                   $imageHelper
+        ChargedCurrency $chargedCurrency,
+        Config $configHelper,
+        Image $imageHelper,
+        AdyenLogger $adyenLogger
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->cartRepository = $cartRepository;
         $this->chargedCurrency = $chargedCurrency;
         $this->configHelper = $configHelper;
         $this->imageHelper = $imageHelper;
+        $this->adyenLogger = $adyenLogger;
     }
 
     public function getOpenInvoiceDataForInvoice(Invoice $invoice): array
     {
         $formFields = ['lineItems' => []];
 
-        /* @var Item $invoiceItem */
+        /* @var InvoiceItem $invoiceItem */
         foreach ($invoice->getItems() as $invoiceItem) {
             $numberOfItems = (int)$invoiceItem->getQty();
             $orderItem = $invoiceItem->getOrderItem();
@@ -92,10 +104,11 @@ class OpenInvoice
         return $formFields;
     }
 
-    public function getOpenInvoiceDataForCreditMemo(Order\Creditmemo $creditMemo)
+    public function getOpenInvoiceDataForCreditMemo(Creditmemo $creditMemo): array
     {
         $formFields = ['lineItems' => []];
 
+        /* @var CreditmemoItem $creditmemoItem */
         foreach ($creditMemo->getItems() as $creditmemoItem) {
             // Child items only identifies the variant data and doesn't contain line item information.
             $isChildItem = $creditmemoItem->getOrderItem()->getParentItem() !== null;
@@ -127,7 +140,7 @@ class OpenInvoice
         $product = $item->getProduct();
         $imageUrl = "";
 
-        if ($image = $product->getSmallImage()) {
+        if ($product && $image = $product->getSmallImage()) {
             $imageUrl = $this->imageHelper->init($product, 'product_page_image_small')
                 ->setImageFile($image)
                 ->getUrl();
@@ -142,29 +155,19 @@ class OpenInvoice
     ): array {
         $currency = $shippingAmount->getCurrencyCode();
 
-        $formattedPriceExcludingTax = $this->adyenHelper->formatAmount(
-            $shippingAmount->getAmountWithDiscount(),
-            $currency
-        );
         $formattedPriceIncludingTax = $this->adyenHelper->formatAmount(
-            $shippingAmount->getAmountIncludingTaxWithDiscount(),
+            $shippingAmount->getAmountIncludingTax(),
             $currency
         );
 
         $formattedTaxAmount = $this->adyenHelper->formatAmount($shippingAmount->getTaxAmount(), $currency);
-        $formattedTaxPercentage = $this->adyenHelper->formatAmount(
-            $shippingAmount->getCalculatedTaxPercentage(),
-            $currency
-        );
 
         return [
             'id' => 'shippingCost',
-            'amountExcludingTax' => $formattedPriceExcludingTax,
             'amountIncludingTax' => $formattedPriceIncludingTax,
             'taxAmount' => $formattedTaxAmount,
             'description' => $shippingDescription,
-            'quantity' => 1,
-            'taxPercentage' => $formattedTaxPercentage
+            'quantity' => 1
         ];
     }
 
@@ -172,12 +175,8 @@ class OpenInvoice
     {
         $currency = $itemAmountCurrency->getCurrencyCode();
 
-        $formattedPriceExcludingTax = $this->adyenHelper->formatAmount(
-            $itemAmountCurrency->getAmountWithDiscount(),
-            $currency
-        );
         $formattedPriceIncludingTax = $this->adyenHelper->formatAmount(
-            $itemAmountCurrency->getAmountIncludingTaxWithDiscount(),
+            $itemAmountCurrency->getAmountIncludingTax(),
             $currency
         );
 
@@ -186,36 +185,51 @@ class OpenInvoice
 
         $product = $item->getProduct();
 
-        return [
-            'id' => $product->getId(),
-            'amountExcludingTax' => $formattedPriceExcludingTax,
+        $lineItem = [
+            'id' => $product ? $product->getId() : $item->getProductId(),
             'amountIncludingTax' => $formattedPriceIncludingTax,
+            'amountExcludingTax' => $formattedPriceIncludingTax - $formattedTaxAmount,
             'taxAmount' => $formattedTaxAmount,
-            'description' => $item->getName(),
-            'quantity' => (int) ($qty ?? $item->getQty()),
             'taxPercentage' => $formattedTaxPercentage,
-            'productUrl' => $product->getUrlModel()->getUrl($product),
+            'description' => $item->getName(),
+            'sku' => $item->getSku(),
+            'quantity' => (int) ($qty ?? $item->getQty()),
+            'productUrl' => $product ? $product->getUrlModel()->getUrl($product) : '',
             'imageUrl' => $this->getImageUrl($item)
         ];
+
+        if ($itemCategory = $this->buildItemCategory($item)) {
+            $lineItem['itemCategory'] = $itemCategory;
+        }
+
+        return $lineItem;
     }
 
-    protected function formatInvoiceDiscount(
-        mixed $discountAmount, $shippingDiscountAmount, AdyenAmountCurrency $itemAmountCurrency
-    ): array
+    /**
+     * Builds the `itemCategory` field required for PayPal
+     *
+     * @param QuoteItem|OrderItem $item
+     * @return string|null
+     */
+    private function buildItemCategory($item): ?string
     {
-        $description = __('Discount');
-        $itemAmount = -$this->adyenHelper->formatAmount(
-            $discountAmount + $shippingDiscountAmount, $itemAmountCurrency->getCurrencyCode()
-        );
+        try {
+            if ($item instanceof QuoteItem) {
+                $paymentMethod = $item->getQuote()->getPayment()->getMethod();
+            } elseif ($item instanceof OrderItem) {
+                $paymentMethod = $item->getOrder()->getPayment()->getMethod();
+            }
 
-        return [
-            'id' => 'Discount',
-            'amountExcludingTax' => $itemAmount,
-            'amountIncludingTax' => $itemAmount,
-            'taxAmount' => 0,
-            'description' => $description,
-            'quantity' => 1,
-            'taxPercentage' => 0
-        ];
+            if (isset($paymentMethod) && strcmp($paymentMethod, PaymentMethods::ADYEN_PAYPAL) === 0) {
+                $isVirtual = boolval($item->getIsVirtual());
+                $category = $isVirtual ? self::ITEM_CATEGORY_DIGITAL_GOODS : self::ITEM_CATEGORY_PHYSICAL_GOODS;
+            }
+        } catch (Exception $e) {
+            $this->adyenLogger->error(
+                __('An error occurred while building the line item field `itemCategory`: %1', $e->getMessage())
+            );
+        }
+
+        return $category ?? null;
     }
 }

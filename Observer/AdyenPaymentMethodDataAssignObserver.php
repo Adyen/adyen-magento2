@@ -11,7 +11,7 @@
 
 namespace Adyen\Payment\Observer;
 
-use Adyen\Payment\Gateway\Request\HeaderDataBuilder;
+use Adyen\Payment\Gateway\Request\Header\HeaderDataBuilderInterface;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Util\CheckoutStateDataValidator;
 use Adyen\Payment\Helper\Util\DataArrayValidator;
@@ -23,7 +23,6 @@ use Magento\Quote\Api\Data\PaymentInterface;
 
 class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
 {
-    const BRAND_CODE = 'brand_code';
     const DF_VALUE = 'df_value';
     const GUEST_EMAIL = 'guestEmail';
     const STATE_DATA = 'stateData';
@@ -32,14 +31,13 @@ class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
     const CC_NUMBER = 'cc_number';
 
     private static $approvedAdditionalDataKeys = [
-        self::BRAND_CODE,
         self::DF_VALUE,
         self::GUEST_EMAIL,
         self::STATE_DATA,
         self::RETURN_URL,
         self::RECURRING_PROCESSING_MODEL,
         self::CC_NUMBER,
-        HeaderDataBuilder::FRONTENDTYPE
+        HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY
     ];
 
     protected CheckoutStateDataValidator $checkoutStateDataValidator;
@@ -47,6 +45,12 @@ class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
     private StateData $stateData;
     private Vault $vaultHelper;
 
+    /**
+     * @param CheckoutStateDataValidator $checkoutStateDataValidator
+     * @param Collection $stateDataCollection
+     * @param StateData $stateData
+     * @param Vault $vaultHelper
+     */
     public function __construct(
         CheckoutStateDataValidator $checkoutStateDataValidator,
         Collection $stateDataCollection,
@@ -59,7 +63,11 @@ class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
         $this->vaultHelper = $vaultHelper;
     }
 
-    public function execute(Observer $observer)
+    /**
+     * @param Observer $observer
+     * @return void
+     */
+    public function execute(Observer $observer): void
     {
         $additionalDataToSave = [];
         $stateData = null;
@@ -67,8 +75,10 @@ class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
         $data = $this->readDataArgument($observer);
         $paymentInfo = $this->readPaymentModelArgument($observer);
 
-        // Remove cc_type information from the previous payment
-        $paymentInfo->unsAdditionalInformation('cc_type');
+        // Remove the following information from the previous payment
+        $paymentInfo->unsAdditionalInformation(AdyenCcDataAssignObserver::CC_TYPE);
+        $paymentInfo->unsAdditionalInformation(AdyenCcDataAssignObserver::COMBO_CARD_TYPE);
+        $paymentInfo->unsAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS);
 
         // Get additional data array
         $additionalData = $data->getData(PaymentInterface::KEY_ADDITIONAL_DATA);
@@ -88,7 +98,6 @@ class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
         } elseif (!empty($additionalData[self::CC_NUMBER])) {
             //This block goes for multi shipping scenarios
             $stateData = json_decode((string) $additionalData[self::CC_NUMBER], true);
-            $paymentInfo->setAdditionalInformation(self::BRAND_CODE, $stateData['paymentMethod']['type']);
         } elseif($paymentInfo->getData('method') != 'adyen_giftcard') {
             $stateData = $this->stateDataCollection->getStateDataArrayWithQuoteId($paymentInfo->getData('quote_id'));
             if(!empty($stateData) && $stateData['paymentMethod']['type'] == 'giftcard')
@@ -117,12 +126,6 @@ class AdyenPaymentMethodDataAssignObserver extends AbstractDataAssignObserver
         // Set additional data in the payment
         foreach (array_merge($additionalData, $additionalDataToSave) as $key => $data) {
             $paymentInfo->setAdditionalInformation($key, $data);
-        }
-
-        // Set ccType. If payment method is tokenizable, update additional information
-        if (!empty($additionalData[self::BRAND_CODE])) {
-            $paymentMethod = $additionalData[self::BRAND_CODE];
-            $paymentInfo->setCcType($paymentMethod);
         }
     }
 }

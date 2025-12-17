@@ -23,6 +23,7 @@ define(
             },
             buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo) {
                 let baseComponentConfiguration = this._super();
+                let self = this;
                 let applePayConfiguration = Object.assign(baseComponentConfiguration,
                     {
                         showPayButton: true,
@@ -30,12 +31,20 @@ define(
                         amount: paymentMethodsExtraInfo[paymentMethod.type].configuration.amount
                     }
                 );
+                applePayConfiguration.onClick = function(resolve, reject) {
+                    if (self.validate()) {
+                        resolve();
+                    } else {
+                        reject();
+                    }
+                }
 
                 return applePayConfiguration;
             },
+
             checkBrowserCompatibility: function () {
                 // Disables Apple Pay for non-Safari browsers
-                return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+                return /^((?!android).)*safari/i.test(navigator.userAgent);
             }
         })
     }

@@ -9,10 +9,14 @@ DB_NAME=magento \
 DB_USER=magento \
 DB_PASSWORD=magento \
 DB_PREFIX=m2_ \
-ELASTICSEARCH_SERVER="<will be defined>" \
-ELASTICSEARCH_PORT=9200 \
-ELASTICSEARCH_INDEX_PREFIX=magento2 \
-ELASTICSEARCH_TIMEOUT=15 \
+OPENSEARCH_SERVER="<will be defined>" \
+OPENSEARCH_PORT=9200 \
+OPENSEARCH_INDEX_PREFIX=magento2 \
+OPENSEARCH_TIMEOUT=15 \
+RABBITMQ_SERVER="<will be defined>" \
+RABBITMQ_PORT=5672 \
+RABBITMQ_USER="guest" \
+RABBITMQ_PASSWORD="guest" \
 ADMIN_NAME=admin \
 ADMIN_LASTNAME=admin \
 ADMIN_EMAIL=admin@example.com \
@@ -23,7 +27,8 @@ MAGENTO_LANGUAGE=en_US \
 MAGENTO_CURRENCY=EUR \
 MAGENTO_TZ=Europe/Amsterdam \
 DEPLOY_SAMPLEDATA=0 \
-USE_SSL=1
+USE_SSL=1 \
+XDEBUG_MODE=coverage
 
 RUN apt-get update \
     && apt-get install -y libjpeg62-turbo-dev \
@@ -33,6 +38,7 @@ RUN apt-get update \
         libzip-dev \
         libssl-dev \
         libxslt-dev \
+        libicu-dev \
         default-mysql-client \
         ssl-cert \
         wget \
@@ -40,10 +46,14 @@ RUN apt-get update \
         unzip
 
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg
-RUN docker-php-ext-install -j$(nproc) bcmath gd intl pdo_mysql simplexml soap sockets xsl zip
+RUN docker-php-ext-install -j$(nproc) bcmath gd intl pdo_mysql simplexml soap sockets xsl zip ftp
+RUN pecl install xdebug && docker-php-ext-enable xdebug
+
 RUN a2enmod ssl
-RUN a2ensite default-ssl.conf #can be removed if not needed
+RUN a2ensite default-ssl.conf
+
 WORKDIR /var/www/html
+
 COPY config/php.ini /usr/local/etc/php/
 COPY scripts/install_magento.sh /tmp/install_magento.sh
 

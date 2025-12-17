@@ -15,6 +15,7 @@ use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
+use Magento\Framework\App\RequestInterface;
 
 class PaymentMethodsFilter
 {
@@ -31,18 +32,24 @@ class PaymentMethodsFilter
     ];
 
     private PaymentMethods $paymentMethods;
+    private RequestInterface $request;
 
     public function __construct(
-        PaymentMethods $paymentMethods
+        PaymentMethods $paymentMethods,
+        RequestInterface $request
     ) {
         $this->paymentMethods = $paymentMethods;
+        $this->request = $request;
     }
 
     public function sortAndFilterPaymentMethods(array $magentoPaymentMethods, CartInterface $quote): array
     {
+        $channel = $this->request->getParam('channel');
         $adyenPaymentMethodsResponse = $this->paymentMethods->getPaymentMethods(
             $quote->getId(),
-            $quote->getBillingAddress()->getCountryId()
+            $quote->getBillingAddress()->getCountryId(),
+            null,
+            $channel
         );
 
         $adyenPaymentMethodsDecoded = json_decode($adyenPaymentMethodsResponse, true);
@@ -77,8 +84,15 @@ class PaymentMethodsFilter
                 );
             }
 
-            if ($txVariant &&
-                !in_array($txVariant, array_column($adyenPaymentMethods, 'type'), true)) {
+            if ($txVariant && is_string($txVariant) &&
+                !array_filter(
+                    $adyenPaymentMethods,
+                    function ($method) use ($txVariant) {
+                        return isset($method['type']) && is_string($method['type']) &&
+                            strcasecmp($method['type'], $txVariant) === 0;
+                    }
+                )
+            ) {
                 unset($magentoPaymentMethods[$key]);
             }
         }

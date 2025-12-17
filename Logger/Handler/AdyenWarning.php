@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2025 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -11,19 +11,12 @@
 
 namespace Adyen\Payment\Logger\Handler;
 
-use Adyen\Payment\Logger\AdyenLogger;
+use Magento\Framework\Logger\Handler\Base;
+use Monolog\Level;
 
-class AdyenWarning extends AdyenBase
+class AdyenWarning extends Base
 {
-    /**
-     * @var string
-     */
     protected $fileName = '/var/log/adyen/warning.log';
-
-    /**
-     * @var int
-     */
-    protected $loggerType = AdyenLogger::WARNING;
-
-    protected $level = AdyenLogger::WARNING;
+    protected $loggerType = Level::Warning;
+    protected Level $level = Level::Warning;
 }

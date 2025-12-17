@@ -8,6 +8,7 @@ type Query {
         cart_id: String! @doc(description: "Cart ID.")
         shopper_locale: String @doc(description: "Language and country code combination separated by underscore (_), e.g. en_US")
         country: String @doc(description: "Country code to be used in paymentMethods call, e.g. US")
+        channel: String @doc(description: "The platform where a payment transaction takes place, e.g. Web")
     ) : AdyenPaymentMethods @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentMethods")
 
     adyenPaymentMethodsBalance (
@@ -34,6 +35,10 @@ type Mutation {
         stateDataId: Int! @doc(description: "ID of the state data to remove.")
         cartId: String! @doc(description: "Cart ID associated with the state data.")
     ): AdyenStateData @resolver(class: "Adyen\\Payment\\Model\\Resolver\\RemoveAdyenStateData")
+
+    posPayment(
+        cartId: String! @doc(description: "Cart ID associated with the POS payment.")
+    ): AdyenPaymentStatus @resolver(class: "Adyen\\Payment\\Model\\Resolver\\InitiatePosPayment")
 }
 
 type AdyenPaymentStatus {
@@ -80,6 +85,7 @@ type AdyenPaymentMethodsArray {
     brand: String @doc(description: "Brand for the selected gift card. For example: plastix, hmclub.")
     brands: [String] @doc(description: "List of possible brands. For example: visa, mc.")
     configuration: AdyenPaymentMethodsConfiguration @doc(description: "The configuration of the payment method.")
+    details: [AdyenPaymentMethodsDetails] @deprecated(reason: "This field will be removed in the next major version following the deprecation in the Checkout API.") @doc(description: "All input details to be provided to complete the payment with this payment method.")
     issuers: [AdyenPaymentMethodsIssuers] @doc(description: "Payment method issuer list.")
 }
 
@@ -169,7 +175,6 @@ input AdyenAdditionalDataCc {
 }
 
 input AdyenAdditionalData {
-    brand_code: String! @doc(description:"Type of alternative payment method.")
     stateData: String! @doc(description:"JSON string of filled fields.")
     df_value: String @doc(description: "Ratepay device identification token.")
     guestEmail: String @doc(description: "Email address if customer is guest.")
@@ -191,4 +196,5 @@ type StoreConfig @doc(description: "The type contains information about a store 
     adyen_title_renderer: String @doc(description: "Adyen Render Mode for Payment Method.")
     adyen_return_path_error: String @doc(description: "Adyen Return path in case of error")
     adyen_checkout_frontend_region: String @doc(description: "Adyen front end resources region.")
+    adyen_store_locale : String @doc(description: "Adyen store locale.") @resolver(class: "Adyen\\Payment\\Model\\Resolver\\StoreConfig\\StoreLocale")
 }

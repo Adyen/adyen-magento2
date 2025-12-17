@@ -263,6 +263,39 @@ class GiftcardPaymentTest extends AbstractAdyenTestCase
         $this->assertEquals($expectedGiftcardTotalBalance, $totalBalance);
     }
 
+    public function testGetQuoteGiftcardTotalBalanceWithInvalidState(): void
+    {
+        $quoteId = 1;
+
+        $state = <<<JSON
+    {
+      "paymentMethod": {
+        "type": "giftcard",
+        "brand": "svs",
+        "encryptedCardNumber": "PLACEHOLDER_GIFT_CARD_NUMBER",
+        "encryptedSecurityCode": "PLACEHOLDER_GIFT_CARD_PIN"
+      }
+    }
+    JSON;
+
+        $adyenStateDataMock = $this->createConfiguredMock(StateDataCollection::class, [
+            'getStateDataRowsWithQuoteId' => $this->createConfiguredMock(StateDataCollection::class, [
+                'getData' => [
+                    [
+                        'entity_id' => 1,
+                        'quote_id' => 1,
+                        'state_data' => $state
+                    ]
+                ]
+            ])
+        ]);
+
+        $giftcardPaymentHelper = $this->createGiftcardPaymentHelper($adyenStateDataMock);
+        $totalBalance = $giftcardPaymentHelper->getQuoteGiftcardTotalBalance($quoteId);
+
+        $this->assertEquals(0, $totalBalance, 'The total must be equal to 0 because the giftcard key is undefined.');
+    }
+
     private static function discountTestDataProvider(): array
     {
         return [
@@ -357,8 +390,10 @@ class GiftcardPaymentTest extends AbstractAdyenTestCase
             ])
         ]);
 
-        $pricingHelper = $this->createConfiguredMock(PricingData::class, []);
-        $pricingHelper->method('currency')->willReturnOnConsecutiveCalls('€50.00', '€25.00');
+        $pricingHelper = $this->createMock(PricingData::class);
+        $pricingHelper->method('currency')->willReturnOnConsecutiveCalls(
+            '€50.00', '€25.00', null
+        );
 
         $giftcardPaymentHelper = $this->createGiftcardPaymentHelper(
             $adyenStateDataMock,

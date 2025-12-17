@@ -20,6 +20,11 @@ use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Vault\Model\PaymentTokenManagement;
 
+/**
+ * @deprecated This webhook event has been deprecated.
+ * You can start using tokenization webhooks. Please visit the following link for further information.
+ * https://docs.adyen.com/api-explorer/Tokenization-webhooks/1/overview
+ */
 class RecurringContractWebhookHandler implements WebhookHandlerInterface
 {
     private AdyenLogger $adyenLogger;
@@ -70,6 +75,7 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
             $this->adyenLogger->addAdyenNotification(
                 sprintf(
                     "Vault payment token with entity_id: %s disabled due to the failing %s webhook notification.",
+                    $vaultToken->getEntityId(),
                     $notification->getEventCode()
                 ),
                 [

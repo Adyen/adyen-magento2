@@ -28,36 +28,45 @@ use Magento\QuoteGraphQl\Model\Cart\GetCartForUser;
 
 class GetAdyenPaymentMethods implements ResolverInterface
 {
-    protected GetCartForUser $getCartForUser;
-    protected PaymentMethods $paymentMethodsHelper;
-    protected Json $jsonSerializer;
-    protected AdyenLogger $adyenLogger;
-
+    /**
+     * @param GetCartForUser $getCartForUser
+     * @param PaymentMethods $paymentMethodsHelper
+     * @param Json $jsonSerializer
+     * @param AdyenLogger $adyenLogger
+     */
     public function __construct(
-        GetCartForUser $getCartForUser,
-        PaymentMethods $paymentMethodsHelper,
-        Json $jsonSerializer,
-        AdyenLogger $adyenLogger
-    ) {
-        $this->getCartForUser = $getCartForUser;
-        $this->paymentMethodsHelper = $paymentMethodsHelper;
-        $this->jsonSerializer = $jsonSerializer;
-        $this->adyenLogger = $adyenLogger;
-    }
+        protected readonly GetCartForUser $getCartForUser,
+        protected readonly PaymentMethods $paymentMethodsHelper,
+        protected readonly Json $jsonSerializer,
+        protected readonly AdyenLogger $adyenLogger
+    ) { }
 
+    /**
+     * @param Field $field
+     * @param $context
+     * @param ResolveInfo $info
+     * @param array|null $value
+     * @param array|null $args
+     * @return array
+     * @throws GraphQlAdyenException
+     * @throws GraphQlAuthorizationException
+     * @throws GraphQlInputException
+     * @throws GraphQlNoSuchEntityException
+     */
     public function resolve(
         Field $field,
         $context,
         ResolveInfo $info,
-        array $value = null,
-        array $args = null
-    ) {
+        ?array $value = null,
+        ?array $args = null
+    ): array {
         if (empty($args['cart_id'])) {
             throw new GraphQlInputException(__('Required parameter "cart_id" is missing'));
         }
         $maskedCartId = $args['cart_id'];
         $shopperLocale = $args['shopper_locale'] ?? null;
         $country = $args['country'] ?? null;
+        $channel = $args['channel'] ?? null;
 
         $currentUserId = $context->getUserId();
         $storeId = (int)$context->getExtensionAttributes()->getStore()->getId();
@@ -68,7 +77,8 @@ class GetAdyenPaymentMethods implements ResolverInterface
             $adyenPaymentMethodsResponse = $this->paymentMethodsHelper->getPaymentMethods(
                 intval($cart->getId()),
                 $country,
-                $shopperLocale
+                $shopperLocale,
+                $channel
             );
 
             return $adyenPaymentMethodsResponse ? $this->preparePaymentMethodGraphQlResponse($adyenPaymentMethodsResponse) : [];

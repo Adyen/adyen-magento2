@@ -36,6 +36,12 @@ class MagentoPaymentDetails
     public function addAdyenExtensionAttributes(PaymentDetailsInterface $result, int $cartId): PaymentDetailsInterface
     {
         $quote = $this->cartRepository->get($cartId);
+        $storeId = $quote->getStoreId();
+        $isAdyenPosCloudEnabled = $this->configHelper->getAdyenPosCloudConfigData('active', $storeId, true);
+
+        if (!$this->configHelper->getIsPaymentMethodsActive($storeId) && !$isAdyenPosCloudEnabled) {
+            return $result;
+        }
         $magentoPaymentMethods = $result->getPaymentMethods();
 
         list($magentoPaymentMethods, $adyenPaymentMethodsResponse) =
@@ -45,9 +51,6 @@ class MagentoPaymentDetails
         $extensionAttributes = $result->getExtensionAttributes();
 
         $extensionAttributes->setAdyenPaymentMethodsResponse($adyenPaymentMethodsResponse);
-
-        $storeId = $quote->getStoreId();
-        $isAdyenPosCloudEnabled = $this->configHelper->getAdyenPosCloudConfigData('active', $storeId, true);
 
         if ($isAdyenPosCloudEnabled) {
             $connectedTerminals = $this->connectedTerminalsHelper->getConnectedTerminals($storeId);

@@ -13,6 +13,7 @@
 namespace Adyen\Payment\AdminMessage;
 
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\PlatformInfo;
 use Magento\AdminNotification\Model\InboxFactory;
 use Magento\Backend\Model\Auth\Session;
 use Magento\Framework\App\RequestInterface;
@@ -20,36 +21,24 @@ use Magento\Framework\Notification\MessageInterface;
 
 class VersionMessage implements MessageInterface
 {
-    /**
-     * @var Session
-     */
-    protected $_authSession;
-
-    /**
-     * @var Data
-     */
-    protected $_adyenHelper;
-
-    /**
-     * @var InboxFactory
-     */
-    protected $_inboxFactory;
-
-    /**
-     * @var RequestInterface
-     */
-    protected $request;
+    protected Session $_authSession;
+    protected Data $_adyenHelper;
+    protected InboxFactory $_inboxFactory;
+    protected RequestInterface $request;
+    protected PlatformInfo $_platformInfo;
 
     public function __construct(
         Session $authSession,
         Data $adyenHelper,
         InboxFactory $inboxFactory,
-        RequestInterface $request
+        RequestInterface $request,
+        PlatformInfo $platformInfo
     ) {
         $this->_authSession = $authSession;
         $this->_adyenHelper = $adyenHelper;
         $this->_inboxFactory = $inboxFactory;
         $this->request = $request;
+        $this->_platformInfo = $platformInfo;
     }
 
     const MESSAGE_IDENTITY = 'Adyen Version Control message';
@@ -96,7 +85,7 @@ class VersionMessage implements MessageInterface
                  * This will compare the currently installed version with the latest available one.
                  * A message will appear after the login if the two are not matching.
                  */
-                if ($this->_adyenHelper->getModuleVersion() != $githubContent['tag_name']) {
+                if ($this->_platformInfo->getModuleVersion() != $githubContent['tag_name']) {
                     return true;
                 }
             } elseif ($this->request->getModuleName() === 'mui' && $this->isNewVersionAvailable()) {
@@ -127,7 +116,7 @@ class VersionMessage implements MessageInterface
             "<a href= \"" . $githubContent['html_url'] . "\" target='_blank'> " . $githubContent['tag_name'] . "!</a>"
         );
         $message .= __(
-            " You are running the " . $this->_adyenHelper->getModuleVersion(
+            " You are running the " . $this->_platformInfo->getModuleVersion(
             ) . " version. We advise to update your extension."
         );
         return __($message);
@@ -177,7 +166,7 @@ class VersionMessage implements MessageInterface
         $githubContent = $this->getSessionData("AdyenGithubVersion");
 
         if (isset($githubContent)) {
-            return $this->_adyenHelper->getModuleVersion() !== $githubContent['tag_name'];
+            return $this->_platformInfo->getModuleVersion() !== $githubContent['tag_name'];
         }
     }
 }

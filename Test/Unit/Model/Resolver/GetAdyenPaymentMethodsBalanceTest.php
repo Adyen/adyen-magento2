@@ -12,15 +12,14 @@ namespace Adyen\Payment\Test\Model\Resolver;
 
 use Adyen\Payment\Model\Api\AdyenPaymentMethodsBalance;
 use Adyen\Payment\Model\Resolver\GetAdyenPaymentMethodsBalance;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Catalog\Model\Layer\ContextInterface;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
-use PHPUnit\Framework\TestCase;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Adyen\Payment\Exception\GraphQlAdyenException;
-use Magento\Framework\GraphQl\Query;
 
-class GetAdyenPaymentMethodsBalanceTest extends TestCase
+class GetAdyenPaymentMethodsBalanceTest extends AbstractAdyenTestCase
 {
     private $balanceMock;
     private $contextMock;

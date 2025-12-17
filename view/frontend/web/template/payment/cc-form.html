@@ -16,7 +16,7 @@
         <input type="radio"
                name="payment[method]"
                class="radio"
-               data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()"/>
+               data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()">
         <label data-bind="attr: {'for': getCode()}" class="label">
 
             <!-- ko if: adyenCCMethod().icon -->
@@ -43,19 +43,15 @@
             <!--/ko-->
         </div>
 
-
         <form class="form" id="adyen-cc-form" data-role="adyen-cc-form" action="#" method="post" data-bind="mageInit: {
             'transparent':{
                 'context': context(),
-                'controller': getControllerName(),
-                'orderSaveUrl':getPlaceOrderUrl(),
+                'controller': getControllerName()
             }, 'validation':[]}">
-
 
             <!-- ko foreach: getRegion('messages') -->
             <!-- ko template: getTemplate() --><!-- /ko -->
             <!--/ko-->
-
 
             <fieldset
                     data-bind="attr: {class: 'fieldset payment items ccard ' + getCode(), id: 'payment_form_' + getCode()}">
@@ -63,7 +59,7 @@
                 <legend class="legend">
                     <span><!-- ko text: $t('Credit Card Information')--><!-- /ko --></span>
                 </legend>
-                <br/>
+                <br>
                 <!-- /ko -->
 
                 <!-- ko if: (areComboCardsEnabled())-->
@@ -85,7 +81,7 @@
                 <!-- /ko -->
 
                 <div class="field number cardContainerField">
-                    <div class="checkout-component-dock" afterRender="renderCCPaymentMethod()" data-bind="attr: { id: 'cardContainer'}"></div>
+                    <div class="checkout-component-dock" afterRender="renderPreSelected()" data-bind="attr: { id: 'cardContainer'}"></div>
                 </div>
 
                 <div id="cc_actionModalWrapper">
@@ -93,34 +89,6 @@
                         <div id="cc_actionModalContent"></div>
                     </div>
                 </div>
-
-
-                <!-- ko if: (hasInstallments())-->
-
-                <div class="field required"
-                     data-bind="attr: {id: getCode() + '_installments_div'}, visible: installments().length > 0">
-                    <label data-bind="attr: {for: getCode() + '_installments'}" class="label">
-                        <span><!-- ko text: $t('Installments')--><!-- /ko --></span>
-                    </label>
-                    <div class="control">
-
-                        <select class="select"
-                                name="payment[number_of_installments]"
-                                data-bind="attr: {id: getCode() + '_installments', 'data-container': getCode() + '-installments', 'data-validate': JSON.stringify({required:false})},
-
-                                        enable: isActive($parents),
-                                        options: installments,
-                                        optionsValue: 'value',
-                                        optionsText: 'key',
-                                        optionsCaption: $t('Do not use Installments'),
-                                        value: installment"
-                                data-validate="{required:true}">
-                        </select>
-                    </div>
-                </div>
-
-
-                <!-- /ko -->
             </fieldset>
 
             <div class="checkout-agreements-block">
@@ -145,4 +113,3 @@
     </div>
 </div>
 <!--/ko-->
-

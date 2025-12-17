@@ -1,5 +1,10 @@
 name: Release
 
+# Default permissions for all jobs in this workflow
+permissions:
+  contents: read
+  pull-requests: read
+
 on:
 #   Manual run from Github UI (e.g. for when a merged PR labels have changed)
   workflow_dispatch:
@@ -28,17 +33,25 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+    if: >
+      ${{
+        github.event_name == 'workflow_dispatch' ||
+        (
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.merged == true
+        )
+      }}
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2
       - name: Prepare the next main release
-        uses: Adyen/release-automation-action@v1.3.1
+        uses: Adyen/release-automation-action@3e5694d5b365f344a62436e84049511ef318ecf5
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.ADYEN_RELEASE_AUTOMATION_USER_TOKEN }}
           develop-branch: main
           version-files: composer.json
           release-title: Adyen Magento-2 Plugin
           pre-release: ${{ inputs.pre-release || false }}
-#           For a manual Github release
           github-release: ${{ inputs.github-release || false }}
           separator: .pre.beta

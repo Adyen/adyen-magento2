@@ -62,7 +62,8 @@
             "ADYEN_NOTIFICATION_PSPREFERENCE": true,
             "ADYEN_NOTIFICATION_EVENT_CODE": true,
             "ADYEN_NOTIFICATION_PSPREFERENCE_EVENT_CODE": true,
-            "ADYEN_NOTIFICATION_MERCHANT_REFERENCE_EVENT_CODE": true
+            "ADYEN_NOTIFICATION_MERCHANT_REFERENCE_EVENT_CODE": true,
+            "ADYEN_NOTIFICATION_CREATED_AT": true
         },
         "constraint": {
             "PRIMARY": true
@@ -108,6 +109,9 @@
         },
         "constraint": {
             "PRIMARY": true
+        },
+        "index": {
+            "ADYEN_PAYMENT_RESPONSE_MERCHANT_REFERENCE": true
         }
     }
 }

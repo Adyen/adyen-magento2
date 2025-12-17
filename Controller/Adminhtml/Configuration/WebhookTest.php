@@ -12,14 +12,13 @@
 namespace Adyen\Payment\Controller\Adminhtml\Configuration;
 
 use Adyen\AdyenException;
+use Adyen\Model\Management\TestWebhookResponse;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\ManagementHelper;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
-use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Controller\Result\JsonFactory;
-use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\StoreManager;
 
@@ -28,27 +27,27 @@ class WebhookTest extends Action
     /**
      * @var ManagementHelper
      */
-    private $managementApiHelper;
+    private ManagementHelper $managementApiHelper;
 
     /**
      * @var Config
      */
-    protected $configHelper;
+    protected Config $configHelper;
 
     /**
      * @var JsonFactory
      */
-    protected $resultJsonFactory;
+    protected JsonFactory $resultJsonFactory;
 
     /**
      * @var Context
      */
-    protected $context;
+    protected Context $context;
 
     /**
      * @var StoreManager
      */
-    protected $storeManager;
+    protected StoreManager $storeManager;
 
     /**
      * @param Context $context
@@ -73,11 +72,11 @@ class WebhookTest extends Action
     }
 
     /**
-     * @return ResponseInterface|Json|ResultInterface
+     * @return Json
      * @throws AdyenException
      * @throws NoSuchEntityException
      */
-    public function execute()
+    public function execute(): Json
     {
         $storeId = $this->storeManager->getStore()->getId();
 
@@ -87,11 +86,21 @@ class WebhookTest extends Action
         $environment = $isDemoMode ? 'test' : 'live';
         $apiKey = $this->configHelper->getApiKey($environment, $storeId);
 
-        $managementApiService = $this->managementApiHelper->getManagementApiService($apiKey, $isDemoMode);
-        $response = $this->managementApiHelper->webhookTest($merchantAccount, $webhookId, $managementApiService);
+        $client = $this->managementApiHelper->getAdyenApiClient($apiKey, $isDemoMode);
+        $service =$this->managementApiHelper->getWebhooksMerchantLevelApi($client);
 
-        $success = isset($response['data']) &&
-            in_array('success', array_column($response['data'], 'status'), true);
+        $responseObj = $this->managementApiHelper->webhookTest($merchantAccount, $webhookId, $service);
+
+        $success = false;
+        $response = null;
+
+        if ($responseObj instanceof TestWebhookResponse) {
+            $responseData = $responseObj->getData();
+            $responseData = reset($responseData);
+            $response = $responseData->toArray();
+
+            $success = $response['status'] === 'success';
+        }
 
         $resultJson = $this->resultJsonFactory->create();
         $resultJson->setData([

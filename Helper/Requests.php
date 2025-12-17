@@ -11,11 +11,17 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\AdyenException;
 use Adyen\Payment\Model\Config\Source\CcType;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
-use Adyen\Util\Uuid;
+use Adyen\Payment\Helper\Util\Uuid;
+use DateTime;
+use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
+use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 
 class Requests extends AbstractHelper
 {
@@ -24,31 +30,36 @@ class Requests extends AbstractHelper
     const RECURRING_DETAIL_REFERENCE = 'recurringDetailReference';
     const DONATION_PAYMENT_METHOD_CODE_MAPPING = [
         'ideal' => 'sepadirectdebit',
-        'storedPaymentMethods' => 'scheme',
         'googlepay' => 'scheme',
-        'paywithgoogle' => 'scheme',
         'applepay' => 'scheme'
     ];
     const SHOPPER_INTERACTION_CONTAUTH = 'ContAuth';
 
-    private Data $adyenHelper;
-    private Config $adyenConfig;
-    private Address $addressHelper;
-    private StateData $stateData;
-    private Vault $vaultHelper;
-
+    /**
+     * @param Context $context
+     * @param Data $adyenHelper
+     * @param Config $adyenConfig
+     * @param Address $addressHelper
+     * @param StateData $stateData
+     * @param Vault $vaultHelper
+     * @param ChargedCurrency $chargedCurrency
+     * @param PaymentMethods $paymentMethodsHelper
+     * @param Locale $localeHelper
+     * @param CustomerRepositoryInterface $customerRepository
+     */
     public function __construct(
-        Data $adyenHelper,
-        Config $adyenConfig,
-        Address $addressHelper,
-        StateData $stateData,
-        Vault $vaultHelper
+        Context $context,
+        protected readonly Data $adyenHelper,
+        protected readonly Config $adyenConfig,
+        protected readonly Address $addressHelper,
+        protected readonly StateData $stateData,
+        protected readonly Vault $vaultHelper,
+        protected readonly ChargedCurrency $chargedCurrency,
+        protected readonly PaymentMethods $paymentMethodsHelper,
+        protected readonly Locale $localeHelper,
+        private readonly CustomerRepositoryInterface $customerRepository
     ) {
-        $this->adyenHelper = $adyenHelper;
-        $this->adyenConfig = $adyenConfig;
-        $this->addressHelper = $addressHelper;
-        $this->stateData = $stateData;
-        $this->vaultHelper = $vaultHelper;
+        parent::__construct($context);
     }
 
     /**
@@ -56,6 +67,7 @@ class Requests extends AbstractHelper
      * @param $paymentMethod
      * @param $storeId
      * @return mixed
+     * @throws NoSuchEntityException
      */
     public function buildMerchantAccountData($paymentMethod, $storeId, $request = [])
     {
@@ -69,14 +81,15 @@ class Requests extends AbstractHelper
     }
 
     /**
-     * @param int $customerId
      * @param $billingAddress
      * @param $storeId
-     * @param \Magento\Sales\Model\Order\Payment\|null $payment
+     * @param int $customerId
+     * @param null $payment
      * @param null $additionalData
      * @param array $request
      * @return array
-     * @return array
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
     public function buildCustomerData(
         $billingAddress,
@@ -118,7 +131,18 @@ class Requests extends AbstractHelper
                 $request['countryCode'] = $this->addressHelper->getAdyenCountryCode($countryId);
             }
 
-            $request['shopperLocale'] = $this->adyenHelper->getStoreLocale($storeId);
+            $request['shopperLocale'] = $this->localeHelper->getStoreLocale($storeId);
+        }
+
+        // TODO:: Can be implemented for guests after https://github.com/magento/magento2/issues/14509 is resolved.
+        if ($customerId) {
+            $customer = $this->customerRepository->getById($customerId);
+            $dob = $customer->getDob();
+
+            // Magento already returns ISO-8601, validate the required format YYYY-MM-DD.
+            if (!empty($dob) && DateTime::createFromFormat('Y-m-d', $dob)) {
+                $request['dateOfBirth'] = $dob;
+            }
         }
 
         return $request;
@@ -137,10 +161,11 @@ class Requests extends AbstractHelper
     }
 
     /**
-     * @param $request
      * @param $billingAddress
      * @param $shippingAddress
-     * @return mixed
+     * @param $storeId
+     * @param array $request
+     * @return array
      */
     public function buildAddressData($billingAddress, $shippingAddress, $storeId, $request = [])
     {
@@ -272,13 +297,13 @@ class Requests extends AbstractHelper
     }
 
     /**
-     * @param array $request
      * @param $amount
      * @param $currencyCode
      * @param $reference
+     * @param array $request
      * @return array
      */
-    public function buildPaymentData($amount, $currencyCode, $reference, array $request = [])
+    public function buildPaymentData($amount, $currencyCode, $reference, array $request = []): array
     {
         $request['amount'] = [
             'currency' => $currencyCode,
@@ -294,14 +319,17 @@ class Requests extends AbstractHelper
      * @param array $request
      * @return array
      */
-    public function buildBrowserData($request = [])
+    public function buildBrowserData(array $request = []): array
     {
-        if (!empty($_SERVER['HTTP_USER_AGENT'])) {
-            $request['browserInfo']['userAgent'] = $_SERVER['HTTP_USER_AGENT'];
+        $userAgent = $this->_request->getServer('HTTP_USER_AGENT');
+        $acceptHeader = $this->_request->getServer('HTTP_ACCEPT');
+
+        if (!empty($userAgent)) {
+            $request['browserInfo']['userAgent'] = $userAgent;
         }
 
-        if (!empty($_SERVER['HTTP_ACCEPT'])) {
-            $request['browserInfo']['acceptHeader'] = $_SERVER['HTTP_ACCEPT'];
+        if (!empty($acceptHeader)) {
+            $request['browserInfo']['acceptHeader'] = $acceptHeader;
         }
 
         return $request;
@@ -388,27 +416,59 @@ class Requests extends AbstractHelper
         return $request;
     }
 
-    public function buildDonationData($buildSubject, $storeId): array
+    /**
+     * @throws AdyenException
+     * @throws LocalizedException
+     */
+    public function buildDonationData($payment, int $storeId): array
     {
-        $paymentMethodCode = $buildSubject['paymentMethod'];
+        $order = $payment->getOrder();
+        $paymentMethodInstance = $payment->getMethodInstance();
 
-        if (isset(self::DONATION_PAYMENT_METHOD_CODE_MAPPING[$paymentMethodCode])) {
-            $paymentMethodCode = self::DONATION_PAYMENT_METHOD_CODE_MAPPING[$paymentMethodCode];
+        $donationToken = $payment->getAdditionalInformation('donationToken');
+        $donationCampaignId = $payment->getAdditionalInformation('donationCampaignId');
+        $pspReference = $payment->getAdditionalInformation('pspReference');
+        $payload = $payment->getAdditionalInformation('donationPayload');
+
+        if (!$donationToken || !is_array($payload)) {
+            throw new LocalizedException(__('Donation failed!'));
         }
 
+        $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order, false);
+        $currencyCode = $orderAmountCurrency->getCurrencyCode();
+
+        if ($payload['amount']['currency'] !== $currencyCode) {
+            throw new LocalizedException(__('Donation failed!'));
+        }
+
+        $payload['donationToken'] = $donationToken;
+        $payload['donationCampaignId'] = $donationCampaignId;
+        $payload['donationOriginalPspReference'] = $pspReference;
+
+        if ($payment->getMethod() === AdyenCcConfigProvider::CODE) {
+            $paymentMethodCode = 'scheme';
+        } elseif ($this->paymentMethodsHelper->isAlternativePaymentMethod($paymentMethodInstance)) {
+            $paymentMethodCode = $this->paymentMethodsHelper->getAlternativePaymentMethodTxVariant($paymentMethodInstance);
+        } else {
+            throw new LocalizedException(__('Donation failed!'));
+        }
+
+        $shopperReference = $order->getCustomerId()
+            ? $this->adyenHelper->padShopperReference($order->getCustomerId())
+            : $order->getIncrementId() . Uuid::generateV4();
+
         return [
-            'amount' => $buildSubject['amount'],
+            'amount' => $payload['amount'],
             'reference' => Uuid::generateV4(),
-            'shopperReference' => $buildSubject['shopperReference'],
+            'shopperReference' => $shopperReference,
             'paymentMethod' => [
-                'type' => $paymentMethodCode
+                'type' => self::DONATION_PAYMENT_METHOD_CODE_MAPPING[$paymentMethodCode] ?? $paymentMethodCode,
             ],
-            'donationToken' => $buildSubject['donationToken'],
-            'donationOriginalPspReference' => $buildSubject['donationOriginalPspReference'],
-            'donationAccount' => $this->adyenConfig->getCharityMerchantAccount($storeId),
-            'returnUrl' => $buildSubject['returnUrl'],
+            'donationToken' => $payload['donationToken'],
+            'donationCampaignId' => $payload['donationCampaignId'],
+            'donationOriginalPspReference' => $payload['donationOriginalPspReference'],
+            'returnUrl' => $payload['returnUrl'],
             'merchantAccount' => $this->adyenHelper->getAdyenMerchantAccount('adyen_giving', $storeId),
-            'shopperInteraction' => self::SHOPPER_INTERACTION_CONTAUTH
         ];
     }
 

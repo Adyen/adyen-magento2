@@ -9,9 +9,6 @@
   <table name="sales_order_payment" resource="default">
     <column xsi:type="varchar" name="adyen_psp_reference" nullable="true" length="255" comment="Adyen PspReference of the payment"/>
   </table>
-  <table name="paypal_billing_agreement" resource="default">
-    <column xsi:type="text" name="agreement_data" nullable="true" comment="Agreement Data"/>
-  </table>
   <table name="adyen_order_payment" resource="default" engine="innodb" comment="Adyen Order Payment">
     <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Adyen Payment ID"/>
     <column xsi:type="varchar" name="pspreference" nullable="false" length="255" comment="Pspreference"/>
@@ -24,6 +21,7 @@
     <column xsi:type="datetime" name="updated_at" on_update="false" nullable="false" comment="Updated at"/>
     <column xsi:type="text" name="capture_status" nullable="true" comment="Field to determine if and how order payment was captured"/>
     <column xsi:type="decimal" name="total_captured" scale="4" precision="12" unsigned="true" nullable="true" comment="Field to determine the amount that has been captured."/>
+    <column xsi:type="int" name="order_sort" unsigned="true" nullable="true" comment="Sort order of Partial Payment"/>
     <constraint xsi:type="primary" referenceId="PRIMARY">
       <column name="entity_id"/>
     </constraint>
@@ -68,6 +66,9 @@
       <column name="merchant_reference"/>
       <column name="event_code"/>
     </index>
+    <index referenceId="ADYEN_NOTIFICATION_CREATED_AT" indexType="btree">
+      <column name="created_at"/>
+    </index>
   </table>
   <table name="adyen_invoice" resource="default" engine="innodb" comment="Adyen Invoice">
     <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Adyen Invoice Entity ID"/>
@@ -107,6 +108,9 @@
     <constraint xsi:type="primary" referenceId="PRIMARY">
       <column name="entity_id"/>
     </constraint>
+    <index referenceId="ADYEN_PAYMENT_RESPONSE_MERCHANT_REFERENCE" indexType="btree">
+      <column name="merchant_reference"/>
+    </index>
   </table>
   <table name="adyen_creditmemo" resource="default" engine="innodb" comment="Adyen Creditmemo">
     <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Adyen Creditmemo Entity ID"/>

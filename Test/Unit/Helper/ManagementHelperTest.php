@@ -11,25 +11,43 @@
 
 namespace Adyen\Payment\Test\Unit\Helper;
 
+use Adyen\AdyenException;
 use Adyen\Client;
 use Adyen\Config as HttpClientConfig;
 use Adyen\Environment;
+use Adyen\Model\Management\AllowedOrigin;
+use Adyen\Model\Management\AllowedOriginsResponse;
+use Adyen\Model\Management\GenerateHmacKeyResponse;
+use Adyen\Model\Management\ListMerchantResponse;
+use Adyen\Model\Management\MeApiCredential;
+use Adyen\Model\Management\TestWebhookResponse;
+use Adyen\Model\Management\Webhook;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\ManagementHelper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
-use Adyen\Service\ResourceModel\Management\AllowedOrigins;
-use Adyen\Service\ResourceModel\Management\Me;
-use Adyen\Service\ResourceModel\Management\MerchantAccount;
-use Adyen\Service\ResourceModel\Management\MerchantWebhooks;
+use Adyen\Service\Management\AccountMerchantLevelApi;
+use Adyen\Service\Management\MyAPICredentialApi;
+use Adyen\Service\Management\WebhooksMerchantLevelApi;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManager;
+use PHPUnit\Framework\MockObject\Exception;
 
 class ManagementHelperTest extends AbstractAdyenTestCase
 {
+    private Client $clientMock;
+
+    public function setUp(): void
+    {
+        $this->clientMock = $this->createMock(Client::class);
+        $this->clientMock->expects($this->any())
+            ->method('getConfig')
+            ->willReturn(new \Adyen\Config(['environment' => 'test']));
+    }
+
     public function testGetMerchantAccountsAndClientKey()
     {
         $merchantAccountListResponseJson = <<<JSON
@@ -43,6 +61,9 @@ class ManagementHelperTest extends AbstractAdyenTestCase
                     },
                     "self": {
                         "href": "https:\/\/management-test.adyen.com\/v1\/merchants?pageNumber=1&pageSize=100"
+                    },
+                    "next": {
+                        "href": "https:\/\/management-test.adyen.com\/v1\/merchants?pageNumber=2&pageSize=100"
                     }
                 },
                 "itemsTotal": 2,
@@ -151,8 +172,8 @@ class ManagementHelperTest extends AbstractAdyenTestCase
             }
         JSON;
 
-        $merchantAccountListResponse = json_decode($merchantAccountListResponseJson, true);
-        $meResponse = json_decode($meResponseJson, true);
+        $merchantAccountListResponse = new ListMerchantResponse(json_decode($merchantAccountListResponseJson, true));
+        $meResponse = new MeApiCredential(json_decode($meResponseJson, true));
 
         $storeManagerMock = $this->createConfiguredMock(StoreManager::class, [
             'getStore' => $this->createConfiguredMock(StoreInterface::class, [
@@ -169,17 +190,15 @@ class ManagementHelperTest extends AbstractAdyenTestCase
         ]);
 
         $managementHelper = $this->createManagementHelper($storeManagerMock, null, $dataHelperMock);
-        $managementApiService = $managementHelper->getManagementApiService("APIKEY", true);
-
-        $managementApiService->merchantAccount = $this->createConfiguredMock(MerchantAccount::class, [
-            'list' => $merchantAccountListResponse
+        $accountMerchantLevelApi = $this->createConfiguredMock(AccountMerchantLevelApi::class, [
+            'listMerchantAccounts' => $merchantAccountListResponse
         ]);
 
-        $managementApiService->me = $this->createConfiguredMock(Me::class, [
-            'retrieve' => $meResponse
+        $myAPICredentialApi = $this->createConfiguredMock(MyAPICredentialApi::class, [
+            'getApiCredentialDetails' => $meResponse
         ]);
 
-        $result = $managementHelper->getMerchantAccountsAndClientKey($managementApiService);
+        $result = $managementHelper->getMerchantAccountsAndClientKey($accountMerchantLevelApi, $myAPICredentialApi);
 
         $this->assertArrayHasKey('currentMerchantAccount', $result);
         $this->assertEquals('test_abcdefg', $result['clientKey']);
@@ -225,14 +244,10 @@ class ManagementHelperTest extends AbstractAdyenTestCase
             $configHelperMock
         );
 
-        $managementApiService = $managementHelper->getManagementApiService("APIKEY", true);
-        $managementApiService->merchantWebhooks = $this->createConfiguredMock(MerchantWebhooks::class, [
-            'generateHmac' => [
-                'hmacKey' => "MOCK_HMAC_KEY"
-            ],
-            'create' => [
-                'id' => 'WH-0123456789'
-            ]
+
+        $service = $this->createConfiguredMock(WebhooksMerchantLevelApi::class, [
+            'setUpWebhook' => new Webhook(['id' => 'WH-0123456789']),
+            'generateHmacKey' => new GenerateHmacKeyResponse(['hmacKey' => 'MOCK_HMAC_KEY'])
         ]);
 
         $result = $managementHelper->setupWebhookCredentials(
@@ -241,10 +256,130 @@ class ManagementHelperTest extends AbstractAdyenTestCase
             $password,
             $url,
             $isDemoMode,
-            $managementApiService
+            $service
         );
 
         $this->assertEquals('WH-0123456789', $result);
+    }
+
+    public function testSetupWebhookCredentialsWithStoredWebhookSuccess()
+    {
+        $merchantId = 'MERCHANT_ID';
+        $username = 'USERNAME';
+        $password = 'PASSWORD';
+        $url = 'https://www.test.store/webhook';
+        $isDemoMode = true;
+        $webhookId = 'WH-000000000';
+
+        $storeManagerMock = $this->createConfiguredMock(StoreManager::class, [
+            'getStore' => $this->createConfiguredMock(StoreInterface::class, [
+                'getId' => 1
+            ])
+        ]);
+
+        $encyptorMock = $this->createConfiguredMock(EncryptorInterface::class, [
+            'encrypt' => 'ENCRYPTED_VALUE'
+        ]);
+
+        $dataHelperMock = $this->createConfiguredMock(Data::class, [
+            'initializeAdyenClient' => $this->createConfiguredMock(Client::class, [
+                'getConfig' => $this->createConfiguredMock(HttpClientConfig::class, [
+                    'get' => Environment::TEST
+                ])
+            ])
+        ]);
+
+        $configHelperMock = $this->createConfiguredMock(Config::class, [
+            'getWebhookId' => $webhookId,
+            'getMerchantAccount' => $merchantId
+        ]);
+
+        $adyenLogger = $this->createMock(AdyenLogger::class);
+        $adyenLogger->expects($this->never())->method('error');
+        $managementHelper = $this->createManagementHelper(
+            $storeManagerMock,
+            $encyptorMock,
+            $dataHelperMock,
+            $configHelperMock,
+            $adyenLogger
+        );
+
+        $service = $this->createConfiguredMock(WebhooksMerchantLevelApi::class, [
+            'updateWebhook' => new Webhook(['id' => 'WH-0123456789']),
+            'generateHmacKey' => new GenerateHmacKeyResponse(['hmacKey' => 'MOCK_HMAC_KEY'])
+        ]);
+
+        $result = $managementHelper->setupWebhookCredentials(
+            $merchantId,
+            $username,
+            $password,
+            $url,
+            $isDemoMode,
+            $service
+        );
+
+        $this->assertEquals('WH-000000000', $result);
+    }
+
+
+
+    public function testSetupWebhookCredentialsWithFaildGenerateHmacKey()
+    {
+        $merchantId = 'MERCHANT_ID';
+        $username = 'USERNAME';
+        $password = 'PASSWORD';
+        $url = 'https://www.test.store/webhook';
+        $isDemoMode = false;
+        $webhookId = 'WH-000000000';
+
+        $storeManagerMock = $this->createConfiguredMock(StoreManager::class, [
+            'getStore' => $this->createConfiguredMock(StoreInterface::class, [
+                'getId' => 1
+            ])
+        ]);
+
+        $encyptorMock = $this->createConfiguredMock(EncryptorInterface::class, [
+            'encrypt' => 'ENCRYPTED_VALUE'
+        ]);
+
+        $dataHelperMock = $this->createConfiguredMock(Data::class, [
+            'initializeAdyenClient' => $this->createConfiguredMock(Client::class, [
+                'getConfig' => $this->createConfiguredMock(HttpClientConfig::class, [
+                    'get' => Environment::TEST
+                ])
+            ])
+        ]);
+
+        $configHelperMock = $this->createConfiguredMock(Config::class, [
+            'getWebhookId' => $webhookId,
+            'getMerchantAccount' => $merchantId
+        ]);
+
+        $adyenLogger = $this->createMock(AdyenLogger::class);
+        $managementHelper = $this->createManagementHelper(
+            $storeManagerMock,
+            $encyptorMock,
+            $dataHelperMock,
+            $configHelperMock,
+            $adyenLogger
+        );
+
+        $service = $this->createConfiguredMock(WebhooksMerchantLevelApi::class, [
+            'updateWebhook' => new Webhook(['id' => 'WH-0123456789'])
+        ]);
+        $service->expects($this->once())
+            ->method('generateHmacKey')
+            ->willThrowException(new \Exception('Some exception'));
+
+        $this->expectException(\Exception::class);
+        $result = $managementHelper->setupWebhookCredentials(
+            $merchantId,
+            $username,
+            $password,
+            $url,
+            $isDemoMode,
+            $service
+        );
     }
 
     public function testSetupWebhookCredentialsFailLive(): void
@@ -286,21 +421,15 @@ class ManagementHelperTest extends AbstractAdyenTestCase
             $configHelperMock
         );
 
-        $managementApiService = $managementHelper->getManagementApiService("APIKEY", true);
-        $managementApiService->merchantWebhooks = $this->createConfiguredMock(MerchantWebhooks::class, [
-            'generateHmac' => [
-                'hmacKey' => "MOCK_HMAC_KEY"
-            ],
-            'create' => $this->throwException(new \Exception('Mock Service Exception'))
-        ]);
-
+        $service = $this->createConfiguredMock(WebhooksMerchantLevelApi::class, []);
+        $service->expects($this->any())->method('setUpWebhook')->willThrowException(new \Exception('Mock Service Exception'));
         $resultWebhookId = $managementHelper->setupWebhookCredentials(
             $merchantId,
             $username,
             $password,
             $url,
             $isDemoMode,
-            $managementApiService
+            $service
         );
 
         $this->assertEquals($webhookId, $resultWebhookId);
@@ -352,10 +481,9 @@ class ManagementHelperTest extends AbstractAdyenTestCase
             null,
             $dataHelperMock
         );
-        $managementApiService = $managementHelper->getManagementApiService("APIKEY", true);
 
-        $managementApiService->allowedOrigins = $this->createConfiguredMock(AllowedOrigins::class, [
-            'list' => json_decode($mockJsonResponse, true)
+        $myAPICredentialApi = $this->createConfiguredMock(MyAPICredentialApi::class, [
+            'getAllowedOrigins' => new AllowedOriginsResponse(json_decode($mockJsonResponse, true))
         ]);
 
         $expectedArray = [
@@ -363,7 +491,7 @@ class ManagementHelperTest extends AbstractAdyenTestCase
             'http://192.168.58.20'
         ];
 
-        $result = $managementHelper->getAllowedOrigins($managementApiService);
+        $result = $managementHelper->getAllowedOrigins($myAPICredentialApi);
 
         $this->assertEquals($expectedArray, $result);
     }
@@ -414,12 +542,12 @@ class ManagementHelperTest extends AbstractAdyenTestCase
             $configHelperMock
         );
 
-        $managementApiService = $managementHelper->getManagementApiService("APIKEY", true);
-        $managementApiService->merchantWebhooks = $this->createConfiguredMock(MerchantWebhooks::class, [
-            'test' => json_decode($rawJsonResponse, true)
+
+        $service = $this->createConfiguredMock(WebhooksMerchantLevelApi::class, [
+            'testWebhook' => new TestWebhookResponse(json_decode($rawJsonResponse, true))
         ]);
 
-        $result = $managementHelper->webhookTest($merchantId, $webhookId, $managementApiService);
+        $result = $managementHelper->webhookTest($merchantId, $webhookId, $service);
 
         $success = isset($result['data']) &&
             in_array('success', array_column($result['data'], 'status'), true);
@@ -435,14 +563,15 @@ class ManagementHelperTest extends AbstractAdyenTestCase
      * @param AdyenLogger|null $adyenLogger
      * @param ManagerInterface|null $messageManager
      * @return ManagementHelper
+     * @throws Exception
      */
     private function createManagementHelper(
-        StoreManager $storeManager = null,
-        EncryptorInterface $encryptor = null,
-        Data $dataHelper = null,
-        Config $configHelper = null,
-        AdyenLogger $adyenLogger = null,
-        ManagerInterface $messageManager = null
+        ?StoreManager $storeManager = null,
+        ?EncryptorInterface $encryptor = null,
+        ?Data $dataHelper = null,
+        ?Config $configHelper = null,
+        ?AdyenLogger $adyenLogger = null,
+        ?ManagerInterface $messageManager = null
     ): ManagementHelper {
 
         if (is_null($storeManager)) {
@@ -477,5 +606,68 @@ class ManagementHelperTest extends AbstractAdyenTestCase
             $adyenLogger,
             $messageManager
         );
+    }
+
+    public function testSaveAllowedOrigin()
+    {
+        $helper = $this->createManagementHelper();
+        $service = $this->createMock(MyAPICredentialApi::class);
+        $domian = 'DOMAIN';
+        $service->expects($this->once())->method('addAllowedOrigin')->willReturn(new AllowedOrigin());
+        $helper->saveAllowedOrigin($service, $domian);
+    }
+
+    public function testWebhookTestFailure()
+    {
+        $webhookId = 'WH-000000000';
+        $merchantId = 'MERCHANT_ID';
+        $adyenLogger = $this->createMock(AdyenLogger::class);
+        $helper = $this->createManagementHelper(null,null,null,null,$adyenLogger);
+        $service = $this->createMock(WebhooksMerchantLevelApi::class);
+        $service->expects($this->once())->method('testWebhook')->willThrowException(new AdyenException());
+        $adyenLogger->expects($this->never())->method('addAdyenInfoLog');
+        $adyenLogger->expects($this->once())->method('error');
+        $helper->webhookTest($webhookId, $merchantId, $service);
+    }
+
+    public function testGetAdyenApiClient()
+    {
+        $storeId = 1;
+        $apiKey = 'API_KEY';
+        $storeManagerMock = $this->createConfiguredMock(StoreManager::class, [
+            'getStore' => $this->createConfiguredMock(StoreInterface::class, [
+                'getId' => $storeId
+            ])
+        ]);
+        $configHelperMock = $this->createConfiguredMock(Config::class, [
+            'getApiKey' => $apiKey
+        ]);
+        $dataHelperMock = $this->createConfiguredMock(Data::class, [
+            'initializeAdyenClient' => $this->createConfiguredMock(Client::class,[])
+        ]);
+        $helper = $this->createManagementHelper($storeManagerMock,null,$dataHelperMock, $configHelperMock);
+        $dataHelperMock
+            ->expects($this->once())
+            ->method('initializeAdyenClient')
+        ->with($storeId, $apiKey);
+        $helper->getAdyenApiClient($apiKey, false);
+    }
+
+    public function testGetAccountMerchantLevelApi()
+    {
+        $service = $this->createManagementHelper()->getAccountMerchantLevelApi($this->clientMock);
+        $this->assertInstanceOf(AccountMerchantLevelApi::class, $service);
+    }
+
+    public function testGetMyAPICredentialApi()
+    {
+        $service = $this->createManagementHelper()->getMyAPICredentialApi($this->clientMock);
+        $this->assertInstanceOf(MyAPICredentialApi::class, $service);
+    }
+
+    public function testWebhooksMerchantLevelApi()
+    {
+        $service = $this->createManagementHelper()->getWebhooksMerchantLevelApi($this->clientMock);
+        $this->assertInstanceOf(WebhooksMerchantLevelApi::class, $service);
     }
 }

@@ -8,12 +8,15 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-// phpcs:disable Generic.CodeAnalysis.UselessOverridingMethod.Found
+
 namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Api\Data\NotificationInterface;
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Model\ResourceModel\Notification as NotificationResourceModel;
 use DateTime;
 use Magento\Framework\Data\Collection\AbstractDb;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Model\AbstractModel;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
@@ -48,14 +51,31 @@ class Notification extends AbstractModel implements NotificationInterface
     const CHARGEBACK_REVERSED = "CHARGEBACK_REVERSED";
     const REQUEST_FOR_INFORMATION = "REQUEST_FOR_INFORMATION";
     const NOTIFICATION_OF_CHARGEBACK = "NOTIFICATION_OF_CHARGEBACK";
+    const RECURRING_TOKEN_CREATED = 'recurring.token.created';
+    const RECURRING_TOKEN_DISABLED = 'recurring.token.disabled';
+    const RECURRING_TOKEN_ALREADY_EXISTING = 'recurring.token.alreadyExisting';
+    const RECURRING_TOKEN_UPDATED = 'recurring.token.updated';
+    const EXPIRE = "EXPIRE";
     const STATE_ADYEN_AUTHORIZED = "adyen_authorized";
     const MAX_ERROR_COUNT = 5;
 
+    /**
+     * @param Context $context
+     * @param Registry $registry
+     * @param NotificationResourceModel $notificationResourceModel
+     * @param Data $adyenHelper
+     * @param AbstractResource|null $resource
+     * @param AbstractDb|null $resourceCollection
+     * @param array $data
+     * @throws LocalizedException
+     */
     public function __construct(
         Context $context,
         Registry $registry,
-        AbstractResource $resource = null,
-        AbstractDb $resourceCollection = null,
+        private readonly NotificationResourceModel $notificationResourceModel,
+        private readonly Data $adyenHelper,
+        ?AbstractResource $resource = null,
+        ?AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
@@ -74,7 +94,7 @@ class Notification extends AbstractModel implements NotificationInterface
      */
     public function isDuplicate($done = null): bool
     {
-        $result = $this->getResource()->getNotification(
+        $result = $this->notificationResourceModel->getNotification(
             $this->getPspreference(),
             $this->getEventCode(),
             $this->getSuccess(),
@@ -286,5 +306,22 @@ class Notification extends AbstractModel implements NotificationInterface
         $tenMinutesAgo = new DateTime('-10 minutes');
 
         return $createdAt >= $tenMinutesAgo;
+    }
+
+    /**
+     * Returns the original amount formatted with the notification currency
+     *
+     * @return string|null
+     */
+    public function getFormattedAmountCurrency(): ?string
+    {
+        if (!empty($this->getAmountValue()) && !empty($this->getAmountCurrency())) {
+            $amount = $this->adyenHelper->originalAmount($this->getAmountValue(), $this->getAmountCurrency());
+            $decimalPoints = $this->adyenHelper->decimalNumbers($this->getAmountCurrency());
+
+            return sprintf("%s %s", number_format($amount, $decimalPoints), $this->getAmountCurrency());
+        } else {
+            return null;
+        }
     }
 }

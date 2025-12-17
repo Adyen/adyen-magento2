@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2025 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -11,9 +11,11 @@
 
 namespace Adyen\Payment\Gateway\Validator;
 
-use Adyen\Payment\Helper\Data;
+use Adyen\Model\Checkout\PaymentResponse;
+use Adyen\Payment\Exception\AbstractAdyenException;
+use Adyen\Payment\Helper\OrdersApi;
+use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Logger\AdyenLogger;
-use Magento\Framework\Exception\ValidatorException;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Validator\AbstractValidator;
 use Magento\Payment\Gateway\Validator\ResultInterface;
@@ -21,35 +23,26 @@ use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
 
 class CheckoutResponseValidator extends AbstractValidator
 {
-    /**
-     * @var AdyenLogger
-     */
-    private $adyenLogger;
+    const VALID_RESULT_CODES = [
+        PaymentResponse::RESULT_CODE_AUTHORISED,
+        PaymentResponse::RESULT_CODE_RECEIVED,
+        PaymentResponse::RESULT_CODE_IDENTIFY_SHOPPER,
+        PaymentResponse::RESULT_CODE_CHALLENGE_SHOPPER,
+        PaymentResponse::RESULT_CODE_PRESENT_TO_SHOPPER,
+        PaymentResponse::RESULT_CODE_PENDING,
+        PaymentResponse::RESULT_CODE_REDIRECT_SHOPPER
+    ];
 
     /**
-     * @var Data
-     */
-    private $adyenHelper;
-
-    /**
-     * @var Array
-     */
-    const ALLOWED_ERROR_CODES = ['124'];
-
-    /**
-     * CheckoutResponseValidator constructor.
-     *
      * @param ResultInterfaceFactory $resultFactory
      * @param AdyenLogger $adyenLogger
-     * @param Data $adyenHelper
+     * @param OrdersApi $ordersApi
      */
     public function __construct(
         ResultInterfaceFactory $resultFactory,
-        AdyenLogger $adyenLogger,
-        Data $adyenHelper
+        private readonly AdyenLogger $adyenLogger,
+        private readonly OrdersApi $ordersApi
     ) {
-        $this->adyenLogger = $adyenLogger;
-        $this->adyenHelper = $adyenHelper;
         parent::__construct($resultFactory);
     }
 
@@ -57,82 +50,77 @@ class CheckoutResponseValidator extends AbstractValidator
      * @param array $validationSubject
      * @return ResultInterface
      */
-    public function validate(array $validationSubject)
+    public function validate(array $validationSubject): ResultInterface
     {
-        $response = SubjectReader::readResponse($validationSubject);
-        $paymentDataObjectInterface = SubjectReader::readPayment($validationSubject);
-        $payment = $paymentDataObjectInterface->getPayment();
+        $responseCollection = SubjectReader::readResponse($validationSubject);
 
-        $payment->setAdditionalInformation('3dActive', false);
-        $isValid = true;
-        $errorMessages = [];
+        $errorCodes = [];
 
-        // validate result
-        if (!empty($response['resultCode'])) {
-            $resultCode = $response['resultCode'];
-            $payment->setAdditionalInformation('resultCode', $resultCode);
-
-            if (!empty($response['action'])) {
-                $payment->setAdditionalInformation('action', $response['action']);
-            }
-
-            if (!empty($response['additionalData'])) {
-                $payment->setAdditionalInformation('additionalData', $response['additionalData']);
-            }
-
-            if (!empty($response['pspReference'])) {
-                $payment->setAdditionalInformation('pspReference', $response['pspReference']);
-            }
-
-            if (!empty($response['details'])) {
-                $payment->setAdditionalInformation('details', $response['details']);
-            }
-
-            if (!empty($response['donationToken'])) {
-                $payment->setAdditionalInformation('donationToken', $response['donationToken']);
-            }
-
-            switch ($resultCode) {
-                case "Authorised":
-                case "Received":
-                    // Save cc_type if available in the response
-                    if (!empty($response['additionalData']['paymentMethod'])) {
-                        $ccType = $this->adyenHelper->getMagentoCreditCartType(
-                            $response['additionalData']['paymentMethod']
-                        );
-                        $payment->setAdditionalInformation('cc_type', $ccType);
-                        $payment->setCcType($ccType);
-                    }
-                    break;
-                case "IdentifyShopper":
-                case "ChallengeShopper":
-                case "PresentToShopper":
-                case 'Pending':
-                case "RedirectShopper":
-                    // nothing extra
-                    break;
-                case "Refused":
-                    $errorMsg = __('The payment is REFUSED.');
-                    // this will result the specific error
-                    throw new ValidatorException($errorMsg);
-                default:
-                    $errorMsg = __('Error with payment method please select different payment method.');
-                    throw new ValidatorException($errorMsg);
-            }
+        if (empty($responseCollection)) {
+            $errorCodes[] = 'authError_empty_response';
         } else {
-            if (!empty($response['error'])) {
-                $this->adyenLogger->error($response['error']);
+            foreach ($responseCollection as $response) {
+                if (empty($response['resultCode'])) {
+                    $errorCodes[] = $this->handleEmptyResultCode($response);
+                } else {
+                    $errorMessage = $this->validateResultCode($response['resultCode']);
+                    if (isset($errorMessage)) {
+                        $errorCodes[] = $errorMessage;
+                    }
+                }
             }
-
-            if (!empty($response['errorCode']) && !empty($response['error']) && in_array($response['errorCode'], self::ALLOWED_ERROR_CODES, true)) {
-                $errorMsg = __($response['error']);
-            } else {
-                $errorMsg = __('Error with payment method, please select a different payment method.');
-            }
-
-            throw new ValidatorException($errorMsg);
         }
 
-        return $this->createResult($isValid, $errorMessages);
+        // Cancel Checkout API Order in case of partial payments if the payment is refused
+        $ordersResponse = $this->ordersApi->getCheckoutApiOrder();
+        if (!empty($errorCodes) && isset($ordersResponse)) {
+            $paymentData = SubjectReader::readPayment($validationSubject);
+            $order = $paymentData->getPayment()->getOrder();
+
+            $this->ordersApi->cancelOrder($order, $ordersResponse['pspReference'], $ordersResponse['orderData']);
+        }
+
+        // Gateway's error code mapping is being used. Please check `etc/authorize_error_mapping.xml` for details.
+        return $this->createResult(empty($errorCodes), [], $errorCodes);
+    }
+
+    /**
+     * Returns `null` if the resultCode is valid. Otherwise, returns a string with the error code.
+     *
+     * @param string $resultCode
+     * @return string|null
+     */
+    private function validateResultCode(string $resultCode): ?string
+    {
+        if (in_array($resultCode, self::VALID_RESULT_CODES, true)) {
+            return null;
+        } else {
+            return match ($resultCode) {
+                PaymentResponse::RESULT_CODE_REFUSED => 'authError_refused',
+                PaymentResponseHandler::GIFTCARD_REFUSED => 'authError_giftcard_refused',
+                default => 'authError_generic'
+            };
+        }
+    }
+
+    /**
+     * @param array $response
+     * @return string
+     */
+    private function handleEmptyResultCode(array $response): string
+    {
+        if (!empty($response['error'])) {
+            $this->adyenLogger->error($response['error']);
+        }
+
+        if (!empty($response['errorCode']) &&
+            !empty($response['error']) &&
+            in_array($response['errorCode'], AbstractAdyenException::SAFE_ERROR_CODES, true)) {
+            return $response['errorCode'];
+        } else {
+            $errorCode = 'authError_generic';
+        }
+
+        return $errorCode;
     }
 }

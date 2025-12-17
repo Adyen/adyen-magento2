@@ -52,7 +52,6 @@ class PaymentMethodUtil
         'twint',
         'carnet',
         'pix',
-        'klarna',
         'oney',
         'affirm',
         'bright',
@@ -61,11 +60,8 @@ class PaymentMethodUtil
         'googlepay',
         'mobilepay',
         'vipps',
-        'walley',
-        'walley_b2b',
         'mc_clicktopay',
         'visa_clicktopay',
-        'ach',
         'visa_amazonpay',
         'mc_amazonpay',
         'amex_amazonpay',
@@ -74,11 +70,7 @@ class PaymentMethodUtil
         'elo_amazonpay',
         'jcb_amazonpay',
         'bcmc',
-        'bcmc_mobile'
-    ];
-
-    const OPEN_INVOICE_PAYMENT_METHODS = [
-        'affirm',
+        'bcmc_mobile',
         'afterpay',
         'afterpay_b2b',
         'afterpay_default',
@@ -113,15 +105,17 @@ class PaymentMethodUtil
         'ratepay',
         'ratepay_directdebit',
         'walley',
-        'walley_b2b'
+        'walley_b2b',
+        'girocard',
+        'girocard_applepay'
     ];
 
-    public static function isManualCaptureSupported($paymentMethod): bool
+    /**
+     * @param string $paymentMethod
+     * @return bool
+     */
+    public static function isManualCaptureSupported(string $paymentMethod): bool
     {
-        if (self::isOpenInvoicePaymentMethod($paymentMethod)) {
-            return true;
-        }
-
         // Check for payment methods with no variants
         if (in_array($paymentMethod, self::MANUAL_CAPTURE_SUPPORTED_PAYMENT_METHODS)) {
             return true;
@@ -136,14 +130,5 @@ class PaymentMethodUtil
         }
 
         return false;
-    }
-
-    /**
-     * @param $paymentMethod
-     * @return bool
-     */
-    public static function isOpenInvoicePaymentMethod($paymentMethod): bool
-    {
-        return in_array(strtolower($paymentMethod), self::OPEN_INVOICE_PAYMENT_METHODS);
     }
 }

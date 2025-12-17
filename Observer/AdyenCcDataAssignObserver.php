@@ -19,7 +19,7 @@ use Adyen\Payment\Model\ResourceModel\StateData\Collection;
 use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
-use Adyen\Payment\Gateway\Request\HeaderDataBuilder;
+use Adyen\Payment\Gateway\Request\Header\HeaderDataBuilderInterface;
 
 class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
 {
@@ -46,7 +46,7 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
         self::CC_TYPE,
         self::RETURN_URL,
         self::RECURRING_PROCESSING_MODEL,
-        HeaderDataBuilder::FRONTENDTYPE
+        HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY
     ];
 
     /**
@@ -97,11 +97,10 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
         $data = $this->readDataArgument($observer);
         $paymentInfo = $this->readPaymentModelArgument($observer);
 
-        // Remove remaining brand_code information from the previous payment
-        $paymentInfo->unsAdditionalInformation('brand_code');
-
-        // Remove cc_type information from the previous payment
-        $paymentInfo->unsAdditionalInformation('cc_type');
+        // Remove the following information from the previous payment
+        $paymentInfo->unsAdditionalInformation(self::CC_TYPE);
+        $paymentInfo->unsAdditionalInformation(self::NUMBER_OF_INSTALLMENTS);
+        $paymentInfo->unsAdditionalInformation(self::COMBO_CARD_TYPE);
 
         // Get additional data array
         $additionalData = $data->getData(PaymentInterface::KEY_ADDITIONAL_DATA);

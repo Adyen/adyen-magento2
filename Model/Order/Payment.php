@@ -15,6 +15,7 @@ namespace Adyen\Payment\Model\Order;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use DateTime;
 use Magento\Framework\Data\Collection\AbstractDb;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Model\AbstractModel;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
@@ -26,20 +27,26 @@ use Magento\Framework\Pricing\Helper\Data as PricingData;
 class Payment extends AbstractModel implements OrderPaymentInterface
 {
     protected ?MagentoPaymentInterface $magentoPayment = null;
-    protected MagentoPaymentRepository $magentoPaymentRepository;
-    private PricingData $pricingData;
 
+    /**
+     * @param Context $context
+     * @param Registry $registry
+     * @param PricingData $pricingData
+     * @param MagentoPaymentRepository $magentoPaymentRepository
+     * @param AbstractResource|null $resource
+     * @param AbstractDb|null $resourceCollection
+     * @param array $data
+     * @throws LocalizedException
+     */
     public function __construct(
         Context $context,
         Registry $registry,
-        PricingData $pricingData,
-        MagentoPaymentRepository $magentoPaymentRepository,
-        AbstractResource $resource = null,
-        AbstractDb $resourceCollection = null,
+        private readonly PricingData $pricingData,
+        protected readonly MagentoPaymentRepository $magentoPaymentRepository,
+        ?AbstractResource $resource = null,
+        ?AbstractDb $resourceCollection = null,
         array $data = []
     ) {
-        $this->magentoPaymentRepository = $magentoPaymentRepository;
-        $this->pricingData = $pricingData;
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
     }
 
@@ -182,5 +189,26 @@ class Payment extends AbstractModel implements OrderPaymentInterface
             $this->getMagentoPayment()->getOrder()->getOrderCurrencyCode(),
             false
         );
+    }
+
+    /**
+     * Set sort order.
+     *
+     * @param int $sortOrder
+     * @return $this
+     */
+    public function setSortOrder($sortOrder)
+    {
+        return $this->setData('order_sort', $sortOrder);
+    }
+
+    /**
+     * Get sort order.
+     *
+     * @return int|null
+     */
+    public function getSortOrder()
+    {
+        return $this->getData('order_sort');
     }
 }

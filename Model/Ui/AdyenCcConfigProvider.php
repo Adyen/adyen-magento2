@@ -13,9 +13,11 @@ namespace Adyen\Payment\Model\Ui;
 
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Locale;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\Vault;
 use Magento\Checkout\Model\ConfigProviderInterface;
+use Magento\Framework\App\Request\Http;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\UrlInterface;
@@ -38,6 +40,8 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
     private Config $configHelper;
     private PaymentMethods $paymentMethodsHelper;
     private Vault $vaultHelper;
+    private Http $httpRequest;
+    private Locale $localeHelper;
 
     public function __construct(
         Data $adyenHelper,
@@ -49,7 +53,9 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         SerializerInterface $serializer,
         Config $configHelper,
         PaymentMethods $paymentMethodsHelper,
-        Vault $vaultHelper
+        Vault $vaultHelper,
+        Http $httpRequest,
+        Locale $localeHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->request = $request;
@@ -61,6 +67,8 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         $this->configHelper = $configHelper;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
         $this->vaultHelper = $vaultHelper;
+        $this->httpRequest = $httpRequest;
+        $this->localeHelper = $localeHelper;
     }
 
     public function getConfig(): array
@@ -100,17 +108,19 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
                 ]
             ]
         );
-
+        $types = $this->adyenHelper->getAdyenCcTypes();
         $storeId = $this->storeManager->getStore()->getId();
         $cardRecurringEnabled = $this->vaultHelper->getPaymentMethodRecurringActive(self::CODE, $storeId);
-        $methodTitle = $this->configHelper->getConfigData('title', Config::XML_ADYEN_CC, $storeId);
+        $methodTitle =   $this->configHelper->getConfigData('title', Config::XML_ADYEN_CC, $storeId);
 
+        $config['payment']['adyenCc']['adyenCcTypes'] = $types;
         $config['payment']['adyenCc']['methodCode'] = self::CODE;
         $config['payment']['adyenCc']['title'] = __($methodTitle);
-        $config['payment']['adyenCc']['locale'] = $this->adyenHelper->getStoreLocale($storeId);
+        $config['payment']['adyenCc']['locale'] = $this->localeHelper->getStoreLocale($storeId);
         $config['payment']['adyenCc']['isCardRecurringEnabled'] = $cardRecurringEnabled;
         $config['payment']['adyenCc']['icons'] = $this->getIcons();
         $config['payment']['adyenCc']['isClickToPayEnabled'] = $this->configHelper->isClickToPayEnabled($storeId);
+        $config['payment']['adyenCc']['controllerName'] = $this->httpRequest->getControllerName();
 
         // has installments by default false
         $config['payment']['adyenCc']['hasInstallments'] = false;
@@ -127,12 +137,8 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         }
 
         // check if cvc is required
-        $config['payment']['adyenCc']['requireCvc'] = $this->configHelper->getConfigData(
-            'require_cvc',
-            Config::XML_ADYEN_CC_VAULT,
-            $storeId,
-            true
-        );
+        $config['payment']['adyenCc']['requireCvc'] =
+            $this->configHelper->getIsCvcRequiredForRecurringCardPayments($storeId);
 
         return $config;
     }

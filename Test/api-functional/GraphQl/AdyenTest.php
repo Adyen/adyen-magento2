@@ -89,11 +89,10 @@ QUERY;
     {
         $methodCode = "adyen_ideal";
         $maskedQuoteId = $this->getMaskedQuoteIdByReservedOrderId->execute('test_quote');
-        $stateData = '{\"paymentMethod\":{\"type\":\"ideal\",\"issuer\":\"1154\"}}';
+        $stateData = '{\"paymentMethod\":{\"type\":\"ideal\"}}';
         $adyenAdditionalData = '
         ,
         adyen_additional_data: {
-            brand_code: "ideal",
             stateData: "' . $stateData . '",
             returnUrl: "http://localhost/checkout/?id=:merchantReference&done=1"
         }';
@@ -140,7 +139,6 @@ QUERY;
         $adyenAdditionalData = '
         ,
         adyen_additional_data: {
-            brand_code: "ideal",
             stateData: "' . $stateData . '"
         }';
         $query = $this->getQuery($maskedQuoteId, $methodCode, $adyenAdditionalData);
@@ -350,4 +348,38 @@ QUERY;
         $customerToken = $this->customerTokenService->createCustomerAccessToken($username, $password);
         return ['Authorization' => 'Bearer ' . $customerToken];
     }
+
+    /**
+     * @magentoApiDataFixture Magento/GraphQl/Catalog/_files/simple_product.php
+     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/guest/create_empty_cart.php
+     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/add_simple_product.php
+     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/set_new_shipping_address.php
+     */
+    public function testAdyenPaymentMethodsWithChannelAndroid()
+    {
+        $maskedQuoteId = $this->getMaskedQuoteIdByReservedOrderId->execute('test_quote');
+        $query = <<<QUERY
+{
+  adyenPaymentMethods(cart_id: "$maskedQuoteId", channel: "Android") {
+    paymentMethodsResponse {
+        paymentMethods {
+           name,
+           type
+        }
+    }
+  }
+}
+QUERY;
+
+        $response = $this->graphQlQuery($query);
+
+        $this->assertArrayHasKey('adyenPaymentMethods', $response);
+        $this->assertArrayHasKey('paymentMethodsResponse', $response['adyenPaymentMethods']);
+        $paymentMethods = $response['adyenPaymentMethods']['paymentMethodsResponse']['paymentMethods'];
+
+        foreach ($paymentMethods as $paymentMethod) {
+            $this->assertNotEquals('Apple Pay', $paymentMethod['name'], 'Apple Pay should not be listed for channel Android');
+        }
+    }
+
 }

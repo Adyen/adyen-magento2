@@ -11,20 +11,22 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Helper\Order as AdyenOrderHelper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Exception;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\InputException;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Api\Data\OrderInterface;
-use Magento\Sales\Model\Order\Status\HistoryFactory;
 use Magento\Sales\Model\OrderRepository;
-use Magento\Sales\Model\ResourceModel\Order;
+use Magento\Sales\Model\Order as OrderModel;
 
 class PaymentResponseHandler
 {
     const AUTHORISED = 'Authorised';
     const REFUSED = 'Refused';
+    const GIFTCARD_REFUSED = 'GiftcardRefused';
     const REDIRECT_SHOPPER = 'RedirectShopper';
     const IDENTIFY_SHOPPER = 'IdentifyShopper';
     const CHALLENGE_SHOPPER = 'ChallengeShopper';
@@ -37,6 +39,9 @@ class PaymentResponseHandler
     const VAULT = 'Magento Vault';
     const POS_SUCCESS = 'Success';
 
+    const PAYMENTS_DETAILS_API_COMMENT_ACTION_DESCRIPTION = 'Submit details for Adyen payment';
+    const PAYMENTS_DETAILS_API_COMMENT_ENDPOINT = '/payments/details';
+
     const ACTION_REQUIRED_STATUSES = [
         self::REDIRECT_SHOPPER,
         self::IDENTIFY_SHOPPER,
@@ -45,44 +50,31 @@ class PaymentResponseHandler
     ];
 
     /**
-     * @var AdyenLogger
+     * @param AdyenLogger $adyenLogger
+     * @param Vault $vaultHelper
+     * @param Quote $quoteHelper
+     * @param AdyenOrderHelper $orderHelper
+     * @param OrderRepository $orderRepository
+     * @param StateData $stateDataHelper
+     * @param PaymentMethods $paymentMethodsHelper
+     * @param OrderStatusHistory $orderStatusHistoryHelper
+     * @param OrdersApi $ordersApiHelper
      */
-    private AdyenLogger $adyenLogger;
-    private Vault $vaultHelper;
-    private Order $orderResourceModel;
-    private Data $dataHelper;
-    private Quote $quoteHelper;
-    private \Adyen\Payment\Helper\Order $orderHelper;
-    private OrderRepository $orderRepository;
-    private HistoryFactory $orderHistoryFactory;
-    private StateData $stateDataHelper;
-
     public function __construct(
-        AdyenLogger $adyenLogger,
-        Vault $vaultHelper,
-        Order $orderResourceModel,
-        Data $dataHelper,
-        Quote $quoteHelper,
-        \Adyen\Payment\Helper\Order $orderHelper,
-        OrderRepository $orderRepository,
-        HistoryFactory $orderHistoryFactory,
-        StateData $stateDataHelper
-    ) {
-        $this->adyenLogger = $adyenLogger;
-        $this->vaultHelper = $vaultHelper;
-        $this->orderResourceModel = $orderResourceModel;
-        $this->dataHelper = $dataHelper;
-        $this->quoteHelper = $quoteHelper;
-        $this->orderHelper = $orderHelper;
-        $this->orderRepository = $orderRepository;
-        $this->orderHistoryFactory = $orderHistoryFactory;
-        $this->stateDataHelper = $stateDataHelper;
-    }
+        private readonly AdyenLogger $adyenLogger,
+        private readonly Vault $vaultHelper,
+        private readonly Quote $quoteHelper,
+        private readonly AdyenOrderHelper $orderHelper,
+        private readonly OrderRepository $orderRepository,
+        private readonly StateData $stateDataHelper,
+        private readonly PaymentMethods $paymentMethodsHelper,
+        private readonly OrderStatusHistory $orderStatusHistoryHelper,
+        private readonly OrdersApi $ordersApiHelper,
+    ) { }
 
     public function formatPaymentResponse(
         string $resultCode,
-        array $action = null,
-        array $additionalData = null
+        ?array $action = null
     ): array {
         switch ($resultCode) {
             case self::AUTHORISED:
@@ -103,16 +95,11 @@ class PaymentResponseHandler
                     "action" => $action
                 ];
             case self::PRESENT_TO_SHOPPER:
-                return [
-                    "isFinal" => true,
-                    "resultCode" => $resultCode,
-                    "action" => $action
-                ];
             case self::RECEIVED:
                 return [
                     "isFinal" => true,
                     "resultCode" => $resultCode,
-                    "additionalData" => $additionalData
+                    "action" => $action
                 ];
             default:
                 return [
@@ -128,7 +115,7 @@ class PaymentResponseHandler
      * @return bool
      * @throws AlreadyExistsException
      * @throws InputException
-     * @throws NoSuchEntityException
+     * @throws NoSuchEntityException|LocalizedException
      */
     public function handlePaymentsDetailsResponse(
         array $paymentsDetailsResponse,
@@ -139,8 +126,18 @@ class PaymentResponseHandler
             return false;
         }
 
+        if(!$this->isValidMerchantReference($paymentsDetailsResponse, $order)){
+            return false;
+        }
+
         $this->adyenLogger->addAdyenResult('Updating the order');
         $payment = $order->getPayment();
+
+        //Check magento Payment Method
+        $paymentMethodInstance = $payment->getMethodInstance();
+        $isWalletPaymentMethod = $this->paymentMethodsHelper->isWalletPaymentMethod($paymentMethodInstance);
+        $isCardPaymentMethod = $payment->getMethod() === PaymentMethods::ADYEN_CC ||
+            $payment->getMethod() === PaymentMethods::ADYEN_CC_VAULT;
 
         $authResult = $paymentsDetailsResponse['authResult'] ?? $paymentsDetailsResponse['resultCode'] ?? null;
         if (is_null($authResult)) {
@@ -152,25 +149,9 @@ class PaymentResponseHandler
             return false;
         }
 
-        $paymentMethod = $paymentsDetailsResponse['paymentMethod']['brand'] ??
-            $paymentsDetailsResponse['paymentMethod']['type'] ??
-            '';
-
-        $pspReference = isset($paymentsDetailsResponse['pspReference']) ?
-            trim((string) $paymentsDetailsResponse['pspReference']) :
-            '';
-
-        $type = 'Adyen paymentsDetails response:';
-        $comment = __(
-            '%1 <br /> authResult: %2 <br /> pspReference: %3 <br /> paymentMethod: %4',
-            $type,
-            $authResult,
-            $pspReference,
-            $paymentMethod
-        );
-
-        if (!empty($paymentsDetailsResponse['resultCode'])) {
-            $payment->setAdditionalInformation('resultCode', $paymentsDetailsResponse['resultCode']);
+        $resultCode = $paymentsDetailsResponse['resultCode'];
+        if (!empty($resultCode)) {
+            $payment->setAdditionalInformation('resultCode', $resultCode);
         }
 
         if (!empty($paymentsDetailsResponse['action'])) {
@@ -193,19 +174,37 @@ class PaymentResponseHandler
             $payment->setAdditionalInformation('donationToken', $paymentsDetailsResponse['donationToken']);
         }
 
+        $ccType = $payment->getAdditionalInformation('cc_type');
+
+        if (!empty($paymentsDetailsResponse['additionalData']['paymentMethod']) &&
+            is_null($ccType) &&
+            ($isWalletPaymentMethod || $isCardPaymentMethod)
+        ) {
+            $ccType = $paymentsDetailsResponse['additionalData']['paymentMethod'];
+            $payment->setAdditionalInformation('cc_type', $ccType);
+            $payment->setCcType($ccType);
+        }
+
         // Handle recurring details
         $this->vaultHelper->handlePaymentResponseRecurringDetails($payment, $paymentsDetailsResponse);
 
         // If the response is valid, update the order status.
-        if (!in_array($paymentsDetailsResponse['resultCode'], PaymentResponseHandler::ACTION_REQUIRED_STATUSES)) {
+        if (!in_array($resultCode, PaymentResponseHandler::ACTION_REQUIRED_STATUSES) && $order->getState() === OrderModel::STATE_PENDING_PAYMENT) {
             /*
              * Change order state from pending_payment to new and expect authorisation webhook
              * if no additional action is required according to /paymentsDetails response.
              * Otherwise keep the order state as pending_payment.
              */
             $order = $this->orderHelper->setStatusOrderCreation($order);
-            $this->orderRepository->save($order);
         }
+
+        // Add order status history comment for /payments/details API response
+        $comment = $this->orderStatusHistoryHelper->buildApiResponseComment(
+            $paymentsDetailsResponse,
+            self::PAYMENTS_DETAILS_API_COMMENT_ACTION_DESCRIPTION,
+            self::PAYMENTS_DETAILS_API_COMMENT_ENDPOINT
+        );
+        $order->addCommentToStatusHistory($comment, $order->getStatus());
 
         // Cleanup state data if exists.
         try {
@@ -214,7 +213,11 @@ class PaymentResponseHandler
             $this->adyenLogger->error(__('Error cleaning the payment state data: %s', $exception->getMessage()));
         }
 
-        switch ($paymentsDetailsResponse['resultCode']) {
+        $paymentMethod = $paymentsDetailsResponse['paymentMethod']['brand'] ??
+            $paymentsDetailsResponse['paymentMethod']['type'] ??
+            '';
+
+        switch ($resultCode) {
             case self::AUTHORISED:
                 if (!empty($paymentsDetailsResponse['pspReference'])) {
                     // set pspReference as transactionId
@@ -243,16 +246,18 @@ class PaymentResponseHandler
 
                 // do nothing wait for the notification
                 if (strpos((string) $paymentMethod, "bankTransfer") !== false) {
-                    $comment .= "<br /><br />Waiting for the customer to transfer the money.";
+                    $pendingComment = "Waiting for the customer to transfer the money.";
                 } elseif ($paymentMethod == "sepadirectdebit") {
-                    $comment .= "<br /><br />This request will be send to the bank at the end of the day.";
+                    $pendingComment = "This request will be send to the bank at the end of the day.";
                 } else {
-                    $comment .= "<br /><br />The payment result is not confirmed (yet).
+                    $pendingComment = "The payment result is not confirmed (yet).
                                  <br />Once the payment is authorised, the order status will be updated accordingly.
                                  <br />If the order is stuck on this status, the payment can be seen as unsuccessful.
                                  <br />The order can be automatically cancelled based on the OFFER_CLOSED notification.
                                  Please contact Adyen Support to enable this.";
                 }
+
+                $order->addCommentToStatusHistory($pendingComment, $order->getStatus());
                 $this->adyenLogger->addAdyenResult('Do nothing wait for the notification');
 
                 $result = true;
@@ -273,13 +278,23 @@ class PaymentResponseHandler
                 break;
             case self::REFUSED:
             case self::CANCELLED:
+                // Cancel Checkout API Order in case of partial payments
+                $checkoutApiOrder = $payment->getAdditionalInformation(OrdersApi::DATA_KEY_CHECKOUT_API_ORDER);
+                if (isset($checkoutApiOrder)) {
+                    $this->ordersApiHelper->cancelOrder(
+                        $order,
+                        $checkoutApiOrder['pspReference'],
+                        $checkoutApiOrder['orderData']
+                    );
+                }
+
                 // Cancel order in case result is refused
                 if (null !== $order) {
                     // Check if the current state allows for changing to new for cancellation
                     if ($order->canCancel()) {
                         // Proceed to set cancellation action flag and cancel the order
                         $order->setActionFlag(\Magento\Sales\Model\Order::ACTION_FLAG_CANCEL, true);
-                        $this->dataHelper->cancelOrder($order);
+                        $this->orderHelper->cancelOrder($order, $resultCode);
                     } else {
                         $this->adyenLogger->addAdyenResult('The order cannot be cancelled');
                     }
@@ -290,7 +305,7 @@ class PaymentResponseHandler
                 $this->adyenLogger->error(
                     sprintf("Payment details call failed for action, resultCode is %s Raw API responds: %s.
                     Cancel or Hold the order on OFFER_CLOSED notification.",
-                        $paymentsDetailsResponse['resultCode'],
+                        $resultCode,
                         json_encode($paymentsDetailsResponse)
                     ));
 
@@ -298,18 +313,33 @@ class PaymentResponseHandler
                 break;
         }
 
-        $history = $this->orderHistoryFactory->create()
-            ->setStatus($order->getStatus())
-            ->setComment($comment)
-            ->setEntityName('order')
-            ->setOrder($order);
-
-        $history->save();
-
         // needed because then we need to save $order objects
         $order->setAdyenResulturlEventCode($authResult);
-        $this->orderResourceModel->save($order);
+        $this->orderRepository->save($order);
 
         return $result;
+    }
+
+    /**
+     * Validate whether the merchant reference is present in the response and belongs to the current order.
+     *
+     * @param array $paymentsDetailsResponse
+     * @param OrderInterface $order
+     * @return bool
+     */
+    private function isValidMerchantReference(array $paymentsDetailsResponse, OrderInterface $order): bool
+    {
+        $merchantReference = $paymentsDetailsResponse['merchantReference'] ?? null;
+        if (!$merchantReference) {
+            $this->adyenLogger->error("No merchantReference in the response");
+            return false;
+        }
+
+        if ($order->getIncrementId() !== $merchantReference) {
+            $this->adyenLogger->error("Wrong merchantReference was set in the query or in the session");
+            return false;
+        }
+
+        return true;
     }
 }

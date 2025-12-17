@@ -1,13 +1,6 @@
 <?php
-/**
- *
- * Adyen Payment module (https://www.adyen.com/)
- *
- * Copyright (c) 2024 Adyen N.V. (https://www.adyen.com/)
- * See LICENSE.txt for license details.
- *
- * Author: Adyen <magento@adyen.com>
- */
+
+declare(strict_types=1);
 
 namespace Adyen\Payment\Test\Unit\Controller\Return;
 
@@ -22,253 +15,190 @@ use Exception;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\RequestInterface;
+use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\App\Response\RedirectInterface;
-use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
+use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Model\Quote as QuoteModel;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
-use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\OrderFactory;
-use Magento\Store\Api\Data\StoreInterface;
+use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
 class IndexTest extends AbstractAdyenTestCase
 {
-    private $indexControllerMock;
-    private $controllerRequestMock;
-    private $messageManagerMock;
-    private $redirectMock;
-    private $contextResponseMock;
-    private $quoteMock;
-    private $orderEntityMock;
-    private $paymentEntityMock;
-    private $storeMock;
+    private Index $indexController;
 
-    private $contextMock;
-    private $orderFactoryMock;
-    private $sessionMock;
-    private $adyenLoggerMock;
-    private $storeManagerMock;
-    private $quoteHelperMock;
-    private $configHelperMock;
-    private $paymentsDetailsHelperMock;
-    private $paymentResponseHandlerMock;
-
-    const STORE_ID = 1;
+    private MockObject $context;
+    private MockObject $orderFactory;
+    private MockObject $session;
+    private MockObject $adyenLogger;
+    private MockObject $storeManager;
+    private MockObject $quoteHelper;
+    private MockObject $configHelper;
+    private MockObject $paymentsDetailsHelper;
+    private MockObject $paymentResponseHandler;
+    private MockObject $cartRepository;
+    private MockObject $orderRepository;
+    private MockObject $request;
+    private MockObject $response;
+    private MockObject $messageManager;
 
     protected function setUp(): void
     {
-        // Constructor argument mocks
-        $this->contextMock = $this->createMock(Context::class);
-        $this->orderFactoryMock = $this->createGeneratedMock(OrderFactory::class, ['create']);
-        $this->sessionMock = $this->createMock(Session::class);
-        $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
-        $this->storeManagerMock = $this->createMock(StoreManagerInterface::class);
-        $this->quoteHelperMock = $this->createMock(Quote::class);
-        $this->configHelperMock = $this->createMock(Config::class);
-        $this->paymentsDetailsHelperMock = $this->createMock(PaymentsDetails::class);
-        $this->paymentResponseHandlerMock = $this->createMock(PaymentResponseHandler::class);
+        $this->context = $this->createMock(Context::class);
+        $this->orderFactory = $this->createMock(OrderFactory::class);
+        $this->session = $this->createMock(Session::class);
+        $this->adyenLogger = $this->createMock(AdyenLogger::class);
+        $this->storeManager = $this->createMock(StoreManagerInterface::class);
+        $this->quoteHelper = $this->createMock(Quote::class);
+        $this->configHelper = $this->createMock(Config::class);
+        $this->paymentsDetailsHelper = $this->createMock(PaymentsDetails::class);
+        $this->paymentResponseHandler = $this->createMock(PaymentResponseHandler::class);
+        $this->cartRepository = $this->createMock(CartRepositoryInterface::class);
+        $this->orderRepository = $this->createMock(OrderRepositoryInterface::class);
 
-        // Extra mock objects and methods
-        $this->messageManagerMock = $this->createMock(MessageManagerInterface::class);
-        $this->redirectMock = $this->createMock(RedirectInterface::class);
-        $this->contextResponseMock = $this->createMock(ResponseInterface::class);
-        $this->quoteMock = $this->createMock(\Magento\Quote\Model\Quote::class);
-        $this->paymentEntityMock = $this->createMock(Payment::class);
-        $this->paymentEntityMock->method('getAdditionalInformation')->will(
-            $this->returnValueMap([
-                ['action', ['type' => 'redirect']],
-                ['brand_code', Index::BRAND_CODE_DOTPAY],
-                ['resultCode', Index::RESULT_CODE_RECEIVED]
-            ])
-        );
-        $this->orderEntityMock = $this->createMock(Order::class);
-        $this->orderEntityMock->method('getPayment')->willReturn($this->paymentEntityMock);
-        $this->controllerRequestMock = $this->createMock(RequestInterface::class);
-        $this->orderFactoryMock->method('create')->willReturn($this->orderEntityMock);
-        $this->orderEntityMock->method('loadByIncrementId')->willReturnSelf();
-        $this->quoteMock->method('setIsActive')->willReturnSelf();
-        $this->sessionMock->method('getLastRealOrder')->willReturn($this->orderEntityMock);
-        $this->sessionMock->method('getQuote')->willReturn($this->quoteMock);
-        $this->contextMock->method('getRedirect')->willReturn($this->redirectMock);
-        $this->contextMock->method('getRequest')->willReturn($this->controllerRequestMock);
-        $this->contextMock->method('getMessageManager')->willReturn($this->messageManagerMock);
-        $this->contextMock->method('getResponse')->willReturn($this->contextResponseMock);
-        $this->configHelperMock->method('getAdyenAbstractConfigData')->will(
-            $this->returnValueMap([
-                ['return_path', self::STORE_ID, '/checkout/cart'],
-                ['custom_success_redirect_path', self::STORE_ID, null]
-            ])
-        );
-        $this->storeMock = $this->createMock(StoreInterface::class);
-        $this->storeMock->method('getId')->willReturn(self::STORE_ID);
-        $this->storeManagerMock->method('getStore')->willReturn($this->storeMock);
+        $this->request = $this->createMock(RequestInterface::class);
+        $this->response = $this->createMock(RedirectInterface::class);
+        $this->messageManager = $this->createMock(ManagerInterface::class);
 
-        $this->indexControllerMock = new Index(
-            $this->contextMock,
-            $this->orderFactoryMock,
-            $this->sessionMock,
-            $this->adyenLoggerMock,
-            $this->storeManagerMock,
-            $this->quoteHelperMock,
-            $this->configHelperMock,
-            $this->paymentsDetailsHelperMock,
-            $this->paymentResponseHandlerMock
-        );
+        $store = $this->createMock(Store::class);
+        $store->method('getId')->willReturn(1);
+
+        $this->context->method('getRequest')->willReturn($this->request);
+        $this->context->method('getResponse')->willReturn($this->response);
+        $this->context->method('getMessageManager')->willReturn($this->messageManager);
+        $this->storeManager->method('getStore')->willReturn($store);
+
+        $this->indexController = $this->getMockBuilder(Index::class)
+            ->setConstructorArgs([
+                $this->context,
+                $this->orderFactory,
+                $this->session,
+                $this->adyenLogger,
+                $this->storeManager,
+                $this->quoteHelper,
+                $this->configHelper,
+                $this->paymentsDetailsHelper,
+                $this->paymentResponseHandler,
+                $this->cartRepository,
+                $this->orderRepository
+            ])
+            ->onlyMethods(['_redirect'])
+            ->getMock();
     }
 
-    private static function testDataProvider(): array
+    public function testExecuteWithSuccessfulRedirect(): void
     {
-        return [
-            [
-                'redirectResponse' => [
-                    'merchantReference' => PHP_INT_MAX,
-                    'redirectResult' => 'ABCDEFG123456789'
-                ],
-                'paymentsDetailsResponse' => [
-                    'merchantReference' => PHP_INT_MAX,
-                    'resultCode' => 'Authorised'
-                ],
-                'responseHandlerResult' =>  true,
-                'returnPath' => 'checkout/onepage/success',
-                'orderId' => PHP_INT_MAX,
-                'expectedException' => null
-            ],
-            [
-                'redirectResponse' => [
-                    'merchantReference' => PHP_INT_MAX,
-                    'redirectResult' => 'ABCDEFG123456789'
-                ],
-                'paymentsDetailsResponse' => [
-                    'merchantReference' => PHP_INT_MAX,
-                    'resultCode' => 'Authorised'
-                ],
-                'responseHandlerResult' =>  true,
-                'returnPath' => 'multishipping/checkout/success',
-                'orderId' => PHP_INT_MAX,
-                'expectedException' => null,
-                'multishipping' => true
-            ],
-            [
-                'redirectResponse' => [
-                    'redirectResult' => 'ABCDEFG123456789'
-                ],
-                'paymentsDetailsResponse' => [
-                    'merchantReference' => PHP_INT_MAX,
-                    'resultCode' => 'Authorised'
-                ],
-                'responseHandlerResult' =>  true,
-                'returnPath' => 'checkout/onepage/success',
-                'orderId' => PHP_INT_MAX,
-                'expectedException' => null
-            ],
-            [
-                'redirectResponse' => [
-                    'merchantReference' => PHP_INT_MIN,
-                    'redirectResult' => 'ABCDEFG123456789'
-                ],
-                'paymentsDetailsResponse' => [
-                    'merchantReference' => PHP_INT_MAX,
-                    'resultCode' => 'Authorised'
-                ],
-                'responseHandlerResult' =>  false,
-                'returnPath' => null,
-                'orderId' => null,
-                'expectedException' => LocalizedException::class
-            ],
-            [
-                'redirectResponse' => [
-                    'merchantReference' => PHP_INT_MAX,
-                    'redirectResult' => 'ABCDEFG123456789'
-                ],
-                'paymentsDetailsResponse' => [],
-                'responseHandlerResult' =>  false,
-                'returnPath' => '/checkout/cart',
-                'orderId' => PHP_INT_MAX,
-                'expectedException' => null
-            ],
-            [
-                'redirectResponse' => [
-                    'merchantReference' => PHP_INT_MIN,
-                    'redirectResult' => 'ABCDEFG123456789'
-                ],
-                'paymentsDetailsResponse' => [
-                    'merchantReference' => PHP_INT_MAX,
-                    'resultCode' => 'Authorised'
-                ],
-                'responseHandlerResult' =>  false,
-                'returnPath' => '/checkout/cart',
-                'orderId' => PHP_INT_MIN,
-                'expectedException' => null
-            ],
-            [
-                'redirectResponse' => [
-                    'merchantReference' => PHP_INT_MIN,
-                    'redirectResult' => 'ABCDEFG123456789'
-                ],
-                'paymentsDetailsResponse' => [
-                    'merchantReference' => null,
-                    'resultCode' => null
-                ],
-                'responseHandlerResult' =>  false,
-                'returnPath' => '/checkout/cart',
-                'orderId' => PHP_INT_MIN,
-                'expectedException' => null
-            ],
-            [
-                'redirectResponse' => null,
-                'paymentsDetailsResponse' => [
-                    'merchantReference' => null,
-                    'resultCode' => null
-                ],
-                'responseHandlerResult' =>  false,
-                'returnPath' => '/checkout/cart',
-                'orderId' => PHP_INT_MIN,
-                'expectedException' => null
-            ]
-        ];
+        $params = ['merchantReference' => '1001', 'redirectResult' => 'test'];
+        $this->request->method('getParams')->willReturn($params);
+        $this->quoteHelper->method('getIsQuoteMultiShippingWithMerchantReference')->willReturn(false);
+
+        $this->configHelper->method('getAdyenAbstractConfigData')
+            ->willReturnMap([
+                ['custom_success_redirect_path', 1, 'checkout/onepage/success'],
+                ['return_path', 1, 'checkout/cart']
+            ]);
+
+        $quote = $this->createMock(QuoteModel::class);
+        $quote->expects($this->once())->method('setIsActive')->with(false);
+        $this->session->method('getQuote')->willReturn($quote);
+
+        $order = $this->createMock(Order::class);
+        $order->method('getId')->willReturn(1);
+        $order->method('getIncrementId')->willReturn('1001');
+        $order->method('getPayment')->willReturn($this->createMock(Order\Payment::class));
+
+        $orderModel = $this->createMock(Order::class);
+        $orderModel->method('loadByIncrementId')->willReturn($order);
+        $orderModel->method('getId')->willReturn(1);
+        $this->orderFactory->method('create')->willReturn($orderModel);
+
+        $this->paymentsDetailsHelper->method('initiatePaymentDetails')->willReturn(['resultCode' => 'Authorised']);
+        $this->paymentResponseHandler->method('handlePaymentsDetailsResponse')->willReturn(true);
+
+        $this->indexController->expects($this->once())
+            ->method('_redirect')
+            ->with('checkout/onepage/success', ['_query' => ['order_increment_id' => '1001']]);
+
+        $this->indexController->execute();
     }
 
-    /**
-     * @dataProvider testDataProvider
-     */
-    public function testExecute(
-        $redirectResponse,
-        $paymentsDetailsResponse,
-        $responseHandlerResult,
-        $returnPath,
-        $orderId,
-        $expectedException,
-        $multishipping = false
-    ) {
-        if ($expectedException) {
-            $this->expectException($expectedException);
-        } else {
-            $this->redirectMock->expects($this->once())->method('redirect')->with(
-                $this->contextResponseMock,
-                $returnPath,
-                $redirectResponse ? ['_query' => ['utm_nooverride' => '1']] : []
-            );
-        }
+    public function testExecuteWithFailedRedirect(): void
+    {
+        $params = ['merchantReference' => '1001', 'redirectResult' => 'test'];
+        $this->request->method('getParams')->willReturn($params);
+        $this->quoteHelper->method('getIsQuoteMultiShippingWithMerchantReference')->willReturn(false);
 
-        if ($multishipping) {
-            $this->quoteHelperMock->method('getIsQuoteMultiShippingWithMerchantReference')
-                ->willReturn(true);
-        }
+        $this->configHelper->method('getAdyenAbstractConfigData')
+            ->willReturnMap([
+                ['custom_success_redirect_path', 1, null],
+                ['return_path', 1, 'checkout/cart']
+            ]);
 
-        if (empty($paymentsDetailsResponse)) {
-            $this->paymentsDetailsHelperMock->method('initiatePaymentDetails')
-                ->willThrowException(new Exception);
-        }
+        $order = $this->createMock(Order::class);
+        $order->method('getId')->willReturn(1);
 
-        $this->controllerRequestMock->method('getParams')->willReturn($redirectResponse);
-        $this->orderEntityMock->method('getId')->willReturn($orderId);
-        $this->orderEntityMock->method('getIncrementId')->willReturn($orderId);
-        $this->paymentResponseHandlerMock->method('handlePaymentsDetailsResponse')
-            ->willReturn($responseHandlerResult);
-        $this->paymentsDetailsHelperMock->method('initiatePaymentDetails')
-            ->willReturn($paymentsDetailsResponse);
+        $orderModel = $this->createMock(Order::class);
+        $orderModel->method('loadByIncrementId')->willReturn($order);
+        $this->orderFactory->method('create')->willReturn($orderModel);
 
-        $this->indexControllerMock->execute();
+        $this->paymentsDetailsHelper->method('initiatePaymentDetails')->willThrowException(new Exception('Invalid'));
+        $this->paymentResponseHandler->method('handlePaymentsDetailsResponse')->willReturn(false);
+
+        $this->session->expects($this->once())->method('restoreQuote');
+        $this->messageManager->expects($this->once())->method('addError');
+
+        $this->indexController->expects($this->once())
+            ->method('_redirect')
+            ->with('checkout/cart');
+
+        $this->indexController->execute();
+    }
+
+    public function testExecuteWithoutParams(): void
+    {
+        $this->request->method('getParams')->willReturn([]);
+        $this->configHelper->method('getAdyenAbstractConfigData')->willReturn('checkout/cart');
+
+        $this->indexController->expects($this->once())
+            ->method('_redirect')
+            ->with('checkout/cart');
+
+        $this->indexController->execute();
+    }
+
+    public function testGetOrderWithValidId(): void
+    {
+        $order = $this->createMock(Order::class);
+        $order->method('getId')->willReturn(10);
+        $this->orderFactory->method('create')->willReturn($order);
+        $order->method('loadByIncrementId')->with('1001')->willReturn($order);
+
+        $reflection = new \ReflectionClass(Index::class);
+        $method = $reflection->getMethod('getOrder');
+        $method->setAccessible(true);
+        $result = $method->invokeArgs($this->indexController, ['1001']);
+        $this->assertSame($order, $result);
+    }
+
+    public function testGetOrderThrowsExceptionOnInvalidOrder(): void
+    {
+        $this->expectException(LocalizedException::class);
+        $this->expectExceptionMessage('Order cannot be loaded');
+
+        $order = $this->createMock(Order::class);
+        $order->method('getId')->willReturn(null);
+        $this->orderFactory->method('create')->willReturn($order);
+        $order->method('loadByIncrementId')->willReturn($order);
+
+        $reflection = new \ReflectionClass(Index::class);
+        $method = $reflection->getMethod('getOrder');
+        $method->setAccessible(true);
+        $method->invokeArgs($this->indexController, ['1001']);
+
     }
 }

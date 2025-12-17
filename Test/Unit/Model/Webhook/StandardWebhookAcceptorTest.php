@@ -1,0 +1,315 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Adyen\Payment\Test\Unit\Model\Webhook;
+
+use Adyen\Payment\Api\Webhook\WebhookAcceptorInterface;
+use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\Order as OrderHelper;
+use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Notification;
+use Adyen\Payment\Model\NotificationFactory;
+use Adyen\Payment\Model\Webhook\StandardWebhookAcceptor;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Adyen\Webhook\Exception\AuthenticationException;
+use Adyen\Webhook\Exception\HMACKeyValidationException;
+use Adyen\Webhook\Exception\InvalidDataException;
+use Adyen\Webhook\Receiver\HmacSignature;
+use Adyen\Webhook\Receiver\NotificationReceiver;
+use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Serialize\SerializerInterface;
+use PHPUnit\Framework\MockObject\Exception;
+use PHPUnit\Framework\MockObject\MockObject;
+
+class StandardWebhookAcceptorTest extends AbstractAdyenTestCase
+{
+    private ?StandardWebhookAcceptor $acceptor = null;
+
+    /** @var NotificationFactory|MockObject */
+    private $notificationFactoryMock;
+
+    /** @var SerializerInterface|MockObject */
+    private $serializerMock;
+
+    /** @var AdyenLogger|MockObject */
+    private $adyenLoggerMock;
+
+    /** @var Config|MockObject */
+    private $configHelperMock;
+
+    /** @var NotificationReceiver|MockObject */
+    private $notificationReceiverMock;
+
+    /** @var HmacSignature|MockObject */
+    private $hmacSignatureMock;
+
+    /** @var OrderHelper|MockObject */
+    private $orderHelperMock;
+
+    /**
+     * @throws Exception
+     */
+    protected function setUp(): void
+    {
+        $this->notificationFactoryMock  = $this->createMock(NotificationFactory::class);
+        $this->serializerMock           = $this->createMock(SerializerInterface::class);
+        $this->adyenLoggerMock          = $this->createMock(AdyenLogger::class);
+        $this->configHelperMock         = $this->createMock(Config::class);
+        $this->notificationReceiverMock = $this->createMock(NotificationReceiver::class);
+        $this->hmacSignatureMock        = $this->createMock(HmacSignature::class);
+        $this->orderHelperMock          = $this->createMock(OrderHelper::class);
+
+        $this->serializerMock->method('serialize')
+            ->willReturnCallback(static fn($v) => json_encode($v));
+
+        $this->acceptor = new StandardWebhookAcceptor(
+            $this->notificationFactoryMock,
+            $this->adyenLoggerMock,
+            $this->configHelperMock,
+            $this->notificationReceiverMock,
+            $this->hmacSignatureMock,
+            $this->serializerMock,
+            $this->orderHelperMock
+        );
+
+        // Sanity: class implements interface
+        $this->assertInstanceOf(WebhookAcceptorInterface::class, $this->acceptor);
+    }
+
+    protected function tearDown(): void
+    {
+        $this->acceptor = null;
+    }
+
+    /** ------------------------- Tests ------------------------- */
+
+    /**
+     * Happy path: one notification item, env OK, merchant OK, HMAC OK, not duplicate.
+     *
+     * @throws AlreadyExistsException
+     * @throws AuthenticationException
+     * @throws Exception
+     * @throws HMACKeyValidationException
+     * @throws InvalidDataException|LocalizedException
+     */
+    public function testGetNotificationsReturnsNotification(): void
+    {
+        $payload = $this->getValidPayload();
+        $item = $payload['notificationItems'][0]['NotificationRequestItem'];
+
+        // Order scope
+        $orderMock = $this->getMockBuilder(\Magento\Sales\Model\Order::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['getStoreId'])
+            ->getMock();
+        $orderMock->method('getStoreId')->willReturn(10);
+
+        $this->orderHelperMock->expects($this->once())
+            ->method('getOrderByIncrementId')
+            ->with($item['merchantReference'])
+            ->willReturn($orderMock);
+
+        // Env mode validation (live = 'false' -> demo must be true)
+        $this->configHelperMock->expects($this->once())
+            ->method('isDemoMode')
+            ->with(10)
+            ->willReturn(true);
+
+        $this->notificationReceiverMock->expects($this->once())
+            ->method('validateNotificationMode')
+            ->with('false', true)
+            ->willReturn(true);
+
+        // HMAC: supported + valid
+        $this->configHelperMock->method('getNotificationsHmacKey')->willReturn('deadbeef');
+        $this->hmacSignatureMock->method('isHmacSupportedEventCode')->with($item)->willReturn(true);
+        $this->notificationReceiverMock->expects($this->once())
+            ->method('validateHmac')
+            ->with($item, 'deadbeef')
+            ->willReturn(true);
+
+        // Notification creation (not duplicate)
+        $notification = $this->createMock(Notification::class);
+        $notification->method('isDuplicate')->willReturn(false);
+        $this->notificationFactoryMock->method('create')->willReturn($notification);
+
+        $result = $this->acceptor->getNotifications($payload);
+
+        $this->assertCount(1, $result);
+        $this->assertSame($notification, $result[0]);
+    }
+
+    /**
+     * Invalid environment mode -> InvalidDataException.
+     */
+    public function testValidateThrowsInvalidDataExceptionWhenNotificationModeInvalid(): void
+    {
+        $this->expectException(LocalizedException::class);
+
+        $payload = $this->getValidPayload();
+        $item = $payload['notificationItems'][0]['NotificationRequestItem'];
+
+        // No order found -> storeId = null is fine
+        $this->orderHelperMock->method('getOrderByIncrementId')->willReturn(null);
+
+        $this->configHelperMock->expects($this->once())
+            ->method('isDemoMode')
+            ->with(null)
+            ->willReturn(false);
+
+        $this->notificationReceiverMock->expects($this->once())
+            ->method('validateNotificationMode')
+            ->with('false', false)
+            ->willReturn(false);
+
+        $this->adyenLoggerMock->expects($this->once())->method('addAdyenNotification');
+
+        $this->acceptor->getNotifications($payload);
+    }
+
+    /**
+     * HMAC supported & invalid -> AuthenticationException.
+     *
+     * @throws AlreadyExistsException
+     * @throws AuthenticationException
+     * @throws HMACKeyValidationException
+     * @throws InvalidDataException
+     */
+    public function testValidateThrowsAuthenticationExceptionWhenHmacInvalid(): void
+    {
+        $this->expectException(AuthenticationException::class);
+
+        $payload = $this->getValidPayload();
+        $item = $payload['notificationItems'][0]['NotificationRequestItem'];
+
+        // Env OK & merchant OK
+        $this->orderHelperMock->method('getOrderByIncrementId')->willReturn(null);
+        $this->configHelperMock->method('isDemoMode')->with(null)->willReturn(true);
+        $this->notificationReceiverMock->method('validateNotificationMode')->with('false', true)->willReturn(true);
+
+        // HMAC present+supported but invalid
+        $this->configHelperMock->method('getNotificationsHmacKey')->willReturn('deadbeef');
+        $this->hmacSignatureMock->method('isHmacSupportedEventCode')->with($item)->willReturn(true);
+        $this->notificationReceiverMock->expects($this->once())
+            ->method('validateHmac')
+            ->with($item, 'deadbeef')
+            ->willReturn(false);
+
+        $this->adyenLoggerMock->expects($this->once())->method('addAdyenNotification');
+
+        $this->acceptor->getNotifications($payload);
+    }
+
+    /**
+     * HMAC supported & invalid -> AuthenticationException.
+     *
+     * @throws AlreadyExistsException
+     * @throws AuthenticationException
+     * @throws LocalizedException
+     */
+    public function testValidateThrowsAuthenticationExceptionWhenHmacInvalidOnTest(): void
+    {
+        $this->expectException(AuthenticationException::class);
+
+        $payload = $this->getValidPayload();
+        $item = $payload['notificationItems'][0]['NotificationRequestItem'];
+
+        // Env OK & merchant OK
+        $this->orderHelperMock->method('getOrderByIncrementId')->willReturn(null);
+        $this->configHelperMock->method('isDemoMode')->with(null)->willReturn(true);
+        $this->notificationReceiverMock->method('validateNotificationMode')->with('false', true)->willReturn(true);
+
+        // HMAC present+supported but invalid
+        $this->configHelperMock->method('getNotificationsHmacKey')->willReturn('deadbeef');
+        $this->hmacSignatureMock->method('isHmacSupportedEventCode')->with($item)->willReturn(true);
+        $this->notificationReceiverMock->expects($this->once())
+            ->method('validateHmac')
+            ->willThrowException(new HMACKeyValidationException());
+
+        $this->adyenLoggerMock->expects($this->once())->method('addAdyenNotification');
+
+        $this->acceptor->getNotifications($payload);
+    }
+
+    /**
+     * If HMAC key missing or event not supported, HMAC is not validated.
+     * Here we simulate "event not supported".
+     */
+    public function testHmacNotValidatedWhenEventNotSupported(): void
+    {
+        $payload = $this->getValidPayload();
+        $item = $payload['notificationItems'][0]['NotificationRequestItem'];
+
+        // Env OK & merchant OK
+        $this->orderHelperMock->method('getOrderByIncrementId')->willReturn(null);
+        $this->configHelperMock->method('isDemoMode')->with(null)->willReturn(true);
+        $this->notificationReceiverMock->method('validateNotificationMode')->with('false', true)->willReturn(true);
+
+        // HMAC key present but event not supported -> skip validateHmac
+        $this->configHelperMock->method('getNotificationsHmacKey')->willReturn('deadbeef');
+        $this->hmacSignatureMock->method('isHmacSupportedEventCode')->with($item)->willReturn(false);
+        $this->notificationReceiverMock->expects($this->never())->method('validateHmac');
+
+        $notification = $this->createMock(Notification::class);
+        $notification->method('isDuplicate')->willReturn(false);
+        $this->notificationFactoryMock->method('create')->willReturn($notification);
+
+        $result = $this->acceptor->getNotifications($payload);
+
+        $this->assertCount(1, $result);
+        $this->assertSame($notification, $result[0]);
+    }
+
+    /**
+     * If HMAC key is missing entirely, we skip HMAC validation.
+     */
+    public function testHmacNotValidatedWhenKeyMissing(): void
+    {
+        $payload = $this->getValidPayload();
+
+        // Env OK & merchant OK
+        $this->orderHelperMock->method('getOrderByIncrementId')->willReturn(null);
+        $this->configHelperMock->method('isDemoMode')->with(null)->willReturn(true);
+        $this->notificationReceiverMock->method('validateNotificationMode')->with('false', true)->willReturn(true);
+
+        // HMAC key missing -> skip validateHmac entirely
+        $this->configHelperMock->method('getNotificationsHmacKey')->willReturn(null);
+        $this->hmacSignatureMock->expects($this->never())->method('isHmacSupportedEventCode');
+        $this->notificationReceiverMock->expects($this->never())->method('validateHmac');
+
+        $notification = $this->createMock(Notification::class);
+        $notification->method('isDuplicate')->willReturn(false);
+        $this->notificationFactoryMock->method('create')->willReturn($notification);
+
+        $result = $this->acceptor->getNotifications($payload);
+
+        $this->assertCount(1, $result);
+        $this->assertSame($notification, $result[0]);
+    }
+
+    private function getValidPayload(): array
+    {
+        return [
+            'live' => 'false',
+            'notificationItems' => [
+                [
+                    'NotificationRequestItem' => [
+                        'merchantAccountCode' => 'TestMerchant',
+                        'merchantReference'   => '100000001',
+                        'pspReference'        => 'psp-123',
+                        'originalReference'   => 'psp-orig-001',
+                        'eventCode'           => 'AUTHORISATION',
+                        'success'             => 'true',
+                        'paymentMethod'       => 'visa',
+                        'reason'              => 'Authorised',
+                        'done'                => true,
+                        'amount'              => ['value' => 1000, 'currency' => 'EUR'],
+                        'additionalData'      => ['some' => 'data'],
+                    ]
+                ]
+            ]
+        ];
+    }
+}

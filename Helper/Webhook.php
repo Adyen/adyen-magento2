@@ -12,6 +12,7 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
 use Adyen\Payment\Exception\AdyenWebhookException;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\Order as OrderHelper;
@@ -23,12 +24,15 @@ use Adyen\Webhook\Exception\InvalidDataException;
 use Adyen\Webhook\Notification as WebhookNotification;
 use Adyen\Webhook\PaymentStates;
 use Adyen\Webhook\Processor\ProcessorFactory;
-use DateTime;
 use Exception;
 use Adyen\Payment\Model\Notification as NotificationEntity;
+use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
+use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\OrderFactory;
 use Magento\Sales\Model\OrderRepository;
 
 class Webhook
@@ -52,59 +56,41 @@ class Webhook
         'payment_authorized' => [Order::STATE_PROCESSING]
     ];
 
-    /**
-     * @var AdyenLogger
-     */
-    private $logger;
-    /** @var OrderHelper */
-    private $orderHelper;
-    /** @var OrderRepository */
-    private $orderRepository;
-    /**
-     * @var Data
-     */
-    private $adyenHelper;
-    /**
-     * @var SerializerInterface
-     */
-    private $serializer;
-    /**
-     * @var TimezoneInterface
-     */
-    private $timezone;
-    /**
-     * @var ConfigHelper
-     */
-    private $configHelper;
-    /**
-     * @var ChargedCurrency
-     */
-    private $chargedCurrency;
-    private $boletoPaidAmount;
-    private $klarnaReservationNumber;
-    private $ratepayDescriptor;
-    private $webhookHandlerFactory;
+    private ?string $klarnaReservationNumber;
+    private ?string $ratepayDescriptor;
 
+    /**
+     * @param SerializerInterface $serializer
+     * @param TimezoneInterface $timezone
+     * @param Config $configHelper
+     * @param AdyenLogger $logger
+     * @param WebhookHandlerFactory $webhookHandlerFactory
+     * @param OrderHelper $orderHelper
+     * @param OrderRepository $orderRepository
+     * @param OrderStatusHistory $orderStatusHistoryHelper
+     * @param PaymentMethods $paymentMethodsHelper
+     * @param AdyenNotificationRepositoryInterface $notificationRepository
+     * @param IpAddress $ipAddressHelper
+     * @param RemoteAddress $remoteAddress
+     * @param OrderFactory $orderFactory
+     */
     public function __construct(
-        Data $adyenHelper,
-        SerializerInterface $serializer,
-        TimezoneInterface $timezone,
-        ConfigHelper $configHelper,
-        ChargedCurrency $chargedCurrency,
-        AdyenLogger $logger,
-        WebhookHandlerFactory $webhookHandlerFactory,
-        OrderHelper $orderHelper,
-        OrderRepository $orderRepository
+        private readonly SerializerInterface $serializer,
+        private readonly TimezoneInterface $timezone,
+        private readonly ConfigHelper $configHelper,
+        private readonly AdyenLogger $logger,
+        private readonly WebhookHandlerFactory $webhookHandlerFactory,
+        private readonly OrderHelper $orderHelper,
+        private readonly OrderRepository $orderRepository,
+        private readonly OrderStatusHistory $orderStatusHistoryHelper,
+        private readonly PaymentMethods $paymentMethodsHelper,
+        private readonly AdyenNotificationRepositoryInterface $notificationRepository,
+        private readonly IpAddress $ipAddressHelper,
+        private readonly RemoteAddress $remoteAddress,
+        private readonly OrderFactory $orderFactory
     ) {
-        $this->adyenHelper = $adyenHelper;
-        $this->serializer = $serializer;
-        $this->timezone = $timezone;
-        $this->configHelper = $configHelper;
-        $this->chargedCurrency = $chargedCurrency;
-        $this->logger = $logger;
-        $this->orderHelper = $orderHelper;
-        $this->orderRepository = $orderRepository;
-        $this->webhookHandlerFactory = $webhookHandlerFactory;
+        $this->klarnaReservationNumber = null;
+        $this->ratepayDescriptor = null;
     }
 
     /**
@@ -112,6 +98,10 @@ class Webhook
      */
     public function processNotification(Notification $notification): bool
     {
+        if (strcmp($notification->getEventCode(), Notification::RECURRING_TOKEN_DISABLED) === 0) {
+            return $this->processRecurringTokenDisabledWebhook($notification);
+        }
+
         // check if merchant reference is set
         if (is_null($notification->getMerchantReference())) {
             $errorMessage = sprintf(
@@ -142,7 +132,7 @@ class Webhook
             );
 
         $order = $this->orderHelper->getOrderByIncrementId($notification->getMerchantReference());
-        if (!$order) {
+        if (!$order instanceof OrderInterface) {
             $errorMessage = sprintf(
                 'Order w/merchant reference %s not found',
                 $notification->getMerchantReference()
@@ -154,6 +144,26 @@ class Webhook
             $this->setNotificationError($notification, $errorMessage);
 
             return false;
+        }
+
+        $payment = $order->getPayment();
+        if ($payment instanceof OrderPaymentInterface) {
+            $isAdyenPaymentMethod = $this->paymentMethodsHelper->isAdyenPayment($payment->getMethod());
+
+            if (!$isAdyenPaymentMethod) {
+                $errorMessage = sprintf(
+                    'Invalid order payment method "%s" for notification with the event code %s (id %s)',
+                    $payment->getMethod(),
+                    $notification->getEventCode(),
+                    $notification->getEntityId(),
+                );
+
+                $this->logger->addAdyenNotification($errorMessage);
+                $this->updateNotification($notification, false, true);
+                $this->setNotificationError($notification, $errorMessage);
+
+                return false;
+            }
         }
 
         try {
@@ -285,7 +295,8 @@ class Webhook
         }
         $notification->setProcessing($processing);
         $notification->setUpdatedAt(date('Y-m-d H:i:s'));
-        $notification->save();
+
+        $this->notificationRepository->save($notification);
     }
 
     private function declareVariables(Notification $notification): void
@@ -310,74 +321,17 @@ class Webhook
 
     private function addNotificationDetailsHistoryComment(Order $order, Notification $notification): Order
     {
-        $successResult = $notification->isSuccessful() ? 'true' : 'false';
-        $reason = $notification->getReason();
-        $success = (!empty($reason)) ? "$successResult <br />reason:$reason" : $successResult;
-
-        $eventCode = $notification->getEventCode();
-        if ($eventCode == Notification::REFUND || $eventCode == Notification::CAPTURE) {
-            // check if it is a full or partial refund
-            $amount = $notification->getAmountValue();
-            $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order, false);
-            $formattedOrderAmount = $this->adyenHelper
-                ->formatAmount($orderAmountCurrency->getAmount(), $orderAmountCurrency->getCurrencyCode());
-
-            if ($amount == $formattedOrderAmount) {
-                $order->setData(
-                    'adyen_notification_event_code',
-                    $eventCode . " : " . strtoupper($successResult)
-                );
-            } else {
-                $order->setData(
-                    'adyen_notification_event_code',
-                    "(PARTIAL) " .
-                    $eventCode . " : " . strtoupper($successResult)
-                );
-            }
-        } else {
-            $order->setData(
-                'adyen_notification_event_code',
-                $eventCode . " : " . strtoupper($successResult)
-            );
-        }
-
-        // if payment method is klarna, ratepay or openinvoice/afterpay show the reservartion number
-        if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod(
-            $notification->getPaymentMethod()
-        ) && !empty($this->klarnaReservationNumber)) {
-            $klarnaReservationNumberText = "<br /> reservationNumber: " . $this->klarnaReservationNumber;
-        } else {
-            $klarnaReservationNumberText = "";
-        }
-
-        if ($this->boletoPaidAmount != null && $this->boletoPaidAmount != "") {
-            $boletoPaidAmountText = "<br /> Paid amount: " . $this->boletoPaidAmount;
-        } else {
-            $boletoPaidAmountText = "";
-        }
-
-        $type = 'Adyen HTTP Notification(s):';
-        $comment = __(
-            '%1 <br /> eventCode: %2 <br /> pspReference: %3 <br /> paymentMethod: %4 <br />' .
-            ' success: %5 %6 %7',
-            $type,
-            $eventCode,
-            $notification->getPspreference(),
-            $notification->getPaymentMethod(),
-            $success,
-            $klarnaReservationNumberText,
-            $boletoPaidAmountText
-        );
+        $comment = $this->orderStatusHistoryHelper->buildWebhookComment($order, $notification);
 
         // If notification is pending status and pending status is set add the status change to the comment history
-        if ($eventCode == Notification::PENDING) {
+        if ($notification->getEventCode() == Notification::PENDING) {
             $pendingStatus = $this->configHelper->getConfigData(
                 'pending_status',
                 'adyen_abstract',
                 $order->getStoreId()
             );
             if ($pendingStatus != "") {
-                $order->addStatusHistoryComment($comment, $pendingStatus);
+                $order->addCommentToStatusHistory($comment, $pendingStatus);
                 $this->logger->addAdyenNotification(
                     'Created comment history for this notification with status change to: ' . $pendingStatus,
                     array_merge(
@@ -389,7 +343,7 @@ class Webhook
             }
         }
 
-        $order->addStatusHistoryComment($comment, $order->getStatus());
+        $order->addCommentToStatusHistory($comment, $order->getStatus());
         $this->logger->addAdyenNotification(
             'Created comment history for this notification',
             [
@@ -466,31 +420,10 @@ class Webhook
         if (isset($additionalData['authCode'])) {
             $payment->setAdditionalInformation('adyen_auth_code', $additionalData['authCode']);
         }
-        if (isset($additionalData['cardBin'])) {
-            $payment->setAdditionalInformation('adyen_card_bin', $additionalData['cardBin']);
-        }
-        if (isset($additionalData['expiryDate'])) {
-            $payment->setAdditionalInformation('adyen_expiry_date', $additionalData['expiryDate']);
-        }
-        if (isset($additionalData['issuerCountry'])) {
-            $payment
-                ->setAdditionalInformation('adyen_issuer_country', $additionalData['issuerCountry']);
-        }
         $payment->setAdyenPspReference($notification->getPspreference());
         $payment->setAdditionalInformation('pspReference', $notification->getPspreference());
 
-        if ($this->klarnaReservationNumber != "") {
-            $payment->setAdditionalInformation(
-                'adyen_klarna_number',
-                $this->klarnaReservationNumber
-            );
-        }
-
-        if ($this->boletoPaidAmount != "") {
-            $payment->setAdditionalInformation('adyen_boleto_paid_amount', $this->boletoPaidAmount);
-        }
-
-        if ($this->ratepayDescriptor !== "") {
+        if (!empty($this->ratepayDescriptor)) {
             $payment->setAdditionalInformation(
                 'adyen_ratepay_descriptor',
                 $this->ratepayDescriptor
@@ -536,14 +469,123 @@ class Webhook
             $notification->setDone(true);
         }
 
-        $notification->save();
+        $this->notificationRepository->save($notification);
     }
 
     private function addNotificationErrorComment(Order $order, string $errorMessage): Order
     {
         $comment = __('The order failed to update: %1', $errorMessage);
-        $order->addStatusHistoryComment($comment, $order->getStatus());
+        $order->addCommentToStatusHistory($comment, $order->getStatus());
         $this->orderRepository->save($order);
         return $order;
+    }
+
+    /**
+     * @deprecated This method will be removed on V11.
+     *
+     * @param array $payload
+     * @param string $context
+     * @return bool
+     */
+    public function isIpValid(array $payload, string $context = 'webhook'): bool
+    {
+        $ip = explode(',', (string) $this->remoteAddress->getRemoteAddress());
+        if (!$this->ipAddressHelper->isIpAddressValid($ip)) {
+            $this->logger->addAdyenNotification("Invalid IP for $context", $payload);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * @deprecated This method will be removed on V11.
+     *
+     * @param string $incoming
+     * @param array $payload
+     * @param string $context
+     * @param int|null $storeId
+     * @return bool
+     */
+    public function isMerchantAccountValid(
+        string $incoming,
+        array $payload,
+        string $context = 'webhook',
+        ?int $storeId = null
+    ): bool {
+        $expected = $this->configHelper->getMerchantAccount($storeId);
+
+        if ($expected === null) {
+            $expected = $this->configHelper->getMotoMerchantAccounts($storeId);
+        }
+
+        $isValid = is_array($expected)
+            ? in_array($incoming, $expected, true)
+            : $incoming === $expected;
+
+        if (!$isValid) {
+            $expectedDisplay = is_array($expected) ? implode(', ', $expected) : (string)$expected;
+            $this->logger->addAdyenNotification(
+                "Merchant account mismatch for $context. Expected: $expectedDisplay, Received: $incoming",
+                $payload
+            );
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Processes `recurring.token.disabled` webhook and returns the result
+     *
+     * This method needs to be introduced as the `recurring.token.disabled` webhook does not have
+     * `merchantReference` or `originalPspReference` fields in its payload. Therefore, it's not possible
+     * to create an association with any order. However, this webhook can be processed without having an
+     * associated order or payment object.
+     *
+     * @param NotificationEntity $notification
+     * @return bool
+     */
+    private function processRecurringTokenDisabledWebhook(NotificationEntity $notification): bool
+    {
+        try {
+            $this->updateNotification($notification, true, false);
+            $this->logger
+                ->addAdyenNotification(
+                    sprintf(
+                        "Processing %s notification %s",
+                        $notification->getEventCode(),
+                        $notification->getEntityId(),
+                    ),
+                    ['pspReference' => $notification->getPspreference()],
+                );
+
+            $webhookHandler = $this->webhookHandlerFactory->create($notification->getEventCode());
+
+            // Create an empty Order object to comply with the WebhookHandlerInterface::handleWebhook() method
+            $order = $this->orderFactory->create();
+
+            $webhookHandler->handleWebhook($order, $notification, '');
+
+            $this->updateNotification($notification, false, true);
+            $this->logger->addAdyenNotification(
+                sprintf("Notification %s was processed", $notification->getEntityId()),
+            );
+
+            return true;
+        } catch (Exception $e) {
+            $this->updateNotification($notification, false, false);
+
+            $this->logger->addAdyenNotification(
+                sprintf(
+                    "Critical error occurred. Notification %s had an error: %s \n %s",
+                    $notification->getEntityId(),
+                    $e->getMessage(),
+                    $e->getTraceAsString()
+                ),
+                ['pspReference' => $notification->getPspReference()]
+            );
+
+            return false;
+        }
     }
 }

@@ -37,7 +37,7 @@
             </tooltip>
         </field>
         <field id="api_key_test" translate="label" type="obscure" sortOrder="20" showInDefault="1" showInWebsite="1"
-               showInStore="0">
+               showInStore="1">
             <depends>
                 <field id="demo_mode">1</field>
             </depends>
@@ -49,7 +49,7 @@
             <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding"/>
         </field>
         <field id="api_key_live" translate="label" type="obscure" sortOrder="20" showInDefault="1" showInWebsite="1"
-               showInStore="0">
+               showInStore="1">
             <depends>
                 <field id="demo_mode">0</field>
             </depends>
@@ -63,7 +63,7 @@
             </tooltip>
         </field>
         <field id="client_key_test" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1"
-               showInStore="0">
+               showInStore="1">
             <depends>
                 <field id="demo_mode">1</field>
                 <field id="configuration_mode">manual</field>
@@ -73,7 +73,7 @@
             <config_path>payment/adyen_abstract/client_key_test</config_path>
         </field>
         <field id="client_key_live" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1"
-               showInStore="0">
+               showInStore="1">
             <depends>
                 <field id="demo_mode">0</field>
                 <field id="configuration_mode">manual</field>
@@ -213,13 +213,32 @@
             <source_model>Adyen\Payment\Model\Config\Source\ChargedCurrency</source_model>
             <config_path>payment/adyen_abstract/charged_currency</config_path>
         </field>
-        <field id="configuration_wizard" translate="label" type="button" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="1">
+        <field id="has_platform_integrator" translate="label" type="select" sortOrder="130" showInDefault="1">
+            <label>Managed by a system integrator</label>
+            <depends>
+                <field id="configuration_mode">manual</field>
+            </depends>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <backend_model>Adyen\Payment\Model\Config\Backend\PlatformIntegrator</backend_model>
+            <config_path>payment/adyen_abstract/has_platform_integrator</config_path>
+            <tooltip>Select 'Yes' if you are a service partner that builds or implements this integration on behalf of the merchant.</tooltip>
+        </field>
+        <field id="platform_integrator" translate="label" type="text" sortOrder="140" showInDefault="1">
+            <label>Name of the system integrator</label>
+            <validate>required-entry</validate>
+            <depends>
+                <field id="has_platform_integrator">1</field>
+            </depends>
+            <tooltip>Enter the name of the service partner for partner tracking and reporting.</tooltip>
+            <config_path>payment/adyen_abstract/platform_integrator</config_path>
+        </field>
+        <field id="configuration_wizard" translate="label" type="button" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="1">
             <depends>
                 <field id="configuration_mode">auto</field>
             </depends>
             <frontend_model>Adyen\Payment\Model\Config\Adminhtml\ConfigurationWizard</frontend_model>
         </field>
-        <field id="webhook_test" translate="label" type="button" sortOrder="140" showInDefault="1" showInWebsite="1" showInStore="1">
+        <field id="webhook_test" translate="label" type="button" sortOrder="160" showInDefault="1" showInWebsite="1" showInStore="1">
             <frontend_model>Adyen\Payment\Model\Config\Adminhtml\WebhookTest</frontend_model>
         </field>
     </group>

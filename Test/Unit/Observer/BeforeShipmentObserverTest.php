@@ -12,15 +12,14 @@
 namespace Adyen\Payment\Test\Unit\Observer;
 
 use Adyen\Payment\Helper\Config;
-use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver;
 use Adyen\Payment\Observer\BeforeShipmentObserver;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Exception;
 use Magento\Framework\Event;
 use Magento\Framework\Event\Observer;
+use Magento\Payment\Model\MethodInterface;
 use Magento\Sales\Api\Data\ShipmentItemInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\InvoiceRepository;
@@ -32,7 +31,6 @@ class BeforeShipmentObserverTest extends AbstractAdyenTestCase
     private $beforeShipmentObserver;
 
     # Define constructor arguments as mocks
-    private $adyenHelperMock;
     private $configHelperMock;
     private $adyenLoggerMock;
     private $invoiceRepositoryMock;
@@ -47,7 +45,6 @@ class BeforeShipmentObserverTest extends AbstractAdyenTestCase
 
     public function setUp(): void
     {
-        $this->adyenHelperMock = $this->createMock(Data::class);
         $this->configHelperMock = $this->createMock(Config::class);
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
         $this->invoiceRepositoryMock = $this->createMock(InvoiceRepository::class);
@@ -69,7 +66,6 @@ class BeforeShipmentObserverTest extends AbstractAdyenTestCase
         $this->observerMock->method('getEvent')->willReturn($this->eventMock);
 
         $this->beforeShipmentObserver = new BeforeShipmentObserver(
-            $this->adyenHelperMock,
             $this->configHelperMock,
             $this->adyenLoggerMock,
             $this->invoiceRepositoryMock,
@@ -87,7 +83,7 @@ class BeforeShipmentObserverTest extends AbstractAdyenTestCase
 
         $this->paymentMock->method('getMethod')->willReturn($randomPaymentMethod);
 
-        $this->adyenLoggerMock->expects($this->once())->method('info');
+        $this->adyenLoggerMock->expects($this->once())->method('addAdyenInfoLog');
         $this->configHelperMock->expects($this->never())->method('getConfigData');
 
         $this->beforeShipmentObserver->execute($this->observerMock);
@@ -107,7 +103,7 @@ class BeforeShipmentObserverTest extends AbstractAdyenTestCase
             ->with('capture_for_openinvoice', BeforeShipmentObserver::XML_ADYEN_ABSTRACT_PREFIX, 1)
             ->willReturn('manual');
 
-        $this->adyenLoggerMock->expects($this->once())->method('info');
+        $this->adyenLoggerMock->expects($this->once())->method('addAdyenInfoLog');
         $this->paymentMock->expects($this->never())->method('getAdditionalInformation');
 
         $this->beforeShipmentObserver->execute($this->observerMock);
@@ -117,22 +113,21 @@ class BeforeShipmentObserverTest extends AbstractAdyenTestCase
     {
         $randomPaymentMethod = 'adyen_klarna';
 
+        $paymentMethodInstanceMock = $this->createMock(MethodInterface::class);
+
         $this->paymentMethodsHelperMock->method('isAdyenPayment')->willReturn(true);
+        $this->paymentMethodsHelperMock->method('isOpenInvoice')
+            ->with($paymentMethodInstanceMock)
+            ->willReturn(false);
 
         $this->paymentMock->method('getMethod')->willReturn($randomPaymentMethod);
-        $this->paymentMock->method('getAdditionalInformation')
-            ->with(AdyenPaymentMethodDataAssignObserver::BRAND_CODE)
-            ->willReturn('klarna');
+        $this->paymentMock->method('getMethodInstance')->willReturn($paymentMethodInstanceMock);
 
         $this->configHelperMock->method('getConfigData')
             ->with('capture_for_openinvoice', BeforeShipmentObserver::XML_ADYEN_ABSTRACT_PREFIX, 1)
             ->willReturn(BeforeShipmentObserver::ONSHIPMENT_CAPTURE_OPENINVOICE);
 
-        $this->adyenHelperMock->method('isPaymentMethodOpenInvoiceMethod')
-            ->with('klarna')
-            ->willReturn(false);
-
-        $this->adyenLoggerMock->expects($this->once())->method('info');
+        $this->adyenLoggerMock->expects($this->once())->method('addAdyenInfoLog');
         $this->orderMock->expects($this->never())->method('canInvoice');
 
         $this->beforeShipmentObserver->execute($this->observerMock);
@@ -142,24 +137,23 @@ class BeforeShipmentObserverTest extends AbstractAdyenTestCase
     {
         $randomPaymentMethod = 'adyen_klarna';
 
+        $paymentMethodInstanceMock = $this->createMock(MethodInterface::class);
+
         $this->paymentMethodsHelperMock->method('isAdyenPayment')->willReturn(true);
+        $this->paymentMethodsHelperMock->method('isOpenInvoice')
+            ->with($paymentMethodInstanceMock)
+            ->willReturn(true);
 
         $this->paymentMock->method('getMethod')->willReturn($randomPaymentMethod);
-        $this->paymentMock->method('getAdditionalInformation')
-            ->with(AdyenPaymentMethodDataAssignObserver::BRAND_CODE)
-            ->willReturn('klarna');
+        $this->paymentMock->method('getMethodInstance')->willReturn($paymentMethodInstanceMock);
 
         $this->configHelperMock->method('getConfigData')
             ->with('capture_for_openinvoice', BeforeShipmentObserver::XML_ADYEN_ABSTRACT_PREFIX, 1)
             ->willReturn(BeforeShipmentObserver::ONSHIPMENT_CAPTURE_OPENINVOICE);
 
-        $this->adyenHelperMock->method('isPaymentMethodOpenInvoiceMethod')
-            ->with('klarna')
-            ->willReturn(true);
-
         $this->orderMock->method('canInvoice')->willReturn(false);
 
-        $this->adyenLoggerMock->expects($this->once())->method('info');
+        $this->adyenLoggerMock->expects($this->once())->method('addAdyenInfoLog');
 
         $this->beforeShipmentObserver->execute($this->observerMock);
     }
@@ -168,20 +162,19 @@ class BeforeShipmentObserverTest extends AbstractAdyenTestCase
     {
         $randomPaymentMethod = 'adyen_klarna';
 
-        $this->paymentMethodsHelperMock->method('isAdyenPayment')->willReturn(true);
+        $paymentMethodInstanceMock = $this->createMock(MethodInterface::class);
 
         $this->paymentMock->method('getMethod')->willReturn($randomPaymentMethod);
-        $this->paymentMock->method('getAdditionalInformation')
-            ->with(AdyenPaymentMethodDataAssignObserver::BRAND_CODE)
-            ->willReturn('klarna');
+        $this->paymentMock->method('getMethodInstance')->willReturn($paymentMethodInstanceMock);
+
+        $this->paymentMethodsHelperMock->method('isAdyenPayment')->willReturn(true);
+        $this->paymentMethodsHelperMock->method('isOpenInvoice')
+            ->with($paymentMethodInstanceMock)
+            ->willReturn(true);
 
         $this->configHelperMock->method('getConfigData')
             ->with('capture_for_openinvoice', BeforeShipmentObserver::XML_ADYEN_ABSTRACT_PREFIX, 1)
             ->willReturn(BeforeShipmentObserver::ONSHIPMENT_CAPTURE_OPENINVOICE);
-
-        $this->adyenHelperMock->method('isPaymentMethodOpenInvoiceMethod')
-            ->with('klarna')
-            ->willReturn(true);
 
         $invoiceMock = $this->createMock(Order\Invoice::class);
         $invoiceMock->method('getOrder')->willReturn($this->orderMock);
@@ -205,19 +198,19 @@ class BeforeShipmentObserverTest extends AbstractAdyenTestCase
 
         $randomPaymentMethod = 'adyen_klarna';
 
-        $this->paymentMethodsHelperMock->method('isAdyenPayment')->willReturn(true);
+        $paymentMethodInstanceMock = $this->createMock(MethodInterface::class);
 
         $this->paymentMock->method('getMethod')->willReturn($randomPaymentMethod);
-        $this->paymentMock->method('getAdditionalInformation')
-            ->with(AdyenPaymentMethodDataAssignObserver::BRAND_CODE)
-            ->willReturn('klarna');
+        $this->paymentMock->method('getMethodInstance')->willReturn($paymentMethodInstanceMock);
 
         $this->configHelperMock->method('getConfigData')
             ->with('capture_for_openinvoice', BeforeShipmentObserver::XML_ADYEN_ABSTRACT_PREFIX, 1)
             ->willReturn(BeforeShipmentObserver::ONSHIPMENT_CAPTURE_OPENINVOICE);
 
-        $this->adyenHelperMock->method('isPaymentMethodOpenInvoiceMethod')
-            ->with('klarna')
+        $this->paymentMethodsHelperMock->method('isAdyenPayment')->willReturn(true);
+        $this->paymentMethodsHelperMock->expects($this->once())
+            ->method('isOpenInvoice')
+            ->with($paymentMethodInstanceMock)
             ->willReturn(true);
 
         $invoiceMock = $this->createMock(Order\Invoice::class);

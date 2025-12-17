@@ -5,9 +5,11 @@ namespace Adyen\Payment\Test\Unit\Helper;
 use Adyen\Payment\Helper\Webhook\AuthorisationWebhookHandler;
 use Adyen\Payment\Helper\Webhook\CancellationWebhookHandler;
 use Adyen\Payment\Helper\Webhook\CancelOrRefundWebhookHandler;
+use Adyen\Payment\Helper\Webhook\CaptureFailedWebhookHandler;
 use Adyen\Payment\Helper\Webhook\CaptureWebhookHandler;
 use Adyen\Payment\Helper\Webhook\ChargebackReversedWebhookHandler;
 use Adyen\Payment\Helper\Webhook\ChargebackWebhookHandler;
+use Adyen\Payment\Helper\Webhook\ExpireWebhookHandler;
 use Adyen\Payment\Helper\Webhook\ManualReviewAcceptWebhookHandler;
 use Adyen\Payment\Helper\Webhook\ManualReviewRejectWebhookHandler;
 use Adyen\Payment\Helper\Webhook\NotificationOfChargebackWebhookHandler;
@@ -16,6 +18,10 @@ use Adyen\Payment\Helper\Webhook\OrderClosedWebhookHandler;
 use Adyen\Payment\Helper\Webhook\OrderOpenedWebhookHandler;
 use Adyen\Payment\Helper\Webhook\PendingWebhookHandler;
 use Adyen\Payment\Helper\Webhook\RecurringContractWebhookHandler;
+use Adyen\Payment\Helper\Webhook\RecurringTokenAlreadyExistingWebhookHandler;
+use Adyen\Payment\Helper\Webhook\RecurringTokenCreatedWebhookHandler;
+use Adyen\Payment\Helper\Webhook\RecurringTokenDisabledWebhookHandler;
+use Adyen\Payment\Helper\Webhook\RecurringTokenUpdatedWebhookHandler;
 use Adyen\Payment\Helper\Webhook\RefundFailedWebhookHandler;
 use Adyen\Payment\Helper\Webhook\RefundWebhookHandler;
 use Adyen\Payment\Helper\Webhook\RequestForInformationWebhookHandler;
@@ -23,11 +29,7 @@ use Adyen\Payment\Helper\Webhook\SecondChargebackWebhookHandler;
 use Adyen\Payment\Helper\Webhook\WebhookHandlerFactory;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
-use Adyen\Payment\Model\Order\Payment as AdyenPaymentModel;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
-use Adyen\Webhook\Processor\RequestForInformationProcessor;
-use Magento\Sales\Model\Order;
-
 
 class WebhookHandlerFactoryTest extends AbstractAdyenTestCase
 {
@@ -51,7 +53,13 @@ class WebhookHandlerFactoryTest extends AbstractAdyenTestCase
             [Notification::REQUEST_FOR_INFORMATION, RequestForInformationWebhookHandler::class],
             [Notification::CHARGEBACK_REVERSED, ChargebackReversedWebhookHandler::class],
             [Notification::CHARGEBACK, ChargebackWebhookHandler::class],
-            [Notification::SECOND_CHARGEBACK, SecondChargebackWebhookHandler::class]
+            [Notification::SECOND_CHARGEBACK, SecondChargebackWebhookHandler::class],
+            [Notification::CAPTURE_FAILED, CaptureFailedWebhookHandler::class],
+            [Notification::RECURRING_TOKEN_DISABLED, RecurringTokenDisabledWebhookHandler::class],
+            [Notification::RECURRING_TOKEN_ALREADY_EXISTING, RecurringTokenAlreadyExistingWebhookHandler::class],
+            [Notification::RECURRING_TOKEN_CREATED, RecurringTokenCreatedWebhookHandler::class],
+            [Notification::RECURRING_TOKEN_UPDATED, RecurringTokenUpdatedWebhookHandler::class],
+            [Notification::EXPIRE, ExpireWebhookHandler::class]
         ];
     }
 
@@ -79,6 +87,13 @@ class WebhookHandlerFactoryTest extends AbstractAdyenTestCase
         $chargebackReversedWebhookHandler = $this->createMock(ChargebackReversedWebhookHandler::class);
         $secondChargebackWebhookHandler = $this->createMock(SecondChargebackWebhookHandler::class);
         $notificationOfChargebackWebhookHandler = $this->createMock(NotificationOfChargebackWebhookHandler::class);
+        $captureFailedWebhookHandler = $this->createMock(CaptureFailedWebhookHandler::class);
+        $recurringTokenDisabledWebhookHandler = $this->createMock(RecurringTokenDisabledWebhookHandler::class);
+        $recurringTokenAlreadyExistingWebhookHandler =
+            $this->createMock(RecurringTokenAlreadyExistingWebhookHandler::class);
+        $recurringTokenCreatedWebhookHandler = $this->createMock(RecurringTokenCreatedWebhookHandler::class);
+        $recurringTokenUpdatedWebhookHandler = $this->createMock(RecurringTokenUpdatedWebhookHandler::class);
+        $expireWebhookHandler = $this->createMock(ExpireWebhookHandler::class);
 
         $factory = new WebhookHandlerFactory(
             $adyenLogger,
@@ -99,7 +114,13 @@ class WebhookHandlerFactoryTest extends AbstractAdyenTestCase
             $requestForInformationWebhookHandler,
             $chargebackReversedWebhookHandler,
             $secondChargebackWebhookHandler,
-            $notificationOfChargebackWebhookHandler
+            $notificationOfChargebackWebhookHandler,
+            $captureFailedWebhookHandler,
+            $recurringTokenAlreadyExistingWebhookHandler,
+            $recurringTokenDisabledWebhookHandler,
+            $recurringTokenCreatedWebhookHandler,
+            $recurringTokenUpdatedWebhookHandler,
+            $expireWebhookHandler
         );
 
         $handler = $factory->create($notificationType);
