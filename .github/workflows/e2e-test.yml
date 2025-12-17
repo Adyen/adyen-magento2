@@ -1,10 +1,8 @@
 name: E2E test workflow
-run-name: E2E test workflow with test suite branch ${{inputs.testBranch || 'develop-9'}}
+run-name: E2E test workflow with test suite branch ${{ inputs.testBranch || 'develop-9' }}
 
 on:
   pull_request:
-    branches: [main-9]
-  pull_request_target:
     branches: [main-9]
   workflow_dispatch:
     inputs:
@@ -26,44 +24,58 @@ on:
         required: true
         default: "main"
 
+# Default permissions
+permissions:
+  contents: read
+
 jobs:
   build:
-    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) || (github.event_name == 'workflow_dispatch')
-    environment: ${{ (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) && 'external' || 'internal' }}
+    # Only:
+    # - workflow_dispatch, or
+    # - same-repo PRs (no forks) so secrets aren't exposed to untrusted code
+    if: github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository)
+
+    environment: internal
+
     strategy:
       matrix:
         php-version: ["8.2"]
         magento-version: ["2.4.7-p7"]
+
     runs-on:
       group: larger-runners
       labels: ubuntu-latest-8-cores
+
     timeout-minutes: 25
+
     permissions:
       contents: read
-      attestations: write
+
     env:
       PHP_VERSION: ${{ matrix.php-version }}
       MAGENTO_VERSION: ${{ matrix.magento-version }}
-      ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
-      ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
-      ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
-      ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
-      ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
-      DONATION_ACCOUNT: ${{secrets.DONATION_ACCOUNT}}
+      ADYEN_API_KEY: ${{ secrets.ADYEN_API_KEY }}
+      ADYEN_CLIENT_KEY: ${{ secrets.ADYEN_CLIENT_KEY }}
+      ADYEN_MERCHANT: ${{ secrets.ADYEN_MERCHANT }}
+      ADMIN_USERNAME: ${{ secrets.MAGENTO_ADMIN_USERNAME }}
+      ADMIN_PASSWORD: ${{ secrets.MAGENTO_ADMIN_PASSWORD }}
+      DONATION_ACCOUNT: ${{ secrets.DONATION_ACCOUNT }}
       DEPLOY_SAMPLEDATA: 1
+
     steps:
       # Define variables for the test case
       - run: echo "IS_RELEASE=${{ contains(github.event.pull_request.title, 'Release v9.') && 'TRUE' || 'FALSE' }}" >> $GITHUB_ENV
       - run: echo "TEST_GROUP=${{ env.IS_RELEASE == 'TRUE' && 'all' || (inputs.testGroup || 'standard') }}" >> $GITHUB_ENV
-      - run: echo "TEST_BRANCH=${{ (env.IS_RELEASE == 'TRUE' || !inputs.testBranch)  && 'develop' || inputs.testBranch }}" >> $GITHUB_ENV
-      - run: echo "EXPRESS_BRANCH=${{ contains(fromJSON('["all", "express-checkout"]'), env.TEST_GROUP) && (inputs.expressBranch || 'main') || '' }}" >> $GITHUB_ENV
+      - run: echo "TEST_BRANCH=${{ (env.IS_RELEASE == 'TRUE' || !inputs.testBranch) && 'develop' || inputs.testBranch }}" >> $GITHUB_ENV
+      - run: echo "EXPRESS_BRANCH=${{ contains(fromJSON('[''all'', ''express-checkout'']'), env.TEST_GROUP) && (inputs.expressBranch || 'main') || '' }}" >> $GITHUB_ENV
 
       - name: Information
-        run: echo "E2E testing against test suite branch ${{env.TEST_BRANCH}} using group ${{env.TEST_GROUP}} ${{ env.EXPRESS_BRANCH && 'with express module branch' || '' }} ${{ env.EXPRESS_BRANCH || '' }}"
+        run: echo "E2E testing against test suite branch ${{ env.TEST_BRANCH }} using group ${{ env.TEST_GROUP }} ${{ env.EXPRESS_BRANCH && 'with express module branch' || '' }} ${{ env.EXPRESS_BRANCH || '' }}"
 
-      - uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.ref }}
+      - name: Checkout repository
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744
 
       - name: Install Magento
         run: docker compose -f .github/docker-compose.yml run --rm web make magento
@@ -84,10 +96,10 @@ jobs:
         run: docker exec magento2-container /etc/init.d/cron stop
 
       - name: Checkout developer module
-        uses: actions/checkout@v3
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744
         with:
           repository: Adyen/adyen-magento2-dev
-          ref: "main"
+          ref: main
           token: ${{ secrets.ADYEN_RELEASE_AUTOMATION_USER_TOKEN }}
           path: Developer
 
@@ -121,15 +133,15 @@ jobs:
         run: docker compose -f .github/docker-compose.e2e.yml run --rm playwright /e2e.sh ${{ env.TEST_GROUP }}
         env:
           INTEGRATION_TESTS_BRANCH: ${{ env.TEST_BRANCH }}
-          MAGENTO_ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
-          MAGENTO_ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
-          MAGENTO_BASE_URL: ${{secrets.MAGENTO_BASE_URL}}
-          PAYPAL_USERNAME: ${{secrets.PLAYWRIGHT_PAYPAL_USERNAME}}
-          PAYPAL_PASSWORD: ${{secrets.PLAYWRIGHT_PAYPAL_PASSWORD}}
-          GOOGLE_USERNAME: ${{secrets.PLAYWRIGHT_GOOGLE_USERNAME}}
-          GOOGLE_PASSWORD: ${{secrets.PLAYWRIGHT_GOOGLE_PASSWORD}}
-          AMAZON_USERNAME: ${{secrets.AMAZON_USERNAME}}
-          AMAZON_PASSWORD: ${{secrets.AMAZON_PASSWORD}}
+          MAGENTO_ADMIN_USERNAME: ${{ secrets.MAGENTO_ADMIN_USERNAME }}
+          MAGENTO_ADMIN_PASSWORD: ${{ secrets.MAGENTO_ADMIN_PASSWORD }}
+          MAGENTO_BASE_URL: ${{ secrets.MAGENTO_BASE_URL }}
+          PAYPAL_USERNAME: ${{ secrets.PLAYWRIGHT_PAYPAL_USERNAME }}
+          PAYPAL_PASSWORD: ${{ secrets.PLAYWRIGHT_PAYPAL_PASSWORD }}
+          GOOGLE_USERNAME: ${{ secrets.PLAYWRIGHT_GOOGLE_USERNAME }}
+          GOOGLE_PASSWORD: ${{ secrets.PLAYWRIGHT_GOOGLE_PASSWORD }}
+          AMAZON_USERNAME: ${{ secrets.AMAZON_USERNAME }}
+          AMAZON_PASSWORD: ${{ secrets.AMAZON_PASSWORD }}
           WEBHOOK_USERNAME: admin
           WEBHOOK_PASSWORD: 1234
           CI: TRUE
@@ -138,10 +150,3 @@ jobs:
         run: |
           echo "Running DeleteWebhook command after E2E tests for clean-up"
           docker exec -u www-data magento2-container php bin/magento adyen:management:delete-webhook
-
-      - name: Archive test result artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: html-report
-          path: test-report

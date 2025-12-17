@@ -1,33 +1,42 @@
 name: REST API Tests
-on: [pull_request, pull_request_target]
+
+on:
+  pull_request:
+    branches: [main-9]
+
+# Default minimal permissions
+permissions:
+  contents: read
 
 jobs:
   build:
-    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository)
-    environment: ${{ (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) && 'external' || 'internal' }}
+    if: github.event.pull_request.head.repo.full_name == github.repository
+
     strategy:
       matrix:
         php-version: [8.2]
         magento-version: [2.4.6-p7]
+
     runs-on: ubuntu-latest
     timeout-minutes: 25
+
     permissions:
       contents: read
+
     env:
       PHP_VERSION: ${{ matrix.php-version }}
       MAGENTO_VERSION: ${{ matrix.magento-version }}
-      ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
-      ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
-      DONATION_ACCOUNT: ${{secrets.DONATION_ACCOUNT}}
-      ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
-      ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
-      ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
+      ADMIN_USERNAME: ${{ secrets.MAGENTO_ADMIN_USERNAME }}
+      ADMIN_PASSWORD: ${{ secrets.MAGENTO_ADMIN_PASSWORD }}
+      DONATION_ACCOUNT: ${{ secrets.DONATION_ACCOUNT }}
+      ADYEN_MERCHANT: ${{ secrets.ADYEN_MERCHANT }}
+      ADYEN_API_KEY: ${{ secrets.ADYEN_API_KEY }}
+      ADYEN_CLIENT_KEY: ${{ secrets.ADYEN_CLIENT_KEY }}
       DEPLOY_SAMPLEDATA: 1
 
     steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.ref }}
+      - name: Checkout repository
+        uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2
 
       - name: Install Magento
         run: docker compose -f .github/docker-compose.yml run --rm web make magento
@@ -44,7 +53,8 @@ jobs:
       - name: Install plugin
         run: docker exec -u www-data magento2-container make plugin
 
-      - run: docker exec magento2-container /etc/init.d/cron stop
+      - name: Prevent cron from interfering with tests
+        run: docker exec magento2-container /etc/init.d/cron stop
 
       - name: Run REST API tests
         run: docker exec magento2-container make restapi
