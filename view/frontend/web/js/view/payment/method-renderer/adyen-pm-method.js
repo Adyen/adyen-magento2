@@ -39,12 +39,12 @@ define(
         paymentComponentStates
     ) {
         'use strict';
-        let popupModal;
 
         return Component.extend({
             placeOrderButtonVisible: true,
             checkoutComponent: null,
             paymentComponent: null,
+            popupModal: null,
             defaults: {
                 template: 'Adyen_Payment/payment/pm-form',
                 orderId: null,
@@ -78,7 +78,39 @@ define(
                     self.enablePaymentMethod(paymentMethodsObserver());
                 }
 
+                this._lastGrandTotal = undefined;
+
+                quote.totals.subscribe(function (totals) {
+                    if (!totals) {
+                        return;
+                    }
+                    const newGrandTotal = totals.grand_total;
+                    if (Number(newGrandTotal) !== Number(self._lastGrandTotal)) {
+                        self._lastGrandTotal = newGrandTotal;
+
+                        // Rebuild component with updated configuration
+                        if (self.isChecked() === self.getCode()) {
+                            self.rebuildComponentAfterAmountChange();
+                        }
+                    }
+                });
+
                 paymentComponentStates().initializeState(this.getMethodCode());
+            },
+
+            getTitle: function () {
+                const paymentMethodsObservable = adyenPaymentService.getPaymentMethods();
+                const methodCode = this.getTxVariant();
+                const methods = paymentMethodsObservable?.()?.paymentMethodsResponse?.paymentMethods;
+
+                if (Array.isArray(methods)) {
+                    const matchedMethod = methods.find(pm => pm.type === methodCode);
+                    if (matchedMethod?.name) {
+                        return matchedMethod.name;
+                    }
+                }
+
+                return this._super();
             },
 
             enablePaymentMethod: function (paymentMethodsResponse) {
@@ -115,6 +147,22 @@ define(
                 return true;
             },
 
+            rebuildComponentAfterAmountChange: function () {
+                // Unmount existing component if present
+                if (this.paymentComponent && typeof this.paymentComponent.unmount === 'function') {
+                    try {
+                        this.paymentComponent.unmount();
+                    } catch (e) {
+                        console.warn('Failed to unmount Adyen component:', e);
+                    }
+                }
+                this.paymentComponent = null;
+                this.checkoutComponent = null;
+
+                // Force re-create component with updated configuration
+                this.createCheckoutComponent(true);
+            },
+
             /*
              * Pre-selected payment methods don't trigger parent's `selectPaymentMethod()` function.
              *
@@ -131,9 +179,11 @@ define(
             createCheckoutComponent: async function(forceCreate = false) {
                 if (!this.checkoutComponent || forceCreate) {
                     const paymentMethodsResponse = adyenPaymentService.getPaymentMethods();
+                    const countryCode = quote.billingAddress().countryId;
 
                     this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
                         paymentMethodsResponse(),
+                        countryCode,
                         this.handleOnAdditionalDetails.bind(this),
                         this.handleOnCancel.bind(this),
                         this.handleOnSubmit.bind(this),
@@ -186,6 +236,8 @@ define(
                         onChange: function (state) {
                             paymentComponentStates().setIsPlaceOrderAllowed(self.getMethodCode(), state.isValid);
                         },
+                        onSubmit: this.handleOnSubmit.bind(this),
+                        onError: this.handleOnError.bind(this)
                     });
 
                 return configuration;
@@ -215,35 +267,46 @@ define(
                 }
             },
 
-            handleOnSubmit: async function(state, component) {
+            handleOnSubmit: async function(state, component, actions) {
                 if (this.validate()) {
                     let data = {};
                     data.method = this.getCode();
 
                     let additionalData = {};
-                    let stateData = component.data;
+                    let stateData = state.data;
                     additionalData.stateData = JSON.stringify(stateData);
                     data.additional_data = additionalData;
 
-                    await this.placeRedirectOrder(data, component);
+                    await this.placeRedirectOrder(data, component, actions);
+                } else {
+                    actions.reject();
                 }
-
-                return false;
             },
 
-            handleOnAdditionalDetails: function(state, component) {
+            handleOnAdditionalDetails: function(state, component, actions) {
                 const self = this;
+                adyenPaymentModal.hideModalLabel(this.modalLabel);
+                fullScreenLoader.startLoader();
                 // call endpoint with state.data if available
                 let request = {};
                 if (!!state.data) {
                     request = state.data;
                 }
 
-                adyenPaymentService.paymentDetails(request, self.orderId).done(function() {
+                adyenPaymentService.paymentDetails(request, self.orderId).done(function(responseJSON) {
+                    if (!!actions) {
+                        const response = JSON.parse(responseJSON);
+                        actions.resolve({resultCode: response.resultCode});
+                    }
+
                     $.mage.redirect(
                         window.checkoutConfig.payment.adyen.successPage,
                     );
                 }).fail(function(response) {
+                    if (!!actions) {
+                        actions.reject();
+                    }
+
                     fullScreenLoader.stopLoader();
                     if (self.popupModal) {
                         self.closeModal(self.popupModal);
@@ -274,7 +337,6 @@ define(
                     }
                     errorProcessor.process(response, self.currentMessageContainer);
                     paymentComponentStates().setIsPlaceOrderAllowed(self.getMethodCode(), true);
-                    self.showErrorMessage(response);
                 });
             },
 
@@ -290,9 +352,9 @@ define(
                         'method': methodCode
                     };
 
-                    let additionalData = {};
-                    additionalData.brand_code = this.paymentMethod().type;
-                    additionalData.frontendType = 'default';
+                    let additionalData = {
+                        frontendType: 'default'
+                    };
 
                     let stateData;
                     if (this.paymentComponent) {
@@ -316,7 +378,7 @@ define(
                 return false;
             },
 
-            placeRedirectOrder: async function(data, component) {
+            placeRedirectOrder: async function(data, component, actions = null) {
                 const self = this;
 
                 fullScreenLoader.startLoader();
@@ -326,8 +388,17 @@ define(
                 try {
                     const orderId = await placeOrderAction(data, self.currentMessageContainer);
                     const responseJSON = await adyenPaymentService.getOrderPaymentStatus(orderId);
+
+                    if (!!actions) {
+                        const response = JSON.parse(responseJSON);
+                        actions.resolve({resultCode: response.resultCode});
+                    }
+
                     self.validateActionOrPlaceOrder(responseJSON, orderId, component);
                 } catch (response) {
+                    if (!!actions) {
+                        actions.reject();
+                    }
                     self.handleOnFailure(response, component);
                 }
             },
@@ -344,12 +415,6 @@ define(
                 const form = '#adyen-' + this.getTxVariant() + '-form';
                 const validate = $(form).validation() && $(form).validation('isValid');
                 return validate && additionalValidators.validate();
-            },
-
-            showErrorMessage: function(message) {
-                messageList.addErrorMessage({
-                    message: message
-                });
             },
 
             showPlaceOrderButton: function() {
@@ -374,9 +439,7 @@ define(
 
                 if (!!response.isFinal) {
                     // Status is final redirect to the success page
-                    $.mage.redirect(
-                        window.checkoutConfig.payment.adyen.successPage
-                    );
+                    $.mage.redirect(window.checkoutConfig.payment.adyen.successPage);
                 } else {
                     // render component
                     self.orderId = orderId;
@@ -387,19 +450,42 @@ define(
             renderActionComponent: function(resultCode, action, component) {
                 let self = this;
                 let actionNode = document.getElementById(this.modalLabel + 'Content');
-                fullScreenLoader.stopLoader();
 
                 if (resultCode !== 'RedirectShopper') {
-                    self.popupModal = adyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.modalLabel, this.isPlaceOrderActionAllowed)
+                    let isModalVisible = true;
+
+                    if (action.type === 'threeDS2') {
+                        isModalVisible = false;
+                    } else {
+                        fullScreenLoader.stopLoader();
+                    }
+
+                    self.popupModal = adyenPaymentModal.showModal(
+                        adyenPaymentService,
+                        fullScreenLoader,
+                        this.messageContainer,
+                        this.orderId,
+                        this.modalLabel,
+                        this.isPlaceOrderActionAllowed,
+                        isModalVisible
+                    );
+
                     $("." + this.modalLabel + " .action-close").hide();
                 }
 
-                self.actionComponent = self.checkoutComponent.createFromAction(action).mount(actionNode);
+                self.actionComponent = self.checkoutComponent.createFromAction(action, {
+                    onActionHandled: function (event) {
+                        if (event.componentType === "3DS2Challenge") {
+                            fullScreenLoader.stopLoader();
+                            self.popupModal.modal('openModal');
+                        }
+                    }
+                }).mount(actionNode);
             },
 
-
             isButtonActive: function() {
-                return paymentComponentStates().getIsPlaceOrderAllowed(this.getMethodCode());
+                return this.isPlaceOrderActionAllowed() &&
+                    paymentComponentStates().getIsPlaceOrderAllowed(this.getMethodCode());
             },
 
             /**

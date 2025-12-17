@@ -34,6 +34,7 @@ use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManager;
+use PHPUnit\Framework\MockObject\Exception;
 
 class ManagementHelperTest extends AbstractAdyenTestCase
 {
@@ -562,14 +563,15 @@ class ManagementHelperTest extends AbstractAdyenTestCase
      * @param AdyenLogger|null $adyenLogger
      * @param ManagerInterface|null $messageManager
      * @return ManagementHelper
+     * @throws Exception
      */
     private function createManagementHelper(
-        StoreManager $storeManager = null,
-        EncryptorInterface $encryptor = null,
-        Data $dataHelper = null,
-        Config $configHelper = null,
-        AdyenLogger $adyenLogger = null,
-        ManagerInterface $messageManager = null
+        ?StoreManager $storeManager = null,
+        ?EncryptorInterface $encryptor = null,
+        ?Data $dataHelper = null,
+        ?Config $configHelper = null,
+        ?AdyenLogger $adyenLogger = null,
+        ?ManagerInterface $messageManager = null
     ): ManagementHelper {
 
         if (is_null($storeManager)) {
@@ -623,7 +625,7 @@ class ManagementHelperTest extends AbstractAdyenTestCase
         $helper = $this->createManagementHelper(null,null,null,null,$adyenLogger);
         $service = $this->createMock(WebhooksMerchantLevelApi::class);
         $service->expects($this->once())->method('testWebhook')->willThrowException(new AdyenException());
-        $adyenLogger->expects($this->never())->method('info');
+        $adyenLogger->expects($this->never())->method('addAdyenInfoLog');
         $adyenLogger->expects($this->once())->method('error');
         $helper->webhookTest($webhookId, $merchantId, $service);
     }

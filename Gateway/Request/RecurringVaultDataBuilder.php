@@ -20,6 +20,7 @@ use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
+use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 
 class RecurringVaultDataBuilder implements BuilderInterface
 {
@@ -51,20 +52,11 @@ class RecurringVaultDataBuilder implements BuilderInterface
         $paymentToken = $extensionAttributes->getVaultPaymentToken();
         $details = json_decode((string) ($paymentToken->getTokenDetails() ?: '{}'), true);
 
+        // Initialize the request body with the current state data
+        $requestBody = $this->stateData->getStateData($order->getQuoteId());
+
+        // Build base request for card token payments (including card wallets)
         if ($paymentToken->getType() === PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD) {
-            // Build base request for card token payments (including card wallets)
-
-            $isInstantPurchase = (bool) $payment->getAdditionalInformation('instant-purchase');
-
-            if ($isInstantPurchase) {
-                // `Instant Purchase` doesn't have the component and state data. Build the `paymentMethod` object.
-                $requestBody['paymentMethod']['type'] = 'scheme';
-                $requestBody['paymentMethod']['storedPaymentMethodId'] = $paymentToken->getGatewayToken();
-            } else {
-                // Initialize the request body with the current state data if it's not `Instant Purchase`.
-                $requestBody = $this->stateData->getStateData($order->getQuoteId());
-            }
-
             /*
              * `allow3DS: true` flag is required to trigger the native 3DS challenge.
              * Otherwise, shopper will be redirected to the issuer for challenge.
@@ -77,13 +69,21 @@ class RecurringVaultDataBuilder implements BuilderInterface
 
             // Due to new VISA compliance requirements, holderName is added to the payments call
             $requestBody['paymentMethod']['holderName'] = $details['cardHolderName'] ?? null;
-        }  else {
-            // Build base request for alternative payment methods for regular checkout and Instant Purchase
+        }
 
-            $requestBody['paymentMethod'] = [
-                'type' => $details['type'],
-                'storedPaymentMethodId' => $paymentToken->getGatewayToken()
-            ];
+        /*
+         * `paymentMethod.type` and `paymentMethod.storedPaymentMethodId` need to be manually populated
+         * for all recurring alternative payment methods, recurring card payments where state data is missing and
+         * `Instant Purchase` payments.
+         */
+        if (empty($requestBody['paymentMethod']['type'])) {
+            $requestBody['paymentMethod']['type'] =
+                $paymentToken->getType() === PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD
+                    ? 'scheme'
+                    : $details['type'];
+        }
+        if (empty($requestBody['paymentMethod']['storedPaymentMethodId'])) {
+            $requestBody['paymentMethod']['storedPaymentMethodId'] = $paymentToken->getGatewayToken();
         }
 
         // Check the `stateData` if `recurringProcessingModel` is added through a headless request.
@@ -95,6 +95,14 @@ class RecurringVaultDataBuilder implements BuilderInterface
                 $paymentMethod->getProviderCode(),
                 $order->getStoreId()
             );
+        }
+
+        $numberOfInstallments = $payment->getAdditionalInformation(
+            AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS
+        );
+
+        if (!empty($numberOfInstallments)) {
+            $requestBody['installments']['value'] = (int) $numberOfInstallments;
         }
 
         return [

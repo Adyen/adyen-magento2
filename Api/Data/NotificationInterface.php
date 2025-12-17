@@ -16,6 +16,8 @@ interface NotificationInterface
     /**
      * Constants for keys of data array. Identical to the name of the getter in snake case.
      */
+    const TABLE_NAME = 'adyen_notification';
+    const TABLE_NAME_ALIAS = 'notification';
     const ENTITY_ID = 'entity_id';
     const PSPREFRENCE = 'pspreference';
     const ORIGINAL_REFERENCE = 'original_reference';

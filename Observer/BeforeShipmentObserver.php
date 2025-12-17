@@ -12,7 +12,6 @@
 
 namespace Adyen\Payment\Observer;
 
-use Adyen\Payment\Helper\Data as AdyenHelper;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
@@ -22,7 +21,6 @@ use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\Order\InvoiceRepository;
 use Magento\Sales\Model\Order\Shipment;
-use Psr\Log\LoggerInterface;
 
 class BeforeShipmentObserver extends AbstractDataAssignObserver
 {
@@ -30,19 +28,14 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
     const ONSHIPMENT_CAPTURE_OPENINVOICE = 'onshipment';
 
     /**
-     * @var AdyenHelper
-     */
-    private AdyenHelper $adyenHelper;
-
-    /**
      * @var ConfigHelper
      */
     private ConfigHelper $configHelper;
 
     /**
-     * @var LoggerInterface
+     * @var AdyenLogger
      */
-    private LoggerInterface $logger;
+    private AdyenLogger $logger;
 
     /**
      * @var InvoiceRepository
@@ -57,20 +50,17 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
     /**
      * BeforeShipmentObserver constructor.
      *
-     * @param AdyenHelper $adyenHelper
      * @param ConfigHelper $configHelper
      * @param AdyenLogger $logger
      * @param InvoiceRepository $invoiceRepository
      * @param PaymentMethods $paymentMethodsHelper
      */
     public function __construct(
-        AdyenHelper $adyenHelper,
         ConfigHelper $configHelper,
         AdyenLogger $logger,
         InvoiceRepository $invoiceRepository,
         PaymentMethods $paymentMethodsHelper
     ) {
-        $this->adyenHelper = $adyenHelper;
         $this->configHelper = $configHelper;
         $this->logger = $logger;
         $this->invoiceRepository = $invoiceRepository;
@@ -86,10 +76,12 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
         /** @var Shipment $shipment */
         $shipment = $observer->getEvent()->getData('shipment');
         $order = $shipment->getOrder();
-        $paymentMethod = $order->getPayment()->getMethod();
+        $payment = $order->getPayment();
+        $paymentMethod = $payment->getMethod();
+        $paymentMethodInstance = $payment->getMethodInstance();
 
         if (!$this->paymentMethodsHelper->isAdyenPayment($paymentMethod)) {
-            $this->logger->info(
+            $this->logger->addAdyenInfoLog(
                 "Payment method is not from Adyen for order id {$order->getId()}",
                 ['observer' => 'BeforeShipmentObserver']
             );
@@ -104,18 +96,15 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
 
         if (strcmp((string) $openInvoiceCapture, self::ONSHIPMENT_CAPTURE_OPENINVOICE) !== 0)
         {
-            $this->logger->info(
+            $this->logger->addAdyenInfoLog(
                 "Capture on shipment not configured for order id {$order->getId()}",
                 ['observer' => 'BeforeShipmentObserver']
             );
             return;
         }
 
-        $payment = $order->getPayment();
-        $brandCode = $payment->getAdditionalInformation(AdyenPaymentMethodDataAssignObserver::BRAND_CODE);
-
-        if (!$this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) {
-            $this->logger->info(
+        if (!$this->paymentMethodsHelper->isOpenInvoice($paymentMethodInstance)) {
+            $this->logger->addAdyenInfoLog(
                 "Payment method is from Adyen but isn't OpenInvoice for order id {$order->getId()}",
                 ['observer' => 'BeforeShipmentObserver']
             );
@@ -123,7 +112,7 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
         }
 
         if (!$order->canInvoice()) {
-            $this->logger->info(
+            $this->logger->addAdyenInfoLog(
                 "Cannot invoice order with id {$order->getId()}",
                 ['observer' => 'BeforeShipmentObserver']
             );
@@ -146,16 +135,6 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
             $this->logger->error($e);
             throw new Exception('Error saving invoice. The error message is: ' . $e->getMessage());
         }
-    }
-
-    /**
-     * @deprecated Use isAdyenPayment() method from Adyen\Payment\Helper\PaymentMethods.
-     *
-     * Determine if the payment method is Adyen
-     */
-    public function isPaymentMethodAdyen($order)
-    {
-        return strpos((string) $order->getPayment()->getMethod(), 'adyen') !== false;
     }
 
     /**

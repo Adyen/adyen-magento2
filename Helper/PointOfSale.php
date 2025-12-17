@@ -23,15 +23,18 @@ class PointOfSale
     private Data $dataHelper;
     private ProductMetadataInterface $productMetadata;
     private Vault $vaultHelper;
+    private PlatformInfo $platformInfo;
 
     public function __construct(
         Data $dataHelper,
         ProductMetadataInterface $productMetadata,
-        Vault $vaultHelper
+        Vault $vaultHelper,
+        PlatformInfo $platformInfo
     ) {
         $this->dataHelper = $dataHelper;
         $this->productMetadata = $productMetadata;
         $this->vaultHelper = $vaultHelper;
+        $this->platformInfo = $platformInfo;
     }
 
     public function addSaleToAcquirerData(array $request, Order $order) : array
@@ -61,9 +64,9 @@ class PointOfSale
         }
 
         $saleToAcquirerData[ApplicationInfo::APPLICATION_INFO][ApplicationInfo::MERCHANT_APPLICATION]
-        [ApplicationInfo::VERSION] = $this->dataHelper->getModuleVersion();
+        [ApplicationInfo::VERSION] = $this->platformInfo->getModuleVersion();
         $saleToAcquirerData[ApplicationInfo::APPLICATION_INFO][ApplicationInfo::MERCHANT_APPLICATION]
-        [ApplicationInfo::NAME] = $this->dataHelper->getModuleName();
+        [ApplicationInfo::NAME] = $this->platformInfo->getModuleName();
         $saleToAcquirerData[ApplicationInfo::APPLICATION_INFO][ApplicationInfo::EXTERNAL_PLATFORM]
         [ApplicationInfo::VERSION] = $this->productMetadata->getVersion();
         $saleToAcquirerData[ApplicationInfo::APPLICATION_INFO][ApplicationInfo::EXTERNAL_PLATFORM]
@@ -86,7 +89,6 @@ class PointOfSale
         int $precision
     ): array {
         $formattedInstallments = [];
-
         foreach ($installments as $minAmount => $installmentsAmounts) {
             foreach ($installmentsAmounts as $installment) {
                 if ($amount >= $minAmount) {

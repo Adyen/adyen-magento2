@@ -25,8 +25,6 @@ class AdyenAmountCurrency
 
     protected $amountDue;
 
-    protected $discountTaxCompensationAmount;
-
     public function __construct(
         $amount,
         $currencyCode,
@@ -34,7 +32,6 @@ class AdyenAmountCurrency
         $taxAmount = 0,
         $amountDue = 0,
         $amountIncludingTax = 0,
-        $discountTaxCompensationAmount = 0
     ) {
         $this->amount = $amount;
         $this->amountIncludingTax = $amountIncludingTax;
@@ -42,7 +39,6 @@ class AdyenAmountCurrency
         $this->discountAmount = $discountAmount;
         $this->taxAmount = $taxAmount;
         $this->amountDue = $amountDue;
-        $this->discountTaxCompensationAmount = $discountTaxCompensationAmount;
     }
 
     public function getAmount()
@@ -73,34 +69,5 @@ class AdyenAmountCurrency
     public function getAmountDue()
     {
         return $this->amountDue;
-    }
-
-    public function getDiscountTaxCompensationAmount()
-    {
-        return $this->discountTaxCompensationAmount;
-    }
-
-    public function getAmountIncludingTaxWithDiscount()
-    {
-        if ($this->getDiscountTaxCompensationAmount() > 0) {
-            return $this->getAmountIncludingTax() - $this->getDiscountAmount();
-        } else {
-            $taxCompensation = $this->getDiscountAmount() * $this->getCalculatedTaxPercentage() / 100;
-            return $this->getAmountIncludingTax() - $this->getDiscountAmount() - $taxCompensation;
-        }
-    }
-
-    public function getAmountWithDiscount()
-    {
-        return $this->getAmount() - $this->getDiscountAmount() + $this->getDiscountTaxCompensationAmount();
-    }
-
-    public function getCalculatedTaxPercentage()
-    {
-        if ($this->getAmountWithDiscount() > 0) {
-            return ($this->getTaxAmount() / $this->getAmountWithDiscount()) * 100;
-        } else {
-            return 0;
-        }
     }
 }

@@ -55,21 +55,29 @@ class PaymentsDetails
     private Idempotency $idempotencyHelper;
 
     /**
+     * @var PlatformInfo
+     */
+    private PlatformInfo $platformInfo;
+
+    /**
      * @param Session $checkoutSession
      * @param Data $adyenHelper
      * @param AdyenLogger $adyenLogger
      * @param Idempotency $idempotencyHelper
+     * @param PlatformInfo $platformInfo
      */
     public function __construct(
         Session $checkoutSession,
         Data $adyenHelper,
         AdyenLogger $adyenLogger,
-        Idempotency $idempotencyHelper
+        Idempotency $idempotencyHelper,
+        PlatformInfo $platformInfo
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->adyenHelper = $adyenHelper;
         $this->adyenLogger = $adyenLogger;
         $this->idempotencyHelper = $idempotencyHelper;
+        $this->platformInfo = $platformInfo;
     }
 
     /**
@@ -85,7 +93,7 @@ class PaymentsDetails
             $service = $this->adyenHelper->initializePaymentsApi($client);
 
             $requestOptions['idempotencyKey'] = $this->idempotencyHelper->generateIdempotencyKey($request);
-            $requestOptions['headers'] = $this->adyenHelper->buildRequestHeaders();
+            $requestOptions['headers'] = $this->platformInfo->buildRequestHeaders();
 
             $paymentDetailsObj = $service->paymentsDetails(new PaymentDetailsRequest($request), $requestOptions);
             $response = $paymentDetailsObj->toArray();

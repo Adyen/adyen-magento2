@@ -15,6 +15,9 @@
 
 namespace Adyen\Payment\Block\Adminhtml\System\Config\Field;
 
+use Adyen\Payment\Helper\PlatformInfo;
+use Magento\Backend\Block\Template\Context;
+
 class Version extends \Magento\Config\Block\System\Config\Form\Field
 {
 
@@ -24,19 +27,24 @@ class Version extends \Magento\Config\Block\System\Config\Form\Field
     protected $_adyenHelper;
 
     /**
+     * @var PlatformInfo
+     */
+    protected $_platformInfo;
+
+    /**
      * Version constructor.
      *
-     * @param \Magento\Framework\Module\ModuleListInterface $moduleList
-     * @param \Magento\Backend\Block\Template\Context $context
+     * @param PlatformInfo $platformInfo
+     * @param Context $context
      * @param array $data
      */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper,
+        PlatformInfo $platformInfo,
         \Magento\Backend\Block\Template\Context $context,
         array $data = []
     ) {
         parent::__construct($context, $data);
-        $this->_adyenHelper = $adyenHelper;
+        $this->_platformInfo = $platformInfo;
     }
 
     /**
@@ -47,6 +55,6 @@ class Version extends \Magento\Config\Block\System\Config\Form\Field
      */
     protected function _getElementHtml(\Magento\Framework\Data\Form\Element\AbstractElement $element)
     {
-        return $this->_adyenHelper->getModuleVersion();
+        return $this->_platformInfo->getModuleVersion();
     }
 }

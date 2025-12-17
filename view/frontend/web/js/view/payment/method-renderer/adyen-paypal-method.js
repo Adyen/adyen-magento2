@@ -38,6 +38,7 @@ define(
                 let baseComponentConfiguration = this._super();
                 let paypalConfiguration = Object.assign(baseComponentConfiguration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
                 paypalConfiguration.showPayButton = true;
+                paypalConfiguration.cspNonce = adyenConfiguration.getCspNonce();
 
                 let agreementsConfig = adyenConfiguration.getAgreementsConfig();
 
@@ -72,7 +73,7 @@ define(
                     }
                 }
 
-                return paypalConfiguration
+                return paypalConfiguration;
             },
             renderActionComponent: function(resultCode, action, component) {
                 fullScreenLoader.stopLoader();

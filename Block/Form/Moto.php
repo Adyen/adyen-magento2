@@ -14,9 +14,12 @@ namespace Adyen\Payment\Block\Form;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Installments;
+use Adyen\Payment\Helper\Locale;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Backend\Model\Session\Quote;
 use Magento\Checkout\Model\Session;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\View\Element\Template\Context;
 
 class Moto extends \Magento\Payment\Block\Form\Cc
@@ -30,6 +33,11 @@ class Moto extends \Magento\Payment\Block\Form\Cc
      * @var Data
      */
     protected $adyenHelper;
+
+    /**
+     * @var Locale
+     */
+    protected $localeHelper;
 
     /**
      * @var \Magento\Framework\App\State
@@ -65,10 +73,12 @@ class Moto extends \Magento\Payment\Block\Form\Cc
      * @param Context $context
      * @param \Magento\Payment\Model\Config $paymentConfig
      * @param Data $adyenHelper
-     * @param \Magento\Checkout\Model\Session $checkoutSession
+     * @param Session $checkoutSession
      * @param Installments $installmentsHelper
      * @param AdyenLogger $adyenLogger
      * @param Config $configHelper
+     * @param Quote $backendSession
+     * @param Locale $localeHelper
      */
     public function __construct(
         Context $context,
@@ -78,7 +88,8 @@ class Moto extends \Magento\Payment\Block\Form\Cc
         Installments $installmentsHelper,
         AdyenLogger $adyenLogger,
         Config $configHelper,
-        Quote $backendSession
+        Quote $backendSession,
+        Locale $localeHelper
     ) {
         parent::__construct($context, $paymentConfig);
         $this->adyenHelper = $adyenHelper;
@@ -88,10 +99,13 @@ class Moto extends \Magento\Payment\Block\Form\Cc
         $this->adyenLogger = $adyenLogger;
         $this->configHelper = $configHelper;
         $this->backendSession = $backendSession;
+        $this->localeHelper = $localeHelper;
     }
 
     /**
      * @return string
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
     public function getCheckoutEnvironment()
     {
@@ -103,7 +117,7 @@ class Moto extends \Magento\Payment\Block\Form\Cc
      */
     public function getLocale()
     {
-        return $this->adyenHelper->getStoreLocale($this->checkoutSession->getQuote()->getStore()->getId());
+        return $this->localeHelper->getStoreLocale($this->checkoutSession->getQuote()->getStore()->getId());
     }
 
     /**
@@ -171,6 +185,16 @@ class Moto extends \Magento\Payment\Block\Form\Cc
 
             return '{}';
         }
+    }
+
+    /**
+     * Returns the country code required for checkout component
+     *
+     * @return string
+     */
+    public function getCountryId(): string
+    {
+        return $this->backendSession->getQuote()->getBillingAddress()->getCountryId();
     }
 
     /**

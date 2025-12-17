@@ -25,6 +25,7 @@ define([
     'Adyen_Payment/js/model/adyen-checkout',
     'Adyen_Payment/js/model/adyen-payment-modal',
     'Adyen_Payment/js/model/installments',
+    'Adyen_Payment/js/helper/currencyHelper'
 ], function (
     $,
     ko,
@@ -40,7 +41,8 @@ define([
     adyenConfiguration,
     adyenCheckout,
     adyenPaymentModal,
-    installmentsHelper
+    installmentsHelper,
+    currencyHelper
 ) {
     'use strict';
 
@@ -51,15 +53,12 @@ define([
         defaults: {
             template: 'Adyen_Payment/payment/cc-vault-form',
             modalLabel: null,
-            installment: ''
         },
         checkoutComponent: null,
 
         initObservable: function () {
             this._super()
                 .observe([
-                    'installment',
-                    'installments',
                     'adyenVaultPaymentMethod'
                 ]);
 
@@ -84,11 +83,27 @@ define([
         },
 
         enablePaymentMethod: function (paymentMethodsResponse) {
-            if (!!paymentMethodsResponse.paymentMethodsResponse) {
-                this.adyenVaultPaymentMethod(true);
+            const storedPaymentMethods =
+                paymentMethodsResponse?.paymentMethodsResponse?.storedPaymentMethods || [];
+
+            const tokenBrand = this.details?.type?.toLowerCase();
+
+            let isTokenAllowed;
+            if (!tokenBrand) {
+                isTokenAllowed = false;
+            } else {
+                isTokenAllowed = storedPaymentMethods.some(
+                    pm => pm.brand?.toLowerCase() === tokenBrand
+                );
+            }
+
+            this.adyenVaultPaymentMethod(isTokenAllowed);
+
+            if (paymentMethodsResponse?.paymentMethodsResponse) {
                 fullScreenLoader.stopLoader();
             }
         },
+
 
         /*
          * Create generic AdyenCheckout library and mount payment method component
@@ -117,9 +132,11 @@ define([
         createCheckoutComponent: async function() {
             if (!this.checkoutComponent) {
                 const paymentMethodsResponse = adyenPaymentService.getPaymentMethods();
+                const countryCode = quote.billingAddress().countryId;
 
                 this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
                     paymentMethodsResponse(),
+                    countryCode,
                     this.handleOnAdditionalDetails.bind(this)
                 );
             }
@@ -130,14 +147,11 @@ define([
         handleOnAdditionalDetails: function (result) {
             let self = this;
             let request = result.data;
-
-            fullScreenLoader.stopLoader();
-
-            let popupModal = self.showModal();
+            adyenPaymentModal.hideModalLabel(this.modalLabel);
+            fullScreenLoader.startLoader();
 
             adyenPaymentService.paymentDetails(request, self.orderId).done(function (responseJSON) {
-                self.handleAdyenResult(responseJSON,
-                    self.orderId);
+                self.handleAdyenResult(responseJSON, self.orderId);
             }).fail(function (response) {
                 self.closeModal(popupModal);
                 errorProcessor.process(response, self.messageContainer);
@@ -154,49 +168,29 @@ define([
 
             let requireCvc = window.checkoutConfig.payment.adyenCc.requireCvc;
 
-            self.installments(0);
-
             let allInstallments = self.getAllInstallments();
+
+            let currency = quote.totals().quote_currency_code;
 
             let componentConfig = {
                 hideCVC: !requireCvc,
                 brand: this.getCardType(),
+                amount: {
+                    value: currencyHelper.formatAmount(
+                        self.grandTotal(),
+                        currency),
+                    currency: currency
+                },
                 storedPaymentMethodId: this.getGatewayToken(),
                 expiryMonth: this.getExpirationMonth(),
                 expiryYear: this.getExpirationYear(),
+                supportedShopperInteractions: ["Ecommerce"],
+                showPayButton: false,
+                installmentOptions: installmentsHelper.formatInstallmentsConfig(allInstallments,
+                    window.checkoutConfig.payment.adyenCc.adyenCcTypes,
+                    self.grandTotal()) ,
+                showInstallmentAmounts: true,
                 onChange: this.handleOnChange.bind(this),
-                onBrand: function(state) {
-                    let creditCardType = self.getCcCodeByAltCode(
-                        state.brand);
-                    if (creditCardType) {
-                        let numberOfInstallments = [];
-
-                        if (creditCardType in allInstallments) {
-                            let cardInstallments = allInstallments[creditCardType];
-                            let grandTotal = self.grandTotal();
-                            let precision = quote.getPriceFormat().precision;
-                            let currencyCode = quote.totals().quote_currency_code;
-
-                            numberOfInstallments = installmentsHelper.getInstallmentsWithPrices(
-                                cardInstallments, grandTotal,
-                                precision, currencyCode);
-                        }
-
-                        if (numberOfInstallments) {
-                            self.installments(numberOfInstallments);
-                        } else {
-                            self.installments(0);
-                        }
-                    } else {
-                        self.installments(0);
-                    }
-                }
-            }
-
-            if (!requireCvc) {
-                componentConfig.onBrand({
-                    brand: self.getCardType()
-                });
             }
 
             self.component = adyenCheckout.mountPaymentMethodComponent(
@@ -251,18 +245,23 @@ define([
 
         getData: function () {
             const self = this;
-            let stateData = self.component.data;
-            stateData = JSON.stringify(stateData);
-            window.sessionStorage.setItem('adyen.stateData', stateData);
-            return {
+            const componentData = self.component.data;
+
+            let data = {
                 method: this.code,
                 additional_data: {
-                    stateData: stateData,
+                    stateData: JSON.stringify(componentData),
                     public_hash: this.publicHash,
-                    numberOfInstallments: this.installment(),
-                    frontendType: 'default'
+                    frontendType: 'default',
+                    cc_type: componentData.paymentMethod?.brand
                 },
             };
+
+            if (componentData.installments?.value) {
+                data.additional_data.number_of_installments = componentData.installments?.value;
+            }
+
+            return data;
         },
 
         handleAdyenResult: function (responseJSON, orderId) {
@@ -286,15 +285,19 @@ define([
             }
             try {
                 // Determine threeDS2 modal size, based on screen width
-                const threeDSConfiguration = {
-                    challengeWindowSize: screen.width < 460 ? '01' : '02'
+                const actionComponentConfiguration = {
+                    challengeWindowSize: screen.width < 460 ? '01' : '02',
+                    onActionHandled: function (event) {
+                        if (event.componentType === "3DS2Challenge") {
+                            fullScreenLoader.stopLoader();
+                            popupModal.modal('openModal');
+                        }
+                    }
                 }
 
-                this.checkoutComponent.createFromAction(action, threeDSConfiguration).mount(
+                this.checkoutComponent.createFromAction(action, actionComponentConfiguration).mount(
                     '#' + this.modalLabel + 'Content'
                 );
-
-                fullScreenLoader.stopLoader();
             } catch (e) {
                 console.log(e);
                 self.closeModal(popupModal);
@@ -302,7 +305,16 @@ define([
         },
 
         showModal: function() {
-            let actionModal = adyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.modalLabel, this.isPlaceOrderActionAllowed)
+            let actionModal = adyenPaymentModal.showModal(
+                adyenPaymentService,
+                fullScreenLoader,
+                this.messageContainer,
+                this.orderId,
+                this.modalLabel,
+                this.isPlaceOrderActionAllowed,
+                false
+            );
+
             $("." + this.modalLabel + " .action-close").hide();
 
             return actionModal;
@@ -332,21 +344,23 @@ define([
             return this.details.type;
         },
 
-        getCode: function() {
-            return window.checkoutConfig.payment.adyenCc.methodCode;
-        },
+        getTitle: function (type) {
+            const paymentMethodsObservable = adyenPaymentService.getPaymentMethods();
+            const methods = paymentMethodsObservable?.()?.paymentMethodsResponse?.storedPaymentMethods;
 
-        getCcCodeByAltCode: function(altCode) {
-            let ccTypes = window.checkoutConfig.payment.ccform.availableTypesByAlt[this.getCode()];
-            if (ccTypes.hasOwnProperty(altCode)) {
-                return ccTypes[altCode];
+            // Find the stored payment method where brand matches the type
+            const match = methods.find(method => method.brand === type);
+
+            if (match && match.name) {
+                return match.name;
             }
 
-            return '';
+            // Fallback: capitalize the type
+            return type ? type.charAt(0).toUpperCase() + type.slice(1) : '';
         },
 
-        hasInstallments: function() {
-            return !!window.checkoutConfig.payment.adyenCc.hasInstallments;
+        getCode: function() {
+            return window.checkoutConfig.payment.adyenCc.methodCode;
         },
 
         getAllInstallments: function() {

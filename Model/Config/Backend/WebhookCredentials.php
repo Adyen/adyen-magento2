@@ -27,21 +27,6 @@ use Magento\Framework\UrlInterface;
 class WebhookCredentials extends Value
 {
     /**
-     * @var ManagementHelper
-     */
-    private ManagementHelper $managementApiHelper;
-
-    /**
-     * @var Config
-     */
-    private Config $configHelper;
-
-    /**
-     * @var UrlInterface
-     */
-    private UrlInterface $url;
-
-    /**
      * @param Context $context
      * @param Registry $registry
      * @param ScopeConfigInterface $config
@@ -58,16 +43,13 @@ class WebhookCredentials extends Value
         Registry $registry,
         ScopeConfigInterface $config,
         TypeListInterface $cacheTypeList,
-        ManagementHelper $managementApiHelper,
-        Config $configHelper,
-        UrlInterface $url,
-        AbstractResource $resource = null,
-        AbstractDb $resourceCollection = null,
+        private readonly ManagementHelper $managementApiHelper,
+        private readonly Config $configHelper,
+        private readonly UrlInterface $url,
+        ?AbstractResource $resource = null,
+        ?AbstractDb $resourceCollection = null,
         array $data = []
     ) {
-        $this->managementApiHelper = $managementApiHelper;
-        $this->configHelper = $configHelper;
-        $this->url = $url;
         parent::__construct($context, $registry, $config, $cacheTypeList, $resource, $resourceCollection, $data);
     }
 

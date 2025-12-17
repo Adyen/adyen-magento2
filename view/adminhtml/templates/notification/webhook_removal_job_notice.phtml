@@ -1,0 +1,28 @@
+<?php
+ /**
+ * @var \Adyen\Payment\Block\Adminhtml\Notification\WebhookRemovalJobNotice $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+?>
+
+<?php if ($block->isProcessedWebhookRemovalEnabled()): ?>
+    <div id="messages">
+        <div class="messages">
+            <div class="message message-notice notice">
+                <div data-ui-id="messages-message-notice">
+                    <p>
+                        <?= $escaper->escapeHtml(__(
+                            'Showing Adyen webhooks received in the last %1 days, older webhooks that have been processed are being cleaned-up by a scheduled task.',
+                            $block->getNumberOfDays()
+                        )); ?>
+                    </p>
+                    <p>
+                        <?= $escaper->escapeHtml(__(
+                            'You can change this in `Stores > Configuration > Sales > Payment Methods > Adyen > Testing and performance > Remove processed webhooks`.',
+                        )); ?>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>

@@ -13,6 +13,7 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Exception\FileUploadException;
 use Adyen\Payment\Model\TransportBuilder;
+use Adyen\Payment\Helper\PlatformInfo;
 use Magento\Backend\Model\Auth\Session;
 use Magento\Framework\App\Area;
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -47,9 +48,9 @@ class SupportFormHelper
      */
     protected $config;
     /**
-     * @var Data
+     * @var PlatformInfo
      */
-    private $adyenHelper;
+    private $platformInfo;
     /**
      * @var StoreManagerInterface
      */
@@ -92,7 +93,7 @@ class SupportFormHelper
      * @param TransportBuilder $transportBuilder
      * @param MessageManagerInterface $messageManager
      * @param Config $config
-     * @param Data $adyenHelper
+     * @param PlatformInfo $platformInfo
      * @param StoreManagerInterface $storeManager
      * @param Filesystem\Io\File $fileUtil
      * @param Filesystem $filesystem
@@ -105,7 +106,7 @@ class SupportFormHelper
         TransportBuilder $transportBuilder,
         MessageManagerInterface $messageManager,
         Config $config,
-        Data $adyenHelper,
+        PlatformInfo $platformInfo,
         StoreManagerInterface $storeManager,
         Filesystem\Io\File $fileUtil,
         Filesystem $filesystem,
@@ -118,7 +119,7 @@ class SupportFormHelper
         $this->messageManager = $messageManager;
         $this->storeManager = $storeManager;
         $this->config = $config;
-        $this->adyenHelper = $adyenHelper;
+        $this->platformInfo = $platformInfo;
         $this->productMetadata = $productMetadata;
         $this->filesystem = $filesystem;
         $this->writeFactory = $writeFactory;
@@ -201,8 +202,7 @@ class SupportFormHelper
         $notificationPassword = $this->config->getNotificationsPassword($storeId) ? 'Yes' : 'No';
         $merchantAccount = $this->config->getMerchantAccount($storeId);
         $environmentMode = $this->config->isDemoMode($storeId) ? 'Test' : 'Live';
-        $moduleVersion = $this->adyenHelper->getModuleVersion();
-        $isAlternativePaymentMethodsEnabled = $this->config->isAlternativePaymentMethodsEnabled($storeId);
+        $moduleVersion = $this->platformInfo->getModuleVersion();
         $isMotoEnabled = $this->config->isMotoPaymentMethodEnabled($storeId);
         $configurationMode = $this->config->getConfigurationMode($storeId);
         $isAdyenCcEnabled = $this->config->getConfigData('active', 'adyen_cc', $storeId, true);
@@ -366,7 +366,6 @@ class SupportFormHelper
             'pluginVersion' => $moduleVersion,
             'merchantAccount' => $merchantAccount,
             'environmentMode' => $environmentMode,
-            'paymentMethodsEnabled' => $isAlternativePaymentMethodsEnabled ? 'Yes' : 'No',
             'notificationUsername' => $notificationUsername,
             'notificationPassword' => $notificationPassword,
             'motoEnabled' => $isMotoEnabled ? 'Yes' : 'No',

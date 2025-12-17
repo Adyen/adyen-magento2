@@ -18,7 +18,6 @@ define(
         'Adyen_Payment/js/helper/currencyHelper',
         'Adyen_Payment/js/model/adyen-payment-service',
         'Adyen_Payment/js/model/adyen-configuration',
-        'Adyen_Payment/js/adyen',
         'Magento_Customer/js/customer-data',
         'Magento_Checkout/js/model/error-processor',
         'mage/translate'
@@ -33,7 +32,6 @@ define(
         currencyHelper,
         adyenPaymentService,
         adyenConfiguration,
-        adyenCheckout,
         customerData,
         errorProcessor,
         $t
@@ -95,7 +93,7 @@ define(
                 fullScreenLoader.startLoader();
                 let giftcards = [];
 
-                let paymentMethods = paymentMethodsResponse.paymentMethodsResponse.paymentMethods;
+                let paymentMethods = paymentMethodsResponse.paymentMethodsResponse?.paymentMethods;
 
                 if (!!paymentMethods && paymentMethods.length > 0) {
                     giftcards.push({
@@ -147,9 +145,11 @@ define(
 
             initiateAdyenCheckout: function () {
                 let formattedRemainingOrderAmount = this.getFormattedRemainingOrderAmount();
+                const countryCode = quote.billingAddress().countryId;
 
                 let adyenCheckoutConfiguration = {
                     locale: adyenConfiguration.getLocale(),
+                    countryCode: countryCode,
                     clientKey: adyenConfiguration.getClientKey(),
                     environment: adyenConfiguration.getCheckoutEnvironment(),
                     amount: {
@@ -158,7 +158,7 @@ define(
                     }
                 };
 
-                return adyenCheckout(adyenCheckoutConfiguration);
+                return window.AdyenWeb.AdyenCheckout(adyenCheckoutConfiguration);
             },
 
             getGiftcardComponentConfiguration: function () {
@@ -182,8 +182,8 @@ define(
                                 console.log('Balance check failed!');
                             });
                     },
-                    onSubmit: function (data) {
-                        self.placeOrder(data);
+                    onSubmit: function (data, component, actions) {
+                        self.placeOrder(data, null, actions);
                     }
                 };
             },
@@ -290,24 +290,28 @@ define(
                     this.adyenCheckout.remove(this.giftcardComponent);
                 }
 
-                let giftcardConfiguration = this.getGiftcardComponentConfiguration();
-                this.giftcardComponent = this.adyenCheckout
-                    .create('giftcard', giftcardConfiguration)
-                    .mount('#giftcard-component-wrapper');
+                const giftcardConfiguration = this.getGiftcardComponentConfiguration();
+
+                this.giftcardComponent = window.AdyenWeb.createComponent(
+                    'giftcard',
+                    this.adyenCheckout,
+                    giftcardConfiguration
+                ).mount('#giftcard-component-wrapper');
 
                 this.giftcardTitle(this.selectedGiftcard().key);
             },
 
-            placeOrder: async function(stateData) {
+            placeOrder: async function(stateData, event, actions = null) {
                 let self = this;
 
-                let additionalData = {};
+                let additionalData = {
+                    frontendType: 'default'
+                };
 
                 if (!!stateData.data) {
-                    additionalData.brand_code = stateData.data.paymentMethod.brand;
                     additionalData.stateData = JSON.stringify(stateData.data);
                 }
-                additionalData.frontendType = 'default';
+
                 let data = {
                     'method': this.item.method,
                     'additional_data': additionalData
@@ -316,22 +320,29 @@ define(
                 await $.when(placeOrderAction(data, self.currentMessageContainer)).fail(
                     function(response) {
                         console.log(response);
+                        if (actions !== null) {
+                            actions.reject();
+                        }
                     }
                 ).done(
                     function(orderId) {
                         self.afterPlaceOrder();
                         adyenPaymentService.getOrderPaymentStatus(orderId).done(function(responseJSON) {
-                            self.validateActionOrPlaceOrder(responseJSON, orderId);
+                            self.validateActionOrPlaceOrder(responseJSON, orderId, actions);
                         });
                     }
                 );
             },
 
-            validateActionOrPlaceOrder: function(responseJSON, orderId) {
+            validateActionOrPlaceOrder: function(responseJSON, orderId, actions = null) {
                 let self = this;
                 let response = JSON.parse(responseJSON);
 
                 if (!!response.isFinal) {
+                    if (actions !== null) {
+                        actions.resolve();
+                    }
+
                     // Status is final redirect to the success page
                     $.mage.redirect(
                         window.checkoutConfig.payment.adyen.successPage

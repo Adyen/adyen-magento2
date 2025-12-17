@@ -41,9 +41,10 @@ define(
 
                 return applePayConfiguration;
             },
+
             checkBrowserCompatibility: function () {
                 // Disables Apple Pay for non-Safari browsers
-                return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+                return /^((?!android).)*safari/i.test(navigator.userAgent);
             }
         })
     }

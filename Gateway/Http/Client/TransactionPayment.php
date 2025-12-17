@@ -13,17 +13,19 @@ namespace Adyen\Payment\Gateway\Http\Client;
 
 use Adyen\AdyenException;
 use Adyen\Client;
-use Adyen\ConnectionException;
 use Adyen\Model\Checkout\PaymentRequest;
-use Adyen\Model\Checkout\PaymentResponse as CheckoutPaymentResponse;
+use Adyen\Model\Checkout\PaymentResponse as CheckoutApiPaymentResponse;
+use Adyen\Payment\Exception\GiftcardPaymentException;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\GiftcardPayment;
 use Adyen\Payment\Helper\Idempotency;
 use Adyen\Payment\Helper\OrdersApi;
+use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Model\PaymentResponse;
 use Adyen\Payment\Model\PaymentResponseFactory;
 use Adyen\Payment\Model\ResourceModel\PaymentResponse as PaymentResponseResourceModel;
 use Adyen\Service\Checkout\PaymentsApi;
+use Adyen\Payment\Helper\PlatformInfo;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Http\ClientInterface;
@@ -32,42 +34,7 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class TransactionPayment implements ClientInterface
 {
-    /**
-     * @var Data
-     */
-    private Data $adyenHelper;
-
-    /**
-     * @var PaymentResponseFactory
-     */
-    private PaymentResponseFactory $paymentResponseFactory;
-
-    /**
-     * @var PaymentResponseResourceModel
-     */
-    private PaymentResponseResourceModel $paymentResponseResourceModel;
-
-    /**
-     * @var Idempotency
-     */
-    private Idempotency $idempotencyHelper;
-
-    /**
-     * @var OrdersApi
-     */
-    private OrdersApi $orderApiHelper;
-
-    /**
-     * @var StoreManagerInterface
-     */
-    private StoreManagerInterface $storeManager;
-
-    /**
-     * @var GiftcardPayment
-     */
-    private GiftcardPayment $giftcardPaymentHelper;
-
-    private ?int $remainingOrderAmount;
+    private ?int $remainingOrderAmount = null;
 
     /**
      * @param Data $adyenHelper
@@ -77,32 +44,24 @@ class TransactionPayment implements ClientInterface
      * @param OrdersApi $orderApiHelper
      * @param StoreManagerInterface $storeManager
      * @param GiftcardPayment $giftcardPaymentHelper
+     * @param PlatformInfo $platformInfo
      */
     public function __construct(
-        Data $adyenHelper,
-        PaymentResponseFactory $paymentResponseFactory,
-        PaymentResponseResourceModel $paymentResponseResourceModel,
-        Idempotency $idempotencyHelper,
-        OrdersApi $orderApiHelper,
-        StoreManagerInterface $storeManager,
-        GiftcardPayment $giftcardPaymentHelper,
-    ) {
-        $this->adyenHelper = $adyenHelper;
-        $this->paymentResponseFactory = $paymentResponseFactory;
-        $this->paymentResponseResourceModel = $paymentResponseResourceModel;
-        $this->idempotencyHelper = $idempotencyHelper;
-        $this->orderApiHelper = $orderApiHelper;
-        $this->storeManager = $storeManager;
-        $this->giftcardPaymentHelper = $giftcardPaymentHelper;
-        $this->remainingOrderAmount = null;
-    }
+        private readonly Data $adyenHelper,
+        private readonly PaymentResponseFactory $paymentResponseFactory,
+        private readonly PaymentResponseResourceModel $paymentResponseResourceModel,
+        private readonly Idempotency $idempotencyHelper,
+        private readonly OrdersApi $orderApiHelper,
+        private readonly StoreManagerInterface $storeManager,
+        private readonly GiftcardPayment $giftcardPaymentHelper,
+        private readonly PlatformInfo $platformInfo
+    ) {}
 
     /**
      * @param TransferInterface $transferObject
      * @return array
      * @throws AdyenException
      * @throws AlreadyExistsException
-     * @throws ConnectionException
      * @throws NoSuchEntityException
      */
     public function placeRequest(TransferInterface $transferObject): array
@@ -121,9 +80,10 @@ class TransactionPayment implements ClientInterface
         $client = $this->adyenHelper->initializeAdyenClientWithClientConfig($clientConfig);
         $service = $this->adyenHelper->initializePaymentsApi($client);
         $responseCollection = [];
-        $responseCollection['hasOnlyGiftCards'] = false;
 
         try {
+            $requestData['applicationInfo'] = $this->platformInfo->buildApplicationInfo($client);
+
             list($requestData, $giftcardResponseCollection) = $this->processGiftcards($requestData, $service);
 
             /** @var array $responseCollection */
@@ -131,12 +91,10 @@ class TransactionPayment implements ClientInterface
                 $responseCollection = array_merge($responseCollection, $giftcardResponseCollection);
 
                 if ($this->remainingOrderAmount === 0) {
-                    $responseCollection['hasOnlyGiftCards'] = true;
                     return  $responseCollection;
                 }
             }
 
-            $requestData['applicationInfo'] = $this->adyenHelper->buildApplicationInfo($client);
             $paymentRequest = new PaymentRequest($requestData);
 
             $idempotencyKey = $this->idempotencyHelper->generateIdempotencyKey(
@@ -160,6 +118,9 @@ class TransactionPayment implements ClientInterface
             $responseCollection[] = $responseData;
 
             $this->adyenHelper->logResponse($responseData);
+        } catch (GiftcardPaymentException $e) {
+            $responseObj['resultCode'] = PaymentResponseHandler::GIFTCARD_REFUSED;
+            $responseCollection[] = $responseObj;
         } catch (AdyenException $e) {
             $this->adyenHelper->logAdyenException($e);
 
@@ -180,6 +141,7 @@ class TransactionPayment implements ClientInterface
      * @return array
      * @throws AdyenException
      * @throws AlreadyExistsException
+     * @throws GiftcardPaymentException
      */
     private function handleGiftcardPayments(
         array $request,
@@ -217,18 +179,26 @@ class TransactionPayment implements ClientInterface
             );
 
             $response = $service->payments(new PaymentRequest($giftcardPaymentRequest));
+            $this->adyenHelper->logResponse($response->toArray());
 
             /** @var PaymentResponse $paymentResponse */
             $paymentResponse = $this->paymentResponseFactory->create();
-            $paymentResponse->setResponse(json_encode($response));
-            $paymentResponse->setResultCode($response['resultCode']);
-            $paymentResponse->setMerchantReference($request["reference"]);
+            $paymentResponse->setResponse((string) $response);
+            $paymentResponse->setResultCode($response->getResultCode());
+            $paymentResponse->setMerchantReference($response->getMerchantReference());
             $this->paymentResponseResourceModel->save($paymentResponse);
 
+            if (strcmp($response->getResultCode(), CheckoutApiPaymentResponse::RESULT_CODE_AUTHORISED) !== 0) {
+                /*
+                 * Stop executing the command pool and return the value immediately to the validator pool.
+                 * There is no point of authorizing the rest of the payment instruments as
+                 * the partial payment order on Adyen will fail in any case after expiry.
+                 */
+                throw new GiftcardPaymentException();
+            }
+
             $this->remainingOrderAmount -= $deductedAmount;
-            $responseArray = $response->toArray();
-            $giftCardResponseCollection[] = $responseArray;
-            $this->adyenHelper->logResponse($responseArray);
+            $giftCardResponseCollection[] = $response->toArray();
         }
 
         return $giftCardResponseCollection;
@@ -240,7 +210,7 @@ class TransactionPayment implements ClientInterface
      * @return array
      * @throws AdyenException
      * @throws AlreadyExistsException
-     * @throws NoSuchEntityException
+     * @throws NoSuchEntityException|GiftcardPaymentException
      */
     public function processGiftcards(array $request, PaymentsApi $service): array
     {

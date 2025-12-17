@@ -9,50 +9,8 @@
  */
 
 #payment_form_adyen_moto {
-    padding-left: 30px;
+    padding-left: 25px;
     margin-top: 15px;
-}
-
-.adyen-checkout-card__form .adyen-checkout__input iframe{
-    max-height: 40px;
-}
-
-#payment_form_adyen_moto .admin__field{
-    margin-bottom: 10px;
-}
-
-#payment_form_adyen_moto .helper-text{
-    font-size: 11px;
-    color: rgb(144, 162, 189);
-    font-weight: 100;
-}
-
-#payment_form_adyen_moto #adyen_moto_cc_owner {
-    width: 225px;
-    border: none;
-    padding: 0;
-    color: rgb(0, 27, 43);
-    font-size: 16px;
-    font-weight: 400;
-    margin-top: 10px;
-}
-
-#payment_form_adyen_moto #adyen_moto_cc_owner .input-text:focus {
-    border: none;
-    box-shadow: none;
-}
-
-#payment_form_adyen_moto #adyen_moto_cc_owner::placeholder,
-#payment_form_adyen_moto #adyen_moto_cc_owner:placeholder-shown
-{
-    color: rgb(144, 162, 189);
-    font-weight: 200;
-}
-
-#payment_form_adyen_moto .cc-type-VI {
-    margin: 10px;
-    display: inline-block;
-    font-weight: bold;
 }
 
 #adyen_moto_merchant_accounts {

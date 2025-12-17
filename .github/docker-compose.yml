@@ -2,7 +2,7 @@ version: '3'
 
 services:
   db:
-    image: mariadb:10.4
+    image: mariadb:11.4
     container_name: mariadb
     networks:
       - backend
@@ -12,16 +12,24 @@ services:
       MARIADB_USER: magento
       MARIADB_PASSWORD: magento
   opensearch:
-    image: bitnami/opensearch:2
+    image: opensearchproject/opensearch:2
     container_name: opensearch-container
     networks:
       - backend
     ports:
       - 9200:9200
-      - 9300:9300
     environment:
       - "discovery.type=single-node"
-      - "ES_JAVA_OPTS=-Xms750m -Xmx750m"
+      - "OPENSEARCH_JAVA_OPTS=-Xms750m -Xmx750m"
+      - "DISABLE_SECURITY_PLUGIN=true"
+  rabbitmq:
+    image: rabbitmq:4.1
+    container_name: rabbitmq
+    networks:
+      - backend
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
   web:
     build:
       context: .
@@ -38,6 +46,7 @@ services:
     environment:
       DB_SERVER: mariadb
       OPENSEARCH_SERVER: opensearch-container
+      RABBITMQ_SERVER: rabbitmq
       MAGENTO_HOST: magento2.test.com
       VIRTUAL_HOST: magento2.test.com
       COMPOSER_MEMORY_LIMIT: -1
@@ -50,14 +59,17 @@ services:
       ADYEN_CLIENT_KEY:
       PHP_VERSION:
       MAGENTO_VERSION:
+      USE_SSL:
     depends_on:
       - db
       - opensearch
+      - rabbitmq
     volumes:
       - ../:/data/extensions/workdir
       - ./Makefile:/var/www/html/Makefile
       - composer:/usr/local/bin
       - magento:/var/www/html
+      - ../build:/var/www/html/build
 networks:
   backend:
 volumes:

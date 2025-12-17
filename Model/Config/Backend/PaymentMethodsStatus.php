@@ -22,20 +22,26 @@ use Magento\Framework\Registry;
 
 class PaymentMethodsStatus extends Value
 {
-    protected PaymentMethods $paymentMethodsHelper;
-
+    /**
+     * @param Context $context
+     * @param Registry $registry
+     * @param ScopeConfigInterface $config
+     * @param TypeListInterface $cacheTypeList
+     * @param PaymentMethods $paymentMethodsHelper
+     * @param AbstractResource|null $resource
+     * @param AbstractDb|null $resourceCollection
+     * @param array $data
+     */
     public function __construct(
         Context $context,
         Registry $registry,
         ScopeConfigInterface $config,
         TypeListInterface $cacheTypeList,
-        PaymentMethods $paymentMethodsHelper,
-        AbstractResource $resource = null,
-        AbstractDb $resourceCollection = null,
+        protected readonly PaymentMethods $paymentMethodsHelper,
+        ?AbstractResource $resource = null,
+        ?AbstractDb $resourceCollection = null,
         array $data = []
     ) {
-        $this->paymentMethodsHelper = $paymentMethodsHelper;
-
         parent::__construct($context, $registry, $config, $cacheTypeList, $resource, $resourceCollection, $data);
     }
 

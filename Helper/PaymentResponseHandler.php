@@ -11,25 +11,22 @@
 
 namespace Adyen\Payment\Helper;
 
-use Adyen\Model\Checkout\CancelOrderRequest;
+use Adyen\Payment\Helper\Order as AdyenOrderHelper;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\ResourceModel\PaymentResponse\CollectionFactory as PaymentResponseCollectionFactory;
 use Exception;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\InputException;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Api\Data\OrderInterface;
-use Magento\Sales\Model\Order\Status\HistoryFactory;
 use Magento\Sales\Model\OrderRepository;
-use Magento\Sales\Model\ResourceModel\Order;
 use Magento\Sales\Model\Order as OrderModel;
-use Magento\Framework\Mail\Exception\InvalidArgumentException;
-use Adyen\Client;
 
 class PaymentResponseHandler
 {
     const AUTHORISED = 'Authorised';
     const REFUSED = 'Refused';
+    const GIFTCARD_REFUSED = 'GiftcardRefused';
     const REDIRECT_SHOPPER = 'RedirectShopper';
     const IDENTIFY_SHOPPER = 'IdentifyShopper';
     const CHALLENGE_SHOPPER = 'ChallengeShopper';
@@ -42,6 +39,9 @@ class PaymentResponseHandler
     const VAULT = 'Magento Vault';
     const POS_SUCCESS = 'Success';
 
+    const PAYMENTS_DETAILS_API_COMMENT_ACTION_DESCRIPTION = 'Submit details for Adyen payment';
+    const PAYMENTS_DETAILS_API_COMMENT_ENDPOINT = '/payments/details';
+
     const ACTION_REQUIRED_STATUSES = [
         self::REDIRECT_SHOPPER,
         self::IDENTIFY_SHOPPER,
@@ -50,53 +50,31 @@ class PaymentResponseHandler
     ];
 
     /**
-     * @var AdyenLogger
+     * @param AdyenLogger $adyenLogger
+     * @param Vault $vaultHelper
+     * @param Quote $quoteHelper
+     * @param AdyenOrderHelper $orderHelper
+     * @param OrderRepository $orderRepository
+     * @param StateData $stateDataHelper
+     * @param PaymentMethods $paymentMethodsHelper
+     * @param OrderStatusHistory $orderStatusHistoryHelper
+     * @param OrdersApi $ordersApiHelper
      */
-    private AdyenLogger $adyenLogger;
-    private Vault $vaultHelper;
-    private Order $orderResourceModel;
-    private Data $dataHelper;
-    private Quote $quoteHelper;
-    private \Adyen\Payment\Helper\Order $orderHelper;
-    private OrderRepository $orderRepository;
-    private HistoryFactory $orderHistoryFactory;
-    private StateData $stateDataHelper;
-    private PaymentResponseCollectionFactory $paymentResponseCollectionFactory;
-    private Config $configHelper;
-    private PaymentMethods $paymentMethodsHelper;
-
     public function __construct(
-        AdyenLogger $adyenLogger,
-        Vault $vaultHelper,
-        Order $orderResourceModel,
-        Data $dataHelper,
-        Quote $quoteHelper,
-        \Adyen\Payment\Helper\Order $orderHelper,
-        OrderRepository $orderRepository,
-        HistoryFactory $orderHistoryFactory,
-        StateData $stateDataHelper,
-        PaymentResponseCollectionFactory $paymentResponseCollectionFactory,
-        Config $configHelper,
-        PaymentMethods $paymentMethodsHelper
-    ) {
-        $this->adyenLogger = $adyenLogger;
-        $this->vaultHelper = $vaultHelper;
-        $this->orderResourceModel = $orderResourceModel;
-        $this->dataHelper = $dataHelper;
-        $this->quoteHelper = $quoteHelper;
-        $this->orderHelper = $orderHelper;
-        $this->orderRepository = $orderRepository;
-        $this->orderHistoryFactory = $orderHistoryFactory;
-        $this->stateDataHelper = $stateDataHelper;
-        $this->paymentResponseCollectionFactory = $paymentResponseCollectionFactory;
-        $this->configHelper = $configHelper;
-        $this->paymentMethodsHelper = $paymentMethodsHelper;
-    }
+        private readonly AdyenLogger $adyenLogger,
+        private readonly Vault $vaultHelper,
+        private readonly Quote $quoteHelper,
+        private readonly AdyenOrderHelper $orderHelper,
+        private readonly OrderRepository $orderRepository,
+        private readonly StateData $stateDataHelper,
+        private readonly PaymentMethods $paymentMethodsHelper,
+        private readonly OrderStatusHistory $orderStatusHistoryHelper,
+        private readonly OrdersApi $ordersApiHelper,
+    ) { }
 
     public function formatPaymentResponse(
         string $resultCode,
-        array $action = null,
-        array $additionalData = null
+        ?array $action = null
     ): array {
         switch ($resultCode) {
             case self::AUTHORISED:
@@ -117,16 +95,11 @@ class PaymentResponseHandler
                     "action" => $action
                 ];
             case self::PRESENT_TO_SHOPPER:
-                return [
-                    "isFinal" => true,
-                    "resultCode" => $resultCode,
-                    "action" => $action
-                ];
             case self::RECEIVED:
                 return [
                     "isFinal" => true,
                     "resultCode" => $resultCode,
-                    "additionalData" => $additionalData
+                    "action" => $action
                 ];
             default:
                 return [
@@ -142,7 +115,7 @@ class PaymentResponseHandler
      * @return bool
      * @throws AlreadyExistsException
      * @throws InputException
-     * @throws NoSuchEntityException
+     * @throws NoSuchEntityException|LocalizedException
      */
     public function handlePaymentsDetailsResponse(
         array $paymentsDetailsResponse,
@@ -175,23 +148,6 @@ class PaymentResponseHandler
 
             return false;
         }
-
-        $paymentMethod = $paymentsDetailsResponse['paymentMethod']['brand'] ??
-            $paymentsDetailsResponse['paymentMethod']['type'] ??
-            '';
-
-        $pspReference = isset($paymentsDetailsResponse['pspReference']) ?
-            trim((string) $paymentsDetailsResponse['pspReference']) :
-            '';
-
-        $type = 'Adyen paymentsDetails response:';
-        $comment = __(
-            '%1 <br /> authResult: %2 <br /> pspReference: %3 <br /> paymentMethod: %4',
-            $type,
-            $authResult,
-            $pspReference,
-            $paymentMethod
-        );
 
         $resultCode = $paymentsDetailsResponse['resultCode'];
         if (!empty($resultCode)) {
@@ -240,8 +196,15 @@ class PaymentResponseHandler
              * Otherwise keep the order state as pending_payment.
              */
             $order = $this->orderHelper->setStatusOrderCreation($order);
-            $this->orderRepository->save($order);
         }
+
+        // Add order status history comment for /payments/details API response
+        $comment = $this->orderStatusHistoryHelper->buildApiResponseComment(
+            $paymentsDetailsResponse,
+            self::PAYMENTS_DETAILS_API_COMMENT_ACTION_DESCRIPTION,
+            self::PAYMENTS_DETAILS_API_COMMENT_ENDPOINT
+        );
+        $order->addCommentToStatusHistory($comment, $order->getStatus());
 
         // Cleanup state data if exists.
         try {
@@ -249,6 +212,10 @@ class PaymentResponseHandler
         } catch (Exception $exception) {
             $this->adyenLogger->error(__('Error cleaning the payment state data: %s', $exception->getMessage()));
         }
+
+        $paymentMethod = $paymentsDetailsResponse['paymentMethod']['brand'] ??
+            $paymentsDetailsResponse['paymentMethod']['type'] ??
+            '';
 
         switch ($resultCode) {
             case self::AUTHORISED:
@@ -279,16 +246,18 @@ class PaymentResponseHandler
 
                 // do nothing wait for the notification
                 if (strpos((string) $paymentMethod, "bankTransfer") !== false) {
-                    $comment .= "<br /><br />Waiting for the customer to transfer the money.";
+                    $pendingComment = "Waiting for the customer to transfer the money.";
                 } elseif ($paymentMethod == "sepadirectdebit") {
-                    $comment .= "<br /><br />This request will be send to the bank at the end of the day.";
+                    $pendingComment = "This request will be send to the bank at the end of the day.";
                 } else {
-                    $comment .= "<br /><br />The payment result is not confirmed (yet).
+                    $pendingComment = "The payment result is not confirmed (yet).
                                  <br />Once the payment is authorised, the order status will be updated accordingly.
                                  <br />If the order is stuck on this status, the payment can be seen as unsuccessful.
                                  <br />The order can be automatically cancelled based on the OFFER_CLOSED notification.
                                  Please contact Adyen Support to enable this.";
                 }
+
+                $order->addCommentToStatusHistory($pendingComment, $order->getStatus());
                 $this->adyenLogger->addAdyenResult('Do nothing wait for the notification');
 
                 $result = true;
@@ -309,13 +278,14 @@ class PaymentResponseHandler
                 break;
             case self::REFUSED:
             case self::CANCELLED:
-                $activeGiftCards = $this->hasActiveGiftCardPayments(
-                    $paymentsDetailsResponse['merchantReference']
-                );
-
-                if(null !== $activeGiftCards)
-                {
-                    $this->cancelGiftCardOrders($activeGiftCards,$order);
+                // Cancel Checkout API Order in case of partial payments
+                $checkoutApiOrder = $payment->getAdditionalInformation(OrdersApi::DATA_KEY_CHECKOUT_API_ORDER);
+                if (isset($checkoutApiOrder)) {
+                    $this->ordersApiHelper->cancelOrder(
+                        $order,
+                        $checkoutApiOrder['pspReference'],
+                        $checkoutApiOrder['orderData']
+                    );
                 }
 
                 // Cancel order in case result is refused
@@ -324,7 +294,7 @@ class PaymentResponseHandler
                     if ($order->canCancel()) {
                         // Proceed to set cancellation action flag and cancel the order
                         $order->setActionFlag(\Magento\Sales\Model\Order::ACTION_FLAG_CANCEL, true);
-                        $this->dataHelper->cancelOrder($order);
+                        $this->orderHelper->cancelOrder($order, $resultCode);
                     } else {
                         $this->adyenLogger->addAdyenResult('The order cannot be cancelled');
                     }
@@ -343,17 +313,9 @@ class PaymentResponseHandler
                 break;
         }
 
-        $history = $this->orderHistoryFactory->create()
-            ->setStatus($order->getStatus())
-            ->setComment($comment)
-            ->setEntityName('order')
-            ->setOrder($order);
-
-        $history->save();
-
         // needed because then we need to save $order objects
         $order->setAdyenResulturlEventCode($authResult);
-        $this->orderResourceModel->save($order);
+        $this->orderRepository->save($order);
 
         return $result;
     }
@@ -379,70 +341,5 @@ class PaymentResponseHandler
         }
 
         return true;
-    }
-
-    // Method to check for existing Gift Card payments
-    private function hasActiveGiftCardPayments($merchantReference)
-    {
-        $paymentResponseCollection = $this->paymentResponseCollectionFactory->create()
-            ->addFieldToFilter('merchant_reference', $merchantReference)
-            ->addFieldToFilter('result_code', 'Authorised');
-
-        if ($paymentResponseCollection->getSize() > 0) {
-            return $paymentResponseCollection->getData();
-        }
-        return null;
-    }
-
-    private function cancelGiftCardOrders($activeGiftCards, $order)
-    {
-        //Cancel the Authorised GC Payments
-        $storeId = $order->getStoreId();
-        $client = $this->dataHelper->initializeAdyenClient($storeId);
-        $service = $this->dataHelper->initializeOrdersApi($client);
-        foreach ($activeGiftCards as $giftcardData) {
-            try {
-                // Decode JSON response and validate it
-                $response = json_decode($giftcardData['response'], true);
-                if (json_last_error() !== JSON_ERROR_NONE || !isset($response['order'])) {
-                    throw new InvalidArgumentException('Invalid giftcard response data');
-                }
-
-                // Extract order data and PSPRef
-                $orderData = $response['order']['orderData'] ?? null;
-                $pspReference = $response['order']['pspReference'] ?? null;
-
-                if (!$orderData || !$pspReference) {
-                    throw new InvalidArgumentException('Missing orderData or pspReference in the response');
-                }
-
-                // Prepare cancel request
-                $merchantAccount = $this->configHelper->getAdyenAbstractConfigData("merchant_account", $storeId);
-                $cancelRequest = [
-                    'order' => [
-                        'pspReference' => $pspReference,
-                        'orderData' => $orderData,
-                    ],
-                    'merchantAccount' => $merchantAccount,
-                ];
-                $this->dataHelper->logRequest($cancelRequest, Client::API_CHECKOUT_VERSION, '/orders/cancel');
-                // Call the cancel service
-                $cancelResponse = $service->cancelOrder(new CancelOrderRequest($cancelRequest));
-                $response = $cancelResponse->toArray();
-                $this->dataHelper->logResponse($response);
-                if (is_null($response['resultCode'])) {
-                    // In case the result is unknown we log the request and don't update the history
-                    $this->adyenLogger->error(
-                        "Unexpected result query parameter for cancel order request. Response: " . json_encode($response)
-                    );
-                }
-            } catch (\Exception $e) {
-                // Log the error with relevant information for debugging
-                $this->adyenLogger->error('Error canceling partial payments', [
-                    'exception' => $e->getMessage(),
-                    'giftcardData' => $giftcardData,
-                ]);
-            }
-        }
     }
 }

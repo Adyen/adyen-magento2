@@ -1,4 +1,4 @@
-# Adyen Payment plugin for Magento 2
+# Adyen Payment plugin for Adobe Commerce (Magento 2)
 Use Adyen's plugin for Magento 2 to offer frictionless payments online, in-app, and in-store.
 
 ## Integration
@@ -13,7 +13,7 @@ Inside Adyen toggle the following settings on inside the API and Responses secti
 * Variant
 
 ## Requirements
-This plugin supports Magento 2 version 2.4.4 and higher.
+This plugin is compatible with Magento version 2.4.8 only.
 
 ## Releases
 
@@ -22,36 +22,35 @@ This plugin supports Magento 2 version 2.4.4 and higher.
 
 **Note: This can be subject to change based on the load and dependancies of the Integration tools team.**
 
-## Support & Maintenance
+## Customizing Adobe Commerce Plugin
+You can customize your shoppers' checkout experience and add custom functionality to the plugin to meet your business needs. For example, you can apply modifications to the checkout process, or customize the style of your checkout to match your brand. 
 
-We provide three levels of support:
-1. **Level 1 (12 months)**: full support (including new features) *Keep in mind that some new features are not possible on older versions, therefore this is not inclusive of ALL new features that are built.*
-2. **Level 2 (12 months - 18 months)**: high priority bugs / security only.
-3. **Level 3 (18 months - 24 months)**: security updates only (no support from support team).
+For customizations, developers should extend the plugin by following Adyen’s API and [Adyen Plugin Customisation Guide](https://docs.adyen.com/plugins/adobe-commerce/customize/). If you customize inside of the default Adyen plugin, Adyen may be unable to provide plugin support, and upgrading and troubleshooting your integration will require additional effort.
 
-> After Level 3 there is no support or maintenance from Adyen and it should be treated as a native integration of the merchant.
+For more details, refer to:
+* [Adyen API Explorer](https://docs.adyen.com/api-explorer/Checkout/latest/overview)
+* [Adyen Adobe Commerce Plugin Customisation Guide](https://docs.adyen.com/plugins/adobe-commerce/customize/)
+* [Adyen Webhooks](https://docs.adyen.com/api-explorer/Webhooks/1/overview)
 
-The schedule for the current maintained branches is:
+## Support & Troubleshooting for Headfull Magento/ Adobe Commerce Plugin
 
-|  Plugin Major Version   | Release Date  | Level 1 Support ends | Level 2 Support ends | Level 3 Support ends |
-|  :-----          |:--------------|:---------------------|:---------------------|:---------------------|
-|  Version 8 |  November 2021 | January 2024         | May 2024             | January 2025         |
-|  Version 9 | October 2023  | December 2025      | May 2026             | December 2026               |
+We provide specialized plugin support for major versions of the plugin following Adyen Adobe Commerce Support policy for 2 years, along with permanent Adyen support. Contact our [support team here](https://support.adyen.com/hc/en-us/requests/new?ticket_form_id=360000705420).
 
-Or, visualised as a calendar:
+When a major plugin version is no longer under Adyen Adobe Commerce plugin support, it will be treated as a custom merchant integration. It is recommended to upgrade your payments plugin every 1-2 years.
 
-```mermaid
-gantt
-    title Currently Supported Versions
-    dateFormat  YYYY-MM-DD   
-    section Version 8
-    Level 1   :l81, 2021-11-22, 2024-01-31
-    Level 2   :l82, after l81, 2024-05-30
-    Level 3   :l83, after l82, 2025-01-31
-    section Version 9
-    Level 1   :active, l91, 2023-09-15, until l92
-```
+* [Migration and Upgrade Guide](https://docs.adyen.com/plugins/adobe-commerce/upgrade/)
+* [Troubleshooting Guide](https://docs.adyen.com/plugins/adobe-commerce/troubleshooting/)
+* [Adobe Comerce Plugin Support Schedule](https://docs.adyen.com/plugins/adobe-commerce/#support-levels) 
 
+## Support & Troubleshooting for Headless Adobe Commerce Payments
+Adyen Plugin Support can help you with questions relating to the core backend functionality of the Adobe Commerce Headless Payment integration, including [API request processing](https://docs.adyen.com/plugins/adobe-commerce/headless-integration/#checkout-flow), [authentication](https://docs.adyen.com/plugins/adobe-commerce/headless-integration/#requirements), and payment lifecycle management. Contact our [support team here](https://support.adyen.com/hc/en-us/requests/new?ticket_form_id=360000705420).
+
+However, merchant-specific customizations, including frontend implementations, collection of shopper details, rendering of payment methods on custom front-end, middleware configurations e.g. placing the order, handling additional actions, checking payment status etc.; and third-party dependencies - fall outside the scope of Adyen support. 
+
+We recommend leveraging Adyen’s debugging tools to troubleshoot custom Headless implementations:
+* [Adyen Headless troubleshooting guide](https://docs.adyen.com/plugins/adobe-commerce/headless-integration/#troubleshooting)
+* Troubleshoot Headless API validation: [GitPod FLOW for REST](https://www.postman.com/adyendev/adyen-flows/flow/669e40799441740032f40154), [GitPod Flow for GraphQL](https://www.postman.com/adyendev/adyen-flows/flow/66b665d5cafbb0003264bef9)
+ 
 ## Contributing
 We strongly encourage you to join us in contributing to this repository so everyone can benefit from:
 * New features and functionality
@@ -71,8 +70,8 @@ bin/magento setup:upgrade
 For more information see our [installation section](https://docs.adyen.com/developers/plugins/magento-2/set-up-the-plugin-in-magento?redirect#step1installtheplugin).
 
 ## Documentation
-- [Magento 2 documentation](https://docs.adyen.com/plugins/adobe-commerce)
-- [V9 migration guide](https://docs.adyen.com/plugins/adobe-commerce/migrate-to-a-new-version)
+- [Adobe Commerce (Magento 2) Adyen Payments Documentation](https://docs.adyen.com/plugins/adobe-commerce)
+- [Adyen Payments V9 Migration Guide](https://docs.adyen.com/plugins/adobe-commerce/migrate-to-a-new-version)
 
 ## Setup Cron
 Make sure that your Magento cron is running every minute. We are using a cronjob to process the notifications (our webhook service) and to update Adyen servers' IP addresses. The cronjobs will be executed every minute.
@@ -92,12 +91,12 @@ The notification processing service queries the records that have been received 
 
 If you need to setup your cronjob in Magento <a href="http://devdocs.magento.com/guides/v2.0/config-guide/cli/config-cli-subcommands-cron.html" target="_blank">this is described here</a>.
 
-## Supported payment methods
+## Supported Payment Methods
 
 See our [documentation](https://docs.adyen.com/plugins/adobe-commerce/supported-payment-methods/) for a full list of supported payment methods.
 
-## Support
-If you have a feature request, or spotted a bug or a technical problem, create a GitHub issue. For other questions, contact our [support team](https://support.adyen.com/hc/en-us/requests/new?ticket_form_id=360000705420).
+## Raising issues
+If you have a feature request, or spotted a bug or a technical problem, create a GitHub issue. 
 
 ## API Library
 This module is using the Adyen APIs Library for PHP for all (API) connections to Adyen.

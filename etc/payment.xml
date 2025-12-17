@@ -299,5 +299,26 @@
         <method name="adyen_doku_mandiri_va">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="adyen_afterpaytouch_US">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_paybybank_ais_dd">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_scalapay_3x">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_scalapay_4x">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_paynow">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_riverty">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="adyen_payto">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>
