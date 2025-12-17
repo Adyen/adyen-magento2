@@ -3,9 +3,7 @@ run-name: E2E test workflow with test suite branch ${{inputs.testBranch || 'deve
 
 on:
   pull_request:
-    branches: [main,main-9]
-  pull_request_target:
-    branches: [main, main-9]
+    branches: [main]
   workflow_dispatch:
     inputs:
       testBranch:
@@ -28,8 +26,9 @@ on:
 
 jobs:
   build-e2e:
-    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) || (github.event_name == 'workflow_dispatch')
-    environment: ${{ (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) && 'external' || 'internal' }}
+    # Only run for same-repo PRs and workflow_dispatch
+    if: (github.event_name == 'workflow_dispatch') ||
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
     strategy:
       matrix:
         php-version: ["8.4"]
@@ -52,9 +51,10 @@ jobs:
       DONATION_ACCOUNT: ${{secrets.DONATION_ACCOUNT}}
       DEPLOY_SAMPLEDATA: 1
       USE_SSL: 1
+
     steps:
       # Define variables for the test case
-      - run: echo "IS_RELEASE=${{ contains(github.event.pull_request.title, 'Release v9.') && 'TRUE' || 'FALSE' }}" >> $GITHUB_ENV
+      - run: echo "IS_RELEASE=${{ github.event_name == 'pull_request' && contains(github.event.pull_request.title, 'Release v9.') && 'TRUE' || 'FALSE' }}" >> $GITHUB_ENV
       - run: echo "TEST_GROUP=${{ env.IS_RELEASE == 'TRUE' && 'all' || (inputs.testGroup || 'standard') }}" >> $GITHUB_ENV
       - run: echo "TEST_BRANCH=${{ (env.IS_RELEASE == 'TRUE' || !inputs.testBranch)  && 'develop' || inputs.testBranch }}" >> $GITHUB_ENV
       - run: echo "EXPRESS_BRANCH=${{ contains(fromJSON('["all", "express-checkout"]'), env.TEST_GROUP) && (inputs.expressBranch || 'main') || '' }}" >> $GITHUB_ENV
@@ -62,9 +62,7 @@ jobs:
       - name: Information
         run: echo "E2E testing against test suite branch ${{env.TEST_BRANCH}} using group ${{env.TEST_GROUP}} ${{ env.EXPRESS_BRANCH && 'with express module branch' || '' }} ${{ env.EXPRESS_BRANCH || '' }}"
 
-      - uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.ref }}
+      - uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2
 
       - name: Install Magento
         run: docker compose -f .github/docker-compose.yml run --rm web make magento
@@ -81,11 +79,8 @@ jobs:
       - name: Install plugin
         run: docker exec -u www-data magento2-container make plugin
 
-      - name: Kill Cron Jobs
-        run: docker exec magento2-container /etc/init.d/cron stop
-
       - name: Checkout developer module
-        uses: actions/checkout@v3
+        uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2
         with:
           repository: Adyen/adyen-magento2-dev
           ref: "main"
@@ -106,7 +101,11 @@ jobs:
 
       - name: Install Express module
         if: ${{ env.EXPRESS_BRANCH }}
-        run: docker exec -u www-data magento2-container composer require adyen/adyen-magento2-expresscheckout:dev-${{ env.EXPRESS_BRANCH }}
+        env:
+          EXPRESS_BRANCH: ${{ env.EXPRESS_BRANCH }}
+        run: |
+          docker exec -u www-data magento2-container \
+            composer require "adyen/adyen-magento2-expresscheckout:dev-$EXPRESS_BRANCH"
 
       - name: Enable Express module
         if: ${{ env.EXPRESS_BRANCH }}
@@ -139,10 +138,3 @@ jobs:
         run: |
           echo "Running DeleteWebhook command after E2E tests for clean-up"
           docker exec -u www-data magento2-container php bin/magento adyen:management:delete-webhook
-
-      - name: Archive test result artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: html-report
-          path: test-report
