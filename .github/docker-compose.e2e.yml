@@ -26,4 +26,3 @@ services:
     volumes:
       - ../../scripts/e2e.sh:/e2e.sh
       - ../../scripts/e2e-all.sh:/e2e-all.sh
-      - ../../../test-report:/tmp/test-report
