@@ -30,6 +30,5 @@ services:
       - CI
     volumes:
       - ./scripts/e2e.sh:/e2e.sh
-      - ../test-report:/tmp/test-report
 networks:
   backend:
