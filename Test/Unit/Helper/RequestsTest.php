@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Adyen\Payment\Test\Unit\Helper;
 
+use Adyen\AdyenException;
 use Adyen\Payment\Helper\Address;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
@@ -13,13 +14,19 @@ use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\Requests;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Vault;
+use Adyen\Payment\Model\AdyenAmountCurrency;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\Request\Http;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Payment\Model\MethodInterface;
+use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Payment;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\MockObject\Exception;
 
 #[CoversClass(Requests::class)]
 class RequestsTest extends AbstractAdyenTestCase
@@ -154,14 +161,14 @@ class RequestsTest extends AbstractAdyenTestCase
         $billingAddress->method('getLastname')->willReturn('Doe');
         $billingAddress->method('getCountryId')->willReturn('NL');
 
-        $payment = $this->createMock(\Magento\Sales\Model\Order\Payment::class);
+        $payment = $this->createMock(Payment::class);
         $payment->method('getMethodInstance')->willReturn(
-            $this->createConfiguredMock(\Magento\Payment\Model\MethodInterface::class, [
+            $this->createConfiguredMock(MethodInterface::class, [
                 'getCode' => 'scheme',
             ])
         );
         $payment->method('getOrder')->willReturn(
-            $this->createConfiguredMock(\Magento\Sales\Model\Order::class, [
+            $this->createConfiguredMock(Order::class, [
                 'getIncrementId' => '000001',
             ])
         );
@@ -229,8 +236,8 @@ class RequestsTest extends AbstractAdyenTestCase
     #[Test]
     public function buildCardRecurringDataWithConsent(): void
     {
-        $payment = $this->createMock(\Magento\Sales\Model\Order\Payment::class);
-        $order = $this->createMock(\Magento\Sales\Model\Order::class);
+        $payment = $this->createMock(Payment::class);
+        $order = $this->createMock(Order::class);
         $order->method('getQuoteId')->willReturn(1);
         $payment->method('getOrder')->willReturn($order);
         $payment->method('getMethod')->willReturn('scheme');
@@ -249,7 +256,7 @@ class RequestsTest extends AbstractAdyenTestCase
     #[Test]
     public function buildAdyenTokenizedRecurringDataForStoredCard(): void
     {
-        $payment = $this->createMock(\Magento\Sales\Model\Order\Payment::class);
+        $payment = $this->createMock(Payment::class);
         $payment->method('getAdditionalInformation')->willReturnMap([
             ['recurringProcessingModel', 'card'],
             ['cc_type', 'visa'],
@@ -266,22 +273,67 @@ class RequestsTest extends AbstractAdyenTestCase
         $this->assertSame('card', $result['recurringProcessingModel']);
     }
 
-    #[Test]
-    public function buildDonationDataReturnsCorrectStructure(): void
+    public static function buildDonationDataReturnsCorrectStructureDataProvider(): array
     {
+        return [
+            [
+                'method' => 'adyen_cc',
+                'variant' => 'scheme',
+                'convertedMethod' => 'scheme',
+                'isAlternativePaymentMethod' => false
+            ],
+            [
+                'method' => 'adyen_googlepay',
+                'variant' => 'googlepay',
+                'convertedMethod' => 'scheme',
+                'isAlternativePaymentMethod' => true
+            ],
+            [
+                'method' => 'adyen_applepay',
+                'variant' => 'applepay',
+                'convertedMethod' => 'scheme',
+                'isAlternativePaymentMethod' => true
+            ],
+            [
+                'method' => 'adyen_ideal',
+                'variant' => 'ideal',
+                'convertedMethod' => 'sepadirectdebit',
+                'isAlternativePaymentMethod' => true
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider buildDonationDataReturnsCorrectStructureDataProvider
+     *
+     * @param string $method
+     * @param string $variant
+     * @param string $convertedMethod
+     * @param bool $isAlternativePaymentMethod
+     * @return void
+     * @throws AdyenException
+     * @throws Exception
+     * @throws LocalizedException
+     */
+    public function testBuildDonationDataReturnsCorrectStructure(
+        string $method,
+        string $variant,
+        string $convertedMethod,
+        bool $isAlternativePaymentMethod
+    ): void {
         $storeId   = 1;
         $currency  = 'EUR';
         $amount    = ['currency' => $currency, 'value' => 1000];
         $returnUrl = 'https://example.com';
         $payload   = ['amount' => $amount, 'returnUrl' => $returnUrl];
 
-        $payment = $this->createMock(\Magento\Sales\Model\Order\Payment::class);
-        $order = $this->createMock(\Magento\Sales\Model\Order::class);
-        $paymentMethodInstance = $this->createMock(\Magento\Payment\Model\MethodInterface::class);
+        $payment = $this->createMock(Payment::class);
+        $order = $this->createMock(Order::class);
+        $paymentMethodInstance = $this->createMock(MethodInterface::class);
 
         $payment->method('getOrder')->willReturn($order);
         $payment->method('getMethodInstance')->willReturn($paymentMethodInstance);
-        $payment->method('getMethod')->willReturn('adyen_cc');
+        $payment->method('getMethod')->willReturn($method);
         $payment->method('getAdditionalInformation')->willReturnMap([
             ['donationToken', 'donation-token'],
             ['donationCampaignId', 'campaign-id'],
@@ -292,18 +344,28 @@ class RequestsTest extends AbstractAdyenTestCase
         $order->method('getCustomerId')->willReturn(42);
         $order->method('getIncrementId')->willReturn('000001');
 
-        $amountCurrency = $this->createConfiguredMock(\Adyen\Payment\Model\AdyenAmountCurrency::class, [
+        $amountCurrency = $this->createConfiguredMock(AdyenAmountCurrency::class, [
             'getCurrencyCode' => $currency,
         ]);
 
         $this->chargedCurrency->method('getOrderAmountCurrency')->willReturn($amountCurrency);
-        $this->paymentMethodsHelper->method('isAlternativePaymentMethod')->willReturn(false);
-        $this->adyenHelper->method('getAdyenMerchantAccount')->with('adyen_giving', $storeId)->willReturn('merchant123');
+        $this->paymentMethodsHelper->method('isAlternativePaymentMethod')
+            ->willReturn($isAlternativePaymentMethod);
+
+        if ($isAlternativePaymentMethod) {
+            $this->paymentMethodsHelper->method('getAlternativePaymentMethodTxVariant')
+                ->with($paymentMethodInstance)
+                ->willReturn($variant);
+        }
+
+        $this->adyenHelper->method('getAdyenMerchantAccount')
+            ->with('adyen_giving', $storeId)
+            ->willReturn('merchant123');
         $this->adyenHelper->method('padShopperReference')->with(42)->willReturn('user_42');
 
         $result = $this->requests->buildDonationData($payment, $storeId);
 
-        $this->assertSame('scheme', $result['paymentMethod']['type']);
+        $this->assertSame($convertedMethod, $result['paymentMethod']['type']);
         $this->assertSame('user_42', $result['shopperReference']);
         $this->assertSame('donation-token', $result['donationToken']);
         $this->assertSame('campaign-id', $result['donationCampaignId']);
@@ -319,8 +381,8 @@ class RequestsTest extends AbstractAdyenTestCase
         $this->expectException(\Magento\Framework\Exception\LocalizedException::class);
         $this->expectExceptionMessage('Donation failed!');
 
-        $payment = $this->createMock(\Magento\Sales\Model\Order\Payment::class);
-        $order = $this->createStub(\Magento\Sales\Model\Order::class);
+        $payment = $this->createMock(Payment::class);
+        $order = $this->createStub(Order::class);
 
         $payment->method('getOrder')->willReturn($order);
         $payment->method('getAdditionalInformation')->willReturnMap([
@@ -337,14 +399,14 @@ class RequestsTest extends AbstractAdyenTestCase
         $this->expectException(\Magento\Framework\Exception\LocalizedException::class);
         $this->expectExceptionMessage('Donation failed!');
 
-        $payment = $this->createMock(\Magento\Sales\Model\Order\Payment::class);
-        $order = $this->createMock(\Magento\Sales\Model\Order::class);
+        $payment = $this->createMock(Payment::class);
+        $order = $this->createMock(Order::class);
         $payload = ['amount' => ['currency' => 'USD']];
 
         $payment->method('getOrder')->willReturn($order);
         $payment->method('getMethod')->willReturn('scheme');
         $payment->method('getMethodInstance')->willReturn(
-            $this->createStub(\Magento\Payment\Model\MethodInterface::class)
+            $this->createStub(MethodInterface::class)
         );
         $payment->method('getAdditionalInformation')->willReturnMap([
             ['donationToken', 'valid-token'],
@@ -357,7 +419,7 @@ class RequestsTest extends AbstractAdyenTestCase
             ->method('getOrderAmountCurrency')
             ->with($order, false)
             ->willReturn(
-                $this->createConfiguredMock(\Adyen\Payment\Model\AdyenAmountCurrency::class, [
+                $this->createConfiguredMock(AdyenAmountCurrency::class, [
                     'getCurrencyCode' => 'EUR',
                 ])
             );

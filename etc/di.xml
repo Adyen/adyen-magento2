@@ -224,7 +224,6 @@
             <argument name="config" xsi:type="object">AdyenPaymentCcVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentCcVaultPaymentValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentCcFacade</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentCcCommandPool</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentPaypalVaultFacade" type="Adyen\Payment\Model\Method\PaymentMethodVault">
@@ -233,7 +232,6 @@
             <argument name="config" xsi:type="object">AdyenPaymentPaypalVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentPaypalVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentPaypalFacade</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentKlarnaVaultFacade" type="Adyen\Payment\Model\Method\PaymentMethodVault">
@@ -242,7 +240,6 @@
             <argument name="config" xsi:type="object">AdyenPaymentKlarnaVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentKlarnaVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentKlarnaFacade</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentAmazonpayVaultFacade" type="Adyen\Payment\Model\Method\PaymentMethodVault">
@@ -251,7 +248,6 @@
             <argument name="config" xsi:type="object">AdyenPaymentAmazonpayVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentAmazonpayVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentAmazonPayFacade</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentGooglepayVaultFacade" type="Adyen\Payment\Model\Method\PaymentMethodVault">
@@ -260,7 +256,6 @@
             <argument name="config" xsi:type="object">AdyenPaymentGooglepayVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentGooglepayVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentGooglepayFacade</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentApplePayVaultFacade" type="Adyen\Payment\Model\Method\PaymentMethodVault">
@@ -269,7 +264,6 @@
             <argument name="config" xsi:type="object">AdyenPaymentApplePayVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentApplePayVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentApplePayFacade</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentSepadirectdebitVaultFacade" type="Adyen\Payment\Model\Method\PaymentMethodVault">
@@ -278,7 +272,6 @@
             <argument name="config" xsi:type="object">AdyenPaymentSepadirectdebitVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentSepadirectdebitVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentSepadirectdebitFacade</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
         </arguments>
     </virtualType>
     <!-- Vault methods end -->
@@ -806,29 +799,35 @@
     <type name="Magento\Payment\Gateway\Command\CommandManagerPool">
         <arguments>
             <argument name="executors" xsi:type="array">
-                <item name="adyen_cc" xsi:type="string">AdyenPaymentCcCommandManager</item>
-                <item name="adyen_hpp" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_paypal" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_klarna" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_googlepay" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_sepadirectdebit" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_cashapp" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_boleto" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_ach" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_amazonpay" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_applepay" xsi:type="string">AdyenPaymentCommandManager</item>
                 <item name="adyen_bcmc" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_momo" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_bcmc_mobile" xsi:type="string">AdyenPaymentCommandManager</item>
                 <item name="adyen_carnet" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_gcash" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_twint" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_paybybank" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_klarna_paynow" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_klarna_account_vault" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_kakaopay" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_giropay" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_eps" xsi:type="string">AdyenPaymentCommandManager</item>
-                <item name="adyen_directEbanking" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_cashapp" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_cc" xsi:type="string">AdyenPaymentCcCommandManager</item>
                 <item name="adyen_dana" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_directEbanking" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_eps" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_gcash" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_giropay" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_googlepay" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_ideal" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_kakaopay" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_klarna" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_klarna_account" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_klarna_paynow" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_momo_wallet" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_paybybank" xsi:type="string">AdyenPaymentCommandManager</item>
                 <item name="adyen_paybybank_ais_dd" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_paypal" xsi:type="string">AdyenPaymentCommandManager</item>
                 <item name="adyen_payto" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_pos_cloud" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_sepadirectdebit" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_trustly" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_twint" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_zip" xsi:type="string">AdyenPaymentCommandManager</item>
             </argument>
         </arguments>
     </type>
@@ -2302,7 +2301,6 @@
             <argument name="config" xsi:type="object">AdyenPaymentDirectEbankingVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentDirectEbankingVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentDirectEbankingFacade</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentDirectEbankingVaultValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
@@ -2517,7 +2515,6 @@
             <argument name="config" xsi:type="object">AdyenPaymentEpsVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentEpsVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentEpsFacade</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentEpsVaultValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
@@ -2678,7 +2675,6 @@
             <argument name="config" xsi:type="object">AdyenPaymentGiropayVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentGiropayVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentGiropayFacade</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentGiropayVaultValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
@@ -2812,7 +2808,6 @@
             <argument name="config" xsi:type="object">AdyenPaymentKakaopayVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentKakaopayVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentKakaopayFacade</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentKakaopayVaultValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
@@ -2865,7 +2860,6 @@
             <argument name="config" xsi:type="object">AdyenPaymentKlarnaAccountVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentKlarnaAccountVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentKlarnaAccountFacade</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentKlarnaAccountVaultValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
@@ -2918,7 +2912,6 @@
             <argument name="config" xsi:type="object">AdyenPaymentKlarnaPaynowVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentKlarnaPaynowVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentKlarnaPaynowFacade</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentKlarnaPaynowVaultValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
@@ -3187,7 +3180,6 @@
             <argument name="config" xsi:type="object">AdyenPaymentPaybybankVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentPaybybankVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentPaybybankFacade</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentPaybybankVaultValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
@@ -3348,7 +3340,6 @@
             <argument name="config" xsi:type="object">AdyenPaymentTrustlyVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentTrustlyVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentTrustlyFacade</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentTrustlyVaultValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
@@ -3401,7 +3392,6 @@
             <argument name="config" xsi:type="object">AdyenPaymentTwintVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentTwintVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentTwintFacade</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentTwintVaultValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
@@ -3535,7 +3525,6 @@
             <argument name="config" xsi:type="object">AdyenPaymentZipVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentZipVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentZipFacade</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentZipVaultValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
@@ -3588,7 +3577,6 @@
             <argument name="config" xsi:type="object">AdyenPaymentGcashVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentGcashVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentGcashFacade</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentGcashVaultValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
@@ -3695,7 +3683,6 @@
             <argument name="config" xsi:type="object">AdyenPaymentCarnetVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentCarnetVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentCarnetFacade</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentCarnetVaultValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
@@ -3802,7 +3789,6 @@
             <argument name="config" xsi:type="object">AdyenPaymentMomoWalletVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentMomoWalletVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentMomoWalletFacade</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentMomoWalletVaultValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
@@ -3882,7 +3868,6 @@
             <argument name="config" xsi:type="object">AdyenPaymentBcmcVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentBcmcVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentBcmcFacade</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentBcmcVaultValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
@@ -3935,7 +3920,6 @@
             <argument name="config" xsi:type="object">AdyenPaymentCashappVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentCashappVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentCashappFacade</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentCashappVaultValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
@@ -4096,7 +4080,6 @@
             <argument name="config" xsi:type="object">AdyenPaymentAchVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentAchVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentAchFacade</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentAchVaultValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
@@ -4257,7 +4240,6 @@
             <argument name="config" xsi:type="object">AdyenPaymentDanaVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentDanaVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentDanaFacade</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentDanaVaultValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
@@ -4661,7 +4643,6 @@
             <argument name="config" xsi:type="object">AdyenPaymentPaybybankAISDDVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentPaybybankAISDDVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentPaybybankAISDDFacade</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentPaybybankAISDDVaultValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
@@ -4822,7 +4803,6 @@
             <argument name="config" xsi:type="object">AdyenPaymentPaytoVaultConfig</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentPaytoVaultValueHandlerPool</argument>
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentPaytoFacade</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentPaytoVaultValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">

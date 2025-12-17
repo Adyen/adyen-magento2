@@ -458,6 +458,7 @@
                 <can_refund>1</can_refund>
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
+                <requires_line_items>1</requires_line_items>
                 <group>adyen</group>
             </adyen_pay_by_link>
             <adyen_boleto>
@@ -1250,6 +1251,7 @@
                 <supports_manual_capture>0</supports_manual_capture>
                 <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
+                <requires_line_items>1</requires_line_items>
                 <group>adyen-alternative-payment-method</group>
             </adyen_grabpay_MY>
             <adyen_grabpay_PH>
@@ -1272,6 +1274,7 @@
                 <supports_manual_capture>0</supports_manual_capture>
                 <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
+                <requires_line_items>1</requires_line_items>
                 <group>adyen-alternative-payment-method</group>
             </adyen_grabpay_PH>
             <adyen_grabpay_SG>
@@ -1294,6 +1297,7 @@
                 <supports_manual_capture>0</supports_manual_capture>
                 <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
+                <requires_line_items>1</requires_line_items>
                 <group>adyen-alternative-payment-method</group>
             </adyen_grabpay_SG>
             <adyen_kakaopay>

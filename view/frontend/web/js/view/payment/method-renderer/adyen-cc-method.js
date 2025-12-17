@@ -323,7 +323,6 @@ define(
              * @returns {boolean}
              */
             isButtonActive: function() {
-                // TODO check if isPlaceOrderActionAllowed and placeOrderAllowed are both needed
                 return this.isActive() && this.getCode() == this.isChecked() &&
                     this.isPlaceOrderActionAllowed() &&
                     this.placeOrderAllowed();

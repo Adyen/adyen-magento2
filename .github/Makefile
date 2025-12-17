@@ -22,6 +22,7 @@ install:
 	bin/magento module:enable Adyen_Payment
 	bin/magento setup:upgrade
 	bin/magento setup:di:compile
+	bin/magento cron:install
 
 # Install developer module
 dev-module:
@@ -47,6 +48,7 @@ configure: n98-magerun2.phar
 	bin/magento config:set payment/adyen_abstract/client_key_test "${ADYEN_CLIENT_KEY}"
 	bin/magento config:set payment/adyen_abstract/notification_username 'admin'
 	bin/magento config:set payment/adyen_abstract/payment_methods_active 1
+	bin/magento config:set payment/adyen_abstract/webhook_notification_processor 'queue'
 	./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/notification_password '1234'  > /dev/null
 	./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/api_key_test "${ADYEN_API_KEY}" > /dev/null
 

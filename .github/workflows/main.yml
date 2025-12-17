@@ -4,38 +4,39 @@ run-name: Main
 on:
   pull_request:
     branches: [main]
-  # on-push trigger is required to analyse long-living branches on SonarCloud
   push:
     branches: [main]
-  pull_request_target:
-    branches: [main]
+  workflow_dispatch:
 
 jobs:
   build-main:
-    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) || (github.event_name == 'workflow_dispatch') || (github.event_name == 'push')
-    environment: ${{ (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) && 'external' || 'internal' }}
+    if: |
+      github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+
     strategy:
       matrix:
         php-version: ["8.3"]
-        magento-version: ["2.4.8"]
+        magento-version: ["2.4.8-p3"]
     runs-on: ubuntu-latest
     timeout-minutes: 15
+
     permissions:
       contents: read
+
     env:
       PHP_VERSION: ${{ matrix.php-version }}
       MAGENTO_VERSION: ${{ matrix.magento-version }}
-      ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
-      ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
-      ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
-      ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
-      ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
-      DONATION_ACCOUNT: ${{secrets.DONATION_ACCOUNT}}
+      ADYEN_API_KEY: ${{ secrets.ADYEN_API_KEY }}
+      ADYEN_CLIENT_KEY: ${{ secrets.ADYEN_CLIENT_KEY }}
+      ADYEN_MERCHANT: ${{ secrets.ADYEN_MERCHANT }}
+      ADMIN_USERNAME: ${{ secrets.MAGENTO_ADMIN_USERNAME }}
+      ADMIN_PASSWORD: ${{ secrets.MAGENTO_ADMIN_PASSWORD }}
+      DONATION_ACCOUNT: ${{ secrets.DONATION_ACCOUNT }}
       DEPLOY_SAMPLEDATA: 1
+
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.ref }}
           fetch-depth: 0
 
       - name: Install Magento
@@ -69,8 +70,7 @@ jobs:
         run: docker exec magento2-container make phpunit-fix-report
 
       - name: SonarCloud Scan
-        if: ${{ env.SONAR_TOKEN }}
-        uses: SonarSource/sonarqube-scan-action@master
+        uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
