@@ -43,6 +43,8 @@ jobs:
     env:
       PHP_VERSION: ${{ matrix.php-version }}
       MAGENTO_VERSION: ${{ matrix.magento-version }}
+      ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
+      ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
       ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
       ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
       ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
@@ -136,10 +138,3 @@ jobs:
         run: |
           echo "Running DeleteWebhook command after E2E tests for clean-up"
           docker exec -u www-data magento2-container php bin/magento adyen:management:delete-webhook
-
-      - name: Archive test result artifacts
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: html-report
-          path: test-report
