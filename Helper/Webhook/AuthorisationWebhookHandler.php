@@ -130,10 +130,27 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         }
 
         // Disable the quote if it's still active
-        $quote = $this->cartRepository->get($order->getQuoteId());
-        if ($quote->getIsActive()) {
-            $quote->setIsActive(false);
-            $this->cartRepository->save($quote);
+        $quoteId = $order->getQuoteId();
+
+        if (!$quoteId) {
+            // No quote associated with the order (or already cleaned up)
+            return $order;
+        }
+        try {
+            $quote = $this->cartRepository->get($quoteId);
+
+            if ($quote->getIsActive()) {
+                $quote->setIsActive(false);
+                $this->cartRepository->save($quote);
+            }
+        } catch (\Exception $e) {
+            $this->adyenLogger->addAdyenNotification(
+                'Quote deactivation skipped during webhook processing.',
+                [
+                    'quoteId' => $quoteId,
+                    'error' => $e->getMessage()
+                ]
+            );
         }
 
         return $order;

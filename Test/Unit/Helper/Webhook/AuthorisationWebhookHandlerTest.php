@@ -73,6 +73,8 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
             'getMethod' => 'adyen_cc'
         ]);
         $this->orderMock->method('getStoreId')->willReturn($storeId);
+        $this->orderMock->method('getQuoteId')->willReturn('123');
+        $this->quoteMock->method('getIsActive')->willReturn(false);
         $this->orderMock->method('getPayment')->willReturn($paymentMock);
 
         $this->notificationMock->expects($this->once())
@@ -142,7 +144,9 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
         $paymentMock = $this->createMock(Order\Payment::class);
         $storeId = 1;
         $this->orderMock->method('getStoreId')->willReturn($storeId);
+        $this->orderMock->method('getQuoteId')->willReturn('123');
         $this->orderMock->method('getPayment')->willReturn($paymentMock);
+        $this->quoteMock->method('getIsActive')->willReturn(false);
 
         $this->orderHelperMock->expects($this->once())
             ->method('setPrePaymentAuthorized')->willReturn($this->orderMock);
@@ -288,19 +292,20 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
         $this->assertInstanceOf(Order::class, $result);
     }
 
-    public function testDisableQuote()
+    public function testDisableQuote(): void
     {
         $this->orderMock->expects($this->any())->method('getPayment')->willReturn($this->orderMock);
         $this->orderMock->expects($this->any())->method('getConfig')->willReturnSelf();
+
+        $this->orderMock->method('getQuoteId')->willReturn('123');
 
         $this->quoteMock->expects($this->any())->method('getIsActive')->willReturn(true);
         $this->quoteMock->expects($this->any())->method('setIsActive')->with(false);
 
         $cartRepositoryMock = $this->createMock(CartRepositoryInterface::class);
-        $cartRepositoryMock->expects($this->once())->method('get')->willReturn($this->quoteMock);
+        $cartRepositoryMock->expects($this->once())->method('get')->with('123')->willReturn($this->quoteMock);
         $cartRepositoryMock->expects($this->once())->method('save')->with($this->quoteMock);
 
-        // Create an instance of AuthorisationWebhookHandler
         $webhookHandler = $this->createAuthorisationWebhookHandler(
             null,
             null,
@@ -313,7 +318,12 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
             $cartRepositoryMock
         );
 
-        $result = $webhookHandler->handleWebhook($this->orderMock, $this->notificationMock, 'paid');
+        $result = $webhookHandler->handleWebhook(
+            $this->orderMock,
+            $this->notificationMock,
+            PaymentStates::STATE_PAID
+        );
+
         $this->assertInstanceOf(Order::class, $result);
     }
 
