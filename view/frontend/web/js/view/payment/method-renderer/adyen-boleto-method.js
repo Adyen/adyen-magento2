@@ -23,19 +23,21 @@ define(
 
             buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo) {
                 let baseComponentConfiguration = this._super();
-                let formattedBillingAddress = {};
-                if (!!quote.billingAddress()) {
-                    formattedBillingAddress = this.getFormattedAddress(quote.billingAddress());
-                    baseComponentConfiguration.data.firstName = formattedBillingAddress.firstName;
-                    baseComponentConfiguration.data.lastName = formattedBillingAddress.lastName;
 
-                    baseComponentConfiguration.data.billingAddress = {
-                        city: formattedBillingAddress.city,
-                        country: formattedBillingAddress.country,
-                        houseNumberOrName: formattedBillingAddress.houseNumber,
-                        postalCode: formattedBillingAddress.postalCode,
-                        street: formattedBillingAddress.street
-                    };
+                if (quote.billingAddress()) {
+                    const formattedBillingAddress = this.getFormattedAddress(quote.billingAddress());
+
+                    baseComponentConfiguration.data = {
+                        firstName: formattedBillingAddress.firstName,
+                        lastName: formattedBillingAddress.lastName,
+                        billingAddress: {
+                            city: formattedBillingAddress.city,
+                            country: formattedBillingAddress.country,
+                            houseNumberOrName: formattedBillingAddress.houseNumber,
+                            postalCode: formattedBillingAddress.postalCode,
+                            street: formattedBillingAddress.street
+                        }
+                    }
                 }
 
                 return baseComponentConfiguration;
