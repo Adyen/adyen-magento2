@@ -78,55 +78,90 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
      */
     private function handleSuccessfulAuthorisation(Order $order, Notification $notification): Order
     {
-        $isAutoCapture = $this->paymentMethodsHelper->isAutoCapture($order, $notification->getPaymentMethod());
+        $paymentMethod = (string) $notification->getPaymentMethod();
+        $isAutoCapture = $this->paymentMethodsHelper->isAutoCapture($order, $paymentMethod);
 
+        $this->markPaymentCapturedIfNeeded($order, $notification, $isAutoCapture);
+
+        $this->adyenOrderPaymentHelper->createAdyenOrderPayment($order, $notification, $isAutoCapture);
+
+        if (!$this->adyenOrderPaymentHelper->isFullAmountAuthorized($order)) {
+            $this->orderHelper->addWebhookStatusHistoryComment($order, $notification);
+            $this->createCashShipmentIfNeeded($order, $paymentMethod);
+            $this->deactivateQuoteIfNeeded($order);
+            return $order;
+        }
+
+        $order = $this->orderHelper->setPrePaymentAuthorized($order);
+        $this->orderHelper->updatePaymentDetails($order, $notification);
+
+        $requireFraudManualReview = $this->caseManagementHelper->requiresManualReview(
+            $this->getAdditionalDataArray($notification)
+        );
+
+        $order = $isAutoCapture
+            ? $this->handleAutoCapture($order, $notification, $requireFraudManualReview)
+            : $this->handleManualCapture($order, $notification, $requireFraudManualReview);
+
+        $this->sendOrderMailIfNeeded($order, $paymentMethod);
+
+        // Set authorized amount in sales_order_payment
+        $order->getPayment()->setAmountAuthorized($order->getGrandTotal());
+        $order->getPayment()->setBaseAmountAuthorized($order->getBaseGrandTotal());
+
+        $this->createCashShipmentIfNeeded($order, $paymentMethod);
+        $this->deactivateQuoteIfNeeded($order);
+
+        return $order;
+    }
+
+    private function markPaymentCapturedIfNeeded(
+        Order $order,
+        Notification $notification,
+        bool $isAutoCapture
+    ): void {
         // Set adyen_notification_payment_captured to true so that we ignore a possible OFFER_CLOSED
         if ($notification->isSuccessful() && $isAutoCapture) {
             $order->setData('adyen_notification_payment_captured', 1);
         }
+    }
 
-        $this->adyenOrderPaymentHelper->createAdyenOrderPayment($order, $notification, $isAutoCapture);
-        $isFullAmountAuthorized = $this->adyenOrderPaymentHelper->isFullAmountAuthorized($order);
+    private function getAdditionalDataArray(Notification $notification): array
+    {
+        $raw = $notification->getAdditionalData();
+        return !empty($raw) ? (array) $this->serializer->unserialize($raw) : [];
+    }
 
-        if ($isFullAmountAuthorized) {
-            $order = $this->orderHelper->setPrePaymentAuthorized($order);
-            $this->orderHelper->updatePaymentDetails($order, $notification);
+    private function sendOrderMailIfNeeded(Order $order, string $paymentMethod): void
+    {
+        // For Boleto confirmation mail is sent on order creation
+        // Send order confirmation mail after invoice creation so merchant can add invoicePDF to this mail
+        if ($paymentMethod !== 'adyen_boleto' && !$order->getEmailSent()) {
+            $this->orderHelper->sendOrderMail($order);
+        }
+    }
 
-            $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize($notification->getAdditionalData()) : [];
-            $requireFraudManualReview = $this->caseManagementHelper->requiresManualReview($additionalData);
-
-            if ($isAutoCapture) {
-                $order = $this->handleAutoCapture($order, $notification, $requireFraudManualReview);
-            } else {
-                $order = $this->handleManualCapture($order, $notification, $requireFraudManualReview);
-            }
-
-            // For Boleto confirmation mail is sent on order creation
-            // Send order confirmation mail after invoice creation so merchant can add invoicePDF to this mail
-            if ($notification->getPaymentMethod() != "adyen_boleto" && !$order->getEmailSent()) {
-                $this->orderHelper->sendOrderMail($order);
-            }
-
-            // Set authorized amount in sales_order_payment
-            $order->getPayment()->setAmountAuthorized($order->getGrandTotal());
-            $order->getPayment()->setBaseAmountAuthorized($order->getBaseGrandTotal());
-        } else {
-            $this->orderHelper->addWebhookStatusHistoryComment($order, $notification);
+    private function createCashShipmentIfNeeded(Order $order, string $paymentMethod): void
+    {
+        if ($paymentMethod !== 'c_cash') {
+            return;
         }
 
-        if ($notification->getPaymentMethod() == "c_cash" &&
-            $this->configHelper->getConfigData('create_shipment', 'adyen_cash', $order->getStoreId())
-        ) {
+        if ($this->configHelper->getConfigData('create_shipment', 'adyen_cash', $order->getStoreId())) {
             $this->orderHelper->createShipment($order);
         }
+    }
 
+    private function deactivateQuoteIfNeeded(Order $order): void
+    {
         // Disable the quote if it's still active
         $quoteId = $order->getQuoteId();
 
         if (!$quoteId) {
             // No quote associated with the order (or already cleaned up)
-            return $order;
+            return;
         }
+
         try {
             $quote = $this->cartRepository->get($quoteId);
 
@@ -143,8 +178,6 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
                 ]
             );
         }
-
-        return $order;
     }
 
     /**
