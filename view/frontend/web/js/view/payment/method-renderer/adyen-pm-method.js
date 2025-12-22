@@ -215,7 +215,6 @@ define(
                     {
                         showPayButton: showPayButton,
                         countryCode: formattedShippingAddress.country ? formattedShippingAddress.country : formattedBillingAddress.country, // Use shipping address details as default and fall back to billing address if missing
-                        data: {},
                         onChange: function (state) {
                             paymentComponentStates().setIsPlaceOrderAllowed(self.getMethodCode(), state.isValid);
                         },
