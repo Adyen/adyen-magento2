@@ -42,7 +42,7 @@ jobs:
     strategy:
       matrix:
         php-version: ["8.2"]
-        magento-version: ["2.4.6-p7"]
+        magento-version: ["2.4.6-p13"]
 
     runs-on:
       group: larger-runners
