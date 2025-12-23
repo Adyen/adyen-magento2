@@ -69,6 +69,10 @@ else
 	mv composer.phar /usr/local/bin/composer
 fi
 
+# Switch to the required version of Composer
+# https://experienceleague.adobe.com/en/docs/commerce-operations/installation-guide/system-requirements
+composer self-update 2.8
+
 if [[ -d /var/www/html/vendor/magento ]]; then
 	echo "Magento is already installed."
 else
