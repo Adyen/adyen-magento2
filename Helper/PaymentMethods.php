@@ -457,13 +457,13 @@ class PaymentMethods extends AbstractHelper
      * This method checks the in-memory cache for the /paymentMethods response.
      * If the response is not in the cache, it will fetch it from the Adyen Checkout API.
      *
-     * @param $quote
+     * @param CartInterface $quote
      * @return string|null
      * @throws AdyenException
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function getApiResponse($quote): ?string
+    public function getApiResponse(CartInterface $quote): ?string
     {
         if (!isset($this->paymentMethodsApiResponse)) {
             $channel = $this->request->getParam('channel');
