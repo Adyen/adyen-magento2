@@ -274,7 +274,7 @@ class PaymentMethods extends AbstractHelper
             $country,
             $channel
         );
-        $responseData = $this->getPaymentMethodsApiResponse($requestData, $store);
+        $responseData = $this->getPaymentMethodsResponse($requestData, $store);
         if (empty($responseData['paymentMethods'])) {
             return json_encode([]);
         }
@@ -395,7 +395,7 @@ class PaymentMethods extends AbstractHelper
      * @throws AdyenException
      * @throws NoSuchEntityException
      */
-    protected function getPaymentMethodsApiResponse(array $requestParams, Store $store): array
+    protected function getPaymentMethodsResponse(array $requestParams, Store $store): array
     {
         // initialize the adyen client
         $client = $this->adyenHelper->initializeAdyenClient($store->getId());
