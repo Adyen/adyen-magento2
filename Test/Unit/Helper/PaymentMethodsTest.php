@@ -15,6 +15,8 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\View\DesignInterface;
+use Magento\Quote\Api\Data\AddressInterface;
+use Magento\Quote\Api\Data\CartInterface;
 use Magento\Framework\View\Asset\{Repository, Source, LocalInterface};
 use Magento\Framework\View\Design\{Theme\ThemeProviderInterface};
 use Magento\Payment\Helper\Data as MagentoDataHelper;
@@ -948,4 +950,114 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $this->assertSame(10000, $result['amount']['value']);
     }
 
+    public function testGetApiResponseFetchesAndCachesWhenEmpty(): void
+    {
+        $quoteId = 123;
+        $countryId = 'NL';
+        $channel = 'Web';
+        $apiResponse = '{"paymentMethods":"from-api"}';
+
+        // Create a mocked version of SUT to mock `getPaymentMethods()` method.
+        $helper = $this->getMockBuilder(PaymentMethods::class)
+            ->setConstructorArgs([
+                $this->createMock(Context::class),
+                $this->cartRepository,
+                $this->config,
+                $this->dataHelper,
+                $this->createMock(AdyenLogger::class),
+                $this->repositoryMock,
+                $this->sourceMock,
+                $this->createMock(DesignInterface::class),
+                $this->createMock(ThemeProviderInterface::class),
+                $this->chargedCurrencyMock,
+                $this->configHelper,
+                $this->magentoDataHelper,
+                $this->serializer,
+                $this->paymentTokenRepositoryInterface,
+                $this->searchCriteriaBuilder,
+                $this->localeHelper,
+                $this->generateShopperConversionId,
+                $this->checkoutSession,
+                $this->requestInterfaceMock
+            ])
+            ->onlyMethods(['getPaymentMethods'])
+            ->getMock();
+
+        $billingAddressMock = $this->createMock(AddressInterface::class);
+        $billingAddressMock->expects($this->once())
+            ->method('getCountryId')
+            ->willReturn($countryId);
+
+        $quoteMock = $this->createMock(CartInterface::class);
+        $quoteMock->expects($this->once())
+            ->method('getId')
+            ->willReturn($quoteId);
+        $quoteMock->expects($this->once())
+            ->method('getBillingAddress')
+            ->willReturn($billingAddressMock);
+
+        $this->requestInterfaceMock->expects($this->once())
+            ->method('getParam')
+            ->with('channel')
+            ->willReturn($channel);
+
+        $helper->expects($this->once())
+            ->method('getPaymentMethods')
+            ->with($quoteId, $countryId, null, $channel)
+            ->willReturn($apiResponse);
+
+        $result = $helper->getApiResponse($quoteMock);
+        $this->assertSame($apiResponse, $result);
+
+        $reflection = new ReflectionClass($helper);
+        $property = $reflection->getProperty('paymentMethodsApiResponse');
+        $property->setAccessible(true);
+        $this->assertSame($apiResponse, $property->getValue($helper));
+    }
+
+    public function testGetApiResponseReturnsCachedWhenAlreadySet(): void
+    {
+        $cached = '{"paymentMethods":"cached"}';
+
+        // Create a mocked version of SUT to mock `getPaymentMethods()` method.
+        $helper = $this->getMockBuilder(PaymentMethods::class)
+            ->setConstructorArgs([
+                $this->createMock(Context::class),
+                $this->cartRepository,
+                $this->config,
+                $this->dataHelper,
+                $this->createMock(AdyenLogger::class),
+                $this->repositoryMock,
+                $this->sourceMock,
+                $this->createMock(DesignInterface::class),
+                $this->createMock(ThemeProviderInterface::class),
+                $this->chargedCurrencyMock,
+                $this->configHelper,
+                $this->magentoDataHelper,
+                $this->serializer,
+                $this->paymentTokenRepositoryInterface,
+                $this->searchCriteriaBuilder,
+                $this->localeHelper,
+                $this->generateShopperConversionId,
+                $this->checkoutSession,
+                $this->requestInterfaceMock
+            ])
+            ->onlyMethods(['getPaymentMethods'])
+            ->getMock();
+
+        $reflection = new ReflectionClass($helper);
+        $property = $reflection->getProperty('paymentMethodsApiResponse');
+        $property->setAccessible(true);
+        $property->setValue($helper, $cached);
+
+        $this->requestInterfaceMock->expects($this->never())
+            ->method('getParam');
+        $helper->expects($this->never())
+            ->method('getPaymentMethods');
+
+        $quoteMock = $this->createMock(CartInterface::class);
+        $result = $helper->getApiResponse($quoteMock);
+
+        $this->assertSame($cached, $result);
+    }
 }
