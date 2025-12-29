@@ -12,6 +12,7 @@ use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\View\DesignInterface;
 use Magento\Framework\View\Asset\{Repository, Source, LocalInterface};
@@ -59,6 +60,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
     private MockObject $checkoutSession;
     private MockObject $generateShopperConversionId;
     private MockObject $cartRepository;
+    private MockObject $requestInterfaceMock;
 
     protected function setUp(): void
     {
@@ -106,6 +108,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             ->willReturn(null);
         $sessionQuote->method('getPayment')->willReturn($sessionPayment);
         $this->checkoutSession->method('getQuote')->willReturn($sessionQuote);
+        $this->requestInterfaceMock = $this->createMock(RequestInterface::class);
 
         $this->helper = new PaymentMethods(
             $this->createMock(Context::class),
@@ -125,7 +128,8 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             $this->searchCriteriaBuilder,
             $this->localeHelper,
             $this->generateShopperConversionId,
-            $this->checkoutSession
+            $this->checkoutSession,
+            $this->requestInterfaceMock
         );
     }
 
@@ -545,7 +549,8 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             $this->searchCriteriaBuilder,
             $this->localeHelper,
             $this->generateShopperConversionId,
-            $this->checkoutSession
+            $this->checkoutSession,
+            $this->requestInterfaceMock
         );
 
 

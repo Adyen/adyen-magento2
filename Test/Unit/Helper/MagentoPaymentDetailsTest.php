@@ -14,6 +14,7 @@ namespace Adyen\Payment\Test\Unit\Helper;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\ConnectedTerminals;
 use Adyen\Payment\Helper\MagentoPaymentDetails;
+use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\PaymentMethodsFilter;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Checkout\Api\Data\PaymentDetailsExtensionInterface;
@@ -278,7 +279,8 @@ class MagentoPaymentDetailsTest extends AbstractAdyenTestCase
         $paymentMethodsFilterMock = null,
         $configHelperMock = null,
         $cartRepositoryInterfaceMock = null,
-        $connectedTerminalsMock = null
+        $connectedTerminalsMock = null,
+        $paymentMethodsMock = null
     ): MagentoPaymentDetails {
         if (is_null($paymentMethodsFilterMock)) {
             $paymentMethodsFilterMock = $this->createMock(PaymentMethodsFilter::class);
@@ -296,11 +298,16 @@ class MagentoPaymentDetailsTest extends AbstractAdyenTestCase
             $connectedTerminalsMock = $this->createMock(ConnectedTerminals::class);
         }
 
+        if (is_null($paymentMethodsMock)) {
+            $paymentMethodsMock = $this->createMock(PaymentMethods::class);
+        }
+
         return new MagentoPaymentDetails(
             $paymentMethodsFilterMock,
             $configHelperMock,
             $cartRepositoryInterfaceMock,
-            $connectedTerminalsMock
+            $connectedTerminalsMock,
+            $paymentMethodsMock
         );
     }
 }
