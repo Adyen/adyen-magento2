@@ -223,11 +223,16 @@ class MagentoPaymentDetailsTest extends AbstractAdyenTestCase
             'getAdyenPosCloudConfigData' => true
         ]);
 
+        $paymentMethodsHelperMock = $this->createConfiguredMock(PaymentMethods::class, [
+            'getApiResponse' => self::PAYMENT_METHODS_RESPONSE
+        ]);
+
         $magentoPaymentDetails = $this->createMagentoPaymentDetailsHelper(
             $paymentMethodsFilterMock,
             $configHelperMock,
             $cartRepositoryInterfaceMock,
-            $connectedTerminalsMock
+            $connectedTerminalsMock,
+            $paymentMethodsHelperMock
         );
 
         $paymentDetails = $magentoPaymentDetails->addAdyenExtensionAttributes($paymentDetailsMock, $quoteId);
@@ -268,11 +273,16 @@ class MagentoPaymentDetailsTest extends AbstractAdyenTestCase
         $connectedTerminalsMock->expects($this->never())
             ->method('getConnectedTerminals');
 
+        $paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
+        $paymentMethodsHelperMock->expects($this->never())
+            ->method('getApiResponse');
+
         $magentoPaymentDetails = $this->createMagentoPaymentDetailsHelper(
             $paymentMethodsFilterMock,
             $configHelperMock,
             $cartRepositoryInterfaceMock,
-            $connectedTerminalsMock
+            $connectedTerminalsMock,
+            $paymentMethodsHelperMock
         );
 
         $result = $magentoPaymentDetails->addAdyenExtensionAttributes($paymentDetailsMock, $quoteId);
