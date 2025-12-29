@@ -20,14 +20,12 @@ use Magento\Quote\Api\CartRepositoryInterface;
 class MagentoPaymentDetails
 {
     /**
-     * @param PaymentMethodsFilter $paymentMethodsFilter
      * @param Config $configHelper
      * @param CartRepositoryInterface $cartRepository
      * @param ConnectedTerminals $connectedTerminalsHelper
      * @param PaymentMethods $adyenPaymentMethodsHelper
      */
     public function __construct(
-        protected readonly PaymentMethodsFilter $paymentMethodsFilter,
         protected readonly Config $configHelper,
         protected readonly CartRepositoryInterface $cartRepository,
         protected readonly ConnectedTerminals $connectedTerminalsHelper,
