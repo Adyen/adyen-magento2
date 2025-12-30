@@ -25,7 +25,6 @@ class MultishippingPaymentMethodsTest extends AbstractAdyenTestCase
     protected ?MultishippingPaymentMethods $multishippingPaymentMethods;
     protected PaymentMethodsFilter|MockObject $paymentMethodsFilterMock;
     protected Config|MockObject $configHelperMock;
-    protected PaymentMethods|MockObject $paymentMethodsMock;
 
     public function setUp(): void
     {
@@ -33,12 +32,10 @@ class MultishippingPaymentMethodsTest extends AbstractAdyenTestCase
 
         $this->paymentMethodsFilterMock = $this->createMock(PaymentMethodsFilter::class);
         $this->configHelperMock = $this->createMock(Config::class);
-        $this->paymentMethodsMock = $this->createMock(PaymentMethods::class);
 
         $this->multishippingPaymentMethods = new MultishippingPaymentMethods(
             $this->paymentMethodsFilterMock,
-            $this->configHelperMock,
-            $this->paymentMethodsMock
+            $this->configHelperMock
         );
     }
 
@@ -70,8 +67,6 @@ class MultishippingPaymentMethodsTest extends AbstractAdyenTestCase
 
         $this->paymentMethodsFilterMock->expects($this->never())
             ->method('sortAndFilterPaymentMethods');
-        $this->paymentMethodsMock->expects($this->never())
-            ->method('getApiResponse');
         $billingMock->expects($this->never())
             ->method('setAdyenPaymentMethodsResponse');
 
@@ -103,12 +98,7 @@ class MultishippingPaymentMethodsTest extends AbstractAdyenTestCase
 
         $this->paymentMethodsFilterMock->expects($this->once())
             ->method('sortAndFilterPaymentMethods')
-            ->willReturn([$filteredMethods]);
-
-        $this->paymentMethodsMock->expects($this->once())
-            ->method('getApiResponse')
-            ->with($quoteMock)
-            ->willReturn($apiResponse);
+            ->willReturn([$filteredMethods, $apiResponse]);
 
         $billingMock->expects($this->once())
             ->method('setAdyenPaymentMethodsResponse')
