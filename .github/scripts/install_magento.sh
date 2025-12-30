@@ -41,23 +41,56 @@ if [ "$OPENSEARCH_SERVER" != "<will be defined>" ]; then
 	echo "OpenSearch server $OPENSEARCH_SERVER is available."
 fi
 
-if [[ -e /tmp/magento.tar.gz ]]; then
-	mv /tmp/magento.tar.gz /var/www/html
-else
-	echo "Magento 2 tar is already moved to /var/www/html"
+#if [[ -e /tmp/magento.tar.gz ]]; then
+#	mv /tmp/magento.tar.gz /var/www/html
+#else
+#	echo "Magento 2 tar is already moved to /var/www/html"
+#fi
+#
+#if [[ -e /tmp/sample-data.tar.gz ]]; then
+#	mv /tmp/sample-data.tar.gz /var/www
+#else
+#	echo "Magento 2 sample data tar is alread moved to /var/www"
+#fi
+#
+#if [[ -e /var/www/html/pub/index.php ]]; then
+#	echo "Already extracted Magento"
+#else
+#	tar -xf magento.tar.gz --strip-components 1
+#	rm magento.tar.gz
+#fi
+
+# --- Download Magento from GitHub tag instead of /tmp/magento.tar.gz ---
+if [ "${MAGENTO_VERSION}" == "<will be defined>" ] || [ -z "${MAGENTO_VERSION}" ]; then
+  echo "MAGENTO_VERSION is not defined!"
+  exit 1
 fi
 
-if [[ -e /tmp/sample-data.tar.gz ]]; then
-	mv /tmp/sample-data.tar.gz /var/www
-else
-	echo "Magento 2 sample data tar is alread moved to /var/www"
-fi
+cd /var/www/html
 
 if [[ -e /var/www/html/pub/index.php ]]; then
-	echo "Already extracted Magento"
+  echo "Already extracted Magento"
 else
-	tar -xf magento.tar.gz --strip-components 1
-	rm magento.tar.gz
+  echo "Downloading Magento ${MAGENTO_VERSION} from GitHub..."
+  curl -fsSL -o magento.tar.gz \
+    "https://github.com/magento/magento2/archive/refs/tags/${MAGENTO_VERSION}.tar.gz"
+
+  mkdir -p /var/www/html/tmp_magento_extract
+  tar -xzf magento.tar.gz -C /var/www/html/tmp_magento_extract
+  rm -f magento.tar.gz
+
+  MAGENTO_DIR=$(find /var/www/html/tmp_magento_extract -maxdepth 1 -type d -name "magento2-*" | head -n 1)
+  if [ -z "${MAGENTO_DIR}" ]; then
+    echo "Failed to locate extracted Magento directory."
+    exit 1
+  fi
+
+  shopt -s dotglob
+  mv "${MAGENTO_DIR}"/* /var/www/html/
+  shopt -u dotglob
+  rm -rf /var/www/html/tmp_magento_extract
+
+  echo "Magento extracted."
 fi
 
 if [[ -e /usr/local/bin/composer ]]; then
