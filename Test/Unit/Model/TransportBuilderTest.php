@@ -22,6 +22,8 @@ use Magento\Framework\Mail\TransportInterface;
 use Magento\Framework\Mail\TransportInterfaceFactory;
 use Magento\Framework\ObjectManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use Magento\Framework\Mail\MimePartInterface;
+use Magento\Framework\Mail\MimeMessageInterface;
 
 class TransportBuilderTest extends AbstractAdyenTestCase
 {
@@ -39,7 +41,6 @@ class TransportBuilderTest extends AbstractAdyenTestCase
 
     protected function setUp(): void
     {
-        // Factories/converter: safe to use createGeneratedMock with explicit methods (less noisy).
         $this->templateFactory = $this->createGeneratedMock(FactoryInterface::class, ['get']);
         $this->senderResolver = $this->createGeneratedMock(SenderResolverInterface::class, ['resolve']);
         $this->objectManager = $this->createGeneratedMock(ObjectManagerInterface::class);
@@ -70,7 +71,6 @@ class TransportBuilderTest extends AbstractAdyenTestCase
             'Subject &amp; stuff'
         );
 
-        // Address is a concrete class; safe with createGeneratedMock
         $toAddress = $this->createGeneratedMock(Address::class);
         $cc1 = $this->createGeneratedMock(Address::class);
         $cc2 = $this->createGeneratedMock(Address::class);
@@ -88,9 +88,7 @@ class TransportBuilderTest extends AbstractAdyenTestCase
             ])
             ->willReturn([$cc1, $cc2]);
 
-        // IMPORTANT: do NOT use createGeneratedMock(MimePartInterface::class, ['getCharset'])
-        // PHPUnit 10 will fatal because the interface has many abstract methods.
-        $contentPart = $this->createMock(\Magento\Framework\Mail\MimePartInterface::class);
+        $contentPart = $this->createMock(MimePartInterface::class);
         $contentPart->method('getCharset')->willReturn('utf-8');
 
         $this->mimePartFactory->expects($this->once())
@@ -101,7 +99,7 @@ class TransportBuilderTest extends AbstractAdyenTestCase
             }))
             ->willReturn($contentPart);
 
-        $mimeMessage = $this->createMock(\Magento\Framework\Mail\MimeMessageInterface::class);
+        $mimeMessage = $this->createMock(MimeMessageInterface::class);
         $this->mimeMessageFactory->expects($this->once())
             ->method('create')
             ->with($this->callback(function (array $args) use ($contentPart) {
@@ -132,7 +130,7 @@ class TransportBuilderTest extends AbstractAdyenTestCase
             ->with($this->callback(function (array $args) use ($message) {
                 return isset($args['message'])
                     && $args['message'] instanceof MessageInterface
-                    && $args['message'] !== $message; // cloned
+                    && $args['message'] !== $message;
             }))
             ->willReturn($transport);
 
@@ -163,10 +161,10 @@ class TransportBuilderTest extends AbstractAdyenTestCase
             'Plain subject'
         );
 
-        $contentPart = $this->createMock(\Magento\Framework\Mail\MimePartInterface::class);
+        $contentPart = $this->createMock(MimePartInterface::class);
         $contentPart->method('getCharset')->willReturn('utf-8');
 
-        $attachmentPart = $this->createMock(\Magento\Framework\Mail\MimePartInterface::class);
+        $attachmentPart = $this->createMock(MimePartInterface::class);
 
         $createCall = 0;
 
@@ -190,7 +188,7 @@ class TransportBuilderTest extends AbstractAdyenTestCase
                 return $attachmentPart;
             });
 
-        $mimeMessage = $this->createMock(\Magento\Framework\Mail\MimeMessageInterface::class);
+        $mimeMessage = $this->createMock(MimeMessageInterface::class);
         $this->mimeMessageFactory->expects($this->once())
             ->method('create')
             ->with($this->callback(function (array $args) use ($contentPart, $attachmentPart) {
@@ -351,12 +349,12 @@ class TransportBuilderTest extends AbstractAdyenTestCase
             'Order &amp; Confirmation'
         );
 
-        $contentPart = $this->createMock(\Magento\Framework\Mail\MimePartInterface::class);
+        $contentPart = $this->createMock(MimePartInterface::class);
         $contentPart->method('getCharset')->willReturn('utf-8');
 
         $this->mimePartFactory->method('create')->willReturn($contentPart);
         $this->mimeMessageFactory->method('create')->willReturn(
-            $this->createMock(\Magento\Framework\Mail\MimeMessageInterface::class)
+            $this->createMock(MimeMessageInterface::class)
         );
 
         $this->emailMessageFactory->expects($this->once())
@@ -379,8 +377,6 @@ class TransportBuilderTest extends AbstractAdyenTestCase
 
     private function prepareTemplateMock(int $type, string $processedContent, string $subject): TemplateInterface
     {
-        // Use createMock() here: TemplateInterface inherits TemplateTypesInterface::isPlain().
-        // Using createGeneratedMock() with onlyMethods() can fatal if a method is missing.
         $template = $this->createMock(TemplateInterface::class);
 
         $template->method('setVars')->willReturnSelf();
