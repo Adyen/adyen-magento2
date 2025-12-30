@@ -8,6 +8,7 @@ use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Laminas\Mime\Mime;
 use Magento\Framework\App\TemplateTypesInterface;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\MailException;
 use Magento\Framework\Mail\Address;
 use Magento\Framework\Mail\AddressConverter;
 use Magento\Framework\Mail\EmailMessageInterfaceFactory;
@@ -21,29 +22,29 @@ use Magento\Framework\Mail\TemplateInterface;
 use Magento\Framework\Mail\TransportInterface;
 use Magento\Framework\Mail\TransportInterfaceFactory;
 use Magento\Framework\ObjectManagerInterface;
+use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
 use Magento\Framework\Mail\MimePartInterface;
 use Magento\Framework\Mail\MimeMessageInterface;
+use ReflectionClass;
+use ReflectionException;
 
 class TransportBuilderTest extends AbstractAdyenTestCase
 {
     private FactoryInterface&MockObject $templateFactory;
     private SenderResolverInterface&MockObject $senderResolver;
-    private ObjectManagerInterface&MockObject $objectManager;
     private TransportInterfaceFactory&MockObject $transportFactory;
-
     private EmailMessageInterfaceFactory&MockObject $emailMessageFactory;
     private MimeMessageInterfaceFactory&MockObject $mimeMessageFactory;
     private MimePartInterfaceFactory&MockObject $mimePartFactory;
     private AddressConverter&MockObject $addressConverter;
-
     private TransportBuilder $subject;
 
     protected function setUp(): void
     {
         $this->templateFactory = $this->createGeneratedMock(FactoryInterface::class, ['get']);
         $this->senderResolver = $this->createGeneratedMock(SenderResolverInterface::class, ['resolve']);
-        $this->objectManager = $this->createGeneratedMock(ObjectManagerInterface::class);
+        $objectManager = $this->createGeneratedMock(ObjectManagerInterface::class);
         $this->transportFactory = $this->createGeneratedMock(TransportInterfaceFactory::class, ['create']);
 
         $this->emailMessageFactory = $this->createGeneratedMock(EmailMessageInterfaceFactory::class, ['create']);
@@ -54,7 +55,7 @@ class TransportBuilderTest extends AbstractAdyenTestCase
         $this->subject = new TransportBuilder(
             $this->templateFactory,
             $this->senderResolver,
-            $this->objectManager,
+            $objectManager,
             $this->transportFactory,
             $this->emailMessageFactory,
             $this->mimeMessageFactory,
@@ -63,6 +64,10 @@ class TransportBuilderTest extends AbstractAdyenTestCase
         );
     }
 
+    /**
+     * @throws ReflectionException
+     * @throws LocalizedException
+     */
     public function testGetTransportBuildsMessageWithAddressesAndResetsState(): void
     {
         $this->prepareTemplateMock(
@@ -153,6 +158,9 @@ class TransportBuilderTest extends AbstractAdyenTestCase
         self::assertNull($this->readProtectedProperty($this->subject, 'templateOptions'));
     }
 
+    /**
+     * @throws LocalizedException
+     */
     public function testGetTransportAddsAttachmentParts(): void
     {
         $this->prepareTemplateMock(
@@ -229,6 +237,10 @@ class TransportBuilderTest extends AbstractAdyenTestCase
         $this->subject->getTransport();
     }
 
+    /**
+     * @throws ReflectionException
+     * @throws MailException
+     */
     public function testSetFromByScopeUsesSenderResolverAndAddressConverter(): void
     {
         $fromAddress = $this->createGeneratedMock(Address::class);
@@ -245,12 +257,15 @@ class TransportBuilderTest extends AbstractAdyenTestCase
 
         $this->subject->setFromByScope('general', 5);
 
-        $messageData = $this->readPrivateProperty($this->subject, 'messageData');
+        $messageData = $this->readProtectedProperty($this->subject, 'messageData');
         self::assertArrayHasKey('from', $messageData);
         self::assertCount(1, $messageData['from']);
         self::assertInstanceOf(Address::class, $messageData['from'][0]);
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testAddBccWithArrayMergesAddresses(): void
     {
         $bcc1 = $this->createGeneratedMock(Address::class);
@@ -269,7 +284,7 @@ class TransportBuilderTest extends AbstractAdyenTestCase
             ['email' => 'b@example.com'],
         ]);
 
-        $messageData = $this->readPrivateProperty($this->subject, 'messageData');
+        $messageData = $this->readProtectedProperty($this->subject, 'messageData');
 
         self::assertArrayHasKey('bcc', $messageData);
         self::assertCount(2, $messageData['bcc']);
@@ -277,6 +292,9 @@ class TransportBuilderTest extends AbstractAdyenTestCase
         self::assertSame($bcc2, $messageData['bcc'][1]);
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testSetReplyToAddsReplyToAddress(): void
     {
         $replyTo = $this->createGeneratedMock(Address::class);
@@ -288,12 +306,15 @@ class TransportBuilderTest extends AbstractAdyenTestCase
 
         $this->subject->setReplyTo('reply@example.com', 'Reply Name');
 
-        $messageData = $this->readPrivateProperty($this->subject, 'messageData');
+        $messageData = $this->readProtectedProperty($this->subject, 'messageData');
 
         self::assertArrayHasKey('replyTo', $messageData);
         self::assertSame($replyTo, $messageData['replyTo'][0]);
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testAddToMultipleTimesAppends(): void
     {
         $addr1 = $this->createGeneratedMock(Address::class);
@@ -306,21 +327,27 @@ class TransportBuilderTest extends AbstractAdyenTestCase
         $this->subject->addTo('a@example.com');
         $this->subject->addTo('b@example.com');
 
-        $messageData = $this->readPrivateProperty($this->subject, 'messageData');
+        $messageData = $this->readProtectedProperty($this->subject, 'messageData');
 
         self::assertCount(2, $messageData['to']);
         self::assertSame($addr1, $messageData['to'][0]);
         self::assertSame($addr2, $messageData['to'][1]);
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testSetAttachmentWithNullContentDoesNothing(): void
     {
         $this->subject->setAttachment(null, 'file.pdf');
 
-        $attachments = $this->readPrivateProperty($this->subject, 'attachments');
+        $attachments = $this->readProtectedProperty($this->subject, 'attachments');
         self::assertEmpty($attachments);
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testGetTransportResetsStateOnException(): void
     {
         $this->prepareTemplateMock(999, 'X', 'S');
@@ -333,7 +360,7 @@ class TransportBuilderTest extends AbstractAdyenTestCase
 
         try {
             $this->subject->getTransport();
-        } catch (LocalizedException $e) {
+        } catch (LocalizedException) {
             // expected
         }
 
@@ -341,6 +368,9 @@ class TransportBuilderTest extends AbstractAdyenTestCase
         self::assertNull($this->readProtectedProperty($this->subject, 'templateVars'));
     }
 
+    /**
+     * @throws LocalizedException
+     */
     public function testSubjectIsHtmlDecoded(): void
     {
         $this->prepareTemplateMock(
@@ -375,7 +405,14 @@ class TransportBuilderTest extends AbstractAdyenTestCase
             ->getTransport();
     }
 
-    private function prepareTemplateMock(int $type, string $processedContent, string $subject): TemplateInterface
+    /**
+     * @param int $type
+     * @param string $processedContent
+     * @param string $subject
+     * @return void
+     * @throws Exception
+     */
+    private function prepareTemplateMock(int $type, string $processedContent, string $subject): void
     {
         $template = $this->createMock(TemplateInterface::class);
 
@@ -390,22 +427,16 @@ class TransportBuilderTest extends AbstractAdyenTestCase
             ->method('get')
             ->willReturn($template);
 
-        return $template;
     }
 
+    /**
+     * @throws ReflectionException
+     */
     private function readProtectedProperty(object $obj, string $prop): mixed
     {
-        $ref = new \ReflectionClass($obj);
+        $ref = new ReflectionClass($obj);
         $p = $ref->getProperty($prop);
-        $p->setAccessible(true);
         return $p->getValue($obj);
     }
 
-    private function readPrivateProperty(object $obj, string $prop): mixed
-    {
-        $ref = new \ReflectionClass($obj);
-        $p = $ref->getProperty($prop);
-        $p->setAccessible(true);
-        return $p->getValue($obj);
-    }
 }
