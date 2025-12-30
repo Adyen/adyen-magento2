@@ -18,7 +18,7 @@ magento:
 # Plugin install
 install:
 	composer config --json repositories.local '{"type": "path", "url": "/data/extensions/workdir", "options": { "symlink": false } }'
-	composer require "adyen/module-payment:*"
+	composer require "adyen/module-payment:dev-ECP-9322"
 	bin/magento module:enable Adyen_Payment
 	bin/magento setup:upgrade
 	bin/magento setup:di:compile
