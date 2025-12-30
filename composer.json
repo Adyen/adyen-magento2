@@ -21,7 +21,6 @@
     "magento/module-instant-purchase": ">=100.4.7",
     "magento/module-checkout-agreements": ">=100.4.7",
     "magento/module-csp": ">=100.4.7",
-    "magento/laminas-mime": "^1.0.0",
     "ext-json": "*"
   },
   "require-dev": {
