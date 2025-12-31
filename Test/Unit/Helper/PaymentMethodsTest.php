@@ -1380,6 +1380,6 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             ->with(PaymentMethods::CONFIG_FIELD_REFUND_REQUIRES_CAPTURE_PSPREFERENCE)
             ->willReturn(true);
 
-        $this->assertFalse($this->paymentMethodsHelper->getRefundRequiresCapturePspreference($this->methodMock));
+        $this->assertTrue($this->paymentMethodsHelper->getRefundRequiresCapturePspreference($this->methodMock));
     }
 }
