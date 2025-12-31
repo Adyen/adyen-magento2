@@ -22,28 +22,25 @@ script;
 
 <?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptCartReload, false) ?>
 
-<?php
-// Show Adyen "payment pending" info & clean up default success message
-if ($block->isIntermediateResult()):
-    $pendingMsgHtml       = $block->escapeHtml($block->getPendingMessage());
-    ?>
+<?php if ($block->isIntermediateResult()): ?>
     <div class="adyen-pending-message">
-        <p><?= $pendingMsgHtml ?></p>
+        <p><?= $block->escapeHtml($block->getPendingMessage()) ?></p>
     </div>
 
     <?php
     $scriptPendingMessage = <<<JS
-    require(['jquery'], function($) {
-    try {
-        $('.adyen-pending-message').show();
-    } catch (e) {
-        /* no-op: silently ignore cleanup errors */
-    }
-});
-JS;
+        require(['jquery'], function($) {
+            try {
+                $('.adyen-pending-message').show();
+            } catch (e) {
+                /* no-op: silently ignore cleanup errors */
+            }
+        });
+        JS;
     ?>
     <?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptPendingMessage, false) ?>
 <?php endif; ?>
+
 
 <?php if ($block->renderAction()): ?>
     <div id="ActionContainer"></div>
