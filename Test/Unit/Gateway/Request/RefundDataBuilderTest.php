@@ -286,6 +286,10 @@ class RefundDataBuilderTest extends AbstractAdyenTestCase
             ->with($paymentMethodInstanceMock)
             ->willReturn(true);
 
+        $this->paymentMethodsHelperMock->method('getRefundRequiresCapturePspreference')
+            ->with($paymentMethodInstanceMock)
+            ->willReturn(true);
+
         $this->openInvoiceHelperMock->method('getOpenInvoiceDataForCreditMemo')
             ->with($creditMemoMock)
             ->willReturn(['lineItems' => [['product_id' => 1]]]);
