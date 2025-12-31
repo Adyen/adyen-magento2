@@ -29,6 +29,7 @@ use Throwable;
 
 class TokenWebhookAcceptor implements WebhookAcceptorInterface
 {
+    const HTTP_HEADER_HMAC_SIGNATURE = 'hmacsignature';
     private const REQUIRED_FIELDS = [
         'environment',
         'eventId',
@@ -82,26 +83,55 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
      */
     private function validate(array $payload): void
     {
+        $storeId = null;
+        $pspReference = $payload['eventId'] ?? '';
+
+        try {
+            $payment = $this->paymentRepository->getPaymentByCcTransId($pspReference);
+            $this->order = $payment?->getOrder();
+            $storeId = $this->order?->getStoreId();
+        } catch (Throwable $e) {
+            $this->adyenLogger->addAdyenNotification(sprintf(
+                'Could not load payment for reference %s: %s',
+                $pspReference,
+                $e->getMessage()
+            ));
+        }
+
+        // Get the HMAC key from the default configuration scope if the storeId is not found
+        $webhookHmacKey = $this->configHelper->getNotificationsHmacKey($storeId);
+
+        if ($webhookHmacKey) {
+            $webhookHmacSignature = $this->request->getHeader(self::HTTP_HEADER_HMAC_SIGNATURE);
+
+            if ($webhookHmacSignature === false) {
+                throw new InvalidDataException(sprintf(
+                    'Missing HMAC signature for webhook with reference %s',
+                    $pspReference
+                ));
+            }
+
+            $expectedSignature = base64_encode(
+                hash_hmac('sha256', json_encode($payload), pack("H*", $webhookHmacKey), true)
+            );
+
+            if (!hash_equals($expectedSignature, $webhookHmacSignature)) {
+                $this->adyenLogger->addAdyenNotification("HMAC validation failed", [
+                    'originalReference' => $pspReference
+                ]);
+
+                throw new AuthenticationException();
+            }
+        }
+
         foreach (self::REQUIRED_FIELDS as $fieldPath) {
             if (!$this->getNestedValue($payload, explode('.', $fieldPath))) {
                 throw new InvalidDataException(__(
                     'Missing required field `%1` in token webhook with originalReference %2',
                     $fieldPath,
-                    $payload['eventId'] ?? null
+                    $pspReference
                 ));
             }
-        }
-
-        $storeId = null;
-
-        try {
-            $payment = $this->paymentRepository->getPaymentByCcTransId($payload['eventId']);
-            $this->order = $payment?->getOrder();
-            $storeId = $this->order?->getStoreId();
-        } catch (Throwable $e) {
-            $this->adyenLogger->addAdyenNotification(
-                sprintf('Could not load payment for reference %s: %s', $payload['eventId'], $e->getMessage())
-            );
         }
 
         $isLive = $payload['environment'] === 'live' ? 'true' : 'false';
@@ -114,28 +144,11 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
             $message = __('Mismatch between Live/Test modes of Magento store and the Adyen platform');
 
             $this->adyenLogger->addAdyenNotification($message, [
-                'originalReference' => $payload['eventId'],
+                'originalReference' => $pspReference,
                 'pspReference' => $payload['data']['storedPaymentMethodId']
             ]);
 
             throw new LocalizedException($message);
-        }
-
-        $webhookHmacKey = $this->configHelper->getNotificationsHmacKey($storeId);
-
-        if ($webhookHmacKey) {
-            $webhookHmacSignature = $this->request->getHeader('hmacsignature');
-            $expectedSignature = base64_encode(
-                hash_hmac('sha256', json_encode($payload), pack("H*", $webhookHmacKey), true)
-            );
-
-            if (strcmp($expectedSignature, $webhookHmacSignature) !== 0) {
-                $this->adyenLogger->addAdyenNotification("HMAC validation failed", [
-                    'originalReference' => $payload['eventId']
-                ]);
-
-                throw new AuthenticationException();
-            }
         }
     }
 
