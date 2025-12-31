@@ -5,7 +5,6 @@ namespace Adyen\Payment\Test\Unit\Model;
 
 use Adyen\Payment\Model\TransportBuilder;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
-use Laminas\Mime\Mime;
 use Magento\Framework\App\TemplateTypesInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\MailException;
@@ -192,9 +191,9 @@ class TransportBuilderTest extends AbstractAdyenTestCase
                 }
 
                 self::assertSame('PDF_BYTES', $args['content']);
-                self::assertSame(Mime::TYPE_OCTETSTREAM, $args['type']);
-                self::assertSame(Mime::DISPOSITION_ATTACHMENT, $args['disposition']);
-                self::assertSame(Mime::ENCODING_BASE64, $args['encoding']);
+                self::assertSame('application/octet-stream', $args['type']);
+                self::assertSame('attachment', $args['disposition']);
+                self::assertSame('base64', $args['encoding']);
                 self::assertSame('invoice.pdf', $args['fileName']);
 
                 return $attachmentPart;
