@@ -22,6 +22,14 @@ services:
       - "discovery.type=single-node"
       - "OPENSEARCH_JAVA_OPTS=-Xms750m -Xmx750m"
       - "DISABLE_SECURITY_PLUGIN=true"
+  rabbitmq:
+    image: rabbitmq:4.1
+    container_name: rabbitmq
+    networks:
+      - backend
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
   web:
     build:
       context: .
@@ -38,6 +46,7 @@ services:
     environment:
       DB_SERVER: mariadb
       OPENSEARCH_SERVER: opensearch-container
+      RABBITMQ_SERVER: rabbitmq
       MAGENTO_HOST: magento2.test.com
       VIRTUAL_HOST: magento2.test.com
       COMPOSER_MEMORY_LIMIT: -1
@@ -54,6 +63,7 @@ services:
     depends_on:
       - db
       - opensearch
+      - rabbitmq
     volumes:
       - ../:/data/extensions/workdir
       - ./Makefile:/var/www/html/Makefile

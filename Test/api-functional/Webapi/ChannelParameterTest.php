@@ -1,85 +1,78 @@
 <?php
+/**
+ *
+ * Adyen Payment Module
+ *
+ * Copyright (c) 2025 Adyen N.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
 
 namespace Adyen\Payment\Test\Webapi;
 
+use Magento\Catalog\Test\Fixture\Product;
 use Magento\Framework\Webapi\Rest\Request;
-use Magento\GraphQl\Quote\GetMaskedQuoteIdByReservedOrderId;
-use Magento\Integration\Api\CustomerTokenServiceInterface;
+use Magento\Indexer\Test\Fixture\Indexer;
+use Magento\Quote\Model\QuoteIdToMaskedQuoteIdInterface;
+use Magento\Quote\Test\Fixture\AddProductToCart;
+use Magento\Quote\Test\Fixture\GuestCart;
+use Magento\TestFramework\Fixture\DataFixture;
+use Magento\TestFramework\Fixture\DataFixtureStorage;
+use Magento\TestFramework\Fixture\DataFixtureStorageManager;
 use Magento\TestFramework\Helper\Bootstrap;
+use Magento\TestFramework\Quote\Model\GetQuoteByReservedOrderId;
 use Magento\TestFramework\TestCase\WebapiAbstract;
 
 class ChannelParameterTest extends WebapiAbstract
 {
-    /**
-     * @var GetMaskedQuoteIdByReservedOrderId
-     */
-    private $getMaskedQuoteIdByReservedOrderId;
-
-    /**
-     * @var CustomerTokenServiceInterface
-     */
-    private $customerTokenService;
-
-    private $maskedQuoteId;
+    protected GetQuoteByReservedOrderId $getQuoteByReservedOrderId;
+    protected QuoteIdToMaskedQuoteIdInterface $quoteIdToMaskedQuoteId;
+    protected DataFixtureStorage $fixtures;
 
     protected function setUp(): void
     {
         $objectManager = Bootstrap::getObjectManager();
-        $this->getMaskedQuoteIdByReservedOrderId = $objectManager->get(GetMaskedQuoteIdByReservedOrderId::class);
-        $this->customerTokenService = $objectManager->get(CustomerTokenServiceInterface::class);
+
+        $this->getQuoteByReservedOrderId = $objectManager->get(GetQuoteByReservedOrderId::class);
+        $this->quoteIdToMaskedQuoteId = $objectManager->get(QuoteIdToMaskedQuoteIdInterface::class);
+        $this->fixtures = $objectManager->get(DataFixtureStorageManager::class)->getStorage();
     }
 
+    #[
+        DataFixture(Product::class, as: 'product1'),
+        DataFixture(Indexer::class),
+        DataFixture(GuestCart::class, as: 'guestCart1'),
+        DataFixture(AddProductToCart::class, ['cart_id' => '$guestCart1.id$', 'product_id' => '$product1.id$'])
+    ]
     public function testApplePayExcludedForAndroidChannel()
     {
-        $this->maskedQuoteId = $this->createGuestCart();
+        $cart = $this->fixtures->get('guestCart1');
+        $cartId = $this->quoteIdToMaskedQuoteId->execute($cart->getId());
 
-        $this->addItemToCart($this->maskedQuoteId);
-        $this->setBillingAddress($this->maskedQuoteId);
-        $this->setShippingInformationWithChannel($this->maskedQuoteId);
+        $response = $this->setShippingInformationWithChannel($cartId);
 
-        // Verify that Apple Pay is not present for the Android channel
-        $serviceInfo = [
-            'rest' => [
-                'resourcePath' => "/V1/guest-carts/{$this->maskedQuoteId}/payment-methods",
-                'httpMethod' => Request::HTTP_METHOD_GET
-            ]
-        ];
+        $this->assertIsArray($response['payment_methods']);
 
-        $response = $this->_webApiCall($serviceInfo);
-        $this->assertIsArray($response, 'Response should be an array');
-
-        foreach ($response as $paymentMethod) {
-            $this->assertArrayHasKey('code', $paymentMethod, 'Each payment method should have a code');
-            $this->assertNotEquals('adyen_apple_pay', $paymentMethod['code'], 'Apple Pay should not be present for Android channel');
+        foreach ($response['payment_methods'] as $paymentMethod) {
+            $this->assertArrayHasKey(
+                'code',
+                $paymentMethod, 'Each payment method should have a code'
+            );
+            $this->assertNotEquals(
+                'adyen_applepay',
+                $paymentMethod['code'],
+                'Apple Pay should not be present for Android channel'
+            );
         }
     }
 
-    private function createGuestCart(): string
-    {
-        $serviceInfo = [
-            'rest' => [
-                'resourcePath' => "/guest-carts",
-                'httpMethod' => Request::HTTP_METHOD_POST
-            ]
-        ];
-
-        return $this->_webApiCall($serviceInfo, [], null, 'V1');
-    }
-
-    private function addItemToCart(string $maskedQuoteId): array
-    {
-        $serviceInfo = [
-            'rest' => [
-                'resourcePath' => "/guest-carts/{$maskedQuoteId}/items",
-                'httpMethod' => Request::HTTP_METHOD_POST
-            ]
-        ];
-
-        $payload = '{"cartItem":{"qty":1,"sku":"24-MB04"}}';
-        return $this->_webApiCall($serviceInfo, json_decode($payload, true), null, 'V1');
-    }
-
-    private function setShippingInformationWithChannel($maskedQuoteId): array
+    /**
+     * @param $maskedQuoteId
+     * @return array
+     */
+    protected function setShippingInformationWithChannel($maskedQuoteId): array
     {
         $serviceInfo = [
             'rest' => [
@@ -88,20 +81,24 @@ class ChannelParameterTest extends WebapiAbstract
             ]
         ];
 
-        $payload = '{"addressInformation":{"shipping_address":{"firstname":"Veronica","lastname":"Costello","company":"Adyen","street":["Simon Carmiggeltstraat","Main Street"],"city":"Amsterdam","region":"Amsterdam","postcode":"1011 DK","country_id":"NL","telephone":"123456789"},"shipping_carrier_code":"flatrate","shipping_method_code":"flatrate"}}';
-        return $this->_webApiCall($serviceInfo, json_decode($payload, true), null, 'V1');
-    }
-
-    private function setBillingAddress($maskedQuoteId): int
-    {
-        $serviceInfo = [
-            'rest' => [
-                'resourcePath' => "/guest-carts/{$maskedQuoteId}/billing-address",
-                'httpMethod' => Request::HTTP_METHOD_POST
+        $payload = [
+            'addressInformation' => [
+                'shipping_address' => [
+                    'firstname' => 'Veronica',
+                    'lastname' => 'Costello',
+                    'company' => 'Adyen',
+                    'street' => ['Simon Carmiggeltstraat', 'Main Street'],
+                    'city' => 'Amsterdam',
+                    'region' => 'Amsterdam',
+                    'postcode' => '1011 DK',
+                    'country_id' => 'NL',
+                    'telephone' => '123456789'
+                ],
+                'shipping_carrier_code' => 'flatrate',
+                'shipping_method_code' => 'flatrate'
             ]
         ];
 
-        $payload = '{"address":{"firstname":"Veronica ","lastname":"Costello","company":"Adyen","street":["Simon Carmiggeltstraat","Main Street"],"city":"Amsterdam","region":"Amsterdam","postcode":"1011 DK","country_id":"NL","telephone":"123456789","email":"roni_cost@example.com"},"useForShipping":true}';
-        return $this->_webApiCall($serviceInfo, json_decode($payload, true), null, 'V1');
+        return $this->_webApiCall($serviceInfo, $payload, null, 'V1');
     }
 }

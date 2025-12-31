@@ -78,13 +78,42 @@ Make sure that your Magento cron is running every minute. We are using a cronjob
 
 ```
 <group id="adyen_payment">
-    <job name="adyen_payment_process_notification" instance="Adyen\Payment\Model\Cron" method="processNotification">
+    <!-- Process stored Adyen webhooks/notifications -->
+    <job name="adyen_payment_process_notification"
+         instance="Adyen\Payment\Cron\WebhookProcessor"
+         method="execute">
         <schedule>*/1 * * * *</schedule>
     </job>
-    <job name="adyen_payment_server_address_caching" instance="Adyen\Payment\Cron\ServerIpAddress" method="execute">
+
+    <!-- Refresh Adyen server IP address list used for webhook validation -->
+    <job name="adyen_payment_server_address_caching"
+         instance="Adyen\Payment\Cron\ServerIpAddress"
+         method="execute">
         <schedule>*/1 * * * *</schedule>
+    </job>
+
+    <!-- Cancel expired/pending orders (daily) -->
+    <job name="adyen_payment_cancel_expired_orders"
+         instance="AdyenCancelOrders"
+         method="execute">
+        <schedule>0 0 * * *</schedule>
+    </job>
+
+    <!-- Clean up persisted checkout state data (daily) -->
+    <job name="adyen_payment_state_data_clean_up"
+         instance="Adyen\Payment\Cron\StateDataCleanUp"
+         method="execute">
+        <schedule>0 0 * * *</schedule>
+    </job>
+
+    <!-- Remove processed webhook records (runs every 5 minutes during the 00:00 hour) -->
+    <job name="adyen_payment_remove_processed_webhooks"
+         instance="Adyen\Payment\Cron\RemoveProcessedWebhooks"
+         method="execute">
+        <schedule>*/5 0 * * *</schedule>
     </job>
 </group>
+
 ```
 
 The notification processing service queries the records that have been received at least 2 minutes ago. This is to ensure that Magento has created the order, and all save after events are executed. A handy tool to get insight into your cronjobs is AOE scheduler. You can download this tool through Magento Marketplace or GitHub.

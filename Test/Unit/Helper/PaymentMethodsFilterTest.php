@@ -15,10 +15,8 @@ use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\PaymentMethodsFilter;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Payment\Model\Method\Adapter;
-use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Sales\Model\Order\Address;
-use Magento\Framework\App\RequestInterface;
 
 class PaymentMethodsFilterTest extends AbstractAdyenTestCase
 {
@@ -176,20 +174,12 @@ class PaymentMethodsFilterTest extends AbstractAdyenTestCase
             ])
         ]);
 
-        $channel = 'iOS';
-
         $paymentMethodsHelperMock = $this->createConfiguredMock(PaymentMethods::class, [
-            'getPaymentMethods' => self::PAYMENT_METHODS_RESPONSE
+            'getApiResponse' => self::PAYMENT_METHODS_RESPONSE
         ]);
 
-        $RequestInterfaceMock = $this->getMockBuilder(RequestInterface::class)
-            ->getMockForAbstractClass();
-
-        $RequestInterfaceMock->method('getParam')->with('channel')->willReturn($channel);
-
         $paymentMethodsFilterHelper = $this->createPaymentMethodsFilterHelper(
-            $paymentMethodsHelperMock,
-            $RequestInterfaceMock
+            $paymentMethodsHelperMock
         );
 
         $sortedMagentoPaymentMethods =
@@ -204,17 +194,12 @@ class PaymentMethodsFilterTest extends AbstractAdyenTestCase
     }
 
     protected function createPaymentMethodsFilterHelper(
-        $paymentMethodsHelperMock = null,
-        $RequestInterfaceMock = null
+        $paymentMethodsHelperMock = null
     ): PaymentMethodsFilter {
         if (is_null($paymentMethodsHelperMock)) {
             $paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
         }
 
-        if (is_null($RequestInterfaceMock)) {
-            $RequestInterfaceMock = $this->createMock(RequestInterface::class);
-        }
-
-        return new PaymentMethodsFilter($paymentMethodsHelperMock, $RequestInterfaceMock);
+        return new PaymentMethodsFilter($paymentMethodsHelperMock);
     }
 }

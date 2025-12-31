@@ -52,7 +52,6 @@ class PaymentMethodUtil
         'twint',
         'carnet',
         'pix',
-        'klarna',
         'oney',
         'affirm',
         'bright',
@@ -61,11 +60,8 @@ class PaymentMethodUtil
         'googlepay',
         'mobilepay',
         'vipps',
-        'walley',
-        'walley_b2b',
         'mc_clicktopay',
         'visa_clicktopay',
-        'ach',
         'visa_amazonpay',
         'mc_amazonpay',
         'amex_amazonpay',
@@ -75,7 +71,6 @@ class PaymentMethodUtil
         'jcb_amazonpay',
         'bcmc',
         'bcmc_mobile',
-        'affirm',
         'afterpay',
         'afterpay_b2b',
         'afterpay_default',
@@ -110,7 +105,9 @@ class PaymentMethodUtil
         'ratepay',
         'ratepay_directdebit',
         'walley',
-        'walley_b2b'
+        'walley_b2b',
+        'girocard',
+        'girocard_applepay'
     ];
 
     /**

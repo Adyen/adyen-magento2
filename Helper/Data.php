@@ -56,6 +56,11 @@ class Data extends AbstractHelper
     const LIVE_IN = 'live-in';
 
     /**
+     * Extra keys we explicitly allow in logs besides *reference fields
+     */
+    private const LOG_ALLOWED_EXTRA_KEYS = ['uniqueTerminalIds'];
+
+    /**
      * @param Context $context
      * @param EncryptorInterface $encryptor
      * @param DataInterface $dataStorage
@@ -605,7 +610,12 @@ class Data extends AbstractHelper
             $context['body'] = $request;
         } else {
             $context['livePrefix'] = $this->configHelper->getLiveEndpointPrefix($storeId);
-            $context['body'] = $this->filterReferences($request);
+            $filtered = $this->filterReferences($request);
+
+            // Only add body if any field survived filtering
+            if (!empty($filtered)) {
+                $context['body'] = $filtered;
+            }
         }
 
         $this->adyenLogger->addAdyenInfoLog('Request to Adyen API ' . $endpoint, $context);
@@ -619,7 +629,12 @@ class Data extends AbstractHelper
         if ($isDemo) {
             $context['body'] = $response;
         } else {
-            $context['body'] = $this->filterReferences($response);
+            $filtered = $this->filterReferences($response);
+
+            // Only add body if any field survived filtering
+            if (!empty($filtered)) {
+                $context['body'] = $filtered;
+            }
         }
 
         $this->adyenLogger->addAdyenInfoLog('Response from Adyen API', $context);
@@ -632,12 +647,16 @@ class Data extends AbstractHelper
         $responseArray['errorCode'] = $e->getAdyenErrorCode();
         $this->logResponse($responseArray);
     }
-
     private function filterReferences(array $data): array
     {
-        return array_filter($data, function($value, $key) {
-            // Keep only reference keys, e.g. reference, pspReference, merchantReference etc.
-            return false !== strpos(strtolower($key), 'reference');
+        return array_filter($data, function ($value, $key) {
+            // Keep whitelisted keys (like uniqueTerminalIds)
+            if (in_array($key, self::LOG_ALLOWED_EXTRA_KEYS, true)) {
+                return true;
+            }
+
+            // Keep only keys that contain "reference" (reference, pspReference, merchantReference, etc.)
+            return str_contains(strtolower((string)$key), 'reference');
         }, ARRAY_FILTER_USE_BOTH);
     }
 
