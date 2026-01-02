@@ -1,0 +1,23 @@
+name: marketplace-release.yml
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  marketplace-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Magento Marketplace release automation script
+        run: node scripts/marketplace-release.js
