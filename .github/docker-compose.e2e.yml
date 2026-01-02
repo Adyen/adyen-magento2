@@ -18,6 +18,9 @@ services:
       - ADYEN_API_KEY
       - ADYEN_CLIENT_KEY
       - ADYEN_MERCHANT
+      - ADYEN_MOTO_API_KEY
+      - ADYEN_MOTO_CLIENT_KEY
+      - ADYEN_MOTO_MERCHANT
       - GOOGLE_USERNAME
       - GOOGLE_PASSWORD
       - AMAZON_USERNAME
@@ -27,6 +30,5 @@ services:
       - CI
     volumes:
       - ./scripts/e2e.sh:/e2e.sh
-      - ../test-report:/tmp/test-report
 networks:
   backend:

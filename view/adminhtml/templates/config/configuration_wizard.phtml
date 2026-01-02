@@ -47,14 +47,23 @@
 
             function renderAutoConfiguration() {
                 if (configMode[0].value === 'manual') {
+                    const demoMode = $(demoModeSelector).val();
+
+                    if (parseInt(demoMode)) {
+                        $(testApiKeySelector).prop('readonly', false);
+                    } else {
+                        $(liveApiKeySelector).prop('readonly', false);
+                    }
                     return;
                 }
                 if (configured) {
                     let demoMode = $(demoModeSelector).val();
 
                     if (parseInt(demoMode)) {
+                        $(testApiKeySelector).prop('readonly', true);
                         showConfigField($(testClientKeySelector), false);
                     } else {
+                        $(liveApiKeySelector).prop('readonly', true);
                         showConfigField($(liveClientKeySelector), false);
                         showConfigField($(livePrefixUrlSelector), false);
                     }
@@ -72,9 +81,12 @@
 
             function resetAutoConfiguration() {
                 let demoMode = $(demoModeSelector).val();
+
                 if (parseInt(demoMode)) {
+                    $(testApiKeySelector).prop('readonly', false);
                     hideConfigField($(testClientKeySelector));
                 } else {
+                    $(liveApiKeySelector).prop('readonly', false);
                     hideConfigField($(liveClientKeySelector));
                     hideConfigField($(livePrefixUrlSelector));
                 }

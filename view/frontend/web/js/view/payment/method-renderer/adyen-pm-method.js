@@ -114,7 +114,7 @@ define(
             },
 
             enablePaymentMethod: function (paymentMethodsResponse) {
-                if (!!paymentMethodsResponse.paymentMethodsResponse) {
+                if (this.checkBrowserCompatibility() && !!paymentMethodsResponse.paymentMethodsResponse) {
                     this.paymentMethod(
                         adyenPaymentService.getPaymentMethodFromResponse(
                             this.getTxVariant(),
@@ -232,7 +232,6 @@ define(
                     {
                         showPayButton: showPayButton,
                         countryCode: formattedShippingAddress.country ? formattedShippingAddress.country : formattedBillingAddress.country, // Use shipping address details as default and fall back to billing address if missing
-                        data: {},
                         onChange: function (state) {
                             paymentComponentStates().setIsPlaceOrderAllowed(self.getMethodCode(), state.isValid);
                         },
@@ -484,7 +483,8 @@ define(
             },
 
             isButtonActive: function() {
-                return paymentComponentStates().getIsPlaceOrderAllowed(this.getMethodCode());
+                return this.isPlaceOrderActionAllowed() &&
+                    paymentComponentStates().getIsPlaceOrderAllowed(this.getMethodCode());
             },
 
             /**
@@ -549,6 +549,10 @@ define(
                     lastName: address.lastname,
                     telephone: address.telephone
                 };
+            },
+
+            checkBrowserCompatibility: function () {
+                return true;
             },
 
             getPaymentMethodComponent: function () {

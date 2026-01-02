@@ -27,8 +27,10 @@
             'src': getIcons(getCardType()).url,
             'width': getIcons(getCardType()).width,
             'height': getIcons(getCardType()).height,
-            'alt': getIcons(getCardType()).title
+            'alt': getTitle(getCardType()) + ' logo'
             }" class="payment-icon">
+
+            <span data-bind="text: getTitle(getCardType())"></span>
             <span translate="'Ending'"></span>
             <span text="getMaskedCard()"></span>
             (
