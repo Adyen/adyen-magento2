@@ -41,6 +41,7 @@ class CheckoutAnalytics
         self::CONTEXT_TYPE_LOGS => 10,
         self::CONTEXT_TYPE_ERRORS => 5
     ];
+    const MAX_TOPIC_LENGTH = 64;
 
     /**
      * @param Config $configHelper
@@ -312,5 +313,21 @@ class CheckoutAnalytics
         }
 
         return json_decode($result, true);
+    }
+
+    /**
+     * This function truncates the given topic since the checkoutAnalytics endpoint
+     * accepts maximum 64 chars for `component` field.
+     *
+     * @param string $topic
+     * @return string
+     */
+    public static function truncateTopic(string $topic): string
+    {
+        if (strlen($topic) >= self::MAX_TOPIC_LENGTH) {
+            $topic = substr($topic, 0, 15) . '...' . substr($topic, -45);
+        }
+
+        return $topic;
     }
 }

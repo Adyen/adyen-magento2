@@ -136,7 +136,7 @@ class RestApiReliabilityTrackerTest extends AbstractAdyenTestCase
         $this->analyticsEventStateMock
             ->expects($this->once())
             ->method('setTopic')
-            ->with($className);
+            ->with($serviceMethod);
 
         $this->analyticsEventStateMock
             ->method('getRelationId')
@@ -145,10 +145,10 @@ class RestApiReliabilityTrackerTest extends AbstractAdyenTestCase
         $this->eventManagerMock
             ->expects($this->exactly(2))
             ->method('dispatch')
-            ->willReturnCallback(function ($eventName, $data) use ($className, $serviceMethod, $relationId) {
+            ->willReturnCallback(function ($eventName, $data) use ($serviceMethod, $relationId) {
                 $this->assertEquals(AnalyticsEventState::EVENT_NAME, $eventName);
                 $this->assertEquals($relationId, $data['data']['relationId']);
-                $this->assertEquals(sprintf('%s::%s', $className, $serviceMethod), $data['data']['topic']);
+                $this->assertEquals($serviceMethod, $data['data']['topic']);
             });
 
         $proceed = function ($request) use ($expectedResult) {
