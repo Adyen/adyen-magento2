@@ -37,8 +37,7 @@ class PendingInfoAnalyticsEventsProvider implements AnalyticsEventProviderInterf
         /** @var AnalyticsEventCollection $analyticsEventCollection */
         $analyticsEventCollection = $analyticsEventCollection->pendingAnalyticsEvents([
             AnalyticsEventTypeEnum::EXPECTED_START,
-            AnalyticsEventTypeEnum::EXPECTED_END,
-            AnalyticsEventTypeEnum::UNEXPECTED_END
+            AnalyticsEventTypeEnum::EXPECTED_END
         ]);
 
         return $analyticsEventCollection->getItems();
