@@ -57,10 +57,6 @@ class AnalyticsEventsCleanUpTest extends AbstractAdyenTestCase
             ->willReturn($this->collectionMock);
 
         $this->collectionMock->expects($this->once())
-            ->method('getSize')
-            ->willReturn(3);
-
-        $this->collectionMock->expects($this->once())
             ->method('getColumnValues')
             ->with(AnalyticsEventInterface::ENTITY_ID)
             ->willReturn($entityIds);
@@ -86,11 +82,9 @@ class AnalyticsEventsCleanUpTest extends AbstractAdyenTestCase
             ->willReturn($this->collectionMock);
 
         $this->collectionMock->expects($this->once())
-            ->method('getSize')
-            ->willReturn(0);
-
-        $this->collectionMock->expects($this->never())
-            ->method('getColumnValues');
+            ->method('getColumnValues')
+            ->with(AnalyticsEventInterface::ENTITY_ID)
+            ->willReturn([]);
 
         $this->collectionFactoryMock->expects($this->once())
             ->method('create')
@@ -112,10 +106,6 @@ class AnalyticsEventsCleanUpTest extends AbstractAdyenTestCase
         $this->collectionMock->expects($this->once())
             ->method('analyticsEventsToCleanUp')
             ->willReturn($this->collectionMock);
-
-        $this->collectionMock->expects($this->once())
-            ->method('getSize')
-            ->willReturn(3);
 
         $this->collectionMock->expects($this->once())
             ->method('getColumnValues')

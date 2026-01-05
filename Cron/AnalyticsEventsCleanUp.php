@@ -41,8 +41,8 @@ class AnalyticsEventsCleanUp
         try {
             $collection = $this->analyticsEventCollectionFactory->create()->analyticsEventsToCleanUp();
 
-            if ($collection->getSize() > 0) {
-                $ids = $collection->getColumnValues(AnalyticsEventInterface::ENTITY_ID);
+            $ids = $collection->getColumnValues(AnalyticsEventInterface::ENTITY_ID);
+            if (!empty($ids)) {
                 $this->analyticsEventResourceModel->deleteByIds($ids);
             }
         } catch (Exception $e) {
