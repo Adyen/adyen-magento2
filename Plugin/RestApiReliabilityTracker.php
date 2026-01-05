@@ -19,6 +19,7 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Exception;
 use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\Exception\NotFoundException;
+use Magento\Framework\Exception\ValidatorException;
 use Magento\Framework\Webapi\Rest\Request;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Webapi\Controller\Rest\InputParamsResolver;
@@ -55,18 +56,18 @@ class RestApiReliabilityTracker
     {
         $route = $this->inputParamsResolver->getRoute();
         $serviceClassName = $route->getServiceClass();
+        $serviceMethod = $route->getServiceMethod();
 
         $storeId = $this->storeManager->getStore()->getId();
         $isReliabilityDataCollectionEnabled = $this->configHelper->isReliabilityDataCollectionEnabled($storeId);
 
-        if ($isReliabilityDataCollectionEnabled && (str_starts_with($serviceClassName, self::ADYEN_PAYMENT_NAMESPACE) ||
-            str_starts_with($serviceClassName, self::ADYEN_EXPRESS_NAMESPACE))) {
+        if ($isReliabilityDataCollectionEnabled && $this->isActionTracked($serviceClassName)) {
             try {
                 $this->analyticsEventState->setTopic($serviceClassName);
                 $this->eventManager->dispatch(AnalyticsEventState::EVENT_NAME, ['data' => [
                     'relationId' => $this->analyticsEventState->getRelationId(),
                     'type' => AnalyticsEventTypeEnum::EXPECTED_START->value,
-                    'topic' => $serviceClassName
+                    'topic' => sprintf('%s::%s', $serviceClassName, $serviceMethod)
                 ]]);
             } catch (Exception $exception) {
                 $this->adyenLogger->error(sprintf(
@@ -81,15 +82,15 @@ class RestApiReliabilityTracker
                 $this->eventManager->dispatch(AnalyticsEventState::EVENT_NAME, ['data' => [
                     'relationId' => $this->analyticsEventState->getRelationId(),
                     'type' => AnalyticsEventTypeEnum::EXPECTED_END->value,
-                    'topic' => $serviceClassName
+                    'topic' => sprintf('%s::%s', $serviceClassName, $serviceMethod)
                 ]]);
 
                 return $returnValue;
-            } catch (AdyenException|NotFoundException $exception) {
+            } catch (AdyenException|NotFoundException|ValidatorException $exception) {
                 $this->eventManager->dispatch(AnalyticsEventState::EVENT_NAME, ['data' => [
                     'relationId' => $this->analyticsEventState->getRelationId(),
                     'type' => AnalyticsEventTypeEnum::EXPECTED_END->value,
-                    'topic' => $serviceClassName
+                    'topic' => sprintf('%s::%s', $serviceClassName, $serviceMethod)
                 ]]);
 
                 throw $exception;
@@ -97,7 +98,7 @@ class RestApiReliabilityTracker
                 $this->eventManager->dispatch(AnalyticsEventState::EVENT_NAME, ['data' => [
                     'relationId' => $this->analyticsEventState->getRelationId(),
                     'type' => AnalyticsEventTypeEnum::UNEXPECTED_END->value,
-                    'topic' => $serviceClassName,
+                    'topic' => sprintf('%s::%s', $serviceClassName, $serviceMethod),
                     'message' => $exception->getMessage()
                 ]]);
 
@@ -105,6 +106,25 @@ class RestApiReliabilityTracker
             }
         } else {
             return $proceed($request);
+        }
+    }
+
+    private function isActionTracked(string $className): bool
+    {
+        $magentoActionsToTrack = [
+            'Magento\Checkout\Api\GuestShippingInformationManagementInterface',
+            'Magento\Checkout\Api\ShippingInformationManagementInterface',
+            'Magento\Checkout\Api\GuestPaymentInformationManagementInterface',
+            'Magento\Checkout\Api\PaymentInformationManagementInterface'
+        ];
+
+        if (str_starts_with($className, self::ADYEN_PAYMENT_NAMESPACE) ||
+            str_starts_with($className, self::ADYEN_EXPRESS_NAMESPACE)) {
+            return true;
+        } elseif (in_array($className, $magentoActionsToTrack)) {
+            return true;
+        } else {
+            return false;
         }
     }
 }
