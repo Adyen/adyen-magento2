@@ -14,6 +14,7 @@ namespace Adyen\Payment\Plugin;
 use Adyen\AdyenException;
 use Adyen\Payment\Api\Data\AnalyticsEventTypeEnum;
 use Adyen\Payment\Helper\AnalyticsEventState;
+use Adyen\Payment\Helper\CheckoutAnalytics;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Logger\AdyenLogger;
 use Exception;
@@ -57,17 +58,18 @@ class RestApiReliabilityTracker
         $route = $this->inputParamsResolver->getRoute();
         $serviceClassName = $route->getServiceClass();
         $serviceMethod = $route->getServiceMethod();
+        $topic = CheckoutAnalytics::truncateTopic($serviceMethod);
 
         $storeId = $this->storeManager->getStore()->getId();
         $isReliabilityDataCollectionEnabled = $this->configHelper->isReliabilityDataCollectionEnabled($storeId);
 
         if ($isReliabilityDataCollectionEnabled && $this->isActionTracked($serviceClassName)) {
             try {
-                $this->analyticsEventState->setTopic($serviceClassName);
+                $this->analyticsEventState->setTopic($topic);
                 $this->eventManager->dispatch(AnalyticsEventState::EVENT_NAME, ['data' => [
                     'relationId' => $this->analyticsEventState->getRelationId(),
                     'type' => AnalyticsEventTypeEnum::EXPECTED_START->value,
-                    'topic' => sprintf('%s::%s', $serviceClassName, $serviceMethod)
+                    'topic' => $topic
                 ]]);
             } catch (Exception $exception) {
                 $this->adyenLogger->error(sprintf(
@@ -82,7 +84,7 @@ class RestApiReliabilityTracker
                 $this->eventManager->dispatch(AnalyticsEventState::EVENT_NAME, ['data' => [
                     'relationId' => $this->analyticsEventState->getRelationId(),
                     'type' => AnalyticsEventTypeEnum::EXPECTED_END->value,
-                    'topic' => sprintf('%s::%s', $serviceClassName, $serviceMethod)
+                    'topic' => $topic
                 ]]);
 
                 return $returnValue;
@@ -90,7 +92,7 @@ class RestApiReliabilityTracker
                 $this->eventManager->dispatch(AnalyticsEventState::EVENT_NAME, ['data' => [
                     'relationId' => $this->analyticsEventState->getRelationId(),
                     'type' => AnalyticsEventTypeEnum::EXPECTED_END->value,
-                    'topic' => sprintf('%s::%s', $serviceClassName, $serviceMethod)
+                    'topic' => $topic
                 ]]);
 
                 throw $exception;
@@ -98,7 +100,7 @@ class RestApiReliabilityTracker
                 $this->eventManager->dispatch(AnalyticsEventState::EVENT_NAME, ['data' => [
                     'relationId' => $this->analyticsEventState->getRelationId(),
                     'type' => AnalyticsEventTypeEnum::UNEXPECTED_END->value,
-                    'topic' => sprintf('%s::%s', $serviceClassName, $serviceMethod),
+                    'topic' => $topic,
                     'message' => $exception->getMessage()
                 ]]);
 

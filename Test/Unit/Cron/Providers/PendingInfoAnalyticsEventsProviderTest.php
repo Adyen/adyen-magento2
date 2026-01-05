@@ -37,8 +37,7 @@ class PendingInfoAnalyticsEventsProviderTest extends AbstractAdyenTestCase
             ->method('pendingAnalyticsEvents')
             ->with([
                 AnalyticsEventTypeEnum::EXPECTED_START,
-                AnalyticsEventTypeEnum::EXPECTED_END,
-                AnalyticsEventTypeEnum::UNEXPECTED_END
+                AnalyticsEventTypeEnum::EXPECTED_END
             ])
             ->willReturn($this->analyticsEventCollectionMock);
 
@@ -62,8 +61,7 @@ class PendingInfoAnalyticsEventsProviderTest extends AbstractAdyenTestCase
             ->method('pendingAnalyticsEvents')
             ->with([
                 AnalyticsEventTypeEnum::EXPECTED_START,
-                AnalyticsEventTypeEnum::EXPECTED_END,
-                AnalyticsEventTypeEnum::UNEXPECTED_END
+                AnalyticsEventTypeEnum::EXPECTED_END
             ])
             ->willReturn($this->analyticsEventCollectionMock);
 

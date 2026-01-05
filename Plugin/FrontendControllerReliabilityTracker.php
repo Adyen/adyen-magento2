@@ -14,6 +14,7 @@ namespace Adyen\Payment\Plugin;
 use Adyen\AdyenException;
 use Adyen\Payment\Api\Data\AnalyticsEventTypeEnum;
 use Adyen\Payment\Helper\AnalyticsEventState;
+use Adyen\Payment\Helper\CheckoutAnalytics;
 use Adyen\Payment\Helper\Config;
 use Adyen\Webhook\Exception\AuthenticationException;
 use Adyen\Webhook\Exception\InvalidDataException;
@@ -55,13 +56,14 @@ class FrontendControllerReliabilityTracker
         $isReliabilityDataCollectionEnabled = $this->configHelper->isReliabilityDataCollectionEnabled($storeId);
 
         $serviceUri = $request->getPathInfo();
+        $topic = CheckoutAnalytics::truncateTopic($serviceUri);
 
         if ($isReliabilityDataCollectionEnabled && str_starts_with($serviceUri, self::ADYEN_CONTROLLER_URI)) {
             $this->analyticsEventState->setTopic($serviceUri);
             $this->eventManager->dispatch(AnalyticsEventState::EVENT_NAME, ['data' => [
                 'relationId' => $this->analyticsEventState->getRelationId(),
                 'type' => AnalyticsEventTypeEnum::EXPECTED_START->value,
-                'topic' => $serviceUri
+                'topic' => $topic
             ]]);
 
             try {
@@ -70,7 +72,7 @@ class FrontendControllerReliabilityTracker
                 $this->eventManager->dispatch(AnalyticsEventState::EVENT_NAME, ['data' => [
                     'relationId' => $this->analyticsEventState->getRelationId(),
                     'type' => AnalyticsEventTypeEnum::EXPECTED_END->value,
-                    'topic' => $serviceUri
+                    'topic' => $topic
                 ]]);
 
                 return $returnValue;
@@ -78,7 +80,7 @@ class FrontendControllerReliabilityTracker
                 $this->eventManager->dispatch(AnalyticsEventState::EVENT_NAME, ['data' => [
                     'relationId' => $this->analyticsEventState->getRelationId(),
                     'type' => AnalyticsEventTypeEnum::EXPECTED_END->value,
-                    'topic' => $serviceUri
+                    'topic' => $topic
                 ]]);
 
                 throw $exception;
@@ -86,7 +88,7 @@ class FrontendControllerReliabilityTracker
                 $this->eventManager->dispatch(AnalyticsEventState::EVENT_NAME, ['data' => [
                     'relationId' => $this->analyticsEventState->getRelationId(),
                     'type' => AnalyticsEventTypeEnum::UNEXPECTED_END->value,
-                    'topic' => $serviceUri,
+                    'topic' => $topic,
                     'message' => $exception->getMessage()
                 ]]);
 
