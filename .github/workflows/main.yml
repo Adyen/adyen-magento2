@@ -3,9 +3,9 @@ run-name: Main
 
 on:
   pull_request:
-    branches: [main, feature-v10/reliability]
+    branches: [main, feature/reliability]
   push:
-    branches: [main, feature-v10/reliability]
+    branches: [main, feature/reliability]
   workflow_dispatch:
 
 jobs:
