@@ -144,6 +144,7 @@ class CheckoutAnalytics
      * @param string $context Type of the analytics event [info, errors, logs]
      * @return array
      * @throws ValidatorException
+     * @throws AdyenException
      */
     private function buildSendAnalyticsRequest(
         array $events,
@@ -176,6 +177,8 @@ class CheckoutAnalytics
                     $contextPayload['errorType'] = $event->getErrorType();
                     $contextPayload['code'] = $event->getErrorCode();
                     break;
+                default:
+                    throw new AdyenException("Invalid context type: $context");
             }
 
             $items[] = $contextPayload;
@@ -300,7 +303,7 @@ class CheckoutAnalytics
         $result = $this->curl->getBody();
         $httpStatus = $this->curl->getStatus();
 
-        $hasFailed = !in_array($httpStatus, array(200, 201, 202, 204));
+        $hasFailed = !in_array($httpStatus, [200, 201, 202, 204]);
 
         if ($hasFailed && !empty($result)) {
             throw new AdyenException(__("Checkout Analytics API HTTP request failed (%1): %2", $httpStatus, $result));

@@ -30,7 +30,7 @@ class InstallationTimestamp implements DataPatchInterface
         private readonly WriterInterface $configWriter,
         private readonly ModuleDataSetupInterface $moduleDataSetup,
         private readonly DataPatch $dataPatchHelper,
-        private readonly ManagerInterface  $eventManager
+        private readonly ManagerInterface $eventManager
     ) {}
 
     public function apply()

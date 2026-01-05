@@ -37,22 +37,22 @@ class Collection extends AbstractCollection
      */
     public function pendingAnalyticsEvents(array $analyticsEventTypes): Collection
     {
-        if (!empty($analyticsEventTypes)) {
-            foreach ($analyticsEventTypes as $type) {
-                if ($type instanceof AnalyticsEventTypeEnum) {
-                    $fields[] = AnalyticsEventInterface::TYPE;
-                    $conditions[] = ['eq' => $type->value];
-                }
-            }
-
-            if (isset($conditions) && isset($fields)) {
-                $this->addFieldToFilter($fields, $conditions);
-            } else {
-                throw new AdyenException(__('Invalid analyticsEventTypes argument!'));
-            }
-        } else {
+        if (empty($analyticsEventTypes)) {
             throw new AdyenException(__('Empty required analyticsEventTypes argument!'));
         }
+
+        $typeValues = [];
+        foreach ($analyticsEventTypes as $type) {
+            if ($type instanceof AnalyticsEventTypeEnum) {
+                $typeValues[] = $type->value;
+            }
+        }
+
+        if (empty($typeValues)) {
+            throw new AdyenException(__('Invalid analyticsEventTypes argument!'));
+        }
+
+        $this->addFieldToFilter(AnalyticsEventInterface::TYPE, ['in' => $typeValues]);
 
         $this->addFieldToFilter(
             AnalyticsEventInterface::STATUS,

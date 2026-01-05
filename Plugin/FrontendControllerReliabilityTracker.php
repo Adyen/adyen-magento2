@@ -37,7 +37,7 @@ class FrontendControllerReliabilityTracker
      */
     public function __construct(
         private readonly AnalyticsEventState $analyticsEventState,
-        protected readonly ManagerInterface  $eventManager,
+        protected readonly ManagerInterface $eventManager,
         private readonly Config $configHelper,
         private readonly StoreManagerInterface $storeManager
     ) {}
