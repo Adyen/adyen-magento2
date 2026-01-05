@@ -89,7 +89,9 @@ class InstallationTimestampTest extends AbstractAdyenTestCase
                 ]
             );
 
-        $this->installationTimestamp->apply();
+        $result = $this->installationTimestamp->apply();
+
+        $this->assertSame($this->installationTimestamp, $result);
     }
 
     public function testApplyWhenTimestampAlreadyExists(): void
@@ -126,7 +128,9 @@ class InstallationTimestampTest extends AbstractAdyenTestCase
         $this->eventManagerMock->expects($this->never())
             ->method('dispatch');
 
-        $this->installationTimestamp->apply();
+        $result = $this->installationTimestamp->apply();
+
+        $this->assertSame($this->installationTimestamp, $result);
     }
 
     public function testGetDependenciesReturnsEmptyArray(): void
