@@ -17,6 +17,7 @@ use DateTime;
 interface AnalyticsEventInterface
 {
     const ADYEN_ANALYTICS_EVENT = 'adyen_analytics_event';
+    const TABLE_NAME_ALIAS = 'analytics_event';
     const ENTITY_ID = 'entity_id';
     const UUID = 'uuid';
     const RELATION_ID = 'relation_id';

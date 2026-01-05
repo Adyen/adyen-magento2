@@ -75,7 +75,7 @@ class CheckoutAnalytics
 
             return $response[self::CHECKOUT_ATTEMPT_ID];
         } catch (Exception $exception) {
-            $errorMessage = __('Error while initiating checkout attempt: %s.', $exception->getMessage());
+            $errorMessage = __('Error while initiating checkout attempt: %1.', $exception->getMessage());
             $this->adyenLogger->error($errorMessage);
 
             throw new AdyenException($errorMessage);
@@ -101,7 +101,7 @@ class CheckoutAnalytics
 
             return $this->sendRequest($endpoint, $request);
         } catch (Exception $exception) {
-            $errorMessage = __('Error while sending checkout analytic metrics: %s', $exception->getMessage());
+            $errorMessage = __('Error while sending checkout analytic metrics: %1', $exception->getMessage());
             $this->adyenLogger->error($errorMessage);
 
             return [

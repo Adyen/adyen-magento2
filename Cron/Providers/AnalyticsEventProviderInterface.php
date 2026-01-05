@@ -16,6 +16,7 @@ use Adyen\Payment\Api\Data\AnalyticsEventInterface;
 interface AnalyticsEventProviderInterface
 {
     const BATCH_SIZE = 1000;
+    const CLEAN_UP_BATCH_SIZE = 5000;
 
     /**
      * @return AnalyticsEventInterface[]
