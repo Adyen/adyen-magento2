@@ -37,6 +37,7 @@
                 <allow_multistore_tokens>1</allow_multistore_tokens>
                 <remove_processed_webhooks>0</remove_processed_webhooks>
                 <processed_webhook_removal_time>90</processed_webhook_removal_time>
+                <reliability_data_collection>0</reliability_data_collection>
                 <outside_checkout_data_collection>0</outside_checkout_data_collection>
                 <ignore_expire_webhook>1</ignore_expire_webhook>
             </adyen_abstract>
@@ -210,6 +211,7 @@
                 <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <requires_line_items>1</requires_line_items>
+                <refund_requires_capture_pspreference>1</refund_requires_capture_pspreference>
                 <group>adyen-alternative-payment-method</group>
             </adyen_paypal>
             <adyen_paypal_vault>
@@ -2703,6 +2705,7 @@
                 <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>1</is_open_invoice>
+                <refund_requires_capture_pspreference>1</refund_requires_capture_pspreference>
                 <group>adyen-alternative-payment-method</group>
             </adyen_scalapay_3x>
             <adyen_scalapay_4x>
@@ -2727,6 +2730,7 @@
                 <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>1</is_open_invoice>
+                <refund_requires_capture_pspreference>1</refund_requires_capture_pspreference>
                 <group>adyen-alternative-payment-method</group>
             </adyen_scalapay_4x>
             <adyen_paynow>

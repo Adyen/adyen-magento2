@@ -267,6 +267,25 @@ class ConfigTest extends AbstractAdyenTestCase
         $this->assertEquals($expectedResult, $result);
     }
 
+    public function testIsReliabilityDataCollectionEnabled()
+    {
+        $isfeatureEnabled = true;
+
+        $path = sprintf(
+            "%s/%s/%s",
+            Config::XML_PAYMENT_PREFIX,
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            Config::XML_RELIABILITY_DATA_COLLECTION
+        );
+
+        $this->scopeConfigMock->expects($this->once())
+            ->method('isSetFlag')
+            ->with($path, ScopeInterface::SCOPE_STORE, null)
+            ->willReturn($isfeatureEnabled);
+
+        $this->assertTrue($this->configHelper->isReliabilityDataCollectionEnabled());
+    }
+
     public function testIsExpireWebhookIgnored()
     {
         $storeId = PHP_INT_MAX;
@@ -306,5 +325,67 @@ class ConfigTest extends AbstractAdyenTestCase
             ->willReturn($captureMode);
 
         $this->assertEquals($captureMode, $this->configHelper->getCaptureMode($storeId));
+    }
+
+    public function testGetInstallationTime()
+    {
+        $expectedInstallationTime = '2024-01-15T10:30:00+00:00';
+
+        $path = sprintf(
+            "%s/%s/%s",
+            Config::XML_PAYMENT_PREFIX,
+            Config::XML_ADYEN_ANALYTICS_PREFIX,
+            Config::XML_INSTALLATION_TIME
+        );
+
+        $this->scopeConfigMock->expects($this->once())
+            ->method('getValue')
+            ->with($path, ScopeInterface::SCOPE_STORE, null)
+            ->willReturn($expectedInstallationTime);
+
+        $result = $this->configHelper->getInstallationTime();
+        $this->assertEquals($expectedInstallationTime, $result);
+    }
+
+    public function testGetInstallationTimeReturnsNull()
+    {
+        $path = sprintf(
+            "%s/%s/%s",
+            Config::XML_PAYMENT_PREFIX,
+            Config::XML_ADYEN_ANALYTICS_PREFIX,
+            Config::XML_INSTALLATION_TIME
+        );
+
+        $this->scopeConfigMock->expects($this->once())
+            ->method('getValue')
+            ->with($path, ScopeInterface::SCOPE_STORE, null)
+            ->willReturn(null);
+
+        $result = $this->configHelper->getInstallationTime();
+        $this->assertNull($result);
+    }
+
+    public function testSetInstallationTime()
+    {
+        $installationTime = new \DateTime('2024-01-15T10:30:00+00:00');
+        $expectedValue = $installationTime->format(\DateTimeInterface::ISO8601_EXPANDED);
+
+        $expectedPath = sprintf(
+            "%s/%s/%s",
+            Config::XML_PAYMENT_PREFIX,
+            Config::XML_ADYEN_ANALYTICS_PREFIX,
+            Config::XML_INSTALLATION_TIME
+        );
+
+        $this->configWriterMock->expects($this->once())
+            ->method('save')
+            ->with(
+                $expectedPath,
+                $expectedValue,
+                ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
+                0
+            );
+
+        $this->configHelper->setInstallationTime($installationTime);
     }
 }
