@@ -108,7 +108,8 @@ class AdyenVirtualQuoteConfigProviderTest extends AbstractAdyenTestCase
     #[Test]
     public function testGetConfigReturnsConnectedTerminalsForVirtualQuoteWhenPosCloudActive(): void
     {
-        $connectedTerminalsResponse = ['uniqueTerminalIds' => ['terminal1', 'terminal2']];
+        $connectedTerminalsApiResponse = ['uniqueTerminalIds' => ['terminal1', 'terminal2']];
+        $connectedTerminalsResponse = ['terminal1', 'terminal2'];
 
         $this->quoteMock->method('isVirtual')->willReturn(true);
 
@@ -126,7 +127,7 @@ class AdyenVirtualQuoteConfigProviderTest extends AbstractAdyenTestCase
         $this->connectedTerminalsHelperMock->expects($this->once())
             ->method('getConnectedTerminals')
             ->with(self::STORE_ID)
-            ->willReturn($connectedTerminalsResponse);
+            ->willReturn($connectedTerminalsApiResponse);
 
         $config = $this->adyenVirtualQuoteConfigProvider->getConfig();
 
@@ -144,7 +145,8 @@ class AdyenVirtualQuoteConfigProviderTest extends AbstractAdyenTestCase
     public function testGetConfigReturnsBothPaymentMethodsAndConnectedTerminalsWhenBothActive(): void
     {
         $paymentMethodsResponse = '{"paymentMethods":[{"type":"scheme"}]}';
-        $connectedTerminalsResponse = ['uniqueTerminalIds' => ['terminal1', 'terminal2']];
+        $connectedTerminalsApiResponse = ['uniqueTerminalIds' => ['terminal1', 'terminal2']];
+        $connectedTerminalsResponse = ['terminal1', 'terminal2'];
 
         $this->quoteMock->method('isVirtual')->willReturn(true);
 
@@ -164,7 +166,7 @@ class AdyenVirtualQuoteConfigProviderTest extends AbstractAdyenTestCase
         $this->connectedTerminalsHelperMock->expects($this->once())
             ->method('getConnectedTerminals')
             ->with(self::STORE_ID)
-            ->willReturn($connectedTerminalsResponse);
+            ->willReturn($connectedTerminalsApiResponse);
 
         $config = $this->adyenVirtualQuoteConfigProvider->getConfig();
 
