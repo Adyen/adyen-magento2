@@ -11,11 +11,12 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\AdyenException;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
-use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\Data\CartInterface;
-use Magento\Framework\App\RequestInterface;
 
 class PaymentMethodsFilter
 {
@@ -32,26 +33,24 @@ class PaymentMethodsFilter
     ];
 
     private PaymentMethods $paymentMethods;
-    private RequestInterface $request;
 
     public function __construct(
-        PaymentMethods $paymentMethods,
-        RequestInterface $request
+        PaymentMethods $paymentMethods
     ) {
         $this->paymentMethods = $paymentMethods;
-        $this->request = $request;
     }
 
+    /**
+     * @param array $magentoPaymentMethods
+     * @param CartInterface $quote
+     * @return array
+     * @throws AdyenException
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
     public function sortAndFilterPaymentMethods(array $magentoPaymentMethods, CartInterface $quote): array
     {
-        $channel = $this->request->getParam('channel');
-        $adyenPaymentMethodsResponse = $this->paymentMethods->getPaymentMethods(
-            $quote->getId(),
-            $quote->getBillingAddress()->getCountryId(),
-            null,
-            $channel
-        );
-
+        $adyenPaymentMethodsResponse = $this->paymentMethods->getApiResponse($quote);
         $adyenPaymentMethodsDecoded = json_decode($adyenPaymentMethodsResponse, true);
 
         if (!empty($adyenPaymentMethodsDecoded)) {

@@ -83,6 +83,13 @@ class PaymentMethods extends AbstractHelper
     ];
 
     /**
+     * In-memory cache for the /paymentMethods response
+     *
+     * @var string|null
+     */
+    protected ?string $paymentMethodsApiResponse = null;
+
+    /**
      * @var CartRepositoryInterface
      */
     protected CartRepositoryInterface $quoteRepository;
@@ -534,6 +541,44 @@ class PaymentMethods extends AbstractHelper
     protected function setQuote(CartInterface $quote): void
     {
         $this->quote = $quote;
+    }
+
+    /**
+     * This method sets the /paymentMethods response in the in-memory cache.
+     *
+     * @param string $response
+     * @return void
+     */
+    protected function setApiResponse(string $response): void
+    {
+        $this->paymentMethodsApiResponse = $response;
+    }
+
+    /**
+     * This method checks the in-memory cache for the /paymentMethods response.
+     * If the response is not in the cache, it will fetch it from the Adyen Checkout API.
+     *
+     * @param CartInterface $quote
+     * @return string|null
+     * @throws AdyenException
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
+    public function getApiResponse(CartInterface $quote): ?string
+    {
+        if (!isset($this->paymentMethodsApiResponse)) {
+            $channel = $this->request->getParam('channel');
+            $adyenPaymentMethodsResponse = $this->getPaymentMethods(
+                $quote->getId(),
+                $quote->getBillingAddress()->getCountryId(),
+                null,
+                $channel
+            );
+
+            $this->setApiResponse($adyenPaymentMethodsResponse);
+        }
+
+        return $this->paymentMethodsApiResponse;
     }
 
     /**
