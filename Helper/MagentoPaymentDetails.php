@@ -11,35 +11,28 @@
 
 namespace Adyen\Payment\Helper;
 
-use Adyen\AdyenException;
 use Magento\Checkout\Api\Data\PaymentDetailsInterface;
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
 
 class MagentoPaymentDetails
 {
-    /**
-     * @param Config $configHelper
-     * @param CartRepositoryInterface $cartRepository
-     * @param ConnectedTerminals $connectedTerminalsHelper
-     * @param PaymentMethods $adyenPaymentMethodsHelper
-     */
-    public function __construct(
-        protected readonly Config $configHelper,
-        protected readonly CartRepositoryInterface $cartRepository,
-        protected readonly ConnectedTerminals $connectedTerminalsHelper,
-        protected readonly PaymentMethods $adyenPaymentMethodsHelper
-    ) { }
+    protected PaymentMethodsFilter $paymentMethodsFilter;
+    protected Config $configHelper;
+    protected CartRepositoryInterface $cartRepository;
+    protected ConnectedTerminals $connectedTerminalsHelper;
 
-    /**
-     * @param PaymentDetailsInterface $result
-     * @param int $cartId
-     * @return PaymentDetailsInterface
-     * @throws AdyenException
-     * @throws LocalizedException
-     * @throws NoSuchEntityException
-     */
+    public function __construct(
+        PaymentMethodsFilter $paymentMethodsFilter,
+        Config $configHelper,
+        CartRepositoryInterface $cartRepository,
+        ConnectedTerminals $connectedTerminals
+    ) {
+        $this->paymentMethodsFilter = $paymentMethodsFilter;
+        $this->configHelper = $configHelper;
+        $this->cartRepository = $cartRepository;
+        $this->connectedTerminalsHelper = $connectedTerminals;
+    }
+
     public function addAdyenExtensionAttributes(PaymentDetailsInterface $result, int $cartId): PaymentDetailsInterface
     {
         $quote = $this->cartRepository->get($cartId);
@@ -49,9 +42,15 @@ class MagentoPaymentDetails
         if (!$this->configHelper->getIsPaymentMethodsActive($storeId) && !$isAdyenPosCloudEnabled) {
             return $result;
         }
+        $magentoPaymentMethods = $result->getPaymentMethods();
 
+        list($magentoPaymentMethods, $adyenPaymentMethodsResponse) =
+            $this->paymentMethodsFilter->sortAndFilterPaymentMethods($magentoPaymentMethods, $quote);
+
+        $result->setPaymentMethods($magentoPaymentMethods);
         $extensionAttributes = $result->getExtensionAttributes();
-        $extensionAttributes->setAdyenPaymentMethodsResponse($this->adyenPaymentMethodsHelper->getApiResponse($quote));
+
+        $extensionAttributes->setAdyenPaymentMethodsResponse($adyenPaymentMethodsResponse);
 
         if ($isAdyenPosCloudEnabled) {
             $connectedTerminals = $this->connectedTerminalsHelper->getConnectedTerminals($storeId);
