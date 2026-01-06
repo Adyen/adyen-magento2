@@ -11,7 +11,6 @@
 
 namespace Adyen\Payment\Model;
 
-use Laminas\Mime\Mime;
 use Magento\Framework\App\TemplateTypesInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\MailException;
@@ -424,12 +423,9 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
         return $this->mimePartInterfaceFactory->create(
             [
                 'content' => $content,
-                // @phpstan-ignore-next-line
-                'type' => Mime::TYPE_OCTETSTREAM,
-                // @phpstan-ignore-next-line
-                'disposition' => Mime::DISPOSITION_ATTACHMENT,
-                // @phpstan-ignore-next-line
-                'encoding' => Mime::ENCODING_BASE64,
+                'type' => MimeInterface::TYPE_OCTET_STREAM,
+                'disposition' => MimeInterface::DISPOSITION_ATTACHMENT,
+                'encoding' => MimeInterface::ENCODING_BASE64,
                 'fileName' => $filename
             ]
         );

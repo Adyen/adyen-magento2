@@ -162,10 +162,6 @@ class TransportBuilderTest extends AbstractAdyenTestCase
      */
     public function testGetTransportAddsAttachmentParts(): void
     {
-        if (!class_exists(\Laminas\Mime\Mime::class)) {
-            $this->markTestSkipped('Skipping attachment test: laminas/laminas-mime is not installed in this environment.');
-        }
-
         $this->prepareTemplateMock(
             TemplateTypesInterface::TYPE_TEXT,
             'Hello',
