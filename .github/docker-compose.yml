@@ -23,7 +23,7 @@ services:
       - "OPENSEARCH_JAVA_OPTS=-Xms750m -Xmx750m"
       - "DISABLE_SECURITY_PLUGIN=true"
   rabbitmq:
-    image: rabbitmq:4.1
+    image: rabbitmq:4.2
     container_name: rabbitmq
     networks:
       - backend
