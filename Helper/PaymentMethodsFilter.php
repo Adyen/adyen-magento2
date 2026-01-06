@@ -11,12 +11,11 @@
 
 namespace Adyen\Payment\Helper;
 
-use Adyen\AdyenException;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
+use Magento\Framework\App\RequestInterface;
 
 class PaymentMethodsFilter
 {
@@ -32,24 +31,27 @@ class PaymentMethodsFilter
         AdyenPayByLinkConfigProvider::CODE
     ];
 
-    /**
-     * @param PaymentMethods $paymentMethods
-     */
-    public function __construct(
-        private readonly PaymentMethods $paymentMethods,
-    ) {}
+    private PaymentMethods $paymentMethods;
+    private RequestInterface $request;
 
-    /**
-     * @param array $magentoPaymentMethods
-     * @param CartInterface $quote
-     * @return array
-     * @throws AdyenException
-     * @throws LocalizedException
-     * @throws NoSuchEntityException
-     */
+    public function __construct(
+        PaymentMethods $paymentMethods,
+        RequestInterface $request
+    ) {
+        $this->paymentMethods = $paymentMethods;
+        $this->request = $request;
+    }
+
     public function sortAndFilterPaymentMethods(array $magentoPaymentMethods, CartInterface $quote): array
     {
-        $adyenPaymentMethodsResponse = $this->paymentMethods->getApiResponse($quote);
+        $channel = $this->request->getParam('channel');
+        $adyenPaymentMethodsResponse = $this->paymentMethods->getPaymentMethods(
+            $quote->getId(),
+            $quote->getBillingAddress()->getCountryId(),
+            null,
+            $channel
+        );
+
         $adyenPaymentMethodsDecoded = json_decode($adyenPaymentMethodsResponse, true);
 
         if (!empty($adyenPaymentMethodsDecoded)) {
@@ -59,7 +61,6 @@ class PaymentMethodsFilter
             $magentoPaymentMethods = $this->sortPaymentMethodsList($magentoPaymentMethods, $adyenPaymentMethods);
         }
 
-        // TODO: Remove $adyenPaymentMethodsResponse from the response as it's not being used anymore.
         return [$magentoPaymentMethods, $adyenPaymentMethodsResponse];
     }
 
