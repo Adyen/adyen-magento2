@@ -88,14 +88,11 @@ class PosCloud extends Form
     }
 
     /**
-     * @return array|mixed
-     * @throws \Adyen\AdyenException
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @return array
      */
-    public function getConnectedTerminals()
+    public function getConnectedTerminals(): array
     {
-        $connectedTerminals = $this->connectedTerminalsHelper->getConnectedTerminals();
+        $connectedTerminals = $this->connectedTerminalsHelper->getConnectedTerminalsApiResponse();
 
         if (!empty($connectedTerminals['uniqueTerminalIds'])) {
             return $connectedTerminals['uniqueTerminalIds'];
