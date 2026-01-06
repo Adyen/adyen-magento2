@@ -359,4 +359,7 @@
     <event name="payment_method_assign_data_adyen_payto">
         <observer name="adyen_payto_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
     </event>
+    <event name="adyen_analytics_event">
+        <observer name="adyen_analytics_observer" instance="Adyen\Payment\Observer\AnalyticsEventObserver" />
+    </event>
 </config>
