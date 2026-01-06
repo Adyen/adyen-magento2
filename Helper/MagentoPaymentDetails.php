@@ -61,7 +61,7 @@ class MagentoPaymentDetails
         $extensionAttributes->setAdyenPaymentMethodsResponse($this->adyenPaymentMethodsHelper->getApiResponse($quote));
 
         if ($isAdyenPosCloudEnabled) {
-            $connectedTerminals = $this->connectedTerminalsHelper->getConnectedTerminalsApiResponse($storeId);
+            $connectedTerminals = $this->connectedTerminalsHelper->getConnectedTerminals($storeId);
 
             if (!empty($connectedTerminals['uniqueTerminalIds'])) {
                 $extensionAttributes->setAdyenConnectedTerminals($connectedTerminals['uniqueTerminalIds']);
