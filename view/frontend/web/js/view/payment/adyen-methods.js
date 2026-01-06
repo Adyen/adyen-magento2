@@ -13,14 +13,16 @@ define(
     [
         'uiComponent',
         'Magento_Checkout/js/model/payment/renderer-list',
-        'Magento_Checkout/js/action/get-payment-information',
-        'Magento_Checkout/js/model/quote'
+        'Magento_Checkout/js/model/quote',
+        'Adyen_Payment/js/model/adyen-configuration',
+        'Adyen_Payment/js/model/adyen-payment-service'
     ],
     function (
         Component,
         rendererList,
-        getPaymentInformation,
-        quote
+        quote,
+        adyenConfiguration,
+        adyenPaymentService
     ) {
         'use strict';
 
@@ -47,10 +49,20 @@ define(
             initialize: function () {
                 this._super();
 
-                // Virtual quote doesn't call payment-information or shipping-information endpoints.
-                // payment-information endpoint should be called manually to fetch Adyen extension attributes.
+                /*
+                 * Virtual quote doesn't call payment-information or shipping-information endpoints. Hence,
+                 * the config provider is used to provide payment methods and connected terminals to the checkout.
+                 */
                 if (quote.isVirtual()) {
-                    getPaymentInformation();
+                    const paymentMethodsResponse = adyenConfiguration.getVirtualQuotePaymentMethodsResponse();
+                    if (paymentMethodsResponse) {
+                        adyenPaymentService.setPaymentMethods(JSON.parse(paymentMethodsResponse));
+                    }
+
+                    const connectedTerminals = adyenConfiguration.getVirtualQuoteConnectedTerminals();
+                    if (connectedTerminals) {
+                        adyenPaymentService.setConnectedTerminals(connectedTerminals);
+                    }
                 }
             }
         });
