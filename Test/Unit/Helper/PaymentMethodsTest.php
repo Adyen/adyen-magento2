@@ -1373,4 +1373,13 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $result = $this->paymentMethodsHelper->getRequiresLineItems($paymentMethodInstanceMock);
         $this->assertEquals($requiresLineItems, $result);
     }
+
+    public function testGetRefundRequiresCapturePspreference(): void
+    {
+        $this->methodMock->method('getConfigData')
+            ->with(PaymentMethods::CONFIG_FIELD_REFUND_REQUIRES_CAPTURE_PSPREFERENCE)
+            ->willReturn(true);
+
+        $this->assertTrue($this->paymentMethodsHelper->getRefundRequiresCapturePspreference($this->methodMock));
+    }
 }
