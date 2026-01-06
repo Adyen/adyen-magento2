@@ -3,7 +3,7 @@ run-name: Main
 
 on:
   pull_request:
-    branches: [main, feature/reliability]
+    branches: [main]
   push:
     branches: [main, feature/reliability]
   workflow_dispatch:
