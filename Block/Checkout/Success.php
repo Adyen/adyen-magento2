@@ -79,11 +79,13 @@ class Success extends Template
      * PresentToShopper e.g. Multibanco
      * Received e.g. Bank Transfer IBAN
      * @return bool
+     * @throws LocalizedException
      */
     public function renderAction(): bool
     {
+        $code = $this->getResultCode();
         if (
-            !empty($this->getOrder()->getPayment()->getAdditionalInformation('resultCode')) &&
+            !empty($code) &&
             !empty($this->getOrder()->getPayment()->getAdditionalInformation('action')) &&
             (
             in_array($this->getOrder()->getPayment()->getAdditionalInformation('resultCode'),
@@ -187,4 +189,52 @@ class Success extends Template
     {
         return $this->customerSession->isLoggedIn();
     }
+
+    public function getResultCode()
+    {
+        try {
+            return $this->getOrder()->getPayment()->getAdditionalInformation('resultCode');
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Checks if the result code is an intermediate result.
+     *
+     * @return bool
+     */
+    public function isIntermediateResult(): bool
+    {
+        $code = $this->getResultCode();
+        if (empty($code)) {
+            return false;
+        }
+
+        return in_array(
+            $code,
+            [
+                PaymentResponseHandler::PENDING,
+                PaymentResponseHandler::RECEIVED
+            ],
+            true
+        );
+    }
+
+    /**
+     * Return a pending message that will be displayed to the customer.
+     *
+     * This message will be displayed when the payment is still being processed.
+     * The message will contain the order increment id if available.
+     *
+     * @throws LocalizedException
+     */
+    public function getPendingMessage()
+    {
+        return __(
+            'We’ve received your order %1, but your payment is still being processed. You’ll get an email once it’s confirmed. If the payment isn’t completed, your order may be cancelled automatically.',
+            $this->getOrder()->getIncrementId()
+        );
+    }
+
 }

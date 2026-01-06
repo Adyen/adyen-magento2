@@ -1738,9 +1738,6 @@
     <type name="Magento\Checkout\Model\ShippingInformationManagement">
         <plugin name="CustomShippingInformationManagement" type="Adyen\Payment\Plugin\ShippingInformationManagement" sortOrder="10" />
     </type>
-    <type name="Magento\Quote\Api\PaymentMethodManagementInterface">
-        <plugin name="SortAndFilterAdyenPaymentMethods" type="Adyen\Payment\Plugin\SortAndFilterAdyenPaymentMethods" sortOrder="10" />
-    </type>
     <type name="Adyen\Payment\Block\Checkout\Multishipping\Billing">
         <plugin name="MultishippingPaymentMethods" type="Adyen\Payment\Plugin\MultishippingPaymentMethods" sortOrder="10" />
     </type>

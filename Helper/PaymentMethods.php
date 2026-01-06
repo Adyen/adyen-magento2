@@ -26,7 +26,6 @@ use Magento\Framework\App\Area;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
-use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\SerializerInterface;
@@ -86,12 +85,6 @@ class PaymentMethods extends AbstractHelper
         self::ADYEN_BOLETO
     ];
 
-    /**
-     * In-memory cache for the /paymentMethods response
-     *
-     * @var string|null
-     */
-    protected ?string $paymentMethodsApiResponse = null;
     protected CartInterface $quote;
 
     /**
@@ -113,7 +106,6 @@ class PaymentMethods extends AbstractHelper
      * @param Locale $localeHelper
      * @param ShopperConversionId $generateShopperConversionId
      * @param CheckoutSession $checkoutSession
-     * @param RequestInterface $request
      */
     public function __construct(
         Context $context,
@@ -122,19 +114,18 @@ class PaymentMethods extends AbstractHelper
         protected readonly Data $adyenHelper,
         protected readonly AdyenLogger $adyenLogger,
         protected readonly Repository $assetRepo,
-        protected readonly Source $assetSource,
-        protected readonly DesignInterface $design,
-        protected readonly ThemeProviderInterface $themeProvider,
-        protected readonly ChargedCurrency $chargedCurrency,
-        protected readonly Config $configHelper,
-        protected readonly MagentoDataHelper $dataHelper,
-        protected readonly SerializerInterface $serializer,
+        protected readonly Source                          $assetSource,
+        protected readonly DesignInterface                 $design,
+        protected readonly ThemeProviderInterface          $themeProvider,
+        protected readonly ChargedCurrency                 $chargedCurrency,
+        protected readonly Config                          $configHelper,
+        protected readonly MagentoDataHelper               $dataHelper,
+        protected readonly SerializerInterface             $serializer,
         protected readonly PaymentTokenRepositoryInterface $paymentTokenRepository,
-        protected readonly SearchCriteriaBuilder $searchCriteriaBuilder,
-        protected readonly Locale $localeHelper,
-        protected readonly ShopperConversionId $generateShopperConversionId,
-        protected readonly CheckoutSession $checkoutSession,
-        protected readonly RequestInterface $request
+        protected readonly SearchCriteriaBuilder           $searchCriteriaBuilder,
+        protected readonly Locale                          $localeHelper,
+        protected readonly ShopperConversionId             $generateShopperConversionId,
+        protected readonly CheckoutSession                 $checkoutSession
     ) {
         parent::__construct($context);
     }
@@ -441,44 +432,6 @@ class PaymentMethods extends AbstractHelper
     protected function setQuote(CartInterface $quote): void
     {
         $this->quote = $quote;
-    }
-
-    /**
-     * This method sets the /paymentMethods response in the in-memory cache.
-     *
-     * @param string $response
-     * @return void
-     */
-    protected function setApiResponse(string $response): void
-    {
-        $this->paymentMethodsApiResponse = $response;
-    }
-
-    /**
-     * This method checks the in-memory cache for the /paymentMethods response.
-     * If the response is not in the cache, it will fetch it from the Adyen Checkout API.
-     *
-     * @param CartInterface $quote
-     * @return string|null
-     * @throws AdyenException
-     * @throws LocalizedException
-     * @throws NoSuchEntityException
-     */
-    public function getApiResponse(CartInterface $quote): ?string
-    {
-        if (!isset($this->paymentMethodsApiResponse)) {
-            $channel = $this->request->getParam('channel');
-            $adyenPaymentMethodsResponse = $this->getPaymentMethods(
-                $quote->getId(),
-                $quote->getBillingAddress()->getCountryId(),
-                null,
-                $channel
-            );
-
-            $this->setApiResponse($adyenPaymentMethodsResponse);
-        }
-
-        return $this->paymentMethodsApiResponse;
     }
 
     /**
