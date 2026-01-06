@@ -12,7 +12,10 @@
 namespace Adyen\Payment\Test\Helper\Unit\Model\ResourceModel\AnalyticsEvent;
 
 use Adyen\AdyenException;
+use Adyen\Payment\Api\Data\AnalyticsEventInterface;
+use Adyen\Payment\Api\Data\AnalyticsEventStatusEnum;
 use Adyen\Payment\Api\Data\AnalyticsEventTypeEnum;
+use Adyen\Payment\Cron\Providers\AnalyticsEventProviderInterface;
 use Adyen\Payment\Model\ResourceModel\AnalyticsEvent\Collection;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\App\ObjectManager;
@@ -152,5 +155,194 @@ class CollectionTest extends AbstractAdyenTestCase
         $this->expectExceptionMessage('Invalid analyticsEventTypes argument!');
 
         $this->analyticsEventCollection->pendingAnalyticsEvents([null, 123, 'string']);
+    }
+
+    /**
+     * @return void
+     */
+    public function testAnalyticsEventsToCleanUpReturnsCollection()
+    {
+        $result = $this->analyticsEventCollection->analyticsEventsToCleanUp();
+
+        $this->assertInstanceOf(Collection::class, $result);
+    }
+
+    /**
+     * @return void
+     */
+    public function testAnalyticsEventsToCleanUpReturnsSameInstance()
+    {
+        $result = $this->analyticsEventCollection->analyticsEventsToCleanUp();
+
+        $this->assertSame($this->analyticsEventCollection, $result);
+    }
+
+    /**
+     * @return void
+     */
+    public function testAnalyticsEventsToCleanUpFiltersCorrectFields()
+    {
+        $objectManagerMock = $this->createMock(ObjectManagerInterface::class);
+        ObjectManager::setInstance($objectManagerMock);
+
+        $entityFactoryMock = $this->createMock(EntityFactoryInterface::class);
+        $loggerMock = $this->createMock(LoggerInterface::class);
+        $fetchStrategyMock = $this->createMock(FetchStrategyInterface::class);
+        $eventManagerMock = $this->createMock(ManagerInterface::class);
+        $connectionMock = $this->createMock(AdapterInterface::class);
+        $resourceMock = $this->createMock(AbstractDb::class);
+
+        $select = $this->createMock(Select::class);
+        $select->method('from')->willReturnSelf();
+        $select->method('where')->willReturnSelf();
+
+        $connectionMock->method('select')->willReturn($select);
+        $resourceMock->method('getConnection')->willReturn($connectionMock);
+
+        $collectionMock = $this->getMockBuilder(Collection::class)
+            ->setConstructorArgs([
+                $entityFactoryMock,
+                $loggerMock,
+                $fetchStrategyMock,
+                $eventManagerMock,
+                $connectionMock,
+                $resourceMock
+            ])
+            ->onlyMethods(['addFieldToFilter', 'setPageSize'])
+            ->getMock();
+
+        $collectionMock->expects($this->once())
+            ->method('addFieldToFilter')
+            ->with(
+                [
+                    AnalyticsEventInterface::STATUS,
+                    AnalyticsEventInterface::CREATED_AT
+                ],
+                $this->callback(function ($conditions) {
+                    return isset($conditions[0]['eq']) &&
+                        $conditions[0]['eq'] === AnalyticsEventStatusEnum::DONE->value &&
+                        isset($conditions[1]['lt']);
+                })
+            )
+            ->willReturnSelf();
+
+        $collectionMock->expects($this->once())
+            ->method('setPageSize')
+            ->with(AnalyticsEventProviderInterface::CLEAN_UP_BATCH_SIZE)
+            ->willReturnSelf();
+
+        $result = $collectionMock->analyticsEventsToCleanUp();
+
+        $this->assertSame($collectionMock, $result);
+    }
+
+    /**
+     * @return void
+     */
+    public function testAnalyticsEventsToCleanUpSetsCorrectPageSize()
+    {
+        $objectManagerMock = $this->createMock(ObjectManagerInterface::class);
+        ObjectManager::setInstance($objectManagerMock);
+
+        $entityFactoryMock = $this->createMock(EntityFactoryInterface::class);
+        $loggerMock = $this->createMock(LoggerInterface::class);
+        $fetchStrategyMock = $this->createMock(FetchStrategyInterface::class);
+        $eventManagerMock = $this->createMock(ManagerInterface::class);
+        $connectionMock = $this->createMock(AdapterInterface::class);
+        $resourceMock = $this->createMock(AbstractDb::class);
+
+        $select = $this->createMock(Select::class);
+        $select->method('from')->willReturnSelf();
+        $select->method('where')->willReturnSelf();
+
+        $connectionMock->method('select')->willReturn($select);
+        $resourceMock->method('getConnection')->willReturn($connectionMock);
+
+        $collectionMock = $this->getMockBuilder(Collection::class)
+            ->setConstructorArgs([
+                $entityFactoryMock,
+                $loggerMock,
+                $fetchStrategyMock,
+                $eventManagerMock,
+                $connectionMock,
+                $resourceMock
+            ])
+            ->onlyMethods(['addFieldToFilter', 'setPageSize'])
+            ->getMock();
+
+        $collectionMock->method('addFieldToFilter')->willReturnSelf();
+
+        $collectionMock->expects($this->once())
+            ->method('setPageSize')
+            ->with(AnalyticsEventProviderInterface::CLEAN_UP_BATCH_SIZE)
+            ->willReturnSelf();
+
+        $collectionMock->analyticsEventsToCleanUp();
+    }
+
+    /**
+     * @return void
+     */
+    public function testAnalyticsEventsToCleanUpFiltersDoneStatusOrOldRecords()
+    {
+        $objectManagerMock = $this->createMock(ObjectManagerInterface::class);
+        ObjectManager::setInstance($objectManagerMock);
+
+        $entityFactoryMock = $this->createMock(EntityFactoryInterface::class);
+        $loggerMock = $this->createMock(LoggerInterface::class);
+        $fetchStrategyMock = $this->createMock(FetchStrategyInterface::class);
+        $eventManagerMock = $this->createMock(ManagerInterface::class);
+        $connectionMock = $this->createMock(AdapterInterface::class);
+        $resourceMock = $this->createMock(AbstractDb::class);
+
+        $select = $this->createMock(Select::class);
+        $select->method('from')->willReturnSelf();
+        $select->method('where')->willReturnSelf();
+
+        $connectionMock->method('select')->willReturn($select);
+        $resourceMock->method('getConnection')->willReturn($connectionMock);
+
+        $collectionMock = $this->getMockBuilder(Collection::class)
+            ->setConstructorArgs([
+                $entityFactoryMock,
+                $loggerMock,
+                $fetchStrategyMock,
+                $eventManagerMock,
+                $connectionMock,
+                $resourceMock
+            ])
+            ->onlyMethods(['addFieldToFilter', 'setPageSize'])
+            ->getMock();
+
+        $collectionMock->expects($this->once())
+            ->method('addFieldToFilter')
+            ->with(
+                [
+                    AnalyticsEventInterface::STATUS,
+                    AnalyticsEventInterface::CREATED_AT
+                ],
+                $this->callback(function ($conditions) {
+                    $daysLimit = date('Y-m-d H:i:s', strtotime('-45 days'));
+                    $daysLimitTimestamp = strtotime($daysLimit);
+
+                    $hasDoneStatus = isset($conditions[0]['eq']) &&
+                        $conditions[0]['eq'] === AnalyticsEventStatusEnum::DONE->value;
+
+                    $hasDateFilter = isset($conditions[1]['lt']);
+
+                    if ($hasDateFilter) {
+                        $filterTimestamp = strtotime($conditions[1]['lt']);
+                        $timeDiff = abs($filterTimestamp - $daysLimitTimestamp);
+                        $hasDateFilter = $timeDiff < 60;
+                    }
+
+                    return $hasDoneStatus && $hasDateFilter;
+                })
+            )
+            ->willReturnSelf();
+
+        $collectionMock->method('setPageSize')->willReturnSelf();
+
+        $collectionMock->analyticsEventsToCleanUp();
     }
 }

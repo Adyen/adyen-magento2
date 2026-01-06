@@ -16,6 +16,7 @@ use Adyen\AdyenException;
 use Adyen\Payment\Api\Data\AnalyticsEventInterface;
 use Adyen\Payment\Api\Data\AnalyticsEventStatusEnum;
 use Adyen\Payment\Api\Data\AnalyticsEventTypeEnum;
+use Adyen\Payment\Cron\Providers\AnalyticsEventProviderInterface;
 use Adyen\Payment\Model\AnalyticsEvent as AnalyticsEventModel;
 use Adyen\Payment\Model\ResourceModel\AnalyticsEvent as AnalyticsEventResourceModel;
 use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
@@ -64,6 +65,33 @@ class Collection extends AbstractCollection
 
         $this->addFieldToFilter(AnalyticsEventInterface::SCHEDULED_PROCESSING_TIME, [
             'lt' => date('Y-m-d H:i:s')]);
+
+        $this->setPageSize(AnalyticsEventProviderInterface::BATCH_SIZE);
+
+        return $this;
+    }
+
+    /**
+     * This method returns the analytics events that are older than 45 days OR are in the done state.
+     *
+     * @return $this
+     */
+    public function analyticsEventsToCleanUp(): Collection
+    {
+        $daysLimit = date('Y-m-d H:i:s', strtotime('-45 days'));
+
+        $this->addFieldToFilter(
+            [
+                AnalyticsEventInterface::STATUS,
+                AnalyticsEventInterface::CREATED_AT
+            ],
+            [
+                ['eq' => AnalyticsEventStatusEnum::DONE->value],
+                ['lt' => $daysLimit]
+            ]
+        );
+
+        $this->setPageSize(AnalyticsEventProviderInterface::CLEAN_UP_BATCH_SIZE);
 
         return $this;
     }
