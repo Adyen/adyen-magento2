@@ -63,7 +63,7 @@ class AdyenVirtualQuoteConfigProviderTest extends AbstractAdyenTestCase
         $this->quoteMock->method('isVirtual')->willReturn(false);
 
         $this->paymentMethodsHelperMock->expects($this->never())->method('getApiResponse');
-        $this->connectedTerminalsHelperMock->expects($this->never())->method('getConnectedTerminalsApiResponse');
+        $this->connectedTerminalsHelperMock->expects($this->never())->method('getConnectedTerminals');
 
         $config = $this->adyenVirtualQuoteConfigProvider->getConfig();
 
@@ -91,7 +91,7 @@ class AdyenVirtualQuoteConfigProviderTest extends AbstractAdyenTestCase
             ->willReturn($paymentMethodsResponse);
 
         $this->connectedTerminalsHelperMock->expects($this->never())
-            ->method('getConnectedTerminalsApiResponse');
+            ->method('getConnectedTerminals');
 
         $config = $this->adyenVirtualQuoteConfigProvider->getConfig();
 
@@ -124,7 +124,7 @@ class AdyenVirtualQuoteConfigProviderTest extends AbstractAdyenTestCase
             ->method('getApiResponse');
 
         $this->connectedTerminalsHelperMock->expects($this->once())
-            ->method('getConnectedTerminalsApiResponse')
+            ->method('getConnectedTerminals')
             ->with(self::STORE_ID)
             ->willReturn($connectedTerminalsResponse);
 
@@ -162,7 +162,7 @@ class AdyenVirtualQuoteConfigProviderTest extends AbstractAdyenTestCase
             ->willReturn($paymentMethodsResponse);
 
         $this->connectedTerminalsHelperMock->expects($this->once())
-            ->method('getConnectedTerminalsApiResponse')
+            ->method('getConnectedTerminals')
             ->with(self::STORE_ID)
             ->willReturn($connectedTerminalsResponse);
 
@@ -198,7 +198,7 @@ class AdyenVirtualQuoteConfigProviderTest extends AbstractAdyenTestCase
             ->method('getApiResponse');
 
         $this->connectedTerminalsHelperMock->expects($this->never())
-            ->method('getConnectedTerminalsApiResponse');
+            ->method('getConnectedTerminals');
 
         $config = $this->adyenVirtualQuoteConfigProvider->getConfig();
 

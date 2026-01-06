@@ -249,7 +249,7 @@ class MagentoPaymentDetailsTest extends AbstractAdyenTestCase
 
         $connectedTerminalsMock = $this->createMock(ConnectedTerminals::class);
         $connectedTerminalsMock->expects($this->never())
-            ->method('getConnectedTerminalsApiResponse');
+            ->method('getConnectedTerminals');
 
         $paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
         $paymentMethodsHelperMock->expects($this->never())

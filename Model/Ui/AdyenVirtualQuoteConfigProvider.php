@@ -60,8 +60,11 @@ class AdyenVirtualQuoteConfigProvider implements ConfigProviderInterface
             }
 
             if ($this->configHelper->getAdyenPosCloudConfigData("active", $storeId, true)) {
-                $config['payment']['adyen']['virtualQuote']['connectedTerminals'] =
-                    $this->connectedTerminalsHelper->getConnectedTerminalsApiResponse($storeId);
+                $connectedTerminals = $this->connectedTerminalsHelper->getConnectedTerminals($storeId);
+                if (!empty($connectedTerminals['uniqueTerminalIds'])) {
+                    $config['payment']['adyen']['virtualQuote']['connectedTerminals'] =
+                        $connectedTerminals['uniqueTerminalIds'];
+                }
             }
         }
 
