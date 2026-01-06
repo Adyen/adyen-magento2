@@ -318,6 +318,7 @@ class RestApiReliabilityTrackerTest extends AbstractAdyenTestCase
         $serviceMethod = 'testMethod';
         $relationId = 'test-relation-id';
         $exceptionMessage = 'Unexpected error occurred';
+        $expectedMessage = sprintf('An error occurred while handling the action %s', $serviceMethod);
         $exception = new \RuntimeException($exceptionMessage);
 
         $this->routeMock->method('getServiceClass')->willReturn($className);
@@ -336,7 +337,7 @@ class RestApiReliabilityTrackerTest extends AbstractAdyenTestCase
         $this->eventManagerMock
             ->expects($this->exactly(2))
             ->method('dispatch')
-            ->willReturnCallback(function ($eventName, $data) use (&$dispatchCalls, $exceptionMessage) {
+            ->willReturnCallback(function ($eventName, $data) use (&$dispatchCalls) {
                 $dispatchCalls[] = [
                     'type' => $data['data']['type'],
                     'message' => $data['data']['message'] ?? null
@@ -359,7 +360,7 @@ class RestApiReliabilityTrackerTest extends AbstractAdyenTestCase
         } finally {
             $this->assertEquals(AnalyticsEventTypeEnum::EXPECTED_START->value, $dispatchCalls[0]['type']);
             $this->assertEquals(AnalyticsEventTypeEnum::UNEXPECTED_END->value, $dispatchCalls[1]['type']);
-            $this->assertEquals($exceptionMessage, $dispatchCalls[1]['message']);
+            $this->assertEquals($expectedMessage, $dispatchCalls[1]['message']);
         }
     }
 

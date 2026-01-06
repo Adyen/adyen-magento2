@@ -241,6 +241,7 @@ class FrontendControllerReliabilityTrackerTest extends AbstractAdyenTestCase
         $serviceUri = '/adyen/webhook';
         $relationId = 'test-relation-id';
         $exceptionMessage = 'Unexpected error occurred';
+        $expectedMessage = sprintf('An error occurred while handling the action %s', $serviceUri);
 
         $this->configHelperMock->expects($this->once())
             ->method('isReliabilityDataCollectionEnabled')
@@ -264,13 +265,13 @@ class FrontendControllerReliabilityTrackerTest extends AbstractAdyenTestCase
             ->method('dispatch')
             ->with(
                 AnalyticsEventState::EVENT_NAME,
-                $this->callback(function ($data) use ($relationId, $serviceUri, $exceptionMessage, &$dispatchCallCount) {
+                $this->callback(function ($data) use ($relationId, $serviceUri, $expectedMessage, &$dispatchCallCount) {
                     $dispatchCallCount++;
                     if ($dispatchCallCount === 1) {
                         return $data['data']['type'] === AnalyticsEventTypeEnum::EXPECTED_START->value;
                     }
                     return $data['data']['type'] === AnalyticsEventTypeEnum::UNEXPECTED_END->value &&
-                        $data['data']['message'] === $exceptionMessage;
+                        $data['data']['message'] === $expectedMessage;
                 })
             );
 

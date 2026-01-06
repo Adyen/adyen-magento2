@@ -101,7 +101,7 @@ class RestApiReliabilityTracker
                     'relationId' => $this->analyticsEventState->getRelationId(),
                     'type' => AnalyticsEventTypeEnum::UNEXPECTED_END->value,
                     'topic' => $topic,
-                    'message' => $exception->getMessage()
+                    'message' => sprintf("An error occurred while handling the action %s", $topic)
                 ]]);
 
                 throw $exception;
