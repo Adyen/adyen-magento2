@@ -3,7 +3,7 @@ run-name: E2E test workflow with test suite branch ${{inputs.testBranch || 'deve
 
 on:
   pull_request:
-    branches: [main, feature/reliability]
+    branches: [main]
   workflow_dispatch:
     inputs:
       testBranch:
