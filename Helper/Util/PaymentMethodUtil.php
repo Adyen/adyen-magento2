@@ -107,7 +107,9 @@ class PaymentMethodUtil
         'walley',
         'walley_b2b',
         'girocard',
-        'girocard_applepay'
+        'girocard_applepay',
+        'scalapay_3x',
+        'scalapay_4x'
     ];
 
     /**

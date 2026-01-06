@@ -69,6 +69,7 @@ class PaymentMethods extends AbstractHelper
     const ADYEN_GROUP_ALTERNATIVE_PAYMENT_METHODS = 'adyen-alternative-payment-method';
     const CONFIG_FIELD_REQUIRES_LINE_ITEMS = 'requires_line_items';
     const CONFIG_FIELD_IS_OPEN_INVOICE = 'is_open_invoice';
+    const CONFIG_FIELD_REFUND_REQUIRES_CAPTURE_PSPREFERENCE = 'refund_requires_capture_pspreference';
 
     const VALID_CHANNELS = ["iOS", "Android", "Web"];
 
@@ -1141,5 +1142,16 @@ class PaymentMethods extends AbstractHelper
         $requiresLineItemsConfig = boolval($paymentMethodInstance->getConfigData(self::CONFIG_FIELD_REQUIRES_LINE_ITEMS));
 
         return $isOpenInvoice || $requiresLineItemsConfig;
+    }
+
+    /**
+     * Checks the requirement of `capturePspReference` for refund requests
+     *
+     * @param MethodInterface $paymentMethodInstance
+     * @return bool
+     */
+    public function getRefundRequiresCapturePspreference(MethodInterface $paymentMethodInstance): bool
+    {
+        return boolval($paymentMethodInstance->getConfigData(self::CONFIG_FIELD_REFUND_REQUIRES_CAPTURE_PSPREFERENCE));
     }
 }
