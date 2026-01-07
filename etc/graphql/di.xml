@@ -111,6 +111,35 @@
                 <item name="adyen_paynow" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
                 <item name="adyen_riverty" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
                 <item name="adyen_payto" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_ach_vault" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_amazonpay_vault" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_applepay_vault" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_bcmc_vault" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_bcmc_mobile_vault" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_carnet_vault" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_cashapp_vault" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_cc_vault" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenCc</item>
+                <item name="adyen_dana_vault" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_directEbanking_vault" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_eps_vault" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_gcash_vault" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_giropay_vault" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_googlepay_vault" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_ideal_vault" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_kakaopay_vault" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_klarna_vault" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_klarna_account_vault" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_klarna_paynow_vault" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_momo_wallet_vault" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_paybybank_vault" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_paybybank_ais_dd_vault" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_paypal_vault" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_payto_vault" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_pos_cloud_vault" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_sepadirectdebit_vault" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_trustly_vault" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_twint_vault" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
+                <item name="adyen_zip_vault" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPm</item>
             </argument>
         </arguments>
     </type>
