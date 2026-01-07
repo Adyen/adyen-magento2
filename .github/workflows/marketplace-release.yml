@@ -1,7 +1,6 @@
-name: marketplace-release.yml
+name: Adobe EQP Marketplace Release
 
 on:
-  workflow_dispatch:
   release:
     types: [published]
 
@@ -16,8 +15,12 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dependencies
-        run: npm install
-
       - name: Run Magento Marketplace release automation script
         run: node scripts/marketplace-release.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          ADOBE_EQP_APP_ID: ${{ secrets.ADOBE_CLIENT_ID }}
+          ADOBE_EQP_APP_SECRET: ${{ secrets.ADOBE_CLIENT_SECRET }}
+          ADOBE_EQP_PACKAGE_SKU: adyen/Adyen_Payment
