@@ -1,21 +1,43 @@
+const path = require('path');
+const fs = require('fs');
 const https = require('https');
+const { pipeline } = require('stream/promises');
+const crypto = require('crypto');
 
-// Configuration - these should be set via environment variables
 const GITHUB_API_URL = 'api.github.com';
+const ADOBE_EQP_API_URL = 'commercedeveloper-api.adobe.com';
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const GITHUB_OWNER = process.env.GITHUB_OWNER || 'Adyen';
-const GITHUB_REPO = process.env.GITHUB_REPO || 'adyen-magento2';
+const GITHUB_REPO = process.env.GITHUB_REPO;
 const RELEASE_TAG = process.env.RELEASE_TAG;
-
-// Adobe EQP API credentials
 const ADOBE_EQP_APP_ID = process.env.ADOBE_EQP_APP_ID;
 const ADOBE_EQP_APP_SECRET = process.env.ADOBE_EQP_APP_SECRET;
-const ADOBE_EQP_API_URL = 'commercedeveloper.adobe.com';
+const ADOBE_EQP_PACKAGE_SKU = process.env.ADOBE_EQP_PACKAGE_SKU;
+const LICENSE_TYPE = process.env.LICENSE_TYPE || 'mit';
+
+/**
+ * Cleans up release notes by removing GitHub-generated comments and emojis
+ *
+ * @param {string} notes - Raw release notes from GitHub
+ *
+ * @returns {string} - Cleaned release notes
+ */
+function cleanupReleaseNotes(notes) {
+    if (!notes) return '';
+
+    return notes
+        .replace(/<!-- Release notes generated using configuration in \.github\/release\.yml at .* -->/g, '')
+        .replace(/💎/g, '')
+        .replace(/🖇️/g, '')
+        .replace(/⛑️/g, '')
+        .trim();
+}
 
 /**
  * Makes an HTTPS request and returns a promise
+ *
  * @param {Object} options - Request options
  * @param {string|null} postData - Data to send in POST request
+ *
  * @returns {Promise<Object>} - Response data
  */
 function makeRequest(options, postData = null) {
@@ -56,22 +78,16 @@ function makeRequest(options, postData = null) {
 /**
  * Gets release information from GitHub API for a given tag
  *
- * @param {string} repository - Repository
- * @param {string} tag - Release tag
- *
  * @returns {Promise<Object>} - Release information
  */
-async function getGithubRelease(repository, tag) {
-    if (!GITHUB_TOKEN) {
-        throw new Error('GITHUB_TOKEN is required!');
-    }
-
+async function getGithubRelease() {
     const options = {
         hostname: GITHUB_API_URL,
-        path: `/repos/${repository}/releases/tags/${tag}`,
+        path: `/repos/${GITHUB_REPO}/releases/tags/${RELEASE_TAG}`,
         method: 'GET',
         headers: {
-            'Authorization': `Bearer ${GITHUB_TOKEN}`
+            'Authorization': `Bearer ${GITHUB_TOKEN}`,
+            'User-Agent': 'Adyen-Magento2-Release-Script'
         }
     };
 
@@ -81,13 +97,15 @@ async function getGithubRelease(repository, tag) {
 /**
  * Gets access token from Adobe EQP API
  *
- * @param {string} appId - Adobe EQP Application ID
- * @param {string} appSecret - Adobe EQP Application Secret
- *
  * @returns {Promise<Object>} - Access token response
  */
-async function getAdobeEQPAccessToken(appId, appSecret) {
-    const credentials = Buffer.from(`${appId}:${appSecret}`).toString('base64');
+async function getAdobeEQPAccessToken() {
+    const credentials = Buffer.from(`${ADOBE_EQP_APP_ID}:${ADOBE_EQP_APP_SECRET}`).toString('base64');
+
+    const postData = JSON.stringify({
+        grant_type: "session",
+        expires_in: 300
+    });
 
     const options = {
         hostname: ADOBE_EQP_API_URL,
@@ -95,80 +113,230 @@ async function getAdobeEQPAccessToken(appId, appSecret) {
         method: 'POST',
         headers: {
             'Authorization': `Basic ${credentials}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(postData)
         }
     };
 
-    console.log('Requesting Adobe EQP access token...');
+    return makeRequest(options, postData);
+}
+
+/**
+ * Downloads a release zipball from GitHub and saves it to a file
+ *
+ * @param {string} url - The zipball URL from GitHub
+ * @param {string} destPath - Destination file path
+ *
+ * @returns {Promise<void>}
+ */
+async function downloadReleaseZipball(url, destPath) {
+    const response = await new Promise((resolve, reject) => {
+        https.get(url, {
+            headers: {
+                'Authorization': `Bearer ${GITHUB_TOKEN}`,
+                'User-Agent': 'Adyen-Magento2-Release-Script',
+                'Accept': 'application/vnd.github+json'
+            }
+        }, resolve).on('error', reject);
+    });
+
+    if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
+        return downloadReleaseZipball(response.headers.location, destPath);
+    }
+
+    if (response.statusCode !== 200) {
+        throw new Error(`Failed to download the zipball!`);
+    }
+
+    await pipeline(response, fs.createWriteStream(destPath));
+}
+
+/**
+ * Uploads a zipball to Adobe EQP and returns the file upload ID
+ *
+ * @param {string} accessToken - Adobe EQP access token
+ * @param {string} filePath - Path to the zip file to upload
+ *
+ * @returns {Promise<Object>} - Upload response containing file_upload_id
+ */
+function uploadZipballToAdobeEQP(accessToken, filePath) {
+    const fileName = path.basename(filePath);
+    const fileBuffer = fs.readFileSync(filePath);
+    const boundary = crypto.randomUUID();
+
+    const bodyStart = Buffer.from(
+        `--${boundary}\r\n` +
+        `Content-Disposition: form-data; name="file[]"; filename="${fileName}"\r\n` +
+        `Content-Type: application/zip\r\n\r\n`
+    );
+    const bodyEnd = Buffer.from(`\r\n--${boundary}--`);
+    const body = Buffer.concat([bodyStart, fileBuffer, bodyEnd]);
+
+    const options = {
+        hostname: ADOBE_EQP_API_URL,
+        path: '/rest/v1/files/uploads',
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': `multipart/form-data; boundary=${boundary}`,
+            'Content-Length': body.length
+        }
+    };
+
+    return makeRequest(options, body);
+}
+
+/**
+ * Checks the status of a file upload on Adobe EQP
+ *
+ * @param {string} accessToken - Adobe EQP access token
+ * @param {string} fileUploadId - The file upload ID to check
+ *
+ * @returns {Promise<Object>} - Upload status response
+ */
+function getFileUploadStatus(accessToken, fileUploadId) {
+    const options = {
+        hostname: ADOBE_EQP_API_URL,
+        path: `/rest/v1/files/uploads/${fileUploadId}`,
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${accessToken}`
+        }
+    };
+
     return makeRequest(options);
+}
+
+/**
+ * Waits for malware scan to complete with polling
+ *
+ * @param {string} accessToken - Adobe EQP access token
+ * @param {string} fileUploadId - The file upload ID to check
+ * @param {number} timeoutMs - Maximum time to wait in milliseconds (default: 120000)
+ * @param {number} intervalMs - Polling interval in milliseconds (default: 10000)
+ *
+ * @returns {Promise<Object>} - Final upload status response
+ */
+async function waitForMalwareScan(
+    accessToken,
+    fileUploadId,
+    timeoutMs = 240000,
+    intervalMs = 15000
+) {
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < timeoutMs) {
+        const status = await getFileUploadStatus(accessToken, fileUploadId);
+        const malwareStatus = status.malware_status;
+
+        if (malwareStatus === 'passed') {
+            return status;
+        }
+
+        if (malwareStatus === 'in-progress' || malwareStatus === 'queued') {
+            await new Promise(resolve => setTimeout(resolve, intervalMs));
+            continue;
+        }
+
+        throw new Error(`Unexpected malware_status: ${malwareStatus}`);
+    }
+
+    throw new Error(`Malware scan timed out after ${timeoutMs / 1000} seconds`);
+}
+
+/**
+ * Submits a package to Adobe EQP Marketplace
+ *
+ * @param {string} accessToken - Adobe EQP access token
+ * @param {string} fileUploadId - The file upload ID from uploadZipballToAdobeEQP
+ * @param {string} version - Package version
+ * @param {string} releaseNotes - Release notes for the package
+ *
+ * @returns {Promise<Object>} - Submission response
+ */
+function submitPackageToAdobeEQP(
+    accessToken,
+    fileUploadId,
+    version,
+    releaseNotes
+) {
+    const payload = [
+        {
+            action: {
+                technical: "submit"
+            },
+            type: "extension",
+            platform: "M2",
+            release_notes: releaseNotes,
+            version: version,
+            artifact: {
+                file_upload_id: fileUploadId
+            },
+            license_type: LICENSE_TYPE,
+            sku: ADOBE_EQP_PACKAGE_SKU
+        }
+    ];
+
+    const postData = JSON.stringify(payload);
+
+    const options = {
+        hostname: ADOBE_EQP_API_URL,
+        path: '/rest/v1/products/packages',
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(postData)
+        }
+    };
+
+    return makeRequest(options, postData);
 }
 
 /**
  * Main function to orchestrate the release process
  */
 async function main() {
-    // Validate required environment variables
-    if (!RELEASE_TAG) {
-        console.error('Error: RELEASE_TAG environment variable is required');
-        process.exit(1);
-    }
-
-    if (!ADOBE_EQP_APP_ID || !ADOBE_EQP_APP_SECRET) {
-        console.error('Error: ADOBE_EQP_APP_ID and ADOBE_EQP_APP_SECRET environment variables are required');
+    if (!RELEASE_TAG || !ADOBE_EQP_APP_ID || !ADOBE_EQP_APP_SECRET || !GITHUB_TOKEN) {
+        console.error('Missing required environment variables');
         process.exit(1);
     }
 
     let releaseNotes = '';
 
     try {
-        // Step 1: Get GitHub release information
-        const releaseInfo = await getGithubRelease(GITHUB_OWNER, GITHUB_REPO, RELEASE_TAG);
-        console.log('Successfully fetched release information');
-        console.log(`Release Name: ${releaseInfo.name}`);
-        console.log(`Published At: ${releaseInfo.published_at}`);
+        // Fetch release information from GitHub and access token from Adobe EQP
+        const releaseInfo = await getGithubRelease();
+        const tokenResponse = await getAdobeEQPAccessToken();
 
-        // Step 2: Extract and store release notes
-        releaseNotes = releaseInfo.body || '';
-        console.log('\n--- Release Notes ---');
-        console.log(releaseNotes);
-        console.log('--- End Release Notes ---\n');
-
-        // Step 3: Get Adobe EQP access token
-        const tokenResponse = await getAdobeEQPAccessToken(ADOBE_EQP_APP_ID, ADOBE_EQP_APP_SECRET);
-        console.log('Successfully obtained Adobe EQP access token');
-
-        // Step 4: Download the release zipball
+        // Download the release zipball from GitHub
         const zipballPath = path.join(process.cwd(), `${RELEASE_TAG}.zip`);
         await downloadReleaseZipball(releaseInfo.zipball_url, zipballPath);
-        console.log(`Successfully downloaded zipball to: ${zipballPath}`);
 
-        // Return the collected data
-        return {
-            releaseInfo,
-            releaseNotes,
-            adobeToken: tokenResponse
-        };
+        // Upload the zipball to Adobe EQP
+        const [{ file_upload_id }] = await uploadZipballToAdobeEQP(tokenResponse.ust, zipballPath);
 
+        // Wait for malware scan to complete
+        await waitForMalwareScan(tokenResponse.ust, file_upload_id);
+
+        // Submit the package to Adobe EQP
+        const submitResponse = await submitPackageToAdobeEQP(
+            tokenResponse.ust,
+            file_upload_id,
+            releaseInfo.tag_name.replace(/^v/, ''),
+            cleanupReleaseNotes(releaseInfo.body)
+        );
+
+        return;
     } catch (error) {
-        console.error('Error:', error.message);
         process.exit(1);
     }
 }
 
 // Run the main function
-main().then((result) => {
-    console.log('\nProcess completed successfully');
-    // The result object contains:
-    // - releaseInfo: Full GitHub release object
-    // - releaseNotes: Release notes string
-    // - adobeToken: Adobe EQP token response
+main().then(() => {
+    console.log('Process completed successfully!');
 }).catch((error) => {
-    console.error('Unexpected error:', error);
+    console.error('Unexpected error!');
     process.exit(1);
 });
-
-module.exports = {
-    getGithubRelease,
-    getAdobeEQPAccessToken,
-    makeRequest
-};
