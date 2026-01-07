@@ -20,6 +20,7 @@ use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
 use Adyen\Payment\Gateway\Request\Header\HeaderDataBuilderInterface;
+use Magento\Vault\Api\Data\PaymentTokenInterface;
 
 class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
 {
@@ -46,6 +47,7 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
         self::CC_TYPE,
         self::RETURN_URL,
         self::RECURRING_PROCESSING_MODEL,
+        PaymentTokenInterface::PUBLIC_HASH,
         HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY
     ];
 
