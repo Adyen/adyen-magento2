@@ -19,6 +19,7 @@
                 <item name="adyen_pm_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenPmConfigProvider</item>
                 <item name="adyen_pos_cloud_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider</item>
                 <item name="adyen_giftcard_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenGiftcardConfigProvider</item>
+                <item name="adyen_virtual_quote_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenVirtualQuoteConfigProvider</item>
             </argument>
         </arguments>
     </type>

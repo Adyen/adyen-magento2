@@ -1693,6 +1693,11 @@
             </argument>
         </arguments>
     </type>
+    <type name="Adyen\Payment\Api\Data\AnalyticsEventInterface">
+        <arguments>
+            <argument name="instance" xsi:type="string">Adyen\Payment\Model\AnalyticsEvent</argument>
+        </arguments>
+    </type>
     <preference for="Adyen\Payment\Api\GuestAdyenPaymentMethodManagementInterface" type="Adyen\Payment\Model\Api\GuestAdyenPaymentMethodManagement" />
     <preference for="Adyen\Payment\Api\AdyenPaymentMethodManagementInterface" type="Adyen\Payment\Model\Api\AdyenPaymentMethodManagement" />
     <preference for="Adyen\Payment\Api\AdyenPaymentsDetailsInterface" type="Adyen\Payment\Model\Api\AdyenPaymentsDetails" />
@@ -1717,6 +1722,8 @@
     <preference for="Adyen\Payment\Api\Repository\AdyenInvoiceRepositoryInterface" type="Adyen\Payment\Model\AdyenInvoiceRepository" />
     <preference for="Adyen\Payment\Api\Repository\AdyenCreditmemoRepositoryInterface" type="Adyen\Payment\Model\AdyenCreditmemoRepository" />
     <preference for="Adyen\Payment\Api\Repository\AdyenOrderPaymentRepositoryInterface" type="Adyen\Payment\Model\AdyenOrderPaymentRepository" />
+    <preference for="Adyen\Payment\Api\Data\AnalyticsEventInterface" type="Adyen\Payment\Model\AnalyticsEvent"/>
+    <preference for="Adyen\Payment\Api\AnalyticsEventRepositoryInterface" type="Adyen\Payment\Model\AnalyticsEventRepository"/>
     <type name="Magento\Vault\Api\PaymentTokenRepositoryInterface">
         <plugin name="AdyenPaymentVaultDeleteToken" type="Adyen\Payment\Plugin\PaymentVaultDeleteToken" sortOrder="10" />
     </type>
@@ -1738,11 +1745,20 @@
     <type name="Magento\Checkout\Model\ShippingInformationManagement">
         <plugin name="CustomShippingInformationManagement" type="Adyen\Payment\Plugin\ShippingInformationManagement" sortOrder="10" />
     </type>
+    <type name="Magento\Quote\Api\PaymentMethodManagementInterface">
+        <plugin name="SortAndFilterAdyenPaymentMethods" type="Adyen\Payment\Plugin\SortAndFilterAdyenPaymentMethods" sortOrder="10" />
+    </type>
     <type name="Adyen\Payment\Block\Checkout\Multishipping\Billing">
         <plugin name="MultishippingPaymentMethods" type="Adyen\Payment\Plugin\MultishippingPaymentMethods" sortOrder="10" />
     </type>
     <type name="Magento\InstantPurchase\PaymentMethodIntegration\Integration">
         <plugin name="InstantPurchateIntegration" type="Adyen\Payment\Plugin\InstantPurchaseIntegration" sortOrder="10" />
+    </type>
+    <type name="Magento\Webapi\Controller\Rest\SynchronousRequestProcessor">
+        <plugin name="RestApiReliabilityTracker" type="Adyen\Payment\Plugin\RestApiReliabilityTracker" sortOrder="10" />
+    </type>
+    <type name="Magento\Framework\App\FrontController">
+        <plugin name="FrontendControllerReliabilityTracker" type="Adyen\Payment\Plugin\FrontendControllerReliabilityTracker" sortOrder="10" />
     </type>
     <type name="Adyen\Payment\Model\AdyenNotificationRepository">
         <arguments>
@@ -1763,6 +1779,18 @@
             </argument>
         </arguments>
     </virtualType>
+    <type name="Adyen\Payment\Cron\SubmitAnalyticsEvents">
+        <arguments>
+            <argument name="providers" xsi:type="array">
+                <item name="pendingInfoEvents" xsi:type="object">
+                    Adyen\Payment\Cron\Providers\PendingInfoAnalyticsEventsProvider
+                </item>
+                <item name="pendingErrorsEvents" xsi:type="object">
+                    Adyen\Payment\Cron\Providers\PendingErrorsAnalyticsEventsProvider
+                </item>
+            </argument>
+        </arguments>
+    </type>
     <!--Notifications overview-->
     <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
         <arguments>
