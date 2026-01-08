@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2022 Adyen N.V.
+ * Copyright (c) 2026 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -20,14 +20,8 @@ use Magento\TestFramework\TestCase\GraphQlAbstract;
 
 class AdyenRecurringTest extends GraphQlAbstract
 {
-    /**
-     * @var GetMaskedQuoteIdByReservedOrderId
-     */
-    private $getMaskedQuoteIdByReservedOrderId;
-    /**
-     * @var CustomerTokenServiceInterface
-     */
-    private $customerTokenService;
+    private GetMaskedQuoteIdByReservedOrderId $getMaskedQuoteIdByReservedOrderId;
+    private CustomerTokenServiceInterface $customerTokenService;
 
     /**
      * @inheritdoc
@@ -50,7 +44,7 @@ class AdyenRecurringTest extends GraphQlAbstract
      */
     public function testGenerateCardTokenAndVaultPayment()
     {
-        // Step 1: Place initial order with storePaymentMethod to generate vault token
+        // Place initial order with storePaymentMethod to generate vault token
         $maskedQuoteId = $this->getMaskedQuoteIdByReservedOrderId->execute('test_quote');
         $stateData = <<<JSON
             {
@@ -83,12 +77,14 @@ class AdyenRecurringTest extends GraphQlAbstract
             stateData: ' . json_encode($stateData) . '
         }';
         $query = $this->getPlaceOrderQuery($maskedQuoteId, "adyen_cc", $adyenAdditionalData);
-
         $response = $this->graphQlMutation($query, [], '', $this->getHeaderMap());
 
-        self::assertEquals('Authorised', $response['placeOrder']['order']['adyen_payment_status']['resultCode']);
+        self::assertEquals(
+            'Authorised',
+            $response['placeOrder']['order']['adyen_payment_status']['resultCode']
+        );
 
-        // Step 2: Query for the stored vault token
+        // Query for the stored vault tokens
         $customerTokensQuery = <<<QUERY
             query {
               customerPaymentTokens {
@@ -102,166 +98,35 @@ class AdyenRecurringTest extends GraphQlAbstract
             }
         QUERY;
 
-        $customerTokensResponse = $this->graphQlQuery($customerTokensQuery, [], '', $this->getHeaderMap());
+        $tokensResponse = $this->graphQlQuery($customerTokensQuery, [], '', $this->getHeaderMap());
 
-        $customerTokens = $customerTokensResponse['customerPaymentTokens']['items'];
+        $customerTokens = $tokensResponse['customerPaymentTokens']['items'];
         self::assertNotEmpty($customerTokens, 'Expected at least one stored payment token');
 
         $vaultToken = reset($customerTokens);
         self::assertArrayHasKey('public_hash', $vaultToken);
         self::assertEquals('adyen_cc', $vaultToken['payment_method_code']);
 
-        // Step 3: Create a new cart for the vault payment
-        $createCartMutation = <<<QUERY
-            mutation {
-                createEmptyCart
-            }
-        QUERY;
+        // Prepare a new quote, set billing and shipping address and return the masked quote id
+        $newMaskedQuoteId = $this->prepareNewQuote();
 
-        $createCartResponse = $this->graphQlMutation($createCartMutation, [], '', $this->getHeaderMap());
-        $newMaskedQuoteId = $createCartResponse['createEmptyCart'];
-
-        // Step 4: Add product to the new cart
-        $addProductMutation = <<<QUERY
-            mutation {
-                addSimpleProductsToCart(
-                    input: {
-                        cart_id: "$newMaskedQuoteId"
-                        cart_items: [
-                            {
-                                data: {
-                                    quantity: 1
-                                    sku: "simple_product"
-                                }
-                            }
-                        ]
-                    }
-                ) {
-                    cart {
-                        items {
-                            quantity
-                            product {
-                                sku
-                            }
-                        }
-                    }
-                }
-            }
-        QUERY;
-
-        $this->graphQlMutation($addProductMutation, [], '', $this->getHeaderMap());
-
-        // Step 5: Set shipping address
-        $setShippingAddressMutation = <<<QUERY
-            mutation {
-                setShippingAddressesOnCart(
-                    input: {
-                        cart_id: "$newMaskedQuoteId"
-                        shipping_addresses: [
-                            {
-                                address: {
-                                    firstname: "John"
-                                    lastname: "Smith"
-                                    company: "Test company"
-                                    street: ["test street 1", "test street 2"]
-                                    city: "Texas City"
-                                    postcode: "78717"
-                                    telephone: "5765432100"
-                                    region: "TX"
-                                    country_code: "US"
-                                    save_in_address_book: false
-                                }
-                            }
-                        ]
-                    }
-                ) {
-                    cart {
-                        shipping_addresses {
-                            firstname
-                            lastname
-                        }
-                    }
-                }
-            }
-        QUERY;
-
-        $this->graphQlMutation($setShippingAddressMutation, [], '', $this->getHeaderMap());
-
-        // Step 6: Set billing address
-        $setBillingAddressMutation = <<<QUERY
-            mutation {
-                setBillingAddressOnCart(
-                    input: {
-                        cart_id: "$newMaskedQuoteId"
-                        billing_address: {
-                            address: {
-                                firstname: "John"
-                                lastname: "Smith"
-                                company: "Test company"
-                                street: ["test street 1", "test street 2"]
-                                city: "Texas City"
-                                postcode: "78717"
-                                telephone: "5765432100"
-                                region: "TX"
-                                country_code: "US"
-                                save_in_address_book: false
-                            }
-                        }
-                    }
-                ) {
-                    cart {
-                        billing_address {
-                            firstname
-                            lastname
-                        }
-                    }
-                }
-            }
-        QUERY;
-
-        $this->graphQlMutation($setBillingAddressMutation, [], '', $this->getHeaderMap());
-
-        // Step 7: Set shipping method
-        $setShippingMethodMutation = <<<QUERY
-            mutation {
-                setShippingMethodsOnCart(
-                    input: {
-                        cart_id: "$newMaskedQuoteId"
-                        shipping_methods: [
-                            {
-                                carrier_code: "flatrate"
-                                method_code: "flatrate"
-                            }
-                        ]
-                    }
-                ) {
-                    cart {
-                        shipping_addresses {
-                            selected_shipping_method {
-                                carrier_code
-                                method_code
-                            }
-                        }
-                    }
-                }
-            }
-        QUERY;
-
-        $this->graphQlMutation($setShippingMethodMutation, [], '', $this->getHeaderMap());
-
-        // Step 8: Place order using the vault token
+        // Place order using the vault payment token
         $vaultAdyenAdditionalData = "
-        payflowpro_cc_vault: {
+        adyen_additional_data_cc: {
             public_hash: \"{$vaultToken['public_hash']}\"
         }";
 
-        $vaultPaymentQuery = $this->getPlaceOrderQuery($newMaskedQuoteId, "adyen_cc", $vaultAdyenAdditionalData);
-
+        $vaultPaymentQuery = $this->getPlaceOrderQuery(
+            $newMaskedQuoteId,
+            "adyen_cc_vault",
+            $vaultAdyenAdditionalData
+        );
         $vaultResponse = $this->graphQlMutation($vaultPaymentQuery, [], '', $this->getHeaderMap());
 
-        var_dump($vaultResponse);
-
-        self::assertEquals('Authorised', $vaultResponse['placeOrder']['order']['adyen_payment_status']['resultCode']);
+        self::assertEquals(
+            'Authorised',
+            $vaultResponse['placeOrder']['order']['adyen_payment_status']['resultCode']
+        );
     }
 
     /**
@@ -308,10 +173,161 @@ class AdyenRecurringTest extends GraphQlAbstract
                             additionalData
                             action
                         }
+                    },
+                    errors {
+                        message,
+                        code
                     }
                 }
             }
         QUERY;
+    }
+
+    /**
+     * @return mixed
+     * @throws AuthenticationException
+     */
+    private function prepareNewQuote(): mixed
+    {
+        // Create a new cart
+        $createCartMutation = <<<QUERY
+            mutation {
+                createEmptyCart
+            }
+        QUERY;
+
+        $createCartResponse = $this->graphQlMutation($createCartMutation, [], '', $this->getHeaderMap());
+        $newMaskedQuoteId = $createCartResponse['createEmptyCart'];
+
+        // Add product to the new cart
+        $addProductMutation = <<<QUERY
+            mutation {
+                addSimpleProductsToCart(
+                    input: {
+                        cart_id: "$newMaskedQuoteId"
+                        cart_items: [
+                            {
+                                data: {
+                                    quantity: 1
+                                    sku: "simple_product"
+                                }
+                            }
+                        ]
+                    }
+                ) {
+                    cart {
+                        items {
+                            quantity
+                            product {
+                                sku
+                            }
+                        }
+                    }
+                }
+            }
+        QUERY;
+
+        $this->graphQlMutation($addProductMutation, [], '', $this->getHeaderMap());
+
+        // Set shipping address
+        $setShippingAddressMutation = <<<QUERY
+            mutation {
+                setShippingAddressesOnCart(
+                    input: {
+                        cart_id: "$newMaskedQuoteId"
+                        shipping_addresses: [
+                            {
+                                address: {
+                                    firstname: "John"
+                                    lastname: "Smith"
+                                    company: "Test company"
+                                    street: ["test street 1", "test street 2"]
+                                    city: "Texas City"
+                                    postcode: "78717"
+                                    telephone: "5765432100"
+                                    region: "TX"
+                                    country_code: "US"
+                                    save_in_address_book: false
+                                }
+                            }
+                        ]
+                    }
+                ) {
+                    cart {
+                        shipping_addresses {
+                            firstname
+                            lastname
+                        }
+                    }
+                }
+            }
+        QUERY;
+
+        $this->graphQlMutation($setShippingAddressMutation, [], '', $this->getHeaderMap());
+
+        // Set billing address
+        $setBillingAddressMutation = <<<QUERY
+            mutation {
+                setBillingAddressOnCart(
+                    input: {
+                        cart_id: "$newMaskedQuoteId"
+                        billing_address: {
+                            address: {
+                                firstname: "John"
+                                lastname: "Smith"
+                                company: "Test company"
+                                street: ["test street 1", "test street 2"]
+                                city: "Texas City"
+                                postcode: "78717"
+                                telephone: "5765432100"
+                                region: "TX"
+                                country_code: "US"
+                                save_in_address_book: false
+                            }
+                        }
+                    }
+                ) {
+                    cart {
+                        billing_address {
+                            firstname
+                            lastname
+                        }
+                    }
+                }
+            }
+        QUERY;
+
+        $this->graphQlMutation($setBillingAddressMutation, [], '', $this->getHeaderMap());
+
+        // Set shipping method
+        $setShippingMethodMutation = <<<QUERY
+            mutation {
+                setShippingMethodsOnCart(
+                    input: {
+                        cart_id: "$newMaskedQuoteId"
+                        shipping_methods: [
+                            {
+                                carrier_code: "flatrate"
+                                method_code: "flatrate"
+                            }
+                        ]
+                    }
+                ) {
+                    cart {
+                        shipping_addresses {
+                            selected_shipping_method {
+                                carrier_code
+                                method_code
+                            }
+                        }
+                    }
+                }
+            }
+        QUERY;
+
+        $this->graphQlMutation($setShippingMethodMutation, [], '', $this->getHeaderMap());
+
+        return $newMaskedQuoteId;
     }
 
     /**
