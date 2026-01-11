@@ -136,19 +136,23 @@ class AdyenLogger
 
     public function getInvoiceContext(MagentoOrder\Invoice $invoice): array
     {
-        $stateName = $invoice->getStateName();
+        try {
+            $stateName = $invoice->getStateName();
 
-        return [
-            'invoiceId' => $invoice->getEntityId(),
-            'invoiceIncrementId' => $invoice->getIncrementId(),
-            'invoiceState' => $invoice->getState(),
-            'invoiceStateName' => $stateName instanceof Phrase ? $stateName->getText() : $stateName,
-            'invoiceWasPayCalled' => $invoice->wasPayCalled(),
-            'invoiceCanCapture' => $invoice->canCapture(),
-            'invoiceCanCancel' => $invoice->canCancel(),
-            'invoiceCanVoid' => $invoice->canVoid(),
-            'invoiceCanRefund' => $invoice->canRefund()
-        ];
+            return [
+                'invoiceId' => $invoice->getEntityId(),
+                'invoiceIncrementId' => $invoice->getIncrementId(),
+                'invoiceState' => $invoice->getState(),
+                'invoiceStateName' => $stateName instanceof Phrase ? $stateName->getText() : $stateName,
+                'invoiceWasPayCalled' => $invoice->wasPayCalled(),
+                'invoiceCanCapture' => $invoice->canCapture(),
+                'invoiceCanCancel' => $invoice->canCancel(),
+                'invoiceCanVoid' => $invoice->canVoid(),
+                'invoiceCanRefund' => $invoice->canRefund()
+            ];
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     /**
