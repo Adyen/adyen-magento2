@@ -75,6 +75,9 @@ class AdditionalDataLevel23DataBuilder implements BuilderInterface
                     (string) $this->adyenHelper->formatAmount($order->getTaxAmount(), $currencyCode)
             ];
 
+            $prefix = 'enhancedSchemeData';
+            $requestBody['additionalData'][$prefix . '.totalTaxAmount'] = $this->adyenHelper->formatAmount($order->getTaxAmount(), $currencyCode);
+            $requestBody['additionalData'][$prefix . '.customerReference'] = $this->adyenRequestHelper->getShopperReference($order->getCustomerId(), $order->getIncrementId(), $payment->getAdditionalInformation('shopperReference'));
             if ($order->getIsNotVirtual()) {
                 $additionalDataLevel23[self::ENHANCED_SCHEME_DATA_PREFIX . '.freightAmount'] =
                     (string) $this->adyenHelper->formatAmount($order->getBaseShippingAmount(), $currencyCode);
