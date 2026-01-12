@@ -1,0 +1,29 @@
+name: Adobe EQP Marketplace Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  marketplace-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 20
+
+      - name: Run Magento Marketplace release automation script
+        run: node .github/scripts/marketplace-release.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          ADOBE_EQP_APP_ID: ${{ secrets.ADOBE_CLIENT_ID }}
+          ADOBE_EQP_APP_SECRET: ${{ secrets.ADOBE_CLIENT_SECRET }}
+          ADOBE_EQP_PACKAGE_SKU: adyen/Adyen_Payment
