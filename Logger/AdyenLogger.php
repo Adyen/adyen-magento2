@@ -150,7 +150,8 @@ class AdyenLogger
                 'invoiceCanVoid' => $invoice->canVoid(),
                 'invoiceCanRefund' => $invoice->canRefund()
             ];
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            $this->addAdyenWarning('Failed to retrieve invoice context: ' . $e->getMessage());
             return [];
         }
     }
