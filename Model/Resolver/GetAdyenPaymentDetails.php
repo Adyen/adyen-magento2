@@ -15,6 +15,7 @@ namespace Adyen\Payment\Model\Resolver;
 
 use Adyen\Payment\Exception\GraphQlAdyenException;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Resolver\DataProvider\GetAdyenPaymentStatus;
 use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\GraphQl\Config\Element\Field;
@@ -23,7 +24,9 @@ use Magento\Framework\GraphQl\Exception\GraphQlNoSuchEntityException;
 use Magento\Framework\GraphQl\Query\Resolver\ContextInterface;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
+use Magento\Framework\HTTP\AsyncClient\HttpException;
 use Magento\Framework\Serialize\Serializer\Json;
+use Magento\GraphQl\Helper\Error\AggregateExceptionMessageFormatter;
 use Magento\QuoteGraphQl\Model\Cart\GetCartForUser;
 use Magento\Sales\Model\Order;
 
@@ -31,17 +34,19 @@ class GetAdyenPaymentDetails implements ResolverInterface
 {
     /**
      * @param GetCartForUser $getCartForUser
-     * @param DataProvider\GetAdyenPaymentStatus $getAdyenPaymentStatusDataProvider
+     * @param GetAdyenPaymentStatus $getAdyenPaymentStatusDataProvider
      * @param Order $order
      * @param Json $jsonSerializer
      * @param AdyenLogger $adyenLogger
+     * @param AggregateExceptionMessageFormatter $adyenGraphQlExceptionMessageFormatter
      */
     public function __construct(
         private readonly GetCartForUser $getCartForUser,
         protected readonly DataProvider\GetAdyenPaymentStatus $getAdyenPaymentStatusDataProvider,
         protected readonly Order $order,
         protected readonly Json $jsonSerializer,
-        protected readonly AdyenLogger $adyenLogger
+        protected readonly AdyenLogger $adyenLogger,
+        protected readonly AggregateExceptionMessageFormatter $adyenGraphQlExceptionMessageFormatter
     ) { }
 
     /**
@@ -64,30 +69,30 @@ class GetAdyenPaymentDetails implements ResolverInterface
         ?array $value = null,
         ?array $args = null
     ): array {
-        if (empty($args['payload'])) {
-            throw new GraphQlInputException(__('Required parameter "payload" is missing'));
-        }
-        if (empty($args['cart_id'])) {
-            throw new GraphQlInputException(__('Required parameter "cart_id" is missing'));
-        }
-        $payload = $this->jsonSerializer->unserialize($args['payload']);
-        if (!array_key_exists('orderId', $payload)) {
-            throw new GraphQlInputException(__('Missing "orderId" from payload'));
-        }
-
-        $order = $this->order->loadByIncrementId($payload['orderId']);
-        $maskedCartId = $args['cart_id'];
-        $currentUserId = $context->getUserId();
-        $storeId = (int)$context->getExtensionAttributes()->getStore()->getId();
-        $cart = $this->getCartForUser->execute($maskedCartId, $currentUserId, $storeId);
-        if (is_null($order->getEntityId()) || $order->getQuoteId() !== $cart->getEntityId()) {
-            throw new GraphQlNoSuchEntityException(__('Order does not exist'));
-        }
-
-        // Set the orderId in the payload to the entity id, instead of the incrementId
-        $payload['orderId'] = $order->getId();
-
         try {
+            if (empty($args['payload'])) {
+                throw new GraphQlInputException(__('Required parameter "payload" is missing'));
+            }
+            if (empty($args['cart_id'])) {
+                throw new GraphQlInputException(__('Required parameter "cart_id" is missing'));
+            }
+            $payload = $this->jsonSerializer->unserialize($args['payload']);
+            if (!array_key_exists('orderId', $payload)) {
+                throw new GraphQlInputException(__('Missing "orderId" from payload'));
+            }
+
+            $order = $this->order->loadByIncrementId($payload['orderId']);
+            $maskedCartId = $args['cart_id'];
+            $currentUserId = $context->getUserId();
+            $storeId = (int)$context->getExtensionAttributes()->getStore()->getId();
+            $cart = $this->getCartForUser->execute($maskedCartId, $currentUserId, $storeId);
+            if (is_null($order->getEntityId()) || $order->getQuoteId() !== $cart->getEntityId()) {
+                throw new GraphQlNoSuchEntityException(__('Order does not exist'));
+            }
+
+            // Set the orderId in the payload to the entity id, instead of the incrementId
+            $payload['orderId'] = $order->getId();
+
             return $this->getAdyenPaymentStatusDataProvider->getGetAdyenPaymentDetails(
                 $this->jsonSerializer->serialize($payload),
                 $order,
@@ -115,21 +120,19 @@ class GetAdyenPaymentDetails implements ResolverInterface
      */
     private function getFormattedException($e, Field $field, ContextInterface $context, ResolveInfo $info)
     {
-        if (class_exists(\Magento\QuoteGraphQl\Helper\Error\PlaceOrderMessageFormatter::class)) {
-            $errorMessageFormatter = \Magento\Framework\App\ObjectManager::getInstance()
-                ->get(\Magento\QuoteGraphQl\Helper\Error\PlaceOrderMessageFormatter::class);
-            return $errorMessageFormatter->getFormatted(
-                $e,
-                __('Unable to place order: A server error stopped your order from being placed. ' .
-                    'Please try to place your order again'),
-                'Unable to place order',
-                $field,
-                $context,
-                $info
-            );
-        } else {
-            return new GraphQlAdyenException(__('Unable to place order: A server error stopped your order from being placed. ' .
-                'Please try to place your order again'));
-        }
+        /*
+         * Generic error message will only be used for LocalizedException class.
+         * If the exception extends LocalizedException, then the relevant message formatter will be used.
+         * For more details, check AdyenGraphQlExceptionMessageFormatter virtual class in etc/graphql/di.xml
+         */
+        return $this->adyenGraphQlExceptionMessageFormatter->getFormatted(
+            $e,
+            __('Unable to place order: A server error stopped your order from being placed. ' .
+                'Please try to place your order again'),
+            'Unable to place order',
+            $field,
+            $context,
+            $info
+        );
     }
 }
