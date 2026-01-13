@@ -17,6 +17,7 @@ use Adyen\Payment\Exception\GraphQlAdyenException;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Resolver\DataProvider\GetAdyenPaymentStatus;
 use Exception;
+use GraphQL\Error\ClientAware;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
@@ -24,7 +25,6 @@ use Magento\Framework\GraphQl\Exception\GraphQlNoSuchEntityException;
 use Magento\Framework\GraphQl\Query\Resolver\ContextInterface;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
-use Magento\Framework\HTTP\AsyncClient\HttpException;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\GraphQl\Helper\Error\AggregateExceptionMessageFormatter;
 use Magento\QuoteGraphQl\Model\Cart\GetCartForUser;
@@ -50,17 +50,13 @@ class GetAdyenPaymentDetails implements ResolverInterface
     ) { }
 
     /**
-     * @inheritdoc
-     *
      * @param Field $field
-     * @param ContextInterface $context
+     * @param $context
      * @param ResolveInfo $info
      * @param array|null $value
      * @param array|null $args
      * @return array
      * @throws GraphQlAdyenException
-     * @throws GraphQlInputException
-     * @throws GraphQlNoSuchEntityException
      */
     public function resolve(
         Field $field,
@@ -116,13 +112,14 @@ class GetAdyenPaymentDetails implements ResolverInterface
      * @param Field $field
      * @param ContextInterface $context
      * @param ResolveInfo $info
-     * @return mixed
+     * @return ClientAware
      */
-    private function getFormattedException($e, Field $field, ContextInterface $context, ResolveInfo $info)
+    private function getFormattedException($e, Field $field, ContextInterface $context, ResolveInfo $info): ClientAware
     {
         /*
-         * Generic error message will only be used for LocalizedException class.
-         * If the exception extends LocalizedException, then the relevant message formatter will be used.
+         * Generic error message will only be shown if the exception is an instance of LocalizedException class.
+         * Otherwise, the relevant message formatter will be used.
+         *
          * For more details, check AdyenGraphQlExceptionMessageFormatter virtual class in etc/graphql/di.xml
          */
         return $this->adyenGraphQlExceptionMessageFormatter->getFormatted(
