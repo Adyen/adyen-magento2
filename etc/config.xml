@@ -129,7 +129,7 @@
                 <active>0</active>
                 <model>AdyenPaymentIdealFacade</model>
                 <order_status>pending</order_status>
-                <title>iDeal</title>
+                <title>iDeal | Wero</title>
                 <allowspecific>0</allowspecific>
                 <sort_order>0</sort_order>
                 <payment_action>authorize</payment_action>
