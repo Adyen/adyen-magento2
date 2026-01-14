@@ -474,10 +474,11 @@ class Requests extends AbstractHelper
 
     /**
      * @param string|null $customerId
-     * @param string $orderIncrementId
+     * @param string|null $orderIncrementId
+     * @param string|null $orderShopperReference
      * @return string
      */
-    public function getShopperReference($customerId, $orderIncrementId, $orderShopperReference): string
+    public function getShopperReference(?string $customerId, ?string $orderIncrementId, ?string $orderShopperReference = null): string
     {
         if ($orderShopperReference) {
             $shopperReference = $orderShopperReference;
