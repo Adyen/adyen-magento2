@@ -157,4 +157,18 @@
             </argument>
         </arguments>
     </type>
+    <virtualType name="AdyenGraphQlExceptionMessageFormatter" type="Magento\GraphQl\Helper\Error\AggregateExceptionMessageFormatter">
+        <arguments>
+            <argument name="messageFormatters" xsi:type="array">
+                <item name="graphql" xsi:type="object">Magento\GraphQl\Helper\Error\MessageFormatters\GraphQlExceptionMessageFormatter</item>
+                <item name="no_such_entity" xsi:type="object">Magento\GraphQl\Helper\Error\MessageFormatters\NoSuchEntityExceptionMessageFormatter</item>
+                <item name="validation" xsi:type="object">Magento\GraphQl\Helper\Error\MessageFormatters\ValidationExceptionMessageFormatter</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <type name="Adyen\Payment\Model\Resolver\GetAdyenPaymentDetails">
+        <arguments>
+            <argument name="adyenGraphQlExceptionMessageFormatter" xsi:type="object">AdyenGraphQlExceptionMessageFormatter</argument>
+        </arguments>
+    </type>
 </config>
