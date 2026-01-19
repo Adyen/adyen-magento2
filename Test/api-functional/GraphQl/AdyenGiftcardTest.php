@@ -287,7 +287,7 @@ class AdyenGiftcardTest extends GraphQlAbstract
     }
 
     /**
-     * Tests order placement using multiple giftcards
+     * Tests order placement using card + giftcard partial payments
      */
     #[
         DataFixture(Product::class, ['price' => 65], 'product1'),
@@ -431,7 +431,6 @@ class AdyenGiftcardTest extends GraphQlAbstract
             }
         MUTATION;
     }
-
 
     /**
      * @return array
