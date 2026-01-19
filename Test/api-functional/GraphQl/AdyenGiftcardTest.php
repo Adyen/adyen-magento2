@@ -111,7 +111,7 @@ class AdyenGiftcardTest extends GraphQlAbstract
      * @throws Exception
      */
     #[DataFixture(GuestCart::class, as: 'guestCart1')]
-    public function testSaveStateData()
+    public function testSaveReadRemoveStateData()
     {
         $cart = $this->fixtures->get('guestCart1');
         $cartId = $this->quoteIdToMaskedQuoteId->execute(intval($cart->getId()));
