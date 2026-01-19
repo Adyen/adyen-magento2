@@ -13,9 +13,15 @@
 namespace Adyen\Payment\GraphQl;
 
 use Exception;
+use Magento\Catalog\Test\Fixture\Product;
+use Magento\Checkout\Test\Fixture\SetBillingAddress;
+use Magento\Checkout\Test\Fixture\SetDeliveryMethod;
+use Magento\Checkout\Test\Fixture\SetShippingAddress;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Indexer\Test\Fixture\Indexer;
 use Magento\Quote\Model\QuoteIdToMaskedQuoteIdInterface;
+use Magento\Quote\Test\Fixture\AddProductToCart;
 use Magento\Quote\Test\Fixture\GuestCart;
 use Magento\TestFramework\Fixture\DataFixture;
 use Magento\TestFramework\Fixture\DataFixtureStorage;
@@ -73,11 +79,11 @@ class AdyenGiftcardTest extends GraphQlAbstract
         $jsonPayload = addslashes(json_encode($this->getBalanceCheckPayload($amount)));
 
         $query = <<<QUERY
-        {
-            adyenPaymentMethodsBalance (payload: "$jsonPayload") {
-                balanceResponse
+            query {
+                adyenPaymentMethodsBalance (payload: "$jsonPayload") {
+                    balanceResponse
+                }
             }
-        }
         QUERY;
 
         $response = $this->graphQlQuery($query);
@@ -198,6 +204,140 @@ class AdyenGiftcardTest extends GraphQlAbstract
     }
 
     /**
+     * Tests order placement using single giftcard
+     */
+    #[
+        DataFixture(Product::class, as: 'product1'),
+        DataFixture(Indexer::class),
+        DataFixture(GuestCart::class, as: 'guestCart1'),
+        DataFixture(AddProductToCart::class, ['cart_id' => '$guestCart1.id$', 'product_id' => '$product1.id$']),
+        DataFixture(SetShippingAddress::class, ['cart_id' => '$guestCart1.id$']),
+        DataFixture(SetDeliveryMethod::class, ['cart_id' => '$guestCart1.id$']),
+        DataFixture(SetBillingAddress::class, ['cart_id' => '$guestCart1.id$']),
+    ]
+    public function testSingleGiftcardPayment()
+    {
+        $cart = $this->fixtures->get('guestCart1');
+        $cartId = $this->quoteIdToMaskedQuoteId->execute(intval($cart->getId()));
+
+        $stateData = addslashes(json_encode($this->getValidGiftcardStateData(5000)));
+
+        $adyenAdditionalData = <<<DATA
+            adyen_additional_data: {
+                stateData: "$stateData"
+            }
+        DATA;
+
+        $mutation = $this->getPlaceOrderMutation($cartId, 'adyen_giftcard', $adyenAdditionalData);
+        $response = $this->graphQlMutation($mutation);
+
+        self::assertArrayHasKey('placeOrder', $response);
+        self::assertArrayHasKey('order', $response['placeOrder']);
+        self::assertArrayHasKey('order_number', $response['placeOrder']['order']);
+        self::assertArrayHasKey('adyen_payment_status', $response['placeOrder']['order']);
+        self::assertArrayHasKey('resultCode', $response['placeOrder']['order']['adyen_payment_status']);
+        self::assertArrayHasKey('isFinal', $response['placeOrder']['order']['adyen_payment_status']);
+        self::assertEquals('Authorised', $response['placeOrder']['order']['adyen_payment_status']['resultCode']);
+        self::assertTrue($response['placeOrder']['order']['adyen_payment_status']['isFinal']);
+    }
+
+    /**
+     * Tests order placement using multiple giftcards
+     */
+    #[
+        DataFixture(Product::class, ['price' => 65], 'product1'),
+        DataFixture(Indexer::class),
+        DataFixture(GuestCart::class, as: 'guestCart1'),
+        DataFixture(AddProductToCart::class, ['cart_id' => '$guestCart1.id$', 'product_id' => '$product1.id$']),
+        DataFixture(SetShippingAddress::class, ['cart_id' => '$guestCart1.id$']),
+        DataFixture(SetDeliveryMethod::class, ['cart_id' => '$guestCart1.id$']),
+        DataFixture(SetBillingAddress::class, ['cart_id' => '$guestCart1.id$']),
+    ]
+    public function testMultipleGiftcardsPayment()
+    {
+        $cart = $this->fixtures->get('guestCart1');
+        $cartId = $this->quoteIdToMaskedQuoteId->execute(intval($cart->getId()));
+
+        for ($i = 0; $i < 2; $i++) {
+            $payload = $this->getValidGiftcardStateData(5000);
+            $jsonPayload = addslashes(json_encode($payload));
+
+            $mutationSaveStateData = <<<MUTATION
+                mutation {
+                    adyenSaveStateData(stateData: "$jsonPayload", cartId: "$cartId") {
+                        stateDataId
+                    }
+                }
+            MUTATION;
+
+            $this->graphQlMutation($mutationSaveStateData);
+        }
+
+        $placeOrderMutation = $this->getPlaceOrderMutation($cartId, 'adyen_giftcard', '');
+        $response = $this->graphQlMutation($placeOrderMutation);
+
+        self::assertArrayHasKey('placeOrder', $response);
+        self::assertArrayHasKey('order', $response['placeOrder']);
+        self::assertArrayHasKey('order_number', $response['placeOrder']['order']);
+        self::assertArrayHasKey('adyen_payment_status', $response['placeOrder']['order']);
+        self::assertArrayHasKey('resultCode', $response['placeOrder']['order']['adyen_payment_status']);
+        self::assertArrayHasKey('isFinal', $response['placeOrder']['order']['adyen_payment_status']);
+        self::assertEquals('Authorised', $response['placeOrder']['order']['adyen_payment_status']['resultCode']);
+        self::assertTrue($response['placeOrder']['order']['adyen_payment_status']['isFinal']);
+    }
+
+    /**
+     * Tests order placement using multiple giftcards
+     */
+    #[
+        DataFixture(Product::class, ['price' => 65], 'product1'),
+        DataFixture(Indexer::class),
+        DataFixture(GuestCart::class, as: 'guestCart1'),
+        DataFixture(AddProductToCart::class, ['cart_id' => '$guestCart1.id$', 'product_id' => '$product1.id$']),
+        DataFixture(SetShippingAddress::class, ['cart_id' => '$guestCart1.id$']),
+        DataFixture(SetDeliveryMethod::class, ['cart_id' => '$guestCart1.id$']),
+        DataFixture(SetBillingAddress::class, ['cart_id' => '$guestCart1.id$']),
+    ]
+    public function testCreditCardPartialPayment()
+    {
+        $cart = $this->fixtures->get('guestCart1');
+        $cartId = $this->quoteIdToMaskedQuoteId->execute(intval($cart->getId()));
+
+        $payload = $this->getValidGiftcardStateData(5000);
+        $jsonPayload = addslashes(json_encode($payload));
+
+        $mutationSaveStateData = <<<MUTATION
+            mutation {
+                adyenSaveStateData(stateData: "$jsonPayload", cartId: "$cartId") {
+                    stateDataId
+                }
+            }
+        MUTATION;
+
+        $this->graphQlMutation($mutationSaveStateData);
+
+        $stateData = addslashes(json_encode($this->getValidCardStateData()));
+
+        $adyenAdditionalData = <<<DATA
+            adyen_additional_data_cc: {
+                stateData: "$stateData"
+            }
+        DATA;
+
+        $placeOrderMutation = $this->getPlaceOrderMutation($cartId, 'adyen_cc', $adyenAdditionalData);
+        $response = $this->graphQlMutation($placeOrderMutation);
+
+        self::assertArrayHasKey('placeOrder', $response);
+        self::assertArrayHasKey('order', $response['placeOrder']);
+        self::assertArrayHasKey('order_number', $response['placeOrder']['order']);
+        self::assertArrayHasKey('adyen_payment_status', $response['placeOrder']['order']);
+        self::assertArrayHasKey('resultCode', $response['placeOrder']['order']['adyen_payment_status']);
+        self::assertArrayHasKey('isFinal', $response['placeOrder']['order']['adyen_payment_status']);
+        self::assertEquals('Authorised', $response['placeOrder']['order']['adyen_payment_status']['resultCode']);
+        self::assertTrue($response['placeOrder']['order']['adyen_payment_status']['isFinal']);
+    }
+
+    /**
      * @param int $amount
      * @return array
      */
@@ -230,6 +370,82 @@ class AdyenGiftcardTest extends GraphQlAbstract
             'amount' => [
                 'currency' => 'EUR',
                 'value' => $amount
+            ]
+        ];
+    }
+
+    /**
+     * @param string $cartId
+     * @param string $paymentMethod
+     * @param string $additionalData
+     * @return string
+     */
+    protected function getPlaceOrderMutation(
+        string $cartId,
+        string $paymentMethod,
+        string $additionalData
+    ): string {
+        return <<<MUTATION
+            mutation {
+                setGuestEmailOnCart(
+                    input: {
+                        cart_id: "$cartId"
+                        email: "test@example.com"
+                    }
+                ) {
+                    cart {
+                        email
+                    }
+                }
+                setPaymentMethodOnCart(
+                    input: {
+                        cart_id: "$cartId"
+                        payment_method: {
+                          code: "$paymentMethod"
+                          {$additionalData}
+                        }
+                    }
+                ) {
+                    cart {
+                        selected_payment_method {
+                            code
+                            title
+                        }
+                    }
+                }
+
+                placeOrder(
+                    input: {
+                        cart_id: "$cartId"
+                    }
+                ) {
+                    order {
+                        order_number
+                        cart_id
+                        adyen_payment_status {
+                            isFinal
+                            resultCode
+                        }
+                    }
+                }
+            }
+        MUTATION;
+    }
+
+
+    /**
+     * @return array
+     */
+    protected function getValidCardStateData(): array
+    {
+        return [
+            'paymentMethod' => [
+                'type' => 'scheme',
+                'brand' => 'visa',
+                'encryptedCardNumber' => 'test_4111111111111111',
+                'encryptedExpiryMonth' => 'test_03',
+                'encryptedExpiryYear' => 'test_2030',
+                'encryptedSecurityCode' => 'test_737'
             ]
         ];
     }
