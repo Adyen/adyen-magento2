@@ -26,4 +26,4 @@ jobs:
           RELEASE_TAG: ${{ github.ref_name }}
           ADOBE_EQP_APP_ID: ${{ secrets.ADOBE_CLIENT_ID }}
           ADOBE_EQP_APP_SECRET: ${{ secrets.ADOBE_CLIENT_SECRET }}
-          ADOBE_EQP_PACKAGE_SKU: adyen/Adyen_Payment
+          ADOBE_EQP_PACKAGE_SKU: adyen/module-payment
