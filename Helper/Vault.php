@@ -12,6 +12,7 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\AdyenException;
 use Adyen\Payment\Model\Method\TxVariant;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
@@ -20,6 +21,7 @@ use DateTime;
 use DateTimeZone;
 use Exception;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Model\InfoInterface;
 use Magento\Sales\Api\Data\OrderPaymentExtensionInterface;
 use Magento\Sales\Api\Data\OrderPaymentExtensionInterfaceFactory;
@@ -177,6 +179,11 @@ class Vault
         return null;
     }
 
+    /**
+     * @throws AdyenException
+     * @throws NoSuchEntityException
+     * @throws LocalizedException
+     */
     public function createVaultToken(OrderPaymentInterface $payment, string $detailReference, ?string $cardHolderName = null): PaymentTokenInterface
     {
         $paymentMethodInstance = $payment->getMethodInstance();
@@ -216,7 +223,7 @@ class Vault
                 ]);
 
                 $cardType = $validated->getCard();
-                $walletType = $validated->getPaymentMethod();
+                $walletType = $this->paymentMethodsHelper->getAlternativePaymentMethodTxVariant($paymentMethodInstance);
                 $details = [
                     'type' => $cardType,
                     'walletType' => $walletType,
