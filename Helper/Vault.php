@@ -13,7 +13,6 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
-use Adyen\Payment\Model\Method\TxVariant;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
 use DateInterval;
@@ -33,7 +32,6 @@ use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Vault\Model\PaymentTokenManagement;
 use Magento\Vault\Model\ResourceModel\PaymentToken as PaymentTokenResourceModel;
 use Magento\Vault\Model\Ui\VaultConfigProvider;
-use Adyen\Payment\Exception\TxVariantValidationException;
 use Adyen\Payment\Model\Method\ValidatedTxVariantFactory;
 class Vault
 {
@@ -230,13 +228,19 @@ class Vault
                     'maskedCC' => $additionalData['cardSummary'],
                     'expirationDate' => $additionalData['expiryDate']
                 ];
-            } catch (TxVariantValidationException $e) {
+            } catch (\Throwable $e) {
                 // Graceful handling: log + fallback to safe values
                 $this->adyenLogger->addAdyenDebug(sprintf(
                     'Invalid wallet txVariant "%s" for vault token creation: %s',
                     $ccType,
                     $e->getMessage()
                 ));
+                $details = [
+                    'type' => null,
+                    'walletType' => $this->paymentMethodsHelper->getAlternativePaymentMethodTxVariant($paymentMethodInstance),
+                    'maskedCC' => $additionalData['cardSummary'],
+                    'expirationDate' => $additionalData['expiryDate']
+                ];
             }
 
             if ($cardHolderName !== null) {

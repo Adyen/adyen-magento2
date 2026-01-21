@@ -28,6 +28,8 @@ use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Vault\Model\PaymentTokenManagement;
 use Magento\Vault\Model\ResourceModel\PaymentToken as PaymentTokenResourceModel;
+use Adyen\Payment\Model\Method\ValidatedTxVariantFactory;
+use Adyen\Payment\Exception\TxVariantValidationException;
 
 class VaultTest extends AbstractAdyenTestCase
 {
@@ -41,6 +43,7 @@ class VaultTest extends AbstractAdyenTestCase
     private $stateData;
     private $paymentTokenResourceModelMock;
     private $orderPaymentExtensionInterfaceFactoryMock;
+    private $validatedTxVariantFactory;
 
     protected function setUp(): void
     {
@@ -57,6 +60,7 @@ class VaultTest extends AbstractAdyenTestCase
         $this->paymentTokenResourceModelMock = $this->createMock(PaymentTokenResourceModel::class);
         $this->orderPaymentExtensionInterfaceFactoryMock =
             $this->createMock(OrderPaymentExtensionInterfaceFactory::class);
+        $this->validatedTxVariantFactory = $this->createMock(ValidatedTxVariantFactory::class);
 
         $this->vault = new Vault(
             $this->adyenLogger,
@@ -67,7 +71,8 @@ class VaultTest extends AbstractAdyenTestCase
             $this->orderPaymentExtensionInterfaceFactoryMock,
             $this->config,
             $this->paymentMethodsHelper,
-            $this->stateData
+            $this->stateData,
+            $this->validatedTxVariantFactory
         );
     }
 
@@ -309,7 +314,10 @@ class VaultTest extends AbstractAdyenTestCase
 
         $payment->method('getOrder')->willReturn($order);
         $payment->method('getMethodInstance')->willReturn($adapter);
-        $payment->method('getCcType')->willReturn('googlepay');
+
+        // IMPORTANT: include underscore so ValidatedTxVariant extracts card part
+        $payment->method('getCcType')->willReturn('mc_googlepay');
+
         $payment->method('getAdditionalInformation')->willReturnCallback(function ($key) {
             $map = [
                 'additionalData' => ['cardSummary' => '9999', 'expiryDate' => '12/2031'],
@@ -321,20 +329,106 @@ class VaultTest extends AbstractAdyenTestCase
         $this->paymentTokenManagement->method('getByGatewayToken')->willReturn(null);
 
         $tokenMock = $this->createMock(\Magento\Vault\Api\Data\PaymentTokenInterface::class);
-        $tokenMock->expects($this->once())->method('setType')->with(PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD);
+        $tokenMock->expects($this->once())->method('setType')
+            ->with(PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD);
         $tokenMock->expects($this->once())->method('setExpiresAt');
+
         $tokenMock->expects($this->once())->method('setTokenDetails')
-            ->with($this->callback(fn($json) =>
-                str_contains($json, '"walletType":"googlepay"') &&
-                str_contains($json, '"maskedCC":"9999"') &&
-                str_contains($json, '"tokenType":"UnscheduledCardOnFile"')
-            ));
+            ->with($this->callback(function ($json) {
+                return str_contains($json, '"type":"mc"')
+                    && str_contains($json, '"walletType":"googlepay"')
+                    && str_contains($json, '"maskedCC":"9999"')
+                    && str_contains($json, '"tokenType":"UnscheduledCardOnFile"');
+            }));
 
         $this->paymentTokenFactory->method('create')->willReturn($tokenMock);
-        $this->paymentMethodsHelper->method('isWalletPaymentMethod')->willReturn(true);
+
+        // Wallet branch
+        $this->paymentMethodsHelper->method('isWalletPaymentMethod')->with($adapter)->willReturn(true);
+
+        // walletType is taken from payment method instance via helper
+        $this->paymentMethodsHelper->expects($this->once())
+            ->method('getAlternativePaymentMethodTxVariant')
+            ->with($adapter)
+            ->willReturn('googlepay');
+
+        // Factory returns a ValidatedTxVariant mock
+        $validatedVariant = $this->createMock(\Adyen\Payment\Model\Method\ValidatedTxVariant::class);
+        $validatedVariant->expects($this->once())->method('getCard')->willReturn('mc');
+
+        $this->validatedTxVariantFactory->expects($this->once())
+            ->method('create')
+            ->with(['txVariant' => 'mc_googlepay'])
+            ->willReturn($validatedVariant);
 
         $this->vault->createVaultToken($payment, 'storedRef');
-        $this->assertTrue(true);
+    }
+
+    public function testCreateVaultTokenForWalletFallsBackWhenTxVariantInvalid(): void
+    {
+        $order = $this->createConfiguredMock(Order::class, ['getCustomerId' => 11, 'getStoreId' => 1]);
+        $adapter = $this->createConfiguredMock(Adapter::class, ['getCode' => 'adyen_googlepay']);
+
+        $payment = $this->getMockBuilder(Order\Payment::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['getOrder','getMethodInstance','getCcType','getAdditionalInformation'])
+            ->getMock();
+
+        $payment->method('getOrder')->willReturn($order);
+        $payment->method('getMethodInstance')->willReturn($adapter);
+
+        // This txVariant will be used by factory and can trigger exception
+        $payment->method('getCcType')->willReturn('faciliypay_10x');
+
+        $payment->method('getAdditionalInformation')->willReturnCallback(function ($key) {
+            $map = [
+                'additionalData' => ['cardSummary' => '9999', 'expiryDate' => '12/2031'],
+                'recurringProcessingModel' => 'UnscheduledCardOnFile'
+            ];
+            return $map[$key] ?? null;
+        });
+
+        $this->paymentTokenManagement->method('getByGatewayToken')->willReturn(null);
+
+        $tokenMock = $this->createMock(\Magento\Vault\Api\Data\PaymentTokenInterface::class);
+        $tokenMock->expects($this->once())->method('setType')
+            ->with(PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD);
+        $tokenMock->expects($this->once())->method('setExpiresAt');
+
+        $tokenMock->expects($this->once())->method('setTokenDetails')
+            ->with($this->callback(function ($json) {
+                return str_contains($json, '"walletType":"googlepay"')
+                    && str_contains($json, '"maskedCC":"9999"')
+                    && str_contains($json, '"tokenType":"UnscheduledCardOnFile"')
+                    // JSON_FORCE_OBJECT + null might appear as "type":null
+                    && str_contains($json, '"type":null');
+            }));
+
+        $this->paymentTokenFactory->method('create')->willReturn($tokenMock);
+
+        // Wallet branch
+        $this->paymentMethodsHelper->method('isWalletPaymentMethod')->with($adapter)->willReturn(true);
+
+        // Will be called in catch fallback too
+        $this->paymentMethodsHelper->expects($this->atLeastOnce())
+            ->method('getAlternativePaymentMethodTxVariant')
+            ->with($adapter)
+            ->willReturn('googlepay');
+
+        // Factory throws validation exception
+        $this->validatedTxVariantFactory->expects($this->once())
+            ->method('create')
+            ->with(['txVariant' => 'faciliypay_10x'])
+            ->willThrowException(
+                TxVariantValidationException::notWallet('faciliypay_10x', 'adyen_10x')
+            );
+
+        // Debug log expected
+        $this->adyenLogger->expects($this->once())
+            ->method('addAdyenDebug')
+            ->with($this->stringContains('Invalid wallet txVariant "faciliypay_10x"'));
+
+        $this->vault->createVaultToken($payment, 'storedRef');
     }
 
     public function testCreateVaultTokenForAlternativePaymentMethod(): void
