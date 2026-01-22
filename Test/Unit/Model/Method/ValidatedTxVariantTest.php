@@ -3,122 +3,179 @@ declare(strict_types=1);
 
 namespace Adyen\Payment\Test\Unit\Model\Method;
 
-use Adyen\Payment\Exception\TxVariantValidationException;
 use Adyen\Payment\Helper\PaymentMethods as PaymentMethodsHelper;
 use Adyen\Payment\Model\Method\ValidatedTxVariant;
+use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Payment\Helper\Data as DataHelper;
 use Magento\Payment\Model\MethodInterface;
-use PHPUnit\Framework\TestCase;
+use UnexpectedValueException;
 
-class ValidatedTxVariantTest extends TestCase
+class ValidatedTxVariantTest extends AbstractAdyenTestCase
 {
-    public function testWalletVariantSetsCardAndResolvesMethodInstance(): void
+    private DataHelper $dataHelper;
+    private PaymentMethodsHelper $paymentMethodsHelper;
+
+    protected function setUp(): void
     {
-        $dataHelper = $this->createMock(DataHelper::class);
-        $paymentMethodsHelper = $this->createMock(PaymentMethodsHelper::class);
+        $this->dataHelper = $this->createMock(DataHelper::class);
+        $this->paymentMethodsHelper = $this->createMock(PaymentMethodsHelper::class);
+    }
+
+    public function testResolvesWithFullTxVariantAndExtractsCardWhenWallet(): void
+    {
+        $txVariant = 'mc_googlepay';
+        $fullMethodCode = PaymentMethodsHelper::ADYEN_PREFIX . $txVariant;
+
         $methodInstance = $this->createMock(MethodInterface::class);
 
-        $txVariant = 'mc_googlepay';
-        $expectedMethodCode = PaymentMethodsHelper::ADYEN_PREFIX . 'googlepay';
-
-        $dataHelper->expects($this->once())
+        $this->dataHelper->expects($this->once())
             ->method('getMethodInstance')
-            ->with($expectedMethodCode)
+            ->with($fullMethodCode)
             ->willReturn($methodInstance);
 
-        $paymentMethodsHelper->expects($this->once())
+        $this->paymentMethodsHelper->expects($this->once())
             ->method('isWalletPaymentMethod')
             ->with($methodInstance)
             ->willReturn(true);
 
-        $sut = new ValidatedTxVariant($txVariant, $dataHelper, $paymentMethodsHelper);
+        $sut = new ValidatedTxVariant($txVariant, $this->dataHelper, $this->paymentMethodsHelper);
 
+        $this->assertSame($methodInstance, $sut->getMethodInstance());
         $this->assertSame('mc', $sut->getCard());
-        $this->assertSame($methodInstance, $sut->getMethodInstance());
     }
 
-    public function testNonWalletVariantWithoutUnderscoreResolvesMethodInstanceAndKeepsCardNull(): void
+    public function testFallsBackToParsedPaymentMethodPartWhenFullTxVariantFails(): void
     {
-        $dataHelper = $this->createMock(DataHelper::class);
-        $paymentMethodsHelper = $this->createMock(PaymentMethodsHelper::class);
-        $methodInstance = $this->createMock(MethodInterface::class);
-
-        $txVariant = 'ideal';
-        $expectedMethodCode = PaymentMethodsHelper::ADYEN_PREFIX . 'ideal';
-
-        $dataHelper->expects($this->once())
-            ->method('getMethodInstance')
-            ->with($expectedMethodCode)
-            ->willReturn($methodInstance);
-
-        $paymentMethodsHelper->expects($this->once())
-            ->method('isWalletPaymentMethod')
-            ->with($methodInstance)
-            ->willReturn(false);
-
-        $sut = new ValidatedTxVariant($txVariant, $dataHelper, $paymentMethodsHelper);
-
-        $this->assertNull($sut->getCard());
-        $this->assertSame($methodInstance, $sut->getMethodInstance());
-    }
-
-    public function testFalsePositiveWithUnderscoreThrowsNotWalletWhenResolvedMethodIsNotWallet(): void
-    {
-        $dataHelper = $this->createMock(DataHelper::class);
-        $paymentMethodsHelper = $this->createMock(PaymentMethodsHelper::class);
-        $methodInstance = $this->createMock(MethodInterface::class);
-
-        $txVariant = 'faciliypay_10x';
-        $expectedMethodCode = PaymentMethodsHelper::ADYEN_PREFIX . '10x';
-
-        $dataHelper->expects($this->once())
-            ->method('getMethodInstance')
-            ->with($expectedMethodCode)
-            ->willReturn($methodInstance);
-
-        $paymentMethodsHelper->expects($this->once())
-            ->method('isWalletPaymentMethod')
-            ->with($methodInstance)
-            ->willReturn(false);
-
-        $this->expectException(TxVariantValidationException::class);
-        $this->expectExceptionMessage(
-            sprintf(
-                'TxVariant "%s" resolved to "%s" but it is not a wallet payment method.',
-                $txVariant,
-                $expectedMethodCode
-            )
-        );
-
-        new ValidatedTxVariant($txVariant, $dataHelper, $paymentMethodsHelper);
-    }
-
-    public function testThrowsMethodNotFoundWhenMethodInstanceCannotBeResolved(): void
-    {
-        $dataHelper = $this->createMock(DataHelper::class);
-        $paymentMethodsHelper = $this->createMock(PaymentMethodsHelper::class);
-
         $txVariant = 'mc_googlepay';
-        $expectedMethodCode = PaymentMethodsHelper::ADYEN_PREFIX . 'googlepay';
 
-        $dataHelper->expects($this->once())
+        $fullMethodCode = PaymentMethodsHelper::ADYEN_PREFIX . $txVariant;
+        $fallbackMethodCode = PaymentMethodsHelper::ADYEN_PREFIX . 'googlepay';
+
+        $methodInstance = $this->createMock(MethodInterface::class);
+
+        $call = 0;
+
+        $this->dataHelper->expects($this->exactly(2))
             ->method('getMethodInstance')
-            ->with($expectedMethodCode)
-            ->willThrowException(new \Exception('No such method'));
+            ->willReturnCallback(function (string $methodCode) use (
+                &$call,
+                $fullMethodCode,
+                $fallbackMethodCode,
+                $methodInstance
+            ) {
+                $call++;
 
-        // Ensure wallet check is never called if resolution fails
-        $paymentMethodsHelper->expects($this->never())
-            ->method('isWalletPaymentMethod');
+                if ($call === 1) {
+                    $this->assertSame($fullMethodCode, $methodCode);
+                    throw new UnexpectedValueException('not found');
+                }
 
-        $this->expectException(TxVariantValidationException::class);
+                if ($call === 2) {
+                    $this->assertSame($fallbackMethodCode, $methodCode);
+                    return $methodInstance;
+                }
+
+                $this->fail('getMethodInstance called more than twice');
+            });
+
+        $this->paymentMethodsHelper->expects($this->once())
+            ->method('isWalletPaymentMethod')
+            ->with($methodInstance)
+            ->willReturn(true);
+
+        $sut = new ValidatedTxVariant($txVariant, $this->dataHelper, $this->paymentMethodsHelper);
+
+        $this->assertSame($methodInstance, $sut->getMethodInstance());
+        $this->assertSame('mc', $sut->getCard());
+    }
+
+    public function testUnderscoreNonWalletDoesNotThrowAndDoesNotSetCard(): void
+    {
+        // Example: not wallet but includes underscore
+        $txVariant = 'facilypay_3x';
+        $fullMethodCode = PaymentMethodsHelper::ADYEN_PREFIX . $txVariant;
+
+        $methodInstance = $this->createMock(MethodInterface::class);
+
+        $this->dataHelper->expects($this->once())
+            ->method('getMethodInstance')
+            ->with($fullMethodCode)
+            ->willReturn($methodInstance);
+
+        $this->paymentMethodsHelper->expects($this->once())
+            ->method('isWalletPaymentMethod')
+            ->with($methodInstance)
+            ->willReturn(false);
+
+        $sut = new ValidatedTxVariant($txVariant, $this->dataHelper, $this->paymentMethodsHelper);
+
+        $this->assertSame($methodInstance, $sut->getMethodInstance());
+        $this->assertNull($sut->getCard());
+    }
+
+    public function testThrowsWhenNeitherFullNorFallbackMethodInstanceCanBeResolved(): void
+    {
+        $txVariant = 'mc_googlepay';
+
+        $fullMethodCode = PaymentMethodsHelper::ADYEN_PREFIX . $txVariant;
+        $fallbackMethodCode = PaymentMethodsHelper::ADYEN_PREFIX . 'googlepay';
+
+        $call = 0;
+
+        $this->dataHelper->expects($this->exactly(2))
+            ->method('getMethodInstance')
+            ->willReturnCallback(function (string $methodCode) use (
+                &$call,
+                $fullMethodCode,
+                $fallbackMethodCode
+            ) {
+                $call++;
+
+                if ($call === 1) {
+                    $this->assertSame($fullMethodCode, $methodCode);
+                    throw new UnexpectedValueException('no such method');
+                }
+
+                if ($call === 2) {
+                    $this->assertSame($fallbackMethodCode, $methodCode);
+                    throw new UnexpectedValueException('no such method');
+                }
+
+                $this->fail('getMethodInstance called more than twice');
+            });
+
+        $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionMessage(
             sprintf(
-                'TxVariant "%s" resolved to "%s" but no such payment method exists.',
+                'Payment method instance not found for txVariant "%s" (attempted "%s").',
                 $txVariant,
-                $expectedMethodCode
+                $fallbackMethodCode
             )
         );
 
-        new ValidatedTxVariant($txVariant, $dataHelper, $paymentMethodsHelper);
+        new ValidatedTxVariant($txVariant, $this->dataHelper, $this->paymentMethodsHelper);
+    }
+
+    public function testWalletWithoutUnderscoreDoesNotSetCard(): void
+    {
+        $txVariant = 'googlepay';
+        $fullMethodCode = PaymentMethodsHelper::ADYEN_PREFIX . $txVariant;
+
+        $methodInstance = $this->createMock(MethodInterface::class);
+
+        $this->dataHelper->expects($this->once())
+            ->method('getMethodInstance')
+            ->with($fullMethodCode)
+            ->willReturn($methodInstance);
+
+        $this->paymentMethodsHelper->expects($this->once())
+            ->method('isWalletPaymentMethod')
+            ->with($methodInstance)
+            ->willReturn(true);
+
+        $sut = new ValidatedTxVariant($txVariant, $this->dataHelper, $this->paymentMethodsHelper);
+
+        $this->assertSame($methodInstance, $sut->getMethodInstance());
+        $this->assertNull($sut->getCard());
     }
 }

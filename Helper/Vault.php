@@ -210,46 +210,27 @@ class Vault
         $requestRpm = $payment->getAdditionalInformation('recurringProcessingModel');
         $configuredRpm = $this->getPaymentMethodRecurringProcessingModel($paymentMethodCode, $storeId);
         $recurringProcessingModel = $requestRpm ?? $configuredRpm;
-        $ccType = (string)$payment->getCcType();
 
         if ($this->paymentMethodsHelper->isWalletPaymentMethod($paymentMethodInstance)) {
             $paymentToken->setType(PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD);
 
-            try {
-                $validated = $this->validatedTxVariantFactory->create([
-                    'txVariant' => $ccType
-                ]);
+            $ccType = $payment->getCcType();
+            $walletType = $this->paymentMethodsHelper->getAlternativePaymentMethodTxVariant($paymentMethodInstance);
+            $validatedTxVariant = $this->validatedTxVariantFactory->create(['txVariant' => $ccType]);
 
-                $cardType = $validated->getCard();
-                $walletType = $this->paymentMethodsHelper->getAlternativePaymentMethodTxVariant($paymentMethodInstance);
-                $details = [
-                    'type' => $cardType,
-                    'walletType' => $walletType,
-                    'maskedCC' => $additionalData['cardSummary'],
-                    'expirationDate' => $additionalData['expiryDate']
-                ];
-            } catch (\Throwable $e) {
-                // Graceful handling: log + fallback to safe values
-                $this->adyenLogger->addAdyenDebug(sprintf(
-                    'Invalid wallet txVariant "%s" for vault token creation: %s',
-                    $ccType,
-                    $e->getMessage()
-                ));
-                $details = [
-                    'type' => null,
-                    'walletType' => $this->paymentMethodsHelper->getAlternativePaymentMethodTxVariant($paymentMethodInstance),
-                    'maskedCC' => $additionalData['cardSummary'],
-                    'expirationDate' => $additionalData['expiryDate']
-                ];
-            }
+            $details = [
+                'type' => $validatedTxVariant->getCard(),
+                'walletType' => $walletType,
+                'maskedCC' => $additionalData['cardSummary'],
+                'expirationDate' => $additionalData['expiryDate']
+            ];
 
             if ($cardHolderName !== null) {
                 $details['cardHolderName'] = $cardHolderName;
             }
 
             $paymentToken->setExpiresAt($this->getExpirationDate($additionalData['expiryDate']));
-        }
-        elseif ($paymentMethodCode === PaymentMethods::ADYEN_CC ||
+        } elseif ($paymentMethodCode === PaymentMethods::ADYEN_CC ||
             $paymentMethodCode === AdyenPosCloudConfigProvider::CODE) {
             $paymentToken->setType(PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD);
             $details = [

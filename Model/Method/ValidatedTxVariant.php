@@ -3,7 +3,8 @@ declare(strict_types=1);
 
 namespace Adyen\Payment\Model\Method;
 
-use Adyen\Payment\Exception\TxVariantValidationException;
+use Magento\Framework\Exception\LocalizedException;
+use UnexpectedValueException;
 use Adyen\Payment\Helper\PaymentMethods as PaymentMethodsHelper;
 use Magento\Payment\Helper\Data as DataHelper;
 use Magento\Payment\Model\MethodInterface;
@@ -14,55 +15,71 @@ class ValidatedTxVariant
     private MethodInterface $methodInstance;
 
     /**
-     * @throws TxVariantValidationException
+     * @param string $txVariant
+     * @param DataHelper $dataHelper
+     * @param PaymentMethodsHelper $paymentMethodsHelper
+     * @throws LocalizedException
      */
     public function __construct(
-        string $txVariant,
-        DataHelper $dataHelper,
-        PaymentMethodsHelper $paymentMethodsHelper
+        private readonly string $txVariant,
+        private readonly DataHelper $dataHelper,
+        private readonly PaymentMethodsHelper $paymentMethodsHelper,
     ) {
-        // Determine the PaymentMethod part WITHOUT assuming underscore means wallet.
-        // If there is underscore, PaymentMethod method part is after underscore; otherwise it is the whole txVariant.
-        $paymentMethodPart = $this->extractPaymentMethodPart($txVariant);
+        $this->methodInstance = $this->resolveMethodInstance();
 
-        // Resolve method instance for *all* cases. Throw if not found.
-        $methodCode = $paymentMethodsHelper::ADYEN_PREFIX . $paymentMethodPart;
+        if (
+            $this->paymentMethodsHelper->isWalletPaymentMethod($this->methodInstance)
+            && str_contains($this->txVariant, '_')
+        ) {
+            $this->card = $this->extractCardPartIfPresent();
+        }
+    }
+
+    /**
+     * @throws LocalizedException
+     */
+    private function resolveMethodInstance(): MethodInterface
+    {
+        // 1) Try full txVariant
+        $methodCode = $this->paymentMethodsHelper::ADYEN_PREFIX . $this->txVariant;
 
         try {
-            $this->methodInstance = $dataHelper->getMethodInstance($methodCode);
-        } catch (\Throwable $e) {
-            throw TxVariantValidationException::methodNotFound($txVariant, $methodCode);
-        }
+            return $this->dataHelper->getMethodInstance($methodCode);
+        } catch (UnexpectedValueException $e) {
+            // 2) Fallback: part after underscore
+            $paymentMethodPart = $this->extractPaymentMethodPart();
+            $methodCode = $this->paymentMethodsHelper::ADYEN_PREFIX . $paymentMethodPart;
 
-        // Only if the resolved method is a wallet, THEN parse the card part (if present).
-        if ($paymentMethodsHelper->isWalletPaymentMethod($this->methodInstance)) {
-            // Now we treat it as a wallet txVariant.
-            $this->card = $this->extractCardPartIfPresent($txVariant);
-        } else {
-            // If it looks like wallet format (has underscore) but resolved method isn't wallet -> throw
-            if (str_contains($txVariant, '_')) {
-                throw TxVariantValidationException::notWallet($txVariant, $methodCode);
+            try {
+                return $this->dataHelper->getMethodInstance($methodCode);
+            } catch (UnexpectedValueException $e1) {
+                throw new UnexpectedValueException(
+                    sprintf(
+                        'Payment method instance not found for txVariant "%s" (attempted "%s").',
+                        $this->txVariant,
+                        $methodCode
+                    ),
+                    0,
+                    $e1
+                );
             }
         }
     }
 
-    private function extractPaymentMethodPart(string $txVariant): string
+    private function extractPaymentMethodPart(): string
     {
-        $pos = strpos($txVariant, '_');
-        if ($pos === false) {
-            return $txVariant;
-        }
-        // payment method part is everything after first underscore
-        return substr($txVariant, $pos + 1);
+        $pos = strpos($this->txVariant, '_');
+        return $pos === false
+            ? $this->txVariant
+            : substr($this->txVariant, $pos + 1);
     }
 
-    private function extractCardPartIfPresent(string $txVariant): ?string
+    private function extractCardPartIfPresent(): ?string
     {
-        $pos = strpos($txVariant, '_');
-        if ($pos === false) {
-            return null;
-        }
-        return substr($txVariant, 0, $pos);
+        $pos = strpos($this->txVariant, '_');
+        return $pos === false
+            ? null
+            : substr($this->txVariant, 0, $pos);
     }
 
     public function getCard(): ?string
