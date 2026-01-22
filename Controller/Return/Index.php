@@ -25,6 +25,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\OrderFactory;
 use Magento\Store\Model\StoreManagerInterface;
@@ -63,6 +64,7 @@ class Index extends Action
      * @param PaymentsDetails $paymentsDetailsHelper
      * @param PaymentResponseHandler $paymentResponseHandler
      * @param CartRepositoryInterface $cartRepository
+     * @param OrderRepositoryInterface $orderRepository
      */
     public function __construct(
         Context                  $context,
@@ -74,7 +76,8 @@ class Index extends Action
         private readonly Config                   $configHelper,
         private readonly PaymentsDetails $paymentsDetailsHelper,
         private readonly PaymentResponseHandler $paymentResponseHandler,
-        private readonly CartRepositoryInterface $cartRepository
+        private readonly CartRepositoryInterface $cartRepository,
+        private readonly OrderRepositoryInterface $orderRepository
     ) {
         parent::__construct($context);
     }
@@ -172,6 +175,7 @@ class Index extends Action
     {
         if ($incrementId !== null) {
             $order = $this->orderFactory->create()->loadByIncrementId($incrementId);
+            $order = $this->orderRepository->get($order->getEntityId());
         } else {
             $order = $this->session->getLastRealOrder();
         }
