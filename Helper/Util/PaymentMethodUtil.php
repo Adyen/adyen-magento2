@@ -12,8 +12,16 @@
 
 namespace Adyen\Payment\Helper\Util;
 
+/**
+ * @deprecated
+ */
 class PaymentMethodUtil
 {
+    /**
+     * @deprecated
+     *
+     * @var array
+     */
     const MANUAL_CAPTURE_SUPPORTED_PAYMENT_METHODS = [
         'cup',
         'cartebancaire',
@@ -113,6 +121,8 @@ class PaymentMethodUtil
     ];
 
     /**
+     * @deprecated
+     *
      * @param string $paymentMethod
      * @return bool
      */
