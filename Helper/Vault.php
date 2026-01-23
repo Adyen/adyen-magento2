@@ -32,7 +32,7 @@ use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Vault\Model\PaymentTokenManagement;
 use Magento\Vault\Model\ResourceModel\PaymentToken as PaymentTokenResourceModel;
 use Magento\Vault\Model\Ui\VaultConfigProvider;
-use Adyen\Payment\Model\Method\ValidatedTxVariantFactory;
+use Adyen\Payment\Model\Method\TxVariantInterpreterFactory;
 class Vault
 {
     const RECURRING_DETAIL_REFERENCE = 'recurring.recurringDetailReference';
@@ -67,7 +67,7 @@ class Vault
      * @param Config $config
      * @param PaymentMethods $paymentMethodsHelper
      * @param StateData $stateData
-     * @param ValidatedTxVariantFactory $validatedTxVariantFactory
+     * @param TxVariantInterpreterFactory $txVariantInterpreterFactory
      */
     public function __construct(
         private readonly AdyenLogger $adyenLogger,
@@ -79,7 +79,7 @@ class Vault
         private readonly Config $config,
         private readonly PaymentMethods $paymentMethodsHelper,
         private readonly StateData $stateData,
-        private readonly ValidatedTxVariantFactory $validatedTxVariantFactory
+        private readonly TxVariantInterpreterFactory $txVariantInterpreterFactory
     ) { }
 
     /**
@@ -216,7 +216,7 @@ class Vault
 
             $ccType = $payment->getCcType();
             $walletType = $this->paymentMethodsHelper->getAlternativePaymentMethodTxVariant($paymentMethodInstance);
-            $validatedTxVariant = $this->validatedTxVariantFactory->create(['txVariant' => $ccType]);
+            $validatedTxVariant = $this->txVariantInterpreterFactory->create(['txVariant' => $ccType]);
 
             $details = [
                 'type' => $validatedTxVariant->getCard(),
