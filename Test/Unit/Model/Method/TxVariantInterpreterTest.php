@@ -10,7 +10,7 @@ use Magento\Payment\Helper\Data as DataHelper;
 use Magento\Payment\Model\MethodInterface;
 use UnexpectedValueException;
 
-class ValidatedTxVariantTest extends AbstractAdyenTestCase
+class TxVariantInterpreterTest extends AbstractAdyenTestCase
 {
     private DataHelper $dataHelper;
     private PaymentMethodsHelper $paymentMethodsHelper;
