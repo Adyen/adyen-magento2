@@ -32,17 +32,17 @@ use Adyen\Payment\Model\Method\ValidatedTxVariantFactory;
 
 class VaultTest extends AbstractAdyenTestCase
 {
-    private $vault;
-    private $adyenLogger;
-    private $paymentTokenManagement;
-    private $paymentTokenFactory;
-    private $paymentTokenRepository;
-    private $config;
-    private $paymentMethodsHelper;
-    private $stateData;
-    private $paymentTokenResourceModelMock;
-    private $orderPaymentExtensionInterfaceFactoryMock;
-    private $validatedTxVariantFactory;
+    private Vault $vault;
+    private AdyenLogger $adyenLogger;
+    private PaymentTokenManagement $paymentTokenManagement;
+    private PaymentTokenFactoryInterface $paymentTokenFactory;
+    private PaymentTokenRepositoryInterface $paymentTokenRepository;
+    private Config $config;
+    private PaymentMethods $paymentMethodsHelper;
+    private StateData $stateData;
+    private PaymentTokenResourceModel $paymentTokenResourceModelMock;
+    private OrderPaymentExtensionInterfaceFactory $orderPaymentExtensionInterfaceFactoryMock;
+    private ValidatedTxVariantFactory $validatedTxVariantFactory;
 
     protected function setUp(): void
     {
@@ -314,7 +314,7 @@ class VaultTest extends AbstractAdyenTestCase
         $payment->method('getOrder')->willReturn($order);
         $payment->method('getMethodInstance')->willReturn($adapter);
 
-        // underscore so ValidatedTxVariant extracts card part ("mc")
+        // underscore so TxVariantInterpreter extracts card part ("mc")
         $payment->method('getCcType')->willReturn('mc_googlepay');
 
         $payment->method('getAdditionalInformation')->willReturnCallback(function ($key) {
@@ -351,8 +351,8 @@ class VaultTest extends AbstractAdyenTestCase
             ->with($adapter)
             ->willReturn('googlepay');
 
-        // Factory returns a ValidatedTxVariant mock
-        $validatedVariant = $this->createMock(\Adyen\Payment\Model\Method\ValidatedTxVariant::class);
+        // Factory returns a TxVariantInterpreter mock
+        $validatedVariant = $this->createMock(\Adyen\Payment\Model\Method\TxVariantInterpreter::class);
         $validatedVariant->expects($this->once())->method('getCard')->willReturn('mc');
 
         $this->validatedTxVariantFactory->expects($this->once())

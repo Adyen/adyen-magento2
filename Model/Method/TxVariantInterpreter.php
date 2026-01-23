@@ -9,7 +9,7 @@ use Adyen\Payment\Helper\PaymentMethods as PaymentMethodsHelper;
 use Magento\Payment\Helper\Data as DataHelper;
 use Magento\Payment\Model\MethodInterface;
 
-class ValidatedTxVariant
+class TxVariantInterpreter
 {
     private ?string $card = null;
     private MethodInterface $methodInstance;

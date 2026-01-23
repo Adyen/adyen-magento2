@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Adyen\Payment\Test\Unit\Model\Method;
 
 use Adyen\Payment\Helper\PaymentMethods as PaymentMethodsHelper;
-use Adyen\Payment\Model\Method\ValidatedTxVariant;
+use Adyen\Payment\Model\Method\TxVariantInterpreter;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Payment\Helper\Data as DataHelper;
 use Magento\Payment\Model\MethodInterface;
@@ -38,7 +38,7 @@ class ValidatedTxVariantTest extends AbstractAdyenTestCase
             ->with($methodInstance)
             ->willReturn(true);
 
-        $sut = new ValidatedTxVariant($txVariant, $this->dataHelper, $this->paymentMethodsHelper);
+        $sut = new TxVariantInterpreter($txVariant, $this->dataHelper, $this->paymentMethodsHelper);
 
         $this->assertSame($methodInstance, $sut->getMethodInstance());
         $this->assertSame('mc', $sut->getCard());
@@ -83,7 +83,7 @@ class ValidatedTxVariantTest extends AbstractAdyenTestCase
             ->with($methodInstance)
             ->willReturn(true);
 
-        $sut = new ValidatedTxVariant($txVariant, $this->dataHelper, $this->paymentMethodsHelper);
+        $sut = new TxVariantInterpreter($txVariant, $this->dataHelper, $this->paymentMethodsHelper);
 
         $this->assertSame($methodInstance, $sut->getMethodInstance());
         $this->assertSame('mc', $sut->getCard());
@@ -107,7 +107,7 @@ class ValidatedTxVariantTest extends AbstractAdyenTestCase
             ->with($methodInstance)
             ->willReturn(false);
 
-        $sut = new ValidatedTxVariant($txVariant, $this->dataHelper, $this->paymentMethodsHelper);
+        $sut = new TxVariantInterpreter($txVariant, $this->dataHelper, $this->paymentMethodsHelper);
 
         $this->assertSame($methodInstance, $sut->getMethodInstance());
         $this->assertNull($sut->getCard());
@@ -153,7 +153,7 @@ class ValidatedTxVariantTest extends AbstractAdyenTestCase
             )
         );
 
-        new ValidatedTxVariant($txVariant, $this->dataHelper, $this->paymentMethodsHelper);
+        new TxVariantInterpreter($txVariant, $this->dataHelper, $this->paymentMethodsHelper);
     }
 
     public function testWalletWithoutUnderscoreDoesNotSetCard(): void
@@ -173,7 +173,7 @@ class ValidatedTxVariantTest extends AbstractAdyenTestCase
             ->with($methodInstance)
             ->willReturn(true);
 
-        $sut = new ValidatedTxVariant($txVariant, $this->dataHelper, $this->paymentMethodsHelper);
+        $sut = new TxVariantInterpreter($txVariant, $this->dataHelper, $this->paymentMethodsHelper);
 
         $this->assertSame($methodInstance, $sut->getMethodInstance());
         $this->assertNull($sut->getCard());
