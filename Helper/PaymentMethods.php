@@ -14,10 +14,13 @@ namespace Adyen\Payment\Helper;
 use Adyen\AdyenException;
 use Adyen\Client;
 use Adyen\ConnectionException;
-use Adyen\Payment\Helper\Util\PaymentMethodUtil;
 use Adyen\Model\Checkout\PaymentMethodsRequest;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Config\Source\CaptureMode;
 use Adyen\Payment\Model\Config\Source\RenderMode;
+use Adyen\Payment\Model\Config\Source\SepaFlow;
+use Adyen\Payment\Model\Method\TxVariantInterpreter;
+use Adyen\Payment\Model\Method\TxVariantInterpreterFactory;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Ui\Adminhtml\AdyenMotoConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
@@ -46,6 +49,7 @@ use Magento\Store\Model\Store;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Checkout\Model\Session as CheckoutSession;
+use UnexpectedValueException;
 
 class PaymentMethods extends AbstractHelper
 {
@@ -54,6 +58,7 @@ class PaymentMethods extends AbstractHelper
     const ADYEN_ONE_CLICK = 'adyen_oneclick';
     const ADYEN_PAY_BY_LINK = 'adyen_pay_by_link';
     const ADYEN_PAYPAL = 'adyen_paypal';
+    const ADYEN_SEPADIRECTDEBIT = 'adyen_sepadirectdebit';
     const ADYEN_BOLETO = 'adyen_boleto';
     const ADYEN_PREFIX = 'adyen_';
     const ADYEN_CC_VAULT = 'adyen_cc_vault';
@@ -114,6 +119,7 @@ class PaymentMethods extends AbstractHelper
      * @param ShopperConversionId $generateShopperConversionId
      * @param CheckoutSession $checkoutSession
      * @param RequestInterface $request
+     * @param TxVariantInterpreterFactory $txVariantInterpreterFactory
      */
     public function __construct(
         Context $context,
@@ -134,7 +140,8 @@ class PaymentMethods extends AbstractHelper
         protected readonly Locale $localeHelper,
         protected readonly ShopperConversionId $generateShopperConversionId,
         protected readonly CheckoutSession $checkoutSession,
-        protected readonly RequestInterface $request
+        protected readonly RequestInterface $request,
+        protected readonly TxVariantInterpreterFactory $txVariantInterpreterFactory
     ) {
         parent::__construct($context);
     }
@@ -640,6 +647,25 @@ class PaymentMethods extends AbstractHelper
      * @param MethodInterface $paymentMethodInstance
      * @return bool
      */
+    public function supportsManualCapture(MethodInterface $paymentMethodInstance): bool
+    {
+        return boolval($paymentMethodInstance->getConfigData('supports_manual_capture'));
+    }
+
+    /**
+     * @param MethodInterface $paymentMethodInstance
+     * @return array
+     */
+    public function getManualCaptureVariants(MethodInterface $paymentMethodInstance): array
+    {
+        $variants = $paymentMethodInstance->getConfigData('manual_capture_variants');
+        return !empty($variants) ? explode(',', $variants) : [];
+    }
+
+    /**
+     * @param MethodInterface $paymentMethodInstance
+     * @return bool
+     */
     public function isAlternativePaymentMethod(MethodInterface $paymentMethodInstance): bool
     {
         return $paymentMethodInstance->getConfigData('group') === self::ADYEN_GROUP_ALTERNATIVE_PAYMENT_METHODS;
@@ -720,182 +746,86 @@ class PaymentMethods extends AbstractHelper
 
     /**
      * Checks whether if the capture mode is auto on an order with the given notification `paymentMethod`.
-     * Note that, only a `notificationPaymentMethod` related to the order should be provided.
      *
      * @param Order $order Order object
      * @param string $notificationPaymentMethod `paymentMethod` provided on the webhook of the given order
      * @return bool
+     * @throws LocalizedException
      */
     public function isAutoCapture(Order $order, string $notificationPaymentMethod): bool
     {
-        // TODO::Add a validation checking `$notificationPaymentMethod` belongs to the correct order (webhook) or not.
+        /** @var TxVariantInterpreter $adyenTxVariant */
+        $adyenTxVariant = $this->txVariantInterpreterFactory->create(['txVariant' => $notificationPaymentMethod]);
+        $isAutoCapture = true;
 
-        $payment = $order->getPayment();
-        $paymentMethodInstance = $payment->getMethodInstance();
-
-        // validate if payment methods allows manual capture
-        if (PaymentMethodUtil::isManualCaptureSupported($notificationPaymentMethod)) {
-            $captureMode = trim(
-                (string) $this->configHelper->getConfigData(
-                    'capture_mode',
-                    'adyen_abstract',
-                    $order->getStoreId()
-                )
+        // validate the incoming payment method supports manual capture
+        if ($this->isManualCaptureSupported($notificationPaymentMethod)) {
+            $captureModePos = $this->configHelper->getAdyenPosCloudConfigData(
+                'capture_mode_pos',
+                $order->getStoreId()
             );
-            $sepaFlow = trim(
-                (string) $this->configHelper->getConfigData(
-                    'sepa_flow',
-                    'adyen_abstract',
-                    $order->getStoreId()
-                )
-            );
-            $paymentCode = $order->getPayment()->getMethod();
+            $sepaFlow = $this->configHelper->getSepaFlow($order->getStoreId());
+            $isPaypalManualCapture = $this->configHelper->isPaypalManualCapture($order->getStoreId());
             $autoCaptureOpenInvoice = $this->configHelper->getAutoCaptureOpenInvoice($order->getStoreId());
-            $manualCapturePayPal = trim(
-                (string) $this->configHelper->getConfigData(
-                    'paypal_capture_mode',
-                    'adyen_abstract',
-                    $order->getStoreId()
-                )
-            );
+            $captureMode = $this->configHelper->getCaptureMode($order->getStoreId());
 
-            /*
-             * if you are using authcap the payment method is manual.
-             * There will be a capture send to indicate if payment is successful
-             */
-            if ($notificationPaymentMethod == "sepadirectdebit") {
-                if ($sepaFlow == "authcap") {
-                    $this->adyenLogger->addAdyenNotification(
-                        'Manual Capture is applied for sepa because it is in authcap flow',
-                        array_merge(
-                            $this->adyenLogger->getOrderContext($order),
-                            ['pspReference' => $order->getPayment()->getData('adyen_psp_reference')]
-                        )
-                    );
-                    return false;
-                } else {
-                    // payment method ideal, cash adyen_boleto has direct capture
-                    $this->adyenLogger->addAdyenNotification(
-                        'This payment method does not allow manual capture.(2) paymentCode:' .
-                        $paymentCode . ' paymentMethod:' . $notificationPaymentMethod . ' sepaFLow:' . $sepaFlow,
-                        array_merge(
-                            $this->adyenLogger->getOrderContext($order),
-                            ['pspReference' => $order->getPayment()->getData('adyen_psp_reference')]
-                        )
-                    );
-                    return true;
+            // Use order payment method to evaluate the capture mode instead of notification payment method for POS
+            if ($order->getPayment()->getMethod() === AdyenPosCloudConfigProvider::CODE &&
+                $captureModePos === CaptureMode::CAPTURE_MODE_MANUAL) {
+                $isAutoCapture = false;
+            } else {
+                // Evaluate capture mode for ECOM payments based on the webhook's `paymentMethod` field
+                $webhookMethodInstance = $adyenTxVariant->getMethodInstance();
+                $webhookMethodCode = $webhookMethodInstance->getCode();
+
+                if (($webhookMethodCode === self::ADYEN_SEPADIRECTDEBIT && $sepaFlow === SepaFlow::SEPA_FLOW_AUTHCAP) ||
+                    ($webhookMethodCode === self::ADYEN_PAYPAL && $isPaypalManualCapture) ||
+                    ($this->isOpenInvoice($webhookMethodInstance) && !$autoCaptureOpenInvoice) ||
+                    ($captureMode === CaptureMode::CAPTURE_MODE_MANUAL)
+                ) {
+                    $isAutoCapture = false;
                 }
             }
-
-            if ($paymentCode == "adyen_pos_cloud") {
-                $captureModePos = $this->configHelper->getAdyenPosCloudConfigData(
-                    'capture_mode_pos',
-                    $order->getStoreId()
-                );
-                if (strcmp((string) $captureModePos, 'auto') === 0) {
-                    $this->adyenLogger->addAdyenNotification(
-                        'This payment method is POS Cloud and configured to be working as auto capture ',
-                        array_merge(
-                            $this->adyenLogger->getOrderContext($order),
-                            ['pspReference' => $order->getPayment()->getData('adyen_psp_reference')]
-                        )
-                    );
-                    return true;
-                } elseif (strcmp((string) $captureModePos, 'manual') === 0) {
-                    $this->adyenLogger->addAdyenNotification(
-                        'This payment method is POS Cloud and configured to be working as manual capture ',
-                        array_merge(
-                            $this->adyenLogger->getOrderContext($order),
-                            ['pspReference' => $order->getPayment()->getData('adyen_psp_reference')]
-                        )
-                    );
-                    return false;
-                }
-            }
-
-            // if auto capture mode for openinvoice is turned on then use auto capture
-            if ($autoCaptureOpenInvoice && $this->isOpenInvoice($paymentMethodInstance)) {
-                $this->adyenLogger->addAdyenNotification(
-                    'This payment method is configured to be working as auto capture ',
-                    array_merge(
-                        $this->adyenLogger->getOrderContext($order),
-                        ['pspReference' => $order->getPayment()->getData('adyen_psp_reference')]
-                    )
-                );
-                return true;
-            }
-
-            // if PayPal capture modues is different from the default use this one
-            if (strcmp($notificationPaymentMethod, 'paypal') === 0) {
-                if ($manualCapturePayPal) {
-                    $this->adyenLogger->addAdyenNotification(
-                        'This payment method is paypal and configured to work as manual capture',
-                        array_merge(
-                            $this->adyenLogger->getOrderContext($order),
-                            ['pspReference' => $order->getPayment()->getData('adyen_psp_reference')]
-                        )
-                    );
-                    return false;
-                } else {
-                    $this->adyenLogger->addAdyenNotification(
-                        'This payment method is paypal and configured to work as auto capture',
-                        array_merge(
-                            $this->adyenLogger->getOrderContext($order),
-                            ['pspReference' => $order->getPayment()->getData('adyen_psp_reference')]
-                        )
-                    );
-                    return true;
-                }
-            }
-            if (strcmp($captureMode, 'manual') === 0) {
-                $this->adyenLogger->addAdyenNotification(
-                    'Capture mode for this payment is set to manual',
-                    array_merge(
-                        $this->adyenLogger->getOrderContext($order),
-                        [
-                            'paymentMethod' => $notificationPaymentMethod,
-                            'pspReference' => $order->getPayment()->getData('adyen_psp_reference')
-                        ]
-                    )
-                );
-                return false;
-            }
-
-            /*
-             * online capture after delivery, use Magento backend to online invoice
-             * (if the option auto capture mode for openinvoice is not set)
-             */
-            if ($this->isOpenInvoice($paymentMethodInstance)) {
-                $this->adyenLogger->addAdyenNotification(
-                    'Capture mode for klarna is by default set to manual',
-                    array_merge(
-                        $this->adyenLogger->getOrderContext($order),
-                        ['pspReference' => $order->getPayment()->getData('adyen_psp_reference')]
-                    )
-                );
-                return false;
-            }
-
-            $this->adyenLogger->addAdyenNotification(
-                'Capture mode is set to auto capture',
-                array_merge(
-                    $this->adyenLogger->getOrderContext($order),
-                    ['pspReference' => $order->getPayment()->getData('adyen_psp_reference')]
-                )
-            );
-            return true;
-        } else {
-            // does not allow manual capture so is always immediate capture
-            $this->adyenLogger->addAdyenNotification(
-                sprintf('Payment method %s, does not allow manual capture', $notificationPaymentMethod),
-                array_merge(
-                    $this->adyenLogger->getOrderContext($order),
-                    ['pspReference' => $order->getPayment()->getData('adyen_psp_reference')]
-                )
-            );
-
-            return true;
         }
+
+        return $isAutoCapture;
+    }
+
+    private function isManualCaptureSupported(string $txVariant): bool
+    {
+        $isManualCapture = false;
+        // TODO:: Find an alternative to this - ie: config.xml
+        $manualCaptureSupportedSchemeAndGiftcards = ['visa', 'mastercard', 'amex', 'maestro', 'svs'];
+
+        // Check the scheme method manual capture support
+        if (in_array($txVariant, $manualCaptureSupportedSchemeAndGiftcards)) {
+            $isManualCapture = true;
+        } else {
+            try {
+                /** @var TxVariantInterpreter $interpretedTxVariant */
+                $interpretedTxVariant = $this->txVariantInterpreterFactory->create(['txVariant' => $txVariant]);
+
+                // Check the wallet scheme manual capture support
+                if (!empty($interpretedTxVariant->getCard())) {
+                    $isManualCapture = in_array(
+                        $interpretedTxVariant->getCard(),
+                        $manualCaptureSupportedSchemeAndGiftcards
+                    );
+                } elseif ($this->supportsManualCapture($interpretedTxVariant->getMethodInstance())) {
+                    // Check the alternative payment method manual capture support
+                    $isManualCapture = true;
+                }
+            } catch (UnexpectedValueException $e) {
+                // Suppress the exception and proceed with the default value in case of missing subvariants.
+                $this->adyenLogger->error(sprintf(
+                    'The payment method instance could\'t be found for the variant %s: %s',
+                    $txVariant,
+                    $e->getMessage()
+                ));
+            }
+        }
+
+        return $isManualCapture;
     }
 
     /**
