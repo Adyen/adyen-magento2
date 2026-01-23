@@ -8,6 +8,7 @@
  * See the LICENSE file for more info.
  *
  * Author: Adyen <magento@adyen.com>
+ * @deprecated Use {@see \Adyen\Payment\Model\Method\TxVariantInterpreter} instead.
  */
 
 namespace Adyen\Payment\Model\Method;
