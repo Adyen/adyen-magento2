@@ -116,6 +116,64 @@ class OfferClosedWebhookHandlerTest extends AbstractAdyenTestCase
         $this->assertEquals($order, $result);
     }
 
+    public function testHandleWebhookSkipsWhenOrderAlreadyCancelled()
+    {
+        // Create a sample MagentoOrder and Notification
+        $order = $this->createMock(MagentoOrder::class);
+        $payment = $this->createPartialMock(Payment::class, ['getMethod', 'getEntityId']);
+        $notification = $this->createMock(Notification::class);
+
+        // Set up payment mock
+        $payment->method('getMethod')->willReturn('adyen_cc');
+        $payment->method('getEntityId')->willReturn(123);
+        $order->method('getPayment')->willReturn($payment);
+
+        // Mock order as already cancelled
+        $order->method('isCanceled')->willReturn(true);
+
+        // Mock notification methods for logging
+        $notification->method('getPspreference')->willReturn('test_psp_reference');
+        $notification->method('getMerchantReference')->willReturn('test_merchant_reference');
+        $notification->method('getEventCode')->willReturn('OFFER_CLOSED');
+
+        // Mock payment method comparison to return true (so we reach the isCanceled check)
+        $this->paymentMethodsHelper->method('compareOrderAndWebhookPaymentMethods')
+            ->with($order, $notification)
+            ->willReturn(true);
+
+        // Mock empty captured payments (so we reach the isCanceled check)
+        $this->orderPaymentResourceModel->method('getLinkedAdyenOrderPayments')->willReturn([]);
+
+        // Expect addCommentToStatusHistory to be called with the skip message
+        $order->expects($this->once())
+            ->method('addCommentToStatusHistory');
+
+        // Create mock for logger to verify it's called
+        $mockAdyenLogger = $this->createMock(AdyenLogger::class);
+        $mockAdyenLogger->expects($this->once())
+            ->method('addAdyenNotification');
+
+        // Create mock for cleanup to verify it's called
+        $cleanupAdditionalInformation = $this->createMock(CleanupAdditionalInformation::class);
+        $cleanupAdditionalInformation->expects($this->once())
+            ->method('execute')
+            ->with($payment);
+
+        // Create an instance of the OfferClosedWebhookHandler
+        $webhookHandler = $this->createOfferClosedWebhookHandler(
+            $this->paymentMethodsHelper,
+            $mockAdyenLogger,
+            null,
+            null,
+            $this->orderPaymentResourceModel,
+            $cleanupAdditionalInformation
+        );
+
+        // Call the handleWebhook method and assert that it returns the order
+        $result = $webhookHandler->handleWebhook($order, $notification, 'PAYMENT_REVIEW');
+        $this->assertEquals($order, $result);
+    }
+
     protected function createOfferClosedWebhookHandler(
         $mockPaymentMethodsHelper = null,
         $mockAdyenLogger = null,
