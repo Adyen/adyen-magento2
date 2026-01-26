@@ -17,6 +17,8 @@ use Magento\Framework\Api\Search\FilterGroupBuilder;
 use Magento\Framework\Api\SearchCriteria\CollectionProcessorInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SortOrderBuilder;
+use Magento\Framework\Exception\InputException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\Serializer\Json as JsonSerializer;
 use Magento\Payment\Api\Data\PaymentAdditionalInfoInterfaceFactory;
 use Magento\Sales\Api\Data\OrderInterface;
@@ -90,5 +92,27 @@ class OrderRepository extends SalesOrderRepository
 
         /** @var OrderInterface $order */
         return reset($orders);
+    }
+
+    /**
+     * This method load the object through model class and loads the repository.
+     * Object registry is also updated as a part of this method.
+     *
+     * @param string $incrementId
+     * @return OrderInterface
+     * @throws InputException
+     * @throws NoSuchEntityException
+     */
+    public function getByIncrementId(string $incrementId): OrderInterface
+    {
+        $entity = $this->metadata->getNewInstance()->loadByIncrementId($incrementId);
+
+        if (!$entity->getEntityId()) {
+            throw new NoSuchEntityException(
+                __("The entity that was requested doesn't exist. Verify the entity and try again.")
+            );
+        }
+
+        return $this->get($entity->getEntityId());
     }
 }

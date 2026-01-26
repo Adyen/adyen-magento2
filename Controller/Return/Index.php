@@ -17,6 +17,7 @@ use Adyen\Payment\Helper\PaymentsDetails;
 use Adyen\Payment\Helper\Quote;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Sales\OrderRepository;
 use Exception;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Action\Action;
@@ -25,7 +26,6 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Api\Data\OrderInterface;
-use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\OrderFactory;
 use Magento\Store\Model\StoreManagerInterface;
@@ -64,7 +64,7 @@ class Index extends Action
      * @param PaymentsDetails $paymentsDetailsHelper
      * @param PaymentResponseHandler $paymentResponseHandler
      * @param CartRepositoryInterface $cartRepository
-     * @param OrderRepositoryInterface $orderRepository
+     * @param OrderRepository $orderRepository
      */
     public function __construct(
         Context                  $context,
@@ -77,7 +77,7 @@ class Index extends Action
         private readonly PaymentsDetails $paymentsDetailsHelper,
         private readonly PaymentResponseHandler $paymentResponseHandler,
         private readonly CartRepositoryInterface $cartRepository,
-        private readonly OrderRepositoryInterface $orderRepository
+        private readonly OrderRepository $orderRepository
     ) {
         parent::__construct($context);
     }
@@ -173,17 +173,17 @@ class Index extends Action
      */
     private function getOrder(?string $incrementId = null): Order
     {
-        if ($incrementId !== null) {
-            $order = $this->orderFactory->create()->loadByIncrementId($incrementId);
-            $order = $this->orderRepository->get($order->getEntityId());
-        } else {
-            $order = $this->session->getLastRealOrder();
-        }
-
-        if (!$order->getId()) {
-            throw new LocalizedException(
-                __('Order cannot be loaded')
-            );
+        try {
+            if ($incrementId !== null) {
+                $order = $this->orderRepository->getByIncrementId($incrementId);
+            } else {
+                $order = $this->session->getLastRealOrder();
+            }
+            if (!$order->getId()) {
+                throw new NoSuchEntityException();
+            }
+        } catch (NoSuchEntityException $e) {
+            throw new LocalizedException(__('Order cannot be loaded'));
         }
 
         return $order;
