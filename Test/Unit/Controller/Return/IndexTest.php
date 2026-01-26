@@ -10,6 +10,7 @@ use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Helper\PaymentsDetails;
 use Adyen\Payment\Helper\Quote;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Sales\OrderRepository;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Exception;
 use Magento\Checkout\Model\Session;
@@ -20,13 +21,11 @@ use Magento\Framework\App\Response\RedirectInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote as QuoteModel;
-use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\OrderFactory;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
 
 class IndexTest extends AbstractAdyenTestCase
 {
@@ -59,7 +58,7 @@ class IndexTest extends AbstractAdyenTestCase
         $this->paymentsDetailsHelper = $this->createMock(PaymentsDetails::class);
         $this->paymentResponseHandler = $this->createMock(PaymentResponseHandler::class);
         $this->cartRepository = $this->createMock(CartRepositoryInterface::class);
-        $this->orderRepository = $this->createMock(OrderRepositoryInterface::class);
+        $this->orderRepository = $this->createMock(OrderRepository::class);
 
         $this->request = $this->createMock(RequestInterface::class);
         $this->response = $this->createMock(RedirectInterface::class);
@@ -112,10 +111,7 @@ class IndexTest extends AbstractAdyenTestCase
         $order->method('getIncrementId')->willReturn('1001');
         $order->method('getPayment')->willReturn($this->createMock(Order\Payment::class));
 
-        $orderModel = $this->createMock(Order::class);
-        $orderModel->method('loadByIncrementId')->willReturn($order);
-        $orderModel->method('getId')->willReturn(1);
-        $this->orderFactory->method('create')->willReturn($orderModel);
+        $this->orderRepository->method('getByIncrementId')->willReturn($order);
 
         $this->paymentsDetailsHelper->method('initiatePaymentDetails')->willReturn(['resultCode' => 'Authorised']);
         $this->paymentResponseHandler->method('handlePaymentsDetailsResponse')->willReturn(true);
@@ -142,9 +138,7 @@ class IndexTest extends AbstractAdyenTestCase
         $order = $this->createMock(Order::class);
         $order->method('getId')->willReturn(1);
 
-        $orderModel = $this->createMock(Order::class);
-        $orderModel->method('loadByIncrementId')->willReturn($order);
-        $this->orderFactory->method('create')->willReturn($orderModel);
+        $this->orderRepository->method('getByIncrementId')->willReturn($order);
 
         $this->paymentsDetailsHelper->method('initiatePaymentDetails')->willThrowException(new Exception('Invalid'));
         $this->paymentResponseHandler->method('handlePaymentsDetailsResponse')->willReturn(false);
@@ -175,8 +169,7 @@ class IndexTest extends AbstractAdyenTestCase
     {
         $order = $this->createMock(Order::class);
         $order->method('getId')->willReturn(10);
-        $this->orderFactory->method('create')->willReturn($order);
-        $order->method('loadByIncrementId')->with('1001')->willReturn($order);
+        $this->orderRepository->method('getByIncrementId')->with('1001')->willReturn($order);
 
         $reflection = new \ReflectionClass(Index::class);
         $method = $reflection->getMethod('getOrder');
@@ -192,13 +185,12 @@ class IndexTest extends AbstractAdyenTestCase
 
         $order = $this->createMock(Order::class);
         $order->method('getId')->willReturn(null);
-        $this->orderFactory->method('create')->willReturn($order);
-        $order->method('loadByIncrementId')->willReturn($order);
+        $this->session->method('getLastRealOrder')->willReturn($order);
 
         $reflection = new \ReflectionClass(Index::class);
         $method = $reflection->getMethod('getOrder');
         $method->setAccessible(true);
-        $method->invokeArgs($this->indexController, ['1001']);
+        $method->invokeArgs($this->indexController, [null]);
 
     }
 }

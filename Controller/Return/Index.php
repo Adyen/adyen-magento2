@@ -171,16 +171,17 @@ class Index extends Action
     /**
      * @throws LocalizedException
      */
-    private function getOrder(?string $incrementId = null): Order
+    private function getOrder(?string $incrementId = null): OrderInterface
     {
         try {
             if ($incrementId !== null) {
                 $order = $this->orderRepository->getByIncrementId($incrementId);
             } else {
                 $order = $this->session->getLastRealOrder();
-            }
-            if (!$order->getId()) {
-                throw new NoSuchEntityException();
+
+                if (!$order->getId()) {
+                    throw new NoSuchEntityException();
+                }
             }
         } catch (NoSuchEntityException $e) {
             throw new LocalizedException(__('Order cannot be loaded'));
