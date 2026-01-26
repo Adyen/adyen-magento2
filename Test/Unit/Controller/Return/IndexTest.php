@@ -16,6 +16,7 @@ use Exception;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\RequestInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\App\Response\RedirectInterface;
 use Magento\Framework\Exception\LocalizedException;
@@ -208,6 +209,24 @@ class IndexTest extends AbstractAdyenTestCase
         $method = $reflection->getMethod('getOrder');
         $method->setAccessible(true);
         $method->invokeArgs($this->indexController, [null]);
+
+    }
+
+    public function testGetOrderDoesNotTranslateIntoAnOrderWithValidIncrementId(): void
+    {
+        $this->expectException(LocalizedException::class);
+        $this->expectExceptionMessage('Order cannot be loaded');
+
+        $orderModel = $this->createMock(OrderModel::class);
+        $orderModel->method('loadByIncrementId')->willReturnSelf();
+        $orderModel->method('getEntityId')->willReturn(null);
+
+        $this->orderFactory->method('create')->willReturn($orderModel);
+
+        $reflection = new \ReflectionClass(Index::class);
+        $method = $reflection->getMethod('getOrder');
+        $method->setAccessible(true);
+        $method->invokeArgs($this->indexController, ['1001']);
 
     }
 }
