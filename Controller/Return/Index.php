@@ -17,7 +17,6 @@ use Adyen\Payment\Helper\PaymentsDetails;
 use Adyen\Payment\Helper\Quote;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\Sales\OrderRepository;
 use Exception;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Action\Action;
@@ -26,7 +25,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Api\Data\OrderInterface;
-use Magento\Sales\Model\Order;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\OrderFactory;
 use Magento\Store\Model\StoreManagerInterface;
 
@@ -64,7 +63,7 @@ class Index extends Action
      * @param PaymentsDetails $paymentsDetailsHelper
      * @param PaymentResponseHandler $paymentResponseHandler
      * @param CartRepositoryInterface $cartRepository
-     * @param OrderRepository $orderRepository
+     * @param OrderRepositoryInterface $orderRepository
      */
     public function __construct(
         Context                  $context,
@@ -77,7 +76,7 @@ class Index extends Action
         private readonly PaymentsDetails $paymentsDetailsHelper,
         private readonly PaymentResponseHandler $paymentResponseHandler,
         private readonly CartRepositoryInterface $cartRepository,
-        private readonly OrderRepository $orderRepository
+        private readonly OrderRepositoryInterface $orderRepository
     ) {
         parent::__construct($context);
     }
@@ -175,7 +174,15 @@ class Index extends Action
     {
         try {
             if ($incrementId !== null) {
-                $order = $this->orderRepository->getByIncrementId($incrementId);
+                $entity = $this->orderFactory->create()->loadByIncrementId($incrementId);
+
+                if (!$entity->getEntityId()) {
+                    throw new NoSuchEntityException(
+                        __("The entity that was requested doesn't exist. Verify the entity and try again.")
+                    );
+                }
+
+                $order = $this->orderRepository->get($entity->getEntityId());
             } else {
                 $order = $this->session->getLastRealOrder();
 

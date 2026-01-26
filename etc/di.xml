@@ -1655,16 +1655,6 @@
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
     </type>
-    <type name="Adyen\Payment\Controller\Return\Index">
-        <arguments>
-            <argument name="orderRepository" xsi:type="object">Adyen\Payment\Model\Sales\OrderRepository</argument>
-        </arguments>
-    </type>
-    <type name="Magento\Sales\Model\Service\OrderService">
-        <arguments>
-            <argument name="orderRepository" xsi:type="object">Adyen\Payment\Model\Sales\OrderRepository</argument>
-        </arguments>
-    </type>
     <type name="Adyen\Payment\Model\Webhook\StandardWebhookAcceptor">
         <arguments>
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>

@@ -27,13 +27,11 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderSearchResultInterfaceFactory as SearchResultFactory;
-use Magento\Sales\Model\Order;
 use Magento\Sales\Model\ResourceModel\Metadata;
 use Magento\Tax\Api\Data\OrderTaxDetailsInterface;
 use Magento\Tax\Api\OrderTaxManagementInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use Magento\Sales\Model\ResourceModel\Order\Collection;
-use Magento\Framework\Exception\NoSuchEntityException;
 
 class OrderRepositoryTest extends AbstractAdyenTestCase
 {
@@ -120,41 +118,5 @@ class OrderRepositoryTest extends AbstractAdyenTestCase
 
         $order = $this->orderRepository->getOrderByQuoteId($quoteId);
         $this->assertInstanceOf(OrderInterface::class, $order);
-    }
-
-    public function testGetByIncrementIdSuccess()
-    {
-        $incrementId = '000000001';
-        $entityId = 123;
-
-        $orderExtensionMock = $this->createMock(\Magento\Sales\Api\Data\OrderExtensionInterface::class);
-        $orderExtensionMock->method('getShippingAssignments')->willReturn(true);
-
-        $orderModelMock = $this->createMock(Order::class);
-        $orderModelMock->method('getEntityId')->willReturn($entityId);
-        $orderModelMock->method('loadByIncrementId')->with($incrementId)->willReturnSelf();
-        $orderModelMock->method('load')->with($entityId)->willReturnSelf();
-        $orderModelMock->method('getExtensionAttributes')->willReturn($orderExtensionMock);
-
-        $this->metadata->method('getNewInstance')->willReturn($orderModelMock);
-
-        $result = $this->orderRepository->getByIncrementId($incrementId);
-
-        $this->assertInstanceOf(OrderInterface::class, $result);
-    }
-
-    public function testGetByIncrementIdThrowsExceptionWhenOrderNotFound()
-    {
-        $incrementId = '000000999';
-
-        $orderModelMock = $this->createMock(Order::class);
-        $orderModelMock->method('getEntityId')->willReturn(null);
-
-        $this->metadata->method('getNewInstance')->willReturn($orderModelMock);
-        $orderModelMock->method('loadByIncrementId')->with($incrementId)->willReturnSelf();
-
-        $this->expectException(NoSuchEntityException::class);
-
-        $this->orderRepository->getByIncrementId($incrementId);
     }
 }

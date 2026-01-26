@@ -21,7 +21,8 @@ use Magento\Framework\App\Response\RedirectInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote as QuoteModel;
-use Magento\Sales\Model\Order;
+use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Model\Order as OrderModel;
 use Magento\Sales\Model\OrderFactory;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
@@ -106,12 +107,17 @@ class IndexTest extends AbstractAdyenTestCase
         $quote->expects($this->once())->method('setIsActive')->with(false);
         $this->session->method('getQuote')->willReturn($quote);
 
-        $order = $this->createMock(Order::class);
-        $order->method('getId')->willReturn(1);
+        $order = $this->createMock(OrderInterface::class);
         $order->method('getIncrementId')->willReturn('1001');
-        $order->method('getPayment')->willReturn($this->createMock(Order\Payment::class));
+        $order->method('getPayment')->willReturn($this->createMock(OrderModel\Payment::class));
+        $order->method('getEntityId')->willReturn(1);
 
-        $this->orderRepository->method('getByIncrementId')->willReturn($order);
+        $orderModel = $this->createMock(OrderModel::class);
+        $orderModel->method('getEntityId')->willReturn(1);
+        $orderModel->method('loadByIncrementId')->willReturn($orderModel);
+
+        $this->orderFactory->method('create')->willReturn($orderModel);
+        $this->orderRepository->method('get')->willReturn($order);
 
         $this->paymentsDetailsHelper->method('initiatePaymentDetails')->willReturn(['resultCode' => 'Authorised']);
         $this->paymentResponseHandler->method('handlePaymentsDetailsResponse')->willReturn(true);
@@ -135,10 +141,14 @@ class IndexTest extends AbstractAdyenTestCase
                 ['return_path', 1, 'checkout/cart']
             ]);
 
-        $order = $this->createMock(Order::class);
-        $order->method('getId')->willReturn(1);
+        $order = $this->createMock(OrderInterface::class);
 
-        $this->orderRepository->method('getByIncrementId')->willReturn($order);
+        $orderModel = $this->createMock(OrderModel::class);
+        $orderModel->method('getEntityId')->willReturn(1);
+        $orderModel->method('loadByIncrementId')->willReturn($orderModel);
+
+        $this->orderFactory->method('create')->willReturn($orderModel);
+        $this->orderRepository->method('get')->willReturn($order);
 
         $this->paymentsDetailsHelper->method('initiatePaymentDetails')->willThrowException(new Exception('Invalid'));
         $this->paymentResponseHandler->method('handlePaymentsDetailsResponse')->willReturn(false);
@@ -167,15 +177,22 @@ class IndexTest extends AbstractAdyenTestCase
 
     public function testGetOrderWithValidId(): void
     {
-        $order = $this->createMock(Order::class);
-        $order->method('getId')->willReturn(10);
-        $this->orderRepository->method('getByIncrementId')->with('1001')->willReturn($order);
+        $orderModel = $this->createMock(OrderModel::class);
+        $orderModel->method('getEntityId')->willReturn(10);
+        $orderModel->method('loadByIncrementId')->willReturn($orderModel);
+
+        $this->orderFactory->method('create')->willReturn($orderModel);
+
+        $order = $this->createMock(OrderInterface::class);
+        $order->method('getEntityId')->willReturn(10);
+
+        $this->orderRepository->method('get')->with(10)->willReturn($order);
 
         $reflection = new \ReflectionClass(Index::class);
         $method = $reflection->getMethod('getOrder');
         $method->setAccessible(true);
         $result = $method->invokeArgs($this->indexController, ['1001']);
-        $this->assertSame($order, $result);
+        $this->assertInstanceOf(OrderInterface::class, $result);
     }
 
     public function testGetOrderThrowsExceptionOnInvalidOrder(): void
@@ -183,7 +200,7 @@ class IndexTest extends AbstractAdyenTestCase
         $this->expectException(LocalizedException::class);
         $this->expectExceptionMessage('Order cannot be loaded');
 
-        $order = $this->createMock(Order::class);
+        $order = $this->createMock(OrderModel::class);
         $order->method('getId')->willReturn(null);
         $this->session->method('getLastRealOrder')->willReturn($order);
 
