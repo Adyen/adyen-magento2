@@ -68,7 +68,6 @@
                 <can_capture_vault>1</can_capture_vault>
                 <supports_recurring>1</supports_recurring>
                 <threeds_flow>native</threeds_flow>
-                <manual_capture_variants>amex,cartebancaire,cup,dankort,diners,discover,elo,girocard,hipercard,jcb,laser,maestro,maestrouk,mc,mc_clicktopay,uatp,visa,visa_clicktopay,visadankort</manual_capture_variants>
                 <group>adyen</group>
             </adyen_cc>
             <adyen_cc_vault>
@@ -561,7 +560,6 @@
                 <can_refund>1</can_refund>
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
-                <manual_capture_variants>givex,svs,valuelink</manual_capture_variants>
                 <group>adyen</group>
             </adyen_giftcard>
             <adyen_affirm>

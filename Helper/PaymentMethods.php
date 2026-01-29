@@ -92,6 +92,36 @@ class PaymentMethods extends AbstractHelper
     ];
 
     /**
+     * List of scheme and giftcard brands that support manual capture.
+     */
+    protected const MANUAL_CAPTURE_SUPPORTED_CARD_BRANDS = [
+        // Schemes
+        'amex',
+        'cartebancaire',
+        'cup',
+        'dankort',
+        'diners',
+        'discover',
+        'elo',
+        'girocard',
+        'hipercard',
+        'jcb',
+        'laser',
+        'maestro',
+        'maestrouk',
+        'mc',
+        'mc_clicktopay',
+        'uatp',
+        'visa',
+        'visa_clicktopay',
+        'visadankort',
+        // Giftcards
+        'givex',
+        'svs',
+        'valuelink'
+    ];
+
+    /**
      * In-memory cache for the /paymentMethods response
      *
      * @var string|null
@@ -644,22 +674,14 @@ class PaymentMethods extends AbstractHelper
     }
 
     /**
+     * This method returns the `supports_manual_capture` configuration value of a given payment method instance.
+     *
      * @param MethodInterface $paymentMethodInstance
      * @return bool
      */
     public function supportsManualCapture(MethodInterface $paymentMethodInstance): bool
     {
         return boolval($paymentMethodInstance->getConfigData('supports_manual_capture'));
-    }
-
-    /**
-     * @param MethodInterface $paymentMethodInstance
-     * @return array
-     */
-    public function getManualCaptureVariants(MethodInterface $paymentMethodInstance): array
-    {
-        $variants = $paymentMethodInstance->getConfigData('manual_capture_variants');
-        return !empty($variants) ? explode(',', $variants) : [];
     }
 
     /**
@@ -750,16 +772,13 @@ class PaymentMethods extends AbstractHelper
      * @param Order $order Order object
      * @param string $notificationPaymentMethod `paymentMethod` provided on the webhook of the given order
      * @return bool
-     * @throws LocalizedException
      */
     public function isAutoCapture(Order $order, string $notificationPaymentMethod): bool
     {
-        /** @var TxVariantInterpreter $adyenTxVariant */
-        $adyenTxVariant = $this->txVariantInterpreterFactory->create(['txVariant' => $notificationPaymentMethod]);
         $isAutoCapture = true;
 
         // validate the incoming payment method supports manual capture
-        if ($this->isManualCaptureSupported($notificationPaymentMethod)) {
+        if ($this->txVariantSupportsManualCapture($notificationPaymentMethod)) {
             $captureModePos = $this->configHelper->getAdyenPosCloudConfigData(
                 'capture_mode_pos',
                 $order->getStoreId()
@@ -775,6 +794,9 @@ class PaymentMethods extends AbstractHelper
                 $isAutoCapture = false;
             } else {
                 // Evaluate capture mode for ECOM payments based on the webhook's `paymentMethod` field
+                /** @var TxVariantInterpreter $adyenTxVariant */
+                $adyenTxVariant = $this->txVariantInterpreterFactory->create(['txVariant' => $notificationPaymentMethod]);
+
                 $webhookMethodInstance = $adyenTxVariant->getMethodInstance();
                 $webhookMethodCode = $webhookMethodInstance->getCode();
 
@@ -791,15 +813,19 @@ class PaymentMethods extends AbstractHelper
         return $isAutoCapture;
     }
 
-    private function isManualCaptureSupported(string $txVariant): bool
+    /**
+     * This method checks if the tx_variant supports manual capture.
+     *
+     * @param string $txVariant
+     * @return bool
+     */
+    private function txVariantSupportsManualCapture(string $txVariant): bool
     {
-        $isManualCapture = false;
-        // TODO:: Find an alternative to this - ie: config.xml
-        $manualCaptureSupportedSchemeAndGiftcards = ['visa', 'mastercard', 'amex', 'maestro', 'svs'];
+        $supportsManualCapture = false;
 
         // Check the scheme method manual capture support
-        if (in_array($txVariant, $manualCaptureSupportedSchemeAndGiftcards)) {
-            $isManualCapture = true;
+        if (in_array($txVariant, self::MANUAL_CAPTURE_SUPPORTED_CARD_BRANDS)) {
+            $supportsManualCapture = true;
         } else {
             try {
                 /** @var TxVariantInterpreter $interpretedTxVariant */
@@ -807,13 +833,13 @@ class PaymentMethods extends AbstractHelper
 
                 // Check the wallet scheme manual capture support
                 if (!empty($interpretedTxVariant->getCard())) {
-                    $isManualCapture = in_array(
+                    $supportsManualCapture = in_array(
                         $interpretedTxVariant->getCard(),
-                        $manualCaptureSupportedSchemeAndGiftcards
+                        self::MANUAL_CAPTURE_SUPPORTED_CARD_BRANDS
                     );
                 } elseif ($this->supportsManualCapture($interpretedTxVariant->getMethodInstance())) {
                     // Check the alternative payment method manual capture support
-                    $isManualCapture = true;
+                    $supportsManualCapture = true;
                 }
             } catch (UnexpectedValueException $e) {
                 // Suppress the exception and proceed with the default value in case of missing subvariants.
@@ -825,7 +851,7 @@ class PaymentMethods extends AbstractHelper
             }
         }
 
-        return $isManualCapture;
+        return $supportsManualCapture;
     }
 
     /**
