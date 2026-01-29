@@ -32,7 +32,7 @@ use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Vault\Model\PaymentTokenManagement;
 use Magento\Vault\Model\ResourceModel\PaymentToken as PaymentTokenResourceModel;
 use Magento\Vault\Model\Ui\VaultConfigProvider;
-use Adyen\Payment\Model\Method\TxVariantInterpreterFactory;
+
 class Vault
 {
     const RECURRING_DETAIL_REFERENCE = 'recurring.recurringDetailReference';
@@ -67,7 +67,6 @@ class Vault
      * @param Config $config
      * @param PaymentMethods $paymentMethodsHelper
      * @param StateData $stateData
-     * @param TxVariantInterpreterFactory $txVariantInterpreterFactory
      */
     public function __construct(
         private readonly AdyenLogger $adyenLogger,
@@ -78,8 +77,7 @@ class Vault
         private readonly OrderPaymentExtensionInterfaceFactory $paymentExtensionFactory,
         private readonly Config $config,
         private readonly PaymentMethods $paymentMethodsHelper,
-        private readonly StateData $stateData,
-        private readonly TxVariantInterpreterFactory $txVariantInterpreterFactory
+        private readonly StateData $stateData
     ) { }
 
     /**
@@ -214,13 +212,10 @@ class Vault
         if ($this->paymentMethodsHelper->isWalletPaymentMethod($paymentMethodInstance)) {
             $paymentToken->setType(PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD);
 
-            $ccType = $payment->getCcType();
-            $walletType = $this->paymentMethodsHelper->getAlternativePaymentMethodTxVariant($paymentMethodInstance);
-            $validatedTxVariant = $this->txVariantInterpreterFactory->create(['txVariant' => $ccType]);
-
             $details = [
-                'type' => $validatedTxVariant->getCard(),
-                'walletType' => $walletType,
+                'type' => $payment->getCcType(),
+                'walletType' => $this->paymentMethodsHelper->getAlternativePaymentMethodTxVariant(
+                    $paymentMethodInstance),
                 'maskedCC' => $additionalData['cardSummary'],
                 'expirationDate' => $additionalData['expiryDate']
             ];
