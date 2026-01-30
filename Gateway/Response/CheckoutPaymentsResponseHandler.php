@@ -15,6 +15,8 @@ use Adyen\Payment\Helper\OrdersApi;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Helper\Vault;
+use Adyen\Payment\Model\Method\TxVariantInterpreterFactory;
+use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Response\HandlerInterface;
@@ -26,11 +28,13 @@ class CheckoutPaymentsResponseHandler implements HandlerInterface
      * @param Vault $vaultHelper
      * @param PaymentMethods $paymentMethodsHelper
      * @param OrdersApi $ordersApi
+     * @param TxVariantInterpreterFactory $txVariantInterpreterFactory
      */
     public function __construct(
         private readonly Vault $vaultHelper,
         private readonly PaymentMethods $paymentMethodsHelper,
-        private readonly OrdersApi $ordersApi
+        private readonly OrdersApi $ordersApi,
+        private readonly TxVariantInterpreterFactory $txVariantInterpreterFactory
     ) { }
 
     /**
@@ -67,19 +71,28 @@ class CheckoutPaymentsResponseHandler implements HandlerInterface
             $payment->setAdditionalInformation('pspReference', $response['pspReference']);
         }
 
-        $ccType = $payment->getAdditionalInformation('cc_type');
+        // `ccType` is set on card or wallet payments only.
+        if (!empty($response['paymentMethod'])) {
+            if ($this->paymentMethodsHelper->isWalletPaymentMethod($paymentMethodInstance)) {
+                // Extract the scheme card brand from the wallet payment response
+                $txVariant = $this->txVariantInterpreterFactory->create([
+                    'txVariant' => $response['paymentMethod']['brand']
+                ]);
 
-        $isWalletPaymentMethod = $this->paymentMethodsHelper->isWalletPaymentMethod($paymentMethodInstance);
-        $isCardPaymentMethod = $payment->getMethod() === PaymentMethods::ADYEN_CC ||
-            $payment->getMethod() === PaymentMethods::ADYEN_CC_VAULT;
+                $ccType = $txVariant->getCard();
+            } elseif (in_array($payment->getMethod(), [PaymentMethods::ADYEN_CC, PaymentMethods::ADYEN_CC_VAULT])) {
+                // `brand` always refers to the scheme card brand, use it as is
+                $ccType = $response['paymentMethod']['brand'];
+            }
 
-        if (!empty($response['additionalData']['paymentMethod']) &&
-            is_null($ccType) &&
-            ($isWalletPaymentMethod || $isCardPaymentMethod)
-        ) {
-            $ccType = $response['additionalData']['paymentMethod'];
-            $payment->setAdditionalInformation('cc_type', $ccType);
-            $payment->setCcType($ccType);
+            if (isset($ccType)) {
+                $payment->setAdditionalInformation(AdyenCcDataAssignObserver::CC_TYPE, $ccType);
+                $payment->setCcType($ccType);
+            } else {
+                // Cleanup ccType if not set, this might be inherited from the previous payment attempt
+                $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::CC_TYPE);
+                $payment->setCcType(null);
+            }
         }
 
         if (!empty($response['action'])) {
