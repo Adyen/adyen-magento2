@@ -814,16 +814,19 @@ class PaymentMethods extends AbstractHelper
         } else {
             $adyenTxVariant = $this->txVariantFactory->create(['txVariant' => $txVariant]);
 
-            // If the TxVariant is null, fallback back to auto capture by-default.
+            /*
+             * If AdyenTxVariant object is evaluated, rely on the method instance.
+             * Otherwise, fallback back to auto capture by-default.
+             */
             if (isset($adyenTxVariant)) {
                 if (!empty($adyenTxVariant->getCard())) {
-                    // Check the wallet scheme manual capture support
+                    // Check the wallet method capture mode using card portion and method instance together
                     $supportsManualCapture = filter_var(
                         $cardVariants[$txVariant]['manual_capture'] ?? false,
                         FILTER_VALIDATE_BOOLEAN
-                    );
+                    ) && $this->supportsManualCapture($adyenTxVariant->getMethodInstance());
                 } elseif ($this->supportsManualCapture($adyenTxVariant->getMethodInstance())) {
-                    // Check the alternative payment method manual capture support
+                    // Check the alternative payment method manual capture mode based on the method instance
                     $supportsManualCapture = true;
                 }
             }
