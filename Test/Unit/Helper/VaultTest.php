@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Vault;
@@ -28,7 +29,7 @@ use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Vault\Model\PaymentTokenManagement;
 use Magento\Vault\Model\ResourceModel\PaymentToken as PaymentTokenResourceModel;
-use Adyen\Payment\Model\Method\TxVariantInterpreterFactory;
+use Adyen\Payment\Model\Method\TxVariantFactory;
 
 class VaultTest extends AbstractAdyenTestCase
 {
@@ -42,7 +43,8 @@ class VaultTest extends AbstractAdyenTestCase
     private StateData $stateData;
     private PaymentTokenResourceModel $paymentTokenResourceModelMock;
     private OrderPaymentExtensionInterfaceFactory $orderPaymentExtensionInterfaceFactoryMock;
-    private TxVariantInterpreterFactory $txVariantInterpreterFactory;
+    private TxVariantFactory $txVariantFactory;
+    private Data $dataHelper;
 
     protected function setUp(): void
     {
@@ -59,7 +61,8 @@ class VaultTest extends AbstractAdyenTestCase
         $this->paymentTokenResourceModelMock = $this->createMock(PaymentTokenResourceModel::class);
         $this->orderPaymentExtensionInterfaceFactoryMock =
             $this->createMock(OrderPaymentExtensionInterfaceFactory::class);
-        $this->txVariantInterpreterFactory = $this->createMock(TxVariantInterpreterFactory::class);
+        $this->txVariantFactory = $this->createMock(TxVariantFactory::class);
+        $this->dataHelper = $this->createMock(Data::class);
 
         $this->vault = new Vault(
             $this->adyenLogger,
@@ -71,7 +74,8 @@ class VaultTest extends AbstractAdyenTestCase
             $this->config,
             $this->paymentMethodsHelper,
             $this->stateData,
-            $this->txVariantInterpreterFactory
+            $this->txVariantFactory,
+            $this->dataHelper
         );
     }
 
@@ -352,10 +356,10 @@ class VaultTest extends AbstractAdyenTestCase
             ->willReturn('googlepay');
 
         // Factory returns a TxVariantInterpreter mock
-        $validatedVariant = $this->createMock(\Adyen\Payment\Model\Method\TxVariantInterpreter::class);
+        $validatedVariant = $this->createMock(\Adyen\Payment\Model\Method\TxVariant::class);
         $validatedVariant->expects($this->once())->method('getCard')->willReturn('mc');
 
-        $this->txVariantInterpreterFactory->expects($this->once())
+        $this->txVariantFactory->expects($this->once())
             ->method('create')
             ->with(['txVariant' => 'mc_googlepay'])
             ->willReturn($validatedVariant);
@@ -398,7 +402,7 @@ class VaultTest extends AbstractAdyenTestCase
             ->with($adapter)
             ->willReturn('googlepay');
 
-        $this->txVariantInterpreterFactory->expects($this->once())
+        $this->txVariantFactory->expects($this->once())
             ->method('create')
             ->with(['txVariant' => 'faciliypay_10x'])
             ->willThrowException(new \UnexpectedValueException('method not found'));

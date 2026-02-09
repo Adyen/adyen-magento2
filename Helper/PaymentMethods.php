@@ -19,8 +19,8 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Config\Source\CaptureMode;
 use Adyen\Payment\Model\Config\Source\RenderMode;
 use Adyen\Payment\Model\Config\Source\SepaFlow;
-use Adyen\Payment\Model\Method\TxVariantInterpreter;
-use Adyen\Payment\Model\Method\TxVariantInterpreterFactory;
+use Adyen\Payment\Model\Method\TxVariant;
+use Adyen\Payment\Model\Method\TxVariantFactory;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Ui\Adminhtml\AdyenMotoConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
@@ -49,7 +49,6 @@ use Magento\Store\Model\Store;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Checkout\Model\Session as CheckoutSession;
-use UnexpectedValueException;
 
 class PaymentMethods extends AbstractHelper
 {
@@ -92,36 +91,6 @@ class PaymentMethods extends AbstractHelper
     ];
 
     /**
-     * List of scheme and giftcard brands that support manual capture.
-     */
-    protected const MANUAL_CAPTURE_SUPPORTED_CARD_BRANDS = [
-        // Schemes
-        'amex',
-        'cartebancaire',
-        'cup',
-        'dankort',
-        'diners',
-        'discover',
-        'elo',
-        'girocard',
-        'hipercard',
-        'jcb',
-        'laser',
-        'maestro',
-        'maestrouk',
-        'mc',
-        'mc_clicktopay',
-        'uatp',
-        'visa',
-        'visa_clicktopay',
-        'visadankort',
-        // Giftcards
-        'givex',
-        'svs',
-        'valuelink'
-    ];
-
-    /**
      * In-memory cache for the /paymentMethods response
      *
      * @var string|null
@@ -149,7 +118,7 @@ class PaymentMethods extends AbstractHelper
      * @param ShopperConversionId $generateShopperConversionId
      * @param CheckoutSession $checkoutSession
      * @param RequestInterface $request
-     * @param TxVariantInterpreterFactory $txVariantInterpreterFactory
+     * @param TxVariantFactory $txVariantFactory
      */
     public function __construct(
         Context $context,
@@ -171,7 +140,7 @@ class PaymentMethods extends AbstractHelper
         protected readonly ShopperConversionId $generateShopperConversionId,
         protected readonly CheckoutSession $checkoutSession,
         protected readonly RequestInterface $request,
-        protected readonly TxVariantInterpreterFactory $txVariantInterpreterFactory
+        protected readonly TxVariantFactory $txVariantFactory
     ) {
         parent::__construct($context);
     }
@@ -777,35 +746,50 @@ class PaymentMethods extends AbstractHelper
     {
         $isAutoCapture = true;
 
-        // validate the incoming payment method supports manual capture
+        /*
+         * First, validate the incoming tx_variant supports manual capture on the tx_variant level.
+         * Then check configuration and payment method specific settings.
+         */
         if ($this->txVariantSupportsManualCapture($notificationPaymentMethod)) {
             $captureModePos = $this->configHelper->getAdyenPosCloudConfigData(
                 'capture_mode_pos',
                 $order->getStoreId()
             );
-            $sepaFlow = $this->configHelper->getSepaFlow($order->getStoreId());
-            $isPaypalManualCapture = $this->configHelper->isPaypalManualCapture($order->getStoreId());
-            $autoCaptureOpenInvoice = $this->configHelper->getAutoCaptureOpenInvoice($order->getStoreId());
-            $captureMode = $this->configHelper->getCaptureMode($order->getStoreId());
 
             // Use order payment method to evaluate the capture mode instead of notification payment method for POS
             if ($order->getPayment()->getMethod() === AdyenPosCloudConfigProvider::CODE &&
                 $captureModePos === CaptureMode::CAPTURE_MODE_MANUAL) {
+                // Evaluate capture mode of POS payments based on the order's `paymentMethod` field and configuration
                 $isAutoCapture = false;
             } else {
-                // Evaluate capture mode for ECOM payments based on the webhook's `paymentMethod` field
-                /** @var TxVariantInterpreter $adyenTxVariant */
-                $adyenTxVariant = $this->txVariantInterpreterFactory->create(['txVariant' => $notificationPaymentMethod]);
+                // Evaluate capture mode of ECOM payments based on the webhook's `paymentMethod` field
 
-                $webhookMethodInstance = $adyenTxVariant->getMethodInstance();
-                $webhookMethodCode = $webhookMethodInstance->getCode();
+                $sepaFlow = $this->configHelper->getSepaFlow($order->getStoreId());
+                $isPaypalManualCapture = $this->configHelper->isPaypalManualCapture($order->getStoreId());
+                $autoCaptureOpenInvoice = $this->configHelper->getAutoCaptureOpenInvoice($order->getStoreId());
+                $captureMode = $this->configHelper->getCaptureMode($order->getStoreId());
 
-                if (($webhookMethodCode === self::ADYEN_SEPADIRECTDEBIT && $sepaFlow === SepaFlow::SEPA_FLOW_AUTHCAP) ||
-                    ($webhookMethodCode === self::ADYEN_PAYPAL && $isPaypalManualCapture) ||
-                    ($this->isOpenInvoice($webhookMethodInstance) && !$autoCaptureOpenInvoice) ||
-                    ($captureMode === CaptureMode::CAPTURE_MODE_MANUAL)
-                ) {
-                    $isAutoCapture = false;
+                /*
+                 * `adyenTxVariant` can be `null` if a card variant is provided. In this case, skip payment
+                 * method specific checks and use the global capture mode setting.
+                 */
+                $adyenTxVariant = $this->txVariantFactory->create(['txVariant' => $notificationPaymentMethod]);
+
+                if (isset($adyenTxVariant)) {
+                    $webhookMethodInstance = $adyenTxVariant->getMethodInstance();
+                    $webhookMethodCode = $webhookMethodInstance->getCode();
+
+                    if (($webhookMethodCode === self::ADYEN_SEPADIRECTDEBIT && $sepaFlow === SepaFlow::SEPA_FLOW_AUTHCAP) ||
+                        ($webhookMethodCode === self::ADYEN_PAYPAL && $isPaypalManualCapture) ||
+                        ($this->isOpenInvoice($webhookMethodInstance) && !$autoCaptureOpenInvoice) ||
+                        ($captureMode === CaptureMode::CAPTURE_MODE_MANUAL)
+                    ) {
+                        $isAutoCapture = false;
+                    }
+                } else {
+                    if ($captureMode === CaptureMode::CAPTURE_MODE_MANUAL) {
+                        $isAutoCapture = false;
+                    }
                 }
             }
         }
@@ -822,32 +806,26 @@ class PaymentMethods extends AbstractHelper
     private function txVariantSupportsManualCapture(string $txVariant): bool
     {
         $supportsManualCapture = false;
+        $cardVariants = $this->adyenHelper->getCcTypesAltData();
 
-        // Check the scheme method manual capture support
-        if (in_array($txVariant, self::MANUAL_CAPTURE_SUPPORTED_CARD_BRANDS)) {
+        // Check the card (scheme or giftcard) method manual capture support
+        if (filter_var($cardVariants[$txVariant]['manual_capture'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
             $supportsManualCapture = true;
         } else {
-            try {
-                /** @var TxVariantInterpreter $interpretedTxVariant */
-                $interpretedTxVariant = $this->txVariantInterpreterFactory->create(['txVariant' => $txVariant]);
+            $adyenTxVariant = $this->txVariantFactory->create(['txVariant' => $txVariant]);
 
-                // Check the wallet scheme manual capture support
-                if (!empty($interpretedTxVariant->getCard())) {
-                    $supportsManualCapture = in_array(
-                        $interpretedTxVariant->getCard(),
-                        self::MANUAL_CAPTURE_SUPPORTED_CARD_BRANDS
+            // If the TxVariant is null, fallback back to auto capture by-default.
+            if (isset($adyenTxVariant)) {
+                if (!empty($adyenTxVariant->getCard())) {
+                    // Check the wallet scheme manual capture support
+                    $supportsManualCapture = filter_var(
+                        $cardVariants[$txVariant]['manual_capture'] ?? false,
+                        FILTER_VALIDATE_BOOLEAN
                     );
-                } elseif ($this->supportsManualCapture($interpretedTxVariant->getMethodInstance())) {
+                } elseif ($this->supportsManualCapture($adyenTxVariant->getMethodInstance())) {
                     // Check the alternative payment method manual capture support
                     $supportsManualCapture = true;
                 }
-            } catch (UnexpectedValueException $e) {
-                // Suppress the exception and proceed with the default value in case of missing subvariants.
-                $this->adyenLogger->error(sprintf(
-                    'The payment method instance could\'t be found for the variant %s: %s',
-                    $txVariant,
-                    $e->getMessage()
-                ));
             }
         }
 
