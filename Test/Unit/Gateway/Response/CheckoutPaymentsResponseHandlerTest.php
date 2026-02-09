@@ -5,6 +5,9 @@ namespace Test\Unit\Gateway\Response;
 use Adyen\Payment\Helper\OrdersApi;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\Vault;
+use Adyen\Payment\Model\Method\TxVariant;
+use Adyen\Payment\Model\Method\TxVariantInterpreter;
+use Adyen\Payment\Model\Method\TxVariantInterpreterFactory;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Payment\Gateway\Response\CheckoutPaymentsResponseHandler;
 use Magento\Payment\Gateway\Data\OrderAdapterInterface;
@@ -23,6 +26,7 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
     private Vault|MockObject $vaultMock;
     private PaymentMethods|MockObject $paymentMethodsMock;
     private OrdersApi|MockObject $ordersApiHelperMock;
+    private TxVariantInterpreterFactory|MockObject $txVariantInterpreterFactoryMock;
     private array $handlingSubject;
 
     protected function setUp(): void
@@ -30,11 +34,14 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
         $this->vaultMock = $this->createMock(Vault::class);
         $this->paymentMethodsMock = $this->createMock(PaymentMethods::class);
         $this->ordersApiHelperMock = $this->createMock(OrdersApi::class);
+        $this->txVariantInterpreterFactoryMock =
+            $this->createGeneratedMock(TxVariantInterpreterFactory::class, ['create']);
 
         $this->checkoutPaymentsDetailsHandler = new CheckoutPaymentsResponseHandler(
             $this->vaultMock,
             $this->paymentMethodsMock,
-            $this->ordersApiHelperMock
+            $this->ordersApiHelperMock,
+            $this->txVariantInterpreterFactoryMock
         );
 
         $paymentMethodInstance = $this->createMock(MethodInterface::class);
@@ -95,13 +102,24 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
 
     public function testIfGeneralFlowIsHandledCorrectlyForWallets()
     {
-        $walletVariant = 'visa_googlepay';
+        $walletType = 'googlepay';
+        $walletBrand = 'visa';
+
+        $walletVariant = sprintf('%s_%s', $walletBrand, $walletType);
+
+        $txVariantInterpreterMock = $this->createMock(TxVariant::class);
+        $txVariantInterpreterMock->method('getCard')->willReturn($walletBrand);
+
+        $this->txVariantInterpreterFactoryMock->method('create')
+            ->with(['txVariant' => $walletVariant])
+            ->willReturn($txVariantInterpreterMock);
 
         // prepare Handler input.
         $responseCollection = [
             0 => [
-                'additionalData' => [
-                    'paymentMethod' => $walletVariant
+                'paymentMethod' => [
+                    'brand' => $walletVariant,
+                    'type' => $walletType
                 ],
                 'amount' => [],
                 'resultCode' => 'Authorised',
@@ -121,7 +139,7 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
         $this->applyGenericMockExpectations();
 
         $this->paymentMethodsMock->method('isWalletPaymentMethod')->willReturn(true);
-        $this->paymentMock->expects($this->once())->method('setCcType')->with($walletVariant);
+        $this->paymentMock->expects($this->once())->method('setCcType')->with($walletBrand);
 
         $this->checkoutPaymentsDetailsHandler->handle($this->handlingSubject, $responseCollection);
     }

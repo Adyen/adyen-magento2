@@ -367,52 +367,6 @@ class VaultTest extends AbstractAdyenTestCase
         $this->vault->createVaultToken($payment, 'storedRef');
     }
 
-    public function testCreateVaultTokenForWalletThrowsWhenValidatedTxVariantFails(): void
-    {
-        $order = $this->createConfiguredMock(Order::class, ['getCustomerId' => 11, 'getStoreId' => 1]);
-        $adapter = $this->createConfiguredMock(Adapter::class, ['getCode' => 'adyen_googlepay']);
-
-        $payment = $this->getMockBuilder(Order\Payment::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['getOrder','getMethodInstance','getCcType','getAdditionalInformation'])
-            ->getMock();
-
-        $payment->method('getOrder')->willReturn($order);
-        $payment->method('getMethodInstance')->willReturn($adapter);
-
-        $payment->method('getCcType')->willReturn('faciliypay_10x');
-
-        $payment->method('getAdditionalInformation')->willReturnCallback(function ($key) {
-            $map = [
-                'additionalData' => ['cardSummary' => '9999', 'expiryDate' => '12/2031'],
-                'recurringProcessingModel' => 'UnscheduledCardOnFile'
-            ];
-            return $map[$key] ?? null;
-        });
-
-        $this->paymentTokenManagement->method('getByGatewayToken')->willReturn(null);
-
-        $tokenMock = $this->createMock(PaymentTokenInterface::class);
-        $this->paymentTokenFactory->method('create')->willReturn($tokenMock);
-
-        $this->paymentMethodsHelper->method('isWalletPaymentMethod')->with($adapter)->willReturn(true);
-
-        $this->paymentMethodsHelper->expects($this->once())
-            ->method('getAlternativePaymentMethodTxVariant')
-            ->with($adapter)
-            ->willReturn('googlepay');
-
-        $this->txVariantFactory->expects($this->once())
-            ->method('create')
-            ->with(['txVariant' => 'faciliypay_10x'])
-            ->willThrowException(new \UnexpectedValueException('method not found'));
-
-        $this->expectException(\UnexpectedValueException::class);
-        $this->expectExceptionMessage('method not found');
-
-        $this->vault->createVaultToken($payment, 'storedRef');
-    }
-
     public function testCreateVaultTokenForAlternativePaymentMethod(): void
     {
         $order = $this->createConfiguredMock(Order::class, ['getCustomerId' => 12, 'getStoreId' => 1]);

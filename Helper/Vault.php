@@ -215,7 +215,6 @@ class Vault
 
         if ($this->paymentMethodsHelper->isWalletPaymentMethod($paymentMethodInstance)) {
             $paymentToken->setType(PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD);
-            $walletType = $this->paymentMethodsHelper->getAlternativePaymentMethodTxVariant($paymentMethodInstance);
 
             $ccType = $payment->getCcType();
             $cardVariants = $this->adyenHelper->getCcTypesAltData();
@@ -228,7 +227,8 @@ class Vault
 
             $details = [
                 'type' => $ccType,
-                'walletType' => $walletType,
+                'walletType' => $this->paymentMethodsHelper->getAlternativePaymentMethodTxVariant(
+                    $paymentMethodInstance),
                 'maskedCC' => $additionalData['cardSummary'],
                 'expirationDate' => $additionalData['expiryDate']
             ];
