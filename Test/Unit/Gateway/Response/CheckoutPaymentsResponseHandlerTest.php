@@ -6,8 +6,7 @@ use Adyen\Payment\Helper\OrdersApi;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Model\Method\TxVariant;
-use Adyen\Payment\Model\Method\TxVariantInterpreter;
-use Adyen\Payment\Model\Method\TxVariantInterpreterFactory;
+use Adyen\Payment\Model\Method\TxVariantFactory;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Payment\Gateway\Response\CheckoutPaymentsResponseHandler;
 use Magento\Payment\Gateway\Data\OrderAdapterInterface;
@@ -26,7 +25,7 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
     private Vault|MockObject $vaultMock;
     private PaymentMethods|MockObject $paymentMethodsMock;
     private OrdersApi|MockObject $ordersApiHelperMock;
-    private TxVariantInterpreterFactory|MockObject $txVariantInterpreterFactoryMock;
+    private TxVariantFactory|MockObject $txVariantFactoryMock;
     private array $handlingSubject;
 
     protected function setUp(): void
@@ -34,14 +33,13 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
         $this->vaultMock = $this->createMock(Vault::class);
         $this->paymentMethodsMock = $this->createMock(PaymentMethods::class);
         $this->ordersApiHelperMock = $this->createMock(OrdersApi::class);
-        $this->txVariantInterpreterFactoryMock =
-            $this->createGeneratedMock(TxVariantInterpreterFactory::class, ['create']);
+        $this->txVariantFactoryMock = $this->createMock(TxVariantFactory::class);
 
         $this->checkoutPaymentsDetailsHandler = new CheckoutPaymentsResponseHandler(
             $this->vaultMock,
             $this->paymentMethodsMock,
             $this->ordersApiHelperMock,
-            $this->txVariantInterpreterFactoryMock
+            $this->txVariantFactoryMock
         );
 
         $paymentMethodInstance = $this->createMock(MethodInterface::class);
@@ -110,7 +108,7 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
         $txVariantInterpreterMock = $this->createMock(TxVariant::class);
         $txVariantInterpreterMock->method('getCard')->willReturn($walletBrand);
 
-        $this->txVariantInterpreterFactoryMock->method('create')
+        $this->txVariantFactoryMock->method('create')
             ->with(['txVariant' => $walletVariant])
             ->willReturn($txVariantInterpreterMock);
 
