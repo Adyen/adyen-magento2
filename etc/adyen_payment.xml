@@ -13,125 +13,187 @@
 <payment xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="urn:magento:module:Adyen_Payment:etc/adyen_payment.xsd">
     <adyen_credit_cards>
+        <!-- Schemes -->
         <type id="AE" order="0">
             <label>American Express</label>
             <code_alt>amex</code_alt>
+            <card_type>scheme</card_type>
+            <manual_capture>1</manual_capture>
         </type>
         <type id="VI" order="10">
             <label>Visa</label>
             <code_alt>visa</code_alt>
+            <card_type>scheme</card_type>
+            <manual_capture>1</manual_capture>
         </type>
         <type id="MC" order="20">
             <label>MasterCard</label>
             <code_alt>mc</code_alt>
+            <card_type>scheme</card_type>
+            <manual_capture>1</manual_capture>
         </type>
         <type id="DI" order="30">
             <label>Discover</label>
             <code_alt>discover</code_alt>
-        </type>
-        <type id="SM" order="40">
-            <label>Maestro/Switch</label>
-            <code_alt>maestro</code_alt>
+            <card_type>scheme</card_type>
+            <manual_capture>1</manual_capture>
         </type>
         <type id="JCB" order="50">
             <label>JCB</label>
             <code_alt>jcb</code_alt>
+            <card_type>scheme</card_type>
+            <manual_capture>1</manual_capture>
         </type>
         <type id="DN" order="60">
             <label>Diners</label>
             <code_alt>diners</code_alt>
+            <card_type>scheme</card_type>
+            <manual_capture>1</manual_capture>
         </type>
         <type id="MI" order="70">
             <label>Maestro</label>
             <code_alt>maestro</code_alt>
+            <card_type>scheme</card_type>
+            <manual_capture>1</manual_capture>
         </type>
         <type id="UN" order="80">
             <label>UnionPay</label>
             <code_alt>cup</code_alt>
+            <card_type>scheme</card_type>
+            <manual_capture>1</manual_capture>
         </type>
         <type id="BCMC" order="90">
             <label>Bancontact</label>
             <code_alt>bcmc</code_alt>
+            <card_type>scheme</card_type>
+            <manual_capture>0</manual_capture>
         </type>
         <type id="HIPERCARD" order="100">
             <label>Hipercard</label>
             <code_alt>hipercard</code_alt>
+            <card_type>scheme</card_type>
+            <manual_capture>1</manual_capture>
         </type>
         <type id="ELO" order="110">
             <label>Elo</label>
             <code_alt>elo</code_alt>
+            <card_type>scheme</card_type>
+            <manual_capture>1</manual_capture>
         </type>
         <type id="TROY" order="120">
             <label>Troy</label>
             <code_alt>troy</code_alt>
+            <card_type>scheme</card_type>
+            <manual_capture>0</manual_capture>
         </type>
         <type id="DANKORT" order="130">
             <label>Dankort</label>
             <code_alt>dankort</code_alt>
+            <card_type>scheme</card_type>
+            <manual_capture>1</manual_capture>
         </type>
         <type id="CB" order="140">
             <label>Cartes Bancaire</label>
             <code_alt>cartebancaire</code_alt>
+            <card_type>scheme</card_type>
+            <manual_capture>1</manual_capture>
         </type>
         <type id="KCP" order="150">
             <label>Korean Local Card</label>
             <code_alt>korean_local_card</code_alt>
+            <card_type>scheme</card_type>
+            <manual_capture>0</manual_capture>
         </type>
-        <type id="AMEX_APPLEPAY" order="160">
-            <label>Apple Pay American Express</label>
-            <code_alt>amex_applepay</code_alt>
+        <type id="GIROCARD" order="160">
+            <label>Girocard</label>
+            <code_alt>girocard</code_alt>
+            <card_type>scheme</card_type>
+            <manual_capture>1</manual_capture>
         </type>
-        <type id="DISCOVER_APPLEPAY" order="170">
-            <label>Apple Pay Discover</label>
-            <code_alt>discover_applepay</code_alt>
+        <type id="LASER" order="170">
+            <label>Laser</label>
+            <code_alt>laser</code_alt>
+            <card_type>scheme</card_type>
+            <manual_capture>1</manual_capture>
         </type>
-        <type id="ELECTRON_APPLEPAY" order="180">
-            <label>Apple Pay Electron</label>
-            <code_alt>electron_applepay</code_alt>
+        <type id="MAESTROUK" order="180">
+            <label>Laser</label>
+            <code_alt>maestrouk</code_alt>
+            <card_type>scheme</card_type>
+            <manual_capture>1</manual_capture>
         </type>
-        <type id="ELO_APPLEPAY" order="190">
-            <label>Apple Pay Elo</label>
-            <code_alt>elo_applepay</code_alt>
-        </type>
-        <type id="ELODEBIT_APPLEPAY" order="200">
-            <label>Apple Pay Elo Debit</label>
-            <code_alt>elodebit_applepay</code_alt>
-        </type>
-        <type id="INTERAC_APPLEPAY" order="210">
-            <label>Apple Pay Interac</label>
-            <code_alt>interac_applepay</code_alt>
-        </type>
-        <type id="JCB_APPLEPAY" order="220">
-            <label>Apple Pay JCB</label>
-            <code_alt>jcb_applepay</code_alt>
-        </type>
-        <type id="MAESTRO_APPLEPAY" order="230">
-            <label>Apple Pay Maestro</label>
-            <code_alt>maestro_applepay</code_alt>
-        </type>
-        <type id="MC_APPLEPAY" order="240">
-            <label>Apple Pay Mastercard</label>
-            <code_alt>mc_applepay</code_alt>
-        </type>
-        <type id="VI_APPLEPAY" order="250">
-            <label>Apple Pay Visa</label>
-            <code_alt>visa_applepay</code_alt>
-        </type>
-        <type id="GIROCARD_APPLEPAY" order="260">
-            <label>Apple Pay Girocard</label>
-            <code_alt>girocard_applepay</code_alt>
-        </type>
-        <type id="CLICKTOPAYMC" order="270">
+        <type id="CLICKTOPAYMC" order="190">
             <label>Click to Pay - MasterCard</label>
             <code_alt>mc_clicktopay</code_alt>
+            <card_type>scheme</card_type>
+            <manual_capture>1</manual_capture>
         </type>
-        <type id="CLICKTOPAYVISA" order="280">
+        <type id="CLICKTOPAYVISA" order="200">
             <label>Click to Pay - Visa</label>
             <code_alt>visa_clicktopay</code_alt>
+            <card_type>scheme</card_type>
+            <manual_capture>1</manual_capture>
         </type>
-        <type id="MCSTANDARDDEBIT" order="290">
-            <label>MasterCard Standard Debit</label>
-            <code_alt>mcstandarddebit</code_alt>
+        <type id="UATP" order="210">
+            <label>UATP</label>
+            <code_alt>uatp</code_alt>
+            <card_type>scheme</card_type>
+            <manual_capture>1</manual_capture>
+        </type>
+        <type id="VISADANKORT" order="220">
+            <label>Visa / Dankort</label>
+            <code_alt>visadankort</code_alt>
+            <card_type>scheme</card_type>
+            <manual_capture>1</manual_capture>
+        </type>
+        <type id="PULSE" order="230">
+            <label>Pulse</label>
+            <code_alt>pulse</code_alt>
+            <card_type>scheme</card_type>
+            <manual_capture>1</manual_capture>
+        </type>
+        <type id="ACCEL" order="240">
+            <label>Accel</label>
+            <code_alt>accel</code_alt>
+            <card_type>scheme</card_type>
+            <manual_capture>1</manual_capture>
+        </type>
+        <type id="CARNET" order="250">
+            <label>Carnet</label>
+            <code_alt>carnet</code_alt>
+            <card_type>scheme</card_type>
+            <manual_capture>1</manual_capture>
+        </type>
+        <type id="NYCE" order="260">
+            <label>NYCE</label>
+            <code_alt>nyce</code_alt>
+            <card_type>scheme</card_type>
+            <manual_capture>1</manual_capture>
+        </type>
+        <type id="STAR" order="270">
+            <label>Star</label>
+            <code_alt>star</code_alt>
+            <card_type>scheme</card_type>
+            <manual_capture>1</manual_capture>
+        </type>
+        <!-- Giftcards -->
+        <type id="GIVEX" order="500">
+            <label>Givex</label>
+            <code_alt>givex</code_alt>
+            <card_type>giftcard</card_type>
+            <manual_capture>1</manual_capture>
+        </type>
+        <type id="SVS" order="510">
+            <label>SVS</label>
+            <code_alt>svs</code_alt>
+            <card_type>giftcard</card_type>
+            <manual_capture>1</manual_capture>
+        </type>
+        <type id="VALUELINK" order="520">
+            <label>Fiserv (ValueLink)</label>
+            <code_alt>valuelink</code_alt>
+            <card_type>giftcard</card_type>
+            <manual_capture>1</manual_capture>
         </type>
     </adyen_credit_cards>
 </payment>
