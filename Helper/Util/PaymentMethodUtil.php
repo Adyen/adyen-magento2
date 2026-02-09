@@ -109,7 +109,12 @@ class PaymentMethodUtil
         'girocard',
         'girocard_applepay',
         'scalapay_3x',
-        'scalapay_4x'
+        'scalapay_4x',
+        'star',
+        'nyce',
+        'carnet',
+        'accel',
+        'pulse'
     ];
 
     /**
