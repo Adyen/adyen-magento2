@@ -56,6 +56,8 @@ class Config
     const XML_WEBHOOK_NOTIFICATION_PROCESSOR = 'webhook_notification_processor';
     const AUTO_CAPTURE_OPENINVOICE = 'auto';
     const XML_CAPTURE_MODE = 'capture_mode';
+    const XML_SEPA_FLOW = 'sepa_flow';
+    const XML_PAYPAL_CAPTURE_MODE = 'paypal_capture_mode';
     const XML_RECURRING_CONFIGURATION = 'recurring_configuration';
     const XML_ALLOW_MULTISTORE_TOKENS = 'allow_multistore_tokens';
     const XML_THREEDS_FLOW = 'threeds_flow';
@@ -702,6 +704,29 @@ class Config
     public function getCaptureMode(?int $storeId = null): ?string
     {
         return $this->getConfigData(self::XML_CAPTURE_MODE, Config::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
+    }
+
+    /**
+     * @param int|null $storeId
+     * @return string|null
+     */
+    public function getSepaFlow(?int $storeId = null): ?string
+    {
+        return $this->getConfigData(self::XML_SEPA_FLOW, Config::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
+    }
+
+    /**
+     * @param int|null $storeId
+     * @return bool
+     */
+    public function isPaypalManualCapture(?int $storeId = null): bool
+    {
+        return $this->getConfigData(
+            self::XML_PAYPAL_CAPTURE_MODE,
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId,
+            true
+        );
     }
 
     /**

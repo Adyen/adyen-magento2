@@ -19,9 +19,8 @@ use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Helper\Quote;
 use Adyen\Payment\Helper\Order as OrderHelper;
 use Adyen\Payment\Model\Method\Adapter;
-use Adyen\Payment\Model\Method\TxVariantInterpreterFactory;
+use Adyen\Payment\Model\Method\TxVariantFactory;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
-use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Exception;
 use Magento\Framework\Exception\AlreadyExistsException;
@@ -52,7 +51,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
     private Adapter|MockObject $paymentMethodInstanceMock;
     private PaymentMethods|MockObject $paymentMethodsHelperMock;
     private OrdersApi|MockObject $ordersApiHelperMock;
-    private TxVariantInterpreterFactory|MockObject $txVariantInterpreterFactoryMock;
+    private TxVariantFactory|MockObject $txVariantFactoryMock;
 
     protected function setUp(): void
     {
@@ -86,8 +85,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
 
         $orderHelperMock->method('setStatusOrderCreation')->willReturn($this->orderMock);
 
-        $this->txVariantInterpreterFactoryMock =
-            $this->createGeneratedMock(TxVariantInterpreterFactory::class, ['create']);
+        $this->txVariantFactoryMock = $this->createMock(TxVariantFactory::class);
 
         $this->paymentResponseHandler = new PaymentResponseHandler(
             $this->adyenLoggerMock,
@@ -99,7 +97,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
             $this->paymentMethodsHelperMock,
             $orderStatusHistoryMock,
             $this->ordersApiHelperMock,
-            $this->txVariantInterpreterFactoryMock
+            $this->txVariantFactoryMock
         );
     }
 

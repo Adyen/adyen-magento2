@@ -32,7 +32,7 @@ use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Vault\Model\PaymentTokenManagement;
 use Magento\Vault\Model\ResourceModel\PaymentToken as PaymentTokenResourceModel;
 use Magento\Vault\Model\Ui\VaultConfigProvider;
-
+use Adyen\Payment\Model\Method\TxVariantFactory;
 class Vault
 {
     const RECURRING_DETAIL_REFERENCE = 'recurring.recurringDetailReference';
@@ -67,6 +67,8 @@ class Vault
      * @param Config $config
      * @param PaymentMethods $paymentMethodsHelper
      * @param StateData $stateData
+     * @param TxVariantFactory $txVariantFactory
+     * @param Data $adyenHelper
      */
     public function __construct(
         private readonly AdyenLogger $adyenLogger,
@@ -77,7 +79,9 @@ class Vault
         private readonly OrderPaymentExtensionInterfaceFactory $paymentExtensionFactory,
         private readonly Config $config,
         private readonly PaymentMethods $paymentMethodsHelper,
-        private readonly StateData $stateData
+        private readonly StateData $stateData,
+        private readonly TxVariantFactory $txVariantFactory,
+        private readonly Data $adyenHelper
     ) { }
 
     /**
@@ -212,8 +216,17 @@ class Vault
         if ($this->paymentMethodsHelper->isWalletPaymentMethod($paymentMethodInstance)) {
             $paymentToken->setType(PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD);
 
+            $ccType = $payment->getCcType();
+            $cardVariants = $this->adyenHelper->getCcTypesAltData();
+
+            // Based on the CA config, card type might contain wallet type or not (ie: `mc` or `mc_googlepay`)
+            if (empty($cardVariants[$ccType])) {
+                $validatedTxVariant = $this->txVariantFactory->create(['txVariant' => $ccType]);
+                $ccType = $validatedTxVariant->getCard();
+            }
+
             $details = [
-                'type' => $payment->getCcType(),
+                'type' => $ccType,
                 'walletType' => $this->paymentMethodsHelper->getAlternativePaymentMethodTxVariant(
                     $paymentMethodInstance),
                 'maskedCC' => $additionalData['cardSummary'],

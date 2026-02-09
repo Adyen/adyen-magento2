@@ -13,7 +13,7 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Helper\Order as AdyenOrderHelper;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\Method\TxVariantInterpreterFactory;
+use Adyen\Payment\Model\Method\TxVariantFactory;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use Exception;
 use Magento\Framework\Exception\AlreadyExistsException;
@@ -61,7 +61,7 @@ class PaymentResponseHandler
      * @param PaymentMethods $paymentMethodsHelper
      * @param OrderStatusHistory $orderStatusHistoryHelper
      * @param OrdersApi $ordersApiHelper
-     * @param TxVariantInterpreterFactory $txVariantInterpreterFactory
+     * @param TxVariantFactory $txVariantFactory
      */
     public function __construct(
         private readonly AdyenLogger $adyenLogger,
@@ -73,7 +73,7 @@ class PaymentResponseHandler
         private readonly PaymentMethods $paymentMethodsHelper,
         private readonly OrderStatusHistory $orderStatusHistoryHelper,
         private readonly OrdersApi $ordersApiHelper,
-        private readonly TxVariantInterpreterFactory $txVariantInterpreterFactory
+        private readonly TxVariantFactory $txVariantFactory
     ) { }
 
     public function formatPaymentResponse(
@@ -182,7 +182,7 @@ class PaymentResponseHandler
         if (!empty($paymentsDetailsResponse['paymentMethod'])) {
             if ($this->paymentMethodsHelper->isWalletPaymentMethod($paymentMethodInstance)) {
                 // Extract the scheme card brand from the wallet payment response
-                $txVariant = $this->txVariantInterpreterFactory->create([
+                $txVariant = $this->txVariantFactory->create([
                     'txVariant' => $paymentsDetailsResponse['paymentMethod']['brand']
                 ]);
 

@@ -51,6 +51,12 @@ class Converter implements \Magento\Framework\Config\ConverterInterface
                     case 'code_alt':
                         $typeArray['code_alt'] = $typeSubNode->nodeValue;
                         break;
+                    case 'card_type':
+                        $typeArray['card_type'] = $typeSubNode->nodeValue;
+                        break;
+                    case 'manual_capture':
+                        $typeArray['manual_capture'] = $typeSubNode->nodeValue;
+                        break;
                     default:
                         break;
                 }
