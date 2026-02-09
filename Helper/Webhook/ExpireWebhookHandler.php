@@ -17,7 +17,6 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Order as OrderHelper;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\Config\Source\CaptureMode;
 use Adyen\Payment\Model\Notification;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
@@ -50,19 +49,8 @@ class ExpireWebhookHandler implements WebhookHandlerInterface
     {
         $storeId = $order->getStoreId();
         $isExpireWebhookIgnored = $this->configHelper->isExpireWebhookIgnored($storeId);
-        $captureMode = $this->configHelper->getCaptureMode($storeId);
 
-        if (strcmp($captureMode, CaptureMode::CAPTURE_MODE_AUTO) === 0) {
-            /*
-             * Expire webhook should not be obtained if auto capture is enabled.
-             * If so, it might be an indicator of an incorrect plugin configuration.
-             */
-            $orderComment = __(
-                'An unexpected %1 webhook has arrived even though auto capture is enabled, please check the plugin configuration! This webhook was skipped.',
-                $notification->getEventCode()
-            );
-            $logMessage = $orderComment;
-        } elseif ($isExpireWebhookIgnored) {
+        if ($isExpireWebhookIgnored) {
             $orderComment = __(
                 'The remaining uncaptured authorisation with amount %1 has expired but no action has been taken as the %2 webhook was skipped.',
                 $notification->getFormattedAmountCurrency(),
