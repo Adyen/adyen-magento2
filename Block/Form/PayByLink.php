@@ -89,6 +89,6 @@ class PayByLink extends Form
             date is within the accepted range
             */
         }
-        return $timestamp ? $date->getTimestamp() * 1000 : $date->format(AdyenPayByLinkConfigProvider::DATE_FORMAT);
+        return $timestamp ? $date->getTimestamp() * 1000 : $date->format(AdyenPayByLinkConfigProvider::DATE_TIME_FORMAT);
     }
 }

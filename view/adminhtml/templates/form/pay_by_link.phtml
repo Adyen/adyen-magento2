@@ -26,15 +26,18 @@ $maxData = $escaper->escapeHtml($block->getMaxExpiryTimestamp());
 $defaultExpiry = $block->escapeJs($block->getDefaultExpiryDate());
 
 $scriptString = <<<script
-    require(["jquery", "mage/calendar"],
-        function ($) {
-            $("#adyen_pbl_expires_at").calendar({
-                changeYear: true,
-                changeMonth: true,
-                buttonText: 'Select Expiry Date',
-                dateFormat: 'dd-mm-yy',
-                minDate: new Date($minData),
-                maxDate: new Date($maxData)
+    require([
+        'jquery',
+        'jquery-ui-modules/widget',
+        'jquery-ui-modules/datepicker',
+        'jquery-ui-modules/timepicker'
+    ], function ($) {
+            $("#adyen_pbl_expires_at").datetimepicker({
+            dateFormat: 'dd-mm-yy',
+            timeFormat: 'HH:mm:ss',
+            minDate: new Date($minData),
+            maxDate: new Date($maxData),
+            showSecond: false
             }).val('$defaultExpiry');
         });
 script;
