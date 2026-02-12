@@ -65,7 +65,7 @@ jobs:
       - name: Information
         run: echo "E2E testing against test suite branch ${{env.TEST_BRANCH}} using group ${{env.TEST_GROUP}} ${{ env.EXPRESS_BRANCH && 'with express module branch' || '' }} ${{ env.EXPRESS_BRANCH || '' }}"
 
-      - uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2
+      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
 
       - name: Install Magento
         run: docker compose -f .github/docker-compose.yml run --rm web make magento
@@ -83,7 +83,7 @@ jobs:
         run: docker exec -u www-data magento2-container make plugin
 
       - name: Checkout developer module
-        uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2
+        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
         with:
           repository: Adyen/adyen-magento2-dev
           ref: "main"
