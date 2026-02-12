@@ -12,15 +12,11 @@ declare(strict_types=1);
 namespace Adyen\Payment\Setup\Patch\Data;
 
 use Adyen\Payment\Helper\DataPatch;
-use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
 use Magento\Framework\App\Config\ReinitableConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Sales\Model\Order;
-use Magento\Sales\Model\Order\StatusFactory;
-use Magento\Sales\Model\ResourceModel\Order\StatusFactory as StatusResourceFactory;
-use Magento\Sales\Model\ResourceModel\Order\Status as StatusResource;
 
 class CreateStatusAuthorized implements DataPatchInterface
 {
@@ -28,8 +24,6 @@ class CreateStatusAuthorized implements DataPatchInterface
     private WriterInterface $configWriter;
     private ReinitableConfigInterface $reinitableConfig;
     private DataPatch $dataPatchHelper;
-    private StatusFactory $statusFactory;
-    private StatusResourceFactory $statusResourceFactory;
 
     const ADYEN_AUTHORIZED_STATUS = 'adyen_authorized';
     const ADYEN_AUTHORIZED_STATUS_LABEL = 'Authorized';
@@ -38,38 +32,53 @@ class CreateStatusAuthorized implements DataPatchInterface
         ModuleDataSetupInterface $moduleDataSetup,
         WriterInterface $configWriter,
         ReinitableConfigInterface $reinitableConfig,
-        DataPatch $dataPatchHelper,
-        StatusFactory $statusFactory,
-        StatusResourceFactory $statusResourceFactory
+        DataPatch $dataPatchHelper
     ) {
         $this->moduleDataSetup = $moduleDataSetup;
         $this->configWriter = $configWriter;
         $this->reinitableConfig = $reinitableConfig;
         $this->dataPatchHelper = $dataPatchHelper;
-        $this->statusFactory = $statusFactory;
-        $this->statusResourceFactory = $statusResourceFactory;
     }
 
     public function apply()
     {
-        /** @var StatusResource $statusResource */
-        $statusResource = $this->statusResourceFactory->create();
+        $setup = $this->moduleDataSetup;
+        $setup->getConnection()->startSetup();
 
-        $status = $this->statusFactory->create();
-        $status->setData([
-            'status' => self::ADYEN_AUTHORIZED_STATUS,
-            'label' => self::ADYEN_AUTHORIZED_STATUS_LABEL,
-        ]);
+        $salesOrderStatusTable = $setup->getTable('sales_order_status');
+        $selectStatus = $setup->getConnection()->select()
+            ->from($salesOrderStatusTable)
+            ->where(
+                'status = ?',
+                self::ADYEN_AUTHORIZED_STATUS
+            );
 
-        try {
-            $statusResource->save($status);
-        } catch (AlreadyExistsException $exception) {
-            return;
+        $salesOrderStatusRows = $setup->getConnection()->fetchRow($selectStatus);
+        if (empty($salesOrderStatusRows)) {
+            $setup->getConnection()->insert($salesOrderStatusTable, [
+                'status' => self::ADYEN_AUTHORIZED_STATUS,
+                'label' => self::ADYEN_AUTHORIZED_STATUS_LABEL
+            ]);
         }
 
-        $status->assignState(self::ADYEN_AUTHORIZED_STATUS, true, true);
+        $salesOrderStatusStateTable = $setup->getTable('sales_order_status_state');
+        $selectState = $setup->getConnection()->select()
+            ->from($salesOrderStatusStateTable)
+            ->where(
+                'status = ?',
+                self::ADYEN_AUTHORIZED_STATUS
+            );
 
-        $setup = $this->moduleDataSetup;
+        $salesOrderStatusStateRows = $setup->getConnection()->fetchRow($selectState);
+        if (empty($salesOrderStatusStateRows)) {
+            $setup->getConnection()->insert($salesOrderStatusStateTable, [
+                'status' => self::ADYEN_AUTHORIZED_STATUS,
+                'state' => self::ADYEN_AUTHORIZED_STATUS,
+                'is_default' => 1,
+                'visible_on_front' => 1
+            ]);
+        }
+
         $path = 'payment/adyen_abstract/payment_pre_authorized';
 
         // Processing status was assigned mistakenly. It shouldn't be used on payment_pre_authorized.
@@ -85,6 +94,7 @@ class CreateStatusAuthorized implements DataPatchInterface
 
         // re-initialize otherwise it will cause errors
         $this->reinitableConfig->reinit();
+        $setup->getConnection()->endSetup();
     }
 
     /**
