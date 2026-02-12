@@ -42,9 +42,13 @@ define(
                 return applePayConfiguration;
             },
 
+            /**
+            * Checks if the current browser supports Apple Pay.
+            * @returns {boolean}
+            */
             checkBrowserCompatibility: function () {
-                // Disables Apple Pay for non-Safari browsers
-                return /^((?!android).)*safari/i.test(navigator.userAgent);
+                // Apple Pay is only available if the browser is Safari and the ApplePaySession API exists
+                return /^((?!android).)*safari/i.test(navigator.userAgent) && 'ApplePaySession' in window;
             }
         })
     }
