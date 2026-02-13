@@ -29,7 +29,7 @@ class PaymentLinksRequestValidator extends AbstractValidator
         $isValid = true;
         $errorMessages = [];
 
-        if ($expiryDate = date_create_from_format(AdyenPayByLinkConfigProvider::DATE_TIME_FORMAT, $expiresAt)) {
+        if ($expiresAt && $expiryDate = date_create_from_format(AdyenPayByLinkConfigProvider::DATE_TIME_FORMAT, $expiresAt)) {
             $daysToExpire = ($expiryDate->getTimestamp() - time()) / 86400;
 
             if ($daysToExpire <= AdyenPayByLinkConfigProvider::MIN_EXPIRY_DAYS ||

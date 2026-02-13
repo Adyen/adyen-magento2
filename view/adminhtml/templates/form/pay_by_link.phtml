@@ -24,6 +24,7 @@ if (!isset($escaper)) {
 $minData = $escaper->escapeHtml($block->getMinExpiryTimestamp());
 $maxData = $escaper->escapeHtml($block->getMaxExpiryTimestamp());
 $defaultExpiry = $block->escapeJs($block->getDefaultExpiryDate());
+$serverTimezone =  date(' (T)');
 
 $scriptString = <<<script
     require([
@@ -51,9 +52,7 @@ script;
         style="display: none">
     <div class="admin__field _required">
         <label for="adyen_pbl_expires_at" class="admin__field-label">
-               <span>
-               <?= $escaper->escapeHtml(__('Payment link expires at')) ?>
-               </span>
+            <?= $escaper->escapeHtml(__('Payment link expires at') . $serverTimezone) ?>
         </label>
         <div class="admin__field-control">
             <input type="text" id="adyen_pbl_expires_at" name="payment[adyen_pbl_expires_at]"

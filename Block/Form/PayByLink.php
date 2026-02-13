@@ -80,7 +80,7 @@ class PayByLink extends Form
      */
     private function getNowPlusDays($days, $timestamp = true)
     {
-        $date = new DateTime('now', new DateTimeZone('UTC'));
+        $date = new DateTime('now');
         try {
             $date->add(new DateInterval('P' . $days . 'D'));
         } catch (Exception $e) {
