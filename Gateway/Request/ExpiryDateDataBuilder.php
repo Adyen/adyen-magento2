@@ -49,7 +49,7 @@ class ExpiryDateDataBuilder implements BuilderInterface
         if ($expiryDate) {
             $expiryDateTime = date_create_from_format(
                 AdyenPayByLinkConfigProvider::DATE_TIME_FORMAT,
-                $expiryDate . ' 23:59:59'
+                $expiryDate
             );
 
             $request['body']['expiresAt'] = $expiryDateTime->format(DATE_ATOM);
