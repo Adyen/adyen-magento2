@@ -388,6 +388,8 @@ class Requests extends AbstractHelper
     }
 
     /**
+     * @deprecated Recurring data is now built in RecurringVaultDataBuilder class. The method will be removed on V11.
+     *
      * Build the recurring data to be sent in case of an Adyen Tokenized payment.
      * Model will be fetched according to the type (card/other pm) of the original payment
      *

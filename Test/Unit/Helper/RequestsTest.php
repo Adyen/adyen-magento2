@@ -253,6 +253,36 @@ class RequestsTest extends AbstractAdyenTestCase
         $this->assertSame('card', $result['recurringProcessingModel']);
     }
 
+    public static function buildDonationDataReturnsCorrectStructureDataProvider(): array
+    {
+        return [
+            [
+                'method' => 'adyen_cc',
+                'variant' => 'scheme',
+                'convertedMethod' => 'scheme',
+                'isAlternativePaymentMethod' => false
+            ],
+            [
+                'method' => 'adyen_googlepay',
+                'variant' => 'googlepay',
+                'convertedMethod' => 'scheme',
+                'isAlternativePaymentMethod' => true
+            ],
+            [
+                'method' => 'adyen_applepay',
+                'variant' => 'applepay',
+                'convertedMethod' => 'scheme',
+                'isAlternativePaymentMethod' => true
+            ],
+            [
+                'method' => 'adyen_ideal',
+                'variant' => 'ideal',
+                'convertedMethod' => 'sepadirectdebit',
+                'isAlternativePaymentMethod' => true
+            ]
+        ];
+    }
+
     #[Test]
     public function buildAdyenTokenizedRecurringDataForStoredCard(): void
     {
