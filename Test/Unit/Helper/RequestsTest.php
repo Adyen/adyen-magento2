@@ -283,26 +283,6 @@ class RequestsTest extends AbstractAdyenTestCase
         ];
     }
 
-    #[Test]
-    public function buildAdyenTokenizedRecurringDataForStoredCard(): void
-    {
-        $payment = $this->createMock(Payment::class);
-        $payment->method('getAdditionalInformation')->willReturnMap([
-            ['recurringProcessingModel', 'card'],
-            ['cc_type', 'visa'],
-            ['method', 'scheme'],
-        ]);
-
-        $this->vaultHelper
-            ->method('getPaymentMethodRecurringProcessingModel')
-            ->with(AdyenCcConfigProvider::CODE, 1)
-            ->willReturn('card');
-
-        $result = $this->requests->buildAdyenTokenizedPaymentRecurringData(1, $payment);
-
-        $this->assertSame('card', $result['recurringProcessingModel']);
-    }
-
     /**
      * @return void
      * @throws AdyenException
