@@ -21,26 +21,38 @@ if (!isset($escaper)) {
 ?>
 
 <?php
-$minData = $escaper->escapeHtml($block->getMinExpiryTimestamp());
-$maxData = $escaper->escapeHtml($block->getMaxExpiryTimestamp());
-$defaultExpiry = $block->escapeJs($block->getDefaultExpiryDate());
+$minDate = $escaper->escapeHtml($block->getMinExpiryTimestamp());
+$maxDate = $escaper->escapeHtml($block->getMaxExpiryTimestamp());
+$defaultExpiryDate = $block->escapeJs($block->getDefaultExpiryDate());
 $serverTimezone =  date(' (T)');
 
 $scriptString = <<<script
-    require([
+require([
         'jquery',
         'jquery-ui-modules/widget',
         'jquery-ui-modules/datepicker',
         'jquery-ui-modules/timepicker'
     ], function ($) {
-            $("#adyen_pbl_expires_at").datetimepicker({
+        const defaultExpiryDate = new Date($defaultExpiryDate);
+        const formatExpiryDateOptions = {
+            day: 'numeric',
+            month: '2-digit',
+            year: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        };
+        const formatedExpiryDate = defaultExpiryDate.toLocaleString('en-GB', formatExpiryDateOptions)
+            .replace(/\//g, '-')
+            .replace(',', '');
+        $("#adyen_pbl_expires_at").datetimepicker({
             dateFormat: 'dd-mm-yy',
             timeFormat: 'HH:mm:ss',
-            minDate: new Date($minData),
-            maxDate: new Date($maxData),
-            showSecond: false
-            }).val('$defaultExpiry');
-        });
+            minDate: new Date($minDate),
+            maxDate: new Date($maxDate)
+        }).val(formatedExpiryDate);
+    });
 script;
 ?>
 

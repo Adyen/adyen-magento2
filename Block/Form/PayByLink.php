@@ -46,7 +46,7 @@ class PayByLink extends Form
             // There was a problem fetching the store, use the minimum expiry days as default
             $defaultExpiryDays = AdyenPayByLinkConfigProvider::MIN_EXPIRY_DAYS;
         }
-        return strval($this->getNowPlusDays($defaultExpiryDays, false));
+        return strval($this->getNowPlusDays($defaultExpiryDays));
     }
 
     /**
@@ -78,7 +78,7 @@ class PayByLink extends Form
      * @return float|int|string
      * @throws Exception
      */
-    private function getNowPlusDays($days, $timestamp = true)
+    private function getNowPlusDays($days)
     {
         $date = new DateTime('now');
         try {
@@ -89,6 +89,7 @@ class PayByLink extends Form
             date is within the accepted range
             */
         }
-        return $timestamp ? $date->getTimestamp() * 1000 : $date->format(AdyenPayByLinkConfigProvider::DATE_TIME_FORMAT);
+
+        return $date->getTimestamp() * 1000;
     }
 }
