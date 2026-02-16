@@ -7,7 +7,11 @@ namespace Adyen\Payment\Test\Unit\Helper;
 use Adyen\Client;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Helper\{ChargedCurrency, Config, Data, Locale, PaymentMethods, PlatformInfo};
-use Adyen\Payment\Model\{AdyenAmountCurrency, Notification, Ui\Adminhtml\AdyenMotoConfigProvider, Ui\AdyenPayByLinkConfigProvider};
+use Adyen\Payment\Model\{AdyenAmountCurrency,
+    Method\TxVariantFactory,
+    Notification,
+    Ui\Adminhtml\AdyenMotoConfigProvider,
+    Ui\AdyenPayByLinkConfigProvider};
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Helper\Context;
@@ -63,6 +67,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
     private MockObject $generateShopperConversionId;
     private MockObject $cartRepository;
     private MockObject $requestInterfaceMock;
+    private MockObject $txVariantFactory;
 
     protected function setUp(): void
     {
@@ -111,6 +116,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $sessionQuote->method('getPayment')->willReturn($sessionPayment);
         $this->checkoutSession->method('getQuote')->willReturn($sessionQuote);
         $this->requestInterfaceMock = $this->createMock(RequestInterface::class);
+        $this->txVariantFactory = $this->createMock(TxVariantFactory::class);
 
         $this->helper = new PaymentMethods(
             $this->createMock(Context::class),
@@ -131,7 +137,8 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             $this->localeHelper,
             $this->generateShopperConversionId,
             $this->checkoutSession,
-            $this->requestInterfaceMock
+            $this->requestInterfaceMock,
+            $this->txVariantFactory
         );
     }
 
@@ -561,7 +568,8 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             $this->localeHelper,
             $this->generateShopperConversionId,
             $this->checkoutSession,
-            $this->requestInterfaceMock
+            $this->requestInterfaceMock,
+            $this->txVariantFactory
         );
 
 
@@ -987,7 +995,8 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
                 $this->localeHelper,
                 $this->generateShopperConversionId,
                 $this->checkoutSession,
-                $this->requestInterfaceMock
+                $this->requestInterfaceMock,
+                $this->txVariantFactory
             ])
             ->onlyMethods(['getPaymentMethods'])
             ->getMock();
@@ -1049,7 +1058,8 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
                 $this->localeHelper,
                 $this->generateShopperConversionId,
                 $this->checkoutSession,
-                $this->requestInterfaceMock
+                $this->requestInterfaceMock,
+                $this->txVariantFactory
             ])
             ->onlyMethods(['getPaymentMethods'])
             ->getMock();

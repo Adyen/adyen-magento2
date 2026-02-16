@@ -15,7 +15,7 @@ use Adyen\Payment\Helper\OrdersApi;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Helper\Vault;
-use Adyen\Payment\Model\Method\TxVariantInterpreterFactory;
+use Adyen\Payment\Model\Method\TxVariantFactory;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Helper\SubjectReader;
@@ -28,13 +28,13 @@ class CheckoutPaymentsResponseHandler implements HandlerInterface
      * @param Vault $vaultHelper
      * @param PaymentMethods $paymentMethodsHelper
      * @param OrdersApi $ordersApi
-     * @param TxVariantInterpreterFactory $txVariantInterpreterFactory
+     * @param TxVariantFactory $txVariantFactory
      */
     public function __construct(
         private readonly Vault $vaultHelper,
         private readonly PaymentMethods $paymentMethodsHelper,
         private readonly OrdersApi $ordersApi,
-        private readonly TxVariantInterpreterFactory $txVariantInterpreterFactory
+        private readonly TxVariantFactory $txVariantFactory
     ) { }
 
     /**
@@ -75,7 +75,7 @@ class CheckoutPaymentsResponseHandler implements HandlerInterface
         if (!empty($response['paymentMethod'])) {
             if ($this->paymentMethodsHelper->isWalletPaymentMethod($paymentMethodInstance)) {
                 // Extract the scheme card brand from the wallet payment response
-                $txVariant = $this->txVariantInterpreterFactory->create([
+                $txVariant = $this->txVariantFactory->create([
                     'txVariant' => $response['paymentMethod']['brand']
                 ]);
 

@@ -46,8 +46,18 @@
         <xs:all>
             <xs:element name="label" type="xs:string" />
             <xs:element name="code_alt" type="xs:string" />
+            <xs:element name="card_type" type="adyen_card_typeType" />
+            <xs:element name="manual_capture" type="xs:boolean" />
         </xs:all>
         <xs:attribute name="id" type="xs:ID" use="required" />
         <xs:attribute name="order" type="xs:integer" use="required" />
     </xs:complexType>
+
+    <xs:simpleType name="adyen_card_typeType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="scheme" />
+            <xs:enumeration value="giftcard" />
+        </xs:restriction>
+    </xs:simpleType>
+
 </xs:schema>
