@@ -18,6 +18,10 @@ type Query {
     adyenRedeemedGiftcards (
         cartId: String! @doc(description: "Cart ID for which to fetch redeemed gift cards.")
     ): AdyenRedeemedGiftcardsResponse @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenRedeemedGiftcards")
+
+    adyenDonationCampaigns (
+        cartId: String! @doc(description: "Cart ID associated with the donation")
+    ): AdyenDonationCampaignsResponse @resolver(class: "Adyen\\Payment\\Model\\Resolver\\DonationCampaigns")
 }
 
 type Mutation {
@@ -39,6 +43,25 @@ type Mutation {
     posPayment(
         cartId: String! @doc(description: "Cart ID associated with the POS payment.")
     ): AdyenPaymentStatus @resolver(class: "Adyen\\Payment\\Model\\Resolver\\InitiatePosPayment")
+
+    adyenDonate(
+        cartId: String! @doc(description: "Cart ID associated with the donation")
+        amount: AdyenAmountInput! @doc(description: "Donation amount")
+        returnUrl: String! @doc(description: "The URL to return to after the donation is completed in case of a redirect")
+    ): AdyenDonationStatus @resolver(class: "Adyen\\Payment\\Model\\Resolver\\Donations")
+}
+
+input AdyenAmountInput {
+    currency: String! @doc(description: "Three-letter ISO currency code, e.g. EUR.")
+    value: Int! @doc(description: "Amount in minor units, e.g. 500 for 5.00 EUR.")
+}
+
+type AdyenDonationStatus {
+    status: Boolean @doc(description: "True if the donation was processed successfully.")
+}
+
+type AdyenDonationCampaignsResponse {
+    campaignsData: String @doc(description: "JSON encoded donation campaigns data.")
 }
 
 type AdyenPaymentStatus {
