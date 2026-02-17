@@ -3,10 +3,7 @@
 namespace Adyen\Payment\Test\Gateway\Request;
 
 use Adyen\Payment\Gateway\Request\MerchantRiskIndicatorDataBuilder;
-use Adyen\Payment\Helper\ChargedCurrency;
-use Adyen\Payment\Helper\GiftcardPayment;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\AdyenAmountCurrency;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
@@ -21,8 +18,6 @@ class MerchantRiskIndicatorDataBuilderTest extends AbstractAdyenTestCase
 {
     protected ?MerchantRiskIndicatorDataBuilder $merchantRiskIndicatorDataBuilder;
     protected CartRepositoryInterface|MockObject $cartRepositoryMock;
-    protected ChargedCurrency|MockObject $chargedCurrencyMock;
-    protected GiftcardPayment|MockObject $giftcardPaymentHelperMock;
     protected PaymentDataObject|MockObject $paymentDataObjectMock;
     protected Payment|MockObject $paymentMock;
     protected Order|MockObject $orderMock;
@@ -36,14 +31,12 @@ class MerchantRiskIndicatorDataBuilderTest extends AbstractAdyenTestCase
     {
         // Constructor arguments
         $this->cartRepositoryMock = $this->createMock(CartRepositoryInterface::class);
-        $this->chargedCurrencyMock = $this->createMock(ChargedCurrency::class);
-        $this->giftcardPaymentHelperMock = $this->createMock(GiftcardPayment::class);
+        $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
 
         // Other mock objects
         $this->shippingAddressMock = $this->createMock(Address::class);
 
         $this->quoteMock = $this->createMock(Quote::class);
-        $this->quoteMock->expects($this->atLeastOnce())->method('getId')->willReturn($this->quoteId);
         $this->quoteMock->method('getShippingAddress')->willReturn($this->shippingAddressMock);
         $this->cartRepositoryMock->method('get')->with($this->quoteId)->willReturn($this->quoteMock);
 
@@ -56,15 +49,11 @@ class MerchantRiskIndicatorDataBuilderTest extends AbstractAdyenTestCase
         $this->paymentDataObjectMock = $this->createMock(PaymentDataObject::class);
         $this->paymentDataObjectMock->method('getPayment')->willReturn($this->paymentMock);
 
-        $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
-
         $this->buildSubject = ['payment' => $this->paymentDataObjectMock];
 
         // SUT generation
         $this->merchantRiskIndicatorDataBuilder = new MerchantRiskIndicatorDataBuilder(
             $this->cartRepositoryMock,
-            $this->chargedCurrencyMock,
-            $this->giftcardPaymentHelperMock,
             $this->adyenLoggerMock
         );
     }
@@ -132,71 +121,5 @@ class MerchantRiskIndicatorDataBuilderTest extends AbstractAdyenTestCase
         $this->assertArrayHasKey('deliveryAddressIndicator', $result['body']['merchantRiskIndicator']);
         $this->assertEquals($deliveryAddressIndicator,
             $result['body']['merchantRiskIndicator']['deliveryAddressIndicator']);
-    }
-
-    /**
-     * @return void
-     * @throws NoSuchEntityException
-     */
-    public function testBuildPhysicalGoodsWithGiftcard()
-    {
-        $totalGiftcardDiscount = 1000;
-        $currency = 'EUR';
-        $numberOfGiftcards = 2;
-
-        $this->orderMock->expects($this->once())->method('getIsVirtual')->willReturn(false);
-
-        $quoteAmountCurrency = $this->createMock(AdyenAmountCurrency::class);
-        $quoteAmountCurrency->method('getCurrencyCode')->willReturn($currency);
-        $this->chargedCurrencyMock->expects($this->once())->method('getQuoteAmountCurrency')
-            ->with($this->quoteMock)
-            ->willReturn($quoteAmountCurrency);
-
-        $redeemedGiftcardsMock = '{"redeemedGiftcards":[{"stateDataId":"51","brand":"svs","title":"SVS","balance":{"currency":"EUR","value":5000},"deductedAmount":"50,00\u00a0\u20ac"},{"stateDataId":"52","brand":"svs","title":"SVS","balance":{"currency":"EUR","value":5000},"deductedAmount":"50,00\u00a0\u20ac"}],"remainingAmount":"8,00\u00a0\u20ac","totalDiscount":"100,00\u00a0\u20ac"}';
-
-        $this->giftcardPaymentHelperMock->expects($this->once())
-            ->method('getQuoteGiftcardDiscount')
-            ->with($this->quoteMock)
-            ->willReturn($totalGiftcardDiscount);
-        $this->giftcardPaymentHelperMock->expects($this->once())
-            ->method('fetchRedeemedGiftcards')
-            ->with($this->quoteId)
-            ->willReturn($redeemedGiftcardsMock);
-
-        $result = $this->merchantRiskIndicatorDataBuilder->build($this->buildSubject);
-
-        $this->assertArrayHasKey('body', $result);
-        $this->assertArrayHasKey('merchantRiskIndicator', $result['body']);
-        $this->assertArrayHasKey('giftCardCurr', $result['body']['merchantRiskIndicator']);
-        $this->assertArrayHasKey('giftCardCount', $result['body']['merchantRiskIndicator']);
-        $this->assertEquals($numberOfGiftcards, $result['body']['merchantRiskIndicator']['giftCardCount']);
-        $this->assertArrayHasKey('giftCardAmount', $result['body']['merchantRiskIndicator']);
-        $this->assertArrayHasKey('currency', $result['body']['merchantRiskIndicator']['giftCardAmount']);
-        $this->assertEquals($currency, $result['body']['merchantRiskIndicator']['giftCardAmount']['currency']);
-        $this->assertArrayHasKey('value', $result['body']['merchantRiskIndicator']['giftCardAmount']);
-        $this->assertEquals($totalGiftcardDiscount,
-            $result['body']['merchantRiskIndicator']['giftCardAmount']['value']);
-    }
-
-    /**
-     * @return void
-     * @throws NoSuchEntityException
-     */
-    public function testBuildPhysicalGoodsWithGiftcardInvalidData()
-    {
-        $quoteAmountCurrency = $this->createMock(AdyenAmountCurrency::class);
-        $quoteAmountCurrency->method('getCurrencyCode')->willReturn('EUR');
-        $this->chargedCurrencyMock->expects($this->once())->method('getQuoteAmountCurrency')
-            ->with($this->quoteMock)
-            ->willReturn($quoteAmountCurrency);
-
-        $this->giftcardPaymentHelperMock->method('fetchRedeemedGiftcards')
-            ->willThrowException(new \Exception());
-
-        $this->adyenLoggerMock->expects($this->once())->method('error');
-        $this->assertArrayNotHasKey(
-            'body',
-            $this->merchantRiskIndicatorDataBuilder->build($this->buildSubject)
-        );
     }
 }
