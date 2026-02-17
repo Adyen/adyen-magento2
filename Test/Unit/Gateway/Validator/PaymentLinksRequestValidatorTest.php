@@ -71,8 +71,11 @@ class PaymentLinksRequestValidatorTest extends AbstractAdyenTestCase
     /**
      * @dataProvider adyenPblExpiresAtDataProvider
      */
-    public function testValidate($adyenPblExpiresAt, $valid, $message = [])
+    public function testValidate($dateModification, $valid, $message = [])
     {
+        $date = new \DateTime();
+        $date->modify($dateModification);
+        $adyenPblExpiresAt = $date->format(AdyenPayByLinkConfigProvider::DATE_TIME_FORMAT);
         $this->payment->method('getAdyenPblExpiresAt')->willReturn($adyenPblExpiresAt);
         $validationSubject['payment'] = $this->payment;
 
@@ -85,36 +88,32 @@ class PaymentLinksRequestValidatorTest extends AbstractAdyenTestCase
 
     public static function adyenPblExpiresAtDataProvider()
     {
-        $today = date(AdyenPayByLinkConfigProvider::DATE_FORMAT);
         return [
             [
-                date(
-                    AdyenPayByLinkConfigProvider::DATE_FORMAT,
-                    strtotime($today . ' + ' . (AdyenPayByLinkConfigProvider::MAX_EXPIRY_DAYS - 1) . ' days')
-                ),
+                '+' . (AdyenPayByLinkConfigProvider::MAX_EXPIRY_DAYS - 1) . ' days',
                 true
             ],
             [
-                date(
-                    AdyenPayByLinkConfigProvider::DATE_FORMAT,
-                    strtotime($today . ' + ' . (AdyenPayByLinkConfigProvider::MIN_EXPIRY_DAYS + 1) . ' days')
-                ),
+                '+' . (AdyenPayByLinkConfigProvider::MIN_EXPIRY_DAYS + 1) . ' days',
                 true
             ],
             [
-                date(
-                    AdyenPayByLinkConfigProvider::DATE_FORMAT,
-                    strtotime($today . ' + ' . (AdyenPayByLinkConfigProvider::MAX_EXPIRY_DAYS) . ' days')
-                ),
+                '+'.AdyenPayByLinkConfigProvider::MAX_EXPIRY_DAYS . ' days',
                 false,
                 ['Invalid expiry date selected for Adyen Pay By Link']
             ],
             [
-                date(
-                    AdyenPayByLinkConfigProvider::DATE_FORMAT,
-                    strtotime($today . ' + ' . (AdyenPayByLinkConfigProvider::MIN_EXPIRY_DAYS) . ' days')
-                ),
+                '+'.AdyenPayByLinkConfigProvider::MAX_EXPIRY_DAYS . ' days -1 minute',
                 true
+            ],
+            [
+                ' + ' . AdyenPayByLinkConfigProvider::MIN_EXPIRY_DAYS . ' days',
+                true
+            ],
+            [
+                ' + ' . AdyenPayByLinkConfigProvider::MIN_EXPIRY_DAYS . ' days -1 minute',
+                false,
+                ['Invalid expiry date selected for Adyen Pay By Link']
             ],
         ];
     }
