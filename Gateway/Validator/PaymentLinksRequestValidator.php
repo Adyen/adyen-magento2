@@ -30,11 +30,12 @@ class PaymentLinksRequestValidator extends AbstractValidator
 
         if ($expiresAt) {
             $expiryDate = date_create_from_format(AdyenPayByLinkConfigProvider::DATE_TIME_FORMAT, $expiresAt);
-            $expiryDateInMs = $expiryDate->getTimestamp();
-            $minExpiryDateInMs = strtotime('+' . AdyenPayByLinkConfigProvider::MIN_EXPIRY_DAYS . 'day');
-            $maxExpiryDateInMs = strtotime('+' . AdyenPayByLinkConfigProvider::MAX_EXPIRY_DAYS. 'day');
+            $expiryInSeconds = $expiryDate->getTimestamp();
+            $minExpiryInSeconds = strtotime('+' . AdyenPayByLinkConfigProvider::MIN_EXPIRY_DAYS . 'day')
+                - AdyenPayByLinkConfigProvider::EXPIRY_BUFFER_IN_SECONDS;
+            $maxExpiryInSeconds = strtotime('+' . AdyenPayByLinkConfigProvider::MAX_EXPIRY_DAYS. 'day');
 
-            if ($expiryDateInMs < $minExpiryDateInMs || $expiryDateInMs >= $maxExpiryDateInMs) {
+            if ($expiryInSeconds < $minExpiryInSeconds || $expiryInSeconds >= $maxExpiryInSeconds) {
                 $isValid = false;
                 $errorMessages[] = 'Invalid expiry date selected for Adyen Pay By Link';
             }

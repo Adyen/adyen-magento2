@@ -98,12 +98,12 @@ class PaymentLinksRequestValidatorTest extends AbstractAdyenTestCase
                 true
             ],
             [
-                '+'.AdyenPayByLinkConfigProvider::MAX_EXPIRY_DAYS . ' days',
+                '+' . AdyenPayByLinkConfigProvider::MAX_EXPIRY_DAYS . ' days',
                 false,
                 ['Invalid expiry date selected for Adyen Pay By Link']
             ],
             [
-                '+'.AdyenPayByLinkConfigProvider::MAX_EXPIRY_DAYS . ' days -1 minute',
+                '+' . AdyenPayByLinkConfigProvider::MAX_EXPIRY_DAYS . ' days -1 minute',
                 true
             ],
             [
@@ -111,10 +111,14 @@ class PaymentLinksRequestValidatorTest extends AbstractAdyenTestCase
                 true
             ],
             [
-                ' + ' . AdyenPayByLinkConfigProvider::MIN_EXPIRY_DAYS . ' days -1 minute',
+                ' + ' . AdyenPayByLinkConfigProvider::MIN_EXPIRY_DAYS . ' days -5 minute',
                 false,
                 ['Invalid expiry date selected for Adyen Pay By Link']
             ],
+            [
+                ' + ' . AdyenPayByLinkConfigProvider::MIN_EXPIRY_DAYS . ' days -' . AdyenPayByLinkConfigProvider::EXPIRY_BUFFER_IN_SECONDS . ' seconds',
+                true
+            ]
         ];
     }
 }

@@ -26,6 +26,7 @@ class AdyenPayByLinkConfigProvider implements ConfigProviderInterface
     const EXPIRES_AT_KEY = 'payByLinkExpiresAt';
     const URL_KEY = 'payByLinkUrl';
     const ID_KEY = 'payByLinkId';
+    const EXPIRY_BUFFER_IN_SECONDS = 60;
 
     /**
      * Request object
