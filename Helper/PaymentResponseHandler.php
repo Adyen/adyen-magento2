@@ -74,10 +74,16 @@ class PaymentResponseHandler
 
     public function formatPaymentResponse(
         string $resultCode,
-        ?array $action = null
+        ?array $action = null,
+        ?bool $donationTokenExists = false
     ): array {
         switch ($resultCode) {
             case self::AUTHORISED:
+                return [
+                    "isFinal" => true,
+                    "resultCode" => $resultCode,
+                    "canDonate" => $donationTokenExists
+                ];
             case self::REFUSED:
             case self::ERROR:
             case self::POS_SUCCESS:
