@@ -171,4 +171,14 @@
             <argument name="adyenGraphQlExceptionMessageFormatter" xsi:type="object">AdyenGraphQlExceptionMessageFormatter</argument>
         </arguments>
     </type>
+    <type name="Adyen\Payment\Model\Resolver\DonationCampaigns">
+        <arguments>
+            <argument name="adyenGraphQlExceptionMessageFormatter" xsi:type="object">AdyenGraphQlExceptionMessageFormatter</argument>
+        </arguments>
+    </type>
+    <type name="Adyen\Payment\Model\Resolver\Donations">
+        <arguments>
+            <argument name="adyenGraphQlExceptionMessageFormatter" xsi:type="object">AdyenGraphQlExceptionMessageFormatter</argument>
+        </arguments>
+    </type>
 </config>
