@@ -81,6 +81,14 @@ fs:
 production:
 	bin/magento deploy:mode:set production
 
+# E2E test setup
+setup-e2e:
+	bin/magento config:set currency/options/allow USD,EUR,NOK
+	mysql -h "$$DB_SERVER" -P "$$DB_PORT" -u "$$DB_USER" -p"$$DB_PASSWORD" "$$DB_NAME" -e \
+		"INSERT INTO $${DB_PREFIX}directory_currency_rate (currency_from, currency_to, rate) VALUES ('EUR', 'NOK', 11) ON DUPLICATE KEY UPDATE rate = VALUES(rate);"
+	bin/magento cache:flush
+# End of E2E test setup
+
 # GraphQL tests
 GRAPHQL_XML_DIST=${MAGENTO_ROOT}/vendor/adyen/module-payment/Test/phpunit_graphql.xml.dist
 GRAPHQL_XML=${MAGENTO_ROOT}/dev/tests/api-functional/phpunit_graphql.xml
