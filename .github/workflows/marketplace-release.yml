@@ -12,7 +12,7 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2
+      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
