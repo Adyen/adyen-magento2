@@ -14,48 +14,36 @@ namespace Adyen\Payment\Helper\Webhook;
 
 use Adyen\Payment\Api\CleanupAdditionalInformationInterface;
 use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
-use Adyen\Payment\Helper\AdyenOrderPayment;
-use Adyen\Payment\Helper\CaseManagement;
+use Adyen\Payment\Model\AuthorizationHandler;
 use Adyen\Payment\Helper\Config;
-use Adyen\Payment\Helper\Invoice;
 use Adyen\Payment\Helper\Order as OrderHelper;
-use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Webhook\PaymentStates;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Model\Order;
 
 class AuthorisationWebhookHandler implements WebhookHandlerInterface
 {
     /**
-     * @param AdyenOrderPayment $adyenOrderPaymentHelper
      * @param OrderHelper $orderHelper
-     * @param CaseManagement $caseManagementHelper
-     * @param SerializerInterface $serializer
      * @param AdyenLogger $adyenLogger
      * @param Config $configHelper
-     * @param Invoice $invoiceHelper
-     * @param PaymentMethods $paymentMethodsHelper
      * @param CartRepositoryInterface $cartRepository
      * @param AdyenNotificationRepositoryInterface $notificationRepository
      * @param CleanupAdditionalInformationInterface $cleanupAdditionalInformation
+     * @param AuthorizationHandler $authorizationHandler
      */
     public function __construct(
-        private readonly AdyenOrderPayment $adyenOrderPaymentHelper,
         private readonly OrderHelper $orderHelper,
-        private readonly CaseManagement $caseManagementHelper,
-        private readonly SerializerInterface $serializer,
         private readonly AdyenLogger $adyenLogger,
         private readonly Config $configHelper,
-        private readonly Invoice $invoiceHelper,
-        private readonly PaymentMethods $paymentMethodsHelper,
         private readonly CartRepositoryInterface $cartRepository,
         private readonly AdyenNotificationRepositoryInterface $notificationRepository,
-        private readonly CleanupAdditionalInformationInterface $cleanupAdditionalInformation
+        private readonly CleanupAdditionalInformationInterface $cleanupAdditionalInformation,
+        private readonly AuthorizationHandler $authorizationHandler
     ) { }
 
     /**
@@ -84,76 +72,20 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
      */
     private function handleSuccessfulAuthorisation(Order $order, Notification $notification): Order
     {
-        $paymentMethod = (string) $notification->getPaymentMethod();
-        $isAutoCapture = $this->paymentMethodsHelper->isAutoCapture($order, $paymentMethod);
+        $paymentMethod =  $notification->getPaymentMethod();
+        $pspReference = $notification->getPspReference();
+        $merchantReference = $notification->getMerchantReference();
+        $amountValue = $notification->getAmountValue();
+        $amountCurrency = $notification->getAmountCurrency();
 
-        $this->markPaymentCapturedIfNeeded($order, $notification, $isAutoCapture);
-
-        $this->adyenOrderPaymentHelper->createAdyenOrderPayment($order, $notification, $isAutoCapture);
-
-        if (!$this->adyenOrderPaymentHelper->isFullAmountAuthorized($order)) {
-            $this->orderHelper->addWebhookStatusHistoryComment($order, $notification);
-            $this->createCashShipmentIfNeeded($order, $paymentMethod);
-            $this->deactivateQuoteIfNeeded($order);
-            return $order;
-        }
-
-        $order = $this->orderHelper->setPrePaymentAuthorized($order);
-        $this->orderHelper->updatePaymentDetails($order, $notification);
-
-        $additionalData = $this->getAdditionalDataArray($notification);
-        $requireFraudManualReview = $this->caseManagementHelper->requiresManualReview($additionalData);
-
-        $order = $isAutoCapture
-            ? $this->handleAutoCapture($order, $notification, $requireFraudManualReview)
-            : $this->handleManualCapture($order, $notification, $requireFraudManualReview);
-
-        $this->sendOrderMailIfNeeded($order, $paymentMethod);
+        $order = $this->authorizationHandler->execute($order, $paymentMethod, $merchantReference, $pspReference, $amountValue, $amountCurrency, $notification);
 
         $payment = $order->getPayment();
-        $payment->setAmountAuthorized($order->getGrandTotal());
-        $payment->setBaseAmountAuthorized($order->getBaseGrandTotal());
-
-        $this->cleanupAdditionalInformation->execute($payment);
-
-        $this->createCashShipmentIfNeeded($order, $paymentMethod);
         $this->deactivateQuoteIfNeeded($order);
+        $this->cleanupAdditionalInformation->execute($payment);
+        $this->orderHelper->addWebhookStatusHistoryComment($order, $notification);
 
         return $order;
-    }
-
-    private function markPaymentCapturedIfNeeded(Order $order, Notification $notification, bool $isAutoCapture): void
-    {
-        // Set adyen_notification_payment_captured to true so that we ignore a possible OFFER_CLOSED
-        if ($notification->isSuccessful() && $isAutoCapture) {
-            $order->setData('adyen_notification_payment_captured', 1);
-        }
-    }
-
-    private function getAdditionalDataArray(Notification $notification): array
-    {
-        $raw = $notification->getAdditionalData();
-        return !empty($raw) ? (array) $this->serializer->unserialize($raw) : [];
-    }
-
-    private function sendOrderMailIfNeeded(Order $order, string $paymentMethod): void
-    {
-        // For Boleto confirmation mail is sent on order creation
-        // Send order confirmation mail after invoice creation so merchant can add invoicePDF to this mail
-        if ($paymentMethod !== 'adyen_boleto' && !$order->getEmailSent()) {
-            $this->orderHelper->sendOrderMail($order);
-        }
-    }
-
-    private function createCashShipmentIfNeeded(Order $order, string $paymentMethod): void
-    {
-        if ($paymentMethod !== 'c_cash') {
-            return;
-        }
-
-        if ($this->configHelper->getConfigData('create_shipment', 'adyen_cash', $order->getStoreId())) {
-            $this->orderHelper->createShipment($order);
-        }
     }
 
     private function deactivateQuoteIfNeeded(Order $order): void
@@ -239,50 +171,6 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         $this->cleanupAdditionalInformation->execute($order->getPayment());
 
         return $this->orderHelper->holdCancelOrder($order, true);
-    }
-
-    /**
-     * @param Order $order
-     * @param Notification $notification
-     * @param bool $requireFraudManualReview
-     * @return Order
-     * @throws LocalizedException
-     */
-    private function handleAutoCapture(Order $order, Notification $notification, bool $requireFraudManualReview): Order
-    {
-        $this->invoiceHelper->createInvoice($order, $notification, true);
-        if ($requireFraudManualReview) {
-            $order = $this->caseManagementHelper->markCaseAsPendingReview($order, $notification->getPspreference(), true);
-        } else {
-            $order = $this->orderHelper->finalizeOrder($order, $notification);
-        }
-
-        return $order;
-    }
-
-    /**
-     * @param Order $order
-     * @param Notification $notification
-     * @param bool $requireFraudManualReview
-     * @return Order
-     */
-    private function handleManualCapture(Order $order, Notification $notification, bool $requireFraudManualReview): Order
-    {
-        if ($requireFraudManualReview) {
-            $order = $this->caseManagementHelper->markCaseAsPendingReview($order, $notification->getPspreference(), false);
-        } else {
-            $order = $this->orderHelper->addWebhookStatusHistoryComment($order, $notification);
-            $order->addStatusHistoryComment(__('Capture Mode set to Manual'), $order->getStatus());
-            $this->adyenLogger->addAdyenNotification(
-                'Capture mode is set to Manual',
-                [
-                    'pspReference' =>$notification->getPspreference(),
-                    'merchantReference' => $notification->getMerchantReference()
-                ]
-            );
-        }
-
-        return $order;
     }
 
     /**
