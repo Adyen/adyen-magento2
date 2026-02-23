@@ -14,82 +14,45 @@ declare(strict_types=1);
 namespace Adyen\Payment\Model\Resolver;
 
 use Adyen\Payment\Exception\GraphQlAdyenException;
-use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Api\AdyenDonations;
-use Adyen\Payment\Model\GraphqlInputArgumentValidator;
-use Adyen\Payment\Model\Sales\OrderRepository;
-use Exception;
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\GraphQl\Config\Element\Field;
-use Magento\Framework\GraphQl\Exception\GraphQlInputException;
-use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use Magento\Framework\Serialize\Serializer\Json;
-use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
-use Magento\GraphQl\Helper\Error\AggregateExceptionMessageFormatter;
+use Magento\Sales\Api\Data\OrderInterface;
 
-class Donations implements ResolverInterface
+class Donations extends AbstractDonationResolver
 {
-    private const REQUIRED_FIELDS = [
-        'cartId',
-        'amount',
-        'amount.currency',
-        'returnUrl'
-    ];
-
     /**
-     * @param AdyenDonations $adyenDonations
-     * @param MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
-     * @param OrderRepository $orderRepository
-     * @param Json $jsonSerializer
-     * @param GraphqlInputArgumentValidator $graphqlInputArgumentValidator
-     * @param AdyenLogger $adyenLogger
-     * @param AggregateExceptionMessageFormatter $adyenGraphQlExceptionMessageFormatter
+     * @return array
      */
-    public function __construct(
-        private readonly AdyenDonations $adyenDonations,
-        private readonly MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
-        private readonly OrderRepository $orderRepository,
-        private readonly Json $jsonSerializer,
-        private readonly GraphqlInputArgumentValidator $graphqlInputArgumentValidator,
-        private readonly AdyenLogger $adyenLogger,
-        private readonly AggregateExceptionMessageFormatter $adyenGraphQlExceptionMessageFormatter
-    ) { }
+    protected function getRequiredFields(): array
+    {
+        return [
+            'cartId',
+            'amount',
+            'amount.currency',
+            'returnUrl'
+        ];
+    }
 
     /**
+     * @param OrderInterface $order
+     * @param array $args
      * @param Field $field
      * @param $context
      * @param ResolveInfo $info
-     * @param array|null $value
-     * @param array|null $args
      * @return array
-     * @throws GraphQlAdyenException
-     * @throws GraphQlInputException
+     * @throws GraphQlAdyenException|LocalizedException
      */
-    public function resolve(
+    protected function performOperation(
+        OrderInterface $order,
+        array $args,
         Field $field,
         $context,
-        ResolveInfo $info,
-        ?array $value = null,
-        ?array $args = null
+        ResolveInfo $info
     ): array {
-        $this->graphqlInputArgumentValidator->execute($args, self::REQUIRED_FIELDS);
-
-        try {
-            $quoteId = $this->maskedQuoteIdToQuoteId->execute($args['cartId']);
-        } catch (NoSuchEntityException $e) {
-            $this->adyenLogger->error(sprintf("Quote with masked ID %s not found!", $args['cartId']));
-            throw new GraphQlAdyenException(__('An error occurred while processing the donation.'));
-        }
-
-        $order = $this->orderRepository->getOrderByQuoteId($quoteId);
-
-        if (!$order) {
-            $this->adyenLogger->error(sprintf("Order for quote ID %s not found!", $quoteId));
-            throw new GraphQlAdyenException(__('An error occurred while processing the donation.'));
-        }
-
         $payloadData = [
             'amount' => [
                 'currency' => $args['amount']['currency'],
@@ -98,26 +61,11 @@ class Donations implements ResolverInterface
             'returnUrl' => $args['returnUrl']
         ];
 
-        $payload = $this->jsonSerializer->serialize($payloadData);
+        $jsonSerializer = ObjectManager::getInstance()->get(Json::class);
+        $payload = $jsonSerializer->serialize($payloadData);
 
-        try {
-            $this->adyenDonations->makeDonation($payload, $order);
-        } catch (LocalizedException $e) {
-            throw $this->adyenGraphQlExceptionMessageFormatter->getFormatted(
-                $e,
-                __('Donation failed!'),
-                'Unable to donate',
-                $field,
-                $context,
-                $info
-            );
-        } catch (Exception $e) {
-            $this->adyenLogger->error(sprintf(
-                'GraphQl donation call failed with error message: %s',
-                $e->getMessage()
-            ));
-            throw new GraphQlAdyenException(__('An error occurred while processing the donation.'));
-        }
+        $adyenDonations = ObjectManager::getInstance()->get(AdyenDonations::class);
+        $adyenDonations->makeDonation($payload, $order);
 
         return ['status' => true];
     }

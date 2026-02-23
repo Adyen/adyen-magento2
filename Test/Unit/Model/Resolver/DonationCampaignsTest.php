@@ -21,12 +21,14 @@ use Adyen\Payment\Model\Resolver\DonationCampaigns;
 use Adyen\Payment\Model\Sales\OrderRepository;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Exception;
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\GraphQl\Query\Resolver\ContextInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
+use Magento\Framework\ObjectManagerInterface;
 use Magento\GraphQl\Helper\Error\AggregateExceptionMessageFormatter;
 use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use Magento\Sales\Model\Order;
@@ -57,8 +59,13 @@ class DonationCampaignsTest extends AbstractAdyenTestCase
         $this->contextMock = $this->createMock(ContextInterface::class);
         $this->infoMock = $this->createMock(ResolveInfo::class);
 
+        $objectManagerMock = $this->createMock(ObjectManagerInterface::class);
+        $objectManagerMock->method('get')->willReturnMap([
+            [AdyenDonationCampaigns::class, $this->adyenDonationCampaignsMock]
+        ]);
+        ObjectManager::setInstance($objectManagerMock);
+
         $this->donationCampaignsResolver = new DonationCampaigns(
-            $this->adyenDonationCampaignsMock,
             $this->maskedQuoteIdToQuoteIdMock,
             $this->orderRepositoryMock,
             $this->graphqlInputArgumentValidatorMock,
@@ -189,7 +196,7 @@ class DonationCampaignsTest extends AbstractAdyenTestCase
             ->with($orderId)
             ->willThrowException($localizedException);
 
-        $formattedException = new GraphQlInputException(__('Unable to retrieve donation campaigns.'));
+        $formattedException = new GraphQlInputException(__('An error occurred while processing the donation.'));
 
         $this->adyenGraphQlExceptionMessageFormatterMock
             ->expects($this->once())
@@ -197,7 +204,7 @@ class DonationCampaignsTest extends AbstractAdyenTestCase
             ->with(
                 $this->equalTo($localizedException),
                 $this->anything(),
-                $this->equalTo('Unable to donate'),
+                $this->equalTo('An error occurred while processing the donation.'),
                 $this->equalTo($this->fieldMock),
                 $this->equalTo($this->contextMock),
                 $this->equalTo($this->infoMock)
@@ -205,7 +212,7 @@ class DonationCampaignsTest extends AbstractAdyenTestCase
             ->willReturn($formattedException);
 
         $this->expectException(GraphQlInputException::class);
-        $this->expectExceptionMessage('Unable to retrieve donation campaigns.');
+        $this->expectExceptionMessage('An error occurred while processing the donation.');
 
         $this->donationCampaignsResolver->resolve(
             $this->fieldMock,
