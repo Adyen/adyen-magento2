@@ -70,7 +70,7 @@ class PointOfSale
         $saleToAcquirerData[ApplicationInfo::APPLICATION_INFO][ApplicationInfo::EXTERNAL_PLATFORM]
         [ApplicationInfo::VERSION] = $this->productMetadata->getVersion();
         $saleToAcquirerData[ApplicationInfo::APPLICATION_INFO][ApplicationInfo::EXTERNAL_PLATFORM]
-        [ApplicationInfo::NAME] = $this->productMetadata->getName();
+        [ApplicationInfo::NAME] = $this->productMetadata->getName() . ' ' . $this->productMetadata->getEdition();
         $saleToAcquirerDataBase64 = base64_encode(json_encode($saleToAcquirerData));
         $request['SaleToPOIRequest']['PaymentRequest']['SaleData']['SaleToAcquirerData'] = $saleToAcquirerDataBase64;
 
