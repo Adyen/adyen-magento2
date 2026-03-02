@@ -9,9 +9,9 @@ use Adyen\Payment\Helper\Order as OrderHelper;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Model\Order;
 
-readonly class AuthorizationHandler
+class AuthorizationHandler
 {
     /**
      * @param AdyenOrderPayment $adyenOrderPaymentHelper
@@ -22,32 +22,32 @@ readonly class AuthorizationHandler
      * @param AdyenLogger $adyenLogger
      */
     public function __construct(
-        private AdyenOrderPayment $adyenOrderPaymentHelper,
-        private CaseManagement $caseManagementHelper,
-        private Invoice $invoiceHelper,
-        private PaymentMethods $paymentMethodsHelper,
-        private OrderHelper $orderHelper,
-        private AdyenLogger $adyenLogger
+        private readonly AdyenOrderPayment $adyenOrderPaymentHelper,
+        private readonly CaseManagement $caseManagementHelper,
+        private readonly Invoice $invoiceHelper,
+        private readonly PaymentMethods $paymentMethodsHelper,
+        private readonly OrderHelper $orderHelper,
+        private readonly AdyenLogger $adyenLogger
     ) { }
 
     /**
-     * @param OrderInterface $order
+     * @param Order $order
      * @param string $paymentMethod
      * @param string $pspReference
      * @param int $amountValue
      * @param string $amountCurrency
      * @param array $additionalData
-     * @return OrderInterface
+     * @return Order
      * @throws LocalizedException
      */
     public function execute(
-        OrderInterface $order,
+        Order $order,
         string $paymentMethod,
         string $pspReference,
         int $amountValue,
         string $amountCurrency,
         array $additionalData
-    ): OrderInterface {
+    ): Order {
         $isAutoCapture = $this->paymentMethodsHelper->isAutoCapture($order, $paymentMethod);
 
         $this->adyenOrderPaymentHelper->createAdyenOrderPayment(
@@ -89,19 +89,19 @@ readonly class AuthorizationHandler
     }
 
     /**
-     * @param OrderInterface $order
+     * @param Order $order
      * @param string $pspReference
      * @param int $amountValue
      * @param bool $requireFraudManualReview
-     * @return OrderInterface
+     * @return Order
      * @throws LocalizedException
      */
     private function handleAutoCapture(
-        OrderInterface $order,
+        Order $order,
         string $pspReference,
         int $amountValue,
         bool $requireFraudManualReview
-    ): OrderInterface {
+    ): Order {
         $this->invoiceHelper->createInvoice($order, true, $pspReference, $amountValue);
         if ($requireFraudManualReview) {
             $order = $this->caseManagementHelper->markCaseAsPendingReview($order, $pspReference, true);
@@ -113,16 +113,16 @@ readonly class AuthorizationHandler
     }
 
     /**
-     * @param OrderInterface $order
+     * @param Order $order
      * @param string $pspReference
      * @param bool $requireFraudManualReview
-     * @return OrderInterface
+     * @return Order
      */
     private function handleManualCapture(
-        OrderInterface  $order,
+        Order  $order,
         string $pspReference,
         bool   $requireFraudManualReview
-    ): OrderInterface {
+    ): Order {
         if ($requireFraudManualReview) {
             $order = $this->caseManagementHelper->markCaseAsPendingReview($order, $pspReference);
         } else {
@@ -140,12 +140,12 @@ readonly class AuthorizationHandler
     }
 
     /**
-     * @param OrderInterface $order
+     * @param Order $order
      * @param string $paymentMethod
      *
      * @return void
      */
-    private function sendOrderMailIfNeeded(OrderInterface $order, string $paymentMethod): void
+    private function sendOrderMailIfNeeded(Order $order, string $paymentMethod): void
     {
         // For Boleto confirmation mail is sent on order creation
         // Send order confirmation mail after invoice creation so merchant can add invoicePDF to this mail
