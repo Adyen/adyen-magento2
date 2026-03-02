@@ -58,7 +58,7 @@ class ExpiryDateDataBuilderTest extends AbstractAdyenTestCase
         ];
 
         $formFields = [
-            AdyenPayByLinkDataAssignObserver::PBL_EXPIRY_DATE => '01-01-1970'
+            AdyenPayByLinkDataAssignObserver::PBL_EXPIRY_DATE => '01-01-1970 00:00:00'
         ];
 
         $this->requestMock->expects($this->once())
@@ -70,7 +70,7 @@ class ExpiryDateDataBuilderTest extends AbstractAdyenTestCase
 
         $this->assertArrayHasKey('body', $request);
         $this->assertArrayHasKey('expiresAt', $request['body']);
-        $this->assertStringStartsWith('1970-01-01T23:59:59', $request['body']['expiresAt']);
+        $this->assertStringStartsWith('1970-01-01T00:00:00', $request['body']['expiresAt']);
     }
 
     /**
@@ -81,7 +81,7 @@ class ExpiryDateDataBuilderTest extends AbstractAdyenTestCase
         $paymentMock = $this->createMock(Payment::class);
         $paymentMock->method('getAdditionalInformation')
             ->with(AdyenPayByLinkDataAssignObserver::PBL_EXPIRY_DATE)
-            ->willReturn('01-01-1970');
+            ->willReturn('01-01-1970 00:00:00');
 
         $paymentDataObjectMock = $this->createConfiguredMock(PaymentDataObject::class, [
             'getPayment' => $paymentMock
@@ -102,6 +102,6 @@ class ExpiryDateDataBuilderTest extends AbstractAdyenTestCase
 
         $this->assertArrayHasKey('body', $request);
         $this->assertArrayHasKey('expiresAt', $request['body']);
-        $this->assertStringStartsWith('1970-01-01T23:59:59', $request['body']['expiresAt']);
+        $this->assertStringStartsWith('1970-01-01T00:00:00', $request['body']['expiresAt']);
     }
 }

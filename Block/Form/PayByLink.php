@@ -80,7 +80,7 @@ class PayByLink extends Form
      */
     private function getNowPlusDays($days, $timestamp = true)
     {
-        $date = new DateTime('now', new DateTimeZone('UTC'));
+        $date = new DateTime('now');
         try {
             $date->add(new DateInterval('P' . $days . 'D'));
         } catch (Exception $e) {
@@ -89,6 +89,6 @@ class PayByLink extends Form
             date is within the accepted range
             */
         }
-        return $timestamp ? $date->getTimestamp() * 1000 : $date->format(AdyenPayByLinkConfigProvider::DATE_FORMAT);
+        return $timestamp ? $date->getTimestamp() * 1000 : $date->format(AdyenPayByLinkConfigProvider::DATE_TIME_FORMAT);
     }
 }
