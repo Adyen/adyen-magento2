@@ -18,6 +18,7 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Helper\Quote;
 use Adyen\Payment\Helper\Order as OrderHelper;
+use Adyen\Payment\Model\AuthorizationHandler;
 use Adyen\Payment\Model\Method\Adapter;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Exception;
@@ -50,6 +51,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
     private Adapter|MockObject $paymentMethodInstanceMock;
     private PaymentMethods|MockObject $paymentMethodsHelperMock;
     private OrdersApi|MockObject $ordersApiHelperMock;
+    private AuthorizationHandler|MockObject $authorizationHandlerMock;
 
     protected function setUp(): void
     {
@@ -63,6 +65,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         $this->paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
         $orderStatusHistoryMock = $this->createMock(OrderStatusHistory::class);
         $this->ordersApiHelperMock = $this->createMock(OrdersApi::class);
+        $this->authorizationHandlerMock = $this->createMock(AuthorizationHandler::class);
 
         // Other functional mocks
         $this->paymentMock  = $this->createMock(Payment::class);
@@ -92,7 +95,8 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
             $this->stateDataHelperMock,
             $this->paymentMethodsHelperMock,
             $orderStatusHistoryMock,
-            $this->ordersApiHelperMock
+            $this->ordersApiHelperMock,
+            $this->authorizationHandlerMock
         );
     }
 
@@ -272,7 +276,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
     public function testHandlePaymentsDetailsResponseAuthorised()
     {
         $ccType = 'visa';
-        
+
         $paymentsDetailsResponse = [
             'resultCode' => PaymentResponseHandler::AUTHORISED,
             'pspReference' => 'ABC123456789',
@@ -287,7 +291,11 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
                 'someData' => 'someValue'
             ],
             'donationToken' => 'XYZ123456789',
-            'merchantReference' => self::MERCHANT_REFERENCE
+            'merchantReference' => self::MERCHANT_REFERENCE,
+            'amount' => [
+                'value' => 1000,
+                'currency' => 'EUR'
+            ]
         ];
 
         // Mock that cc_type is initially null
@@ -713,10 +721,15 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         // Payment details response with a payment method brand
         $paymentsDetailsResponse = [
             'resultCode' => PaymentResponseHandler::AUTHORISED,
+            'pspReference' => 'ABC123456789',
             'paymentMethod' => [
                 'brand' => 'VI'
             ],
-            'merchantReference' => self::MERCHANT_REFERENCE
+            'merchantReference' => self::MERCHANT_REFERENCE,
+            'amount' => [
+                'value' => 1000,
+                'currency' => 'EUR'
+            ]
         ];
 
         // Expect the `setCcType` method to be called on the payment object with the correct value
