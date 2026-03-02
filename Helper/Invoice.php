@@ -77,18 +77,23 @@ class Invoice extends AbstractHelper
 
     /**
      * @param Order $order
-     * @param Notification $notification
      * @param bool $isAutoCapture
+     * @param string $pspReference
+     * @param int $amountValue
      * @return InvoiceModel|null
      * @throws LocalizedException
      */
-    public function createInvoice(Order $order, Notification $notification, bool $isAutoCapture): ?InvoiceModel
-    {
+    public function createInvoice(
+        Order $order,
+        bool $isAutoCapture,
+        string $pspReference,
+        int $amountValue
+    ): ?InvoiceModel {
         $this->adyenLogger->addAdyenNotification(
             'Creating invoice for order',
             [
-                'pspReference' => $notification->getPspreference(),
-                'merchantReference' => $notification->getMerchantReference()
+                'pspReference' => $pspReference,
+                'merchantReference' => $order->getIncrementId()
             ]
         );
 
@@ -102,12 +107,12 @@ class Invoice extends AbstractHelper
                 $invoice->getOrder()->setIsInProcess(true);
 
                 // set transaction id so you can do a online refund from credit memo
-                $invoice->setTransactionId($notification->getPspreference());
+                $invoice->setTransactionId($pspReference);
 
 
                 if ((!$isAutoCapture)) {
                     // if amount is zero create a offline invoice
-                    $value = (int)$notification->getAmountValue();
+                    $value = $amountValue;
                     if ($value == 0) {
                         $invoice->setRequestedCaptureCase(InvoiceModel::CAPTURE_OFFLINE);
                     } else {
@@ -121,10 +126,9 @@ class Invoice extends AbstractHelper
 
                 $this->invoiceRepository->save($invoice);
                 $this->adyenLogger->addAdyenNotification(sprintf(
-                    'Notification %s created an invoice for order with pspReference %s and merchantReference %s',
-                    $notification->getEntityId(),
-                    $notification->getPspreference(),
-                    $notification->getMerchantReference()
+                    'An invoice was generated for order with pspReference %s and merchantReference %s',
+                    $pspReference,
+                    $order->getIncrementId()
                 ),
                     $this->adyenLogger->getInvoiceContext($invoice)
                 );
@@ -132,8 +136,8 @@ class Invoice extends AbstractHelper
                 $this->adyenLogger->addAdyenNotification(
                     'Error saving invoice: ' . $e->getMessage(),
                     [
-                        'pspReference' => $notification->getPspreference(),
-                        'merchantReference' => $notification->getMerchantReference()
+                        'pspReference' => $pspReference,
+                        'merchantReference' => $order->getIncrementId()
                     ]
 
                 );
@@ -153,9 +157,9 @@ class Invoice extends AbstractHelper
             return $invoice;
         } else {
             $this->adyenLogger->addAdyenNotification(
-                sprintf('Unable to create invoice when handling Notification %s', $notification->getEntityId()),
+                __('Unable to create invoice when handling notification'),
                 array_merge($this->adyenLogger->getOrderContext($order), [
-                    'pspReference' => $notification->getPspReference(),
+                    'pspReference' => $pspReference,
                     'canUnhold' => $order->canUnhold(),
                     'isPaymentReview' => $order->isPaymentReview(),
                     'isCancelled' => $order->isCanceled(),

@@ -192,30 +192,38 @@ class AdyenOrderPayment extends AbstractHelper
     }
 
     /**
-     * Create an entry in the adyen_order_payment table based on the passed notification
+     * Create an entry in the adyen_order_payment table based on the provided details
      *
      * @param Order $order
-     * @param Notification $notification
      * @param bool $autoCapture
+     * @param string $pspReference
+     * @param string $paymentMethod
+     * @param int $amountValue
+     * @param string $amountCurrency
      * @return Payment|null
      */
-    public function createAdyenOrderPayment(Order $order, Notification $notification, bool $autoCapture): ?Payment
-    {
+    public function createAdyenOrderPayment(
+        Order $order,
+        bool $autoCapture,
+        string $pspReference,
+        string $paymentMethod,
+        int $amountValue,
+        string $amountCurrency
+    ): ?Payment {
         $adyenOrderPayment = null;
         $payment = $order->getPayment();
-        $amount = $this->adyenDataHelper->originalAmount($notification->getAmountValue(),
-            $notification->getAmountCurrency());
-        $captureStatus = $autoCapture ? Payment::CAPTURE_STATUS_AUTO_CAPTURE : Payment::CAPTURE_STATUS_NO_CAPTURE;
-        $merchantReference = $notification->getMerchantReference();
-        $pspReference = $notification->getPspreference();
+        $amount = $this->adyenDataHelper->originalAmount($amountValue, $amountCurrency);
+        $captureStatus = $autoCapture ?
+            OrderPaymentInterface::CAPTURE_STATUS_AUTO_CAPTURE :
+            OrderPaymentInterface::CAPTURE_STATUS_NO_CAPTURE;
 
         try {
             $date = new \DateTime();
             $adyenOrderPayment = $this->adyenOrderPaymentFactory->create();
             $adyenOrderPayment->setPspreference($pspReference);
-            $adyenOrderPayment->setMerchantReference($merchantReference);
+            $adyenOrderPayment->setMerchantReference($order->getIncrementId());
             $adyenOrderPayment->setPaymentId($payment->getId());
-            $adyenOrderPayment->setPaymentMethod($notification->getPaymentMethod());
+            $adyenOrderPayment->setPaymentMethod($paymentMethod);
             $adyenOrderPayment->setCaptureStatus($captureStatus);
             $adyenOrderPayment->setAmount($amount);
             $adyenOrderPayment->setTotalRefunded(0);
@@ -228,7 +236,7 @@ class AdyenOrderPayment extends AbstractHelper
                 'adyen_order_payment table but something went wrong later. Please check your logs for potential ' .
                 'error messages regarding the merchant reference (order id): %s and PSP reference: %s. ' .
                 'Exception message: %s',
-                $merchantReference,
+                $order->getIncrementId(),
                 $pspReference,
                 $e->getMessage()
             ));

@@ -86,11 +86,11 @@ class Order extends AbstractHelper
 
     /**
      * @param MagentoOrder $order
-     * @param Notification $notification
+     * @param string $pspReference
      * @return TransactionInterface|null
      * @throws Exception
      */
-    public function updatePaymentDetails(MagentoOrder $order, Notification $notification): ?TransactionInterface
+    public function updatePaymentDetails(MagentoOrder $order, string $pspReference): ?TransactionInterface
     {
         //Set order state to new because with order state payment_review it is not possible to create an invoice
         if (strcmp($order->getState(), MagentoOrder::STATE_PAYMENT_REVIEW) == 0) {
@@ -100,15 +100,15 @@ class Order extends AbstractHelper
         $paymentObj = $order->getPayment();
 
         // set pspReference as transactionId
-        $paymentObj->setCcTransId($notification->getPspreference());
-        $paymentObj->setLastTransId($notification->getPspreference());
+        $paymentObj->setCcTransId($pspReference);
+        $paymentObj->setLastTransId($pspReference);
 
         // set transaction
-        $paymentObj->setTransactionId($notification->getPspreference());
+        $paymentObj->setTransactionId($pspReference);
         // Prepare transaction
         $transaction = $this->transactionBuilder->setPayment($paymentObj)
             ->setOrder($order)
-            ->setTransactionId($notification->getPspreference())
+            ->setTransactionId($pspReference)
             ->build(TransactionInterface::TYPE_AUTH);
 
         $transaction->setIsClosed(false);
@@ -198,12 +198,15 @@ class Order extends AbstractHelper
      * Full order will only NOT be finalized if the full amount has not been captured/authorized.
      *
      * @param MagentoOrder $order
-     * @param Notification $notification
+     * @param string $pspReference
+     * @param int $amount
      * @return MagentoOrder
      */
-    public function finalizeOrder(MagentoOrder $order, Notification $notification): MagentoOrder
-    {
-        $amount = $notification->getAmountValue();
+    public function finalizeOrder(
+        MagentoOrder $order,
+        string $pspReference,
+        int $amount
+    ): MagentoOrder {
         $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order, false);
         $formattedOrderAmount = $this->dataHelper->formatAmount($orderAmountCurrency->getAmount(), $orderAmountCurrency->getCurrencyCode());
         $fullAmountFinalized = $this->adyenOrderPaymentHelper->isFullAmountFinalized($order);
@@ -221,12 +224,6 @@ class Order extends AbstractHelper
             $status = $this->getVirtualStatus($order, $status);
         }
 
-        // check for boleto if payment is totally paid
-        if ($order->getPayment()->getMethod() == "adyen_boleto") {
-            $status = $this->paymentMethodsHelper->getBoletoStatus($order, $notification, $status);
-        }
-
-        $order = $this->addProcessedStatusHistoryComment($order, $notification);
         if ($fullAmountFinalized) {
             $this->adyenLogger->addAdyenNotification(sprintf(
                 'Notification w/amount %s has completed the capturing of order %s w/amount %s',
@@ -235,8 +232,8 @@ class Order extends AbstractHelper
                 $formattedOrderAmount
             ),
             [
-                'pspReference' => $notification->getPspreference(),
-                'merchantReference' => $notification->getMerchantReference()
+                'pspReference' => $pspReference,
+                'merchantReference' => $order->getIncrementId()
             ]);
             $comment = "Adyen Payment Successfully completed";
             // If a status is set, add comment, set status and update the state based on the status
@@ -248,7 +245,7 @@ class Order extends AbstractHelper
                     'Order status was changed to authorised status: ' . $status,
                     array_merge(
                         $this->adyenLogger->getOrderContext($order),
-                        ['pspReference' => $notification->getPspreference()]
+                        ['pspReference' => $pspReference]
                     )
                 );
             } else {
@@ -258,8 +255,8 @@ class Order extends AbstractHelper
                     $order->getIncrementId()
                 ),
                 [
-                    'pspReference' => $notification->getPspreference(),
-                    'merchantReference' => $notification->getMerchantReference()
+                    'pspReference' => $pspReference,
+                    'merchantReference' => $order->getIncrementId()
                 ]);
             }
         } else {

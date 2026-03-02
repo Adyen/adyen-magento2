@@ -14,14 +14,12 @@ namespace Adyen\Payment\Helper\Webhook;
 
 use Adyen\Payment\Api\CleanupAdditionalInformationInterface;
 use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
-use Adyen\Payment\Helper\AdyenOrderPayment;
-use Adyen\Payment\Helper\CaseManagement;
+use Adyen\Payment\Model\AuthorizationHandler;
 use Adyen\Payment\Helper\Config;
-use Adyen\Payment\Helper\Invoice;
 use Adyen\Payment\Helper\Order as OrderHelper;
-use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
+use Adyen\Payment\Model\ResourceModel\Order\Payment as AdyenOrderPayment;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Webhook\PaymentStates;
 use Magento\Framework\Exception\LocalizedException;
@@ -29,33 +27,29 @@ use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Model\Order;
 
-class AuthorisationWebhookHandler implements WebhookHandlerInterface
+readonly class AuthorisationWebhookHandler implements WebhookHandlerInterface
 {
     /**
-     * @param AdyenOrderPayment $adyenOrderPaymentHelper
      * @param OrderHelper $orderHelper
-     * @param CaseManagement $caseManagementHelper
-     * @param SerializerInterface $serializer
      * @param AdyenLogger $adyenLogger
      * @param Config $configHelper
-     * @param Invoice $invoiceHelper
-     * @param PaymentMethods $paymentMethodsHelper
      * @param CartRepositoryInterface $cartRepository
      * @param AdyenNotificationRepositoryInterface $notificationRepository
      * @param CleanupAdditionalInformationInterface $cleanupAdditionalInformation
+     * @param AuthorizationHandler $authorizationHandler
+     * @param SerializerInterface $serializer
+     * @param AdyenOrderPayment $adyenOrderPaymentResourceModel
      */
     public function __construct(
-        private readonly AdyenOrderPayment $adyenOrderPaymentHelper,
-        private readonly OrderHelper $orderHelper,
-        private readonly CaseManagement $caseManagementHelper,
-        private readonly SerializerInterface $serializer,
-        private readonly AdyenLogger $adyenLogger,
-        private readonly Config $configHelper,
-        private readonly Invoice $invoiceHelper,
-        private readonly PaymentMethods $paymentMethodsHelper,
-        private readonly CartRepositoryInterface $cartRepository,
-        private readonly AdyenNotificationRepositoryInterface $notificationRepository,
-        private readonly CleanupAdditionalInformationInterface $cleanupAdditionalInformation
+        private OrderHelper $orderHelper,
+        private AdyenLogger $adyenLogger,
+        private Config $configHelper,
+        private CartRepositoryInterface $cartRepository,
+        private AdyenNotificationRepositoryInterface $notificationRepository,
+        private CleanupAdditionalInformationInterface $cleanupAdditionalInformation,
+        private AuthorizationHandler $authorizationHandler,
+        private SerializerInterface $serializer,
+        private AdyenOrderPayment $adyenOrderPaymentResourceModel
     ) { }
 
     /**
@@ -84,76 +78,32 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
      */
     private function handleSuccessfulAuthorisation(Order $order, Notification $notification): Order
     {
-        $paymentMethod = (string) $notification->getPaymentMethod();
-        $isAutoCapture = $this->paymentMethodsHelper->isAutoCapture($order, $paymentMethod);
+        $payment = $order->getPayment();
 
-        $this->markPaymentCapturedIfNeeded($order, $notification, $isAutoCapture);
-
-        $this->adyenOrderPaymentHelper->createAdyenOrderPayment($order, $notification, $isAutoCapture);
-
-        if (!$this->adyenOrderPaymentHelper->isFullAmountAuthorized($order)) {
-            $this->orderHelper->addWebhookStatusHistoryComment($order, $notification);
-            $this->createCashShipmentIfNeeded($order, $paymentMethod);
-            $this->deactivateQuoteIfNeeded($order);
-            return $order;
+        /*
+         * Ideally, order payment should be created after getting an `Authorized` resultCode to
+         * /payments or /payments/details API calls and order should be promoted to `authorized` or `processing` state.
+         *  However, the following block allows to create order payment and order to be promoted during
+         *  webhook handling as a fallback.
+         */
+        if (empty($this->adyenOrderPaymentResourceModel->getOrderPaymentDetails(
+            $notification->getPspreference(), $payment->getEntityId())
+        )) {
+            $order = $this->authorizationHandler->execute(
+                $order,
+                $notification->getPaymentMethod(),
+                $notification->getPspReference(),
+                $notification->getAmountValue(),
+                $notification->getAmountCurrency(),
+                $this->getAdditionalDataArray($notification)
+            );
         }
 
-        $order = $this->orderHelper->setPrePaymentAuthorized($order);
-        $this->orderHelper->updatePaymentDetails($order, $notification);
-
-        $additionalData = $this->getAdditionalDataArray($notification);
-        $requireFraudManualReview = $this->caseManagementHelper->requiresManualReview($additionalData);
-
-        $order = $isAutoCapture
-            ? $this->handleAutoCapture($order, $notification, $requireFraudManualReview)
-            : $this->handleManualCapture($order, $notification, $requireFraudManualReview);
-
-        $this->sendOrderMailIfNeeded($order, $paymentMethod);
-
-        $payment = $order->getPayment();
-        $payment->setAmountAuthorized($order->getGrandTotal());
-        $payment->setBaseAmountAuthorized($order->getBaseGrandTotal());
-
-        $this->cleanupAdditionalInformation->execute($payment);
-
-        $this->createCashShipmentIfNeeded($order, $paymentMethod);
         $this->deactivateQuoteIfNeeded($order);
+        $this->cleanupAdditionalInformation->execute($payment);
+        $this->orderHelper->addWebhookStatusHistoryComment($order, $notification);
 
         return $order;
-    }
-
-    private function markPaymentCapturedIfNeeded(Order $order, Notification $notification, bool $isAutoCapture): void
-    {
-        // Set adyen_notification_payment_captured to true so that we ignore a possible OFFER_CLOSED
-        if ($notification->isSuccessful() && $isAutoCapture) {
-            $order->setData('adyen_notification_payment_captured', 1);
-        }
-    }
-
-    private function getAdditionalDataArray(Notification $notification): array
-    {
-        $raw = $notification->getAdditionalData();
-        return !empty($raw) ? (array) $this->serializer->unserialize($raw) : [];
-    }
-
-    private function sendOrderMailIfNeeded(Order $order, string $paymentMethod): void
-    {
-        // For Boleto confirmation mail is sent on order creation
-        // Send order confirmation mail after invoice creation so merchant can add invoicePDF to this mail
-        if ($paymentMethod !== 'adyen_boleto' && !$order->getEmailSent()) {
-            $this->orderHelper->sendOrderMail($order);
-        }
-    }
-
-    private function createCashShipmentIfNeeded(Order $order, string $paymentMethod): void
-    {
-        if ($paymentMethod !== 'c_cash') {
-            return;
-        }
-
-        if ($this->configHelper->getConfigData('create_shipment', 'adyen_cash', $order->getStoreId())) {
-            $this->orderHelper->createShipment($order);
-        }
     }
 
     private function deactivateQuoteIfNeeded(Order $order): void
@@ -244,50 +194,6 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
     /**
      * @param Order $order
      * @param Notification $notification
-     * @param bool $requireFraudManualReview
-     * @return Order
-     * @throws LocalizedException
-     */
-    private function handleAutoCapture(Order $order, Notification $notification, bool $requireFraudManualReview): Order
-    {
-        $this->invoiceHelper->createInvoice($order, $notification, true);
-        if ($requireFraudManualReview) {
-            $order = $this->caseManagementHelper->markCaseAsPendingReview($order, $notification->getPspreference(), true);
-        } else {
-            $order = $this->orderHelper->finalizeOrder($order, $notification);
-        }
-
-        return $order;
-    }
-
-    /**
-     * @param Order $order
-     * @param Notification $notification
-     * @param bool $requireFraudManualReview
-     * @return Order
-     */
-    private function handleManualCapture(Order $order, Notification $notification, bool $requireFraudManualReview): Order
-    {
-        if ($requireFraudManualReview) {
-            $order = $this->caseManagementHelper->markCaseAsPendingReview($order, $notification->getPspreference(), false);
-        } else {
-            $order = $this->orderHelper->addWebhookStatusHistoryComment($order, $notification);
-            $order->addStatusHistoryComment(__('Capture Mode set to Manual'), $order->getStatus());
-            $this->adyenLogger->addAdyenNotification(
-                'Capture mode is set to Manual',
-                [
-                    'pspReference' =>$notification->getPspreference(),
-                    'merchantReference' => $notification->getMerchantReference()
-                ]
-            );
-        }
-
-        return $order;
-    }
-
-    /**
-     * @param Order $order
-     * @param Notification $notification
      * @return bool
      * @throws \Exception
      */
@@ -327,5 +233,11 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         );
 
         return false;
+    }
+
+    private function getAdditionalDataArray(Notification $notification): array
+    {
+        $raw = $notification->getAdditionalData();
+        return !empty($raw) ? (array) $this->serializer->unserialize($raw) : [];
     }
 }
