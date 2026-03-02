@@ -14,6 +14,7 @@ namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\CaseManagement;
+use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Invoice;
 use Adyen\Payment\Helper\Order as OrderHelper;
 use Adyen\Payment\Helper\PaymentMethods;
@@ -30,6 +31,7 @@ class AuthorizationHandler
      * @param PaymentMethods $paymentMethodsHelper
      * @param OrderHelper $orderHelper
      * @param AdyenLogger $adyenLogger
+     * @param Data $dataHelper
      */
     public function __construct(
         private readonly AdyenOrderPayment $adyenOrderPaymentHelper,
@@ -37,7 +39,8 @@ class AuthorizationHandler
         private readonly Invoice $invoiceHelper,
         private readonly PaymentMethods $paymentMethodsHelper,
         private readonly OrderHelper $orderHelper,
-        private readonly AdyenLogger $adyenLogger
+        private readonly AdyenLogger $adyenLogger,
+        private readonly Data $dataHelper
     ) { }
 
     /**
@@ -67,6 +70,11 @@ class AuthorizationHandler
             $paymentMethod,
             $amountValue,
             $amountCurrency
+        );
+
+        $order->setPaymentAuthorizationAmount(
+            $order->getPaymentAuthorizationAmount() + $this->dataHelper->originalAmount(
+                $amountValue, $amountCurrency)
         );
 
         if ($this->adyenOrderPaymentHelper->isFullAmountAuthorized($order)) {
