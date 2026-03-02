@@ -63,12 +63,11 @@ class InvoiceTest extends AbstractAdyenTestCase
 
         $invoiceHelper = $this->createInvoiceHelper($contextMock);
 
-        $notificationMock = $this->createWebhook();
-
         $invoice = $invoiceHelper->createInvoice(
             $orderMock,
-            $notificationMock,
-            true
+            true,
+            'ABCD1234GHJK5678',
+            1000
         );
 
         $this->assertInstanceOf(InvoiceModel::class, $invoice);
@@ -111,8 +110,6 @@ class InvoiceTest extends AbstractAdyenTestCase
 
         $invoiceHelper = $this->createInvoiceHelper($contextMock);
 
-        $notificationMock = $this->createWebhook(null, null, $notificationAmount);
-
         if ($notificationAmount == 0) {
             $invoiceMock->expects($this->once())
                 ->method('setRequestedCaptureCase')
@@ -125,8 +122,9 @@ class InvoiceTest extends AbstractAdyenTestCase
 
         $invoice = $invoiceHelper->createInvoice(
             $orderMock,
-            $notificationMock,
-            false
+            false,
+            'ABCD1234GHJK5678',
+            $notificationAmount
         );
 
         $this->assertInstanceOf(InvoiceModel::class, $invoice);

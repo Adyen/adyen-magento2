@@ -37,7 +37,6 @@ use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\Order\Payment\Transaction;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder;
 use Magento\Sales\Model\Order\Shipment;
-use Magento\Sales\Model\Order\Status\HistoryFactory;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderStatusCollectionFactory;
 use Magento\Sales\Api\Data\TransactionInterface;
@@ -63,10 +62,9 @@ class OrderTest extends AbstractAdyenTestCase
         );
 
         $order = $this->createOrder('testStatus');
-        $notification = $this->createWebhook();
 
         $order->expects($this->once())->method('setState')->with(MagentoOrder::STATE_PROCESSING);
-        $orderHelper->finalizeOrder($order, $notification);
+        $orderHelper->finalizeOrder($order, 'ABCD1234GHJK5678', 1000);
     }
 
     public function testFinalizeOrderPartialPayment()
@@ -91,10 +89,9 @@ class OrderTest extends AbstractAdyenTestCase
         );
 
         $order = $this->createOrder('testStatus');
-        $notification = $this->createWebhook();
 
         $order->expects($this->never())->method('setState')->with(MagentoOrder::STATE_PROCESSING);
-        $orderHelper->finalizeOrder($order, $notification);
+        $orderHelper->finalizeOrder($order, 'ABCD1234GHJK5678', 1000);
     }
 
     public function testHoldCancelOrderCancel()
@@ -337,7 +334,7 @@ class OrderTest extends AbstractAdyenTestCase
             $transactionBuilderMock
         );
 
-        $result = $orderHelper->updatePaymentDetails($orderMock, $notificationMock);
+        $result = $orderHelper->updatePaymentDetails($orderMock, $pspReference);
 
         $this->assertInstanceOf(Transaction::class, $result);
     }
@@ -354,10 +351,6 @@ class OrderTest extends AbstractAdyenTestCase
             'getPayment' => $paymentMock,
             'getState' => MagentoOrder::STATE_PAYMENT_REVIEW,
             'setState' => MagentoOrder::STATE_NEW
-        ]);
-
-        $notificationMock = $this->createConfiguredMock(Notification::class, [
-            'getPspReference' => $pspReference
         ]);
 
         $transactionBuilderMock = $this->createMock(Builder::class);
@@ -399,7 +392,7 @@ class OrderTest extends AbstractAdyenTestCase
             $transactionBuilderMock
         );
 
-        $result = $orderHelper->updatePaymentDetails($orderMock, $notificationMock);
+        $result = $orderHelper->updatePaymentDetails($orderMock, $pspReference);
 
         $this->assertEquals($transactionMock, $result);
     }
@@ -782,8 +775,7 @@ class OrderTest extends AbstractAdyenTestCase
         $adyenCreditmemoHelper = null,
         $statusResolver = null,
         $adyenCreditmemoRepositoryMock = null,
-        $orderManagermentMock = null,
-        $orderHistoryFactoryMock = null
+        $orderManagermentMock = null
     ): Order
     {
         $context = $this->createMock(Context::class);
@@ -860,10 +852,6 @@ class OrderTest extends AbstractAdyenTestCase
             $orderManagermentMock = $this->createMock(OrderService::class);
         }
 
-        if (is_null($orderHistoryFactoryMock)) {
-            $orderHistoryFactoryMock = $this->createMock(HistoryFactory::class);
-        }
-
         return new Order(
             $context,
             $builder,
@@ -883,8 +871,7 @@ class OrderTest extends AbstractAdyenTestCase
             $adyenCreditmemoHelper,
             $statusResolver,
             $adyenCreditmemoRepositoryMock,
-            $orderManagermentMock,
-            $orderHistoryFactoryMock
+            $orderManagermentMock
         );
     }
 }
