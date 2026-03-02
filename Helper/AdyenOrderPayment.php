@@ -196,7 +196,6 @@ class AdyenOrderPayment extends AbstractHelper
      *
      * @param Order $order
      * @param bool $autoCapture
-     * @param string $merchantReference
      * @param string $pspReference
      * @param string $paymentMethod
      * @param int $amountValue
@@ -206,7 +205,6 @@ class AdyenOrderPayment extends AbstractHelper
     public function createAdyenOrderPayment(
         Order $order,
         bool $autoCapture,
-        string $merchantReference,
         string $pspReference,
         string $paymentMethod,
         int $amountValue,
@@ -223,7 +221,7 @@ class AdyenOrderPayment extends AbstractHelper
             $date = new \DateTime();
             $adyenOrderPayment = $this->adyenOrderPaymentFactory->create();
             $adyenOrderPayment->setPspreference($pspReference);
-            $adyenOrderPayment->setMerchantReference($merchantReference);
+            $adyenOrderPayment->setMerchantReference($order->getIncrementId());
             $adyenOrderPayment->setPaymentId($payment->getId());
             $adyenOrderPayment->setPaymentMethod($paymentMethod);
             $adyenOrderPayment->setCaptureStatus($captureStatus);
@@ -238,7 +236,7 @@ class AdyenOrderPayment extends AbstractHelper
                 'adyen_order_payment table but something went wrong later. Please check your logs for potential ' .
                 'error messages regarding the merchant reference (order id): %s and PSP reference: %s. ' .
                 'Exception message: %s',
-                $merchantReference,
+                $order->getIncrementId(),
                 $pspReference,
                 $e->getMessage()
             ));

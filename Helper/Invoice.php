@@ -79,7 +79,6 @@ class Invoice extends AbstractHelper
      * @param Order $order
      * @param bool $isAutoCapture
      * @param string $pspReference
-     * @param string $merchantReference
      * @param int $amountValue
      * @return InvoiceModel|null
      * @throws LocalizedException
@@ -88,14 +87,13 @@ class Invoice extends AbstractHelper
         Order $order,
         bool $isAutoCapture,
         string $pspReference,
-        string $merchantReference,
         int $amountValue
     ): ?InvoiceModel {
         $this->adyenLogger->addAdyenNotification(
             'Creating invoice for order',
             [
                 'pspReference' => $pspReference,
-                'merchantReference' => $merchantReference
+                'merchantReference' => $order->getIncrementId()
             ]
         );
 
@@ -130,7 +128,7 @@ class Invoice extends AbstractHelper
                 $this->adyenLogger->addAdyenNotification(sprintf(
                     'An invoice was generated for order with pspReference %s and merchantReference %s',
                     $pspReference,
-                    $merchantReference
+                    $order->getIncrementId()
                 ),
                     $this->adyenLogger->getInvoiceContext($invoice)
                 );
@@ -139,7 +137,7 @@ class Invoice extends AbstractHelper
                     'Error saving invoice: ' . $e->getMessage(),
                     [
                         'pspReference' => $pspReference,
-                        'merchantReference' => $merchantReference
+                        'merchantReference' => $order->getIncrementId()
                     ]
 
                 );

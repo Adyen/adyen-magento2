@@ -19,13 +19,15 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Order as OrderHelper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
+use Adyen\Payment\Model\ResourceModel\Order\Payment as AdyenOrderPayment;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Webhook\PaymentStates;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Model\Order;
 
-class AuthorisationWebhookHandler implements WebhookHandlerInterface
+readonly class AuthorisationWebhookHandler implements WebhookHandlerInterface
 {
     /**
      * @param OrderHelper $orderHelper
@@ -35,15 +37,19 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
      * @param AdyenNotificationRepositoryInterface $notificationRepository
      * @param CleanupAdditionalInformationInterface $cleanupAdditionalInformation
      * @param AuthorizationHandler $authorizationHandler
+     * @param SerializerInterface $serializer
+     * @param AdyenOrderPayment $adyenOrderPaymentResourceModel
      */
     public function __construct(
-        private readonly OrderHelper $orderHelper,
-        private readonly AdyenLogger $adyenLogger,
-        private readonly Config $configHelper,
-        private readonly CartRepositoryInterface $cartRepository,
-        private readonly AdyenNotificationRepositoryInterface $notificationRepository,
-        private readonly CleanupAdditionalInformationInterface $cleanupAdditionalInformation,
-        private readonly AuthorizationHandler $authorizationHandler
+        private OrderHelper $orderHelper,
+        private AdyenLogger $adyenLogger,
+        private Config $configHelper,
+        private CartRepositoryInterface $cartRepository,
+        private AdyenNotificationRepositoryInterface $notificationRepository,
+        private CleanupAdditionalInformationInterface $cleanupAdditionalInformation,
+        private AuthorizationHandler $authorizationHandler,
+        private SerializerInterface $serializer,
+        private AdyenOrderPayment $adyenOrderPaymentResourceModel
     ) { }
 
     /**
@@ -72,15 +78,27 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
      */
     private function handleSuccessfulAuthorisation(Order $order, Notification $notification): Order
     {
-        $paymentMethod =  $notification->getPaymentMethod();
-        $pspReference = $notification->getPspReference();
-        $merchantReference = $notification->getMerchantReference();
-        $amountValue = $notification->getAmountValue();
-        $amountCurrency = $notification->getAmountCurrency();
-
-        $order = $this->authorizationHandler->execute($order, $paymentMethod, $merchantReference, $pspReference, $amountValue, $amountCurrency, $notification);
-
         $payment = $order->getPayment();
+
+        /*
+         * Ideally, order payment should be created after getting an `Authorized` resultCode to
+         * /payments or /payments/details API calls and order should be promoted to `authorized` or `processing` state.
+         *  However, the following block allows to create order payment and order to be promoted during
+         *  webhook handling as a fallback.
+         */
+        if (empty($this->adyenOrderPaymentResourceModel->getOrderPaymentDetails(
+            $notification->getPspreference(), $payment->getEntityId())
+        )) {
+            $order = $this->authorizationHandler->execute(
+                $order,
+                $notification->getPaymentMethod(),
+                $notification->getPspReference(),
+                $notification->getAmountValue(),
+                $notification->getAmountCurrency(),
+                $this->getAdditionalDataArray($notification)
+            );
+        }
+
         $this->deactivateQuoteIfNeeded($order);
         $this->cleanupAdditionalInformation->execute($payment);
         $this->orderHelper->addWebhookStatusHistoryComment($order, $notification);
@@ -215,5 +233,11 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         );
 
         return false;
+    }
+
+    private function getAdditionalDataArray(Notification $notification): array
+    {
+        $raw = $notification->getAdditionalData();
+        return !empty($raw) ? (array) $this->serializer->unserialize($raw) : [];
     }
 }

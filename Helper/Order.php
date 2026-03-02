@@ -199,14 +199,12 @@ class Order extends AbstractHelper
      *
      * @param MagentoOrder $order
      * @param string $pspReference
-     * @param string $merchantReference
      * @param int $amount
      * @return MagentoOrder
      */
     public function finalizeOrder(
         MagentoOrder $order,
         string $pspReference,
-        string $merchantReference,
         int $amount
     ): MagentoOrder {
         $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order, false);
@@ -235,7 +233,7 @@ class Order extends AbstractHelper
             ),
             [
                 'pspReference' => $pspReference,
-                'merchantReference' => $merchantReference
+                'merchantReference' => $order->getIncrementId()
             ]);
             $comment = "Adyen Payment Successfully completed";
             // If a status is set, add comment, set status and update the state based on the status
@@ -258,7 +256,7 @@ class Order extends AbstractHelper
                 ),
                 [
                     'pspReference' => $pspReference,
-                    'merchantReference' => $merchantReference
+                    'merchantReference' => $order->getIncrementId()
                 ]);
             }
         } else {

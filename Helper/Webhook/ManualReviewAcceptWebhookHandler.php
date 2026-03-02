@@ -48,7 +48,11 @@ class ManualReviewAcceptWebhookHandler implements WebhookHandlerInterface
 
         // Finalize order only in case of auto capture. For manual capture the capture notification will initiate this finalizeOrder call
         if ($this->paymentMethodsHelper->isAutoCapture($order, $notification->getPaymentMethod())) {
-            $order = $this->orderHelper->finalizeOrder($order, $notification);
+            $order = $this->orderHelper->finalizeOrder(
+                $order,
+                $notification->getPspreference(),
+                $notification->getAmountValue()
+            );
         }
 
         return $order;

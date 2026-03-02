@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Helper\Order as AdyenOrderHelper;
+use Adyen\Payment\Model\AuthorizationHandler;
 use Adyen\Payment\Logger\AdyenLogger;
 use Exception;
 use Magento\Framework\Exception\AlreadyExistsException;
@@ -59,6 +60,7 @@ class PaymentResponseHandler
      * @param PaymentMethods $paymentMethodsHelper
      * @param OrderStatusHistory $orderStatusHistoryHelper
      * @param OrdersApi $ordersApiHelper
+     * @param AuthorizationHandler $authorizationHandler
      */
     public function __construct(
         private readonly AdyenLogger $adyenLogger,
@@ -70,6 +72,7 @@ class PaymentResponseHandler
         private readonly PaymentMethods $paymentMethodsHelper,
         private readonly OrderStatusHistory $orderStatusHistoryHelper,
         private readonly OrdersApi $ordersApiHelper,
+        private readonly AuthorizationHandler $authorizationHandler,
     ) { }
 
     public function formatPaymentResponse(
@@ -311,6 +314,18 @@ class PaymentResponseHandler
 
                 $result = false;
                 break;
+        }
+
+        // Authorize the payment based on the result code
+        if ($resultCode === self::AUTHORISED) {
+            $order = $this->authorizationHandler->execute(
+                $order,
+                $paymentMethod,
+                $paymentsDetailsResponse['pspReference'],
+                intval($paymentsDetailsResponse['amount']['value']),
+                $paymentsDetailsResponse['amount']['currency'],
+                $paymentsDetailsResponse['additionalData'] ?? []
+            );
         }
 
         // needed because then we need to save $order objects
