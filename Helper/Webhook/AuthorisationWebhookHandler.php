@@ -27,7 +27,7 @@ use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Model\Order;
 
-readonly class AuthorisationWebhookHandler implements WebhookHandlerInterface
+class AuthorisationWebhookHandler implements WebhookHandlerInterface
 {
     /**
      * @param OrderHelper $orderHelper
@@ -41,15 +41,15 @@ readonly class AuthorisationWebhookHandler implements WebhookHandlerInterface
      * @param AdyenOrderPayment $adyenOrderPaymentResourceModel
      */
     public function __construct(
-        private OrderHelper $orderHelper,
-        private AdyenLogger $adyenLogger,
-        private Config $configHelper,
-        private CartRepositoryInterface $cartRepository,
-        private AdyenNotificationRepositoryInterface $notificationRepository,
-        private CleanupAdditionalInformationInterface $cleanupAdditionalInformation,
-        private AuthorizationHandler $authorizationHandler,
-        private SerializerInterface $serializer,
-        private AdyenOrderPayment $adyenOrderPaymentResourceModel
+        private readonly OrderHelper $orderHelper,
+        private readonly AdyenLogger $adyenLogger,
+        private readonly Config $configHelper,
+        private readonly CartRepositoryInterface $cartRepository,
+        private readonly AdyenNotificationRepositoryInterface $notificationRepository,
+        private readonly CleanupAdditionalInformationInterface $cleanupAdditionalInformation,
+        private readonly AuthorizationHandler $authorizationHandler,
+        private readonly SerializerInterface $serializer,
+        private readonly AdyenOrderPayment $adyenOrderPaymentResourceModel
     ) { }
 
     /**
