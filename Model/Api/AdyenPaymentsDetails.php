@@ -75,7 +75,7 @@ class AdyenPaymentsDetails implements AdyenPaymentsDetailsInterface
             $this->paymentResponseHandler->formatPaymentResponse(
                 $response['resultCode'],
                 $response['action'] ?? null,
-                $response['additionalData'] ?? null
+                !empty($response['donationToken'])
             )
         );
     }

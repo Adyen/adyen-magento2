@@ -114,6 +114,9 @@ jobs:
         if: ${{ env.EXPRESS_BRANCH }}
         run: docker exec -u www-data magento2-container make enable-express
 
+      - name: Setup E2E test configurations
+        run: docker exec magento2-container make setup-e2e
+
       - name: Switch to production mode
         run: docker exec -u www-data magento2-container make production
 
