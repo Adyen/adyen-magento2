@@ -67,19 +67,12 @@ class CheckoutPaymentsResponseHandler implements HandlerInterface
             $payment->setAdditionalInformation('pspReference', $response['pspReference']);
         }
 
-        $ccType = $payment->getAdditionalInformation('cc_type');
-
         $isWalletPaymentMethod = $this->paymentMethodsHelper->isWalletPaymentMethod($paymentMethodInstance);
         $isCardPaymentMethod = $payment->getMethod() === PaymentMethods::ADYEN_CC ||
             $payment->getMethod() === PaymentMethods::ADYEN_CC_VAULT;
 
-        if (!empty($response['additionalData']['paymentMethod']) &&
-            is_null($ccType) &&
-            ($isWalletPaymentMethod || $isCardPaymentMethod)
-        ) {
-            $ccType = $response['additionalData']['paymentMethod'];
-            $payment->setAdditionalInformation('cc_type', $ccType);
-            $payment->setCcType($ccType);
+        if (!empty($response['additionalData']['paymentMethod']) && ($isWalletPaymentMethod || $isCardPaymentMethod)) {
+            $payment->setCcType($response['additionalData']['paymentMethod']);
         }
 
         if (!empty($response['action'])) {

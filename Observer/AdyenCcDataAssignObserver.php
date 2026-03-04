@@ -100,7 +100,6 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
         $paymentInfo = $this->readPaymentModelArgument($observer);
 
         // Remove the following information from the previous payment
-        $paymentInfo->unsAdditionalInformation(self::CC_TYPE);
         $paymentInfo->unsAdditionalInformation(self::NUMBER_OF_INSTALLMENTS);
         $paymentInfo->unsAdditionalInformation(self::COMBO_CARD_TYPE);
 
@@ -137,6 +136,11 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
 
         unset($additionalData[self::STATE_DATA]);
 
+        // Set ccType if it exists on the request, otherwise reset to prevent being inherited from the previous attempt
+        $paymentInfo->setCcType($additionalData[self::CC_TYPE] ?? null);
+        // Card type is stored in payment's `cc_type`. Setting it up on `additional_information` is redundant.
+        unset($additionalData[self::CC_TYPE]);
+
         if (
             !empty($additionalData[self::RECURRING_PROCESSING_MODEL]) &&
             !$this->vaultHelper->validateRecurringProcessingModel($additionalData[self::RECURRING_PROCESSING_MODEL])
@@ -148,11 +152,6 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
         // Set additional data in the payment
         foreach ($additionalData as $key => $data) {
             $paymentInfo->setAdditionalInformation($key, $data);
-        }
-
-        // set ccType
-        if (!empty($additionalData[self::CC_TYPE])) {
-            $paymentInfo->setCcType($additionalData[self::CC_TYPE]);
         }
     }
 }
