@@ -225,7 +225,7 @@ class DataTest extends AbstractAdyenTestCase
 
         $this->platformInfo
             ->method('getMagentoDetails')
-            ->willReturn(['name' => 'Magento', 'version' => '2.4.6']);
+            ->willReturn(['name' => 'Magento', 'version' => '2.4.6', 'edition' => 'Community']);
 
         $this->scopeConfig
             ->method('getValue')
@@ -607,7 +607,7 @@ class DataTest extends AbstractAdyenTestCase
             ->willReturn('9.0.0');
         $this->platformInfo
             ->method('getMagentoDetails')
-            ->willReturn(['name' => 'Magento', 'version' => '2.4.6']);
+            ->willReturn(['name' => 'Magento', 'version' => '2.4.6', 'edition' => 'Community']);
 
         $this->scopeConfig
             ->method('getValue')
@@ -828,7 +828,7 @@ class DataTest extends AbstractAdyenTestCase
 
         $this->platformInfo->method('getModuleName')->willReturn('Adyen_Payment');
         $this->platformInfo->method('getModuleVersion')->willReturn('9.0.0');
-        $this->platformInfo->method('getMagentoDetails')->willReturn(['name' => 'Magento', 'version' => '2.4.6']);
+        $this->platformInfo->method('getMagentoDetails')->willReturn(['name' => 'Magento', 'version' => '2.4.6', 'edition' => 'Community']);
         $this->scopeConfig->method('getValue')->willReturn(null);
 
         $this->configHelper->method('getLiveEndpointPrefix')->with($storeId)->willReturn($livePrefix);
@@ -853,7 +853,7 @@ class DataTest extends AbstractAdyenTestCase
 
         $this->platformInfo->method('getModuleName')->willReturn('Adyen_Payment');
         $this->platformInfo->method('getModuleVersion')->willReturn('9.0.0');
-        $this->platformInfo->method('getMagentoDetails')->willReturn(['name' => 'Magento', 'version' => '2.4.6']);
+        $this->platformInfo->method('getMagentoDetails')->willReturn(['name' => 'Magento', 'version' => '2.4.6', 'edition' => 'Community']);
         $this->scopeConfig->method('getValue')->willReturn(null);
 
         $client = $this->dataHelper->initializeAdyenClientWithClientConfig([
