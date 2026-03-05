@@ -351,30 +351,6 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $this->assertNotContains(AdyenMotoConfigProvider::CODE, $result);
     }
 
-    public function testGetBoletoStatusOverpaid(): void
-    {
-        $order = $this->createConfiguredMock(\Magento\Sales\Model\Order::class, ['getStoreId' => 1]);
-        $notification = $this->createMock(\Adyen\Payment\Model\Notification::class);
-
-        $additionalData = ['boletobancario' => [
-            'originalAmount' => 'BRL 100.00',
-            'paidAmount' => 'BRL 120.00'
-        ]];
-
-        $this->serializer
-            ->method('unserialize')
-            ->willReturn($additionalData);
-
-        $notification->method('getAdditionalData')->willReturn(json_encode($additionalData));
-        $this->configHelper
-            ->method('getConfigData')
-            ->with('order_overpaid_status', 'adyen_boleto', 1)
-            ->willReturn('overpaid_status');
-
-        $status = $this->helper->getBoletoStatus($order, $notification, 'default_status');
-        $this->assertEquals('overpaid_status', $status);
-    }
-
     /**
      * @dataProvider autoCaptureDataProvider
      */
@@ -453,27 +429,6 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $notification->method('getPaymentMethod')->willReturn('boleto');
 
         $this->assertTrue($this->helper->compareOrderAndWebhookPaymentMethods($order, $notification));
-    }
-
-    public function testGetBoletoStatusUnderpaid(): void
-    {
-        $order = $this->createConfiguredMock(\Magento\Sales\Model\Order::class, ['getStoreId' => 1]);
-        $notification = $this->createMock(\Adyen\Payment\Model\Notification::class);
-
-        $additionalData = ['boletobancario' => [
-            'originalAmount' => 'BRL 100.00',
-            'paidAmount' => 'BRL 80.00'
-        ]];
-
-        $this->serializer->method('unserialize')->willReturn($additionalData);
-        $notification->method('getAdditionalData')->willReturn(json_encode($additionalData));
-
-        $this->configHelper->method('getConfigData')
-            ->with('order_underpaid_status', 'adyen_boleto', 1)
-            ->willReturn('underpaid_status');
-
-        $status = $this->helper->getBoletoStatus($order, $notification, 'default_status');
-        $this->assertEquals('underpaid_status', $status);
     }
 
     /**
@@ -892,20 +847,6 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
     {
         $this->methodMock->method('getConfigData')->with('supports_recurring')->willReturn(false);
         $this->assertFalse($this->helper->paymentMethodSupportsRecurring($this->methodMock));
-    }
-
-    public function testGetBoletoStatusWithMissingAmounts(): void
-    {
-        $order = $this->createConfiguredMock(\Magento\Sales\Model\Order::class, ['getStoreId' => 1]);
-        $notification = $this->createMock(\Adyen\Payment\Model\Notification::class);
-
-        $data = ['boletobancario' => []];
-
-        $this->serializer->method('unserialize')->willReturn($data);
-        $notification->method('getAdditionalData')->willReturn(json_encode($data));
-
-        $result = $this->helper->getBoletoStatus($order, $notification, 'default');
-        $this->assertEquals('default', $result);
     }
 
     public function testGetPaymentMethodsRequestAddsShopperConversionIdWhenPresent()

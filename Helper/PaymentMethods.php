@@ -944,59 +944,6 @@ class PaymentMethods extends AbstractHelper
     }
 
     /**
-     * @param Order $order
-     * @param Notification $notification
-     * @param string $status
-     * @return string|null
-     */
-    public function getBoletoStatus(Order $order, Notification $notification, string $status): ?string
-    {
-        $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize(
-            $notification->getAdditionalData()
-        ) : "";
-
-        $boletobancario = $additionalData['boletobancario'] ?? null;
-        if ($boletobancario && is_array($boletobancario)) {
-            // check if paid amount is the same as orginal amount
-            $originalAmount =
-                isset($boletobancario['originalAmount']) ?
-                    trim((string) $boletobancario['originalAmount']) :
-                    "";
-            $paidAmount = isset($boletobancario['paidAmount']) ? trim((string) $boletobancario['paidAmount']) : "";
-
-            if ($originalAmount != $paidAmount) {
-                // not the full amount is paid. Check if it is underpaid or overpaid
-                // strip the  BRL of the string
-                $originalAmount = str_replace("BRL", "", $originalAmount);
-                $originalAmount = floatval(trim($originalAmount));
-
-                $paidAmount = str_replace("BRL", "", $paidAmount);
-                $paidAmount = floatval(trim($paidAmount));
-
-                if ($paidAmount > $originalAmount) {
-                    $overpaidStatus = $this->configHelper->getConfigData(
-                        'order_overpaid_status',
-                        'adyen_boleto',
-                        $order->getStoreId()
-                    );
-                    // check if there is selected a status if not fall back to the default
-                    $status = (!empty($overpaidStatus)) ? $overpaidStatus : $status;
-                } else {
-                    $underpaidStatus = $this->configHelper->getConfigData(
-                        'order_underpaid_status',
-                        'adyen_boleto',
-                        $order->getStoreId()
-                    );
-                    // check if there is selected a status if not fall back to the default
-                    $status = (!empty($underpaidStatus)) ? $underpaidStatus : $status;
-                }
-            }
-        }
-
-        return $status;
-    }
-
-    /**
      * @param string $paymentMethodCode
      * @param array $params
      * @return array
