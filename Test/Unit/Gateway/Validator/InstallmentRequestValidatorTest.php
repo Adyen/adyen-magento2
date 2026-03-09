@@ -79,15 +79,15 @@ class InstallmentRequestValidatorTest extends AbstractAdyenTestCase
 
         $paymentMock = $this->createGeneratedMock(
             Payment::class,
-            ['getAdditionalInformation'],
+            ['getAdditionalInformation', 'getCcType'],
             ['getQuoteId']
         );
         $paymentMock->expects($this->once())->method('getQuoteId')->willReturn($quoteId);
         $paymentMock->expects($this->any())->method('getAdditionalInformation')
             ->willReturnMap([
-                ['number_of_installments', 5],
-                ['cc_type', 'visa']
+                ['number_of_installments', 5]
             ]);
+        $paymentMock->expects($this->any())->method('getCcType')->willReturn('visa');
 
         $quoteMock = $this->createMock(Quote::class);
 
