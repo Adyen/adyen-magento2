@@ -86,6 +86,7 @@ class PaymentResponseHandler
                 ];
             case self::REFUSED:
             case self::ERROR:
+            case self::CANCELLED:
             case self::POS_SUCCESS:
                 return [
                     "isFinal" => true,
