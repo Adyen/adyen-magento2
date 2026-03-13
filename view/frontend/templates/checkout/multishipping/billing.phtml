@@ -23,7 +23,6 @@ $checkoutConfig = $block->getCheckoutData()->getSerializedCheckoutConfigs();
 $scriptString = <<<script
     window.checkoutConfig = {$checkoutConfig};
     window.isCustomerLoggedIn = window.checkoutConfig.isCustomerLoggedIn;
-    window.customerData = window.checkoutConfig.customerData;
 script;
 
 /* @noEscape */
