@@ -78,14 +78,14 @@ define([
             let shopperGender = '';
             let shopperDateOfBirth = '';
 
-            if (customerData.email) {
-                email = customerData.email;
+            if (window.checkoutConfig?.customerData?.email) {
+                email = window.checkoutConfig.customerData.email;
             } else if (quote.guestEmail) {
                 email = quote.guestEmail;
             }
 
-            shopperGender = customerData.gender;
-            shopperDateOfBirth = customerData.dob;
+            shopperGender = window.checkoutConfig?.customerData?.gender;
+            shopperDateOfBirth = window.checkoutConfig?.customerData?.dob;
 
             let formattedShippingAddress = {};
             let formattedBillingAddress = {};
