@@ -362,4 +362,7 @@
     <event name="adyen_analytics_event">
         <observer name="adyen_analytics_observer" instance="Adyen\Payment\Observer\AnalyticsEventObserver" />
     </event>
+    <event name="checkout_submit_all_after">
+        <observer name="adyen_authorize_payment_after_order_placement" instance="Adyen\Payment\Observer\AuthorizeAfterOrderPlacement" />
+    </event>
 </config>

@@ -39,17 +39,11 @@ class AdyenOrderPaymentTest extends AbstractAdyenTestCase
             'getId' => $paymentId
         ]);
         $order = $this->createConfiguredMock(Order::class, [
-            'getPayment' => $payment
+            'getPayment' => $payment,
+            'getIncrementId' => $merchantReference
         ]);
         $adyenOrderPayment = $this->createMock(AdyenPaymentModel::class);
-        $notification = $this->createConfiguredMock(Notification::class, [
-            'getPspreference' => $pspReference,
-            'getMerchantReference' => $merchantReference,
-            'getPaymentMethod' => $paymentMethod
-        ]);
-
         $mockAdyenDataHelper = $this->createGeneratedMock(Data::class, ['originalAmount']);
-
         $mockAdyenOrderPaymentFactory = $this->createGeneratedMock(PaymentFactory::class, ['create']);
 
         $adyenOrderPaymentHelper = $this->createAdyenOrderPaymentHelper(
@@ -64,7 +58,14 @@ class AdyenOrderPaymentTest extends AbstractAdyenTestCase
 
         $mockAdyenDataHelper->method('originalAmount')->willReturn($amount);
         $mockAdyenOrderPaymentFactory->method('create')->willReturn($adyenOrderPayment);
-        $result = $adyenOrderPaymentHelper->createAdyenOrderPayment($order, $notification, true);
+        $result = $adyenOrderPaymentHelper->createAdyenOrderPayment(
+            $order,
+            true,
+            $pspReference,
+            $paymentMethod,
+            $amount,
+            'EUR'
+        );
         $this->assertInstanceOf(AdyenPaymentModel::class, $result);
     }
 
