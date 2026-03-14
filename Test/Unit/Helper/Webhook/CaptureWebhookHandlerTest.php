@@ -30,11 +30,7 @@ class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
         // Initialize the CaptureWebhookHandler with mock dependencies.
         $this->captureWebhookHandler = $this->createCaptureWebhookHandler();
         $this->order = $this->createOrder();
-        $this->notification = $this->createWebhook();
-        $this->notification->method('getEventCode')->willReturn('CAPTURE');
-        $this->notification->method('getAmountValue')->willReturn(500); // Partial capture amount
-        $this->notification->method('getOriginalReference')->willReturn('original_reference');
-        $this->notification->method('getPspreference')->willReturn('ABCD1234GHJK5678');
+        $this->notification = $this->createWebhook('original_reference', 'ABCD1234GHJK5678', 500);
         $this->notification->method('getPaymentMethod')->willReturn('ADYEN_CC');
     }
 
@@ -133,7 +129,7 @@ class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
         ]);
         $orderHelperMock->expects($this->once())
             ->method('finalizeOrder')
-            ->with($this->order, $this->notification)
+            ->with($this->isInstanceOf(MagentoOrder::class), 'ABCD1234GHJK5678', 500)
             ->willReturn($this->order);
 
         $adyenOrderPaymentMock = $this->createMock(Payment::class);

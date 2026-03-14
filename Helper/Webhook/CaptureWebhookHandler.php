@@ -101,6 +101,10 @@ class CaptureWebhookHandler implements WebhookHandlerInterface
             )
         );
 
-        return $this->orderHelper->finalizeOrder($order, $notification);
+        return $this->orderHelper->finalizeOrder(
+            $order,
+            $notification->getPspreference(),
+            $notification->getAmountValue()
+        );
     }
 }
