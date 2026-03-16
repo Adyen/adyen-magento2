@@ -199,7 +199,6 @@ define(
             },
 
             handleOnFailure: function(error, component) {
-
                 paymentComponentStates().setIsPlaceOrderAllowed(this.getMethodCode(), true);
 
                 fullScreenLoader.stopLoader();

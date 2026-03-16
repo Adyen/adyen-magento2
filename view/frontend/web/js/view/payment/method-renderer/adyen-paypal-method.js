@@ -12,19 +12,13 @@ define(
         'jquery',
         'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-method',
         'Adyen_Payment/js/model/adyen-configuration',
-        'Magento_Checkout/js/model/full-screen-loader',
-        'Adyen_Payment/js/model/adyen-payment-service',
-        'Magento_Checkout/js/model/error-processor',
-        'Adyen_Payment/js/model/payment-component-states',
+        'Magento_Checkout/js/model/full-screen-loader'
     ],
     function(
         $,
         adyenPaymentMethod,
         adyenConfiguration,
-        fullScreenLoader,
-        adyenPaymentService,
-        errorProcessor,
-        paymentComponentStates
+        fullScreenLoader
     ) {
         return adyenPaymentMethod.extend({
             placeOrderButtonVisible: false,
