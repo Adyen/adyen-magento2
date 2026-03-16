@@ -283,60 +283,64 @@ define(
             },
 
             handleOnAdditionalDetails: function(state, component, actions) {
-                const self = this;
                 adyenPaymentModal.hideModalLabel(this.modalLabel);
                 fullScreenLoader.startLoader();
-                // call endpoint with state.data if available
-                let request = {};
-                if (!!state.data) {
-                    request = state.data;
-                }
 
-                adyenPaymentService.paymentDetails(request, self.orderId).done(function(responseJSON) {
-                    if (!!actions) {
-                        const response = JSON.parse(responseJSON);
-                        actions.resolve({resultCode: response.resultCode});
-                    }
+                this.handlePaymentsDetails(state.data, actions);
+            },
 
-                    $.mage.redirect(
-                        window.checkoutConfig.payment.adyen.successPage,
-                    );
+            handlePaymentsDetails: function (request, actions = null) {
+                const self = this;
+
+                adyenPaymentService.paymentDetails(request, self.orderId).done(function(responseJson) {
+                    self.handlePaymentsDetailsResponse(responseJson, actions)
                 }).fail(function(response) {
-                    if (!!actions) {
-                        actions.reject();
-                    }
-
-                    fullScreenLoader.stopLoader();
-                    if (self.popupModal) {
-                        self.closeModal(self.popupModal);
-                    }
-                    errorProcessor.process(response,
-                        self.currentMessageContainer);
-                    paymentComponentStates().setIsPlaceOrderAllowed(self.getMethodCode(), true);
+                    self.handleFailingPaymentsDetailsResponse(actions)
+                    errorProcessor.process(response, self.currentMessageContainer);
                 });
             },
 
-            handleOnCancel: function(state, component) {
-                const self = this;
+            handlePaymentsDetailsResponse: function (responseJSON, actions = null) {
+                const response = JSON.parse(responseJSON);
 
-                // call endpoint with state.data if available
-                let request = {};
-                if (!!state.data) {
-                    request = state.data;
+                if (!!response.isFinal) {
+                    if (['Authorised', 'Received', 'PresentToShopper'].includes(response.resultCode)) {
+                        if (!!actions) {
+                            actions.resolve({resultCode: response.resultCode});
+                        }
+
+                        $.mage.redirect(
+                            window.checkoutConfig.payment.adyen.successPage,
+                        );
+                    } else {
+                        // this.messageContainer.addErrorMessage(response);
+
+                        const response = {
+                            responseText: JSON.stringify({message: "error message"})
+                        }
+
+                        errorProcessor.process(response, this.messageContainer);
+
+                        this.handleFailingPaymentsDetailsResponse(actions);
+                    }
+                }
+            },
+
+            handleFailingPaymentsDetailsResponse: function (actions = null) {
+                if (!!actions) {
+                    actions.reject();
                 }
 
-                adyenPaymentService.paymentDetails(request, self.orderId).done(function() {
-                    $.mage.redirect(
-                        window.checkoutConfig.payment.adyen.successPage
-                    );
-                }).fail(function(response) {
-                    fullScreenLoader.stopLoader();
-                    if (self.popupModal) {
-                        self.closeModal(self.popupModal);
-                    }
-                    errorProcessor.process(response, self.currentMessageContainer);
-                    paymentComponentStates().setIsPlaceOrderAllowed(self.getMethodCode(), true);
-                });
+                fullScreenLoader.stopLoader();
+                if (this.popupModal) {
+                    this.closeModal(this.popupModal);
+                }
+
+                paymentComponentStates().setIsPlaceOrderAllowed(this.getMethodCode(), true);
+            },
+
+            handleOnCancel: function(state, component) {
+                this.handlePaymentsDetails(state.data);
             },
 
             placeOrder: function() {

@@ -149,9 +149,10 @@ define([
             let request = result.data;
             adyenPaymentModal.hideModalLabel(this.modalLabel);
             fullScreenLoader.startLoader();
+            let popupModal = self.showModal();
 
             adyenPaymentService.paymentDetails(request, self.orderId).done(function (responseJSON) {
-                self.handleAdyenResult(responseJSON, self.orderId);
+                self.handleAdyenResult(responseJSON, self.orderId, popupModal);
             }).fail(function (response) {
                 self.closeModal(popupModal);
                 errorProcessor.process(response, self.messageContainer);
@@ -264,15 +265,24 @@ define([
             return data;
         },
 
-        handleAdyenResult: function (responseJSON, orderId) {
-            let self = this;
+        handleAdyenResult: function (responseJSON, orderId, popupModal = null) {
             const response = JSON.parse(responseJSON);
 
             if (!!response.isFinal) {
-                // Status is final redirect to the success page
-                window.location.replace(url.build(this.successPage));
+                if (['Authorised', 'Received', 'PresentToShopper'].includes(response.resultCode)) {
+                    window.location.replace(url.build(this.successPage));
+                } else {
+                    if (popupModal) {
+                        this.closeModal(popupModal);
+                    }
+
+                    this.messageContainer.addErrorMessage(response);
+                    this.isPlaceOrderActionAllowed(true);
+
+                    fullScreenLoader.stopLoader();
+                }
             } else {
-                self.handleAction(response.action, orderId);
+                this.handleAction(response.action, orderId);
             }
         },
 

@@ -370,18 +370,27 @@ define(
              * Based on the response we can start a 3DS2 validation or place the order
              * @param responseJSON
              */
-            handleAdyenResult: function(responseJSON, orderId) {
-                let self = this;
+            handleAdyenResult: function(responseJSON, orderId, popupModal = null) {
                 let response = JSON.parse(responseJSON);
 
                 if (!!response.isFinal) {
-                    // Status is final redirect to the success page
-                    window.location.replace(url.build(
-                        window.checkoutConfig.payment[quote.paymentMethod().method].successPage
-                    ));
+                    if (['Authorised', 'Received', 'PresentToShopper'].includes(response.resultCode)) {
+                        window.location.replace(url.build(
+                            window.checkoutConfig.payment[quote.paymentMethod().method].successPage
+                        ));
+                    } else {
+                        if (popupModal) {
+                            this.closeModal(popupModal);
+                        }
+
+                        this.messageContainer.addErrorMessage(response);
+                        this.isPlaceOrderActionAllowed(true);
+
+                        fullScreenLoader.stopLoader();
+                    }
                 } else {
                     // Handle action
-                    self.handleAction(response.action, orderId);
+                    this.handleAction(response.action, orderId);
                 }
             },
             handleOnAdditionalDetails: function(result) {
@@ -391,11 +400,11 @@ define(
                 fullScreenLoader.startLoader();
                 let popupModal = self.showModal();
 
-                adyenPaymentService.paymentDetails(request, self.orderId).
-                    done(function(responseJSON) {
-                        self.handleAdyenResult(responseJSON, self.orderId);
-                    }).
-                    fail(function(response) {
+                adyenPaymentService.paymentDetails(request, self.orderId)
+                    .done(function(responseJSON) {
+                        self.handleAdyenResult(responseJSON, self.orderId, popupModal);
+                    })
+                    .fail(function(response) {
                         self.closeModal(popupModal);
                         errorProcessor.process(response, self.messageContainer);
                         self.isPlaceOrderActionAllowed(true);
