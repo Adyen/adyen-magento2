@@ -312,14 +312,7 @@ define(
                             window.checkoutConfig.payment.adyen.successPage,
                         );
                     } else {
-                        // this.messageContainer.addErrorMessage(response);
-
-                        const response = {
-                            responseText: JSON.stringify({message: "error message"})
-                        }
-
-                        errorProcessor.process(response, this.messageContainer);
-
+                        errorProcessor.process({responseText: responseJSON}, this.currentMessageContainer);
                         this.handleFailingPaymentsDetailsResponse(actions);
                     }
                 }
