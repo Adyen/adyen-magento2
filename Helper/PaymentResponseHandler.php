@@ -127,36 +127,29 @@ class PaymentResponseHandler
         Payment $payment,
         array $response
     ): void {
-        $resultCode = $response['resultCode'] ?? null;
-        if (!empty($resultCode)) {
-            $payment->setAdditionalInformation('resultCode', $resultCode);
-        }
+        $keysToSet = [
+            'resultCode',
+            'pspReference',
+            'action',
+            'additionalData',
+            'details',
+            'donationToken'
+        ];
 
-        if (!empty($response['pspReference'])) {
-            $payment->setAdditionalInformation('pspReference', $response['pspReference']);
-        }
-
-        if (!empty($response['action'])) {
-            $payment->setAdditionalInformation('action', $response['action']);
-        }
-
-        if (!empty($response['additionalData'])) {
-            $payment->setAdditionalInformation('additionalData', $response['additionalData']);
-        }
-
-        if (!empty($response['details'])) {
-            $payment->setAdditionalInformation('details', $response['details']);
-        }
-
-        if (!empty($response['donationToken'])) {
-            $payment->setAdditionalInformation('donationToken', $response['donationToken']);
+        foreach ($keysToSet as $key) {
+            if (!empty($response[$key])) {
+                $payment->setAdditionalInformation($key, $response[$key]);
+            }
         }
 
         //Check magento Payment Method
         $paymentMethodInstance = $payment->getMethodInstance();
         $isWalletPaymentMethod = $this->paymentMethodsHelper->isWalletPaymentMethod($paymentMethodInstance);
-        $isCardPaymentMethod = $payment->getMethod() === PaymentMethods::ADYEN_CC ||
-            $payment->getMethod() === PaymentMethods::ADYEN_CC_VAULT;
+        $isCardPaymentMethod = in_array(
+            $payment->getMethod(),
+            [PaymentMethods::ADYEN_CC, PaymentMethods::ADYEN_CC_VAULT],
+            true
+        );
 
         if (!empty($response['additionalData']['paymentMethod']) && ($isWalletPaymentMethod || $isCardPaymentMethod)) {
             $payment->setCcType($response['additionalData']['paymentMethod']);
