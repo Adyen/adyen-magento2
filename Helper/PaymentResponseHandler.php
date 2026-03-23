@@ -85,6 +85,12 @@ class PaymentResponseHandler
                     "canDonate" => $donationTokenExists
                 ];
             case self::REFUSED:
+            case self::CANCELLED:
+                return [
+                    "isFinal" => true,
+                    "resultCode" => $resultCode,
+                    "message" => __("The payment is %1.", strtoupper($resultCode))
+                ];
             case self::ERROR:
             case self::POS_SUCCESS:
                 return [

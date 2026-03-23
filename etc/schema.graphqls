@@ -70,6 +70,7 @@ type AdyenPaymentStatus {
     additionalData: String @doc(description: "Additional data required for the next step in the payment process.")
     action: String @doc(description: "Object containing information about the payment's next step.")
     canDonate: Boolean @doc(description: "Indicates if donations are available for this order.")
+    message: String @doc(description: "Translated response message in case of payment refusals.")
 }
 
 type AdyenPaymentMethods {
