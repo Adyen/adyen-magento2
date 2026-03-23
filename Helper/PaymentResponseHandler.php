@@ -21,6 +21,7 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\Order as OrderModel;
+use Magento\Sales\Model\Order\Payment;
 
 class PaymentResponseHandler
 {
@@ -122,6 +123,46 @@ class PaymentResponseHandler
     }
 
     /**
+     * Set payment additional information from an Adyen API response.
+     *
+     * @param Payment $payment
+     * @param array $response
+     * @return void
+     */
+    public function setPaymentAdditionalInformation(
+        Payment $payment,
+        array $response
+    ): void {
+        $keysToSet = [
+            'resultCode',
+            'pspReference',
+            'action',
+            'additionalData',
+            'details',
+            'donationToken'
+        ];
+
+        foreach ($keysToSet as $key) {
+            if (!empty($response[$key])) {
+                $payment->setAdditionalInformation($key, $response[$key]);
+            }
+        }
+
+        //Check magento Payment Method
+        $paymentMethodInstance = $payment->getMethodInstance();
+        $isWalletPaymentMethod = $this->paymentMethodsHelper->isWalletPaymentMethod($paymentMethodInstance);
+        $isCardPaymentMethod = in_array(
+            $payment->getMethod(),
+            [PaymentMethods::ADYEN_CC, PaymentMethods::ADYEN_CC_VAULT],
+            true
+        );
+
+        if (!empty($response['additionalData']['paymentMethod']) && ($isWalletPaymentMethod || $isCardPaymentMethod)) {
+            $payment->setCcType($response['additionalData']['paymentMethod']);
+        }
+    }
+
+    /**
      * @param array $paymentsDetailsResponse
      * @param OrderInterface $order
      * @return bool
@@ -142,15 +183,6 @@ class PaymentResponseHandler
             return false;
         }
 
-        $this->adyenLogger->addAdyenResult('Updating the order');
-        $payment = $order->getPayment();
-
-        //Check magento Payment Method
-        $paymentMethodInstance = $payment->getMethodInstance();
-        $isWalletPaymentMethod = $this->paymentMethodsHelper->isWalletPaymentMethod($paymentMethodInstance);
-        $isCardPaymentMethod = $payment->getMethod() === PaymentMethods::ADYEN_CC ||
-            $payment->getMethod() === PaymentMethods::ADYEN_CC_VAULT;
-
         $authResult = $paymentsDetailsResponse['authResult'] ?? $paymentsDetailsResponse['resultCode'] ?? null;
         if (is_null($authResult)) {
             // In case the result is unknown we log the request and don't update the history
@@ -161,39 +193,15 @@ class PaymentResponseHandler
             return false;
         }
 
-        $resultCode = $paymentsDetailsResponse['resultCode'];
-        if (!empty($resultCode)) {
-            $payment->setAdditionalInformation('resultCode', $resultCode);
-        }
+        $this->adyenLogger->addAdyenResult('Updating the order');
+        $payment = $order->getPayment();
 
-        if (!empty($paymentsDetailsResponse['action'])) {
-            $payment->setAdditionalInformation('action', $paymentsDetailsResponse['action']);
-        }
-
-        if (!empty($paymentsDetailsResponse['additionalData'])) {
-            $payment->setAdditionalInformation('additionalData', $paymentsDetailsResponse['additionalData']);
-        }
-
-        if (!empty($paymentsDetailsResponse['pspReference'])) {
-            $payment->setAdditionalInformation('pspReference', $paymentsDetailsResponse['pspReference']);
-        }
-
-        if (!empty($paymentsDetailsResponse['details'])) {
-            $payment->setAdditionalInformation('details', $paymentsDetailsResponse['details']);
-        }
-
-        if (!empty($paymentsDetailsResponse['donationToken'])) {
-            $payment->setAdditionalInformation('donationToken', $paymentsDetailsResponse['donationToken']);
-        }
-
-        if (!empty($paymentsDetailsResponse['additionalData']['paymentMethod']) &&
-            ($isWalletPaymentMethod || $isCardPaymentMethod)
-        ) {
-            $payment->setCcType($paymentsDetailsResponse['additionalData']['paymentMethod']);
-        }
+        $this->setPaymentAdditionalInformation($payment, $paymentsDetailsResponse);
 
         // Handle recurring details
         $this->vaultHelper->handlePaymentResponseRecurringDetails($payment, $paymentsDetailsResponse);
+
+        $resultCode = $paymentsDetailsResponse['resultCode'];
 
         // If the response is valid, update the order status.
         if (!in_array($resultCode, PaymentResponseHandler::ACTION_REQUIRED_STATUSES) && $order->getState() === OrderModel::STATE_PENDING_PAYMENT) {
