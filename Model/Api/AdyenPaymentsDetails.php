@@ -68,7 +68,6 @@ class AdyenPaymentsDetails implements AdyenPaymentsDetailsInterface
         // Handle response
         if (!$this->paymentResponseHandler->handlePaymentsDetailsResponse($response, $order)) {
             $this->checkoutSession->restoreQuote();
-            throw new ValidatorException(__('The payment is REFUSED.'));
         }
 
         return json_encode(
