@@ -183,7 +183,7 @@ class PaymentMethodsFilterTest extends AbstractAdyenTestCase
         );
 
         $sortedMagentoPaymentMethods =
-            $paymentMethodsFilterHelper->sortAndFilterPaymentMethods($this->magentoPaymentMethods, $quoteMock)[0];
+            $paymentMethodsFilterHelper->sortAndFilterPaymentMethods($this->magentoPaymentMethods, $quoteMock);
 
         $assertArray = [];
         foreach ($sortedMagentoPaymentMethods as $paymentMethod) {
