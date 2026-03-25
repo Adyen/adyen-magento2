@@ -3,6 +3,5 @@
         xsi:noNamespaceSchemaLocation="urn:magento:framework-message-queue:etc/consumer.xsd">
     <consumer name="adyen.notification"
               queue="adyen.notification"
-              connection="amqp"
               handler="Adyen\Payment\Model\Queue\Notification\Consumer::execute"/>
 </config>
