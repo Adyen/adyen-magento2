@@ -47,7 +47,7 @@ class MagentoPaymentDetails
     {
         $quote = $this->cartRepository->get($cartId);
         $storeId = $quote->getStoreId();
-        $isAdyenPosCloudEnabled = $this->isAdyenPosCloudEnabled($result->getPaymentMethods(), $quote);
+        $isAdyenPosCloudEnabled = $this->isAdyenPosCloudEnabled($result->getPaymentMethods() ?? [], $quote);
 
         if (!$this->configHelper->getIsPaymentMethodsActive($storeId) && !$isAdyenPosCloudEnabled) {
             return $result;
