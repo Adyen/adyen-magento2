@@ -11,7 +11,10 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\AdyenException;
 use Magento\Checkout\Api\Data\PaymentDetailsInterface;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Model\MethodInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
@@ -19,38 +22,42 @@ use Magento\Quote\Api\Data\PaymentMethodInterface;
 
 class MagentoPaymentDetails
 {
-    protected PaymentMethodsFilter $paymentMethodsFilter;
-    protected Config $configHelper;
-    protected CartRepositoryInterface $cartRepository;
-    protected ConnectedTerminals $connectedTerminalsHelper;
-
+    /**
+     * @param Config $configHelper
+     * @param CartRepositoryInterface $cartRepository
+     * @param ConnectedTerminals $connectedTerminalsHelper
+     * @param PaymentMethods $adyenPaymentMethodsHelper
+     */
     public function __construct(
-        PaymentMethodsFilter $paymentMethodsFilter,
-        Config $configHelper,
-        CartRepositoryInterface $cartRepository,
-        ConnectedTerminals $connectedTerminals
-    ) {
-        $this->paymentMethodsFilter = $paymentMethodsFilter;
-        $this->configHelper = $configHelper;
-        $this->cartRepository = $cartRepository;
-        $this->connectedTerminalsHelper = $connectedTerminals;
-    }
+        protected readonly Config $configHelper,
+        protected readonly CartRepositoryInterface $cartRepository,
+        protected readonly ConnectedTerminals $connectedTerminalsHelper,
+        protected readonly PaymentMethods $adyenPaymentMethodsHelper
+    ) { }
 
+    /**
+     * @param PaymentDetailsInterface $result
+     * @param int $cartId
+     * @return PaymentDetailsInterface
+     * @throws AdyenException
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
     public function addAdyenExtensionAttributes(PaymentDetailsInterface $result, int $cartId): PaymentDetailsInterface
     {
         $quote = $this->cartRepository->get($cartId);
-        $magentoPaymentMethods = $result->getPaymentMethods();
+        $storeId = $quote->getStoreId();
+        $isAdyenPosCloudEnabled = $this->isAdyenPosCloudEnabled($result->getPaymentMethods(), $quote);
 
-        list($magentoPaymentMethods, $adyenPaymentMethodsResponse) =
-            $this->paymentMethodsFilter->sortAndFilterPaymentMethods($magentoPaymentMethods, $quote);
+        if (!$this->configHelper->getIsPaymentMethodsActive($storeId) && !$isAdyenPosCloudEnabled) {
+            return $result;
+        }
 
-        $result->setPaymentMethods($magentoPaymentMethods);
         $extensionAttributes = $result->getExtensionAttributes();
+        $extensionAttributes->setAdyenPaymentMethodsResponse($this->adyenPaymentMethodsHelper->getApiResponse($quote));
 
-        $extensionAttributes->setAdyenPaymentMethodsResponse($adyenPaymentMethodsResponse);
-
-        if ($this->isAdyenPosCloudEnabled($magentoPaymentMethods, $quote)) {
-            $connectedTerminals = $this->connectedTerminalsHelper->getConnectedTerminals($quote->getStoreId());
+        if ($isAdyenPosCloudEnabled) {
+            $connectedTerminals = $this->connectedTerminalsHelper->getConnectedTerminals($storeId);
 
             if (!empty($connectedTerminals['uniqueTerminalIds'])) {
                 $extensionAttributes->setAdyenConnectedTerminals($connectedTerminals['uniqueTerminalIds']);
@@ -62,6 +69,9 @@ class MagentoPaymentDetails
         return $result;
     }
 
+    /**
+     * @param PaymentMethodInterface[] $paymentMethods
+     */
     private function isAdyenPosCloudEnabled(array $paymentMethods, CartInterface $quote): bool
     {
         foreach ($paymentMethods as $paymentMethod) {
@@ -69,7 +79,7 @@ class MagentoPaymentDetails
                 continue;
             }
 
-            return $paymentMethod instanceof MethodInterface ? $paymentMethod->isAvailable($quote) : true;
+            return !$paymentMethod instanceof MethodInterface || $paymentMethod->isAvailable($quote);
         }
 
         return false;
