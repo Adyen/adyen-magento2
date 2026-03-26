@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2026 Adyen N.V. (https://www.adyen.com/)
+ * Copyright (c) 2025 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -37,7 +37,7 @@ class PaymentMethodType extends Select
     {
         if (!$this->getOptions()) {
             foreach ($this->source->toOptionArray() as $option) {
-                $this->addOption($option['value'], addslashes((string) $option['label']));
+                $this->addOption($option['value'], (string) $option['label']);
             }
         }
 
