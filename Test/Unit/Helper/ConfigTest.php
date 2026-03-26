@@ -365,6 +365,44 @@ class ConfigTest extends AbstractAdyenTestCase
         $this->assertNull($result);
     }
 
+    public function testGetWaitForAuthorisationWebhookEnabled()
+    {
+        $storeId = PHP_INT_MAX;
+
+        $path = sprintf(
+            "%s/%s/%s",
+            Config::XML_PAYMENT_PREFIX,
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            Config::XML_WAIT_FOR_AUTHORIZATION_WEBHOOK
+        );
+
+        $this->scopeConfigMock->expects($this->once())
+            ->method('isSetFlag')
+            ->with($this->equalTo($path), $this->equalTo(ScopeInterface::SCOPE_STORE), $this->equalTo($storeId))
+            ->willReturn(true);
+
+        $this->assertTrue($this->configHelper->getWaitForAuthorisationWebhook($storeId));
+    }
+
+    public function testGetWaitForAuthorisationWebhookDisabled()
+    {
+        $storeId = PHP_INT_MAX;
+
+        $path = sprintf(
+            "%s/%s/%s",
+            Config::XML_PAYMENT_PREFIX,
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            Config::XML_WAIT_FOR_AUTHORIZATION_WEBHOOK
+        );
+
+        $this->scopeConfigMock->expects($this->once())
+            ->method('isSetFlag')
+            ->with($this->equalTo($path), $this->equalTo(ScopeInterface::SCOPE_STORE), $this->equalTo($storeId))
+            ->willReturn(false);
+
+        $this->assertFalse($this->configHelper->getWaitForAuthorisationWebhook($storeId));
+    }
+
     public function testSetInstallationTime()
     {
         $installationTime = new \DateTime('2024-01-15T10:30:00+00:00');

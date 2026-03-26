@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Observer;
 
 use Adyen\Payment\Api\Data\PaymentResponseInterface;
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Logger\AdyenLogger;
@@ -28,6 +29,7 @@ readonly class AuthorizeAfterOrderPlacement implements ObserverInterface
     /**
      * @param AuthorizationHandler $authorizationHandler
      * @param AdyenPaymentResponseCollection $adyenPaymentResponseCollection
+     * @param Config $configHelper
      * @param PaymentMethods $paymentMethods
      * @param AdyenLogger $adyenLogger
      * @param OrderRepositoryInterface $orderRepository
@@ -35,9 +37,10 @@ readonly class AuthorizeAfterOrderPlacement implements ObserverInterface
     public function __construct(
         private AuthorizationHandler $authorizationHandler,
         private AdyenPaymentResponseCollection $adyenPaymentResponseCollection,
+        private Config $configHelper,
         private PaymentMethods $paymentMethods,
         private AdyenLogger $adyenLogger,
-        private OrderRepositoryInterface $orderRepository
+        private OrderRepositoryInterface $orderRepository,
     ) {}
 
     /**
@@ -49,7 +52,9 @@ readonly class AuthorizeAfterOrderPlacement implements ObserverInterface
         /** @var Order $order */
         $order = $observer->getData('order');
 
-        if (!$this->paymentMethods->isAdyenPayment($order->getPayment()->getMethod())) {
+        if (!$this->paymentMethods->isAdyenPayment($order->getPayment()->getMethod()) ||
+            $this->configHelper->getWaitForAuthorisationWebhook($order->getStoreId())
+        ) {
             return;
         }
 

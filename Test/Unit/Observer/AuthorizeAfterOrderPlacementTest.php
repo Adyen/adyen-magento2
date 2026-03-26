@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Test\Unit\Observer;
 
 use Adyen\Payment\Api\Data\PaymentResponseInterface;
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Logger\AdyenLogger;
@@ -31,6 +32,7 @@ class AuthorizeAfterOrderPlacementTest extends AbstractAdyenTestCase
     private AuthorizeAfterOrderPlacement $authorizeAfterOrderPlacement;
     private AuthorizationHandler|MockObject $authorizationHandlerMock;
     private AdyenPaymentResponseCollection|MockObject $adyenPaymentResponseCollectionMock;
+    private Config|MockObject $configHelperMock;
     private PaymentMethods|MockObject $paymentMethodsMock;
     private AdyenLogger|MockObject $adyenLoggerMock;
     private OrderRepositoryInterface|MockObject $orderRepositoryMock;
@@ -48,6 +50,8 @@ class AuthorizeAfterOrderPlacementTest extends AbstractAdyenTestCase
     {
         $this->authorizationHandlerMock = $this->createMock(AuthorizationHandler::class);
         $this->adyenPaymentResponseCollectionMock = $this->createMock(AdyenPaymentResponseCollection::class);
+        $this->configHelperMock = $this->createMock(Config::class);
+        $this->configHelperMock->method('getWaitForAuthorisationWebhook')->willReturn(false);
         $this->paymentMethodsMock = $this->createMock(PaymentMethods::class);
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
         $this->orderRepositoryMock = $this->createMock(OrderRepositoryInterface::class);
@@ -64,6 +68,7 @@ class AuthorizeAfterOrderPlacementTest extends AbstractAdyenTestCase
         $this->authorizeAfterOrderPlacement = new AuthorizeAfterOrderPlacement(
             $this->authorizationHandlerMock,
             $this->adyenPaymentResponseCollectionMock,
+            $this->configHelperMock,
             $this->paymentMethodsMock,
             $this->adyenLoggerMock,
             $this->orderRepositoryMock
@@ -101,6 +106,30 @@ class AuthorizeAfterOrderPlacementTest extends AbstractAdyenTestCase
             ->method('getPaymentResponsesWithMerchantReferences');
 
         $this->authorizeAfterOrderPlacement->execute($this->observerMock);
+    }
+
+    public function testWaitForAuthorisationWebhookEnabledReturnsEarly(): void
+    {
+        $this->paymentMock->method('getMethod')->willReturn('adyen_cc');
+        $this->paymentMethodsMock->method('isAdyenPayment')->with('adyen_cc')->willReturn(true);
+
+        $configHelperMock = $this->createMock(Config::class);
+        $configHelperMock->method('getWaitForAuthorisationWebhook')->willReturn(true);
+
+        $observer = new AuthorizeAfterOrderPlacement(
+            $this->authorizationHandlerMock,
+            $this->adyenPaymentResponseCollectionMock,
+            $configHelperMock,
+            $this->paymentMethodsMock,
+            $this->adyenLoggerMock,
+            $this->orderRepositoryMock
+        );
+
+        $this->adyenPaymentResponseCollectionMock
+            ->expects($this->never())
+            ->method('getPaymentResponsesWithMerchantReferences');
+
+        $observer->execute($this->observerMock);
     }
 
     public function testNoPaymentResponses(): void

@@ -40,6 +40,7 @@
                 <reliability_data_collection>0</reliability_data_collection>
                 <outside_checkout_data_collection>0</outside_checkout_data_collection>
                 <ignore_expire_webhook>1</ignore_expire_webhook>
+                <wait_for_authorisation_webhook>1</wait_for_authorisation_webhook>
             </adyen_abstract>
             <adyen_cc>
                 <active>0</active>

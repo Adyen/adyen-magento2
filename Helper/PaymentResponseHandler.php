@@ -61,6 +61,7 @@ class PaymentResponseHandler
      * @param OrderStatusHistory $orderStatusHistoryHelper
      * @param OrdersApi $ordersApiHelper
      * @param AuthorizationHandler $authorizationHandler
+     * @param Config $configHelper
      */
     public function __construct(
         private readonly AdyenLogger $adyenLogger,
@@ -73,6 +74,7 @@ class PaymentResponseHandler
         private readonly OrderStatusHistory $orderStatusHistoryHelper,
         private readonly OrdersApi $ordersApiHelper,
         private readonly AuthorizationHandler $authorizationHandler,
+        private readonly Config $configHelper,
     ) { }
 
     public function formatPaymentResponse(
@@ -323,7 +325,9 @@ class PaymentResponseHandler
         }
 
         // Authorize the payment based on the result code
-        if ($resultCode === self::AUTHORISED) {
+        if ($resultCode === self::AUTHORISED &&
+            !$this->configHelper->getWaitForAuthorisationWebhook($order->getStoreId())
+        ) {
             $order = $this->authorizationHandler->execute(
                 $order,
                 $paymentMethod,

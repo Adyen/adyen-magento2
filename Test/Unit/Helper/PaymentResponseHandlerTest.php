@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Test\Unit\Helper;
 
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\OrdersApi;
 use Adyen\Payment\Helper\OrderStatusHistory;
 use Adyen\Payment\Helper\PaymentResponseHandler;
@@ -52,6 +53,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
     private PaymentMethods|MockObject $paymentMethodsHelperMock;
     private OrdersApi|MockObject $ordersApiHelperMock;
     private AuthorizationHandler|MockObject $authorizationHandlerMock;
+    private Config|MockObject $configHelperMock;
 
     protected function setUp(): void
     {
@@ -66,6 +68,8 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         $orderStatusHistoryMock = $this->createMock(OrderStatusHistory::class);
         $this->ordersApiHelperMock = $this->createMock(OrdersApi::class);
         $this->authorizationHandlerMock = $this->createMock(AuthorizationHandler::class);
+        $this->configHelperMock = $this->createMock(Config::class);
+        $this->configHelperMock->method('getWaitForAuthorisationWebhook')->willReturn(false);
 
         // Other functional mocks
         $this->paymentMock  = $this->createMock(Payment::class);
@@ -96,7 +100,8 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
             $this->paymentMethodsHelperMock,
             $orderStatusHistoryMock,
             $this->ordersApiHelperMock,
-            $this->authorizationHandlerMock
+            $this->authorizationHandlerMock,
+            $this->configHelperMock
         );
     }
 
@@ -708,8 +713,94 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
     /**
      * @throws NoSuchEntityException
      * @throws AlreadyExistsException
-     * @throws InputException
+     * @throws InputException|LocalizedException
      */
+    public function testHandlePaymentsDetailsResponseAuthorisedCallsAuthorizationHandler()
+    {
+        $paymentsDetailsResponse = [
+            'resultCode' => PaymentResponseHandler::AUTHORISED,
+            'pspReference' => 'ABC123456789',
+            'paymentMethod' => [
+                'brand' => 'visa'
+            ],
+            'merchantReference' => self::MERCHANT_REFERENCE,
+            'amount' => [
+                'value' => 1000,
+                'currency' => 'EUR'
+            ]
+        ];
+
+        $this->authorizationHandlerMock->expects($this->once())
+            ->method('execute')
+            ->with(
+                $this->orderMock,
+                'visa',
+                'ABC123456789',
+                1000,
+                'EUR',
+                []
+            )
+            ->willReturn($this->orderMock);
+
+        $result = $this->paymentResponseHandler->handlePaymentsDetailsResponse(
+            $paymentsDetailsResponse,
+            $this->orderMock
+        );
+
+        $this->assertTrue($result);
+    }
+
+    /**
+     * @throws NoSuchEntityException
+     * @throws AlreadyExistsException
+     * @throws InputException|LocalizedException
+     */
+    public function testHandlePaymentsDetailsResponseAuthorisedSkipsAuthorizationWhenWaitForWebhookEnabled()
+    {
+        $configHelperMock = $this->createMock(Config::class);
+        $configHelperMock->method('getWaitForAuthorisationWebhook')->willReturn(true);
+
+        $orderHelperMock = $this->createMock(OrderHelper::class);
+        $orderHelperMock->method('setStatusOrderCreation')->willReturn($this->orderMock);
+
+        $paymentResponseHandler = new PaymentResponseHandler(
+            $this->adyenLoggerMock,
+            $this->createMock(Vault::class),
+            $this->quoteHelperMock,
+            $orderHelperMock,
+            $this->orderRepositoryMock,
+            $this->stateDataHelperMock,
+            $this->paymentMethodsHelperMock,
+            $this->createMock(OrderStatusHistory::class),
+            $this->ordersApiHelperMock,
+            $this->authorizationHandlerMock,
+            $configHelperMock
+        );
+
+        $paymentsDetailsResponse = [
+            'resultCode' => PaymentResponseHandler::AUTHORISED,
+            'pspReference' => 'ABC123456789',
+            'paymentMethod' => [
+                'brand' => 'visa'
+            ],
+            'merchantReference' => self::MERCHANT_REFERENCE,
+            'amount' => [
+                'value' => 1000,
+                'currency' => 'EUR'
+            ]
+        ];
+
+        $this->authorizationHandlerMock->expects($this->never())
+            ->method('execute');
+
+        $result = $paymentResponseHandler->handlePaymentsDetailsResponse(
+            $paymentsDetailsResponse,
+            $this->orderMock
+        );
+
+        $this->assertTrue($result);
+    }
+
     public function testHandlePaymentsDetailsResponseSetsCcType()
     {
 

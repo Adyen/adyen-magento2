@@ -54,7 +54,13 @@
             <source_model>Adyen\Payment\Model\Config\Source\Cancelled</source_model>
             <config_path>payment/adyen_abstract/payment_cancelled</config_path>
         </field>
-        <field id="send_email_bank_sepa_on_pending" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+        <field id="wait_for_authorisation_webhook" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label>Wait for authorisation webhook</label>
+            <tooltip>Wait for authorisation webhook before processing the order if enabled, otherwise process the order immediately if the resultCode is `Authorised`.</tooltip>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_abstract/wait_for_authorisation_webhook</config_path>
+        </field>
+        <field id="send_email_bank_sepa_on_pending" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Send order confirmation email for Bank Transfer/SEPA</label>
             <tooltip>Send a confirmation mail after Bank Tranfer/SEPA is placed (not yet paid). If you want these webhooks to be received, Go to Adyen Customer Area => Server Communication and add BankTransfer Pending Webhook and Direct-Debit Pending Webhook.</tooltip>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>

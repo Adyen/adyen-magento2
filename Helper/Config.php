@@ -68,6 +68,7 @@ class Config
     const XML_IGNORE_EXPIRE_WEBHOOK = 'ignore_expire_webhook';
     const XML_ADYEN_ANALYTICS_PREFIX = "adyen_analytics";
     const XML_INSTALLATION_TIME = 'installation_time';
+    const XML_WAIT_FOR_AUTHORIZATION_WEBHOOK = 'wait_for_authorisation_webhook';
 
     /**
      * @param ScopeConfigInterface $scopeConfig
@@ -726,6 +727,20 @@ class Config
             $pluginInstallationTime->format(DateTimeInterface::ISO8601_EXPANDED),
             self::XML_INSTALLATION_TIME,
             self::XML_ADYEN_ANALYTICS_PREFIX
+        );
+    }
+
+    /**
+     * @param int|null $storeId
+     * @return bool
+     */
+    public function getWaitForAuthorisationWebhook(?int $storeId = null): bool
+    {
+        return (bool) $this->getConfigData(
+            self::XML_WAIT_FOR_AUTHORIZATION_WEBHOOK,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId,
+            true
         );
     }
 
