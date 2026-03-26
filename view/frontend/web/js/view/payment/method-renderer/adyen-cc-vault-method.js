@@ -12,12 +12,10 @@
 define([
     'jquery',
     'ko',
-    'uiLayout',
     'mage/url',
     'Magento_Checkout/js/action/place-order',
     'Magento_Checkout/js/model/full-screen-loader',
     'Magento_Checkout/js/model/quote',
-    'Magento_Ui/js/model/messages',
     'Magento_Vault/js/view/payment/method-renderer/vault',
     'Magento_Checkout/js/model/error-processor',
     'Adyen_Payment/js/model/adyen-payment-service',
@@ -29,12 +27,10 @@ define([
 ], function (
     $,
     ko,
-    layout,
     url,
     placeOrderAction,
     fullScreenLoader,
     quote,
-    Messages,
     VaultComponent,
     errorProcessor,
     adyenPaymentService,
@@ -149,9 +145,10 @@ define([
             let request = result.data;
             adyenPaymentModal.hideModalLabel(this.modalLabel);
             fullScreenLoader.startLoader();
+            let popupModal = self.showModal();
 
             adyenPaymentService.paymentDetails(request, self.orderId).done(function (responseJSON) {
-                self.handleAdyenResult(responseJSON, self.orderId);
+                self.handleAdyenResult(responseJSON, self.orderId, popupModal);
             }).fail(function (response) {
                 self.closeModal(popupModal);
                 errorProcessor.process(response, self.messageContainer);
@@ -264,15 +261,24 @@ define([
             return data;
         },
 
-        handleAdyenResult: function (responseJSON, orderId) {
-            let self = this;
+        handleAdyenResult: function (responseJSON, orderId, popupModal = null) {
             const response = JSON.parse(responseJSON);
 
             if (!!response.isFinal) {
-                // Status is final redirect to the success page
-                window.location.replace(url.build(this.successPage));
+                if (['Authorised', 'Received', 'PresentToShopper'].includes(response.resultCode)) {
+                    window.location.replace(url.build(this.successPage));
+                } else {
+                    if (popupModal) {
+                        this.closeModal(popupModal);
+                    }
+
+                    this.messageContainer.addErrorMessage(response);
+                    this.isPlaceOrderActionAllowed(true);
+
+                    fullScreenLoader.stopLoader();
+                }
             } else {
-                self.handleAction(response.action, orderId);
+                this.handleAction(response.action, orderId);
             }
         },
 

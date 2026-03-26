@@ -150,7 +150,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_ideal>
@@ -175,7 +174,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
@@ -209,7 +207,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <requires_line_items>1</requires_line_items>
                 <refund_requires_capture_pspreference>1</refund_requires_capture_pspreference>
@@ -243,7 +240,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_bcmc_mobile>
@@ -267,7 +263,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_dotpay>
@@ -291,7 +286,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_amazonpay>
@@ -324,7 +318,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_googlepay>
@@ -356,7 +349,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_multibanco>
@@ -380,7 +372,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
@@ -407,7 +398,6 @@
                 <can_capture_vault>1</can_capture_vault>
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_sepadirectdebit>
@@ -484,7 +474,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_boleto>
@@ -531,7 +520,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_applepay>
@@ -581,7 +569,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
@@ -604,7 +591,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
@@ -627,7 +613,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_alipay>
@@ -649,7 +634,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_alipay_hk>
@@ -671,7 +655,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_alma>
@@ -693,7 +676,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
@@ -716,7 +698,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
@@ -739,7 +720,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_bankTransfer_BE>
@@ -761,7 +741,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_bankTransfer_CH>
@@ -783,7 +762,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_bankTransfer_DE>
@@ -805,7 +783,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_bankTransfer_GB>
@@ -827,7 +804,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_bankTransfer_IBAN>
@@ -849,7 +825,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_bankTransfer_NL>
@@ -871,7 +846,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_blik>
@@ -893,7 +867,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
@@ -916,7 +889,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_directdebit_GB>
@@ -938,7 +910,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_directEbanking>
@@ -968,7 +939,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_ebanking_FI>
@@ -990,7 +960,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_econtext_atm>
@@ -1012,7 +981,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_econtext_online>
@@ -1034,7 +1002,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_econtext_seven_eleven>
@@ -1056,7 +1023,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_econtext_stores>
@@ -1078,7 +1044,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_entercash>
@@ -1100,7 +1065,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_eps>
@@ -1130,7 +1094,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
@@ -1153,7 +1116,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
@@ -1176,7 +1138,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
@@ -1199,7 +1160,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
@@ -1222,7 +1182,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_giropay>
@@ -1252,7 +1211,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <requires_line_items>1</requires_line_items>
                 <group>adyen-alternative-payment-method</group>
@@ -1275,7 +1233,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <requires_line_items>1</requires_line_items>
                 <group>adyen-alternative-payment-method</group>
@@ -1298,7 +1255,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <requires_line_items>1</requires_line_items>
                 <group>adyen-alternative-payment-method</group>
@@ -1321,7 +1277,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_kakaopay>
@@ -1347,7 +1302,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
@@ -1378,7 +1332,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
@@ -1409,7 +1362,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_mbway>
@@ -1431,7 +1383,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_molpay_cash>
@@ -1453,7 +1404,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_molpay_ebanking_fpx_MY>
@@ -1475,7 +1425,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_molpay_ebanking_TH>
@@ -1497,7 +1446,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_onlineBanking_CZ>
@@ -1519,7 +1467,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_onlineBanking_PL>
@@ -1541,7 +1488,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_onlineBanking_SK>
@@ -1563,7 +1509,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
@@ -1586,7 +1531,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_paybybank>
@@ -1616,7 +1560,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_pix>
@@ -1639,7 +1582,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
@@ -1662,7 +1604,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
@@ -1685,7 +1626,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_swish>
@@ -1707,7 +1647,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_trustly>
@@ -1729,7 +1668,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_twint>
@@ -1759,7 +1697,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>0</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
@@ -1782,7 +1719,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_wechatpayWeb>
@@ -1804,7 +1740,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_wechatpayQR>
@@ -1826,7 +1761,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>1</is_wallet>
                 <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
@@ -1857,7 +1791,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_gcash>
@@ -1887,7 +1820,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_oxxo>
@@ -1909,7 +1841,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_doku_paymentmethods>
@@ -1931,7 +1862,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_carnet>
@@ -1961,7 +1891,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>0</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
@@ -1984,7 +1913,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_paysafecard>
@@ -2006,7 +1934,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_momo_wallet>
@@ -2036,7 +1963,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_touchngo>
@@ -2058,7 +1984,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_bcmc>
@@ -2088,7 +2013,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_cashapp>
@@ -2118,7 +2042,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
@@ -2141,7 +2064,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_mobilepay>
@@ -2163,7 +2085,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_vipps>
@@ -2185,7 +2106,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_bizum>
@@ -2207,7 +2127,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_ach>
@@ -2229,7 +2148,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_onlinebanking_IN>
@@ -2251,7 +2169,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_paypo>
@@ -2273,7 +2190,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_wallet_IN>
@@ -2295,7 +2211,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_upi>
@@ -2317,7 +2232,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>0</supports_auto_capture>
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_dana>
@@ -2347,7 +2261,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_kcp_naverpay>
@@ -2369,7 +2282,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_kcp_payco>
@@ -2391,7 +2303,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_kcp_creditcard>
@@ -2413,7 +2324,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_doku_alfamart>
@@ -2435,7 +2345,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_doku_permata_lite_atm>
@@ -2457,7 +2366,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_doku_bca_va>
@@ -2479,7 +2387,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_doku_bni_va>
@@ -2501,7 +2408,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_doku_bri_va>
@@ -2523,7 +2429,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_doku_cimb_va>
@@ -2545,7 +2450,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_doku_danamon_va>
@@ -2567,7 +2471,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_doku_indomaret>
@@ -2589,7 +2492,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_doku_mandiri_va>
@@ -2612,7 +2514,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
@@ -2636,7 +2537,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>0</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
@@ -2671,7 +2571,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>0</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
@@ -2703,7 +2602,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>1</is_open_invoice>
                 <refund_requires_capture_pspreference>1</refund_requires_capture_pspreference>
@@ -2728,7 +2626,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>1</is_open_invoice>
                 <refund_requires_capture_pspreference>1</refund_requires_capture_pspreference>
@@ -2753,7 +2650,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>0</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
@@ -2777,7 +2673,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>1</is_open_invoice>
                 <group>adyen-alternative-payment-method</group>
@@ -2801,7 +2696,6 @@
                 <can_cancel>1</can_cancel>
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>0</supports_manual_capture>
-                <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>0</is_open_invoice>
                 <requires_line_items>1</requires_line_items>

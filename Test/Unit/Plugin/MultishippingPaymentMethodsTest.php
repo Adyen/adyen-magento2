@@ -103,7 +103,7 @@ class MultishippingPaymentMethodsTest extends AbstractAdyenTestCase
 
         $this->paymentMethodsFilterMock->expects($this->once())
             ->method('sortAndFilterPaymentMethods')
-            ->willReturn([$filteredMethods]);
+            ->willReturn($filteredMethods);
 
         $this->paymentMethodsMock->expects($this->once())
             ->method('getApiResponse')

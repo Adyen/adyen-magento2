@@ -461,7 +461,8 @@ class Data extends AbstractHelper
         $hasPlatformIntegrator = $this->configHelper->getHasPlatformIntegrator();
         $platformIntegratorName = $this->configHelper->getPlatformIntegratorName();
         $platformIntegrator = ($hasPlatformIntegrator && $platformIntegratorName) ? $platformIntegratorName : '';
-        $client->setExternalPlatform($platformData['name'], $platformData['version'], $platformIntegrator);
+        $platformName = $platformData['name'] . ' ' . $platformData['edition'];
+        $client->setExternalPlatform($platformName, $platformData['version'], $platformIntegrator);
 
         if ($isDemo) {
             $client->setEnvironment(Environment::TEST);
