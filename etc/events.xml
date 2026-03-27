@@ -362,4 +362,7 @@
     <event name="adyen_analytics_event">
         <observer name="adyen_analytics_observer" instance="Adyen\Payment\Observer\AnalyticsEventObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_iris">
+        <observer name="adyen_iris_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPaymentMethodDataAssignObserver" />
+    </event>
 </config>

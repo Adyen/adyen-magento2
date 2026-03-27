@@ -15,7 +15,10 @@ use Adyen\AdyenException;
 use Magento\Checkout\Api\Data\PaymentDetailsInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Payment\Model\MethodInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Api\Data\CartInterface;
+use Magento\Quote\Api\Data\PaymentMethodInterface;
 
 class MagentoPaymentDetails
 {
@@ -44,7 +47,7 @@ class MagentoPaymentDetails
     {
         $quote = $this->cartRepository->get($cartId);
         $storeId = $quote->getStoreId();
-        $isAdyenPosCloudEnabled = $this->configHelper->getAdyenPosCloudConfigData('active', $storeId, true);
+        $isAdyenPosCloudEnabled = $this->isAdyenPosCloudEnabled($result->getPaymentMethods() ?? [], $quote);
 
         if (!$this->configHelper->getIsPaymentMethodsActive($storeId) && !$isAdyenPosCloudEnabled) {
             return $result;
@@ -64,5 +67,21 @@ class MagentoPaymentDetails
         $result->setExtensionAttributes($extensionAttributes);
 
         return $result;
+    }
+
+    /**
+     * @param PaymentMethodInterface[] $paymentMethods
+     */
+    private function isAdyenPosCloudEnabled(array $paymentMethods, CartInterface $quote): bool
+    {
+        foreach ($paymentMethods as $paymentMethod) {
+            if ($paymentMethod->getCode() !== Config::XML_ADYEN_POS_CLOUD) {
+                continue;
+            }
+
+            return !$paymentMethod instanceof MethodInterface || $paymentMethod->isAvailable($quote);
+        }
+
+        return false;
     }
 }

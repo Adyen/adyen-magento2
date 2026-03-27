@@ -30,7 +30,7 @@ class EnablePaymentMethodsCommand extends Command
     /**
      * @throws \Exception
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $output->writeln('Starting enabling payment methods.');
         $paymentMethods = $this->paymentMethodsFactory->create();
