@@ -223,9 +223,15 @@ class AdyenOrderPaymentTest extends AbstractAdyenTestCase
 
         $adyenOrderPayment = [OrderPaymentInterface::AMOUNT => 10.33];
 
-        $order = $this->createConfiguredMock(Order::class, [
-            'getPayment' => $payment
-        ]);
+        $order = $this->createMockWithMethods(
+            Order::class,
+            ['getPayment', 'getGrandTotal', 'getPaymentAuthorizationAmount'],
+            ['getAdyenChargedCurrency']
+        );
+        $order->method('getPayment')->willReturn($payment);
+        $order->method('getAdyenChargedCurrency')->willReturn(ChargedCurrency::DISPLAY);
+        $order->method('getGrandTotal')->willReturn(10.33);
+        $order->method('getPaymentAuthorizationAmount')->willReturn(10.33);
 
         $mockOrderPaymentResourceModel = $this->createConfiguredMock(Payment::class, [
             'getLinkedAdyenOrderPayments' => [$adyenOrderPayment]

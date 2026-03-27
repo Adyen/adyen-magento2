@@ -177,18 +177,18 @@ class AdyenOrderPayment extends AbstractHelper
     }
 
     /**
-     * Check if the full amount of the order has been authorized by checking the adyen_order_payment entries
+     * Check if the full amount of the order has been authorized
      *
      * @param Order $order
      * @return bool
      */
     public function isFullAmountAuthorized(Order $order): bool
     {
-        $payment = $order->getPayment();
-        $entityId = $payment->getEntityId();
-        $authorisedAdyenOrderPayments = $this->orderPaymentResourceModel->getLinkedAdyenOrderPayments($entityId);
-
-        return $this->compareAdyenOrderPaymentsAmount($order, $authorisedAdyenOrderPayments);
+        return match ($order->getAdyenChargedCurrency()) {
+            ChargedCurrency::BASE => floatval($order->getBaseGrandTotal()) === $order->getPaymentAuthorizationAmount(),
+            ChargedCurrency::DISPLAY => floatval($order->getGrandTotal()) === $order->getPaymentAuthorizationAmount(),
+            default => false
+        };
     }
 
     /**
