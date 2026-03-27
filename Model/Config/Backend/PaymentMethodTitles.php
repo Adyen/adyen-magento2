@@ -15,6 +15,7 @@ use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Value;
 use Magento\Framework\Data\Collection\AbstractDb;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Math\Random;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
@@ -50,9 +51,10 @@ class PaymentMethodTitles extends Value
 
     /**
      * Serialize the dynamic table rows before saving to the database.
-     * Duplicate payment method types are deduplicated (last row wins).
+     * Throws an exception if duplicate payment method types are detected.
      *
      * @return $this
+     * @throws LocalizedException
      */
     public function beforeSave(): static
     {
@@ -74,6 +76,12 @@ class PaymentMethodTitles extends Value
 
             if ($type === '' || $title === '') {
                 continue;
+            }
+
+            if (isset($result[$type])) {
+                throw new LocalizedException(
+                    __('Duplicate payment method override: "%1". Each payment method can only have one title override.', $type)
+                );
             }
 
             $result[$type] = $title;

@@ -388,4 +388,55 @@ class ConfigTest extends AbstractAdyenTestCase
 
         $this->configHelper->setInstallationTime($installationTime);
     }
+
+    public function testGetPaymentMethodTitleOverridesReturnsDeserializedArray(): void
+    {
+        $serialized = '{"scheme":"Kreditkarte","ideal":"iDEAL"}';
+        $expected = ['scheme' => 'Kreditkarte', 'ideal' => 'iDEAL'];
+
+        $this->scopeConfigMock->method('getValue')
+            ->willReturn($serialized);
+
+        $this->serializerMock->expects($this->once())
+            ->method('unserialize')
+            ->with($serialized)
+            ->willReturn($expected);
+
+        $this->assertSame($expected, $this->configHelper->getPaymentMethodTitleOverrides(1));
+    }
+
+    public function testGetPaymentMethodTitleOverridesReturnsEmptyArrayWhenEmpty(): void
+    {
+        $this->scopeConfigMock->method('getValue')
+            ->willReturn(null);
+
+        $this->serializerMock->expects($this->never())->method('unserialize');
+
+        $this->assertSame([], $this->configHelper->getPaymentMethodTitleOverrides(1));
+    }
+
+    public function testGetPaymentMethodTitleOverridesReturnsEmptyArrayOnInvalidJson(): void
+    {
+        $this->scopeConfigMock->method('getValue')
+            ->willReturn('invalid-json');
+
+        $this->serializerMock->expects($this->once())
+            ->method('unserialize')
+            ->willThrowException(new \InvalidArgumentException('Unable to unserialize'));
+
+        $this->assertSame([], $this->configHelper->getPaymentMethodTitleOverrides(1));
+    }
+
+    public function testGetPaymentMethodTitleOverridesReturnsEmptyArrayWhenNotArray(): void
+    {
+        $this->scopeConfigMock->method('getValue')
+            ->willReturn('"just a string"');
+
+        $this->serializerMock->expects($this->once())
+            ->method('unserialize')
+            ->with('"just a string"')
+            ->willReturn('just a string');
+
+        $this->assertSame([], $this->configHelper->getPaymentMethodTitleOverrides(1));
+    }
 }

@@ -17,7 +17,7 @@ use Magento\Framework\Exception\LocalizedException;
 
 class PaymentMethodTitles extends AbstractFieldArray
 {
-    private ?PaymentMethodType $_paymentMethodTypeRenderer = null;
+    private ?PaymentMethodType $paymentMethodTypeRenderer = null;
 
     /**
      * @return PaymentMethodType
@@ -25,15 +25,15 @@ class PaymentMethodTitles extends AbstractFieldArray
      */
     protected function getPaymentMethodTypeRenderer(): PaymentMethodType
     {
-        if (!$this->_paymentMethodTypeRenderer) {
-            $this->_paymentMethodTypeRenderer = $this->getLayout()->createBlock(
+        if (!$this->paymentMethodTypeRenderer) {
+            $this->paymentMethodTypeRenderer = $this->getLayout()->createBlock(
                 PaymentMethodType::class,
                 '',
                 ['data' => ['is_render_to_js_template' => true]]
             );
         }
 
-        return $this->_paymentMethodTypeRenderer;
+        return $this->paymentMethodTypeRenderer;
     }
 
     /**

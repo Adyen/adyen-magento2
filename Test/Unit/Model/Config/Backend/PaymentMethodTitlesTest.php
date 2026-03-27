@@ -19,6 +19,7 @@ use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Data\Collection\AbstractDb;
 use Magento\Framework\Event\ManagerInterface;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Math\Random;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
@@ -117,22 +118,38 @@ class PaymentMethodTitlesTest extends AbstractAdyenTestCase
         $this->assertSame('{"ideal":"iDEAL"}', $this->model->getData('value'));
     }
 
-    public function testBeforeSaveDeduplicatesOnLastRow(): void
+    public function testBeforeSaveThrowsExceptionOnDuplicatePaymentMethod(): void
     {
         $inputRows = [
             'row1' => ['payment_method_type' => 'scheme', 'title' => 'Cards'],
             'row2' => ['payment_method_type' => 'scheme', 'title' => 'Kreditkarte'],
         ];
 
+        $this->serializerMock->expects($this->never())->method('serialize');
+
+        $this->model->setData('value', $inputRows);
+
+        $this->expectException(LocalizedException::class);
+        $this->expectExceptionMessage('Duplicate payment method override: "scheme"');
+        $this->model->beforeSave();
+    }
+
+    public function testBeforeSaveSkipsNonArrayRowEntries(): void
+    {
+        $inputRows = [
+            'row1' => 'not-an-array',
+            'row2' => ['payment_method_type' => 'ideal', 'title' => 'iDEAL'],
+        ];
+
         $this->serializerMock->expects($this->once())
             ->method('serialize')
-            ->with(['scheme' => 'Kreditkarte'])
-            ->willReturn('{"scheme":"Kreditkarte"}');
+            ->with(['ideal' => 'iDEAL'])
+            ->willReturn('{"ideal":"iDEAL"}');
 
         $this->model->setData('value', $inputRows);
         $this->model->beforeSave();
 
-        $this->assertSame('{"scheme":"Kreditkarte"}', $this->model->getData('value'));
+        $this->assertSame('{"ideal":"iDEAL"}', $this->model->getData('value'));
     }
 
     public function testBeforeSaveWithNonArrayValueReturnsEarly(): void
