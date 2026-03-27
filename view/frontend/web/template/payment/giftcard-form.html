@@ -43,6 +43,7 @@
             <!--/ko-->
         </div>
 
+        <!-- ko if: billingAddressAvailable -->
         <div data-bind="attr: {'id': getCode() + '_new_giftcard_wrapper'}">
             <div class="field" data-bind="attr: {'id': getCode() + '_giftcard_button_wrapper'}, visible: canAddNewGiftCard">
                 <button data-bind="click: addNewGiftcard, attr: {'class': 'adyen-checkout__button'}">
@@ -59,6 +60,7 @@
                 </select>
             </div>
         </div>
+        <!-- /ko -->
 
         <h2 data-bind="attr: {'class': 'adyen-giftcard-header'}, visible: giftcardTitle, text: giftcardTitle"></h2>
         <div class="field" data-bind="attr: {'id': 'giftcard-component-wrapper'}"></div>

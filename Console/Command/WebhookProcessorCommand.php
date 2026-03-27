@@ -31,7 +31,7 @@ class WebhookProcessorCommand extends Command
     /**
      * @throws \Exception
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $output->writeln('Starting webhook processor.');
         try {

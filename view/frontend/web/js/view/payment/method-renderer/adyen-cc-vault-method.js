@@ -126,18 +126,28 @@ define([
 
         // Build AdyenCheckout library and creates the payment method component
         createCheckoutComponent: async function() {
-            if (!this.checkoutComponent) {
-                const paymentMethodsResponse = adyenPaymentService.getPaymentMethods();
-                const countryCode = quote.billingAddress().countryId;
+            const billingAddressObservable = quote.billingAddress;
+            let self = this;
 
-                this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
-                    paymentMethodsResponse(),
-                    countryCode,
-                    this.handleOnAdditionalDetails.bind(this)
-                );
+            if (billingAddressObservable() && billingAddressObservable().countryId) {
+                if (!this.checkoutComponent) {
+                    const paymentMethodsResponse = adyenPaymentService.getPaymentMethods();
+
+                    this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
+                        paymentMethodsResponse(),
+                        billingAddressObservable().countryId,
+                        this.handleOnAdditionalDetails.bind(this)
+                    );
+                }
+
+                this.renderCheckoutComponent();
+            } else {
+                billingAddressObservable.subscribe(function (updatedBillingAddress) {
+                    if (updatedBillingAddress && updatedBillingAddress.countryId) {
+                        self.createCheckoutComponent();
+                    }
+                });
             }
-
-            this.renderCheckoutComponent();
         },
 
         handleOnAdditionalDetails: function (result) {
