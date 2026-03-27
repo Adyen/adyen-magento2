@@ -118,13 +118,39 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
      */
     public function testFormatPaymentResponseForFinalResultCodes($resultCode)
     {
+        $result = $this->paymentResponseHandler->formatPaymentResponse($resultCode);
+
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('isFinal', $result);
+        $this->assertArrayHasKey('resultCode', $result);
+
+        if ($resultCode === PaymentResponseHandler::AUTHORISED) {
+            $this->assertArrayHasKey('canDonate', $result);
+        } elseif (
+            in_array($resultCode, [PaymentResponseHandler::CANCELLED, PaymentResponseHandler::REFUSED])) {
+            $this->assertArrayNotHasKey('canDonate', $result);
+            $this->assertArrayHasKey('message', $result);
+            $this->assertEquals($result['message'], sprintf("The payment is %s.", strtoupper($resultCode)));
+        }
+    }
+
+    /**
+     * @return void
+     */
+    public function testFormatPaymentResponseForAuthorisedWithDonationToken()
+    {
         $expectedResult = [
             "isFinal" => true,
-            "resultCode" => $resultCode
+            "resultCode" => PaymentResponseHandler::AUTHORISED,
+            "canDonate" => true
         ];
 
         // Execute method of the tested class
-        $result = $this->paymentResponseHandler->formatPaymentResponse($resultCode);
+        $result = $this->paymentResponseHandler->formatPaymentResponse(
+            PaymentResponseHandler::AUTHORISED,
+            null,
+            true
+        );
 
         // Assert conditions
         $this->assertEquals($expectedResult, $result);

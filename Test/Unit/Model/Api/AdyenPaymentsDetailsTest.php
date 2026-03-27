@@ -85,10 +85,8 @@ class AdyenPaymentsDetailsTest extends AbstractAdyenTestCase
 
     public function testInvalidDetailsCall()
     {
-        $this->expectException(ValidatorException::class);
-
         $payload = '{"someData":"someValue"}';
-        $result = ['resultCode' => 'Authorised'];
+        $result = ['resultCode' => 'Refused'];
         $orderId = 1;
 
         $this->orderRepositoryMock
@@ -103,8 +101,12 @@ class AdyenPaymentsDetailsTest extends AbstractAdyenTestCase
             ->method('handlePaymentsDetailsResponse')
             ->willReturn(false);
 
-        $this->adyenPaymentsDetails->initiate($payload, $orderId);
+        $response = $this->adyenPaymentsDetails->initiate($payload, $orderId);
+        $decodedResponse = json_decode($response, true);
+
+        $this->assertJson($response);
+        $this->assertArrayHasKey('isFinal', $decodedResponse);
+        $this->assertArrayHasKey('resultCode', $decodedResponse);
+        $this->assertArrayHasKey('message', $decodedResponse);
     }
-
-
 }

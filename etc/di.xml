@@ -1147,6 +1147,7 @@
                 <item name="payment" xsi:type="string">Adyen\Payment\Gateway\Request\PaymentDataBuilder</item>
                 <item name="description" xsi:type="string">Adyen\Payment\Gateway\Request\DescriptionDataBuilder</item>
                 <item name="transaction" xsi:type="string">Adyen\Payment\Gateway\Request\CheckoutDataBuilder</item>
+                <item name="installmentOptions" xsi:type="string">Adyen\Payment\Gateway\Request\InstallmentOptionsDataBuilder</item>
                 <item name="header" xsi:type="string">Adyen\Payment\Gateway\Request\Header\HeaderDataBuilder</item>
                 <item name="company" xsi:type="string">Adyen\Payment\Gateway\Request\CompanyDataBuilder</item>
                 <item name="line_items" xsi:type="string">Adyen\Payment\Gateway\Request\LineItemsDataBuilder</item>
@@ -1535,6 +1536,11 @@
         </arguments>
     </type>
     <type name="Adyen\Payment\Model\Config\Backend\Installments">
+        <arguments>
+            <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
+        </arguments>
+    </type>
+    <type name="Adyen\Payment\Gateway\Request\InstallmentOptionsDataBuilder">
         <arguments>
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>

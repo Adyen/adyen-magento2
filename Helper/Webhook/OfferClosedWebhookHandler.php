@@ -96,18 +96,30 @@ class OfferClosedWebhookHandler implements WebhookHandlerInterface
             return $order;
         }
 
-        // Move the order from PAYMENT_REVIEW to NEW, so that it can be cancelled
-        if (!$order->isCanceled()
-            && !$order->canCancel()
-            && $this->configHelper->getNotificationsCanCancel($order->getStoreId())
-        ) {
-            $order->setState(MagentoOrder::STATE_NEW);
+        if ($order->isCanceled()) {
+            $message = __('The order has already been cancelled. Skipping the %1 webhook.',
+                $notification->getEventCode());
+
+            $this->adyenLogger->addAdyenNotification($message, [
+                'pspReference' => $notification->getPspreference(),
+                'merchantReference' => $notification->getMerchantReference()
+            ]);
+
+            $order->addCommentToStatusHistory($message);
+        } else {
+            // Move the order from PAYMENT_REVIEW to NEW, so that it can be cancelled
+            if (!$order->isCanceled()
+                && !$order->canCancel()
+                && $this->configHelper->getNotificationsCanCancel($order->getStoreId())
+            ) {
+                $order->setState(MagentoOrder::STATE_NEW);
+            }
+
+            $this->orderHelper->holdCancelOrder($order, true);
         }
 
         // Clean-up the data temporarily stored in `additional_information`
         $this->cleanupAdditionalInformation->execute($order->getPayment());
-
-        $this->orderHelper->holdCancelOrder($order, true);
 
         return $order;
     }

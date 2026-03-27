@@ -4,9 +4,8 @@ namespace Test\Unit\Gateway\Response;
 
 use Adyen\Payment\Helper\OrdersApi;
 use Adyen\Payment\Helper\PaymentMethods;
+use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Helper\Vault;
-use Adyen\Payment\Model\Method\TxVariant;
-use Adyen\Payment\Model\Method\TxVariantFactory;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Payment\Gateway\Response\CheckoutPaymentsResponseHandler;
 use Magento\Payment\Gateway\Data\OrderAdapterInterface;
@@ -23,23 +22,20 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
     private Order|MockObject $orderMock;
     private PaymentDataObject|MockObject $paymentDataObject;
     private Vault|MockObject $vaultMock;
-    private PaymentMethods|MockObject $paymentMethodsMock;
+    private PaymentResponseHandler|MockObject $paymentResponseHandlerMock;
     private OrdersApi|MockObject $ordersApiHelperMock;
-    private TxVariantFactory|MockObject $txVariantFactoryMock;
     private array $handlingSubject;
 
     protected function setUp(): void
     {
         $this->vaultMock = $this->createMock(Vault::class);
-        $this->paymentMethodsMock = $this->createMock(PaymentMethods::class);
+        $this->paymentResponseHandlerMock = $this->createMock(PaymentResponseHandler::class);
         $this->ordersApiHelperMock = $this->createMock(OrdersApi::class);
-        $this->txVariantFactoryMock = $this->createMock(TxVariantFactory::class);
 
         $this->checkoutPaymentsDetailsHandler = new CheckoutPaymentsResponseHandler(
             $this->vaultMock,
-            $this->paymentMethodsMock,
-            $this->ordersApiHelperMock,
-            $this->txVariantFactoryMock
+            $this->paymentResponseHandlerMock,
+            $this->ordersApiHelperMock
         );
 
         $paymentMethodInstance = $this->createMock(MethodInterface::class);
@@ -83,15 +79,10 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
             ->method('setCanSendNewEmailFlag')
             ->with(false);
 
-        $this->paymentMock
-            ->expects($this->atLeastOnce())
-            ->method('setAdditionalInformation')
-            ->willReturnCallback(function ($key, $value) use ($donationToken) {
-                if ($key === 'donationToken') {
-                    $this->assertEquals($donationToken, $value);
-                }
-                return null;
-            });
+        $this->paymentResponseHandlerMock
+            ->expects($this->once())
+            ->method('setPaymentAdditionalInformation')
+            ->with($this->paymentMock, $responseCollection[0]);
 
         $this->applyGenericMockExpectations();
 
@@ -136,8 +127,10 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
 
         $this->applyGenericMockExpectations();
 
-        $this->paymentMethodsMock->method('isWalletPaymentMethod')->willReturn(true);
-        $this->paymentMock->expects($this->once())->method('setCcType')->with($walletBrand);
+        $this->paymentResponseHandlerMock
+            ->expects($this->once())
+            ->method('setPaymentAdditionalInformation')
+            ->with($this->paymentMock, $responseCollection[0]);
 
         $this->checkoutPaymentsDetailsHandler->handle($this->handlingSubject, $responseCollection);
     }
@@ -164,6 +157,11 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
             ->expects($this->never())
             ->method('setCanSendNewEmailFlag')
             ->with(false);
+
+        $this->paymentResponseHandlerMock
+            ->expects($this->once())
+            ->method('setPaymentAdditionalInformation')
+            ->with($this->paymentMock, $responseCollection[0]);
 
         $this->applyGenericMockExpectations();
 
@@ -197,18 +195,10 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
             ]
         ];
 
-        $this->paymentMock
-            ->expects($this->atLeastOnce())
-            ->method('setAdditionalInformation')
-            ->willReturnCallback(function ($key, $value) use ($actionData, $detailsData) {
-                if ($key === 'action') {
-                    $this->assertEquals($actionData, $value);
-                }
-                if ($key === 'details') {
-                    $this->assertEquals($detailsData, $value);
-                }
-                return null;
-            });
+        $this->paymentResponseHandlerMock
+            ->expects($this->once())
+            ->method('setPaymentAdditionalInformation')
+            ->with($this->paymentMock, $responseCollection[0]);
 
         $this->applyGenericMockExpectations();
 
@@ -237,6 +227,11 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
             ->expects($this->atLeastOnce())
             ->method('getCheckoutApiOrder')
             ->willReturn($checkoutApiOrderData);
+
+        $this->paymentResponseHandlerMock
+            ->expects($this->once())
+            ->method('setPaymentAdditionalInformation')
+            ->with($this->paymentMock, $responseCollection[0]);
 
         // Verify that checkout API order data is stored in payment additional information
         $this->paymentMock
@@ -292,7 +287,12 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
             ->method('setCanSendNewEmailFlag')
             ->with(false);
 
-        // validate whether the psp reference of the last payment method is used when setting these values.
+        // validate that setPaymentAdditionalInformation is called with the last response item
+        $this->paymentResponseHandlerMock
+            ->expects($this->once())
+            ->method('setPaymentAdditionalInformation')
+            ->with($this->paymentMock, $responseCollection[1]);
+
         $this->paymentMock
             ->expects($this->once())
             ->method('setCcTransId')
@@ -307,13 +307,6 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
             ->expects($this->once())
             ->method('setTransactionId')
             ->with('ABC12345');
-
-        $this->paymentMock->expects($this->any())
-            ->method('setAdditionalInformation')
-            ->willReturnMap([
-                ['cc_type', 'VI', null],
-                ['resultCode', 'Authorised', null],
-            ]);
 
         $this->applyGenericMockExpectations();
 

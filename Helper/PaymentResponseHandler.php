@@ -14,7 +14,6 @@ namespace Adyen\Payment\Helper;
 use Adyen\Payment\Helper\Order as AdyenOrderHelper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Method\TxVariantFactory;
-use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use Exception;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\InputException;
@@ -23,6 +22,7 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\Order as OrderModel;
+use Magento\Sales\Model\Order\Payment;
 
 class PaymentResponseHandler
 {
@@ -78,11 +78,23 @@ class PaymentResponseHandler
 
     public function formatPaymentResponse(
         string $resultCode,
-        ?array $action = null
+        ?array $action = null,
+        ?bool $donationTokenExists = false
     ): array {
         switch ($resultCode) {
             case self::AUTHORISED:
+                return [
+                    "isFinal" => true,
+                    "resultCode" => $resultCode,
+                    "canDonate" => $donationTokenExists
+                ];
             case self::REFUSED:
+            case self::CANCELLED:
+                return [
+                    "isFinal" => true,
+                    "resultCode" => $resultCode,
+                    "message" => __("The payment is %1.", strtoupper($resultCode))
+                ];
             case self::ERROR:
             case self::POS_SUCCESS:
                 return [
@@ -114,6 +126,63 @@ class PaymentResponseHandler
     }
 
     /**
+     * Set payment additional information from an Adyen API response.
+     *
+     * @param Payment $payment
+     * @param array $response
+     * @return void
+     */
+    public function setPaymentAdditionalInformation(
+        Payment $payment,
+        array $response
+    ): void {
+        $keysToSet = [
+            'resultCode',
+            'pspReference',
+            'action',
+            'additionalData',
+            'details',
+            'donationToken'
+        ];
+
+        foreach ($keysToSet as $key) {
+            if (!empty($response[$key])) {
+                $payment->setAdditionalInformation($key, $response[$key]);
+            }
+        }
+
+        //Check magento Payment Method
+        $paymentMethodInstance = $payment->getMethodInstance();
+        $isWalletPaymentMethod = $this->paymentMethodsHelper->isWalletPaymentMethod($paymentMethodInstance);
+        $isCardPaymentMethod = in_array(
+            $payment->getMethod(),
+            [PaymentMethods::ADYEN_CC, PaymentMethods::ADYEN_CC_VAULT],
+            true
+        );
+
+        if (!empty($paymentsDetailsResponse['paymentMethod'])) {
+            if ($isWalletPaymentMethod) {
+                // Extract the scheme card brand from the wallet payment response
+                $txVariant = $this->txVariantFactory->create([
+                    'txVariant' => $paymentsDetailsResponse['paymentMethod']['brand']
+                ]);
+
+                $ccType = $txVariant->getCard();
+            } elseif ($isCardPaymentMethod) {
+                // `brand` always refers to the scheme card brand, use it as is
+                $ccType = $paymentsDetailsResponse['paymentMethod']['brand'];
+            }
+
+            if (isset($ccType)) {
+                $payment->setCcType($ccType);
+            } else {
+                // Cleanup ccType if not set, this might be inherited from the previous payment attempt
+                $payment->setCcType(null);
+            }
+        }
+    }
+
+    /**
      * @param array $paymentsDetailsResponse
      * @param OrderInterface $order
      * @return bool
@@ -134,15 +203,6 @@ class PaymentResponseHandler
             return false;
         }
 
-        $this->adyenLogger->addAdyenResult('Updating the order');
-        $payment = $order->getPayment();
-
-        //Check magento Payment Method
-        $paymentMethodInstance = $payment->getMethodInstance();
-        $isWalletPaymentMethod = $this->paymentMethodsHelper->isWalletPaymentMethod($paymentMethodInstance);
-        $isCardPaymentMethod = $payment->getMethod() === PaymentMethods::ADYEN_CC ||
-            $payment->getMethod() === PaymentMethods::ADYEN_CC_VAULT;
-
         $authResult = $paymentsDetailsResponse['authResult'] ?? $paymentsDetailsResponse['resultCode'] ?? null;
         if (is_null($authResult)) {
             // In case the result is unknown we log the request and don't update the history
@@ -153,57 +213,15 @@ class PaymentResponseHandler
             return false;
         }
 
-        $resultCode = $paymentsDetailsResponse['resultCode'];
-        if (!empty($resultCode)) {
-            $payment->setAdditionalInformation('resultCode', $resultCode);
-        }
+        $this->adyenLogger->addAdyenResult('Updating the order');
+        $payment = $order->getPayment();
 
-        if (!empty($paymentsDetailsResponse['action'])) {
-            $payment->setAdditionalInformation('action', $paymentsDetailsResponse['action']);
-        }
-
-        if (!empty($paymentsDetailsResponse['additionalData'])) {
-            $payment->setAdditionalInformation('additionalData', $paymentsDetailsResponse['additionalData']);
-        }
-
-        if (!empty($paymentsDetailsResponse['pspReference'])) {
-            $payment->setAdditionalInformation('pspReference', $paymentsDetailsResponse['pspReference']);
-        }
-
-        if (!empty($paymentsDetailsResponse['details'])) {
-            $payment->setAdditionalInformation('details', $paymentsDetailsResponse['details']);
-        }
-
-        if (!empty($paymentsDetailsResponse['donationToken'])) {
-            $payment->setAdditionalInformation('donationToken', $paymentsDetailsResponse['donationToken']);
-        }
-
-        // `ccType` is set on card or wallet payments only.
-        if (!empty($paymentsDetailsResponse['paymentMethod'])) {
-            if ($this->paymentMethodsHelper->isWalletPaymentMethod($paymentMethodInstance)) {
-                // Extract the scheme card brand from the wallet payment response
-                $txVariant = $this->txVariantFactory->create([
-                    'txVariant' => $paymentsDetailsResponse['paymentMethod']['brand']
-                ]);
-
-                $ccType = $txVariant->getCard();
-            } elseif (in_array($payment->getMethod(), [PaymentMethods::ADYEN_CC, PaymentMethods::ADYEN_CC_VAULT])) {
-                // `brand` always refers to the scheme card brand, use it as is
-                $ccType = $paymentsDetailsResponse['paymentMethod']['brand'];
-            }
-
-            if (isset($ccType)) {
-                $payment->setAdditionalInformation(AdyenCcDataAssignObserver::CC_TYPE, $ccType);
-                $payment->setCcType($ccType);
-            } else {
-                // Cleanup ccType if not set, this might be inherited from the previous payment attempt
-                $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::CC_TYPE);
-                $payment->setCcType(null);
-            }
-        }
+        $this->setPaymentAdditionalInformation($payment, $paymentsDetailsResponse);
 
         // Handle recurring details
         $this->vaultHelper->handlePaymentResponseRecurringDetails($payment, $paymentsDetailsResponse);
+
+        $resultCode = $paymentsDetailsResponse['resultCode'];
 
         // If the response is valid, update the order status.
         if (!in_array($resultCode, PaymentResponseHandler::ACTION_REQUIRED_STATUSES) && $order->getState() === OrderModel::STATE_PENDING_PAYMENT) {

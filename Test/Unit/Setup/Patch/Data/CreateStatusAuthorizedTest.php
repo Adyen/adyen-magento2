@@ -17,12 +17,8 @@ use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\App\Config\ReinitableConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\DB\Adapter\AdapterInterface;
-use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\DB\Select;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
-use Magento\Sales\Model\Order\Status;
-use Magento\Sales\Model\Order\StatusFactory;
-use Magento\Sales\Model\ResourceModel\Order\Status as StatusResource;
-use Magento\Sales\Model\ResourceModel\Order\StatusFactory as StatusResourceFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 
 class CreateStatusAuthorizedTest extends AbstractAdyenTestCase
@@ -32,47 +28,43 @@ class CreateStatusAuthorizedTest extends AbstractAdyenTestCase
     protected WriterInterface|MockObject $configWriteMock;
     protected ReinitableConfigInterface|MockObject $reinitableConfigMock;
     protected DataPatch|MockObject $dataPatchHelperMock;
-    protected StatusFactory|MockObject $statusFactoryMock;
-    protected StatusResourceFactory|MockObject $statusResourceFactoryMock;
-    protected StatusResource|MockObject $statusResourceMock;
+    protected AdapterInterface|MockObject $connectionMock;
 
     /**
      * @return void
      */
     protected function setUp():void
     {
+        $selectMock = $this->createMock(Select::class);
+        $selectMock->method('from')->willReturnSelf();
+        $selectMock->method('where')->willReturnSelf();
+
+        $this->connectionMock = $this->createMock(AdapterInterface::class);
+        $this->connectionMock->method('select')->willReturn($selectMock);
+
         $this->moduleDataSetupMock = $this->createConfiguredMock(ModuleDataSetupInterface::class, [
-            'getConnection' => $this->createMock(AdapterInterface::class)
+            'getConnection' => $this->connectionMock,
+            'getTable' => 'sales_order_status'
         ]);
         $this->configWriteMock = $this->createMock(WriterInterface::class);
         $this->reinitableConfigMock = $this->createMock(ReinitableConfigInterface::class);
         $this->dataPatchHelperMock = $this->createConfiguredMock(DataPatch::class, [
             'findConfig' => null
         ]);
-        $this->statusResourceMock = $this->createMock(StatusResource::class);
-        $this->statusFactoryMock = $this->createGeneratedMock(StatusFactory::class, ['create']);
-        $this->statusFactoryMock->method('create')->willReturn(
-            $this->createMock(Status::class)
-        );
-        $this->statusResourceFactoryMock = $this->createGeneratedMock(StatusResourceFactory::class, [
-            'create'
-        ]);
-        $this->statusResourceFactoryMock->method('create')->willReturn($this->statusResourceMock);
 
         $this->createStatusAuthorized = new CreateStatusAuthorized(
             $this->moduleDataSetupMock,
             $this->configWriteMock,
             $this->reinitableConfigMock,
-            $this->dataPatchHelperMock,
-            $this->statusFactoryMock,
-            $this->statusResourceFactoryMock
+            $this->dataPatchHelperMock
         );
     }
 
     public function testApply()
     {
-        $this->statusResourceMock->expects($this->once())
-            ->method('save');
+        $this->connectionMock->method('fetchRow')->willReturn([]);
+        $this->connectionMock->expects($this->atLeastOnce())
+            ->method('insert');
 
         $result = $this->createStatusAuthorized->apply();
 
@@ -81,11 +73,11 @@ class CreateStatusAuthorizedTest extends AbstractAdyenTestCase
 
     public function testApplyFail()
     {
-        $this->statusResourceMock->expects($this->once())
-            ->method('save')
-            ->willThrowException(new AlreadyExistsException());
+        $this->connectionMock->method('fetchRow')->willReturn([
+            'status' => 'adyen_authorized'
+        ]);
 
-        $this->dataPatchHelperMock->expects($this->never())->method('findConfig');
+        $this->connectionMock->expects($this->never())->method('insert');
 
         $result = $this->createStatusAuthorized->apply();
 
