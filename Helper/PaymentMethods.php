@@ -19,7 +19,6 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Config\Source\CaptureMode;
 use Adyen\Payment\Model\Config\Source\RenderMode;
 use Adyen\Payment\Model\Config\Source\SepaFlow;
-use Adyen\Payment\Model\Method\TxVariant;
 use Adyen\Payment\Model\Method\TxVariantFactory;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Ui\Adminhtml\AdyenMotoConfigProvider;

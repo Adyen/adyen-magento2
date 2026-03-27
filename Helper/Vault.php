@@ -33,6 +33,7 @@ use Magento\Vault\Model\PaymentTokenManagement;
 use Magento\Vault\Model\ResourceModel\PaymentToken as PaymentTokenResourceModel;
 use Magento\Vault\Model\Ui\VaultConfigProvider;
 use Adyen\Payment\Model\Method\TxVariantFactory;
+
 class Vault
 {
     const RECURRING_DETAIL_REFERENCE = 'recurring.recurringDetailReference';
