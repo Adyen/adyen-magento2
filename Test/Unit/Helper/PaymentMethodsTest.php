@@ -1069,4 +1069,58 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
 
         $this->assertSame($cached, $result);
     }
+
+    public function testApplyPaymentMethodTitleOverridesReplacesMatchingNames(): void
+    {
+        $overrides = ['scheme' => 'Kreditkarte', 'klarna' => 'Pay Later'];
+
+        $this->configHelper->method('getPaymentMethodTitleOverrides')
+            ->with(1)
+            ->willReturn($overrides);
+
+        $paymentMethods = [
+            ['type' => 'scheme', 'name' => 'Cards'],
+            ['type' => 'klarna', 'name' => 'Klarna'],
+            ['type' => 'ideal',  'name' => 'iDEAL'],
+        ];
+
+        $result = $this->invokeMethod($this->helper, 'applyPaymentMethodTitleOverrides', [$paymentMethods, 1]);
+
+        $this->assertSame('Kreditkarte', $result[0]['name']);
+        $this->assertSame('Pay Later',   $result[1]['name']);
+        $this->assertSame('iDEAL',       $result[2]['name']);
+    }
+
+    public function testApplyPaymentMethodTitleOverridesReturnUnchangedWhenNoOverrides(): void
+    {
+        $this->configHelper->method('getPaymentMethodTitleOverrides')
+            ->with(1)
+            ->willReturn([]);
+
+        $paymentMethods = [
+            ['type' => 'scheme', 'name' => 'Cards'],
+            ['type' => 'ideal',  'name' => 'iDEAL'],
+        ];
+
+        $result = $this->invokeMethod($this->helper, 'applyPaymentMethodTitleOverrides', [$paymentMethods, 1]);
+
+        $this->assertSame('Cards', $result[0]['name']);
+        $this->assertSame('iDEAL', $result[1]['name']);
+    }
+
+    public function testApplyPaymentMethodTitleOverridesIgnoresMethodsWithoutType(): void
+    {
+        $this->configHelper->method('getPaymentMethodTitleOverrides')
+            ->willReturn(['scheme' => 'Kreditkarte']);
+
+        $paymentMethods = [
+            ['name' => 'No Type Method'],
+            ['type' => 'scheme', 'name' => 'Cards'],
+        ];
+
+        $result = $this->invokeMethod($this->helper, 'applyPaymentMethodTitleOverrides', [$paymentMethods, 1]);
+
+        $this->assertSame('No Type Method', $result[0]['name']);
+        $this->assertSame('Kreditkarte',    $result[1]['name']);
+    }
 }
