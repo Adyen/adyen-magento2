@@ -15,8 +15,6 @@ use Adyen\Payment\Helper\OrdersApi;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Helper\Vault;
-use Adyen\Payment\Model\Method\TxVariantFactory;
-use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Response\HandlerInterface;
@@ -28,7 +26,6 @@ class CheckoutPaymentsResponseHandler implements HandlerInterface
      * @param Vault $vaultHelper
      * @param PaymentResponseHandler $paymentResponseHandler
      * @param OrdersApi $ordersApi
-     * @param TxVariantFactory $txVariantFactory
      */
     public function __construct(
         private readonly Vault $vaultHelper,
