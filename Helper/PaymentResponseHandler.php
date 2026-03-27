@@ -160,17 +160,17 @@ class PaymentResponseHandler
             true
         );
 
-        if (!empty($paymentsDetailsResponse['paymentMethod'])) {
+        if (!empty($response['paymentMethod'])) {
             if ($isWalletPaymentMethod) {
                 // Extract the scheme card brand from the wallet payment response
                 $txVariant = $this->txVariantFactory->create([
-                    'txVariant' => $paymentsDetailsResponse['paymentMethod']['brand']
+                    'txVariant' => $response['paymentMethod']['brand']
                 ]);
 
                 $ccType = $txVariant->getCard();
             } elseif ($isCardPaymentMethod) {
                 // `brand` always refers to the scheme card brand, use it as is
-                $ccType = $paymentsDetailsResponse['paymentMethod']['brand'];
+                $ccType = $response['paymentMethod']['brand'];
             }
 
             if (isset($ccType)) {
