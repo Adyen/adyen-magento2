@@ -22,6 +22,7 @@ use Adyen\Payment\Helper\Order as OrderHelper;
 use Adyen\Payment\Helper\CaseManagement;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Invoice;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
@@ -874,7 +875,8 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
         $mockPaymentMethodsHelper = null,
         $mockCartRepositoryMock = null,
         $adyenNotificationRepositoryMock = null,
-        $cleanupAdditionalInformation = null
+        $cleanupAdditionalInformation = null,
+        $adyenHelper = null
     ): AuthorisationWebhookHandler {
         if (is_null($mockAdyenOrderPayment)) {
             $mockAdyenOrderPayment = $this->createMock(AdyenOrderPayment::class);
@@ -920,6 +922,10 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
             $cleanupAdditionalInformation = $this->createMock(CleanupAdditionalInformationInterface::class);
         }
 
+        if (is_null($adyenHelper)) {
+            $adyenHelper = $this->createMock(Data::class);
+        }
+
         return new AuthorisationWebhookHandler(
             $mockAdyenOrderPayment,
             $mockOrderHelper,
@@ -931,7 +937,8 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
             $mockPaymentMethodsHelper,
             $mockCartRepositoryMock,
             $adyenNotificationRepositoryMock,
-            $cleanupAdditionalInformation
+            $cleanupAdditionalInformation,
+            $adyenHelper
         );
     }
 }
