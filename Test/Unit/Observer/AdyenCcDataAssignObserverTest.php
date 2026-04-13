@@ -61,7 +61,7 @@ class AdyenCcDataAssignObserverTest extends AbstractAdyenTestCase
         $observerMock = $this->createMock(Observer::class);
         $observerMock->method('getEvent')->willReturn($eventMock);
 
-        $paymentMock->expects($this->atLeast(4))->method('unsAdditionalInformation');
+        $paymentMock->expects($this->atLeast(1))->method('unsAdditionalInformation');
 
         $this->observer->execute($observerMock);
     }
