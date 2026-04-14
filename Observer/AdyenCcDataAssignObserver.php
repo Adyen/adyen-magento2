@@ -101,9 +101,6 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
 
         // Remove the following information from the previous payment
         $paymentInfo->unsAdditionalInformation(AdyenPaymentMethodDataAssignObserver::BRAND_CODE);
-        $paymentInfo->unsAdditionalInformation(self::CC_TYPE);
-        $paymentInfo->unsAdditionalInformation(self::NUMBER_OF_INSTALLMENTS);
-        $paymentInfo->unsAdditionalInformation(self::COMBO_CARD_TYPE);
 
         // Get additional data array
         $additionalData = $data->getData(PaymentInterface::KEY_ADDITIONAL_DATA);
@@ -116,6 +113,16 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
             $additionalData,
             self::$approvedAdditionalDataKeys
         );
+
+        // Remove each CC-specific field from the previous payment only if the incoming
+        // data contains a replacement for that specific field. This prevents the placeOrder
+        // mutation from clearing data that was set by setPaymentMethodOnCart.
+        $ccSpecificKeys = [self::CC_TYPE, self::NUMBER_OF_INSTALLMENTS, self::COMBO_CARD_TYPE];
+        foreach ($ccSpecificKeys as $ccKey) {
+            if (array_key_exists($ccKey, $additionalData)) {
+                $paymentInfo->unsAdditionalInformation($ccKey);
+            }
+        }
 
         // JSON decode state data from the frontend or fetch it from the DB entity with the quote ID
         if (!empty($additionalData[self::STATE_DATA])) {
