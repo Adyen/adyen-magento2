@@ -221,9 +221,11 @@ class Vault
             $cardVariants = $this->adyenHelper->getCcTypesAltData();
 
             // Based on the CA config, card type might contain wallet type or not (ie: `mc` or `mc_googlepay`)
-            if (empty($cardVariants[$ccType])) {
+            if ($ccType !== null && empty($cardVariants[$ccType])) {
                 $validatedTxVariant = $this->txVariantFactory->create(['txVariant' => $ccType]);
-                $ccType = $validatedTxVariant->getCard();
+                if ($validatedTxVariant !== null) {
+                    $ccType = $validatedTxVariant->getCard();
+                }
             }
 
             $details = [

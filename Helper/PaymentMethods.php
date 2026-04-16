@@ -821,7 +821,7 @@ class PaymentMethods extends AbstractHelper
                 if (!empty($adyenTxVariant->getCard())) {
                     // Check the wallet method capture mode using card portion and method instance together
                     $supportsManualCapture = filter_var(
-                        $cardVariants[$txVariant]['manual_capture'] ?? false,
+                        $cardVariants[$adyenTxVariant->getCard()]['manual_capture'] ?? false,
                         FILTER_VALIDATE_BOOLEAN
                     ) && $this->supportsManualCapture($adyenTxVariant->getMethodInstance());
                 } elseif ($this->supportsManualCapture($adyenTxVariant->getMethodInstance())) {

@@ -117,7 +117,7 @@
             <manual_capture>1</manual_capture>
         </type>
         <type id="MAESTROUK" order="180">
-            <label>Laser</label>
+            <label>Maestro UK</label>
             <code_alt>maestrouk</code_alt>
             <card_type>scheme</card_type>
             <manual_capture>1</manual_capture>
