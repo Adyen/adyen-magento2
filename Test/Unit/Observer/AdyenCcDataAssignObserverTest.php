@@ -53,7 +53,8 @@ class AdyenCcDataAssignObserverTest extends AbstractAdyenTestCase
             [AbstractDataAssignObserver::MODEL_CODE, $this->paymentInfo],
         ]);
 
-        $this->paymentInfo->expects($this->exactly(2))->method('unsAdditionalInformation');
+        $this->paymentInfo->expects($this->never())->method('unsAdditionalInformation');
+        $this->paymentInfo->expects($this->never())->method('setCcType');
         $this->stateData->expects($this->never())->method('setStateData');
         $this->paymentInfo->expects($this->never())->method('setAdditionalInformation');
 
@@ -239,8 +240,8 @@ class AdyenCcDataAssignObserverTest extends AbstractAdyenTestCase
             ->with('Subscription')
             ->willReturn(true);
 
-        // unsAdditionalInformation should NOT be called for recurringProcessingModel
-        $this->paymentInfo->expects($this->exactly(2))
+        // No CC-specific keys or invalid recurringProcessingModel → unsAdditionalInformation must not be called
+        $this->paymentInfo->expects($this->never())
             ->method('unsAdditionalInformation');
 
         // recurringProcessingModel should be set as additional information
@@ -279,9 +280,10 @@ class AdyenCcDataAssignObserverTest extends AbstractAdyenTestCase
             ->with('invalid')
             ->willReturn(false);
 
-        // 2 initial calls + 1 for recurringProcessingModel
-        $this->paymentInfo->expects($this->exactly(3))
-            ->method('unsAdditionalInformation');
+        // Only recurringProcessingModel is unset (no installments/combo_card_type in request)
+        $this->paymentInfo->expects($this->once())
+            ->method('unsAdditionalInformation')
+            ->with(AdyenCcDataAssignObserver::RECURRING_PROCESSING_MODEL);
 
         // recurringProcessingModel should NOT be set as additional information
         $this->paymentInfo->expects($this->never())

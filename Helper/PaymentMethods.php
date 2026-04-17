@@ -285,6 +285,11 @@ class PaymentMethods extends AbstractHelper
             return json_encode([]);
         }
 
+        $responseData['paymentMethods'] = $this->applyPaymentMethodTitleOverrides(
+            $responseData['paymentMethods'],
+            (int) $store->getId()
+        );
+
         $paymentMethods = $responseData['paymentMethods'];
 
         $allowMultistoreTokens = $this->configHelper->getAllowMultistoreTokens($store->getId());
@@ -334,6 +339,34 @@ class PaymentMethods extends AbstractHelper
         }
 
         return $responseData;
+    }
+
+    /**
+     * Replaces the `name` field of each payment method in the API response with the
+     * merchant-configured override when one exists for the given tx-variant type.
+     * Methods without a configured override are left unchanged.
+     *
+     * @param array $paymentMethods
+     * @param int $storeId
+     * @return array
+     */
+    protected function applyPaymentMethodTitleOverrides(array $paymentMethods, int $storeId): array
+    {
+        $overrides = $this->configHelper->getPaymentMethodTitleOverrides($storeId);
+
+        if (empty($overrides)) {
+            return $paymentMethods;
+        }
+
+        foreach ($paymentMethods as &$paymentMethod) {
+            $type = $paymentMethod['type'] ?? null;
+            if ($type !== null && isset($overrides[$type])) {
+                $paymentMethod['name'] = $overrides[$type];
+            }
+        }
+        unset($paymentMethod);
+
+        return $paymentMethods;
     }
 
     /**

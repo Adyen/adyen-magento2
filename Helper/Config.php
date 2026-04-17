@@ -70,6 +70,7 @@ class Config
     const XML_IGNORE_EXPIRE_WEBHOOK = 'ignore_expire_webhook';
     const XML_ADYEN_ANALYTICS_PREFIX = "adyen_analytics";
     const XML_INSTALLATION_TIME = 'installation_time';
+    const XML_PAYMENT_METHOD_TITLE_OVERRIDES = 'payment_method_title_overrides';
 
     /**
      * @param ScopeConfigInterface $scopeConfig
@@ -752,6 +753,34 @@ class Config
             self::XML_INSTALLATION_TIME,
             self::XML_ADYEN_ANALYTICS_PREFIX
         );
+    }
+
+    /**
+     * Returns the payment method title overrides configured by the merchant as a map of
+     * `[txVariant => customTitle]`. Returns an empty array when no overrides are configured
+     * or when the stored value cannot be decoded.
+     *
+     * @param int|null $storeId
+     * @return array<string, string>
+     */
+    public function getPaymentMethodTitleOverrides(?int $storeId = null): array
+    {
+        $serialized = $this->getConfigData(
+            self::XML_PAYMENT_METHOD_TITLE_OVERRIDES,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId
+        );
+
+        if (empty($serialized)) {
+            return [];
+        }
+
+        try {
+            $result = $this->serializer->unserialize($serialized);
+            return is_array($result) ? $result : [];
+        } catch (\InvalidArgumentException $e) {
+            return [];
+        }
     }
 
     public function getConfigData(string $field, string $xmlPrefix, ?int $storeId, bool $flag = false): mixed
