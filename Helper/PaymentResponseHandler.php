@@ -13,6 +13,7 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Helper\Order as AdyenOrderHelper;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Method\TxVariantFactory;
 use Exception;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\InputException;
@@ -60,6 +61,7 @@ class PaymentResponseHandler
      * @param PaymentMethods $paymentMethodsHelper
      * @param OrderStatusHistory $orderStatusHistoryHelper
      * @param OrdersApi $ordersApiHelper
+     * @param TxVariantFactory $txVariantFactory
      */
     public function __construct(
         private readonly AdyenLogger $adyenLogger,
@@ -71,6 +73,7 @@ class PaymentResponseHandler
         private readonly PaymentMethods $paymentMethodsHelper,
         private readonly OrderStatusHistory $orderStatusHistoryHelper,
         private readonly OrdersApi $ordersApiHelper,
+        private readonly TxVariantFactory $txVariantFactory
     ) { }
 
     public function formatPaymentResponse(
@@ -157,8 +160,27 @@ class PaymentResponseHandler
             true
         );
 
-        if (!empty($response['additionalData']['paymentMethod']) && ($isWalletPaymentMethod || $isCardPaymentMethod)) {
-            $payment->setCcType($response['additionalData']['paymentMethod']);
+        if (!empty($response['paymentMethod']) && !empty($response['paymentMethod']['brand'])) {
+            if ($isWalletPaymentMethod) {
+                // Extract the scheme card brand from the wallet payment response
+                $txVariant = $this->txVariantFactory->create([
+                    'txVariant' => $response['paymentMethod']['brand']
+                ]);
+
+                if ($txVariant !== null) {
+                    $ccType = $txVariant->getCard();
+                }
+            } elseif ($isCardPaymentMethod) {
+                // `brand` always refers to the scheme card brand, use it as is
+                $ccType = $response['paymentMethod']['brand'];
+            }
+
+            if (isset($ccType)) {
+                $payment->setCcType($ccType);
+            } else {
+                // Cleanup ccType if not set, this might be inherited from the previous payment attempt
+                $payment->setCcType(null);
+            }
         }
     }
 

@@ -6,6 +6,8 @@ use Adyen\Payment\Helper\OrdersApi;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Helper\Vault;
+use Adyen\Payment\Model\Method\TxVariant;
+use Adyen\Payment\Model\Method\TxVariantFactory;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Payment\Gateway\Response\CheckoutPaymentsResponseHandler;
 use Magento\Payment\Gateway\Data\OrderAdapterInterface;
@@ -24,6 +26,7 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
     private Vault|MockObject $vaultMock;
     private PaymentResponseHandler|MockObject $paymentResponseHandlerMock;
     private OrdersApi|MockObject $ordersApiHelperMock;
+    private TxVariantFactory|MockObject $txVariantFactoryMock;
     private array $handlingSubject;
 
     protected function setUp(): void
@@ -31,6 +34,7 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
         $this->vaultMock = $this->createMock(Vault::class);
         $this->paymentResponseHandlerMock = $this->createMock(PaymentResponseHandler::class);
         $this->ordersApiHelperMock = $this->createMock(OrdersApi::class);
+        $this->txVariantFactoryMock = $this->createMock(TxVariantFactory::class);
 
         $this->checkoutPaymentsDetailsHandler = new CheckoutPaymentsResponseHandler(
             $this->vaultMock,
@@ -91,13 +95,24 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
 
     public function testIfGeneralFlowIsHandledCorrectlyForWallets()
     {
-        $walletVariant = 'visa_googlepay';
+        $walletType = 'googlepay';
+        $walletBrand = 'visa';
+
+        $walletVariant = sprintf('%s_%s', $walletBrand, $walletType);
+
+        $txVariantInterpreterMock = $this->createMock(TxVariant::class);
+        $txVariantInterpreterMock->method('getCard')->willReturn($walletBrand);
+
+        $this->txVariantFactoryMock->method('create')
+            ->with(['txVariant' => $walletVariant])
+            ->willReturn($txVariantInterpreterMock);
 
         // prepare Handler input.
         $responseCollection = [
             0 => [
-                'additionalData' => [
-                    'paymentMethod' => $walletVariant
+                'paymentMethod' => [
+                    'brand' => $walletVariant,
+                    'type' => $walletType
                 ],
                 'amount' => [],
                 'resultCode' => 'Authorised',

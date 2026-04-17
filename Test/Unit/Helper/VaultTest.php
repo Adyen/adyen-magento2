@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Vault;
@@ -28,19 +29,22 @@ use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Vault\Model\PaymentTokenManagement;
 use Magento\Vault\Model\ResourceModel\PaymentToken as PaymentTokenResourceModel;
+use Adyen\Payment\Model\Method\TxVariantFactory;
 
 class VaultTest extends AbstractAdyenTestCase
 {
-    private $vault;
-    private $adyenLogger;
-    private $paymentTokenManagement;
-    private $paymentTokenFactory;
-    private $paymentTokenRepository;
-    private $config;
-    private $paymentMethodsHelper;
-    private $stateData;
-    private $paymentTokenResourceModelMock;
-    private $orderPaymentExtensionInterfaceFactoryMock;
+    private Vault $vault;
+    private AdyenLogger $adyenLogger;
+    private PaymentTokenManagement $paymentTokenManagement;
+    private PaymentTokenFactoryInterface $paymentTokenFactory;
+    private PaymentTokenRepositoryInterface $paymentTokenRepository;
+    private Config $config;
+    private PaymentMethods $paymentMethodsHelper;
+    private StateData $stateData;
+    private PaymentTokenResourceModel $paymentTokenResourceModelMock;
+    private OrderPaymentExtensionInterfaceFactory $orderPaymentExtensionInterfaceFactoryMock;
+    private TxVariantFactory $txVariantFactory;
+    private Data $dataHelper;
 
     protected function setUp(): void
     {
@@ -57,6 +61,8 @@ class VaultTest extends AbstractAdyenTestCase
         $this->paymentTokenResourceModelMock = $this->createMock(PaymentTokenResourceModel::class);
         $this->orderPaymentExtensionInterfaceFactoryMock =
             $this->createMock(OrderPaymentExtensionInterfaceFactory::class);
+        $this->txVariantFactory = $this->createMock(TxVariantFactory::class);
+        $this->dataHelper = $this->createMock(Data::class);
 
         $this->vault = new Vault(
             $this->adyenLogger,
@@ -67,7 +73,9 @@ class VaultTest extends AbstractAdyenTestCase
             $this->orderPaymentExtensionInterfaceFactoryMock,
             $this->config,
             $this->paymentMethodsHelper,
-            $this->stateData
+            $this->stateData,
+            $this->txVariantFactory,
+            $this->dataHelper
         );
     }
 
@@ -309,7 +317,10 @@ class VaultTest extends AbstractAdyenTestCase
 
         $payment->method('getOrder')->willReturn($order);
         $payment->method('getMethodInstance')->willReturn($adapter);
-        $payment->method('getCcType')->willReturn('googlepay');
+
+        // underscore so TxVariantInterpreter extracts card part ("mc")
+        $payment->method('getCcType')->willReturn('mc_googlepay');
+
         $payment->method('getAdditionalInformation')->willReturnCallback(function ($key) {
             $map = [
                 'additionalData' => ['cardSummary' => '9999', 'expiryDate' => '12/2031'],
@@ -320,21 +331,40 @@ class VaultTest extends AbstractAdyenTestCase
 
         $this->paymentTokenManagement->method('getByGatewayToken')->willReturn(null);
 
-        $tokenMock = $this->createMock(\Magento\Vault\Api\Data\PaymentTokenInterface::class);
-        $tokenMock->expects($this->once())->method('setType')->with(PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD);
+        $tokenMock = $this->createMock(PaymentTokenInterface::class);
+        $tokenMock->expects($this->once())->method('setType')
+            ->with(PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD);
         $tokenMock->expects($this->once())->method('setExpiresAt');
-        $tokenMock->expects($this->once())->method('setTokenDetails')
-            ->with($this->callback(fn($json) =>
-                str_contains($json, '"walletType":"googlepay"') &&
-                str_contains($json, '"maskedCC":"9999"') &&
-                str_contains($json, '"tokenType":"UnscheduledCardOnFile"')
-            ));
 
+        $tokenMock->expects($this->once())->method('setTokenDetails')
+            ->with($this->callback(function ($json) {
+                return str_contains($json, '"type":"mc"')
+                    && str_contains($json, '"walletType":"googlepay"')
+                    && str_contains($json, '"maskedCC":"9999"')
+                    && str_contains($json, '"tokenType":"UnscheduledCardOnFile"');
+            }));
+
+        $tokenMock->expects($this->once())->method('setGatewayToken')->with('storedRef');
         $this->paymentTokenFactory->method('create')->willReturn($tokenMock);
-        $this->paymentMethodsHelper->method('isWalletPaymentMethod')->willReturn(true);
+
+        // Wallet branch
+        $this->paymentMethodsHelper->method('isWalletPaymentMethod')->with($adapter)->willReturn(true);
+
+        $this->paymentMethodsHelper->expects($this->once())
+            ->method('getAlternativePaymentMethodTxVariant')
+            ->with($adapter)
+            ->willReturn('googlepay');
+
+        // Factory returns a TxVariantInterpreter mock
+        $validatedVariant = $this->createMock(\Adyen\Payment\Model\Method\TxVariant::class);
+        $validatedVariant->expects($this->once())->method('getCard')->willReturn('mc');
+
+        $this->txVariantFactory->expects($this->once())
+            ->method('create')
+            ->with(['txVariant' => 'mc_googlepay'])
+            ->willReturn($validatedVariant);
 
         $this->vault->createVaultToken($payment, 'storedRef');
-        $this->assertTrue(true);
     }
 
     public function testCreateVaultTokenForAlternativePaymentMethod(): void
@@ -362,6 +392,7 @@ class VaultTest extends AbstractAdyenTestCase
             ->with($this->callback(fn($json) =>
                 str_contains($json, '"type":"klarna"') || str_contains($json, '"type":"klarna_payments"')
             ));
+        $tokenMock->expects($this->once())->method('setGatewayToken')->with('apmRef');
 
         $this->paymentTokenFactory->method('create')->willReturn($tokenMock);
         $this->paymentMethodsHelper->method('isWalletPaymentMethod')->willReturn(false);
