@@ -63,6 +63,7 @@ class Config
     const XML_THREEDS_FLOW = 'threeds_flow';
     const XML_REMOVE_PROCESSED_WEBHOOKS = 'remove_processed_webhooks';
     const XML_PROCESSED_WEBHOOK_REMOVAL_TIME = 'processed_webhook_removal_time';
+    const XML_CLEAN_ADYEN_PAYMENT_RESPONSE = 'clean_adyen_payment_response';
     const XML_PLATFORM_INTEGRATOR = 'platform_integrator';
     const XML_HAS_PLATFORM_INTEGRATOR = 'has_platform_integrator';
     const XML_OUTSIDE_CHECKOUT_DATA_COLLECTION = 'outside_checkout_data_collection';
@@ -612,6 +613,24 @@ class Config
             self::XML_PROCESSED_WEBHOOK_REMOVAL_TIME,
             self::XML_ADYEN_ABSTRACT_PREFIX,
             null
+        );
+    }
+
+    /**
+     * Indicates whether the adyen_payment_response cleanup cronjob is enabled.
+     *
+     * This field can only be configured on default scope level as the
+     * adyen_payment_response table has no relation with the stores.
+     *
+     * @return bool
+     */
+    public function getIsPaymentResponseCleanupEnabled(): bool
+    {
+        return (bool) $this->getConfigData(
+            self::XML_CLEAN_ADYEN_PAYMENT_RESPONSE,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            null,
+            true
         );
     }
 
