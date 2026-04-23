@@ -208,6 +208,23 @@ class ConfigTest extends AbstractAdyenTestCase
         $this->assertEquals(90, $result);
     }
 
+    public function testGetIsPaymentResponseCleanupEnabled()
+    {
+        $path = sprintf(
+            "%s/%s/%s",
+            Config::XML_PAYMENT_PREFIX,
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            Config::XML_CLEAN_ADYEN_PAYMENT_RESPONSE
+        );
+
+        $this->scopeConfigMock->expects($this->once())
+            ->method('isSetFlag')
+            ->with($this->equalTo($path), $this->equalTo(ScopeInterface::SCOPE_STORE), $this->equalTo(null))
+            ->willReturn(true);
+
+        $this->assertTrue($this->configHelper->getIsPaymentResponseCleanupEnabled());
+    }
+
     public function testGetHAsPlatformIntegrator()
     {
         $hasPlatformIntegrator = true;

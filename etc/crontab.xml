@@ -33,5 +33,8 @@
         <job name="adyen_payment_clean_up_analytics_events" instance="Adyen\Payment\Cron\AnalyticsEventsCleanUp" method="execute">
             <schedule>*/5 * * * *</schedule>
         </job>
+        <job name="adyen_payment_response_clean_up" instance="Adyen\Payment\Cron\PaymentResponseCleanUp" method="execute">
+            <schedule>*/5 0 * * *</schedule>
+        </job>
     </group>
 </config>
