@@ -113,5 +113,32 @@
         "index": {
             "ADYEN_PAYMENT_RESPONSE_MERCHANT_REFERENCE": true
         }
+    },
+    "adyen_analytics_event": {
+        "column": {
+            "entity_id": true,
+            "uuid": true,
+            "relation_id": true,
+            "type": true,
+            "topic": true,
+            "message": true,
+            "error_type": true,
+            "error_code": true,
+            "error_count": true,
+            "status": true,
+            "created_at": true,
+            "updated_at": true,
+            "scheduled_processing_time": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        },
+        "index": {
+            "ADYEN_ANALYTICS_EVENT_TYPE": true,
+            "ADYEN_ANALYTICS_EVENT_STATUS": true,
+            "ADYEN_ANALYTICS_EVENT_ERROR_COUNT": true,
+            "ADYEN_ANALYTICS_EVENT_SCHEDULED_PROCESSING_TIME": true,
+            "ADYEN_ANALYTICS_EVENT_TYPE_STATUS_ERROR_COUNT_SCHEDULED_PROCESSING_TIME": true
+        }
     }
 }

@@ -37,6 +37,7 @@
                 <allow_multistore_tokens>1</allow_multistore_tokens>
                 <remove_processed_webhooks>0</remove_processed_webhooks>
                 <processed_webhook_removal_time>90</processed_webhook_removal_time>
+                <reliability_data_collection>0</reliability_data_collection>
                 <outside_checkout_data_collection>0</outside_checkout_data_collection>
                 <ignore_expire_webhook>1</ignore_expire_webhook>
             </adyen_abstract>
@@ -132,7 +133,7 @@
                 <active>0</active>
                 <model>AdyenPaymentIdealFacade</model>
                 <order_status>pending</order_status>
-                <title>iDeal</title>
+                <title>iDeal | Wero</title>
                 <allowspecific>0</allowspecific>
                 <sort_order>0</sort_order>
                 <payment_action>authorize</payment_action>
@@ -210,6 +211,7 @@
                 <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <requires_line_items>1</requires_line_items>
+                <refund_requires_capture_pspreference>1</refund_requires_capture_pspreference>
                 <group>adyen-alternative-payment-method</group>
             </adyen_paypal>
             <adyen_paypal_vault>
@@ -2703,6 +2705,7 @@
                 <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>1</is_open_invoice>
+                <refund_requires_capture_pspreference>1</refund_requires_capture_pspreference>
                 <group>adyen-alternative-payment-method</group>
             </adyen_scalapay_3x>
             <adyen_scalapay_4x>
@@ -2727,6 +2730,7 @@
                 <supports_auto_capture>1</supports_auto_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>1</is_open_invoice>
+                <refund_requires_capture_pspreference>1</refund_requires_capture_pspreference>
                 <group>adyen-alternative-payment-method</group>
             </adyen_scalapay_4x>
             <adyen_paynow>
@@ -2810,6 +2814,30 @@
                     <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
                 </instant_purchase>
             </adyen_payto_vault>
+            <adyen_iris>
+                <active>0</active>
+                <model>AdyenPaymentIrisFacade</model>
+                <title>IRIS</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>0</sort_order>
+                <payment_action>authorize</payment_action>
+                <is_gateway>1</is_gateway>
+                <can_initialize>1</can_initialize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>0</can_capture_partial>
+                <can_use_internal>0</can_use_internal>
+                <can_refund_partial_per_invoice>0</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <supports_recurring>0</supports_recurring>
+                <supports_manual_capture>0</supports_manual_capture>
+                <supports_auto_capture>1</supports_auto_capture>
+                <is_wallet>0</is_wallet>
+                <is_open_invoice>0</is_open_invoice>
+                <group>adyen-alternative-payment-method</group>
+            </adyen_iris>
         </payment>
     </default>
 </config>

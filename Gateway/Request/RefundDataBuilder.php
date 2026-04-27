@@ -171,20 +171,23 @@ class RefundDataBuilder implements BuilderInterface
                 ]
             ];
 
-            if ($method === PaymentMethods::ADYEN_PAYPAL) {
+            $requiresCapturePspreference = $this->paymentMethodsHelper->getRefundRequiresCapturePspreference(
+                $paymentMethodInstance
+            );
+
+            /*
+             * Following section adds `capturePspReference` to the refund request if the payment method requires it.
+             * This is used to link the refund to the capture on Adyen on multiple partial capture cases. Note that,
+             * AdyenInvoice only exists if the capture mode is manual. Hence, checking the existence of AdyenInvoice
+             * is sufficient to determine the capture mode.
+             */
+            if ($requiresCapturePspreference) {
                 $adyenInvoices = $this->adyenInvoiceCollection->getAdyenInvoicesLinkedToMagentoInvoice(
                     $creditMemo->getInvoiceId()
                 );
                 $firstAdyenInvoice = reset($adyenInvoices);
 
-                $isPaypalManualCapture = $this->configHelper->getConfigData(
-                    'paypal_capture_mode',
-                    'adyen_abstract',
-                    $storeId,
-                    true
-                );
-
-                if (!empty($adyenInvoices) && $isPaypalManualCapture) {
+                if ($firstAdyenInvoice !== false) {
                     $requestBody[0]['capturePspReference'] = $firstAdyenInvoice[InvoiceInterface::PSPREFERENCE];
                 }
             }

@@ -1147,6 +1147,7 @@
                 <item name="payment" xsi:type="string">Adyen\Payment\Gateway\Request\PaymentDataBuilder</item>
                 <item name="description" xsi:type="string">Adyen\Payment\Gateway\Request\DescriptionDataBuilder</item>
                 <item name="transaction" xsi:type="string">Adyen\Payment\Gateway\Request\CheckoutDataBuilder</item>
+                <item name="installmentOptions" xsi:type="string">Adyen\Payment\Gateway\Request\InstallmentOptionsDataBuilder</item>
                 <item name="header" xsi:type="string">Adyen\Payment\Gateway\Request\Header\HeaderDataBuilder</item>
                 <item name="company" xsi:type="string">Adyen\Payment\Gateway\Request\CompanyDataBuilder</item>
                 <item name="line_items" xsi:type="string">Adyen\Payment\Gateway\Request\LineItemsDataBuilder</item>
@@ -1539,9 +1540,19 @@
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
     </type>
+    <type name="Adyen\Payment\Gateway\Request\InstallmentOptionsDataBuilder">
+        <arguments>
+            <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
+        </arguments>
+    </type>
     <type name="Adyen\Payment\Model\Config\Backend\InstallmentsPosCloud">
         <arguments>
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
+        </arguments>
+    </type>
+    <type name="Adyen\Payment\Model\Config\Backend\PaymentMethodTitles">
+        <arguments>
+            <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Json</argument>
         </arguments>
     </type>
     <type name="Adyen\Payment\Gateway\Validator\InstallmentRequestValidator">
@@ -1693,6 +1704,11 @@
             </argument>
         </arguments>
     </type>
+    <type name="Adyen\Payment\Api\Data\AnalyticsEventInterface">
+        <arguments>
+            <argument name="instance" xsi:type="string">Adyen\Payment\Model\AnalyticsEvent</argument>
+        </arguments>
+    </type>
     <preference for="Adyen\Payment\Api\GuestAdyenPaymentMethodManagementInterface" type="Adyen\Payment\Model\Api\GuestAdyenPaymentMethodManagement" />
     <preference for="Adyen\Payment\Api\AdyenPaymentMethodManagementInterface" type="Adyen\Payment\Model\Api\AdyenPaymentMethodManagement" />
     <preference for="Adyen\Payment\Api\AdyenPaymentsDetailsInterface" type="Adyen\Payment\Model\Api\AdyenPaymentsDetails" />
@@ -1717,6 +1733,8 @@
     <preference for="Adyen\Payment\Api\Repository\AdyenInvoiceRepositoryInterface" type="Adyen\Payment\Model\AdyenInvoiceRepository" />
     <preference for="Adyen\Payment\Api\Repository\AdyenCreditmemoRepositoryInterface" type="Adyen\Payment\Model\AdyenCreditmemoRepository" />
     <preference for="Adyen\Payment\Api\Repository\AdyenOrderPaymentRepositoryInterface" type="Adyen\Payment\Model\AdyenOrderPaymentRepository" />
+    <preference for="Adyen\Payment\Api\Data\AnalyticsEventInterface" type="Adyen\Payment\Model\AnalyticsEvent" />
+    <preference for="Adyen\Payment\Api\AnalyticsEventRepositoryInterface" type="Adyen\Payment\Model\AnalyticsEventRepository" />
     <type name="Magento\Vault\Api\PaymentTokenRepositoryInterface">
         <plugin name="AdyenPaymentVaultDeleteToken" type="Adyen\Payment\Plugin\PaymentVaultDeleteToken" sortOrder="10" />
     </type>
@@ -1738,11 +1756,20 @@
     <type name="Magento\Checkout\Model\ShippingInformationManagement">
         <plugin name="CustomShippingInformationManagement" type="Adyen\Payment\Plugin\ShippingInformationManagement" sortOrder="10" />
     </type>
+    <type name="Magento\Quote\Api\PaymentMethodManagementInterface">
+        <plugin name="SortAndFilterAdyenPaymentMethods" type="Adyen\Payment\Plugin\SortAndFilterAdyenPaymentMethods" sortOrder="10" />
+    </type>
     <type name="Adyen\Payment\Block\Checkout\Multishipping\Billing">
         <plugin name="MultishippingPaymentMethods" type="Adyen\Payment\Plugin\MultishippingPaymentMethods" sortOrder="10" />
     </type>
     <type name="Magento\InstantPurchase\PaymentMethodIntegration\Integration">
         <plugin name="InstantPurchateIntegration" type="Adyen\Payment\Plugin\InstantPurchaseIntegration" sortOrder="10" />
+    </type>
+    <type name="Magento\Webapi\Controller\Rest\SynchronousRequestProcessor">
+        <plugin name="RestApiReliabilityTracker" type="Adyen\Payment\Plugin\RestApiReliabilityTracker" sortOrder="10" />
+    </type>
+    <type name="Magento\Framework\App\FrontController">
+        <plugin name="FrontendControllerReliabilityTracker" type="Adyen\Payment\Plugin\FrontendControllerReliabilityTracker" sortOrder="10" />
     </type>
     <type name="Adyen\Payment\Model\AdyenNotificationRepository">
         <arguments>
@@ -1763,6 +1790,14 @@
             </argument>
         </arguments>
     </virtualType>
+    <type name="Adyen\Payment\Cron\SubmitAnalyticsEvents">
+        <arguments>
+            <argument name="providers" xsi:type="array">
+                <item name="pendingInfoEvents" xsi:type="object">Adyen\Payment\Cron\Providers\PendingInfoAnalyticsEventsProvider</item>
+                <item name="pendingErrorsEvents" xsi:type="object">Adyen\Payment\Cron\Providers\PendingErrorsAnalyticsEventsProvider</item>
+            </argument>
+        </arguments>
+    </type>
     <!--Notifications overview-->
     <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
         <arguments>
@@ -4818,6 +4853,33 @@
     <virtualType name="AdyenPaymentPaytoVaultConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
             <argument name="methodCode" xsi:type="string">adyen_payto_vault</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentIrisFacade" type="Adyen\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="string">adyen_iris</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\PaymentMethodInfo</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentIrisValueHandlerPool</argument>
+            <argument name="validatorPool" xsi:type="object">AdyenPaymentValidatorPool</argument>
+            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentIrisValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AdyenPaymentIrisConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentIrisConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AdyenPaymentIrisConfig</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentIrisConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="string">adyen_iris</argument>
         </arguments>
     </virtualType>
 </config>

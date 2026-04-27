@@ -80,6 +80,7 @@ define(
 
                 this._lastGrandTotal = undefined;
 
+                // This event is triggered when the total changes or billing address is added (virtual products)
                 quote.totals.subscribe(function (totals) {
                     if (!totals) {
                         return;
@@ -177,20 +178,24 @@ define(
 
             // Build AdyenCheckout library and creates the payment method component
             createCheckoutComponent: async function(forceCreate = false) {
-                if (!this.checkoutComponent || forceCreate) {
-                    const paymentMethodsResponse = adyenPaymentService.getPaymentMethods();
-                    const countryCode = quote.billingAddress().countryId;
+                const billingAddressObservable = quote.billingAddress;
+                let self = this;
 
-                    this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
-                        paymentMethodsResponse(),
-                        countryCode,
-                        this.handleOnAdditionalDetails.bind(this),
-                        this.handleOnCancel.bind(this),
-                        this.handleOnSubmit.bind(this),
-                        this.handleOnError.bind(this)
-                    );
+                if (billingAddressObservable() && billingAddressObservable().countryId) {
+                    if (!this.checkoutComponent || forceCreate) {
+                        const paymentMethodsResponse = adyenPaymentService.getPaymentMethods();
 
-                    this.renderCheckoutComponent();
+                        this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
+                            paymentMethodsResponse(),
+                            billingAddressObservable().countryId,
+                            this.handleOnAdditionalDetails.bind(this),
+                            this.handleOnCancel.bind(this),
+                            this.handleOnSubmit.bind(this),
+                            this.handleOnError.bind(this)
+                        );
+
+                        this.renderCheckoutComponent();
+                    }
                 }
             },
 
@@ -232,7 +237,6 @@ define(
                     {
                         showPayButton: showPayButton,
                         countryCode: formattedShippingAddress.country ? formattedShippingAddress.country : formattedBillingAddress.country, // Use shipping address details as default and fall back to billing address if missing
-                        data: {},
                         onChange: function (state) {
                             paymentComponentStates().setIsPlaceOrderAllowed(self.getMethodCode(), state.isValid);
                         },

@@ -21,6 +21,13 @@
             <source_model>Adyen\Payment\Model\Config\Source\RenderMode</source_model>
             <config_path>payment/adyen_abstract/title_renderer</config_path>
         </field>
+        <field id="payment_method_title_overrides" translate="label" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Payment Method Title Overrides</label>
+            <tooltip>Override the payment method title returned by the /paymentMethods API. The custom title will be used in checkout instead of the translated title from the API response. Leave the title blank or remove the row to fall back to the API response value.</tooltip>
+            <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\Field\PaymentMethodTitles</frontend_model>
+            <backend_model>Adyen\Payment\Model\Config\Backend\PaymentMethodTitles</backend_model>
+            <config_path>payment/adyen_abstract/payment_method_title_overrides</config_path>
+        </field>
         <field id="return_path" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
             <label>Checkout return path</label>
             <config_path>payment/adyen_abstract/return_path</config_path>

@@ -22,6 +22,8 @@ use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\DataProvider;
+use Adyen\Payment\Helper\PaymentResponseHandler;
 
 #[CoversClass(Success::class)]
 class SuccessTest extends AbstractAdyenTestCase
@@ -135,4 +137,73 @@ class SuccessTest extends AbstractAdyenTestCase
         $prop->setAccessible(true);
         $prop->setValue($object, $value);
     }
+
+    #[Test]
+    public function getResultCodeReturnsAdditionalInformationResultCode(): void
+    {
+        // Arrange: make the session return order id 1
+        $checkoutSession = $this->getProperty($this->block, 'checkoutSession');
+        $checkoutSession->method('getLastOrderId')->willReturn(1);
+        $this->setProperty($this->block, 'checkoutSession', $checkoutSession);
+
+        // Arrange: payment returns a resultCode
+        $payment = $this->createMock(\Magento\Sales\Model\Order\Payment::class);
+        $payment->method('getAdditionalInformation')
+            ->with('resultCode')
+            ->willReturn('PENDING');
+
+        $this->order->method('getPayment')->willReturn($payment);
+
+        // Act
+        $resultCode = $this->block->getResultCode();
+
+        // Assert
+        $this->assertSame('PENDING', $resultCode);
+    }
+
+    public static function intermediateResultCodesProvider(): array
+    {
+        return [
+            'pending is intermediate'   => [PaymentResponseHandler::PENDING, true],
+            'received is intermediate'  => [PaymentResponseHandler::RECEIVED, true],
+            'authorised is not'         => ['Authorised', false],
+            'refused is not'            => ['Refused', false],
+            'empty string is not'       => ['', false],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('intermediateResultCodesProvider')]
+    public function isIntermediateResultReturnsExpected(string $code, bool $expected): void
+    {
+        // Use a partial mock so we don't have to go through Order/Payment each time
+        $block = $this->getMockBuilder(Success::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['getResultCode'])
+            ->getMock();
+
+        $block->method('getResultCode')->willReturn($code);
+
+        $this->assertSame($expected, $block->isIntermediateResult());
+    }
+
+    #[Test]
+    public function getPendingMessageContainsIncrementId(): void
+    {
+        // Arrange: make the session return order id 1
+        $checkoutSession = $this->getProperty($this->block, 'checkoutSession');
+        $checkoutSession->method('getLastOrderId')->willReturn(1);
+        $this->setProperty($this->block, 'checkoutSession', $checkoutSession);
+
+        // Arrange: order has an increment id
+        $this->order->method('getIncrementId')->willReturn(123);
+
+        // Act
+        $message = (string) $this->block->getPendingMessage();
+
+        // Assert
+        $this->assertStringContainsString('123', $message);
+        $this->assertStringContainsString('payment is still being processed', $message);
+    }
+
 }

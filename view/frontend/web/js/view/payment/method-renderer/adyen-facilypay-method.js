@@ -22,31 +22,11 @@ define(
             },
             buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo) {
                 let baseComponentConfiguration = this._super();
-                let self = this;
-                let formattedShippingAddress = {};
-                let formattedBillingAddress = {};
-                let shopperDateOfBirth = '';
-                let email = {};
+                baseComponentConfiguration.data = {};
 
-                if (!!customerData.dob){
-                    shopperDateOfBirth = customerData.dob;
-                }
+                if (!quote.isVirtual() && quote.shippingAddress()) {
+                    const formattedShippingAddress = this.getFormattedAddress(quote.shippingAddress());
 
-                if (!!customerData.email) {
-                    email = customerData.email;
-                } else if (!!quote.guestEmail) {
-                    email = quote.guestEmail;
-                };
-
-                if (!quote.isVirtual() && !!quote.shippingAddress()) {
-                    formattedShippingAddress = self.getFormattedAddress(quote.shippingAddress());
-                }
-
-                if (!quote.isVirtual() && !!quote.billingAddress()) {
-                    formattedBillingAddress = self.getFormattedAddress(quote.billingAddress());
-                }
-
-                if (formattedShippingAddress) {
                     baseComponentConfiguration.data.deliveryAddress = {
                         city: formattedShippingAddress.city,
                         country: formattedShippingAddress.country,
@@ -56,20 +36,23 @@ define(
                     }
                 }
 
-                if (formattedBillingAddress){
-                    baseComponentConfiguration.data.personalDetails = {
-                        firstName: formattedBillingAddress.firstName,
-                        lastName: formattedBillingAddress.lastName,
-                        telephoneNumber: formattedBillingAddress.telephone,
-                        shopperEmail: email,
-                        dateOfBirth: shopperDateOfBirth,
-                    }
+                if (quote.billingAddress()) {
+                    const formattedBillingAddress = this.getFormattedAddress(quote.billingAddress());
+
                     baseComponentConfiguration.data.billingAddress = {
                         city: formattedBillingAddress.city,
                         country: formattedBillingAddress.country,
                         houseNumberOrName: formattedBillingAddress.houseNumber,
                         postalCode: formattedBillingAddress.postalCode,
-                        street: formattedBillingAddress.street,
+                        street: formattedBillingAddress.street
+                    };
+
+                    baseComponentConfiguration.data.personalDetails = {
+                        firstName: formattedBillingAddress.firstName,
+                        lastName: formattedBillingAddress.lastName,
+                        telephoneNumber: formattedBillingAddress.telephone,
+                        shopperEmail: customerData?.email ?? quote?.guestEmail ?? '',
+                        dateOfBirth: customerData?.dob ?? ''
                     }
                 }
 

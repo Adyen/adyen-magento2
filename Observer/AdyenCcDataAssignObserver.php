@@ -20,6 +20,7 @@ use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
 use Adyen\Payment\Gateway\Request\Header\HeaderDataBuilderInterface;
+use Magento\Vault\Api\Data\PaymentTokenInterface;
 
 class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
 {
@@ -46,6 +47,7 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
         self::CC_TYPE,
         self::RETURN_URL,
         self::RECURRING_PROCESSING_MODEL,
+        PaymentTokenInterface::PUBLIC_HASH,
         HeaderDataBuilderInterface::ADDITIONAL_DATA_FRONTEND_TYPE_KEY
     ];
 
@@ -97,11 +99,6 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
         $data = $this->readDataArgument($observer);
         $paymentInfo = $this->readPaymentModelArgument($observer);
 
-        // Remove the following information from the previous payment
-        $paymentInfo->unsAdditionalInformation(self::CC_TYPE);
-        $paymentInfo->unsAdditionalInformation(self::NUMBER_OF_INSTALLMENTS);
-        $paymentInfo->unsAdditionalInformation(self::COMBO_CARD_TYPE);
-
         // Get additional data array
         $additionalData = $data->getData(PaymentInterface::KEY_ADDITIONAL_DATA);
         if (!is_array($additionalData)) {
@@ -113,6 +110,16 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
             $additionalData,
             self::$approvedAdditionalDataKeys
         );
+
+        // Remove each CC-specific field from the previous payment only if the incoming
+        // data contains a replacement for that specific field. This prevents the placeOrder
+        // mutation from clearing data that was set by setPaymentMethodOnCart.
+        $ccSpecificKeys = [self::CC_TYPE, self::NUMBER_OF_INSTALLMENTS, self::COMBO_CARD_TYPE];
+        foreach ($ccSpecificKeys as $ccKey) {
+            if (array_key_exists($ccKey, $additionalData)) {
+                $paymentInfo->unsAdditionalInformation($ccKey);
+            }
+        }
 
         // JSON decode state data from the frontend or fetch it from the DB entity with the quote ID
         if (!empty($additionalData[self::STATE_DATA])) {

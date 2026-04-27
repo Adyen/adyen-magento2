@@ -46,6 +46,9 @@ jobs:
       ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
       ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
       ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
+      ADYEN_MOTO_API_KEY: ${{secrets.ADYEN_MOTO_API_KEY}}
+      ADYEN_MOTO_CLIENT_KEY: ${{secrets.ADYEN_MOTO_CLIENT_KEY}}
+      ADYEN_MOTO_MERCHANT: ${{secrets.ADYEN_MOTO_MERCHANT}}
       ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
       ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
       DONATION_ACCOUNT: ${{secrets.DONATION_ACCOUNT}}
@@ -110,6 +113,9 @@ jobs:
       - name: Enable Express module
         if: ${{ env.EXPRESS_BRANCH }}
         run: docker exec -u www-data magento2-container make enable-express
+
+      - name: Setup E2E test configurations
+        run: docker exec magento2-container make setup-e2e
 
       - name: Switch to production mode
         run: docker exec -u www-data magento2-container make production

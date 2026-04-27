@@ -43,26 +43,28 @@ class PayByLinkTest extends AbstractAdyenTestCase
 
     public function testGetDefaultExpiryDate()
     {
-        $tomorrow = new \DateTime('tomorrow', new \DateTimeZone('UTC'));
+        $expectedDate = new \DateTime();
+        $expectedDate->modify('+1 day');
+
         $this->assertEquals(
             $this->payByLink->getDefaultExpiryDate(),
-            $tomorrow->format(AdyenPayByLinkConfigProvider::DATE_FORMAT)
+            $expectedDate->format(AdyenPayByLinkConfigProvider::DATE_TIME_FORMAT)
         );
     }
 
     public function testGetMinExpiryTimestamp()
     {
-        $date = new \DateTime('now', new \DateTimeZone('UTC'));
-        $date->add(new \DateInterval('P' . AdyenPayByLinkConfigProvider::MIN_EXPIRY_DAYS . 'D'));
+        $expectedDate = new \DateTime('now');
+        $expectedDate->add(new \DateInterval('P' . AdyenPayByLinkConfigProvider::MIN_EXPIRY_DAYS . 'D'));
         $this->assertEquals(
             $this->payByLink->getMinExpiryTimestamp(),
-            $date->getTimestamp() * 1000
+            $expectedDate->getTimestamp() * 1000
         );
     }
 
     public function testGetMaxExpiryTimestamp()
     {
-        $date = new \DateTime('now', new \DateTimeZone('UTC'));
+        $date = new \DateTime('now');
         $date->add(new \DateInterval('P' . AdyenPayByLinkConfigProvider::MAX_EXPIRY_DAYS . 'D'));
         $this->assertEquals(
             $this->payByLink->getMaxExpiryTimestamp(),

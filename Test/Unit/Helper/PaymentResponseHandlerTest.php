@@ -118,8 +118,34 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
             "resultCode" => $resultCode
         ];
 
+        if ($resultCode === PaymentResponseHandler::AUTHORISED) {
+            $expectedResult["canDonate"] = false;
+        }
+
         // Execute method of the tested class
         $result = $this->paymentResponseHandler->formatPaymentResponse($resultCode);
+
+        // Assert conditions
+        $this->assertEquals($expectedResult, $result);
+    }
+
+    /**
+     * @return void
+     */
+    public function testFormatPaymentResponseForAuthorisedWithDonationToken()
+    {
+        $expectedResult = [
+            "isFinal" => true,
+            "resultCode" => PaymentResponseHandler::AUTHORISED,
+            "canDonate" => true
+        ];
+
+        // Execute method of the tested class
+        $result = $this->paymentResponseHandler->formatPaymentResponse(
+            PaymentResponseHandler::AUTHORISED,
+            null,
+            true
+        );
 
         // Assert conditions
         $this->assertEquals($expectedResult, $result);

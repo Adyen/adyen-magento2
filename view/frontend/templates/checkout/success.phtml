@@ -9,10 +9,9 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-/**
- * @var \Adyen\Payment\Block\Checkout\Success $block
- */
-// Script 1: Reload cart
+/** @var \Adyen\Payment\Block\Checkout\Success $block */
+/** @var \Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer */
+
 $scriptCartReload = <<<script
     require(['Magento_Customer/js/customer-data'], function (customerData) {
         'use strict';
@@ -22,6 +21,26 @@ script;
 ?>
 
 <?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptCartReload, false) ?>
+
+<?php if ($block->isIntermediateResult()): ?>
+    <div class="adyen-pending-message">
+        <p><?= $block->escapeHtml($block->getPendingMessage()) ?></p>
+    </div>
+
+    <?php
+    $scriptPendingMessage = <<<JS
+        require(['jquery'], function($) {
+            try {
+                $('.adyen-pending-message').show();
+            } catch (e) {
+                /* no-op: silently ignore cleanup errors */
+            }
+        });
+        JS;
+    ?>
+    <?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptPendingMessage, false) ?>
+<?php endif; ?>
+
 
 <?php if ($block->renderAction()): ?>
     <div id="ActionContainer"></div>
@@ -62,22 +81,22 @@ script;
     <div id="donation-container"></div>
 
     <?php
-    $checkoutConfig = $block->getSerializedCheckoutConfig();
+    $checkoutConfig       = $block->getSerializedCheckoutConfig();
     $scriptCheckoutConfig = "window.checkoutConfig = $checkoutConfig;";
     ?>
 
     <?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptCheckoutConfig, false) ?>
 
     <?php
-    $orderId = $block->escapeJs($block->getOrder()->getId());
-    $isLoggedIn = (int) $block->getIsCustomerLoggedIn(); // use int to safely cast for Boolean
+    $orderId       = $block->escapeJs($block->getOrder()->getId());
+    $isLoggedIn    = (int) $block->getIsCustomerLoggedIn(); // safe cast for Boolean
     $maskedQuoteId = $block->escapeJs($block->getMaskedQuoteId());
-    $currency = $block->escapeJs($block->getOrder()->getOrderCurrencyCode());
-    $locale =  $block->escapeJs($block->getLocale());
-    $environment = $block->escapeJs($block->getEnvironment());
-    $clientKey = $block->escapeJs($block->getClientKey());
-    $countryCode = $block->escapeJs($block->getOrder()->getBillingAddress()->getCountryId());
-    $orderAmount = $block->escapeJs($block->getOrderAmount());
+    $currency      = $block->escapeJs($block->getOrder()->getOrderCurrencyCode());
+    $locale        = $block->escapeJs($block->getLocale());
+    $environment   = $block->escapeJs($block->getEnvironment());
+    $clientKey     = $block->escapeJs($block->getClientKey());
+    $countryCode   = $block->escapeJs($block->getOrder()->getBillingAddress()->getCountryId());
+    $orderAmount   = $block->escapeJs($block->getOrderAmount());
 
     $scriptGiving = <<<script
         require([
@@ -120,7 +139,7 @@ script;
                             onDonate: handleOnDonate,
                             onCancel: handleOnCancel
                         };
-                        if(campaign.donation.type == 'roundup') {
+                        if (campaign.donation.type == 'roundup') {
                             donationConfig.commercialTxAmount = '$orderAmount'
                         }
                         adyenGivingComponent = new window.AdyenWeb.Donation(

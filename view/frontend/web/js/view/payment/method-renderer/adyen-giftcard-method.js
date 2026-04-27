@@ -55,6 +55,7 @@ define(
             selectedGiftcardPaymentMethod: ko.observable(null),
             giftcardTitle: ko.observable(null),
             icon: ko.observable(window.checkoutConfig.payment.adyen.giftcard.icon),
+            billingAddressAvailable: ko.observable(false),
 
             initialize: async function () {
                 this._super();
@@ -74,6 +75,8 @@ define(
                     this.fetchGiftcardPaymentMethods(paymentMethodsObserver());
                     this.fetchRedeemedGiftcards();
                 }
+
+                this.billingAddressAvailable(quote.billingAddress() !== null);
             },
 
             addNewGiftcard: function () {

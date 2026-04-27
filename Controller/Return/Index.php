@@ -25,7 +25,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Api\Data\OrderInterface;
-use Magento\Sales\Model\Order;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\OrderFactory;
 use Magento\Store\Model\StoreManagerInterface;
 
@@ -63,6 +63,7 @@ class Index extends Action
      * @param PaymentsDetails $paymentsDetailsHelper
      * @param PaymentResponseHandler $paymentResponseHandler
      * @param CartRepositoryInterface $cartRepository
+     * @param OrderRepositoryInterface $orderRepository
      */
     public function __construct(
         Context                  $context,
@@ -74,7 +75,8 @@ class Index extends Action
         private readonly Config                   $configHelper,
         private readonly PaymentsDetails $paymentsDetailsHelper,
         private readonly PaymentResponseHandler $paymentResponseHandler,
-        private readonly CartRepositoryInterface $cartRepository
+        private readonly CartRepositoryInterface $cartRepository,
+        private readonly OrderRepositoryInterface $orderRepository
     ) {
         parent::__construct($context);
     }
@@ -168,18 +170,28 @@ class Index extends Action
     /**
      * @throws LocalizedException
      */
-    private function getOrder(?string $incrementId = null): Order
+    private function getOrder(?string $incrementId = null): OrderInterface
     {
-        if ($incrementId !== null) {
-            $order = $this->orderFactory->create()->loadByIncrementId($incrementId);
-        } else {
-            $order = $this->session->getLastRealOrder();
-        }
+        try {
+            if ($incrementId !== null) {
+                $entity = $this->orderFactory->create()->loadByIncrementId($incrementId);
 
-        if (!$order->getId()) {
-            throw new LocalizedException(
-                __('Order cannot be loaded')
-            );
+                if (!$entity->getEntityId()) {
+                    throw new NoSuchEntityException(
+                        __("The entity that was requested doesn't exist. Verify the entity and try again.")
+                    );
+                }
+
+                $order = $this->orderRepository->get($entity->getEntityId());
+            } else {
+                $order = $this->session->getLastRealOrder();
+
+                if (!$order->getId()) {
+                    throw new NoSuchEntityException();
+                }
+            }
+        } catch (NoSuchEntityException $e) {
+            throw new LocalizedException(__('Order cannot be loaded'));
         }
 
         return $order;

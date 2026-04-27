@@ -28,6 +28,9 @@ class Requests extends AbstractHelper
     const MERCHANT_ACCOUNT = 'merchantAccount';
     const SHOPPER_REFERENCE = 'shopperReference';
     const RECURRING_DETAIL_REFERENCE = 'recurringDetailReference';
+    /**
+     * @deprecated Sending the payment method type is not required for donations anymore. Therefore, this list has become obsolete and will be removed in V11.
+     */
     const DONATION_PAYMENT_METHOD_CODE_MAPPING = [
         'ideal' => 'sepadirectdebit',
         'googlepay' => 'scheme',
@@ -385,6 +388,8 @@ class Requests extends AbstractHelper
     }
 
     /**
+     * @deprecated Recurring data is now built in RecurringVaultDataBuilder class. The method will be removed on V11.
+     *
      * Build the recurring data to be sent in case of an Adyen Tokenized payment.
      * Model will be fetched according to the type (card/other pm) of the original payment
      *
@@ -423,7 +428,6 @@ class Requests extends AbstractHelper
     public function buildDonationData($payment, int $storeId): array
     {
         $order = $payment->getOrder();
-        $paymentMethodInstance = $payment->getMethodInstance();
 
         $donationToken = $payment->getAdditionalInformation('donationToken');
         $donationCampaignId = $payment->getAdditionalInformation('donationCampaignId');
@@ -445,14 +449,6 @@ class Requests extends AbstractHelper
         $payload['donationCampaignId'] = $donationCampaignId;
         $payload['donationOriginalPspReference'] = $pspReference;
 
-        if ($payment->getMethod() === AdyenCcConfigProvider::CODE) {
-            $paymentMethodCode = 'scheme';
-        } elseif ($this->paymentMethodsHelper->isAlternativePaymentMethod($paymentMethodInstance)) {
-            $paymentMethodCode = $this->paymentMethodsHelper->getAlternativePaymentMethodTxVariant($paymentMethodInstance);
-        } else {
-            throw new LocalizedException(__('Donation failed!'));
-        }
-
         $shopperReference = $order->getCustomerId()
             ? $this->adyenHelper->padShopperReference($order->getCustomerId())
             : $order->getIncrementId() . Uuid::generateV4();
@@ -461,9 +457,6 @@ class Requests extends AbstractHelper
             'amount' => $payload['amount'],
             'reference' => Uuid::generateV4(),
             'shopperReference' => $shopperReference,
-            'paymentMethod' => [
-                'type' => self::DONATION_PAYMENT_METHOD_CODE_MAPPING[$paymentMethodCode] ?? $paymentMethodCode,
-            ],
             'donationToken' => $payload['donationToken'],
             'donationCampaignId' => $payload['donationCampaignId'],
             'donationOriginalPspReference' => $payload['donationOriginalPspReference'],
