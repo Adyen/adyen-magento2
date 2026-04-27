@@ -102,7 +102,7 @@ class Index extends Action
                 $successPath = $failPath = 'multishipping/checkout/success';
                 $setQuoteAsActive = true;
             } else {
-                $storeId = $this->getOrder()->getStoreId() !== $storeId ? $this->getOrder()->getStoreId() : $storeId;
+                $storeId = $this->getOrder()->getStoreId();
                 $successPath = $this->configHelper->getAdyenAbstractConfigData('custom_success_redirect_path', $storeId) ??
                     'checkout/onepage/success';
                 $failPath = $this->configHelper->getAdyenAbstractConfigData('return_path', $storeId);
@@ -114,7 +114,7 @@ class Index extends Action
                 $quote->setIsActive($setQuoteAsActive);
                 $this->cartRepository->save($quote);
 
-                $storeId = $quote->getStoreId() !== $storeId ? $quote->getStoreId() : $storeId;
+                $storeId = $quote->getStoreId();
                 // Add OrderIncrementId to redirect parameters for headless support.
                 $redirectParams = $this->configHelper->getAdyenAbstractConfigData('custom_success_redirect_path', $storeId)
                     ? ['_query' => ['order_increment_id' => $this->order->getIncrementId()]]
