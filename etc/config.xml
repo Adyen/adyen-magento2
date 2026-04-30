@@ -1736,8 +1736,8 @@
                 <title>Stored TWINT</title>
                 <model>AdyenPaymentTwintVaultFacade</model>
                 <instant_purchase>
-                    <available>Adyen\Payment\Model\InstantPurchase\Card\AvailabilityChecker</available>
-                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\Card\TokenFormatter</tokenFormat>
+                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
                 </instant_purchase>
             </adyen_twint_vault>
             <adyen_walley>
