@@ -1729,15 +1729,15 @@
                 <supports_recurring>1</supports_recurring>
                 <supports_manual_capture>1</supports_manual_capture>
                 <supports_auto_capture>1</supports_auto_capture>
-                <is_wallet>1</is_wallet>
+                <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_twint>
             <adyen_twint_vault>
                 <title>Stored TWINT</title>
                 <model>AdyenPaymentTwintVaultFacade</model>
                 <instant_purchase>
-                    <available>Adyen\Payment\Model\InstantPurchase\Card\AvailabilityChecker</available>
-                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\Card\TokenFormatter</tokenFormat>
+                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
                 </instant_purchase>
             </adyen_twint_vault>
             <adyen_walley>
