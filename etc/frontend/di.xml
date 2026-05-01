@@ -168,7 +168,7 @@
                 <item name="adyen_klarna_paynow" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
                 <item name="adyen_paybybank" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
                 <item name="adyen_trustly" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
-                <item name="adyen_twint" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
+                <item name="adyen_twint" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
                 <item name="adyen_zip" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
                 <item name="adyen_gcash" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
                 <item name="adyen_carnet" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
