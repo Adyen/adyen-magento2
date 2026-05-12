@@ -43,8 +43,7 @@ define(
             },
 
             checkBrowserCompatibility: function () {
-                // Disables Apple Pay for non-Safari browsers
-                return /^((?!android).)*safari/i.test(navigator.userAgent);
+                return /^((?!android).)*(?:safari|firefox)/i.test(navigator.userAgent);
             }
         })
     }
