@@ -205,6 +205,30 @@ class AdyenCreditmemoRepositoryTest extends AbstractAdyenTestCase
                 'isResultValid' => true
             ],
             [
+                'eventCode' => 'CHARGEBACK',
+                'isExpectedType' => true,
+                'creditmemoId' => "",
+                'isResultValid' => false
+            ],
+            [
+                'eventCode' => 'SECOND_CHARGEBACK',
+                'isExpectedType' => true,
+                'creditmemoId' => "",
+                'isResultValid' => false
+            ],
+            [
+                'eventCode' => 'NOTIFICATION_OF_CHARGEBACK',
+                'isExpectedType' => true,
+                'creditmemoId' => "",
+                'isResultValid' => false
+            ],
+            [
+                'eventCode' => 'CHARGEBACK_REVERSED',
+                'isExpectedType' => true,
+                'creditmemoId' => "",
+                'isResultValid' => false
+            ],
+            [
                 'eventCode' => 'CAPTURE',
                 'isExpectedType' => false,
                 'creditmemoId' => "1",
