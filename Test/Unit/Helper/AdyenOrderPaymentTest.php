@@ -250,6 +250,107 @@ class AdyenOrderPaymentTest extends AbstractAdyenTestCase
         $this->assertTrue($adyenOrderPaymentHelper->isFullAmountAuthorized($order));
     }
 
+    public function testIsFullAmountAuthorizedWithStringValuesFromDatabase()
+    {
+        $order = $this->createMockWithMethods(
+            Order::class,
+            ['getGrandTotal', 'getPaymentAuthorizationAmount'],
+            ['getAdyenChargedCurrency']
+        );
+        $order->method('getAdyenChargedCurrency')->willReturn(ChargedCurrency::DISPLAY);
+        $order->method('getGrandTotal')->willReturn('100.0000');
+        $order->method('getPaymentAuthorizationAmount')->willReturn('100.0000');
+
+        $adyenOrderPaymentHelper = $this->createAdyenOrderPaymentHelper();
+
+        $this->assertTrue($adyenOrderPaymentHelper->isFullAmountAuthorized($order));
+    }
+
+    public function testIsAllAutoCapturedReturnsTrue()
+    {
+        $payment = $this->createConfiguredMock(Order\Payment::class, [
+            'getEntityId' => 55
+        ]);
+
+        $order = $this->createConfiguredMock(Order::class, [
+            'getPayment' => $payment
+        ]);
+
+        $adyenOrderPayments = [
+            [OrderPaymentInterface::CAPTURE_STATUS => OrderPaymentInterface::CAPTURE_STATUS_AUTO_CAPTURE],
+            [OrderPaymentInterface::CAPTURE_STATUS => OrderPaymentInterface::CAPTURE_STATUS_AUTO_CAPTURE]
+        ];
+
+        $mockOrderPaymentResourceModel = $this->createConfiguredMock(Payment::class, [
+            'getLinkedAdyenOrderPayments' => $adyenOrderPayments
+        ]);
+
+        $adyenOrderPaymentHelper = $this->createAdyenOrderPaymentHelper(
+            null,
+            null,
+            null,
+            null,
+            $mockOrderPaymentResourceModel
+        );
+
+        $this->assertTrue($adyenOrderPaymentHelper->isAllAutoCaptured($order));
+    }
+
+    public function testIsAllAutoCapturedReturnsFalseForMixedStatuses()
+    {
+        $payment = $this->createConfiguredMock(Order\Payment::class, [
+            'getEntityId' => 55
+        ]);
+
+        $order = $this->createConfiguredMock(Order::class, [
+            'getPayment' => $payment
+        ]);
+
+        $adyenOrderPayments = [
+            [OrderPaymentInterface::CAPTURE_STATUS => OrderPaymentInterface::CAPTURE_STATUS_AUTO_CAPTURE],
+            [OrderPaymentInterface::CAPTURE_STATUS => OrderPaymentInterface::CAPTURE_STATUS_NO_CAPTURE]
+        ];
+
+        $mockOrderPaymentResourceModel = $this->createConfiguredMock(Payment::class, [
+            'getLinkedAdyenOrderPayments' => $adyenOrderPayments
+        ]);
+
+        $adyenOrderPaymentHelper = $this->createAdyenOrderPaymentHelper(
+            null,
+            null,
+            null,
+            null,
+            $mockOrderPaymentResourceModel
+        );
+
+        $this->assertFalse($adyenOrderPaymentHelper->isAllAutoCaptured($order));
+    }
+
+    public function testIsAllAutoCapturedReturnsFalseForEmptyPayments()
+    {
+        $payment = $this->createConfiguredMock(Order\Payment::class, [
+            'getEntityId' => 55
+        ]);
+
+        $order = $this->createConfiguredMock(Order::class, [
+            'getPayment' => $payment
+        ]);
+
+        $mockOrderPaymentResourceModel = $this->createConfiguredMock(Payment::class, [
+            'getLinkedAdyenOrderPayments' => []
+        ]);
+
+        $adyenOrderPaymentHelper = $this->createAdyenOrderPaymentHelper(
+            null,
+            null,
+            null,
+            null,
+            $mockOrderPaymentResourceModel
+        );
+
+        $this->assertFalse($adyenOrderPaymentHelper->isAllAutoCaptured($order));
+    }
+
     public function testRefundAdyenOrderPayment()
     {
         $payment = $this->createMock(\Adyen\Payment\Model\Order\Payment::class);

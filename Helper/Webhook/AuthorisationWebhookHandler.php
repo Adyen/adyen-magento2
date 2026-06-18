@@ -112,7 +112,8 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         $additionalData = $this->getAdditionalDataArray($notification);
         $requireFraudManualReview = $this->caseManagementHelper->requiresManualReview($additionalData);
 
-        $order = $isAutoCapture
+        $isOrderAutoCapture = $this->adyenOrderPaymentHelper->isAllAutoCaptured($order);
+        $order = $isOrderAutoCapture
             ? $this->handleAutoCapture($order, $notification, $requireFraudManualReview)
             : $this->handleManualCapture($order, $notification, $requireFraudManualReview);
 
