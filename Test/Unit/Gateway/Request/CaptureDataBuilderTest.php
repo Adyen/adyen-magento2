@@ -45,7 +45,8 @@ class CaptureDataBuilderTest extends AbstractAdyenTestCase
                         OrderPaymentInterface::AMOUNT => 100,
                         OrderPaymentInterface::TOTAL_CAPTURED => 0,
                         OrderPaymentInterface::PSPREFRENCE => 'ABC123456789XYZ',
-                        OrderPaymentInterface::PAYMENT_METHOD => 'visa'
+                        OrderPaymentInterface::PAYMENT_METHOD => 'visa',
+                        OrderPaymentInterface::CAPTURE_STATUS => OrderPaymentInterface::CAPTURE_STATUS_NO_CAPTURE
                     ]
                 ],
                 '$fullAmountAuthorized' => true
@@ -57,14 +58,16 @@ class CaptureDataBuilderTest extends AbstractAdyenTestCase
                         OrderPaymentInterface::AMOUNT => 400,
                         OrderPaymentInterface::TOTAL_CAPTURED => 0,
                         OrderPaymentInterface::PSPREFRENCE => 'ABC123456789XYZ',
-                        OrderPaymentInterface::PAYMENT_METHOD => 'svs'
+                        OrderPaymentInterface::PAYMENT_METHOD => 'svs',
+                        OrderPaymentInterface::CAPTURE_STATUS => OrderPaymentInterface::CAPTURE_STATUS_NO_CAPTURE
                     ],
                     [
                         OrderPaymentInterface::ENTITY_ID => 2,
                         OrderPaymentInterface::AMOUNT => 600,
                         OrderPaymentInterface::TOTAL_CAPTURED => 0,
                         OrderPaymentInterface::PSPREFRENCE => 'XYZ123456789ABC',
-                        OrderPaymentInterface::PAYMENT_METHOD => 'klarna'
+                        OrderPaymentInterface::PAYMENT_METHOD => 'klarna',
+                        OrderPaymentInterface::CAPTURE_STATUS => OrderPaymentInterface::CAPTURE_STATUS_NO_CAPTURE
                     ]
                 ],
                 '$fullAmountAuthorized' => true
@@ -159,6 +162,93 @@ class CaptureDataBuilderTest extends AbstractAdyenTestCase
         $this->assertArrayHasKey('amount', $request['body'][0]);
         $this->assertArrayHasKey('reference', $request['body'][0]);
         $this->assertArrayHasKey('paymentPspReference', $request['body'][0]);
+    }
+
+    public function testBuildCaptureRequestSkipsAutoCapturedPayments()
+    {
+        $adyenOrderPayments = [
+            [
+                OrderPaymentInterface::ENTITY_ID => 1,
+                OrderPaymentInterface::AMOUNT => 400,
+                OrderPaymentInterface::TOTAL_CAPTURED => 0,
+                OrderPaymentInterface::PSPREFRENCE => 'ABC123456789XYZ',
+                OrderPaymentInterface::PAYMENT_METHOD => 'svs',
+                OrderPaymentInterface::CAPTURE_STATUS => OrderPaymentInterface::CAPTURE_STATUS_AUTO_CAPTURE
+            ],
+            [
+                OrderPaymentInterface::ENTITY_ID => 2,
+                OrderPaymentInterface::AMOUNT => 600,
+                OrderPaymentInterface::TOTAL_CAPTURED => 0,
+                OrderPaymentInterface::PSPREFRENCE => 'XYZ123456789ABC',
+                OrderPaymentInterface::PAYMENT_METHOD => 'visa',
+                OrderPaymentInterface::CAPTURE_STATUS => OrderPaymentInterface::CAPTURE_STATUS_NO_CAPTURE
+            ]
+        ];
+
+        $adyenHelperMock = $this->createPartialMock(Data::class, ['getAdyenMerchantAccount']);
+
+        $openInvoiceHelperMock = $this->createMock(OpenInvoice::class);
+        $openInvoiceHelperMock->method('getOpenInvoiceDataForInvoice')->willReturn(['id' => PHP_INT_MAX]);
+
+        $orderMock = $this->createConfiguredMock(Order::class, [
+            'getInvoiceCollection' => $this->createConfiguredMock(InvoiceCollection::class, [
+                'getLastItem' => $this->createMock(Invoice::class)
+            ]),
+            'getIncrementId' => '00000000001',
+            'getTotalInvoiced' => 0
+        ]);
+
+        $paymentMethodInstanceMock = $this->createMock(MethodInterface::class);
+
+        $paymentMock = $this->createConfiguredMock(\Magento\Sales\Model\Order\Payment::class, [
+            'getOrder' => $orderMock,
+            'getMethodInstance' => $paymentMethodInstanceMock,
+            'getCcTransId' => 'XYZ123456789ABC'
+        ]);
+        $paymentDataObjectMock = $this->createConfiguredMock(PaymentDataObject::class, [
+            'getPayment' => $paymentMock
+        ]);
+
+        $paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
+
+        $chargedCurrencyHelperMock = $this->createConfiguredMock(ChargedCurrency::class, [
+            'getInvoiceAmountCurrency' => $this->createConfiguredMock(AdyenAmountCurrency::class, [
+                'getCurrencyCode' => 'EUR',
+                'getAmount' => '1000'
+            ]),
+            'getOrderAmountCurrency' => $this->createConfiguredMock(AdyenAmountCurrency::class, [
+                'getAmount' => '1000'
+            ])
+        ]);
+
+        $adyenOrderPaymentHelperMock = $this->createConfiguredMock(AdyenOrderPayment::class, [
+            'isFullAmountAuthorized' => true
+        ]);
+
+        $orderPaymentResourceModelMock = $this->createConfiguredMock(Payment::class, [
+            'getLinkedAdyenOrderPayments' => $adyenOrderPayments
+        ]);
+
+        $buildSubject = [
+            'payment' => $paymentDataObjectMock
+        ];
+
+        $captureDataBuilder = $this->buildCaptureDataBuilderObject(
+            $adyenHelperMock,
+            $chargedCurrencyHelperMock,
+            $orderPaymentResourceModelMock,
+            $adyenOrderPaymentHelperMock,
+            null,
+            null,
+            $openInvoiceHelperMock,
+            $paymentMethodsHelperMock
+        );
+
+        $request = $captureDataBuilder->build($buildSubject);
+
+        $this->assertArrayHasKey('body', $request);
+        $this->assertCount(1, $request['body']);
+        $this->assertEquals('XYZ123456789ABC', $request['body'][0]['paymentPspReference']);
     }
 
     private function buildCaptureDataBuilderObject(
