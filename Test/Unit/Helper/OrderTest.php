@@ -252,6 +252,36 @@ class OrderTest extends AbstractAdyenTestCase
         $orderHelper->refundOrder($order, $notification);
     }
 
+    public function testRefundOrderSkipsWhenOriginalReferenceIsMissing()
+    {
+        $adyenOrderPaymentHelper = $this->createMock(AdyenOrderPayment::class);
+        $adyenOrderPaymentHelper->expects($this->never())->method('refundAdyenOrderPayment');
+
+        $adyenLoggerMock = $this->createMock(AdyenLogger::class);
+        $adyenLoggerMock->method('getOrderContext')->willReturn([]);
+        $adyenLoggerMock->expects($this->once())
+            ->method('addAdyenWarning')
+            ->with($this->stringContains('originalReference is missing'));
+
+        $orderHelper = $this->createOrderHelper(
+            null,
+            null,
+            $adyenOrderPaymentHelper,
+            null,
+            null,
+            $this->createAdyenOrderPaymentCollection(null),
+            null,
+            $adyenLoggerMock
+        );
+
+        $order = $this->createMock(MagentoOrder::class);
+        $notification = $this->createWebhook(null, '123-pspref');
+
+        $result = $orderHelper->refundOrder($order, $notification);
+
+        $this->assertSame($order, $result);
+    }
+
     public function testRefundFailedNotice()
     {
         $notification = $this->createMock(Notification::class);
