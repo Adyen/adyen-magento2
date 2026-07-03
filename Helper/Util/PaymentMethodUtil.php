@@ -40,6 +40,7 @@ class PaymentMethodUtil
         'discover_applepay',
         'maestro_applepay',
         'cartebancaire_applepay',
+        'jcb_applepay',
         'paywithgoogle',
         'mc_googlepay',
         'visa_googlepay',
