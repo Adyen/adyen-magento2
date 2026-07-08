@@ -37,6 +37,7 @@ class AdditionalDataLevel23DataBuilder implements BuilderInterface
      * @param Requests $adyenRequestHelper
      * @param Data $adyenHelper
      * @param AdyenLogger $adyenLogger
+     * @param Level23DataValidator $level23DataValidator
      */
     public function __construct(
         public Config $config,
@@ -44,7 +45,8 @@ class AdditionalDataLevel23DataBuilder implements BuilderInterface
         public ChargedCurrency $chargedCurrency,
         public Requests $adyenRequestHelper,
         public Data $adyenHelper,
-        public AdyenLogger $adyenLogger
+        public AdyenLogger $adyenLogger,
+        public Level23DataValidator $level23DataValidator
     ) { }
 
     /**
@@ -67,49 +69,74 @@ class AdditionalDataLevel23DataBuilder implements BuilderInterface
             $order = $payment->getOrder();
             $currencyCode = $this->chargedCurrency->getOrderAmountCurrency($order)->getCurrencyCode();
 
-            $additionalDataLevel23 = [
-                self::ENHANCED_SCHEME_DATA_PREFIX . '.orderDate' => date('dmy', time()),
-                self::ENHANCED_SCHEME_DATA_PREFIX . '.customerReference' =>
-                    $this->adyenRequestHelper->getShopperReference($order->getCustomerId(), $order->getIncrementId()),
-                self::ENHANCED_SCHEME_DATA_PREFIX . '.totalTaxAmount' =>
-                    (string) $this->adyenHelper->formatAmount($order->getTaxAmount(), $currencyCode)
-            ];
+            $additionalDataLevel23 = [];
+
+            $additionalDataLevel23[self::ENHANCED_SCHEME_DATA_PREFIX . '.orderDate'] = date('dmy', time());
+
+            $customerReference = $this->level23DataValidator->sanitizeCustomerReference(
+                (string) $this->adyenRequestHelper->getShopperReference(
+                    $order->getCustomerId(),
+                    $order->getIncrementId()
+                )
+            );
+            if ($customerReference !== null) {
+                $additionalDataLevel23[self::ENHANCED_SCHEME_DATA_PREFIX . '.customerReference'] =
+                    $customerReference;
+            }
+
+            $additionalDataLevel23[self::ENHANCED_SCHEME_DATA_PREFIX . '.totalTaxAmount'] =
+                (string) $this->adyenHelper->formatAmount($order->getTaxAmount(), $currencyCode);
 
             if ($order->getIsNotVirtual()) {
                 $additionalDataLevel23[self::ENHANCED_SCHEME_DATA_PREFIX . '.freightAmount'] =
                     (string) $this->adyenHelper->formatAmount($order->getBaseShippingAmount(), $currencyCode);
 
-                $additionalDataLevel23[self::ENHANCED_SCHEME_DATA_PREFIX . '.destinationPostalCode'] =
-                    $order->getShippingAddress()->getPostcode();
+                $postalCode = $this->level23DataValidator->sanitizePostalCode(
+                    (string) $order->getShippingAddress()->getPostcode()
+                );
+                if ($postalCode !== null) {
+                    $additionalDataLevel23[self::ENHANCED_SCHEME_DATA_PREFIX . '.destinationPostalCode'] =
+                        $postalCode;
+                }
 
-                $additionalDataLevel23[self::ENHANCED_SCHEME_DATA_PREFIX . '.destinationCountryCode'] =
-                    $order->getShippingAddress()->getCountryId();
+                $alpha3CountryCode = $this->level23DataValidator->convertCountryCodeToAlpha3(
+                    (string) $order->getShippingAddress()->getCountryId()
+                );
+                if ($alpha3CountryCode !== null) {
+                    $additionalDataLevel23[self::ENHANCED_SCHEME_DATA_PREFIX . '.destinationCountryCode'] =
+                        $alpha3CountryCode;
+                }
 
-                if (!empty($order->getShippingAddress()->getRegionCode())) {
-                    $additionalDataLevel23[self::ENHANCED_SCHEME_DATA_PREFIX . '.destinationStateProvinceCode'] =
-                        $order->getShippingAddress()->getRegionCode();
+                $regionCode = $order->getShippingAddress()->getRegionCode();
+                if (!empty($regionCode)) {
+                    $sanitizedRegionCode = $this->level23DataValidator->sanitizeStateProvinceCode(
+                        (string) $regionCode
+                    );
+                    if ($sanitizedRegionCode !== null) {
+                        $additionalDataLevel23[self::ENHANCED_SCHEME_DATA_PREFIX . '.destinationStateProvinceCode'] =
+                            $sanitizedRegionCode;
+                    }
                 }
             }
 
             $itemIndex = 1;
             foreach ($order->getItems() as $item) {
-                if (!$this->validateLineItem($item)) {
+                if (!$this->level23DataValidator->validateLineItemInput(
+                    $item->getPrice(),
+                    $item->getQtyOrdered()
+                )) {
+                    continue;
+                }
+
+                $lineItemData = $this->buildLineItemData($item, $currencyCode);
+                if ($lineItemData === null) {
                     continue;
                 }
 
                 $itemPrefix = self::ENHANCED_SCHEME_DATA_PREFIX . '.' . self::ITEM_DETAIL_LINE_PREFIX;
-
-                $additionalDataLevel23[$itemPrefix . $itemIndex . '.description'] = $item->getName();
-                $additionalDataLevel23[$itemPrefix . $itemIndex . '.discountAmount'] =
-                    (string) $this->adyenHelper->formatAmount($item->getDiscountAmount(), $currencyCode);
-                $additionalDataLevel23[$itemPrefix . $itemIndex . '.commodityCode'] = (string) $item->getQuoteItemId();
-                $additionalDataLevel23[$itemPrefix . $itemIndex . '.productCode'] = $item->getSku();
-                $additionalDataLevel23[$itemPrefix . $itemIndex . '.unitOfMeasure'] = self::UNIT_OF_MEASURE_PCS;
-                $additionalDataLevel23[$itemPrefix . $itemIndex . '.quantity'] = (string) $item->getQtyOrdered();
-                $additionalDataLevel23[$itemPrefix . $itemIndex . '.unitPrice'] =
-                    (string) $this->adyenHelper->formatAmount($item->getPrice(), $currencyCode);
-                $additionalDataLevel23[$itemPrefix . $itemIndex . '.totalAmount'] =
-                    (string) $this->adyenHelper->formatAmount($item->getRowTotal(), $currencyCode);
+                foreach ($lineItemData as $field => $value) {
+                    $additionalDataLevel23[$itemPrefix . $itemIndex . '.' . $field] = $value;
+                }
 
                 $itemIndex++;
             }
@@ -125,30 +152,75 @@ class AdditionalDataLevel23DataBuilder implements BuilderInterface
     }
 
     /**
-     * Required fields `unitPrice`, `totalAmount` or `quantity` can not be null or zero in the line items.
+     * Build and validate a single line item's data.
+     * Returns null if any required field fails validation.
      *
-     * @param OrderItemInterface $orderItem
-     * @return bool
+     * @param OrderItemInterface $item
+     * @param string $currencyCode
+     * @return array|null
      */
-    private function validateLineItem(OrderItemInterface $orderItem): bool
+    private function buildLineItemData(OrderItemInterface $item, string $currencyCode): ?array
     {
-        $validationResult = true;
-
-        // `unitPrice` should be a non-zero numeric value.
-        if ($orderItem->getPrice() === 0) {
-            $validationResult = false;
+        $description = $this->level23DataValidator->sanitizeDescription((string) $item->getName());
+        if ($description === null) {
+            $this->adyenLogger->addAdyenInfoLog(
+                sprintf('L2/L3: Skipping line item, description validation failed for item "%s"', $item->getName())
+            );
+            return null;
         }
 
-        // `totalAmount` should be a non-zero numeric value.
-        if ($orderItem->getRowTotal() === 0) {
-            $validationResult = false;
+        $productCode = $this->level23DataValidator->sanitizeProductCode((string) $item->getSku());
+        if ($productCode === null) {
+            $this->adyenLogger->addAdyenInfoLog(
+                sprintf('L2/L3: Skipping line item, productCode validation failed for SKU "%s"', $item->getSku())
+            );
+            return null;
         }
 
-        // `quantity` should be a positive integer. If not, skip the line item.
-        if ($orderItem->getQtyOrdered() < 1) {
-            $validationResult = false;
+        $commodityCode = $this->level23DataValidator->sanitizeCommodityCode((string) $item->getQuoteItemId());
+        if ($commodityCode === null) {
+            $this->adyenLogger->addAdyenInfoLog('L2/L3: Skipping line item, commodityCode validation failed.');
+            return null;
         }
 
-        return $validationResult;
+        $quantity = (int) $item->getQtyOrdered();
+        $unitPrice = (int) $this->adyenHelper->formatAmount($item->getPrice(), $currencyCode);
+        $discountAmount = (int) $this->adyenHelper->formatAmount($item->getDiscountAmount(), $currencyCode);
+
+        $totalAmount = $this->level23DataValidator->calculateLineItemTotalAmount(
+            $quantity,
+            $unitPrice,
+            $discountAmount
+        );
+
+        if ($totalAmount <= 0) {
+            $this->adyenLogger->addAdyenInfoLog(
+                sprintf(
+                    'L2/L3: Skipping line item "%s", calculated totalAmount is %d (qty=%d, unitPrice=%d, discount=%d)',
+                    $item->getSku(),
+                    $totalAmount,
+                    $quantity,
+                    $unitPrice,
+                    $discountAmount
+                )
+            );
+            return null;
+        }
+
+        $formattedTotalAmount = (string) $totalAmount;
+        if (!$this->level23DataValidator->isAmountNotAllZeros($formattedTotalAmount)) {
+            return null;
+        }
+
+        return [
+            'description' => $description,
+            'discountAmount' => (string) $discountAmount,
+            'commodityCode' => $commodityCode,
+            'productCode' => $productCode,
+            'unitOfMeasure' => self::UNIT_OF_MEASURE_PCS,
+            'quantity' => (string) $quantity,
+            'unitPrice' => (string) $unitPrice,
+            'totalAmount' => $formattedTotalAmount
+        ];
     }
 }

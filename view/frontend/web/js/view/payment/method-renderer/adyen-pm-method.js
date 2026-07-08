@@ -78,7 +78,11 @@ define(
                     self.enablePaymentMethod(paymentMethodsObserver());
                 }
 
-                this._lastGrandTotal = undefined;
+                // Seed the baseline from the current total so the first totals emission doesn't trigger
+                // a rebuild that races with the initial mount and can leave wallet buttons unrendered.
+                // A missing/null total is treated as "no baseline yet", consistent with the guard below.
+                const initialTotals = quote.totals();
+                this._lastGrandTotal = (initialTotals && initialTotals.grand_total !== null) ? initialTotals.grand_total : undefined;
 
                 // This event is triggered when the total changes or billing address is added (virtual products)
                 quote.totals.subscribe(function (totals) {
@@ -86,13 +90,27 @@ define(
                         return;
                     }
                     const newGrandTotal = totals.grand_total;
-                    if (Number(newGrandTotal) !== Number(self._lastGrandTotal)) {
-                        self._lastGrandTotal = newGrandTotal;
+                    // Ignore emissions without a usable total so a transient empty/cleared totals
+                    // object can't corrupt the baseline and suppress a later legitimate rebuild.
+                    if (newGrandTotal === undefined || newGrandTotal === null) {
+                        return;
+                    }
+                    const previousGrandTotal = self._lastGrandTotal;
 
-                        // Rebuild component with updated configuration
-                        if (self.isChecked() === self.getCode()) {
-                            self.rebuildComponentAfterAmountChange();
-                        }
+                    if (Number(newGrandTotal) === Number(previousGrandTotal)) {
+                        return;
+                    }
+
+                    self._lastGrandTotal = newGrandTotal;
+
+                    // Establish the baseline on the first total without rebuilding.
+                    if (typeof previousGrandTotal === 'undefined') {
+                        return;
+                    }
+
+                    // Rebuild component with updated configuration
+                    if (self.isChecked() === self.getCode()) {
+                        self.rebuildComponentAfterAmountChange();
                     }
                 });
 
