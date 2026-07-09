@@ -535,11 +535,42 @@ class Order extends AbstractHelper
         }
 
         $this->adyenLogger->addAdyenNotification(
-            'No new state assigned, status should be connected to one of the following states: ' . json_encode($possibleStates),
+            'No new state assigned via preferred states, attempting fallback lookup. '
+            . 'Status should be connected to one of the following states: ' . json_encode($possibleStates),
             [
                 'pspReference' => $order->getPayment()->getData('adyen_psp_reference'),
                 'merchantReference' => $order->getPayment()->getData('entity_id')
             ]);
+
+        // Fallback: resolve state directly from sales_order_status_state without
+        // constraining to $possibleStates. This prevents state/status desynchronization
+        // when the configured status maps to a state not in STATE_TRANSITION_MATRIX.
+        // The fallback is intentionally unconstrained: the status was already set by the
+        // caller, so aligning the state to match is always better than leaving a permanent
+        // mismatch (e.g. state=pending_payment + status=complete).
+        // See https://github.com/Adyen/adyen-magento2/issues/3288
+        $fallbackCollection = $this->orderStatusCollectionFactory->create()
+            ->addFieldToFilter('main_table.status', $status)
+            ->joinStates();
+        $fallbackCollection->getSelect()->order('state_table.is_default DESC');
+        $fallbackCollection->setPageSize(1);
+        $fallbackStatus = $fallbackCollection->getFirstItem();
+        $fallbackState = $fallbackStatus->getState();
+
+        if (!empty($fallbackState)) {
+            $order->setState($fallbackState);
+            $this->adyenLogger->addAdyenNotification(
+                'State set via fallback to ' . $fallbackState
+                . ' (status "' . $status . '" not mapped to preferred states: '
+                . json_encode($possibleStates) . ')',
+                [
+                    'pspReference' => $order->getPayment()->getData('adyen_psp_reference'),
+                    'merchantReference' => $order->getPayment()->getData('entity_id')
+                ]
+            );
+
+            return $order;
+        }
 
         return $order;
     }
