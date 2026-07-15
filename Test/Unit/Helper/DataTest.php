@@ -162,6 +162,7 @@ class DataTest extends AbstractAdyenTestCase
         $regions = $this->dataHelper->getCheckoutFrontendRegions();
         self::assertArrayHasKey('eu', $regions);
         self::assertArrayHasKey('au', $regions);
+        self::assertArrayHasKey('nea', $regions);
     }
 
     #[Test]
@@ -988,6 +989,26 @@ class DataTest extends AbstractAdyenTestCase
 
         // Assert the expected result
         $this->assertEquals(Data::LIVE_IN, $result);
+    }
+
+    #[Test]
+    public function testGetCheckoutEnvironmentLiveNEA()
+    {
+        // Setup the mock to return false for isDemoMode
+        $this->configHelper->expects($this->once())
+            ->method('isDemoMode')
+            ->willReturn(false);
+
+        // Setup the mock to return "nea" for getCheckoutFrontendRegion
+        $this->configHelper->expects($this->once())
+            ->method('getCheckoutFrontendRegion')
+            ->willReturn("nea");
+
+        // Call the method under test
+        $result = $this->dataHelper->getCheckoutEnvironment();
+
+        // Assert the expected result
+        $this->assertEquals(Data::LIVE_NEA, $result);
     }
 
     #[Test]
