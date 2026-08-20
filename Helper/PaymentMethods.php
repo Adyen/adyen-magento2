@@ -789,10 +789,9 @@ class PaymentMethods extends AbstractHelper
             );
 
             // Use order payment method to evaluate the capture mode instead of notification payment method for POS
-            if ($order->getPayment()->getMethod() === AdyenPosCloudConfigProvider::CODE &&
-                $captureModePos === CaptureMode::CAPTURE_MODE_MANUAL) {
+            if ($order->getPayment()->getMethod() === AdyenPosCloudConfigProvider::CODE && !empty($captureModePos)) {
                 // Evaluate capture mode of POS payments based on the order's `paymentMethod` field and configuration
-                $isAutoCapture = false;
+                $isAutoCapture = $captureModePos !== CaptureMode::CAPTURE_MODE_MANUAL;
             } else {
                 // Evaluate capture mode of ECOM payments based on the webhook's `paymentMethod` field
 
@@ -811,11 +810,17 @@ class PaymentMethods extends AbstractHelper
                     $webhookMethodInstance = $adyenTxVariant->getMethodInstance();
                     $webhookMethodCode = $webhookMethodInstance->getCode();
 
-                    if (($webhookMethodCode === self::ADYEN_SEPADIRECTDEBIT && $sepaFlow === SepaFlow::SEPA_FLOW_AUTHCAP) ||
-                        ($webhookMethodCode === self::ADYEN_PAYPAL && $isPaypalManualCapture) ||
-                        ($this->isOpenInvoice($webhookMethodInstance) && !$autoCaptureOpenInvoice) ||
-                        ($captureMode === CaptureMode::CAPTURE_MODE_MANUAL)
-                    ) {
+                    /*
+                     * Payment method specific settings take precedence over the global capture mode setting.
+                     * The global capture mode is only applied if no method specific setting is available.
+                     */
+                    if ($webhookMethodCode === self::ADYEN_SEPADIRECTDEBIT) {
+                        $isAutoCapture = $sepaFlow !== SepaFlow::SEPA_FLOW_AUTHCAP;
+                    } elseif ($webhookMethodCode === self::ADYEN_PAYPAL) {
+                        $isAutoCapture = !$isPaypalManualCapture;
+                    } elseif ($this->isOpenInvoice($webhookMethodInstance)) {
+                        $isAutoCapture = $autoCaptureOpenInvoice;
+                    } elseif ($captureMode === CaptureMode::CAPTURE_MODE_MANUAL) {
                         $isAutoCapture = false;
                     }
                 } else {
@@ -825,6 +830,18 @@ class PaymentMethods extends AbstractHelper
                 }
             }
         }
+
+        $this->adyenLogger->addAdyenNotification(
+            sprintf(
+                'Capture mode of the webhook payment method %s is resolved as %s.',
+                $notificationPaymentMethod,
+                $isAutoCapture ? 'auto capture' : 'manual capture'
+            ),
+            [
+                'merchantReference' => $order->getIncrementId(),
+                'orderPaymentMethod' => $order->getPayment()->getMethod()
+            ]
+        );
 
         return $isAutoCapture;
     }
