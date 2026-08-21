@@ -149,7 +149,7 @@
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
                 <supports_recurring>1</supports_recurring>
-                <supports_manual_capture>1</supports_manual_capture>
+                <supports_manual_capture>0</supports_manual_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_ideal>
@@ -719,7 +719,7 @@
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
-                <supports_manual_capture>1</supports_manual_capture>
+                <supports_manual_capture>0</supports_manual_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_bankTransfer_BE>
@@ -740,7 +740,7 @@
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
-                <supports_manual_capture>1</supports_manual_capture>
+                <supports_manual_capture>0</supports_manual_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_bankTransfer_CH>
@@ -761,7 +761,7 @@
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
-                <supports_manual_capture>1</supports_manual_capture>
+                <supports_manual_capture>0</supports_manual_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_bankTransfer_DE>
@@ -782,7 +782,7 @@
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
-                <supports_manual_capture>1</supports_manual_capture>
+                <supports_manual_capture>0</supports_manual_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_bankTransfer_GB>
@@ -803,7 +803,7 @@
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
-                <supports_manual_capture>1</supports_manual_capture>
+                <supports_manual_capture>0</supports_manual_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_bankTransfer_IBAN>
@@ -824,7 +824,7 @@
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
-                <supports_manual_capture>1</supports_manual_capture>
+                <supports_manual_capture>0</supports_manual_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_bankTransfer_NL>
@@ -2147,7 +2147,7 @@
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
-                <supports_manual_capture>1</supports_manual_capture>
+                <supports_manual_capture>0</supports_manual_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_onlinebanking_IN>
@@ -2189,7 +2189,7 @@
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
-                <supports_manual_capture>1</supports_manual_capture>
+                <supports_manual_capture>0</supports_manual_capture>
                 <is_wallet>1</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_wallet_IN>
@@ -2210,7 +2210,7 @@
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
                 <supports_recurring>0</supports_recurring>
-                <supports_manual_capture>1</supports_manual_capture>
+                <supports_manual_capture>0</supports_manual_capture>
                 <is_wallet>0</is_wallet>
                 <group>adyen-alternative-payment-method</group>
             </adyen_upi>
