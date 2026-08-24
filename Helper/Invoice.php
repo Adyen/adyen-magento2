@@ -329,6 +329,15 @@ class Invoice extends AbstractHelper
             }
         }
 
+        $autoCapturedPayments = $this->orderPaymentResourceModel->getLinkedAdyenOrderPayments(
+            $invoice->getOrder()->getPayment()->getEntityId(),
+            [OrderPaymentInterface::CAPTURE_STATUS_AUTO_CAPTURE]
+        );
+
+        foreach ($autoCapturedPayments as $autoCapturedPayment) {
+            $invoiceCapturedAmount += $autoCapturedPayment[OrderPaymentInterface::AMOUNT];
+        }
+
         $invoiceChargedCurrency = $this->chargedCurrencyHelper->getInvoiceAmountCurrency($invoice);
 
         $invoiceAmountCents = $this->adyenDataHelper->formatAmount(

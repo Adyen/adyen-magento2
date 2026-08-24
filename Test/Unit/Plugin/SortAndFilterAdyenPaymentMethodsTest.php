@@ -52,7 +52,7 @@ class SortAndFilterAdyenPaymentMethodsTest extends AbstractAdyenTestCase
 
         $this->paymentMethodsFilterMock->expects($this->once())
             ->method('sortAndFilterPaymentMethods')
-            ->willReturn([$filteredList, ['ignored' => true]]);
+            ->willReturn($filteredList);
 
         $subjectMock = $this->createMock(PaymentMethodManagementInterface::class);
 

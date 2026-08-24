@@ -105,13 +105,15 @@
             "entity_id": true,
             "merchant_reference": true,
             "result_code": true,
-            "response": true
+            "response": true,
+            "created_at": true
         },
         "constraint": {
             "PRIMARY": true
         },
         "index": {
-            "ADYEN_PAYMENT_RESPONSE_MERCHANT_REFERENCE": true
+            "ADYEN_PAYMENT_RESPONSE_MERCHANT_REFERENCE": true,
+            "ADYEN_PAYMENT_RESPONSE_CREATED_AT": true
         }
     },
     "adyen_analytics_event": {

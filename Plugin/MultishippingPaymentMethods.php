@@ -51,7 +51,7 @@ class MultishippingPaymentMethods
             return $result;
         }
 
-        list ($result) = $this->paymentMethodsFilter->sortAndFilterPaymentMethods($result, $quote);
+        $result = $this->paymentMethodsFilter->sortAndFilterPaymentMethods($result, $quote);
         $billing->setAdyenPaymentMethodsResponse(
             $this->paymentMethods->getApiResponse($quote)
         );

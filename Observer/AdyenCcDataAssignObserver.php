@@ -114,7 +114,7 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
         // Remove each CC-specific field from the previous payment only if the incoming
         // data contains a replacement for that specific field. This prevents the placeOrder
         // mutation from clearing data that was set by setPaymentMethodOnCart.
-        $ccSpecificKeys = [self::CC_TYPE, self::NUMBER_OF_INSTALLMENTS, self::COMBO_CARD_TYPE];
+        $ccSpecificKeys = [self::NUMBER_OF_INSTALLMENTS, self::COMBO_CARD_TYPE];
         foreach ($ccSpecificKeys as $ccKey) {
             if (array_key_exists($ccKey, $additionalData)) {
                 $paymentInfo->unsAdditionalInformation($ccKey);
@@ -142,6 +142,11 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
 
         unset($additionalData[self::STATE_DATA]);
 
+        // Set ccType if it exists on the request, otherwise reset to prevent being inherited from the previous attempt
+        $paymentInfo->setCcType($additionalData[self::CC_TYPE] ?? null);
+        // Card type is stored in payment's `cc_type`. Setting it up on `additional_information` is redundant.
+        unset($additionalData[self::CC_TYPE]);
+
         if (
             !empty($additionalData[self::RECURRING_PROCESSING_MODEL]) &&
             !$this->vaultHelper->validateRecurringProcessingModel($additionalData[self::RECURRING_PROCESSING_MODEL])
@@ -153,11 +158,6 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
         // Set additional data in the payment
         foreach ($additionalData as $key => $data) {
             $paymentInfo->setAdditionalInformation($key, $data);
-        }
-
-        // set ccType
-        if (!empty($additionalData[self::CC_TYPE])) {
-            $paymentInfo->setCcType($additionalData[self::CC_TYPE]);
         }
     }
 }

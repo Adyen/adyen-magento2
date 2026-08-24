@@ -17,6 +17,7 @@ use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\CaseManagement;
 use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Invoice;
 use Adyen\Payment\Helper\Order as OrderHelper;
 use Adyen\Payment\Helper\PaymentMethods;
@@ -43,6 +44,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
      * @param CartRepositoryInterface $cartRepository
      * @param AdyenNotificationRepositoryInterface $notificationRepository
      * @param CleanupAdditionalInformationInterface $cleanupAdditionalInformation
+     * @param Data $adyenHelper
      */
     public function __construct(
         private readonly AdyenOrderPayment $adyenOrderPaymentHelper,
@@ -55,7 +57,8 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         private readonly PaymentMethods $paymentMethodsHelper,
         private readonly CartRepositoryInterface $cartRepository,
         private readonly AdyenNotificationRepositoryInterface $notificationRepository,
-        private readonly CleanupAdditionalInformationInterface $cleanupAdditionalInformation
+        private readonly CleanupAdditionalInformationInterface $cleanupAdditionalInformation,
+        private readonly Data $adyenHelper
     ) { }
 
     /**
@@ -91,6 +94,11 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
 
         $this->adyenOrderPaymentHelper->createAdyenOrderPayment($order, $notification, $isAutoCapture);
 
+        $notificationAmount = floatval($this->adyenHelper->originalAmount(
+            $notification->getAmountValue(), $notification->getAmountCurrency()));
+
+        $order->setPaymentAuthorizationAmount($order->getPaymentAuthorizationAmount() + $notificationAmount);
+
         if (!$this->adyenOrderPaymentHelper->isFullAmountAuthorized($order)) {
             $this->orderHelper->addWebhookStatusHistoryComment($order, $notification);
             $this->createCashShipmentIfNeeded($order, $paymentMethod);
@@ -104,7 +112,8 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         $additionalData = $this->getAdditionalDataArray($notification);
         $requireFraudManualReview = $this->caseManagementHelper->requiresManualReview($additionalData);
 
-        $order = $isAutoCapture
+        $isOrderAutoCapture = $this->adyenOrderPaymentHelper->isAllAutoCaptured($order);
+        $order = $isOrderAutoCapture
             ? $this->handleAutoCapture($order, $notification, $requireFraudManualReview)
             : $this->handleManualCapture($order, $notification, $requireFraudManualReview);
 

@@ -17,10 +17,13 @@ interface PaymentResponseInterface
     /**
      * Constants for keys of data array. Identical to the name of the getter in snake case.
      */
+    const TABLE_NAME = 'adyen_payment_response';
+    const TABLE_NAME_ALIAS = 'payment_response';
     const ENTITY_ID = 'entity_id';
     const MERCHANT_REFERENCE = 'merchant_reference';
     const RESULT_CODE = 'result_code';
     const RESPONSE = 'response';
+    const CREATED_AT = 'created_at';
 
     public function getEntityId();
 

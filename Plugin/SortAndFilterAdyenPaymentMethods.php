@@ -43,11 +43,9 @@ class SortAndFilterAdyenPaymentMethods
         array $paymentMethodManagementResult,
         int $cartId
     ): array {
-        list($filteredPaymentMethods) = $this->paymentMethodsFilter->sortAndFilterPaymentMethods(
+        return $this->paymentMethodsFilter->sortAndFilterPaymentMethods(
             $paymentMethodManagementResult,
             $this->quoteRepository->get($cartId)
         );
-
-        return $filteredPaymentMethods;
     }
 }
