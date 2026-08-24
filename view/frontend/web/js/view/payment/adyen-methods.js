@@ -31,9 +31,7 @@ define(
         const customMethodRenderers = window.checkoutConfig.payment.adyen.customMethodRenderers || {};
         // Push payment method renderers for alternative payment methods
         Object.keys(adyenTxVariants).forEach((index) => {
-            const hasCustomRenderer = Object.prototype.hasOwnProperty.call(customMethodRenderers, index);
-
-            if (hasCustomRenderer) {
+            if (customMethodRenderers[index]) {
                 return;
             }
 
