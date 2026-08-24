@@ -45,7 +45,7 @@ class TxVariantFactory
         } catch (UnexpectedValueException $e) {
             $this->adyenLogger->error(sprintf(
                 'Payment method instance could not be identified! The variant %s is not an Adyen wallet or alternative payment method. %s',
-                $data['txVariant'],
+                $data['txVariant'] ?? '',
                 $e->getMessage()
             ));
             return null;

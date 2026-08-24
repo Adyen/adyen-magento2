@@ -3,9 +3,9 @@ run-name: Main
 
 on:
   pull_request:
-    branches: [main, develop-11]
+    branches: [main]
   push:
-    branches: [main, develop-11]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
