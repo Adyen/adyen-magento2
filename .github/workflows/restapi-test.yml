@@ -1,6 +1,8 @@
 name: REST API Tests
 
-on: [pull_request]
+on:
+  pull_request:
+    branches: [main-10]
 
 jobs:
   build-rest:
