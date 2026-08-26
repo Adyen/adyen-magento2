@@ -134,7 +134,9 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
             $decodedClientData = base64_decode($stateData['riskData']['clientData']);
             if ($decodedClientData !== false) {
                 $clientData = json_decode($decodedClientData, true);
-                if (json_last_error() === JSON_ERROR_NONE) {
+                if (json_last_error() === JSON_ERROR_NONE &&
+                    is_array($clientData) &&
+                    isset($clientData['deviceFingerprint'])) {
                     $paymentInfo->setAdditionalInformation(
                         self::DEVICE_FINGERPRINT,
                         $clientData['deviceFingerprint']

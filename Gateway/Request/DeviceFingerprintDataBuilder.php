@@ -28,10 +28,9 @@ class DeviceFingerprintDataBuilder  implements BuilderInterface
         $paymentDataObject = SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
 
-        if ($payment->getAdditionalInformation(AdyenCcDataAssignObserver::DEVICE_FINGERPRINT)) {
-            $requestBody['deviceFingerprint'] = $payment->getAdditionalInformation(
-                AdyenCcDataAssignObserver::DEVICE_FINGERPRINT
-            );
+        $deviceFingerprint = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::DEVICE_FINGERPRINT);
+        if (!empty($deviceFingerprint)) {
+            $requestBody['deviceFingerprint'] = $deviceFingerprint;
         }
 
         return [
