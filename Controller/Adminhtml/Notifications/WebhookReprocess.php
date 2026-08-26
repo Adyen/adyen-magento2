@@ -11,19 +11,17 @@
 
 namespace Adyen\Payment\Controller\Adminhtml\Notifications;
 
+use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface as AdyenNotificationRepositoryInterfaceAlias;
 use Adyen\Payment\Helper\Webhook;
-use Adyen\Payment\Model\Notification;
-use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory;
+use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\Controller\Result\Redirect;
+use Magento\Framework\Controller\ResultFactory;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Message\ManagerInterface;
 
-class WebhookReprocess extends \Magento\Backend\App\Action
+class WebhookReprocess extends Action
 {
-    /**
-     * @var CollectionFactory
-     */
-    private $notificationCollectionFactory;
-
     /**
      * @var ManagerInterface
      */
@@ -32,47 +30,54 @@ class WebhookReprocess extends \Magento\Backend\App\Action
     /**
      * @var Webhook
      */
-    private $webhookHelper;
+    private Webhook $webhookHelper;
+
+    /**
+     * @var AdyenNotificationRepositoryInterfaceAlias
+     */
+    private AdyenNotificationRepositoryInterfaceAlias $notificationRepository;
 
     /**
      * Update constructor.
      *
      * @param Context $context
-     * @param CollectionFactory $notificationCollectionFactory
      * @param ManagerInterface $messageManager
      * @param Webhook $webhookHelper
+     * @param AdyenNotificationRepositoryInterfaceAlias $notificationRepository
      */
     public function __construct(
         Context $context,
-        CollectionFactory $notificationCollectionFactory,
         ManagerInterface $messageManager,
-        Webhook $webhookHelper
-    )
-    {
-        $this->notificationCollectionFactory = $notificationCollectionFactory;
+        Webhook $webhookHelper,
+        AdyenNotificationRepositoryInterfaceAlias $notificationRepository
+    ) {
         $this->messageManager = $messageManager;
         $this->webhookHelper = $webhookHelper;
-
+        $this->notificationRepository = $notificationRepository;
 
         parent::__construct($context);
     }
 
-    /**
-     * @return \Magento\Framework\View\Result\Forward
-     */
-    public function execute()
+    public function execute(): Redirect
     {
-        $redirect = $this->resultFactory->create(\Magento\Framework\Controller\ResultFactory::TYPE_REDIRECT);
+        $redirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
         $redirect->setUrl($this->_redirect->getRefererUrl());
 
-        $notification = $this->notificationCollectionFactory->create();
-        $notification = $notification->getItemById($this->getRequest()->getParam('entity_id'));
+        try {
+            $notification = $this->notificationRepository->getById(
+                (int) $this->getRequest()->getParam('entity_id')
+            );
+        } catch (NoSuchEntityException $exception) {
+            $this->messageManager->addErrorMessage(__("The webhook notification could not be found!"));
+
+            return $redirect;
+        }
 
         if($this->webhookHelper->processNotification($notification)) {
             $this->messageManager->addSuccessMessage(__("Webhook notification reprocessed successfully!"));
         }
         else {
-            $this->messageManager->addErrorMessage(__("Issue occured while reprocessing the webhook notification!"));
+            $this->messageManager->addErrorMessage(__("Issue occurred while reprocessing the webhook notification!"));
         }
 
         return $redirect;
