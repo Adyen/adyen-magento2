@@ -11,7 +11,7 @@
 
 namespace Adyen\Payment\Controller\Adminhtml\Notifications;
 
-use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface as AdyenNotificationRepositoryInterfaceAlias;
+use Adyen\Payment\Api\Repository\AdyenNotificationRepositoryInterface;
 use Adyen\Payment\Helper\Webhook;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
@@ -33,9 +33,9 @@ class WebhookReprocess extends Action
     private Webhook $webhookHelper;
 
     /**
-     * @var AdyenNotificationRepositoryInterfaceAlias
+     * @var AdyenNotificationRepositoryInterface
      */
-    private AdyenNotificationRepositoryInterfaceAlias $notificationRepository;
+    private AdyenNotificationRepositoryInterface $notificationRepository;
 
     /**
      * Update constructor.
@@ -43,13 +43,13 @@ class WebhookReprocess extends Action
      * @param Context $context
      * @param ManagerInterface $messageManager
      * @param Webhook $webhookHelper
-     * @param AdyenNotificationRepositoryInterfaceAlias $notificationRepository
+     * @param AdyenNotificationRepositoryInterface $notificationRepository
      */
     public function __construct(
         Context $context,
         ManagerInterface $messageManager,
         Webhook $webhookHelper,
-        AdyenNotificationRepositoryInterfaceAlias $notificationRepository
+        AdyenNotificationRepositoryInterface $notificationRepository
     ) {
         $this->messageManager = $messageManager;
         $this->webhookHelper = $webhookHelper;
