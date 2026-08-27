@@ -21,7 +21,9 @@ use Magento\Checkout\Model\PaymentDetails;
 use Magento\Payment\Model\Method\Adapter;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class MagentoPaymentDetailsTest extends AbstractAdyenTestCase
 {
     const PAYMENT_METHODS = [

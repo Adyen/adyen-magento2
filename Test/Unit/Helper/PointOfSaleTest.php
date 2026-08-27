@@ -13,7 +13,9 @@ use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class PointOfSaleTest extends AbstractAdyenTestCase
 {
     private $dataHelper;

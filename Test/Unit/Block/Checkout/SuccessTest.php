@@ -24,8 +24,10 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Adyen\Payment\Helper\PaymentResponseHandler;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 #[CoversClass(Success::class)]
+#[AllowMockObjectsWithoutExpectations]
 class SuccessTest extends AbstractAdyenTestCase
 {
     private Success $block;

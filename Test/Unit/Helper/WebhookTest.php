@@ -28,7 +28,9 @@ use Adyen\Payment\Logger\AdyenLogger;
 use PHPUnit\Framework\MockObject\Exception;
 use ReflectionMethod;
 use Adyen\Payment\Exception\AdyenWebhookException;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class WebhookTest extends AbstractAdyenTestCase
 {
     public function testProcessNotificationWithInvalidMerchantReference()

@@ -21,7 +21,9 @@ use Magento\Webapi\Controller\Rest\Router\Route;
 use Magento\Webapi\Controller\Rest\SynchronousRequestProcessor;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class RestApiReliabilityTrackerTest extends AbstractAdyenTestCase
 {
     protected RestApiReliabilityTracker $restApiReliabilityTracker;

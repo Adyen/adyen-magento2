@@ -24,7 +24,9 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\Order\StatusResolver;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class SetOrderStateAfterPaymentObserverTest extends AbstractAdyenTestCase
 {
     private $setOrderStateAfterPaymentObserver;

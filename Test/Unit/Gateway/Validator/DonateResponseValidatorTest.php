@@ -8,7 +8,9 @@ use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Magento\Payment\Gateway\Validator\ResultInterface;
 use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class DonateResponseValidatorTest extends AbstractAdyenTestCase
 {
     protected ?DonateResponseValidator $donateResponseValidator;

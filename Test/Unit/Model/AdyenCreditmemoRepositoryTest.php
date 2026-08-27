@@ -31,7 +31,9 @@ use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class AdyenCreditmemoRepositoryTest extends AbstractAdyenTestCase
 {
     private ?AdyenCreditmemoRepository $adyenCreditmemoRepository;

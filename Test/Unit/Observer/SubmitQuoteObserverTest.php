@@ -21,7 +21,9 @@ use Magento\Payment\Model\MethodInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class SubmitQuoteObserverTest extends AbstractAdyenTestCase
 {
     private $paymentMethodsHelperMock;

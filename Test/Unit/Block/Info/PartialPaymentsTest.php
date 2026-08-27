@@ -19,7 +19,9 @@ use Magento\Framework\Exception\LocalizedException;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
 use Magento\Framework\View\Element\Template\Context;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class PartialPaymentsTest extends AbstractAdyenTestCase
 {
     protected PartialPayments $partialPayments;

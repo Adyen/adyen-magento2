@@ -27,7 +27,9 @@ use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use RuntimeException;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class FrontendControllerReliabilityTrackerTest extends AbstractAdyenTestCase
 {
     protected ?FrontendControllerReliabilityTracker $frontendControllerReliabilityTracker;

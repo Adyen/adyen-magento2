@@ -18,7 +18,9 @@ use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
 use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class InstallmentRequestValidatorTest extends AbstractAdyenTestCase
 {
     protected ?InstallmentRequestValidator $validator;

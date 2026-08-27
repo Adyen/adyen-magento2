@@ -18,7 +18,9 @@ use InvalidArgumentException;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class TokenFormatterTest extends AbstractAdyenTestCase
 {
     const VALID_TOKEN_DETAILS_VISA = '{"type":"visa","maskedCC":"1111","expirationDate":"3/2030","cardHolderName":"Veronica Costello","tokenType":"CardOnFile"}';

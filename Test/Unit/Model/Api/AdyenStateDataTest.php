@@ -15,7 +15,9 @@ use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Model\Api\AdyenStateData;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class AdyenStateDataTest extends AbstractAdyenTestCase
 {
     private $objectManager;

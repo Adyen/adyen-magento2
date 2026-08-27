@@ -37,7 +37,9 @@ use Adyen\Payment\Helper\PaymentMethods;
 use ReflectionClass;
 use ReflectionException;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class PaymentResponseHandlerTest extends AbstractAdyenTestCase
 {
     const MERCHANT_REFERENCE = '00123456';

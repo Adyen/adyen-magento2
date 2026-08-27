@@ -25,7 +25,9 @@ use Magento\Store\Model\StoreManagerInterface;
 use Adyen\Service\Recurring;
 use Adyen\AdyenException;
 use Adyen\Client;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class PaymentVaultDeleteTokenTest extends AbstractAdyenTestCase
 {
     private $storeManagerMock;

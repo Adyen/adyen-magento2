@@ -9,7 +9,9 @@ use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Sales\Model\Order;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class OrderStatusHistoryTest extends AbstractAdyenTestCase
 {
     protected ?OrderStatusHistory $orderStatusHistory;

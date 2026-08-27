@@ -18,7 +18,9 @@ use Adyen\Payment\Model\ResourceModel\AnalyticsEvent as AnalyticsEventResourceMo
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Exception\NoSuchEntityException;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class AnalyticsEventRepositoryTest extends AbstractAdyenTestCase
 {
     protected ?AnalyticsEventRepository $analyticsEventRepository;

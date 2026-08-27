@@ -27,7 +27,9 @@ use Magento\Vault\Model\Method\Vault;
 use PHPUnit\Framework\MockObject\MockObject;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class RecurringVaultDataBuilderTest extends AbstractAdyenTestCase
 {
     protected ?RecurringVaultDataBuilder $recurringVaultDataBuilder;

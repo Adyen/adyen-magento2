@@ -16,7 +16,9 @@ use Magento\Framework\Filesystem\DirectoryList;
 use Magento\Framework\Filesystem\Io\File;
 use Magento\Framework\Message\ManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class DownloadApplePayDomainAssociationFileTest extends AbstractAdyenTestCase
 {
     protected ?DownloadApplePayDomainAssociationFile $downloadApplePayDomainAssociationFile;

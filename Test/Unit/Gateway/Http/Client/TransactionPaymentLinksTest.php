@@ -15,7 +15,9 @@ use Adyen\Client;
 use Adyen\Service\Checkout\PaymentLinksApi;
 use Magento\Payment\Gateway\Http\TransferInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class TransactionPaymentLinksTest extends AbstractAdyenTestCase
 {
     private TransactionPaymentLinks $transactionPaymentLinks;

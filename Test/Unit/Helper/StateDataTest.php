@@ -22,7 +22,9 @@ use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Adyen\Payment\Model\StateDataFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class StateDataTest extends AbstractAdyenTestCase
 {
     private StateData $stateDataHelper;

@@ -32,7 +32,9 @@ use Magento\Framework\Api\Search\SearchResultFactory;
 use Magento\Framework\Api\SearchCriteria\CollectionProcessor;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class AdyenInvoiceRepositoryTest extends AbstractAdyenTestCase
 {
     private ?AdyenInvoiceRepository $adyenInvoiceRepository;

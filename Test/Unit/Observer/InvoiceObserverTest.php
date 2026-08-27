@@ -27,7 +27,9 @@ use Magento\Sales\Model\Order\Invoice as MagentoInvoice;
 use Magento\Sales\Model\Order\StatusResolver;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class InvoiceObserverTest extends AbstractAdyenTestCase
 {
     protected ?InvoiceObserver $invoiceObserver;

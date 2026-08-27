@@ -21,7 +21,9 @@ use Magento\Framework\Api\Search\SearchResultFactory;
 use Magento\Framework\Api\SearchCriteria\CollectionProcessor;
 use Magento\Framework\ObjectManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class AdyenNotificationRepositoryTest extends AbstractAdyenTestCase
 {
     protected ?AdyenNotificationRepository $adyenNotificationRepository;

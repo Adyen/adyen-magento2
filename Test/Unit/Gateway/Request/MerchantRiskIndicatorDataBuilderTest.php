@@ -14,7 +14,9 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class MerchantRiskIndicatorDataBuilderTest extends AbstractAdyenTestCase
 {
     protected ?MerchantRiskIndicatorDataBuilder $merchantRiskIndicatorDataBuilder;

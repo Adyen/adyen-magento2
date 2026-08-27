@@ -12,7 +12,9 @@ use Magento\Framework\UrlInterface;
 use Magento\Payment\Model\MethodInterface;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManager;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class AdyenPosCloudConfigProviderTest extends AbstractAdyenTestCase
 {
     private $adyenPosCloudConfigProvider;

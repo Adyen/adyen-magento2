@@ -42,8 +42,10 @@ use ReflectionMethod;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Adyen\Payment\Helper\ShopperConversionId;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 #[CoversClass(PaymentMethods::class)]
+#[AllowMockObjectsWithoutExpectations]
 class PaymentMethodsTest extends AbstractAdyenTestCase
 {
     private PaymentMethods $helper;

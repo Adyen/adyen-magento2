@@ -18,7 +18,9 @@ use Magento\Framework\App\Config;
 use Magento\Framework\View\Element\Template\Context;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManager;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class PayByLinkTest extends AbstractAdyenTestCase
 {
     private PayByLink $payByLink;

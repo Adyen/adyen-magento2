@@ -31,7 +31,9 @@ use Magento\Payment\Model\MethodInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class RefundDataBuilderTest extends AbstractAdyenTestCase
 {
     protected ?RefundDataBuilder $refundDataBuilder;

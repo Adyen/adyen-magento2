@@ -33,7 +33,9 @@ use Magento\Store\Model\StoreManagerInterface;
 use Adyen\Payment\Helper\GiftcardPayment;
 use Magento\Payment\Gateway\Http\TransferInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class TransactionPaymentTest extends AbstractAdyenTestCase
 {
     private Data|MockObject$adyenHelperMock;

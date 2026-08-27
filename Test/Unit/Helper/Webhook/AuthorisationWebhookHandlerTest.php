@@ -31,7 +31,9 @@ use ReflectionClass;
 use ReflectionException as ReflectionExceptionAlias;
 use ReflectionMethod;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
 {
     private Notification|MockObject $notificationMock;

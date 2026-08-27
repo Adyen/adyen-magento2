@@ -5,7 +5,9 @@ namespace Adyen\Payment\Test\Comment;
 use Adyen\Payment\Model\Comment\ApiKeyEnding;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Encryption\Encryptor;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class ApiKeyEndingTest extends AbstractAdyenTestCase
 {
     /**

@@ -26,7 +26,9 @@ use Magento\Sales\Model\ResourceModel\Metadata;
 use Magento\Sales\Model\ResourceModel\Order\Payment\Collection as MagentoPaymentCollection;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class PaymentRepositoryTest extends AbstractAdyenTestCase
 {
     protected ?PaymentRepository $paymentRepository;

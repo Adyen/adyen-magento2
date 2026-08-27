@@ -26,7 +26,9 @@ use Adyen\Service\Checkout\OrdersApi as CheckoutOrdersApi;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Api\Data\OrderInterface;
 use PHPUnit\Framework\MockObject\Exception;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class OrdersApiTest extends AbstractAdyenTestCase
 {
     /**

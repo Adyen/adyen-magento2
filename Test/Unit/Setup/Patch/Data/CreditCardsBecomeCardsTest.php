@@ -9,7 +9,9 @@ use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\DB\Select;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class CreditCardsBecomeCardsTest extends AbstractAdyenTestCase
 {
     /** @var ObjectManager */

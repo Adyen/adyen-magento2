@@ -16,7 +16,9 @@ use Adyen\Payment\Helper\Idempotency;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Helper\Data;
 use Adyen\AdyenException;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class TransactionCaptureTest extends AbstractAdyenTestCase
 {
     private $transactionCapture;

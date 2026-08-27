@@ -32,7 +32,9 @@ use Magento\Tax\Api\Data\OrderTaxDetailsInterface;
 use Magento\Tax\Api\OrderTaxManagementInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use Magento\Sales\Model\ResourceModel\Order\Collection;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class OrderRepositoryTest extends AbstractAdyenTestCase
 {
     protected OrderRepository $orderRepository;

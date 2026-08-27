@@ -19,7 +19,9 @@ use Adyen\Payment\Helper\Data as AdyenHelper;
 use Magento\Framework\View\Element\UiComponent\ContextInterface;
 use Magento\Framework\View\Element\UiComponentFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class NotificationColumnTest extends AbstractAdyenTestCase
 {
 

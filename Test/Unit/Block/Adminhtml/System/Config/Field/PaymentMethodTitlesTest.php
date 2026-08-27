@@ -20,8 +20,10 @@ use Magento\Framework\DataObject;
 use Magento\Framework\View\LayoutInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 #[CoversClass(PaymentMethodTitles::class)]
+#[AllowMockObjectsWithoutExpectations]
 class PaymentMethodTitlesTest extends AbstractAdyenTestCase
 {
     private PaymentMethodTitles $block;

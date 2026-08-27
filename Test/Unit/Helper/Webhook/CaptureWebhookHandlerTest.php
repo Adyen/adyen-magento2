@@ -16,7 +16,9 @@ use Adyen\Payment\Model\Invoice as AdyenInvoice;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Payment\Model\Order\Payment;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
 {
     protected CaptureWebhookHandler $captureWebhookHandler;

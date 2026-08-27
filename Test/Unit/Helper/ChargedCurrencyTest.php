@@ -24,7 +24,9 @@ use Magento\Tax\Block\Item\Price\Renderer;
 use PHPUnit\Framework\MockObject\MockObject;
 use Magento\Tax\Block\Item\Price\RendererFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class ChargedCurrencyTest extends AbstractAdyenTestCase
 {
 

@@ -21,7 +21,9 @@ use Magento\Payment\Model\MethodInterface;
 use Magento\Sales\Model\Order;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class LineItemsDataBuilderTest extends AbstractAdyenTestCase
 {
     protected ?LineItemsDataBuilder $lineItemsDataBuilder;

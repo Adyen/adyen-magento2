@@ -4,7 +4,9 @@ namespace Adyen\Payment\Test\Unit\Model\Config\Source;
 
 use Adyen\Payment\Model\Config\Source\ThreeDSFlow;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class ThreeDSModeTest extends AbstractAdyenTestCase
 {
     public function testToOptionArray()
