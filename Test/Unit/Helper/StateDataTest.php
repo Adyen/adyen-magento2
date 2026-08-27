@@ -21,6 +21,7 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Adyen\Payment\Model\StateDataFactory;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class StateDataTest extends AbstractAdyenTestCase
 {
@@ -100,9 +101,7 @@ class StateDataTest extends AbstractAdyenTestCase
         $this->stateDataHelper->removeStateData($stateDataId, $quoteId);
     }
 
-    /**
-     * @dataProvider storedPaymentMethodIdProvider
-     */
+    #[DataProvider('storedPaymentMethodIdProvider')]
     public function testGetStoredPaymentMethodId($stateData, $expectedResult)
     {
         $this->assertEquals(

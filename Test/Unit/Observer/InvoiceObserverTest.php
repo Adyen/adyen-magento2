@@ -26,6 +26,7 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice as MagentoInvoice;
 use Magento\Sales\Model\Order\StatusResolver;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class InvoiceObserverTest extends AbstractAdyenTestCase
 {
@@ -71,7 +72,7 @@ class InvoiceObserverTest extends AbstractAdyenTestCase
     /**
      * @return array
      */
-    private static function skipObserverDataSet(): array
+    public static function skipObserverDataSet(): array
     {
         return [
             [
@@ -102,7 +103,6 @@ class InvoiceObserverTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider skipObserverDataSet
      *
      * @param bool $isAdyenPaymentMethod
      * @param bool $isPaid
@@ -111,6 +111,7 @@ class InvoiceObserverTest extends AbstractAdyenTestCase
      * @return void
      * @throws AlreadyExistsException
      */
+    #[DataProvider('skipObserverDataSet')]
     public function testExecute(
         bool $isAdyenPaymentMethod,
         bool $isPaid,

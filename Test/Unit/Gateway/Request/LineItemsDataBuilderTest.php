@@ -20,6 +20,7 @@ use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Model\MethodInterface;
 use Magento\Sales\Model\Order;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class LineItemsDataBuilderTest extends AbstractAdyenTestCase
 {
@@ -52,7 +53,7 @@ class LineItemsDataBuilderTest extends AbstractAdyenTestCase
     /**
      * @return array
      */
-    private static function buildDataProvider(): array
+    public static function buildDataProvider(): array
     {
         return [
             ['isLineItemsRequired' => true],
@@ -61,12 +62,12 @@ class LineItemsDataBuilderTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider buildDataProvider()
      *
      * @param bool $isLineItemsRequired
      * @return void
      * @throws LocalizedException
      */
+    #[DataProvider('buildDataProvider')]
     public function testBuild(bool $isLineItemsRequired)
     {
         $orderMock = $this->createMock(Order::class);

@@ -26,6 +26,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use RuntimeException;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class FrontendControllerReliabilityTrackerTest extends AbstractAdyenTestCase
 {
@@ -168,9 +169,7 @@ class FrontendControllerReliabilityTrackerTest extends AbstractAdyenTestCase
         $this->assertEquals($expectedResult, $result);
     }
 
-    /**
-     * @dataProvider expectedExceptionProvider
-     */
+    #[DataProvider('expectedExceptionProvider')]
     public function testAroundDispatchWithExpectedException(string $exceptionClass)
     {
         $serviceUri = '/adyen/return';

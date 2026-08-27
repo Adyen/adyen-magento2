@@ -23,6 +23,7 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\Order\StatusResolver;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class SetOrderStateAfterPaymentObserverTest extends AbstractAdyenTestCase
 {
@@ -59,7 +60,7 @@ class SetOrderStateAfterPaymentObserverTest extends AbstractAdyenTestCase
         );
     }
 
-    private static function resultCodeProvider(): array
+    public static function resultCodeProvider(): array
     {
         return [
             [
@@ -87,10 +88,10 @@ class SetOrderStateAfterPaymentObserverTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider resultCodeProvider
      * @return void
      * @throws LocalizedException
      */
+    #[DataProvider('resultCodeProvider')]
     public function testExecute($resultCode, $action, $changeStatus = true)
     {
         $this->paymentMock->method('getAdditionalInformation')->will(

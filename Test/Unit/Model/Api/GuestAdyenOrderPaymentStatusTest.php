@@ -21,6 +21,7 @@ use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class GuestAdyenOrderPaymentStatusTest extends AbstractAdyenTestCase
 {
@@ -89,7 +90,7 @@ class GuestAdyenOrderPaymentStatusTest extends AbstractAdyenTestCase
     /**
      * @return array[]
      */
-    private static function testDataProvider(): array
+    public static function orderPaymentStatusDataProvider(): array
     {
         return [
             [
@@ -106,11 +107,11 @@ class GuestAdyenOrderPaymentStatusTest extends AbstractAdyenTestCase
     /**
      * Assert json result type and check the existence of required response fields
      *
-     * @dataProvider testDataProvider
      *
      * @return void
      * @throws NotFoundException
      */
+    #[DataProvider('orderPaymentStatusDataProvider')]
     public function testGetOrderPaymentStatusSuccess($resultCode, $expectedResultCode)
     {
         $cartId = 'abcdefg123456789abcdef';

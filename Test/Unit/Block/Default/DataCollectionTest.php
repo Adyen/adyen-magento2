@@ -11,6 +11,7 @@ use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class DataCollectionTest extends AbstractAdyenTestCase
 {
@@ -56,7 +57,7 @@ class DataCollectionTest extends AbstractAdyenTestCase
     /**
      * @return array[]
      */
-    private static function dataProviderGetEnvironment(): array
+    public static function dataProviderGetEnvironment(): array
     {
         return [
             [
@@ -71,13 +72,13 @@ class DataCollectionTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider dataProviderGetEnvironment
      *
      * @param $isDemoMode
      * @param $expectedEnvironment
      * @return void
      * @throws NoSuchEntityException
      */
+    #[DataProvider('dataProviderGetEnvironment')]
     public function testGetEnvironment($isDemoMode, $expectedEnvironment)
     {
         $this->configMock->method('isDemoMode')->with($this->storeId)->willReturn($isDemoMode);

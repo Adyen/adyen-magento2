@@ -20,6 +20,7 @@ use Magento\Framework\Pricing\Helper\Data as PricingData;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class GiftcardPaymentTest extends AbstractAdyenTestCase
 {
@@ -296,7 +297,7 @@ class GiftcardPaymentTest extends AbstractAdyenTestCase
         $this->assertEquals(0, $totalBalance, 'The total must be equal to 0 because the giftcard key is undefined.');
     }
 
-    private static function discountTestDataProvider(): array
+    public static function discountTestDataProvider(): array
     {
         return [
             [
@@ -323,12 +324,12 @@ class GiftcardPaymentTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider discountTestDataProvider
      * @param float $quoteAmount
      * @param int $giftcardBalance
      * @param int $expectedResult
      * @return void
      */
+    #[DataProvider('discountTestDataProvider')]
     public function testGetQuoteGiftcardDiscount(float $quoteAmount, int $giftcardBalance, int $expectedResult): void
     {
         $stateDataCollectionMock = [

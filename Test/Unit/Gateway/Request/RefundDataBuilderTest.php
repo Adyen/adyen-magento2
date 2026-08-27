@@ -30,6 +30,7 @@ use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Model\MethodInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class RefundDataBuilderTest extends AbstractAdyenTestCase
 {
@@ -77,7 +78,7 @@ class RefundDataBuilderTest extends AbstractAdyenTestCase
         $this->refundDataBuilder = null;
     }
 
-    private static function dataProviderForRefundDataBuilder(): array
+    public static function dataProviderForRefundDataBuilder(): array
     {
         return [
             [
@@ -185,7 +186,6 @@ class RefundDataBuilderTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider dataProviderForRefundDataBuilder()
      *
      * @param string $paymentMethod
      * @param array $orderPaymentCollectionData
@@ -193,6 +193,7 @@ class RefundDataBuilderTest extends AbstractAdyenTestCase
      * @return void
      * @throws LocalizedException
      */
+    #[DataProvider('dataProviderForRefundDataBuilder')]
     public function testBuild(
         string $paymentMethod,
         array $orderPaymentCollectionData,

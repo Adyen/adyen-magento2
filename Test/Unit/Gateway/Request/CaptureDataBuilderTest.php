@@ -32,6 +32,7 @@ use Magento\Payment\Model\MethodInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\ResourceModel\Order\Invoice\Collection as InvoiceCollection;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class CaptureDataBuilderTest extends AbstractAdyenTestCase
 {
@@ -79,9 +80,7 @@ class CaptureDataBuilderTest extends AbstractAdyenTestCase
         ];
     }
 
-    /**
-    * @dataProvider adyenOrderPaymentsProvider
-    */
+    #[DataProvider('adyenOrderPaymentsProvider')]
     public function testBuildCaptureRequest($adyenOrderPayments, $fullAmountAuthorized)
     {
         $adyenHelperMock = $this->createPartialMock(Data::class, ['getAdyenMerchantAccount']);

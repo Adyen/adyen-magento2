@@ -17,6 +17,7 @@ use Adyen\Payment\Helper\Requests;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Sales\Model\Order\Payment;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class MotoMerchantAccountDataBuilderTest extends AbstractAdyenTestCase
 {
@@ -32,9 +33,7 @@ class MotoMerchantAccountDataBuilderTest extends AbstractAdyenTestCase
         ];
     }
 
-    /**
-     * @dataProvider merchantAccountProvider
-     */
+    #[DataProvider('merchantAccountProvider')]
     public function testRequestBuilder($merchantAccount)
     {
         if (is_null($merchantAccount)) {

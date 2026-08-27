@@ -17,6 +17,7 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\App\CacheInterface;
 use Magento\Framework\Serialize\SerializerInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class IpAddressTest extends AbstractAdyenTestCase
 {
@@ -47,9 +48,7 @@ class IpAddressTest extends AbstractAdyenTestCase
         );
     }
 
-    /**
-     * @dataProvider ipAddressesProvider
-     */
+    #[DataProvider('ipAddressesProvider')]
     public function testIsIpAddressValid($ipAddress, $expectedResult)
     {
         $this->assertEquals($expectedResult, $this->ipAddressHelper->isIpAddressValid([$ipAddress]));

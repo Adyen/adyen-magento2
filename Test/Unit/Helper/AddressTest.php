@@ -16,6 +16,7 @@ use Adyen\Payment\Helper\Address;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Payment\Gateway\Data\AddressAdapterInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class AddressTest extends AbstractAdyenTestCase
 {
@@ -58,12 +59,12 @@ class AddressTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider addressConfigProvider
      * @param $houseNumberStreetLine
      * @param $address
      * @param $expectedResult
      * @param $streetLinesEnabled
      */
+    #[DataProvider('addressConfigProvider')]
     public function testGetStreetAndHouseNumberFromAddress($address, $houseNumberStreetLine, $streetLinesEnabled, $expectedResult)
     {
         /*

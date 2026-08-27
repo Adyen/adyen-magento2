@@ -18,6 +18,7 @@ use Magento\Backend\Helper\Data;
 use Adyen\Payment\Helper\Data as AdyenHelper;
 use Magento\Framework\View\Element\UiComponent\ContextInterface;
 use Magento\Framework\View\Element\UiComponentFactory;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class NotificationColumnTest extends AbstractAdyenTestCase
 {
@@ -96,16 +97,16 @@ class NotificationColumnTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider dataSourceProvider
      * @throws \Exception
      */
+    #[DataProvider('dataSourceProvider')]
     public function testPrepareDataSource($originalDataSource, $modifiedDataSource)
     {
         $resultDataSource = $this->notificationColumn->prepareDataSource($originalDataSource);
         $this->assertEquals($modifiedDataSource, $resultDataSource);
     }
 
-    public function dataSourceProvider()
+    public static function dataSourceProvider()
     {
         return [
             [

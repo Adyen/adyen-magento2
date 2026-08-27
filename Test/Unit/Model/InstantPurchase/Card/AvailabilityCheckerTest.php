@@ -19,6 +19,7 @@ use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class AvailabilityCheckerTest extends AbstractAdyenTestCase
 {
@@ -63,10 +64,10 @@ class AvailabilityCheckerTest extends AbstractAdyenTestCase
      * @param $isCvcRequiredForCardRecurringPayments
      * @param $expectedResult
      *
-     * @dataProvider availabilityTestDataProvider
      *
      * @return void
      */
+    #[DataProvider('availabilityTestDataProvider')]
     public function testIsAvailable(
         $isCardRecurringEnabled,
         $recurringProcessingModel,
@@ -94,7 +95,7 @@ class AvailabilityCheckerTest extends AbstractAdyenTestCase
     /**
      * @return array[]
      */
-    protected static function availabilityTestDataProvider(): array
+    public static function availabilityTestDataProvider(): array
     {
         return [
             [

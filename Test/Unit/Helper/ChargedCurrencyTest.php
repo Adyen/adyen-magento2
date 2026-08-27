@@ -23,6 +23,7 @@ use Magento\Sales\Model\Order\Creditmemo\Item;
 use Magento\Tax\Block\Item\Price\Renderer;
 use PHPUnit\Framework\MockObject\MockObject;
 use Magento\Tax\Block\Item\Price\RendererFactory;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class ChargedCurrencyTest extends AbstractAdyenTestCase
 {
@@ -384,12 +385,12 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider amountCurrencyProvider
      * @param $configValue
      * @param AdyenAmountCurrency $expectedResult
      * @param $orderPlacement
      * @param $getAdyenChargedCurrency
      */
+    #[DataProvider('amountCurrencyProvider')]
     public function testGetOrderAmountCurrency(
         $configValue,
         AdyenAmountCurrency $expectedResult,
@@ -415,11 +416,11 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider amountCurrencyProvider
      * @param $configValue
      * @param $expectedResult AdyenAmountCurrency
      * @param $orderPlacement
      */
+    #[DataProvider('amountCurrencyProvider')]
     public function testGetQuoteAmountCurrency(
         $configValue,
         AdyenAmountCurrency $expectedResult,
@@ -446,11 +447,11 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider amountCurrencyProvider
      * @param $configValue
      * @param $expectedResult AdyenAmountCurrency
      * @param $orderPlacement
      */
+    #[DataProvider('amountCurrencyProvider')]
     public function testGetQuoteItemAmountCurrency(
         $configValue,
         AdyenAmountCurrency $expectedResult,
@@ -489,12 +490,12 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider amountCurrencyProvider
      * @param $configValue
      * @param $expectedResult
      * @param $orderPlacement
      * @param $getAdyenChargedCurrency
      */
+    #[DataProvider('amountCurrencyProvider')]
     public function testGetInvoiceItemAmountCurrency(
         $configValue,
         AdyenAmountCurrency $expectedResult,
@@ -520,12 +521,12 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider amountCurrencyProvider
      * @param $configValue
      * @param $expectedResult
      * @param $orderPlacement
      * @param $getAdyenChargedCurrency
      */
+    #[DataProvider('amountCurrencyProvider')]
     public function testGetCreditMemoAmountCurrency(
         $configValue,
         AdyenAmountCurrency $expectedResult,
@@ -551,12 +552,12 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider amountCurrencyProvider
      * @param $configValue
      * @param $expectedResult
      * @param $orderPlacement
      * @param $getAdyenChargedCurrency
      */
+    #[DataProvider('amountCurrencyProvider')]
     public function testGetCreditMemoAdjustmentAmountCurrency(
         $configValue,
         AdyenAmountCurrency $expectedResult,
@@ -580,12 +581,12 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider amountCurrencyProvider
      * @param $configValue
      * @param $expectedResult
      * @param $orderPlacement
      * @param $getAdyenChargedCurrency
      */
+    #[DataProvider('amountCurrencyProvider')]
     public function testGetCreditMemoShippingAmountCurrency(
         $configValue,
         AdyenAmountCurrency $expectedResult,
@@ -611,12 +612,12 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider amountCurrencyProvider
      * @param $configValue
      * @param $expectedResult
      * @param $orderPlacement
      * @param $getAdyenChargedCurrency
      */
+    #[DataProvider('amountCurrencyProvider')]
     public function testGetCreditMemoItemAmountCurrency(
         $configValue,
         AdyenAmountCurrency $expectedResult,
@@ -642,12 +643,12 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider amountCurrencyProvider
      * @param $configValue
      * @param $expectedResult
      * @param $orderPlacement
      * @param $getAdyenChargedCurrency
      */
+    #[DataProvider('amountCurrencyProvider')]
     public function testGetQuoteShippingAmountCurrency(
         $configValue,
         AdyenAmountCurrency $expectedResult,
@@ -677,12 +678,12 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider amountCurrencyProvider
      * @param $configValue
      * @param $expectedResult
      * @param $orderPlacement
      * @param $getAdyenChargedCurrency
      */
+    #[DataProvider('amountCurrencyProvider')]
     public function testGetInvoiceShippingAmountCurrency(
         $configValue,
         AdyenAmountCurrency $expectedResult,
@@ -707,12 +708,12 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider amountCurrencyProvider
      * @param $configValue
      * @param $expectedResult
      * @param $orderPlacement
      * @param $getAdyenChargedCurrency
      */
+    #[DataProvider('amountCurrencyProvider')]
     public function testGetInvoiceAmountCurrency(
         $configValue,
         AdyenAmountCurrency $expectedResult,
@@ -741,7 +742,7 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
         }
     }
 
-    public function amountCurrencyProvider(): array
+    public static function amountCurrencyProvider(): array
     {
         $adyenAmountCurrencyBase = new AdyenAmountCurrency(
             self::AMOUNT_CURRENCY['base']['amount'],

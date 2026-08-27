@@ -30,6 +30,7 @@ use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Vault\Model\PaymentTokenManagement;
 use Magento\Vault\Model\ResourceModel\PaymentToken as PaymentTokenResourceModel;
 use Adyen\Payment\Model\Method\TxVariantFactory;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class VaultTest extends AbstractAdyenTestCase
 {
@@ -79,9 +80,7 @@ class VaultTest extends AbstractAdyenTestCase
         );
     }
 
-    /**
-     * @dataProvider buildPaymentMethodRecurringDataDataProvider
-     */
+    #[DataProvider('buildPaymentMethodRecurringDataDataProvider')]
     public function testBuildPaymentMethodRecurringData(
         $storedPaymentMethodId,
         $recurringProcessingModel,

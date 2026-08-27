@@ -41,6 +41,7 @@ use ReflectionClass;
 use ReflectionMethod;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Adyen\Payment\Helper\ShopperConversionId;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 #[CoversClass(PaymentMethods::class)]
 class PaymentMethodsTest extends AbstractAdyenTestCase
@@ -386,9 +387,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $this->assertEquals('overpaid_status', $status);
     }
 
-    /**
-     * @dataProvider autoCaptureDataProvider
-     */
+    #[DataProvider('autoCaptureDataProvider')]
     public function testIsAutoCapture(
         string $webhookPaymentMethod,
         ?string $webhookMethodCode,
@@ -549,9 +548,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $this->assertEquals('underpaid_status', $status);
     }
 
-    /**
-     * @dataProvider comparePaymentMethodProvider
-     */
+    #[DataProvider('comparePaymentMethodProvider')]
     public function testCompareOrderAndWebhookPaymentMethods(
         $orderPaymentMethod,
         $notificationPaymentMethod,

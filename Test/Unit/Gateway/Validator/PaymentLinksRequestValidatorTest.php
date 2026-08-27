@@ -18,6 +18,7 @@ use Magento\Payment\Gateway\Validator\ResultInterface;
 use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
 use Magento\Quote\Model\Quote\Payment;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class PaymentLinksRequestValidatorTest extends AbstractAdyenTestCase
 {
@@ -68,9 +69,7 @@ class PaymentLinksRequestValidatorTest extends AbstractAdyenTestCase
             ->getMock();
     }
 
-    /**
-     * @dataProvider adyenPblExpiresAtDataProvider
-     */
+    #[DataProvider('adyenPblExpiresAtDataProvider')]
     public function testValidate($dateModification, $valid, $message = [])
     {
         $date = new \DateTime();

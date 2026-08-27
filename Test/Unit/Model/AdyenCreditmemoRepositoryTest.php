@@ -30,6 +30,7 @@ use Magento\Framework\Api\SearchResultsInterface;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class AdyenCreditmemoRepositoryTest extends AbstractAdyenTestCase
 {
@@ -189,7 +190,7 @@ class AdyenCreditmemoRepositoryTest extends AbstractAdyenTestCase
     /**
      * @return array[]
      */
-    private static function webhookTestDataProvider(): array
+    public static function webhookTestDataProvider(): array
     {
         return [
             [
@@ -244,7 +245,6 @@ class AdyenCreditmemoRepositoryTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider webhookTestDataProvider
      *
      * @param $eventCode
      * @param $isExpectedType
@@ -254,6 +254,7 @@ class AdyenCreditmemoRepositoryTest extends AbstractAdyenTestCase
      * @throws AdyenException
      * @throws LocalizedException
      */
+    #[DataProvider('webhookTestDataProvider')]
     public function testGetByRefundWebhook($eventCode, $isExpectedType, $creditmemoId, $isResultValid)
     {
         $notificationPspreference = 'xyz_12345';
