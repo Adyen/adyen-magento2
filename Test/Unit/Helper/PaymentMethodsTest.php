@@ -804,7 +804,6 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
     {
         $reflectionClass = new ReflectionClass($className);
         $method = $reflectionClass->getMethod($methodName);
-        $method->setAccessible(true);
         return $method;
     }
 
@@ -1092,7 +1091,6 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
 
         $reflection = new ReflectionClass($helper);
         $property = $reflection->getProperty('paymentMethodsApiResponse');
-        $property->setAccessible(true);
         $this->assertSame($apiResponse, $property->getValue($helper));
     }
 
@@ -1129,7 +1127,6 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
 
         $reflection = new ReflectionClass($helper);
         $property = $reflection->getProperty('paymentMethodsApiResponse');
-        $property->setAccessible(true);
         $property->setValue($helper, $cached);
 
         $this->requestInterfaceMock->expects($this->never())

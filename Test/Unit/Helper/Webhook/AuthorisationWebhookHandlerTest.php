@@ -918,7 +918,6 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
     {
         $reflectionClass = new ReflectionClass($className);
         $method = $reflectionClass->getMethod($methodName);
-        $method->setAccessible(true);
         return $method;
     }
 

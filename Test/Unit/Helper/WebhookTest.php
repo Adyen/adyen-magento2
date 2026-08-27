@@ -168,7 +168,6 @@ class WebhookTest extends AbstractAdyenTestCase
         $webhook = $this->createWebhookHelper();
 
         $method = new ReflectionMethod(Webhook::class, 'getTransitionState');
-        $method->setAccessible(true);
 
         $notificationMock->expects($this->once())
             ->method('getEventCode')
@@ -489,7 +488,6 @@ class WebhookTest extends AbstractAdyenTestCase
 
         $reflection = new \ReflectionClass(get_class($webhook));
         $method = $reflection->getMethod('addNotificationDetailsHistoryComment');
-        $method->setAccessible(true);
 
         $result = $method->invokeArgs($webhook, [$orderMock, $notificationMock]);
 
@@ -568,7 +566,6 @@ class WebhookTest extends AbstractAdyenTestCase
 
         $reflection = new \ReflectionClass(get_class($webhook));
         $method = $reflection->getMethod('updateOrderPaymentWithAdyenAttributes');
-        $method->setAccessible(true);
 
         $paymentMock->expects($this->exactly(3))
             ->method('setAdditionalInformation')

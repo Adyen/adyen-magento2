@@ -191,7 +191,6 @@ class IndexTest extends AbstractAdyenTestCase
 
         $reflection = new \ReflectionClass(Index::class);
         $method = $reflection->getMethod('getOrder');
-        $method->setAccessible(true);
         $result = $method->invokeArgs($this->indexController, ['1001']);
         $this->assertInstanceOf(OrderInterface::class, $result);
     }
@@ -207,7 +206,6 @@ class IndexTest extends AbstractAdyenTestCase
 
         $reflection = new \ReflectionClass(Index::class);
         $method = $reflection->getMethod('getOrder');
-        $method->setAccessible(true);
         $method->invokeArgs($this->indexController, [null]);
 
     }
@@ -225,7 +223,6 @@ class IndexTest extends AbstractAdyenTestCase
 
         $reflection = new \ReflectionClass(Index::class);
         $method = $reflection->getMethod('getOrder');
-        $method->setAccessible(true);
         $method->invokeArgs($this->indexController, ['1001']);
 
     }

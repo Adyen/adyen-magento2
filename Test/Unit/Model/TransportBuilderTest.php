@@ -435,7 +435,6 @@ class TransportBuilderTest extends AbstractAdyenTestCase
     {
         $ref = new ReflectionClass($obj);
         $p = $ref->getProperty($prop);
-        $p->setAccessible(true);
         return $p->getValue($obj);
     }
 

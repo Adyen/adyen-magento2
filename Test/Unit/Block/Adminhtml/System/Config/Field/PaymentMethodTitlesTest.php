@@ -97,18 +97,15 @@ class PaymentMethodTitlesTest extends AbstractAdyenTestCase
         $reflection = new \ReflectionClass($this->block);
 
         $columnsProperty = $reflection->getProperty('_columns');
-        $columnsProperty->setAccessible(true);
         $columns = $columnsProperty->getValue($this->block);
 
         $this->assertArrayHasKey('payment_method_type', $columns);
         $this->assertArrayHasKey('title', $columns);
 
         $addAfterProperty = $reflection->getProperty('_addAfter');
-        $addAfterProperty->setAccessible(true);
         $this->assertFalse($addAfterProperty->getValue($this->block));
 
         $addButtonLabelProperty = $reflection->getProperty('_addButtonLabel');
-        $addButtonLabelProperty->setAccessible(true);
         $this->assertEquals('Add Override', (string) $addButtonLabelProperty->getValue($this->block));
     }
 

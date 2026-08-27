@@ -277,7 +277,6 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
                 }),
             )->willReturn($response);
         $reflector = new \ReflectionProperty(TransactionPayment::class, 'remainingOrderAmount');
-        $reflector->setAccessible(true);
         $reflector->setValue($this->transactionPayment, $amount);
 
         $this->orderApiHelperMock
@@ -324,7 +323,6 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
             ->willReturn($response);
 
         $reflector = new \ReflectionProperty(TransactionPayment::class, 'remainingOrderAmount');
-        $reflector->setAccessible(true);
         $reflector->setValue($this->transactionPayment, $amount);
 
         $orderData = [

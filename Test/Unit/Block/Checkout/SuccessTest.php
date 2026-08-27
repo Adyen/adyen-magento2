@@ -126,7 +126,6 @@ class SuccessTest extends AbstractAdyenTestCase
     {
         $ref = new \ReflectionClass($object);
         $prop = $ref->getProperty($property);
-        $prop->setAccessible(true);
         return $prop->getValue($object);
     }
 
@@ -134,7 +133,6 @@ class SuccessTest extends AbstractAdyenTestCase
     {
         $ref = new \ReflectionClass($object);
         $prop = $ref->getProperty($property);
-        $prop->setAccessible(true);
         $prop->setValue($object, $value);
     }
 
