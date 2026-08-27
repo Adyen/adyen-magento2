@@ -86,9 +86,10 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $this->chargedCurrencyMock = $this->createMock(ChargedCurrency::class);
         $this->localeHelper = $this->createMock(Locale::class);
 
-        $this->quoteMock = $this->getMockBuilder(Quote::class)
-            ->addMethods(['getCustomerId'])
-            ->onlyMethods(['getStore','getBillingAddress','getEntityId'])
+        $this->quoteMock = $this->getMockBuilder(
+            $this->createClassWithMagicMethods(Quote::class, ['getCustomerId'])
+        )
+            ->onlyMethods(['getStore','getBillingAddress','getEntityId','getCustomerId'])
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -892,7 +893,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
 
         $this->repositoryMock->method('createAsset')->willReturn($asset);
 
-        $this->sourceMock->method('findSource')->will($this->onConsecutiveCalls(false, true)); // SVG not found, PNG found
+        $this->sourceMock->method('findSource')->willReturn(false, true); // SVG not found, PNG found
 
         $result = $this->helper->buildPaymentMethodIcon('scheme', []);
         $this->assertStringContainsString('.png', $result['url']);

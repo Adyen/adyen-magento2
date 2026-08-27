@@ -301,24 +301,24 @@ class GiftcardPaymentTest extends AbstractAdyenTestCase
     {
         return [
             [
-                '$quoteAmount' => 100.00,
-                '$giftcardBalance' => 5000,
-                '$expectedResult' => 5000
+                'quoteAmount' => 100.00,
+                'giftcardBalance' => 5000,
+                'expectedResult' => 5000
             ],
             [
-                '$quoteAmount' => 100.00,
-                '$giftcardBalance' => 2500,
-                '$expectedResult' => 2500
+                'quoteAmount' => 100.00,
+                'giftcardBalance' => 2500,
+                'expectedResult' => 2500
             ],
             [
-                '$quoteAmount' => 15.00,
-                '$giftcardBalance' => 5000,
-                '$expectedResult' => 1500
+                'quoteAmount' => 15.00,
+                'giftcardBalance' => 5000,
+                'expectedResult' => 1500
             ],
             [
-                '$quoteAmount' => 100.00,
-                '$giftcardBalance' => -9900,
-                '$expectedResult' => 0
+                'quoteAmount' => 100.00,
+                'giftcardBalance' => -9900,
+                'expectedResult' => 0
             ]
         ];
     }

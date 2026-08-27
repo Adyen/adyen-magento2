@@ -63,11 +63,11 @@ class AdyenPosCloudConfigProviderTest extends AbstractAdyenTestCase
             ->willReturn(MethodInterface::ACTION_ORDER);
         $this->configHelperMock->expects($this->any())
             ->method('getAdyenPosCloudConfigData')
-            ->will($this->returnValueMap([
+            ->willReturnMap([
                 ['active', self::STORE_ID, true, $isActive],
                 ['enable_installments', self::STORE_ID, false, false],
                 ['installments', self::STORE_ID, false, []]
-            ]));
+            ]);
 
         $config = $this->adyenPosCloudConfigProvider->getConfig();
 

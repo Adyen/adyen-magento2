@@ -22,7 +22,7 @@ class ApiKeyEndingTest extends AbstractAdyenTestCase
             ['asdfasdfasdf', 'qwerqwerqwer']
         ];
         $encryptor->method('decrypt')
-            ->will($this->returnValueMap($map));
+            ->willReturnMap($map);
 
         $this->apiKeyEndingComment = new ApiKeyEnding($encryptor);
     }

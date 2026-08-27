@@ -41,31 +41,32 @@ class PaymentLinksRequestValidatorTest extends AbstractAdyenTestCase
     {
         $this->resultInterfaceFactoryMock = $this->createMock(ResultInterfaceFactory::class);
 
-        $this->resultInterfaceFactoryMock->method('create')->will(
-            $this->returnValueMap(
+        $this->resultInterfaceFactoryMock->method('create')->willReturnMap(
+            [
                 [
                     [
-                        [
-                            "isValid" => false,
-                            "failsDescription" => ["Invalid expiry date selected for Adyen Pay By Link"],
-                            "errorCodes" => []
-                        ],
-                        false
+                        "isValid" => false,
+                        "failsDescription" => ["Invalid expiry date selected for Adyen Pay By Link"],
+                        "errorCodes" => []
                     ],
+                    false
+                ],
+                [
                     [
-                        [
-                            "isValid" => true,
-                            "failsDescription" => [],
-                            "errorCodes" => []
-                        ],
-                        true
-                    ]
-                ]));
+                        "isValid" => true,
+                        "failsDescription" => [],
+                        "errorCodes" => []
+                    ],
+                    true
+                ]
+            ]);
 
         $this->payByLinkValidator = new PaymentLinksRequestValidator($this->resultInterfaceFactoryMock);
 
-        $this->payment = $this->getMockBuilder(Payment::class)
-            ->disableOriginalConstructor()->addMethods(['getAdyenPblExpiresAt'])
+        $this->payment = $this->getMockBuilder(
+            $this->createClassWithMagicMethods(Payment::class, ['getAdyenPblExpiresAt'])
+        )
+            ->disableOriginalConstructor()->onlyMethods(['getAdyenPblExpiresAt'])
             ->getMock();
     }
 

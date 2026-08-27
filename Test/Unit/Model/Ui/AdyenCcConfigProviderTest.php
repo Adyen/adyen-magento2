@@ -103,7 +103,7 @@ class AdyenCcConfigProviderTest extends AbstractAdyenTestCase
             ->willReturn(['MC' => ['name' => 'MasterCard', 'code_alt' => 'mc']]);
 
         $assetMock = $this->createMock(File::class);
-        $assetMock->method('getSourceFile')->willReturn(__DIR__ . '/../../../../view/base/web/images/adyen/adyen-hq.svg');
+        $assetMock->method('getSourceFile')->willReturn(__DIR__ . '/../../../../view/base/web/images/logos/mc.png');
 
         $this->ccConfigMock->method('createAsset')->willReturn($assetMock);
         $this->assetSourceMock->method('findSource')->willReturn('mock_relative_icon_path');

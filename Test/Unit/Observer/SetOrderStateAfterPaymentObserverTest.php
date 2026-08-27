@@ -94,12 +94,10 @@ class SetOrderStateAfterPaymentObserverTest extends AbstractAdyenTestCase
     #[DataProvider('resultCodeProvider')]
     public function testExecute($resultCode, $action, $changeStatus = true)
     {
-        $this->paymentMock->method('getAdditionalInformation')->will(
-            $this->returnValueMap([
-                ['resultCode', $resultCode],
-                ['action', $action]
-            ])
-        );
+        $this->paymentMock->method('getAdditionalInformation')->willReturnMap([
+            ['resultCode', $resultCode],
+            ['action', $action]
+        ]);
 
         if ($changeStatus) {
             $this->orderMock->expects($this->once())->method('setState');

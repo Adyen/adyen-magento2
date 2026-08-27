@@ -34,10 +34,12 @@ class PartialPaymentsTest extends AbstractAdyenTestCase
     {
         $this->contextMock = $this->createMock(Context::class);
 
-        $this->partialPayments = $this->getMockBuilder(PartialPayments::class)
+        $this->partialPayments = $this->getMockBuilder(
+            $this->createClassWithMagicMethods(PartialPayments::class, ['getInfoBlock'])
+        )
             ->disableOriginalConstructor()
             ->setConstructorArgs([$this->contextMock, $this->dataMock])
-            ->addMethods(['getInfoBlock'])
+            ->onlyMethods(['getInfoBlock'])
             ->getMock();
     }
 

@@ -25,10 +25,10 @@ class MotoMerchantAccountDataBuilderTest extends AbstractAdyenTestCase
     {
         return [
             [
-                '$merchantAccount' => 'DUMMY_MERCHANT_ACCOUNT'
+                'merchantAccount' => 'DUMMY_MERCHANT_ACCOUNT'
             ],
             [
-                '$merchantAccount' => null
+                'merchantAccount' => null
             ]
         ];
     }

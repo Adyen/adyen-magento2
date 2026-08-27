@@ -41,8 +41,10 @@ class SubmitQuoteObserverTest extends AbstractAdyenTestCase
         $this->orderMock = $this->createMock(Order::class);
         $this->paymentMock = $this->createMock(Payment::class);
         $this->quoteMock = $this->createMock(Quote::class);
-        $this->eventMock = $this->getMockBuilder(\Magento\Framework\Event::class)
-            ->addMethods(['getOrder', 'getQuote'])
+        $this->eventMock = $this->getMockBuilder(
+            $this->createClassWithMagicMethods(\Magento\Framework\Event::class, ['getOrder', 'getQuote'])
+        )
+            ->onlyMethods(['getOrder', 'getQuote'])
             ->getMock();
 
         $this->submitQuoteObserver = new SubmitQuoteObserver(

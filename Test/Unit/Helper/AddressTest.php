@@ -109,7 +109,7 @@ class AddressTest extends AbstractAdyenTestCase
                         ]
                     ],
                     [
-                        '$address' => [
+                        'address' => [
                             $street_name,
                             $house_number
                         ],
@@ -172,7 +172,7 @@ class AddressTest extends AbstractAdyenTestCase
                         ]
                     ],
                     [
-                        '$address' => [$house_number . ' ' . $street_name, ''],
+                        'address' => [$house_number . ' ' . $street_name, ''],
                         'houseNumberStreetLine' => 0, // Config is disabled
                         'streetLinesEnabled' => 2,
                         'expectedResult' => [

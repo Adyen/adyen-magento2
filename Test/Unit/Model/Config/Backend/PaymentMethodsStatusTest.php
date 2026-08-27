@@ -37,8 +37,10 @@ class PaymentMethodsStatusTest extends AbstractAdyenTestCase
         parent::setUp();
 
         $this->paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
-        $this->paymentMethodsStatusMock = $this->getMockBuilder(PaymentMethodsStatus::class)
-            ->addMethods([
+        $this->paymentMethodsStatusMock = $this->getMockBuilder(
+            $this->createClassWithMagicMethods(PaymentMethodsStatus::class, ['getScope', 'getScopeId'])
+        )
+            ->onlyMethods([
                 'getScope',
                 'getScopeId'
             ])

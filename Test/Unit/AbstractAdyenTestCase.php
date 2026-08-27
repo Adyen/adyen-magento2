@@ -17,8 +17,10 @@ use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as OrderPa
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\ResourceModel\Order\Status\Collection as OrderStatusCollection;
 use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderStatusCollectionFactory;
+use InvalidArgumentException;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
 abstract class AbstractAdyenTestCase extends TestCase
 {
@@ -29,17 +31,67 @@ abstract class AbstractAdyenTestCase extends TestCase
      */
     protected function createMockWithMethods(string $originalClassName, array $existingMethods, array $nonExistingMethods): MockObject
     {
-        $mockBuilder = $this->getMockBuilder($originalClassName)->disableOriginalConstructor();
+        $className = $this->createClassWithMagicMethods($originalClassName, $nonExistingMethods);
+        $mockBuilder = $this->getMockBuilder($className)->disableOriginalConstructor();
 
-        if (!empty($existingMethods)) {
-            $mockBuilder = $mockBuilder->onlyMethods($existingMethods);
-        }
+        $methods = array_values(array_unique(array_merge($existingMethods, $nonExistingMethods)));
 
-        if (!empty($nonExistingMethods)) {
-            $mockBuilder = $mockBuilder->addMethods($nonExistingMethods);
+        if (!empty($methods)) {
+            $mockBuilder = $mockBuilder->onlyMethods($methods);
         }
 
         return $mockBuilder->getMock();
+    }
+
+    /**
+     * PHPUnit 12 removed MockBuilder::addMethods(), so magic methods (e.g. Magento data getters)
+     * cannot be doubled anymore. Declare them on a generated subclass instead and double that.
+     *
+     * @param string $originalClassName
+     * @param string[] $magicMethods
+     * @return string Class name to be doubled
+     */
+    protected function createClassWithMagicMethods(string $originalClassName, array $magicMethods): string
+    {
+        $magicMethods = array_values(array_filter(
+            array_unique($magicMethods),
+            fn (string $method): bool => !method_exists($originalClassName, $method)
+        ));
+
+        if (empty($magicMethods)) {
+            return $originalClassName;
+        }
+
+        sort($magicMethods);
+        $doubleName = 'MagicMethodDouble_' . md5($originalClassName . '::' . implode(',', $magicMethods));
+        $doubleClassName = __NAMESPACE__ . '\\' . $doubleName;
+
+        if (!class_exists($doubleClassName, false)) {
+            $declarations = '';
+
+            foreach ($magicMethods as $method) {
+                if (!preg_match('/^[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*$/', $method)) {
+                    throw new InvalidArgumentException(sprintf('"%s" is not a valid method name.', $method));
+                }
+
+                $declarations .= sprintf('public function %s(...$arguments) { return null; }', $method);
+            }
+
+            $isInterface = interface_exists($originalClassName);
+            $isAbstract = !$isInterface && (new ReflectionClass($originalClassName))->isAbstract();
+
+            eval(sprintf(
+                'namespace %s; %sclass %s %s \\%s { %s }',
+                __NAMESPACE__,
+                $isInterface || $isAbstract ? 'abstract ' : '',
+                $doubleName,
+                $isInterface ? 'implements' : 'extends',
+                $originalClassName,
+                $declarations
+            ));
+        }
+
+        return $doubleClassName;
     }
 
     /**
@@ -54,14 +106,14 @@ abstract class AbstractAdyenTestCase extends TestCase
         array $existingMethods = [],
         array $nonExistingMethods = []
     ): MockObject {
-        $mockBuilder = $this->getMockBuilder($originalClassName);
+        $mockBuilder = $this->getMockBuilder(
+            $this->createClassWithMagicMethods($originalClassName, $nonExistingMethods)
+        );
 
-        if (!empty($existingMethods)) {
-            $mockBuilder = $mockBuilder->onlyMethods($existingMethods);
-        }
+        $methods = array_values(array_unique(array_merge($existingMethods, $nonExistingMethods)));
 
-        if (!empty($nonExistingMethods)) {
-            $mockBuilder = $mockBuilder->addMethods($nonExistingMethods);
+        if (!empty($methods)) {
+            $mockBuilder = $mockBuilder->onlyMethods($methods);
         }
 
         return $mockBuilder->disableOriginalConstructor()

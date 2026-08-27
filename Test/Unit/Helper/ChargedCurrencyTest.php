@@ -419,12 +419,14 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
      * @param $configValue
      * @param $expectedResult AdyenAmountCurrency
      * @param $orderPlacement
+     * @param $getAdyenChargedCurrency
      */
     #[DataProvider('amountCurrencyProvider')]
     public function testGetQuoteAmountCurrency(
         $configValue,
         AdyenAmountCurrency $expectedResult,
-        $orderPlacement
+        $orderPlacement,
+        $getAdyenChargedCurrency
     ) {
         if ($orderPlacement) {
             $this->configHelper->method('getChargedCurrency')->willReturn($configValue);
@@ -450,12 +452,14 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
      * @param $configValue
      * @param $expectedResult AdyenAmountCurrency
      * @param $orderPlacement
+     * @param $getAdyenChargedCurrency
      */
     #[DataProvider('amountCurrencyProvider')]
     public function testGetQuoteItemAmountCurrency(
         $configValue,
         AdyenAmountCurrency $expectedResult,
-        $orderPlacement
+        $orderPlacement,
+        $getAdyenChargedCurrency
     ) {
         if ($orderPlacement) {
             $this->configHelper->method('getChargedCurrency')->willReturn($configValue);

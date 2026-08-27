@@ -282,12 +282,12 @@ class WebhookTest extends AbstractAdyenTestCase
         $webhookHandlerInterface->method('handleWebhook')->willReturn($order);
         $mockWebhookHandlerFactory->method('create')->willReturn($webhookHandlerInterface);
 
-        $payment->expects($this->any())->method('getData')->will(
-            $this->returnCallback(function($key) {
+        $payment->expects($this->any())->method('getData')->willReturnCallback(
+            function($key) {
                 $array = ['adyen_psp_reference'=>'ABCD1234GHJK5678',
                     'adyen_notification_event_code' => 'AUTHORISATION : TRUE'];
                 return $array[$key];
-            }));
+            });
 
         $order->expects($this->any())
             ->method('getPayment')
@@ -868,7 +868,7 @@ class WebhookTest extends AbstractAdyenTestCase
         $notification = $this->createMock(Notification::class);
         $notification->expects($this->once())->method('setDone')->with(true);
         $notification->expects($this->once())->method('setProcessing')->with(false);
-        $notification->expects($this->once())->method('setUpdatedAt')->with($this->isType('string'));
+        $notification->expects($this->once())->method('setUpdatedAt')->with($this->isString());
 
         $repo = $this->createMock(AdyenNotificationRepositoryInterface::class);
         $repo->expects($this->once())->method('save')->with($notification);
@@ -1001,9 +1001,11 @@ class WebhookTest extends AbstractAdyenTestCase
 
     public function testUpdateOrderPaymentWithAdyenAttributesSetsAllFields(): void
     {
-        $payment = $this->getMockBuilder(Payment::class)
+        $payment = $this->getMockBuilder(
+            $this->createClassWithMagicMethods(Payment::class, ['setAdyenPspReference'])
+        )
             ->disableOriginalConstructor()
-            ->addMethods(['setAdyenPspReference'])
+            ->onlyMethods(['setAdyenPspReference'])
             ->getMock();
 
         $notification = $this->createMock(Notification::class);
@@ -1061,9 +1063,11 @@ class WebhookTest extends AbstractAdyenTestCase
         $notification->method('getEventCode')->willReturn(Notification::AUTHORISATION);
         $notification->method('isSuccessful')->willReturn(false);
 
-        $payment = $this->getMockBuilder(Payment::class)
+        $payment = $this->getMockBuilder(
+            $this->createClassWithMagicMethods(Payment::class, ['setAdyenPspReference'])
+        )
             ->disableOriginalConstructor()
-            ->addMethods(['setAdyenPspReference'])
+            ->onlyMethods(['setAdyenPspReference'])
             ->getMock();
 
         $payment->expects($this->never())->method('setAdyenPspReference');
@@ -1336,7 +1340,7 @@ class WebhookTest extends AbstractAdyenTestCase
         $notification = $this->createMock(Notification::class);
         $notification->expects($this->never())->method('setDone');
         $notification->expects($this->once())->method('setProcessing')->with(true);
-        $notification->expects($this->once())->method('setUpdatedAt')->with($this->isType('string'));
+        $notification->expects($this->once())->method('setUpdatedAt')->with($this->isString());
 
         $repo = $this->createMock(AdyenNotificationRepositoryInterface::class);
         $repo->expects($this->once())->method('save')->with($notification);

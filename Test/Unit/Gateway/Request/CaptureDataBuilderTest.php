@@ -40,7 +40,7 @@ class CaptureDataBuilderTest extends AbstractAdyenTestCase
     {
         return [
             [
-                '$adyenOrderPayments' => [
+                'adyenOrderPayments' => [
                     [
                         OrderPaymentInterface::ENTITY_ID => 1,
                         OrderPaymentInterface::AMOUNT => 100,
@@ -50,10 +50,10 @@ class CaptureDataBuilderTest extends AbstractAdyenTestCase
                         OrderPaymentInterface::CAPTURE_STATUS => OrderPaymentInterface::CAPTURE_STATUS_NO_CAPTURE
                     ]
                 ],
-                '$fullAmountAuthorized' => true
+                'fullAmountAuthorized' => true
             ],
             [
-                '$adyenOrderPayments' => [
+                'adyenOrderPayments' => [
                     [
                         OrderPaymentInterface::ENTITY_ID => 1,
                         OrderPaymentInterface::AMOUNT => 400,
@@ -71,11 +71,11 @@ class CaptureDataBuilderTest extends AbstractAdyenTestCase
                         OrderPaymentInterface::CAPTURE_STATUS => OrderPaymentInterface::CAPTURE_STATUS_NO_CAPTURE
                     ]
                 ],
-                '$fullAmountAuthorized' => true
+                'fullAmountAuthorized' => true
             ],
             [
-                '$adyenOrderPayments' => [],
-                '$fullAmountAuthorized' => false
+                'adyenOrderPayments' => [],
+                'fullAmountAuthorized' => false
             ],
         ];
     }
