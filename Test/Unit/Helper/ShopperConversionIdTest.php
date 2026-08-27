@@ -140,7 +140,7 @@ class ShopperConversionIdTest extends AbstractAdyenTestCase
             ->method('setAdditionalInformation')
             ->with(
                 ShopperConversionId::SHOPPER_CONVERSION_ID,
-                $this->isString()
+                $this->callback('is_string')
             );
 
         $this->quoteMock->expects($this->once())

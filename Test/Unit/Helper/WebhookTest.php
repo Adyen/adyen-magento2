@@ -870,7 +870,7 @@ class WebhookTest extends AbstractAdyenTestCase
         $notification = $this->createMock(Notification::class);
         $notification->expects($this->once())->method('setDone')->with(true);
         $notification->expects($this->once())->method('setProcessing')->with(false);
-        $notification->expects($this->once())->method('setUpdatedAt')->with($this->isString());
+        $notification->expects($this->once())->method('setUpdatedAt')->with($this->callback('is_string'));
 
         $repo = $this->createMock(AdyenNotificationRepositoryInterface::class);
         $repo->expects($this->once())->method('save')->with($notification);
@@ -1342,7 +1342,7 @@ class WebhookTest extends AbstractAdyenTestCase
         $notification = $this->createMock(Notification::class);
         $notification->expects($this->never())->method('setDone');
         $notification->expects($this->once())->method('setProcessing')->with(true);
-        $notification->expects($this->once())->method('setUpdatedAt')->with($this->isString());
+        $notification->expects($this->once())->method('setUpdatedAt')->with($this->callback('is_string'));
 
         $repo = $this->createMock(AdyenNotificationRepositoryInterface::class);
         $repo->expects($this->once())->method('save')->with($notification);
