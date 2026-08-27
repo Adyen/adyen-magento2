@@ -165,7 +165,6 @@ class AddressTest extends AbstractAdyenTestCase
                     /* The following test cases will use the regex fallback to detect the house number and street name */
                     [
                         'address' => [$street_name . ' ' . $house_number, ''],
-                        'address' => [$street_name . ' ' . $house_number, ''],
                         'houseNumberStreetLine' => 0, // Config is disabled
                         'streetLinesEnabled' => 2,
                         'expectedResult' => [
