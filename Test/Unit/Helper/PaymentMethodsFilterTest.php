@@ -154,9 +154,11 @@ class PaymentMethodsFilterTest extends AbstractAdyenTestCase
 
     private array $magentoPaymentMethods;
 
-    public function __construct(?string $name = null, array $data = [], $dataName = '')
+    protected function setUp(): void
     {
-        parent::__construct($name, $data, $dataName);
+        parent::setUp();
+
+        $this->magentoPaymentMethods = [];
 
         foreach (self::PAYMENT_METHODS as $paymentMethod) {
             $this->magentoPaymentMethods[] = $this->createConfiguredMock(Adapter::class, [

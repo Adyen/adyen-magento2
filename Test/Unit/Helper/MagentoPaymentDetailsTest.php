@@ -15,20 +15,12 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\ConnectedTerminals;
 use Adyen\Payment\Helper\MagentoPaymentDetails;
 use Adyen\Payment\Helper\PaymentMethods;
-use Adyen\Payment\Helper\PaymentMethodsFilter;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Checkout\Api\Data\PaymentDetailsExtensionInterface;
 use Magento\Checkout\Model\PaymentDetails;
-use Magento\Framework\Api\AttributeValueFactory;
-use Magento\Framework\Api\ExtensionAttributesFactory;
-use Magento\Framework\Model\Context;
-use Magento\Framework\Registry;
 use Magento\Payment\Model\Method\Adapter;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
-use Magento\Sales\Model\Order\Address;
-use Magento\Framework\Model\ResourceModel\AbstractResource;
-use Magento\Framework\Data\Collection\AbstractDb;
 
 class MagentoPaymentDetailsTest extends AbstractAdyenTestCase
 {
@@ -163,9 +155,11 @@ class MagentoPaymentDetailsTest extends AbstractAdyenTestCase
 
     private array $magentoPaymentMethods;
 
-    public function __construct(?string $name = null, array $data = [], $dataName = '')
+    protected function setUp(): void
     {
-        parent::__construct($name, $data, $dataName);
+        parent::setUp();
+
+        $this->magentoPaymentMethods = [];
 
         foreach (self::PAYMENT_METHODS as $paymentMethod) {
             $this->magentoPaymentMethods[] = $this->createConfiguredMock(Adapter::class, [
