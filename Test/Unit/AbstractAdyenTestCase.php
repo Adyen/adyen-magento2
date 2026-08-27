@@ -57,6 +57,8 @@ abstract class AbstractAdyenTestCase extends TestCase
      */
     protected function createClassWithMagicMethods(string $originalClassName, array $magicMethods): string
     {
+        $originalClassName = ltrim($originalClassName, '\\');
+
         $magicMethods = array_values(array_filter(
             array_unique($magicMethods),
             fn (string $method): bool => !method_exists($originalClassName, $method)
