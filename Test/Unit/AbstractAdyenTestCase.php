@@ -155,7 +155,6 @@ abstract class AbstractAdyenTestCase extends TestCase
 
         return $mockBuilder->disableOriginalConstructor()
             ->disableOriginalClone()
-            // ->disableArgumentCloning()
             ->getMock();
     }
 
