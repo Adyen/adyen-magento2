@@ -131,6 +131,7 @@ class PaymentResponseHandler
      * @param Payment $payment
      * @param array $response
      * @return void
+     * @throws LocalizedException
      */
     public function setPaymentAdditionalInformation(
         Payment $payment,
@@ -148,6 +149,8 @@ class PaymentResponseHandler
         foreach ($keysToSet as $key) {
             if (!empty($response[$key])) {
                 $payment->setAdditionalInformation($key, $response[$key]);
+            } elseif ($key === 'action') {
+                $payment->unsAdditionalInformation('action');
             }
         }
 
