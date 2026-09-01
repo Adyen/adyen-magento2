@@ -33,6 +33,7 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
     const STORE_PAYMENT_METHOD = 'storePaymentMethod';
     const RETURN_URL = 'returnUrl';
     const RECURRING_PROCESSING_MODEL = 'recurringProcessingModel';
+    const DEVICE_FINGERPRINT = 'deviceFingerprint';
 
     /**
      * Approved root level keys from additional data array
@@ -114,7 +115,7 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
         // Remove each CC-specific field from the previous payment only if the incoming
         // data contains a replacement for that specific field. This prevents the placeOrder
         // mutation from clearing data that was set by setPaymentMethodOnCart.
-        $ccSpecificKeys = [self::CC_TYPE, self::NUMBER_OF_INSTALLMENTS, self::COMBO_CARD_TYPE];
+        $ccSpecificKeys = [self::NUMBER_OF_INSTALLMENTS, self::COMBO_CARD_TYPE, self::DEVICE_FINGERPRINT];
         foreach ($ccSpecificKeys as $ccKey) {
             if (array_key_exists($ccKey, $additionalData)) {
                 $paymentInfo->unsAdditionalInformation($ccKey);
@@ -126,6 +127,22 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
             $stateData = json_decode((string)$additionalData[self::STATE_DATA], true);
         } else {
             $stateData = $this->stateDataCollection->getStateDataArrayWithQuoteId($paymentInfo->getData('quote_id'));
+        }
+
+        // Store deviceFingerprint to be used later for Visa DCAP if the value exists
+        if (isset($stateData['riskData']['clientData'])) {
+            $decodedClientData = base64_decode($stateData['riskData']['clientData']);
+            if ($decodedClientData !== false) {
+                $clientData = json_decode($decodedClientData, true);
+                if (json_last_error() === JSON_ERROR_NONE &&
+                    is_array($clientData) &&
+                    isset($clientData['deviceFingerprint'])) {
+                    $paymentInfo->setAdditionalInformation(
+                        self::DEVICE_FINGERPRINT,
+                        $clientData['deviceFingerprint']
+                    );
+                }
+            }
         }
 
         // Get validated state data array
@@ -142,6 +159,11 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
 
         unset($additionalData[self::STATE_DATA]);
 
+        // Set ccType if it exists on the request, otherwise reset to prevent being inherited from the previous attempt
+        $paymentInfo->setCcType($additionalData[self::CC_TYPE] ?? null);
+        // Card type is stored in payment's `cc_type`. Setting it up on `additional_information` is redundant.
+        unset($additionalData[self::CC_TYPE]);
+
         if (
             !empty($additionalData[self::RECURRING_PROCESSING_MODEL]) &&
             !$this->vaultHelper->validateRecurringProcessingModel($additionalData[self::RECURRING_PROCESSING_MODEL])
@@ -153,11 +175,6 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
         // Set additional data in the payment
         foreach ($additionalData as $key => $data) {
             $paymentInfo->setAdditionalInformation($key, $data);
-        }
-
-        // set ccType
-        if (!empty($additionalData[self::CC_TYPE])) {
-            $paymentInfo->setCcType($additionalData[self::CC_TYPE]);
         }
     }
 }

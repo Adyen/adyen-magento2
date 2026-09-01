@@ -177,18 +177,18 @@ class AdyenOrderPayment extends AbstractHelper
     }
 
     /**
-     * Check if the full amount of the order has been authorized by checking the adyen_order_payment entries
+     * Check if the full amount of the order has been authorized
      *
      * @param Order $order
      * @return bool
      */
     public function isFullAmountAuthorized(Order $order): bool
     {
-        $payment = $order->getPayment();
-        $entityId = $payment->getEntityId();
-        $authorisedAdyenOrderPayments = $this->orderPaymentResourceModel->getLinkedAdyenOrderPayments($entityId);
-
-        return $this->compareAdyenOrderPaymentsAmount($order, $authorisedAdyenOrderPayments);
+        return match ($order->getAdyenChargedCurrency()) {
+            ChargedCurrency::BASE => floatval($order->getBaseGrandTotal()) === floatval($order->getPaymentAuthorizationAmount()),
+            ChargedCurrency::DISPLAY => floatval($order->getGrandTotal()) === floatval($order->getPaymentAuthorizationAmount()),
+            default => false
+        };
     }
 
     /**
@@ -271,6 +271,31 @@ class AdyenOrderPayment extends AbstractHelper
         $adyenOrderPayment->save();
 
         return $adyenOrderPayment;
+    }
+
+    /**
+     * Check if all adyen_order_payment entries linked to the order have been auto-captured.
+     * Used to determine the order-level capture mode when processing partial payments.
+     *
+     * @param Order $order
+     * @return bool
+     */
+    public function isAllAutoCaptured(Order $order): bool
+    {
+        $paymentId = $order->getPayment()->getEntityId();
+        $adyenOrderPayments = $this->orderPaymentResourceModel->getLinkedAdyenOrderPayments($paymentId);
+
+        if (empty($adyenOrderPayments)) {
+            return false;
+        }
+
+        foreach ($adyenOrderPayments as $adyenOrderPayment) {
+            if ($adyenOrderPayment[OrderPaymentInterface::CAPTURE_STATUS] !== OrderPaymentInterface::CAPTURE_STATUS_AUTO_CAPTURE) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

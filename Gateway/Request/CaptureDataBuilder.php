@@ -154,8 +154,14 @@ class CaptureDataBuilder implements BuilderInterface
         $counterAmount = 0;
         $i = 0;
 
-        while ($counterAmount < $captureAmountCents) {
+        while ($counterAmount < $captureAmountCents && $i < count($adyenOrderPayments)) {
             $adyenOrderPayment = $adyenOrderPayments[$i];
+
+            if ($adyenOrderPayment[OrderPaymentInterface::CAPTURE_STATUS] === OrderPaymentInterface::CAPTURE_STATUS_AUTO_CAPTURE) {
+                $i++;
+                continue;
+            }
+
             $paymentAmount = $adyenOrderPayment[OrderPaymentInterface::AMOUNT];
             $totalCaptured = $adyenOrderPayment[OrderPaymentInterface::TOTAL_CAPTURED];
             $availableAmountToCaptureCents = $this->adyenHelper->formatAmount(
