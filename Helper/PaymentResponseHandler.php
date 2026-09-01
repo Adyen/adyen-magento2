@@ -160,7 +160,10 @@ class PaymentResponseHandler
             $payment->setAdditionalInformation('resultCode', $resultCode);
         }
 
-        if (!empty($paymentsDetailsResponse['action'])) {
+        if (empty($paymentsDetailsResponse['action'])) {
+            // Action needs to be cleared to prevent replayed actions due to stale data.
+            $payment->unsAdditionalInformation('action');
+        } else {
             $payment->setAdditionalInformation('action', $paymentsDetailsResponse['action']);
         }
 
