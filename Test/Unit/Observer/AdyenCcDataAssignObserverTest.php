@@ -292,6 +292,136 @@ class AdyenCcDataAssignObserverTest extends AbstractAdyenTestCase
         $this->observer->execute($observer);
     }
 
+    public function testExecuteStoresDeviceFingerprintFromFrontendStateData()
+    {
+        $clientData = base64_encode(json_encode(['deviceFingerprint' => 'fingerprint-123']));
+        $additionalData = [
+            'stateData' => json_encode([
+                'paymentMethod' => ['type' => 'scheme'],
+                'riskData' => ['clientData' => $clientData],
+            ]),
+        ];
+
+        $dataObject = new DataObject([
+            PaymentInterface::KEY_ADDITIONAL_DATA => $additionalData,
+        ]);
+
+        $observer = $this->getPreparedObserverWithMap([
+            [AbstractDataAssignObserver::DATA_CODE, $dataObject],
+            [AbstractDataAssignObserver::MODEL_CODE, $this->paymentInfo],
+        ]);
+
+        $this->paymentInfo->method('getData')
+            ->with('quote_id')
+            ->willReturn(1);
+
+        $this->checkoutStateDataValidator->method('getValidatedAdditionalData')
+            ->willReturn(['paymentMethod' => ['type' => 'scheme']]);
+
+        $this->paymentInfo->expects($this->once())
+            ->method('setAdditionalInformation')
+            ->with(AdyenCcDataAssignObserver::DEVICE_FINGERPRINT, 'fingerprint-123');
+
+        $this->observer->execute($observer);
+    }
+
+    public function testExecuteStoresDeviceFingerprintFromStateDataInDatabase()
+    {
+        $clientData = base64_encode(json_encode(['deviceFingerprint' => 'fingerprint-db']));
+
+        $dataObject = new DataObject([
+            PaymentInterface::KEY_ADDITIONAL_DATA => [],
+        ]);
+
+        $observer = $this->getPreparedObserverWithMap([
+            [AbstractDataAssignObserver::DATA_CODE, $dataObject],
+            [AbstractDataAssignObserver::MODEL_CODE, $this->paymentInfo],
+        ]);
+
+        $this->paymentInfo->method('getData')
+            ->with('quote_id')
+            ->willReturn(456);
+
+        $this->stateDataCollection->expects($this->once())
+            ->method('getStateDataArrayWithQuoteId')
+            ->with(456)
+            ->willReturn([
+                'paymentMethod' => ['type' => 'scheme'],
+                'riskData' => ['clientData' => $clientData],
+            ]);
+
+        $this->checkoutStateDataValidator->method('getValidatedAdditionalData')
+            ->willReturn(['paymentMethod' => ['type' => 'scheme']]);
+
+        $this->paymentInfo->expects($this->once())
+            ->method('setAdditionalInformation')
+            ->with(AdyenCcDataAssignObserver::DEVICE_FINGERPRINT, 'fingerprint-db');
+
+        $this->observer->execute($observer);
+    }
+
+    public function testExecuteDoesNotStoreDeviceFingerprintForInvalidClientData()
+    {
+        $additionalData = [
+            'stateData' => json_encode([
+                'paymentMethod' => ['type' => 'scheme'],
+                'riskData' => ['clientData' => base64_encode('not-a-json-payload')],
+            ]),
+        ];
+
+        $dataObject = new DataObject([
+            PaymentInterface::KEY_ADDITIONAL_DATA => $additionalData,
+        ]);
+
+        $observer = $this->getPreparedObserverWithMap([
+            [AbstractDataAssignObserver::DATA_CODE, $dataObject],
+            [AbstractDataAssignObserver::MODEL_CODE, $this->paymentInfo],
+        ]);
+
+        $this->paymentInfo->method('getData')
+            ->with('quote_id')
+            ->willReturn(1);
+
+        $this->checkoutStateDataValidator->method('getValidatedAdditionalData')
+            ->willReturn(['paymentMethod' => ['type' => 'scheme']]);
+
+        $this->paymentInfo->expects($this->never())
+            ->method('setAdditionalInformation');
+
+        $this->observer->execute($observer);
+    }
+
+    public function testExecuteDoesNotStoreDeviceFingerprintWhenClientDataIsMissing()
+    {
+        $additionalData = [
+            'stateData' => json_encode([
+                'paymentMethod' => ['type' => 'scheme'],
+                'riskData' => [],
+            ]),
+        ];
+
+        $dataObject = new DataObject([
+            PaymentInterface::KEY_ADDITIONAL_DATA => $additionalData,
+        ]);
+
+        $observer = $this->getPreparedObserverWithMap([
+            [AbstractDataAssignObserver::DATA_CODE, $dataObject],
+            [AbstractDataAssignObserver::MODEL_CODE, $this->paymentInfo],
+        ]);
+
+        $this->paymentInfo->method('getData')
+            ->with('quote_id')
+            ->willReturn(1);
+
+        $this->checkoutStateDataValidator->method('getValidatedAdditionalData')
+            ->willReturn(['paymentMethod' => ['type' => 'scheme']]);
+
+        $this->paymentInfo->expects($this->never())
+            ->method('setAdditionalInformation');
+
+        $this->observer->execute($observer);
+    }
+
     public function testExecuteCcTypeSetToNullWhenNotProvided()
     {
         $additionalData = [
