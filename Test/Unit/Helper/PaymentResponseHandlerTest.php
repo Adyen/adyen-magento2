@@ -272,7 +272,7 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
     public function testHandlePaymentsDetailsResponseAuthorised()
     {
         $ccType = 'visa';
-        
+
         $paymentsDetailsResponse = [
             'resultCode' => PaymentResponseHandler::AUTHORISED,
             'pspReference' => 'ABC123456789',
@@ -732,5 +732,74 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
 
         // Assert the response is as expected
         $this->assertTrue($result);
+    }
+
+    /**
+     * @throws NoSuchEntityException
+     * @throws AlreadyExistsException
+     * @throws InputException
+     */
+    public function testHandlePaymentsDetailsResponseSetsActionWhenActionExists()
+    {
+        $action = ['type' => 'redirect', 'url' => 'https://checkoutshopper.adyen.com/redirect'];
+
+        $paymentsDetailsResponse = [
+            'resultCode' => PaymentResponseHandler::REDIRECT_SHOPPER,
+            'merchantReference' => self::MERCHANT_REFERENCE,
+            'action' => $action
+        ];
+
+        $capturedAction = null;
+        $this->paymentMock->method('setAdditionalInformation')
+            ->willReturnCallback(function ($key, $value) use (&$capturedAction) {
+                if ($key === 'action') {
+                    $capturedAction = $value;
+                }
+
+                return $this->paymentMock;
+            });
+
+        $this->paymentMock->expects($this->never())->method('unsAdditionalInformation');
+
+        $this->paymentResponseHandler->handlePaymentsDetailsResponse(
+            $paymentsDetailsResponse,
+            $this->orderMock
+        );
+
+        $this->assertEquals($action, $capturedAction);
+    }
+
+    /**
+     * @throws NoSuchEntityException
+     * @throws AlreadyExistsException
+     * @throws InputException
+     */
+    public function testHandlePaymentsDetailsResponseClearsActionWhenActionDoesNotExist()
+    {
+        $paymentsDetailsResponse = [
+            'resultCode' => PaymentResponseHandler::RECEIVED,
+            'merchantReference' => self::MERCHANT_REFERENCE
+        ];
+
+        $actionHasBeenSet = false;
+        $this->paymentMock->method('setAdditionalInformation')
+            ->willReturnCallback(function ($key, $value) use (&$actionHasBeenSet) {
+                if ($key === 'action') {
+                    $actionHasBeenSet = true;
+                }
+
+                return $this->paymentMock;
+            });
+
+        $this->paymentMock->expects($this->once())
+            ->method('unsAdditionalInformation')
+            ->with('action');
+
+        $this->paymentResponseHandler->handlePaymentsDetailsResponse(
+            $paymentsDetailsResponse,
+            $this->orderMock
+        );
+
+        $this->assertFalse($actionHasBeenSet);
     }
 }
