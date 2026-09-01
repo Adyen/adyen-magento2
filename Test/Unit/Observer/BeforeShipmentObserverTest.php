@@ -109,6 +109,35 @@ class BeforeShipmentObserverTest extends AbstractAdyenTestCase
         $this->beforeShipmentObserver->execute($this->observerMock);
     }
 
+    public function testAutoCapturePaymentMethodIsNotCapturedOnShipment()
+    {
+        $paymentMethodInstanceMock = $this->createMock(MethodInterface::class);
+
+        $this->paymentMock->method('getMethod')->willReturn('adyen_trustly');
+        $this->paymentMock->method('getMethodInstance')->willReturn($paymentMethodInstanceMock);
+
+        $this->paymentMethodsHelperMock->method('isAdyenPayment')->willReturn(true);
+        $this->paymentMethodsHelperMock->method('isAlternativePaymentMethod')
+            ->with($paymentMethodInstanceMock)
+            ->willReturn(true);
+        $this->paymentMethodsHelperMock->method('getAlternativePaymentMethodTxVariant')
+            ->with($paymentMethodInstanceMock)
+            ->willReturn('trustly');
+        $this->paymentMethodsHelperMock->method('isAutoCapture')
+            ->with($this->orderMock, 'trustly')
+            ->willReturn(true);
+
+        $this->configHelperMock->method('getConfigData')
+            ->with('capture_for_openinvoice', BeforeShipmentObserver::XML_ADYEN_ABSTRACT_PREFIX, 1)
+            ->willReturn(BeforeShipmentObserver::ONSHIPMENT_CAPTURE_OPENINVOICE);
+
+        $this->adyenLoggerMock->expects($this->once())->method('addAdyenInfoLog');
+        $this->paymentMethodsHelperMock->expects($this->never())->method('isOpenInvoice');
+        $this->invoiceRepositoryMock->expects($this->never())->method('save');
+
+        $this->beforeShipmentObserver->execute($this->observerMock);
+    }
+
     public function testNonOpenInvoicePaymentMethod()
     {
         $randomPaymentMethod = 'adyen_klarna';
