@@ -140,7 +140,6 @@ class VersionMessage implements MessageInterface
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
         curl_setopt($ch, CURLOPT_USERAGENT, 'magento');
         $content = curl_exec($ch);
-        curl_close($ch);
         $json = json_decode($content, true);
         return $json;
     }
