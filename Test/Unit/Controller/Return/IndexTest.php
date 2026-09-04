@@ -114,6 +114,7 @@ class IndexTest extends AbstractAdyenTestCase
         $order->method('getIncrementId')->willReturn('1001');
         $order->method('getPayment')->willReturn($this->createMock(OrderModel\Payment::class));
         $order->method('getEntityId')->willReturn(1);
+        $order->method('getStoreId')->willReturn(1);
 
         $orderModel = $this->createMock(OrderModel::class);
         $orderModel->method('getEntityId')->willReturn(1);
@@ -145,6 +146,7 @@ class IndexTest extends AbstractAdyenTestCase
             ]);
 
         $order = $this->createMock(OrderInterface::class);
+        $order->method('getStoreId')->willReturn(1);
 
         $orderModel = $this->createMock(OrderModel::class);
         $orderModel->method('getEntityId')->willReturn(1);
@@ -162,6 +164,48 @@ class IndexTest extends AbstractAdyenTestCase
         $this->indexController->expects($this->once())
             ->method('_redirect')
             ->with('checkout/cart');
+
+        $this->indexController->execute();
+    }
+
+    public function testExecuteUsesOrderStoreIdForRedirectConfig(): void
+    {
+        // Current store context differs from the store where the order was placed.
+        $orderStoreId = 2;
+
+        $params = ['merchantReference' => '1001', 'redirectResult' => 'test'];
+        $this->request->method('getParams')->willReturn($params);
+        $this->quoteHelper->method('getIsQuoteMultiShippingWithMerchantReference')->willReturn(false);
+
+        // Config is only mapped for the order's store id (2), not the current context store id (1).
+        $this->configHelper->method('getAdyenAbstractConfigData')
+            ->willReturnMap([
+                ['custom_success_redirect_path', $orderStoreId, 'custom/success/path'],
+                ['return_path', $orderStoreId, 'checkout/cart']
+            ]);
+
+        $quote = $this->createMock(QuoteModel::class);
+        $this->session->method('getQuote')->willReturn($quote);
+
+        $order = $this->createMock(OrderInterface::class);
+        $order->method('getIncrementId')->willReturn('1001');
+        $order->method('getPayment')->willReturn($this->createMock(OrderModel\Payment::class));
+        $order->method('getEntityId')->willReturn(1);
+        $order->method('getStoreId')->willReturn($orderStoreId);
+
+        $orderModel = $this->createMock(OrderModel::class);
+        $orderModel->method('getEntityId')->willReturn(1);
+        $orderModel->method('loadByIncrementId')->willReturn($orderModel);
+
+        $this->orderFactory->method('create')->willReturn($orderModel);
+        $this->orderRepository->method('get')->willReturn($order);
+
+        $this->paymentsDetailsHelper->method('initiatePaymentDetails')->willReturn(['resultCode' => 'Authorised']);
+        $this->paymentResponseHandler->method('handlePaymentsDetailsResponse')->willReturn(true);
+
+        $this->indexController->expects($this->once())
+            ->method('_redirect')
+            ->with('custom/success/path', ['_query' => ['order_increment_id' => '1001']]);
 
         $this->indexController->execute();
     }

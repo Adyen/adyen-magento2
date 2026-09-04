@@ -29,4 +29,12 @@ interface AdyenNotificationRepositoryInterface
      * @return void
      */
     public function deleteByIds(array $entityIds): void;
+
+    /**
+     * Returns the adyen_notification entity with the given `entity_id`.
+     *
+     * @param int $entityId adyen_notification entity_id
+     * @return NotificationInterface
+     */
+    public function getById(int $entityId): NotificationInterface;
 }

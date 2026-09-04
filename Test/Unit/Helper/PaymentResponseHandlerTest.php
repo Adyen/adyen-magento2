@@ -742,4 +742,76 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
         // Assert the response is as expected
         $this->assertTrue($result);
     }
+
+    public static function emptyActionResponseProvider(): array
+    {
+        return [
+            'action key missing' => [['resultCode' => PaymentResponseHandler::AUTHORISED]],
+            'action is null' => [['resultCode' => PaymentResponseHandler::AUTHORISED, 'action' => null]],
+            'action is empty array' => [['resultCode' => PaymentResponseHandler::AUTHORISED, 'action' => []]],
+            'action is empty string' => [['resultCode' => PaymentResponseHandler::AUTHORISED, 'action' => '']]
+        ];
+    }
+
+    /**
+     * @param array $response
+     * @return void
+     * @throws LocalizedException
+     * @dataProvider emptyActionResponseProvider
+     */
+    public function testSetPaymentAdditionalInformationUnsetsActionIfResponseHasNoAction(array $response)
+    {
+        $this->paymentMethodsHelperMock->method('isWalletPaymentMethod')->willReturn(false);
+
+        $this->paymentMock->expects($this->once())
+            ->method('unsAdditionalInformation')
+            ->with('action');
+
+        $this->paymentResponseHandler->setPaymentAdditionalInformation($this->paymentMock, $response);
+    }
+
+    /**
+     * @return void
+     * @throws LocalizedException
+     */
+    public function testSetPaymentAdditionalInformationKeepsActionIfResponseHasAction()
+    {
+        $action = ['type' => 'redirect', 'url' => 'https://checkoutshopper.adyen.com/redirect'];
+
+        $this->paymentMethodsHelperMock->method('isWalletPaymentMethod')->willReturn(false);
+
+        $this->paymentMock->expects($this->never())->method('unsAdditionalInformation');
+        $this->paymentMock->expects($this->once())
+            ->method('setAdditionalInformation')
+            ->with('action', $action);
+
+        $this->paymentResponseHandler->setPaymentAdditionalInformation(
+            $this->paymentMock,
+            ['action' => $action]
+        );
+    }
+
+    /**
+     * @return void
+     * @throws NoSuchEntityException
+     * @throws AlreadyExistsException
+     * @throws InputException
+     */
+    public function testHandlePaymentsDetailsResponseUnsetsActionIfResponseHasNoAction()
+    {
+        $this->paymentMethodsHelperMock->method('isWalletPaymentMethod')->willReturn(false);
+
+        $this->paymentMock->expects($this->once())
+            ->method('unsAdditionalInformation')
+            ->with('action');
+
+        $this->paymentResponseHandler->handlePaymentsDetailsResponse(
+            [
+                'resultCode' => PaymentResponseHandler::AUTHORISED,
+                'pspReference' => 'ABC123456789',
+                'merchantReference' => self::MERCHANT_REFERENCE
+            ],
+            $this->orderMock
+        );
+    }
 }

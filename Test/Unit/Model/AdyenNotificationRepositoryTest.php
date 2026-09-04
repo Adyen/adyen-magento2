@@ -14,11 +14,13 @@ namespace Adyen\Payment\Test\Helper\Unit\Model;
 use Adyen\Payment\Api\Data\NotificationInterface;
 use Adyen\Payment\Model\AdyenNotificationRepository;
 use Adyen\Payment\Model\Notification as NotificationModel;
+use Adyen\Payment\Model\NotificationFactory;
 use Adyen\Payment\Model\ResourceModel\Notification;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Api\Search\SearchResultFactory;
 use Magento\Framework\Api\SearchCriteria\CollectionProcessor;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\ObjectManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
@@ -31,6 +33,7 @@ class AdyenNotificationRepositoryTest extends AbstractAdyenTestCase
     protected CollectionFactory|MockObject $collectionFactoryMock;
     protected CollectionProcessor|MockObject $collectionProcessorMock;
     protected ObjectManagerInterface|MockObject $objectManagerMock;
+    protected NotificationFactory|MockObject $notificationFactoryMock;
 
     const RESOURCE_MODEL = 'Adyen\Payment\Model\ResourceModel\Notification';
 
@@ -43,9 +46,14 @@ class AdyenNotificationRepositoryTest extends AbstractAdyenTestCase
         );
         $this->collectionProcessorMock = $this->createMock(CollectionProcessor::class);
         $this->objectManagerMock = $this->createMock(ObjectManagerInterface::class);
+        $this->notificationFactoryMock = $this->createGeneratedMock(
+            NotificationFactory::class,
+            ['create']
+        );
 
         $this->adyenNotificationRepository = new AdyenNotificationRepository(
             $this->objectManagerMock,
+            $this->notificationFactoryMock,
             self::RESOURCE_MODEL
         );
     }
@@ -102,5 +110,53 @@ class AdyenNotificationRepositoryTest extends AbstractAdyenTestCase
 
         $result = $this->adyenNotificationRepository->save($notification);
         $this->assertInstanceOf(NotificationInterface::class, $result);
+    }
+
+    public function testGetById()
+    {
+        $entityId = 1;
+
+        $notification = $this->createMock(NotificationModel::class);
+        $notification->method('getEntityId')->willReturn($entityId);
+
+        $resourceModel = $this->createMock(Notification::class);
+        $resourceModel->expects($this->once())
+            ->method('load')
+            ->with($notification, $entityId, NotificationInterface::ENTITY_ID);
+
+        $this->objectManagerMock->expects($this->once())
+            ->method('get')
+            ->with(self::RESOURCE_MODEL)
+            ->willReturn($resourceModel);
+
+        $this->notificationFactoryMock->expects($this->once())
+            ->method('create')
+            ->willReturn($notification);
+
+        $result = $this->adyenNotificationRepository->getById($entityId);
+        $this->assertInstanceOf(NotificationInterface::class, $result);
+    }
+
+    public function testGetByIdNonExistingEntity()
+    {
+        $entityId = 1;
+
+        $notification = $this->createMock(NotificationModel::class);
+        $notification->method('getEntityId')->willReturn(null);
+
+        $resourceModel = $this->createMock(Notification::class);
+        $resourceModel->expects($this->once())
+            ->method('load')
+            ->with($notification, $entityId, NotificationInterface::ENTITY_ID);
+
+        $this->objectManagerMock->method('get')
+            ->with(self::RESOURCE_MODEL)
+            ->willReturn($resourceModel);
+
+        $this->notificationFactoryMock->method('create')->willReturn($notification);
+
+        $this->expectException(NoSuchEntityException::class);
+
+        $this->adyenNotificationRepository->getById($entityId);
     }
 }

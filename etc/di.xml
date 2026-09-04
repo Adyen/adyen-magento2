@@ -1114,6 +1114,7 @@
                 <item name="giftcard" xsi:type="string">Adyen\Payment\Gateway\Request\GiftcardDataBuilder</item>
                 <item name="company" xsi:type="string">Adyen\Payment\Gateway\Request\CompanyDataBuilder</item>
                 <item name="merchantRiskIndicator" xsi:type="string">Adyen\Payment\Gateway\Request\MerchantRiskIndicatorDataBuilder</item>
+                <item name="deviceFingerprint" xsi:type="string">Adyen\Payment\Gateway\Request\DeviceFingerprintDataBuilder</item>
             </argument>
         </arguments>
     </virtualType>
@@ -1175,6 +1176,7 @@
                 <item name="giftcard" xsi:type="string">Adyen\Payment\Gateway\Request\GiftcardDataBuilder</item>
                 <item name="company" xsi:type="string">Adyen\Payment\Gateway\Request\CompanyDataBuilder</item>
                 <item name="merchantRiskIndicator" xsi:type="string">Adyen\Payment\Gateway\Request\MerchantRiskIndicatorDataBuilder</item>
+                <item name="deviceFingerprint" xsi:type="string">Adyen\Payment\Gateway\Request\DeviceFingerprintDataBuilder</item>
             </argument>
         </arguments>
     </virtualType>
@@ -4880,6 +4882,33 @@
     <virtualType name="AdyenPaymentIrisConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
             <argument name="methodCode" xsi:type="string">adyen_iris</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentWeroFacade" type="Adyen\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="string">adyen_wero</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\PaymentMethodInfo</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentWeroValueHandlerPool</argument>
+            <argument name="validatorPool" xsi:type="object">AdyenPaymentValidatorPool</argument>
+            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentWeroValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AdyenPaymentWeroConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentWeroConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AdyenPaymentWeroConfig</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentWeroConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="string">adyen_wero</argument>
         </arguments>
     </virtualType>
 </config>
