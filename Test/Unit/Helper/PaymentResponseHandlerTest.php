@@ -757,8 +757,8 @@ class PaymentResponseHandlerTest extends AbstractAdyenTestCase
      * @param array $response
      * @return void
      * @throws LocalizedException
-     * @dataProvider emptyActionResponseProvider
      */
+    #[DataProvider('emptyActionResponseProvider')]
     public function testSetPaymentAdditionalInformationUnsetsActionIfResponseHasNoAction(array $response)
     {
         $this->paymentMethodsHelperMock->method('isWalletPaymentMethod')->willReturn(false);
