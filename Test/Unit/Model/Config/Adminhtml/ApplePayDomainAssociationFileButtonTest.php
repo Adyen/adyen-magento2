@@ -19,9 +19,13 @@ use Magento\Framework\View\Element\Template\File\Validator;
 use Magento\Framework\View\LayoutInterface;
 use Magento\Framework\View\TemplateEngineInterface;
 use Magento\Framework\View\TemplateEnginePool;
+use Magento\Store\Api\Data\StoreInterface;
+use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class ApplePayDomainAssociationFileButtonTest extends AbstractAdyenTestCase
 {
     protected ?ApplePayDomainAssociationFileButton $applePayDomainAssociationFileButton;
@@ -71,6 +75,11 @@ class ApplePayDomainAssociationFileButtonTest extends AbstractAdyenTestCase
         $this->contextMock->method('getValidator')->willReturn($validatorMock);
         $this->contextMock->method('getAppState')->willReturn($appStateMock);
         $this->contextMock->method('getEnginePool')->willReturn($templateEnginePoolMock);
+        $this->contextMock->method('getStoreManager')->willReturn(
+            $this->createConfiguredMock(StoreManagerInterface::class, [
+                'getStore' => $this->createMock(StoreInterface::class)
+            ])
+        );
         $this->backendHelperMock = $this->createMock(Data::class);
 
         // Prepare test data argument

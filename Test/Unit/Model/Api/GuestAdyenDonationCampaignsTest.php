@@ -10,7 +10,9 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Model\QuoteIdMask;
 use Magento\Quote\Model\QuoteIdMaskFactory;
 use Magento\Sales\Model\Order;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class GuestAdyenDonationCampaignsTest extends AbstractAdyenTestCase
 {
     private $quoteIdMaskFactoryMock;

@@ -30,7 +30,10 @@ use Magento\Framework\Serialize\SerializerInterface;
 use ReflectionClass;
 use ReflectionException as ReflectionExceptionAlias;
 use ReflectionMethod;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
 {
     private Notification|MockObject $notificationMock;
@@ -111,14 +114,12 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
         $this->assertInstanceOf(Order::class, $result);
     }
 
-    public function isAutoCaptureProvider(): array
+    public static function isAutoCaptureProvider(): array
     {
         return [[true], [false]];
     }
 
-    /**
-     * @dataProvider isAutoCaptureProvider
-     */
+    #[DataProvider('isAutoCaptureProvider')]
     public function testHandleSuccessfulAuthorisation($isAutoCapture): void
     {
         // Mock
@@ -919,7 +920,6 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
     {
         $reflectionClass = new ReflectionClass($className);
         $method = $reflectionClass->getMethod($methodName);
-        $method->setAccessible(true);
         return $method;
     }
 

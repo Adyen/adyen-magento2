@@ -21,7 +21,9 @@ use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
 use Magento\Framework\Registry;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class ProcessedWebhookRemovalTest extends AbstractAdyenTestCase
 {
     protected ?ProcessedWebhookRemoval $processedWebhookRemoval;

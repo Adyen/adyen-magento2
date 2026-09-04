@@ -20,7 +20,9 @@ use Adyen\Payment\Model\ResourceModel\AnalyticsEvent\CollectionFactory;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Exception;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class AnalyticsEventsCleanUpTest extends AbstractAdyenTestCase
 {
     protected ?AnalyticsEventsCleanUp $analyticsEventsCleanUp;

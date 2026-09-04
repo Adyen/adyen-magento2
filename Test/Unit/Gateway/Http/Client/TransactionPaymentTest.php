@@ -33,7 +33,9 @@ use Magento\Store\Model\StoreManagerInterface;
 use Adyen\Payment\Helper\GiftcardPayment;
 use Magento\Payment\Gateway\Http\TransferInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class TransactionPaymentTest extends AbstractAdyenTestCase
 {
     private Data|MockObject$adyenHelperMock;
@@ -277,7 +279,6 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
                 }),
             )->willReturn($response);
         $reflector = new \ReflectionProperty(TransactionPayment::class, 'remainingOrderAmount');
-        $reflector->setAccessible(true);
         $reflector->setValue($this->transactionPayment, $amount);
 
         $this->orderApiHelperMock
@@ -324,7 +325,6 @@ class TransactionPaymentTest extends AbstractAdyenTestCase
             ->willReturn($response);
 
         $reflector = new \ReflectionProperty(TransactionPayment::class, 'remainingOrderAmount');
-        $reflector->setAccessible(true);
         $reflector->setValue($this->transactionPayment, $amount);
 
         $orderData = [

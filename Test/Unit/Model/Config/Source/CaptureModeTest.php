@@ -6,7 +6,9 @@ use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Model\Config\Source\CaptureMode;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class CaptureModeTest extends AbstractAdyenTestCase
 {
     protected ?CaptureMode $captureMode;

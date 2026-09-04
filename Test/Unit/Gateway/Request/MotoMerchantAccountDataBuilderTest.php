@@ -17,24 +17,25 @@ use Adyen\Payment\Helper\Requests;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Sales\Model\Order\Payment;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class MotoMerchantAccountDataBuilderTest extends AbstractAdyenTestCase
 {
     public static function merchantAccountProvider(): array
     {
         return [
             [
-                '$merchantAccount' => 'DUMMY_MERCHANT_ACCOUNT'
+                'merchantAccount' => 'DUMMY_MERCHANT_ACCOUNT'
             ],
             [
-                '$merchantAccount' => null
+                'merchantAccount' => null
             ]
         ];
     }
 
-    /**
-     * @dataProvider merchantAccountProvider
-     */
+    #[DataProvider('merchantAccountProvider')]
     public function testRequestBuilder($merchantAccount)
     {
         if (is_null($merchantAccount)) {

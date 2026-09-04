@@ -13,7 +13,9 @@ namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Payment\Helper\AnalyticsEventState;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class AnalyticsEventStateTest extends AbstractAdyenTestCase
 {
     private AnalyticsEventState $analyticsEventState;

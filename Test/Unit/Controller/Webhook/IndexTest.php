@@ -25,7 +25,10 @@ use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class IndexTest extends AbstractAdyenTestCase
 {
     private ?Index $controller;
@@ -108,7 +111,6 @@ class IndexTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider dataProviderProcessValidWebhook
      *
      * @param $payload
      * @param $eventType
@@ -116,6 +118,7 @@ class IndexTest extends AbstractAdyenTestCase
      * @throws Exception
      * @throws NotFoundException
      */
+    #[DataProvider('dataProviderProcessValidWebhook')]
     public function testExecuteProcessesValidWebhook($payload, $eventType): void
     {
         $this->httpMock->method('getServer')->willReturnMap([
@@ -152,7 +155,6 @@ class IndexTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider dataProviderProcessValidWebhook
      *
      * @param $payload
      * @param $eventType
@@ -160,6 +162,7 @@ class IndexTest extends AbstractAdyenTestCase
      * @throws Exception
      * @throws NotFoundException
      */
+    #[DataProvider('dataProviderProcessValidWebhook')]
     public function testExecuteProcessesDuplicateWebhook($payload, $eventType): void
     {
         $this->httpMock->method('getServer')->willReturnMap([

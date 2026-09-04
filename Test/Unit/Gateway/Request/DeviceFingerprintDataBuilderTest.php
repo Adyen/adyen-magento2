@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace Adyen\Payment\Test\Unit\Gateway\Request;
 
 use Adyen\Payment\Gateway\Request\DeviceFingerprintDataBuilder;
-use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Sales\Model\Order\Payment;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class DeviceFingerprintDataBuilderTest extends AbstractAdyenTestCase
 {
@@ -45,9 +45,7 @@ class DeviceFingerprintDataBuilderTest extends AbstractAdyenTestCase
         );
     }
 
-    /**
-     * @dataProvider emptyDeviceFingerprintProvider
-     */
+    #[DataProvider('emptyDeviceFingerprintProvider')]
     public function testBuildReturnsEmptyBodyWhenDeviceFingerprintIsEmpty($deviceFingerprint)
     {
         $buildSubject = $this->getBuildSubject($deviceFingerprint);
@@ -75,14 +73,13 @@ class DeviceFingerprintDataBuilderTest extends AbstractAdyenTestCase
 
     private function getBuildSubject($deviceFingerprint): array
     {
-        $paymentMock = $this->createMock(Payment::class);
-        $paymentMock->method('getAdditionalInformation')
-            ->with(AdyenCcDataAssignObserver::DEVICE_FINGERPRINT)
+        $paymentStub = $this->createStub(Payment::class);
+        $paymentStub->method('getAdditionalInformation')
             ->willReturn($deviceFingerprint);
 
         return [
-            'payment' => $this->createConfiguredMock(PaymentDataObject::class, [
-                'getPayment' => $paymentMock
+            'payment' => $this->createConfiguredStub(PaymentDataObject::class, [
+                'getPayment' => $paymentStub
             ])
         ];
     }

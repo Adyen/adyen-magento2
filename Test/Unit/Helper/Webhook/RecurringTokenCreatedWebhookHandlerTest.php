@@ -17,7 +17,9 @@ use Magento\Sales\Model\Order\Payment;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class RecurringTokenCreatedWebhookHandlerTest extends AbstractAdyenTestCase
 {
     protected ?RecurringTokenCreatedWebhookHandler $handler;

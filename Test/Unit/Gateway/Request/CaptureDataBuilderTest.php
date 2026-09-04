@@ -32,14 +32,17 @@ use Magento\Payment\Model\MethodInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\ResourceModel\Order\Invoice\Collection as InvoiceCollection;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class CaptureDataBuilderTest extends AbstractAdyenTestCase
 {
     public static function adyenOrderPaymentsProvider(): array
     {
         return [
             [
-                '$adyenOrderPayments' => [
+                'adyenOrderPayments' => [
                     [
                         OrderPaymentInterface::ENTITY_ID => 1,
                         OrderPaymentInterface::AMOUNT => 100,
@@ -49,10 +52,10 @@ class CaptureDataBuilderTest extends AbstractAdyenTestCase
                         OrderPaymentInterface::CAPTURE_STATUS => OrderPaymentInterface::CAPTURE_STATUS_NO_CAPTURE
                     ]
                 ],
-                '$fullAmountAuthorized' => true
+                'fullAmountAuthorized' => true
             ],
             [
-                '$adyenOrderPayments' => [
+                'adyenOrderPayments' => [
                     [
                         OrderPaymentInterface::ENTITY_ID => 1,
                         OrderPaymentInterface::AMOUNT => 400,
@@ -70,18 +73,16 @@ class CaptureDataBuilderTest extends AbstractAdyenTestCase
                         OrderPaymentInterface::CAPTURE_STATUS => OrderPaymentInterface::CAPTURE_STATUS_NO_CAPTURE
                     ]
                 ],
-                '$fullAmountAuthorized' => true
+                'fullAmountAuthorized' => true
             ],
             [
-                '$adyenOrderPayments' => [],
-                '$fullAmountAuthorized' => false
+                'adyenOrderPayments' => [],
+                'fullAmountAuthorized' => false
             ],
         ];
     }
 
-    /**
-    * @dataProvider adyenOrderPaymentsProvider
-    */
+    #[DataProvider('adyenOrderPaymentsProvider')]
     public function testBuildCaptureRequest($adyenOrderPayments, $fullAmountAuthorized)
     {
         $adyenHelperMock = $this->createPartialMock(Data::class, ['getAdyenMerchantAccount']);

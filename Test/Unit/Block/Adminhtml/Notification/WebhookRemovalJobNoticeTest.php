@@ -16,7 +16,9 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\View\Element\Template\Context;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class WebhookRemovalJobNoticeTest extends AbstractAdyenTestCase
 {
     protected ?WebhookRemovalJobNotice $cleanupJobNotice;

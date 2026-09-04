@@ -6,7 +6,9 @@ use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Registry;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class NotificationTest extends AbstractAdyenTestCase
 {
     private Context $contextMock;

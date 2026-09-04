@@ -22,8 +22,10 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\MockObject\MockObject;
 use Magento\Quote\Model\Quote as QuoteModel;
 use Magento\Store\Model\Store;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 #[CoversClass(Moto::class)]
+#[AllowMockObjectsWithoutExpectations]
 class MotoTest extends AbstractAdyenTestCase
 {
     private Moto $motoBlock;

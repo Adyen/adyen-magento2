@@ -15,10 +15,13 @@ use Magento\Framework\HTTP\ClientInterface;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * PHPUnit 10-compliant tests for CheckoutAnalytics helper
  */
+#[AllowMockObjectsWithoutExpectations]
 class CheckoutAnalyticsTest extends AbstractAdyenTestCase
 {
     protected CheckoutAnalytics $checkoutAnalytics;
@@ -95,12 +98,12 @@ class CheckoutAnalyticsTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider initiateCheckoutAttemptDataProvider
      *
      * @param bool $isDemoMode
      * @return void
      * @throws AdyenException
      */
+    #[DataProvider('initiateCheckoutAttemptDataProvider')]
     public function testInitiateCheckoutAttempt(bool $isDemoMode): void
     {
         $environment = $isDemoMode ? 'test' : 'live';
@@ -154,12 +157,12 @@ class CheckoutAnalyticsTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider failingHttpStatusDataProvider
      *
      * @param string $response
      * @return void
      * @throws AdyenException
      */
+    #[DataProvider('failingHttpStatusDataProvider')]
     public function testFailingHttpStatus(string $response): void
     {
         $this->expectException(AdyenException::class);
@@ -203,12 +206,12 @@ class CheckoutAnalyticsTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider validateInitiateCheckoutAttemptResponseDataProvider
      *
      * @param string $response
      * @return void
      * @throws AdyenException
      */
+    #[DataProvider('validateInitiateCheckoutAttemptResponseDataProvider')]
     public function testValidateInitiateCheckoutAttemptResponse(string $response): void
     {
         $this->expectException(AdyenException::class);
@@ -229,11 +232,11 @@ class CheckoutAnalyticsTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider validateEventsAndContextDataProvider
      *
      * @param string $context
      * @return void
      */
+    #[DataProvider('validateEventsAndContextDataProvider')]
     public function testValidateMaxNumberOfEvents(string $context): void
     {
         switch ($context) {
@@ -293,12 +296,12 @@ class CheckoutAnalyticsTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider buildSendAnalyticsRequestDataProvider
      *
      * @param string $context
      * @return void
      * @throws \PHPUnit\Framework\MockObject\Exception
      */
+    #[DataProvider('buildSendAnalyticsRequestDataProvider')]
     public function testBuildSendAnalyticsRequestInfoContext(string $context): void
     {
         $this->configHelperMock->method('isDemoMode')

@@ -42,7 +42,9 @@ use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderStatusCollectionFactory;
 use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Model\Service\OrderService;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class OrderTest extends AbstractAdyenTestCase
 {
     public function testFinalizeOrderFinalized()

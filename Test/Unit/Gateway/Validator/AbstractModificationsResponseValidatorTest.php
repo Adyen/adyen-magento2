@@ -9,7 +9,9 @@ use Magento\Framework\Exception\ValidatorException;
 use Magento\Payment\Gateway\Validator\ResultInterface;
 use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class AbstractModificationsResponseValidatorTest extends AbstractAdyenTestCase
 {
     protected ?AbstractModificationsResponseValidator $validator;

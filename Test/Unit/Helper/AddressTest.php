@@ -16,7 +16,10 @@ use Adyen\Payment\Helper\Address;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Payment\Gateway\Data\AddressAdapterInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class AddressTest extends AbstractAdyenTestCase
 {
     const HOUSE_NUMBER = '123';
@@ -58,12 +61,12 @@ class AddressTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider addressConfigProvider
      * @param $houseNumberStreetLine
      * @param $address
      * @param $expectedResult
      * @param $streetLinesEnabled
      */
+    #[DataProvider('addressConfigProvider')]
     public function testGetStreetAndHouseNumberFromAddress($address, $houseNumberStreetLine, $streetLinesEnabled, $expectedResult)
     {
         /*
@@ -96,52 +99,52 @@ class AddressTest extends AbstractAdyenTestCase
             foreach (self::STREET_NAMES as $street_name) {
                 $addressConfigs = array_merge($addressConfigs, [
                     [
-                        '$address' => [
+                        'address' => [
                             $house_number,
                             $street_name
                         ],
-                        '$houseNumberStreetLine' => 1,
-                        '$streetLinesEnabled' => 2,
-                        '$expectedResult' => [
+                        'houseNumberStreetLine' => 1,
+                        'streetLinesEnabled' => 2,
+                        'expectedResult' => [
                             'name' => $street_name,
                             'house_number' => $house_number
                         ]
                     ],
                     [
-                        '$address' => [
+                        'address' => [
                             $street_name,
                             $house_number
                         ],
-                        '$houseNumberStreetLine' => 2,
-                        '$streetLinesEnabled' => 2,
-                        '$expectedResult' => [
+                        'houseNumberStreetLine' => 2,
+                        'streetLinesEnabled' => 2,
+                        'expectedResult' => [
                             'name' => $street_name,
                             'house_number' => $house_number
                         ]
                     ],
                     [
-                        '$address' => [
+                        'address' => [
                             $street_name,
                             '',
                             $house_number
                         ],
-                        '$houseNumberStreetLine' => 3,
-                        '$streetLinesEnabled' => 3,
-                        '$expectedResult' => [
+                        'houseNumberStreetLine' => 3,
+                        'streetLinesEnabled' => 3,
+                        'expectedResult' => [
                             'name' => $street_name,
                             'house_number' => $house_number
                         ]
                     ],
                     [
-                        '$address' => [
+                        'address' => [
                             $street_name,
                             '',
                             '',
                             $house_number
                         ],
-                        '$houseNumberStreetLine' => 4,
-                        '$streetLinesEnabled' => 4,
-                        '$expectedResult' => [
+                        'houseNumberStreetLine' => 4,
+                        'streetLinesEnabled' => 4,
+                        'expectedResult' => [
                             'name' => $street_name,
                             'house_number' => $house_number
                         ]
@@ -151,47 +154,47 @@ class AddressTest extends AbstractAdyenTestCase
                      * houseNumberStreetLine is set (non-zero) but full address is provided in house number field
                      */
                     [
-                        '$address' => [$street_name . ' ' . $house_number, ''],
-                        '$houseNumberStreetLine' => 1,
-                        '$streetLinesEnabled' => 2,
-                        '$expectedResult' => [
+                        'address' => [$street_name . ' ' . $house_number, ''],
+                        'houseNumberStreetLine' => 1,
+                        'streetLinesEnabled' => 2,
+                        'expectedResult' => [
                             'name' => '',
                             'house_number' => $street_name . ' ' . $house_number
                         ]
                     ],
                     /* The following test cases will use the regex fallback to detect the house number and street name */
                     [
-                        '$address' => [$street_name . ' ' . $house_number, ''],
-                        '$houseNumberStreetLine' => 0, // Config is disabled
-                        '$streetLinesEnabled' => 2,
-                        '$expectedResult' => [
+                        'address' => [$street_name . ' ' . $house_number, ''],
+                        'houseNumberStreetLine' => 0, // Config is disabled
+                        'streetLinesEnabled' => 2,
+                        'expectedResult' => [
                             'name' => $street_name,
                             'house_number' => $house_number
                         ]
                     ],
                     [
-                        '$address' => [$house_number . ' ' . $street_name, ''],
-                        '$houseNumberStreetLine' => 0, // Config is disabled
-                        '$streetLinesEnabled' => 2,
-                        '$expectedResult' => [
+                        'address' => [$house_number . ' ' . $street_name, ''],
+                        'houseNumberStreetLine' => 0, // Config is disabled
+                        'streetLinesEnabled' => 2,
+                        'expectedResult' => [
                             'name' => $street_name,
                             'house_number' => $house_number
                         ]
                     ],
                     [
-                        '$address' => [$street_name . ' ' . $house_number],
-                        '$houseNumberStreetLine' => 2,
-                        '$streetLinesEnabled' => 1, // Not enough street lines enabled
-                        '$expectedResult' => [
+                        'address' => [$street_name . ' ' . $house_number],
+                        'houseNumberStreetLine' => 2,
+                        'streetLinesEnabled' => 1, // Not enough street lines enabled
+                        'expectedResult' => [
                             'name' => $street_name,
                             'house_number' => $house_number
                         ]
                     ],
                     [
-                        '$address' => [$house_number . ' ' . $street_name], // House number field is empty
-                        '$houseNumberStreetLine' => 2,
-                        '$streetLinesEnabled' => 2,
-                        '$expectedResult' => [
+                        'address' => [$house_number . ' ' . $street_name], // House number field is empty
+                        'houseNumberStreetLine' => 2,
+                        'streetLinesEnabled' => 2,
+                        'expectedResult' => [
                             'name' => $street_name,
                             'house_number' => $house_number
                         ]

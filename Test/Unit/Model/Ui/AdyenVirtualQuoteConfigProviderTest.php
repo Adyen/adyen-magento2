@@ -16,8 +16,10 @@ use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 #[CoversClass(AdyenVirtualQuoteConfigProvider::class)]
+#[AllowMockObjectsWithoutExpectations]
 class AdyenVirtualQuoteConfigProviderTest extends AbstractAdyenTestCase
 {
     private AdyenVirtualQuoteConfigProvider $adyenVirtualQuoteConfigProvider;

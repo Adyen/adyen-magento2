@@ -24,7 +24,9 @@ use Magento\Framework\Event;
 use Magento\Framework\Event\Observer;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class AnalyticsEventObserverTest extends AbstractAdyenTestCase
 {
     private AnalyticsEventRepositoryInterface $analyticsRepositoryMock;

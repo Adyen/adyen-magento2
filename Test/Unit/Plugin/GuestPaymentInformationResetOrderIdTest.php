@@ -20,7 +20,9 @@ use Magento\Framework\Exception\NotFoundException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use Magento\Quote\Model\Quote;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class GuestPaymentInformationResetOrderIdTest extends AbstractAdyenTestCase
 {
     protected ?GuestPaymentInformationResetOrderId $guestPaymentInformationResetOrderId;

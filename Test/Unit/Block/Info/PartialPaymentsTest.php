@@ -19,7 +19,9 @@ use Magento\Framework\Exception\LocalizedException;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
 use Magento\Framework\View\Element\Template\Context;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class PartialPaymentsTest extends AbstractAdyenTestCase
 {
     protected PartialPayments $partialPayments;
@@ -34,10 +36,12 @@ class PartialPaymentsTest extends AbstractAdyenTestCase
     {
         $this->contextMock = $this->createMock(Context::class);
 
-        $this->partialPayments = $this->getMockBuilder(PartialPayments::class)
+        $this->partialPayments = $this->getMockBuilder(
+            $this->createClassWithMagicMethods(PartialPayments::class, ['getInfoBlock'])
+        )
             ->disableOriginalConstructor()
             ->setConstructorArgs([$this->contextMock, $this->dataMock])
-            ->addMethods(['getInfoBlock'])
+            ->onlyMethods(['getInfoBlock'])
             ->getMock();
     }
 

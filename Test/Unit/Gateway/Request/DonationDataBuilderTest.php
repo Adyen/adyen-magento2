@@ -14,8 +14,10 @@ use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 #[CoversClass(DonationDataBuilder::class)]
+#[AllowMockObjectsWithoutExpectations]
 class DonationDataBuilderTest extends AbstractAdyenTestCase
 {
     private Requests $adyenRequestsHelper;

@@ -18,7 +18,9 @@ use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Adyen\Payment\Exception\GraphQlAdyenException;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class GetAdyenPaymentMethodsBalanceTest extends AbstractAdyenTestCase
 {
     private $balanceMock;

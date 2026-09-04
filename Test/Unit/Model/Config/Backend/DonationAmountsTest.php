@@ -24,7 +24,10 @@ use Magento\Framework\Validator\Exception;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class DonationAmountsTest extends AbstractAdyenTestCase
 {
     protected ?DonationAmounts $donationAmounts;
@@ -116,9 +119,7 @@ class DonationAmountsTest extends AbstractAdyenTestCase
         $this->donationAmounts->validateBeforeSave();
     }
 
-    /**
-     * @dataProvider donationAmountsProvider
-     */
+    #[DataProvider('donationAmountsProvider')]
     public function testValidateDonationAmounts($donationAmounts, $expectedResult)
     {
         $this->generateSutClass();
@@ -130,7 +131,7 @@ class DonationAmountsTest extends AbstractAdyenTestCase
     /**
      * @return array[]
      */
-    private static function donationAmountsProvider(): array
+    public static function donationAmountsProvider(): array
     {
         return array(
             array(

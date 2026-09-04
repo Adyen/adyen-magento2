@@ -39,7 +39,9 @@ use Adyen\Service\Checkout\OrdersApi;
 use Adyen\Service\Checkout\PaymentLinksApi;
 use Adyen\Service\Checkout\PaymentsApi;
 use Adyen\Service\RecurringApi;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class DataTest extends AbstractAdyenTestCase
 {
     private Data $dataHelper;

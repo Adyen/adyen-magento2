@@ -8,7 +8,10 @@ use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Directory\Api\CountryInformationAcquirerInterface;
 use Magento\Directory\Api\Data\CountryInformationInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class Level23DataValidatorTest extends AbstractAdyenTestCase
 {
     protected Level23DataValidator $validator;
@@ -41,9 +44,7 @@ class Level23DataValidatorTest extends AbstractAdyenTestCase
         ];
     }
 
-    /**
-     * @dataProvider customerReferenceProvider
-     */
+    #[DataProvider('customerReferenceProvider')]
     public function testSanitizeCustomerReference(string $input, ?string $expected): void
     {
         $result = $this->validator->sanitizeCustomerReference($input);
@@ -66,9 +67,7 @@ class Level23DataValidatorTest extends AbstractAdyenTestCase
         ];
     }
 
-    /**
-     * @dataProvider descriptionProvider
-     */
+    #[DataProvider('descriptionProvider')]
     public function testSanitizeDescription(string $input, ?string $expected): void
     {
         $result = $this->validator->sanitizeDescription($input);
@@ -88,9 +87,7 @@ class Level23DataValidatorTest extends AbstractAdyenTestCase
         ];
     }
 
-    /**
-     * @dataProvider productCodeProvider
-     */
+    #[DataProvider('productCodeProvider')]
     public function testSanitizeProductCode(string $input, ?string $expected): void
     {
         $result = $this->validator->sanitizeProductCode($input);
@@ -107,9 +104,7 @@ class Level23DataValidatorTest extends AbstractAdyenTestCase
         ];
     }
 
-    /**
-     * @dataProvider commodityCodeProvider
-     */
+    #[DataProvider('commodityCodeProvider')]
     public function testSanitizeCommodityCode(string $input, ?string $expected): void
     {
         $result = $this->validator->sanitizeCommodityCode($input);
@@ -127,9 +122,7 @@ class Level23DataValidatorTest extends AbstractAdyenTestCase
         ];
     }
 
-    /**
-     * @dataProvider postalCodeProvider
-     */
+    #[DataProvider('postalCodeProvider')]
     public function testSanitizePostalCode(string $input, ?string $expected): void
     {
         $result = $this->validator->sanitizePostalCode($input);
@@ -147,9 +140,7 @@ class Level23DataValidatorTest extends AbstractAdyenTestCase
         ];
     }
 
-    /**
-     * @dataProvider stateProvinceCodeProvider
-     */
+    #[DataProvider('stateProvinceCodeProvider')]
     public function testSanitizeStateProvinceCode(string $input, ?string $expected): void
     {
         $result = $this->validator->sanitizeStateProvinceCode($input);
@@ -188,9 +179,7 @@ class Level23DataValidatorTest extends AbstractAdyenTestCase
         ];
     }
 
-    /**
-     * @dataProvider lineItemTotalAmountProvider
-     */
+    #[DataProvider('lineItemTotalAmountProvider')]
     public function testCalculateLineItemTotalAmount(
         int $quantity,
         int $unitPrice,
@@ -211,9 +200,7 @@ class Level23DataValidatorTest extends AbstractAdyenTestCase
         ];
     }
 
-    /**
-     * @dataProvider amountNotAllZerosProvider
-     */
+    #[DataProvider('amountNotAllZerosProvider')]
     public function testIsAmountNotAllZeros(string $input, bool $expected): void
     {
         $result = $this->validator->isAmountNotAllZeros($input);
@@ -233,9 +220,7 @@ class Level23DataValidatorTest extends AbstractAdyenTestCase
         ];
     }
 
-    /**
-     * @dataProvider validateLineItemInputProvider
-     */
+    #[DataProvider('validateLineItemInputProvider')]
     public function testValidateLineItemInput($unitPrice, $qtyOrdered, bool $expected): void
     {
         $result = $this->validator->validateLineItemInput($unitPrice, $qtyOrdered);
