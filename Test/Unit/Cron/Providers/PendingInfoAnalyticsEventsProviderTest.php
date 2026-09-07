@@ -10,7 +10,9 @@ use Adyen\Payment\Model\ResourceModel\AnalyticsEvent\Collection as AnalyticsEven
 use Adyen\Payment\Model\ResourceModel\AnalyticsEvent\CollectionFactory as AnalyticsEventCollectionFactory;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class PendingInfoAnalyticsEventsProviderTest extends AbstractAdyenTestCase
 {
     protected PendingInfoAnalyticsEventsProvider $pendingInfoAnalyticsEventsProvider;

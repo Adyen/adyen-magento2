@@ -16,7 +16,9 @@ use Adyen\Payment\Model\Api\TokenDeactivate;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Vault\Model\PaymentTokenManagement;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class TokenDeactivateTest extends AbstractAdyenTestCase
 {
     private $paymentTokenRepositoryMock;

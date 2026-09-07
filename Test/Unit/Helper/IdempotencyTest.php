@@ -9,7 +9,9 @@ namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Payment\Helper\Idempotency;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class IdempotencyTest extends AbstractAdyenTestCase
 {
     public function testGenerateIdempotencyKey()

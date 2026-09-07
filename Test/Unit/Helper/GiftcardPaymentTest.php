@@ -20,7 +20,10 @@ use Magento\Framework\Pricing\Helper\Data as PricingData;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class GiftcardPaymentTest extends AbstractAdyenTestCase
 {
     const CREDIT_CARD_REQUEST = <<<JSON
@@ -296,39 +299,39 @@ class GiftcardPaymentTest extends AbstractAdyenTestCase
         $this->assertEquals(0, $totalBalance, 'The total must be equal to 0 because the giftcard key is undefined.');
     }
 
-    private static function discountTestDataProvider(): array
+    public static function discountTestDataProvider(): array
     {
         return [
             [
-                '$quoteAmount' => 100.00,
-                '$giftcardBalance' => 5000,
-                '$expectedResult' => 5000
+                'quoteAmount' => 100.00,
+                'giftcardBalance' => 5000,
+                'expectedResult' => 5000
             ],
             [
-                '$quoteAmount' => 100.00,
-                '$giftcardBalance' => 2500,
-                '$expectedResult' => 2500
+                'quoteAmount' => 100.00,
+                'giftcardBalance' => 2500,
+                'expectedResult' => 2500
             ],
             [
-                '$quoteAmount' => 15.00,
-                '$giftcardBalance' => 5000,
-                '$expectedResult' => 1500
+                'quoteAmount' => 15.00,
+                'giftcardBalance' => 5000,
+                'expectedResult' => 1500
             ],
             [
-                '$quoteAmount' => 100.00,
-                '$giftcardBalance' => -9900,
-                '$expectedResult' => 0
+                'quoteAmount' => 100.00,
+                'giftcardBalance' => -9900,
+                'expectedResult' => 0
             ]
         ];
     }
 
     /**
-     * @dataProvider discountTestDataProvider
      * @param float $quoteAmount
      * @param int $giftcardBalance
      * @param int $expectedResult
      * @return void
      */
+    #[DataProvider('discountTestDataProvider')]
     public function testGetQuoteGiftcardDiscount(float $quoteAmount, int $giftcardBalance, int $expectedResult): void
     {
         $stateDataCollectionMock = [

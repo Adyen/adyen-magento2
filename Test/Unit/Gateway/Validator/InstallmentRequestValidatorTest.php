@@ -17,7 +17,10 @@ use Magento\Sales\Model\Order\Payment;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
 use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class InstallmentRequestValidatorTest extends AbstractAdyenTestCase
 {
     protected ?InstallmentRequestValidator $validator;
@@ -54,7 +57,7 @@ class InstallmentRequestValidatorTest extends AbstractAdyenTestCase
         $this->validator = null;
     }
 
-    private static function dataProvider(): array
+    public static function dataProvider(): array
     {
         return [
             ['quoteId' => 1],
@@ -63,13 +66,13 @@ class InstallmentRequestValidatorTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider dataProvider
      *
      * @param $quoteId
      * @return void
      * @throws NoSuchEntityException
      * @throws Exception
      */
+    #[DataProvider('dataProvider')]
     public function testValidate($quoteId)
     {
         $quoteAmountCurrency = $this->createMock(AdyenAmountCurrency::class);

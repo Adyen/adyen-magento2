@@ -18,7 +18,9 @@ use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class GiftcardDataBuilderTest extends AbstractAdyenTestCase
 {
     private $giftcardDataBuilder;

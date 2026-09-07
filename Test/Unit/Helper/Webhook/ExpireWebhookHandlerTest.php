@@ -22,7 +22,9 @@ use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class ExpireWebhookHandlerTest extends AbstractAdyenTestCase
 {
     protected ?ExpireWebhookHandler $webhookHandler;

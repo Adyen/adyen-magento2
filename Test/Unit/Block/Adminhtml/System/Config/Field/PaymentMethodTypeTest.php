@@ -20,8 +20,10 @@ use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Context;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 #[CoversClass(PaymentMethodType::class)]
+#[AllowMockObjectsWithoutExpectations]
 class PaymentMethodTypeTest extends AbstractAdyenTestCase
 {
     private MockObject $block;

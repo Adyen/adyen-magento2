@@ -18,7 +18,9 @@ use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Webhook\PaymentStates;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Adyen\Payment\Model\Notification;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class AbstractDisputeWebhookHandlerTest extends AbstractAdyenTestCase
 {
     private $orderHelperMock;

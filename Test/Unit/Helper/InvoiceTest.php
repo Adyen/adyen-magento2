@@ -37,7 +37,10 @@ use Magento\Framework\DB\Transaction;
 use Magento\Sales\Api\InvoiceRepositoryInterface;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Adyen\Payment\Model\Invoice as AdyenInvoice;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class InvoiceTest extends AbstractAdyenTestCase
 {
     /**
@@ -75,7 +78,7 @@ class InvoiceTest extends AbstractAdyenTestCase
         $this->assertInstanceOf(InvoiceModel::class, $invoice);
     }
 
-    private static function notificationAmountDataProvider(): array
+    public static function notificationAmountDataProvider(): array
     {
         return [
             ['notificationAmount' => 0],
@@ -84,10 +87,10 @@ class InvoiceTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider notificationAmountDataProvider
      *
      * @throws LocalizedException
      */
+    #[DataProvider('notificationAmountDataProvider')]
     public function testCreateInvoiceManualCapture($notificationAmount = 1000)
     {
         $invoiceMock = $this->createGeneratedMock(

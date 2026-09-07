@@ -23,7 +23,9 @@ use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class GetAdyenRedeemedGiftcardsTest extends AbstractAdyenTestCase
 {
     private GetAdyenRedeemedGiftcards $getAdyenRedeemedGiftcards;

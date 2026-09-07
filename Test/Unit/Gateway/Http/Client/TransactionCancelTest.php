@@ -13,7 +13,9 @@ use Magento\Payment\Gateway\Http\TransferInterface;
 use Adyen\Service\Checkout;
 use Adyen\AdyenException;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class TransactionCancelTest extends AbstractAdyenTestCase
 {
     private TransactionCancel $transactionCancel;

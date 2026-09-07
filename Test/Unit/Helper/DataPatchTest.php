@@ -16,7 +16,9 @@ use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\DB\Select;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\DB\Adapter\AdapterInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class DataPatchTest extends AbstractAdyenTestCase
 {
     const TEST_CONFIG_PATH = 'payment/adyen_mock_payment_method/sort_order';

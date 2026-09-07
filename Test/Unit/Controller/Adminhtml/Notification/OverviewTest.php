@@ -18,7 +18,9 @@ use Magento\Backend\App\Action\Context;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\View\Page\Config;
 use Magento\Framework\View\Page\Title;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class OverviewTest extends AbstractAdyenTestCase
 {
     /**

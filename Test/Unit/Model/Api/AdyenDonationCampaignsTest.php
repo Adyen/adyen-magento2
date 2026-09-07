@@ -18,8 +18,10 @@ use Magento\Sales\Model\Order\Payment;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use Magento\Sales\Model\Order;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 #[CoversClass(AdyenDonationCampaigns::class)]
+#[AllowMockObjectsWithoutExpectations]
 class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
 {
     private DonationsHelper $donationsHelper;

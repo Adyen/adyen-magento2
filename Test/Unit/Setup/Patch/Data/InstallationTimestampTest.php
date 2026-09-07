@@ -24,7 +24,9 @@ use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class InstallationTimestampTest extends AbstractAdyenTestCase
 {
     private InstallationTimestamp $installationTimestamp;

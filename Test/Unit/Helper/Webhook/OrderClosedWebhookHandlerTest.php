@@ -17,7 +17,9 @@ use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as OrderPa
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface as MagentoOrderPaymentInterface;
 use Magento\Sales\Model\Order;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class OrderClosedWebhookHandlerTest extends AbstractAdyenTestCase
 {
     private OrderClosedWebhookHandler $orderClosedWebhookHandler;

@@ -9,7 +9,9 @@ use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Phrase;
 use Magento\Sales\Model\Order;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class CaptureFailedWebhookHandlerTest extends AbstractAdyenTestCase
 {
     protected ?CaptureFailedWebhookHandler $webhookHandler;

@@ -22,7 +22,10 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Creditmemo;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\Order\Payment;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class OpenInvoiceTest extends AbstractAdyenTestCase
 {
     private $adyenHelperMock;
@@ -84,11 +87,11 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider isVirtualDataProvider()
      *
      * @param bool $isVirtual
      * @return void
      */
+    #[DataProvider('isVirtualDataProvider')]
     public function testGetOpenInvoiceDataForOrder(bool $isVirtual): void
     {
         $openInvoice = new OpenInvoice(
@@ -206,11 +209,11 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider isVirtualDataProvider()
      *
      * @param bool $isVirtual
      * @return void
      */
+    #[DataProvider('isVirtualDataProvider')]
     public function testGetOpenInvoiceDataForLastInvoice(bool $isVirtual): void
     {
         $itemAmountCurrencyMock = $this->createMock(AdyenAmountCurrency::class);
@@ -286,11 +289,11 @@ class OpenInvoiceTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider isVirtualDataProvider()
      *
      * @param bool $isVirtual
      * @return void
      */
+    #[DataProvider('isVirtualDataProvider')]
     public function testGetOpenInvoiceDataForCreditMemo(bool $isVirtual): void
     {
         $this->creditmemoMock->method('getItems')->willReturn([$this->creditmemoItemMock]);

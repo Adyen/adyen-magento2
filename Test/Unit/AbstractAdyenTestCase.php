@@ -17,8 +17,11 @@ use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as OrderPa
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\ResourceModel\Order\Status\Collection as OrderStatusCollection;
 use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderStatusCollectionFactory;
+use InvalidArgumentException;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
+use RuntimeException;
 
 abstract class AbstractAdyenTestCase extends TestCase
 {
@@ -27,19 +30,107 @@ abstract class AbstractAdyenTestCase extends TestCase
      * If conditions are requireed so that MockBuilder does not set $this->emptyMethodsArray = 1
      * This was done since setMethods is deprecated
      */
-    protected function createMockWithMethods(string $originalClassName, array $existingMethods, array $nonExistingMethods): MockObject
-    {
-        $mockBuilder = $this->getMockBuilder($originalClassName)->disableOriginalConstructor();
+    protected function createMockWithMethods(
+        string $originalClassName,
+        array $existingMethods,
+        array $nonExistingMethods
+    ): MockObject {
+        $className = $this->createClassWithMagicMethods($originalClassName, $nonExistingMethods);
+        $mockBuilder = $this->getMockBuilder($className)->disableOriginalConstructor();
 
-        if (!empty($existingMethods)) {
-            $mockBuilder = $mockBuilder->onlyMethods($existingMethods);
-        }
+        $methods = array_values(array_unique(array_merge($existingMethods, $nonExistingMethods)));
 
-        if (!empty($nonExistingMethods)) {
-            $mockBuilder = $mockBuilder->addMethods($nonExistingMethods);
+        if (!empty($methods)) {
+            $mockBuilder = $mockBuilder->onlyMethods($methods);
         }
 
         return $mockBuilder->getMock();
+    }
+
+    /**
+     * PHPUnit 12 removed MockBuilder::addMethods(), so magic methods (e.g. Magento data getters)
+     * cannot be doubled anymore. Declare them on a generated subclass instead and double that.
+     *
+     * @param string $originalClassName
+     * @param string[] $magicMethods
+     * @return string Class name to be doubled
+     */
+    protected function createClassWithMagicMethods(string $originalClassName, array $magicMethods): string
+    {
+        $originalClassName = ltrim($originalClassName, '\\');
+
+        $magicMethods = array_values(array_filter(
+            array_unique($magicMethods),
+            fn (string $method): bool => !method_exists($originalClassName, $method)
+        ));
+
+        if (empty($magicMethods)) {
+            return $originalClassName;
+        }
+
+        sort($magicMethods);
+        $doubleName = 'MagicMethodDouble_' . hash('sha256', $originalClassName . '::' . implode(',', $magicMethods));
+        $doubleClassName = __NAMESPACE__ . '\\' . $doubleName;
+
+        if (class_exists($doubleClassName, false)) {
+            return $doubleClassName;
+        }
+
+        $declarations = '';
+
+        foreach ($magicMethods as $method) {
+            if (!preg_match('/^[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*$/', $method)) {
+                throw new InvalidArgumentException(sprintf('"%s" is not a valid method name.', $method));
+            }
+
+            $declarations .= sprintf(
+                "    public function %s(...\$arguments)\n    {\n        return null;\n    }\n",
+                $method
+            );
+        }
+
+        $isInterface = interface_exists($originalClassName);
+        $isAbstract = !$isInterface && (new ReflectionClass($originalClassName))->isAbstract();
+
+        $code = sprintf(
+            "<?php\n\nnamespace %s;\n\n%sclass %s %s \\%s\n{\n%s}\n",
+            __NAMESPACE__,
+            $isInterface || $isAbstract ? 'abstract ' : '',
+            $doubleName,
+            $isInterface ? 'implements' : 'extends',
+            $originalClassName,
+            $declarations
+        );
+
+        require_once $this->writeGeneratedClass($doubleName, $code);
+
+        return $doubleClassName;
+    }
+
+    /**
+     * Writes a generated class to the system temporary directory and returns its path.
+     *
+     * @param string $doubleName
+     * @param string $code
+     * @return string
+     */
+    private function writeGeneratedClass(string $doubleName, string $code): string
+    {
+        $directory = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'adyen-payment-test-doubles';
+
+        if (!is_dir($directory) && !mkdir($directory, 0777, true) && !is_dir($directory)) {
+            throw new RuntimeException(sprintf('Unable to create the directory "%s".', $directory));
+        }
+
+        $file = $directory . DIRECTORY_SEPARATOR . $doubleName . '.php';
+
+        if (!is_file($file) || file_get_contents($file) !== $code) {
+            $temporaryFile = tempnam($directory, 'double_');
+            file_put_contents($temporaryFile, $code);
+            rename($temporaryFile, $file);
+        }
+
+        return $file;
     }
 
     /**
@@ -54,19 +145,18 @@ abstract class AbstractAdyenTestCase extends TestCase
         array $existingMethods = [],
         array $nonExistingMethods = []
     ): MockObject {
-        $mockBuilder = $this->getMockBuilder($originalClassName);
+        $mockBuilder = $this->getMockBuilder(
+            $this->createClassWithMagicMethods($originalClassName, $nonExistingMethods)
+        );
 
-        if (!empty($existingMethods)) {
-            $mockBuilder = $mockBuilder->onlyMethods($existingMethods);
-        }
+        $methods = array_values(array_unique(array_merge($existingMethods, $nonExistingMethods)));
 
-        if (!empty($nonExistingMethods)) {
-            $mockBuilder = $mockBuilder->addMethods($nonExistingMethods);
+        if (!empty($methods)) {
+            $mockBuilder = $mockBuilder->onlyMethods($methods);
         }
 
         return $mockBuilder->disableOriginalConstructor()
             ->disableOriginalClone()
-            ->disableArgumentCloning()
             ->getMock();
     }
 
@@ -120,7 +210,10 @@ abstract class AbstractAdyenTestCase extends TestCase
         ]);
         $adyenOrderPaymentCollection->method('addFieldToFilter')->willReturn($adyenOrderPaymentCollection);
 
-        $adyenOrderPaymentCollectionFactory = $this->createGeneratedMock(OrderPaymentCollectionFactory::class, ['create']);
+        $adyenOrderPaymentCollectionFactory = $this->createGeneratedMock(
+            OrderPaymentCollectionFactory::class,
+            ['create']
+        );
         $adyenOrderPaymentCollectionFactory->method('create')->willReturn($adyenOrderPaymentCollection);
 
         return $adyenOrderPaymentCollectionFactory;
@@ -130,7 +223,6 @@ abstract class AbstractAdyenTestCase extends TestCase
     {
         $reflection = new \ReflectionClass(get_class($object));
         $method = $reflection->getMethod($methodName);
-        $method->setAccessible(true);
 
         return $method->invokeArgs($object, $parameters);
     }

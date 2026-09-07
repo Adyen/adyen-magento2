@@ -28,7 +28,6 @@
         <includePath>.</includePath>
         <ini name="memory_limit" value="-1"/>
         <ini name="date.timezone" value="Europe/Amsterdam"/>
-        <ini name="xdebug.max_nesting_level" value="200"/>
     </php>
     <extensions>
         <bootstrap class="Qameta\Allure\PHPUnit\AllureExtension">

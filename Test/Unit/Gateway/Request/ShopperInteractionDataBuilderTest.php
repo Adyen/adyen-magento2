@@ -25,7 +25,9 @@ use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class ShopperInteractionDataBuilderTest extends AbstractAdyenTestCase
 {
     private ShopperInteractionDataBuilder $shopperInteractionDataBuilder;

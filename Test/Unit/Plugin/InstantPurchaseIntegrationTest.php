@@ -21,7 +21,10 @@ use Magento\InstantPurchase\PaymentMethodIntegration\Integration;
 use Magento\Payment\Helper\Data;
 use Magento\Payment\Model\MethodInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class InstantPurchaseIntegrationTest extends AbstractAdyenTestCase
 {
     protected ?InstantPurchaseIntegration $instantPurchaseIntegrationPlugin;
@@ -60,9 +63,9 @@ class InstantPurchaseIntegrationTest extends AbstractAdyenTestCase
      * @return void
      * @throws LocalizedException
      *
-     * @dataProvider dataProviderForNotApplicableCases
      *
      */
+    #[DataProvider('dataProviderForNotApplicableCases')]
     public function testAroundIsAvailable(
         $providerCode,
         $isAdyenAlternativePaymentMethod,

@@ -16,7 +16,9 @@ use Magento\Payment\Model\MethodInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
 {
     private CheckoutPaymentsResponseHandler $checkoutPaymentsDetailsHandler;

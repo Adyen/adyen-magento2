@@ -19,7 +19,9 @@ use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\App\Helper\Context;
 use Magento\Sales\Model\Order;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class CaseManagementTest extends AbstractAdyenTestCase
 {
     public function testRequiresManualReviewTrue(): void

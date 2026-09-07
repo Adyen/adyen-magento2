@@ -11,7 +11,9 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Registry;
 use Magento\Framework\UrlInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class AutoConfigurationTest extends AbstractAdyenTestCase
 {
     protected AutoConfiguration $autoConfiguration;

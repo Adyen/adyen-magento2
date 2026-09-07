@@ -25,7 +25,9 @@ use Exception;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class SubmitAnalyticsEventsTest extends AbstractAdyenTestCase
 {
     protected ?SubmitAnalyticsEvents $submitAnalyticsEvents;

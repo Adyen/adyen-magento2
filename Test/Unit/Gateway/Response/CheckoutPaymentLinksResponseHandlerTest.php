@@ -8,7 +8,9 @@ use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Payment\Gateway\Data\PaymentDataObjectInterface;
 use Magento\Sales\Model\Order\Payment;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class CheckoutPaymentLinksResponseHandlerTest extends AbstractAdyenTestCase
 {
     protected ?CheckoutPaymentLinksResponseHandler $handler;

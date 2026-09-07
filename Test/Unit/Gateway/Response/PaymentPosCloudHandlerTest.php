@@ -11,7 +11,9 @@ use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Payment\Gateway\Data\PaymentDataObjectInterface;
 use Magento\Sales\Model\Order\StatusResolver;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class PaymentPosCloudHandlerTest extends AbstractAdyenTestCase
 {
     private AdyenLogger $adyenLogger;

@@ -21,10 +21,12 @@ use Magento\GraphQl\Model\Query\Context;
 use Magento\GraphQl\Model\Query\ContextExtensionInterface;
 use Magento\Store\Model\Store;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * @coversDefaultClass \Adyen\Payment\Model\Resolver\StoreConfig\StoreLocale
  */
+#[AllowMockObjectsWithoutExpectations]
 class StoreLocaleTest extends AbstractAdyenTestCase
 {
     private MockObject|Context $contextMock;

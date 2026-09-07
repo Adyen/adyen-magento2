@@ -19,7 +19,9 @@ use Adyen\Payment\Plugin\MultishippingPaymentMethods;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Quote\Model\Quote;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class MultishippingPaymentMethodsTest extends AbstractAdyenTestCase
 {
     protected ?MultishippingPaymentMethods $multishippingPaymentMethods;

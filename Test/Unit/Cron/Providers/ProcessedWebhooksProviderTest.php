@@ -19,7 +19,9 @@ use Adyen\Payment\Model\ResourceModel\Notification\Collection;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class ProcessedWebhooksProviderTest extends AbstractAdyenTestCase
 {
     protected ?ProcessedWebhooksProvider $notificationsProvider;

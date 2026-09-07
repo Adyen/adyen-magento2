@@ -8,7 +8,9 @@ use Adyen\Payment\Model\ResourceModel\Notification as NotificationResourceModel;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Exception;
 use Magento\Framework\MessageQueue\PublisherInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class PublisherTest extends AbstractAdyenTestCase
 {
     /**

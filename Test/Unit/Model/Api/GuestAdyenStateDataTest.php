@@ -18,7 +18,9 @@ use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class GuestAdyenStateDataTest extends AbstractAdyenTestCase
 {
     private GuestAdyenStateData $guestAdyenStateDataModel;

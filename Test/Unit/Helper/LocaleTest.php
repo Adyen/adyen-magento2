@@ -14,8 +14,10 @@ use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 #[CoversClass(Locale::class)]
+#[AllowMockObjectsWithoutExpectations]
 class LocaleTest extends AbstractAdyenTestCase
 {
     private Locale $localeHelper;

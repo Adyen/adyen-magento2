@@ -19,8 +19,10 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Payment\Helper\Data as MagentoPaymentDataHelper;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 #[CoversClass(PaymentMethodType::class)]
+#[AllowMockObjectsWithoutExpectations]
 class PaymentMethodTypeTest extends AbstractAdyenTestCase
 {
     private MockObject $paymentHelperMock;

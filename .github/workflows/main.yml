@@ -15,8 +15,8 @@ jobs:
 
     strategy:
       matrix:
-        php-version: ["8.3"]
-        magento-version: ["2.4.8-p3"]
+        php-version: ["8.5"]
+        magento-version: ["2.4.9"]
     runs-on: ubuntu-latest
     timeout-minutes: 15
 

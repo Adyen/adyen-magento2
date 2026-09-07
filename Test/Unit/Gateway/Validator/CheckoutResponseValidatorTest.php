@@ -13,7 +13,9 @@ use Magento\Payment\Gateway\Validator\ResultInterface;
 use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
 use Magento\Sales\Model\Order\Payment;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class CheckoutResponseValidatorTest extends AbstractAdyenTestCase
 {
     private CheckoutResponseValidator $checkoutResponseValidator;

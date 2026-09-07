@@ -22,7 +22,9 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\SerializerInterface;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class StandardWebhookAcceptorTest extends AbstractAdyenTestCase
 {
     private ?StandardWebhookAcceptor $acceptor = null;

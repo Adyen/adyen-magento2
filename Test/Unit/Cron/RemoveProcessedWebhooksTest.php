@@ -20,7 +20,9 @@ use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\DB\Adapter\DeadlockException;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class RemoveProcessedWebhooksTest extends AbstractAdyenTestCase
 {
     protected ?RemoveProcessedWebhooks $cleanupNotifications;

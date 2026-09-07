@@ -30,7 +30,9 @@ use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class AdyenCcConfigProviderTest extends AbstractAdyenTestCase
 {
     private ?AdyenCcConfigProvider $adyenCcConfigProvider = null;
@@ -103,7 +105,7 @@ class AdyenCcConfigProviderTest extends AbstractAdyenTestCase
             ->willReturn(['MC' => ['name' => 'MasterCard', 'code_alt' => 'mc']]);
 
         $assetMock = $this->createMock(File::class);
-        $assetMock->method('getSourceFile')->willReturn(__DIR__ . '/../../../../view/base/web/images/adyen/adyen-hq.svg');
+        $assetMock->method('getSourceFile')->willReturn(__DIR__ . '/../../../../view/base/web/images/logos/mc.png');
 
         $this->ccConfigMock->method('createAsset')->willReturn($assetMock);
         $this->assetSourceMock->method('findSource')->willReturn('mock_relative_icon_path');

@@ -24,7 +24,9 @@ use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Model\AbstractModel;
 use PHPUnit\Framework\MockObject\Exception;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class CreditmemoTest extends AbstractAdyenTestCase
 {
     public function testCreateAdyenCreditMemo()

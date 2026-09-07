@@ -15,7 +15,9 @@ use Adyen\Service\Checkout\OrdersApi;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManager;
 use Magento\Framework\Serialize\Serializer\Json;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class AdyenPaymentMethodsBalanceTest extends AbstractAdyenTestCase
 {
     private StoreManager $storeManager;

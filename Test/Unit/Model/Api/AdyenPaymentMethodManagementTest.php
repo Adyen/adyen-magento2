@@ -7,7 +7,9 @@ use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Model\Api\AdyenPaymentMethodManagement;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class AdyenPaymentMethodManagementTest extends AbstractAdyenTestCase
 {
     /** @var PaymentMethods|MockObject */

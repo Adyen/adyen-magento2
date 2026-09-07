@@ -12,7 +12,9 @@ use Magento\Framework\UrlInterface;
 use Magento\Payment\Model\MethodInterface;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManager;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class AdyenPosCloudConfigProviderTest extends AbstractAdyenTestCase
 {
     private $adyenPosCloudConfigProvider;
@@ -63,11 +65,11 @@ class AdyenPosCloudConfigProviderTest extends AbstractAdyenTestCase
             ->willReturn(MethodInterface::ACTION_ORDER);
         $this->configHelperMock->expects($this->any())
             ->method('getAdyenPosCloudConfigData')
-            ->will($this->returnValueMap([
+            ->willReturnMap([
                 ['active', self::STORE_ID, true, $isActive],
                 ['enable_installments', self::STORE_ID, false, false],
                 ['installments', self::STORE_ID, false, []]
-            ]));
+            ]);
 
         $config = $this->adyenPosCloudConfigProvider->getConfig();
 

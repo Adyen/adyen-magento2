@@ -30,10 +30,13 @@ use Adyen\Payment\Helper\Webhook\WebhookHandlerFactory;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class WebhookHandlerFactoryTest extends AbstractAdyenTestCase
 {
-    public function getNotificationsHandlersMap()
+    public static function getNotificationsHandlersMap()
     {
         return [
           [Notification::HANDLED_EXTERNALLY, AuthorisationWebhookHandler::class],
@@ -63,9 +66,7 @@ class WebhookHandlerFactoryTest extends AbstractAdyenTestCase
         ];
     }
 
-    /**
-     * @dataProvider getNotificationsHandlersMap
-     */
+    #[DataProvider('getNotificationsHandlersMap')]
     public function testCreateHandler(string $notificationType, string $handlerType): void
     {
         $adyenLogger = $this->createMock(AdyenLogger::class);

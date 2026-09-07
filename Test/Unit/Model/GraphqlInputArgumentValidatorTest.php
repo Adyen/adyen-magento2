@@ -16,7 +16,9 @@ namespace Adyen\Payment\Test\Unit\Model;
 use Adyen\Payment\Model\GraphqlInputArgumentValidator;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class GraphqlInputArgumentValidatorTest extends AbstractAdyenTestCase
 {
     private GraphqlInputArgumentValidator $validator;

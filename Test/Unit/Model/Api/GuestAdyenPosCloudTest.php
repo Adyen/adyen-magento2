@@ -13,7 +13,9 @@ use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObjectFactoryInterface;
 use Adyen\Payment\Model\Api\GuestAdyenPosCloud;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class GuestAdyenPosCloudTest extends AbstractAdyenTestCase
 {
     protected GuestAdyenPosCloud $guestAdyenPosCloud;

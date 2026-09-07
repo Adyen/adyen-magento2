@@ -11,8 +11,10 @@ use Adyen\Payment\Model\Webhook\TokenWebhookAcceptor;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 #[CoversClass(WebhookAcceptorFactory::class)]
+#[AllowMockObjectsWithoutExpectations]
 class WebhookAcceptorFactoryTest extends TestCase
 {
     private WebhookAcceptorFactory $factory;

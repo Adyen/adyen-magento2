@@ -30,7 +30,9 @@ use Magento\QuoteGraphQl\Model\Cart\GetCartForUser;
 use Magento\Sales\Model\Order;
 use Magento\Store\Api\Data\StoreInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class GetAdyenPaymentDetailsTest extends AbstractAdyenTestCase
 {
     private MockObject $getCartForUserMock;

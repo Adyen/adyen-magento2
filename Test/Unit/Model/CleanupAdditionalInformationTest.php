@@ -18,7 +18,9 @@ use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Exception;
 use Magento\Sales\Model\Order\Payment;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class CleanupAdditionalInformationTest extends AbstractAdyenTestCase
 {
     protected ?CleanupAdditionalInformation $cleanupAdditionalInformation;

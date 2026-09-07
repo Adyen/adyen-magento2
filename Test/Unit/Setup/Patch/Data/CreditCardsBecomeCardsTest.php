@@ -8,7 +8,10 @@ use Adyen\Payment\Setup\Patch\Data\CreditCardsBecomeCards;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\DB\Select;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class CreditCardsBecomeCardsTest extends AbstractAdyenTestCase
 {
     /** @var ObjectManager */
@@ -35,9 +38,7 @@ class CreditCardsBecomeCardsTest extends AbstractAdyenTestCase
         );
     }
 
-    /**
-     * @dataProvider applyDataProvider
-     */
+    #[DataProvider('applyDataProvider')]
     public function testApply($configData, $expectedUpdate)
     {
         $configTable = 'core_config_data';
@@ -67,7 +68,7 @@ class CreditCardsBecomeCardsTest extends AbstractAdyenTestCase
         $this->patch->apply();
     }
 
-    public function applyDataProvider()
+    public static function applyDataProvider()
     {
         return [
             'Config data found' => [

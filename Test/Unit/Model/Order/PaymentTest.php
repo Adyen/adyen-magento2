@@ -13,7 +13,9 @@ use Magento\Framework\Pricing\Helper\Data as PricingData;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Registry;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class PaymentTest extends AbstractAdyenTestCase
 {
     private $payment;

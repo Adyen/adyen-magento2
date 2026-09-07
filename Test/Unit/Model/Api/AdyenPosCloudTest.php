@@ -12,7 +12,9 @@ use Magento\Payment\Model\InfoInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObjectFactoryInterface;
 use Adyen\Payment\Model\Api\AdyenPosCloud;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class AdyenPosCloudTest extends AbstractAdyenTestCase
 {
     private CommandPoolInterface $commandPoolMock;
