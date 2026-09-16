@@ -44,7 +44,7 @@ class ConnectedTerminals
         }
 
         // initialize the adyen client
-        $client = $this->adyenHelper->initializeAdyenClient($storeId, $this->adyenHelper->getPosApiKey($storeId));
+        $client = $this->adyenHelper->initializeAdyenClientForPos($storeId, $this->adyenHelper->getPosApiKey($storeId));
 
         // initialize service
         $service = $this->adyenHelper->createAdyenPosPaymentService($client);

@@ -52,6 +52,7 @@ class Config
     const XML_MOTO_MERCHANT_ACCOUNTS = 'moto_merchant_accounts';
     const XML_CONFIGURATION_MODE = 'configuration_mode';
     const XML_ADYEN_POS_CLOUD = 'adyen_pos_cloud';
+    const XML_TERMINAL_API_REGION = 'terminal_api_region';
     const XML_PAYMENT_ACTION = 'payment_action';
     const XML_WEBHOOK_NOTIFICATION_PROCESSOR = 'webhook_notification_processor';
     const AUTO_CAPTURE_OPENINVOICE = 'auto';
@@ -459,6 +460,11 @@ class Config
     public function getAdyenPosCloudPaymentAction(int $storeId): string
     {
         return $this->getAdyenPosCloudConfigData(self::XML_PAYMENT_ACTION, $storeId);
+    }
+
+    public function getTerminalApiRegion(?int $storeId = null): ?string
+    {
+        return $this->getAdyenPosCloudConfigData(self::XML_TERMINAL_API_REGION, $storeId);
     }
 
     public function useQueueProcessor(?int $storeId = null): bool

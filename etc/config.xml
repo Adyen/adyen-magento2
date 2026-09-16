@@ -411,6 +411,7 @@
             </adyen_sepadirectdebit_vault>
             <adyen_pos_cloud>
                 <active>0</active>
+                <terminal_api_region>eu</terminal_api_region>
                 <model>AdyenPaymentPosCloudFacade</model>
                 <order_status>pending</order_status>
                 <title>Adyen POS Terminal Payment</title>

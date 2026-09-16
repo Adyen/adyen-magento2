@@ -6,6 +6,7 @@ namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\AdyenException;
 use Adyen\Client;
+use Adyen\Region;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
@@ -238,6 +239,74 @@ class DataTest extends AbstractAdyenTestCase
 
         self::assertInstanceOf(Client::class, $client);
         //self::assertSame('Magento 2 plugin', $client->getApplicationName());
+    }
+
+    #[Test]
+    public function testInitializeAdyenClientForPosAppliesConfiguredRegionInLiveMode(): void
+    {
+        $storeId = 1;
+        $apiKey = 'pos_api_key';
+
+        $this->store->method('getId')->willReturn($storeId);
+        $this->storeManager->method('getStore')->willReturn($this->store);
+        $this->configHelper->method('isDemoMode')->with($storeId)->willReturn(false);
+        $this->configHelper->method('getLiveEndpointPrefix')->with($storeId)->willReturn('live-prefix');
+        $this->configHelper->method('getTerminalApiRegion')->with($storeId)->willReturn(Region::APSE);
+        $this->platformInfo->method('getModuleName')->willReturn('Adyen_Payment');
+        $this->platformInfo->method('getModuleVersion')->willReturn('9.0.0');
+        $this->platformInfo->method('getMagentoDetails')
+            ->willReturn(['name' => 'Magento', 'version' => '2.4.6', 'edition' => 'Community']);
+        $this->scopeConfig->method('getValue')->willReturn(null);
+
+        $client = $this->dataHelper->initializeAdyenClientForPos($storeId, $apiKey);
+
+        self::assertInstanceOf(Client::class, $client);
+        self::assertSame(Region::APSE, $client->getConfig()->get('region'));
+    }
+
+    #[Test]
+    public function testInitializeAdyenClientForPosDoesNotApplyRegionInDemoMode(): void
+    {
+        $storeId = 1;
+        $apiKey = 'pos_api_key';
+
+        $this->store->method('getId')->willReturn($storeId);
+        $this->storeManager->method('getStore')->willReturn($this->store);
+        $this->configHelper->method('isDemoMode')->with($storeId)->willReturn(true);
+        $this->configHelper->method('getTerminalApiRegion')->with($storeId)->willReturn(Region::APSE);
+        $this->platformInfo->method('getModuleName')->willReturn('Adyen_Payment');
+        $this->platformInfo->method('getModuleVersion')->willReturn('9.0.0');
+        $this->platformInfo->method('getMagentoDetails')
+            ->willReturn(['name' => 'Magento', 'version' => '2.4.6', 'edition' => 'Community']);
+        $this->scopeConfig->method('getValue')->willReturn(null);
+
+        $client = $this->dataHelper->initializeAdyenClientForPos($storeId, $apiKey);
+
+        self::assertInstanceOf(Client::class, $client);
+        self::assertNull($client->getConfig()->get('region'));
+    }
+
+    #[Test]
+    public function testInitializeAdyenClientForPosDoesNotApplyRegionWhenEmpty(): void
+    {
+        $storeId = 1;
+        $apiKey = 'pos_api_key';
+
+        $this->store->method('getId')->willReturn($storeId);
+        $this->storeManager->method('getStore')->willReturn($this->store);
+        $this->configHelper->method('isDemoMode')->with($storeId)->willReturn(false);
+        $this->configHelper->method('getLiveEndpointPrefix')->with($storeId)->willReturn('live-prefix');
+        $this->configHelper->method('getTerminalApiRegion')->with($storeId)->willReturn(null);
+        $this->platformInfo->method('getModuleName')->willReturn('Adyen_Payment');
+        $this->platformInfo->method('getModuleVersion')->willReturn('9.0.0');
+        $this->platformInfo->method('getMagentoDetails')
+            ->willReturn(['name' => 'Magento', 'version' => '2.4.6', 'edition' => 'Community']);
+        $this->scopeConfig->method('getValue')->willReturn(null);
+
+        $client = $this->dataHelper->initializeAdyenClientForPos($storeId, $apiKey);
+
+        self::assertInstanceOf(Client::class, $client);
+        self::assertNull($client->getConfig()->get('region'));
     }
 
     #[Test]
