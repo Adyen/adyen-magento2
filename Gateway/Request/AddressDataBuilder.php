@@ -40,6 +40,7 @@ class AddressDataBuilder implements BuilderInterface
     {
         /** @var PaymentDataObject $paymentDataObject */
         $paymentDataObject = SubjectReader::readPayment($buildSubject);
+        $paymentMethodCode = $paymentDataObject->getPayment()->getMethodInstance()->getCode();
         $order = $paymentDataObject->getOrder();
         $billingAddress = $order->getBillingAddress();
         $shippingAddress = $order->getShippingAddress();
@@ -51,8 +52,9 @@ class AddressDataBuilder implements BuilderInterface
         );
 
         // Add delivery customer information for Riverty payment method.
-        if (strcmp($paymentDataObject->getPayment()->getMethodInstance()->getCode(),
-                PaymentMethods::ADYEN_RIVERTY) === 0 && !empty($addressRequest['deliveryAddress'])) {
+        if (strcmp($paymentMethodCode, PaymentMethods::ADYEN_RIVERTY) === 0 &&
+            !empty($addressRequest['deliveryAddress']) &&
+            !empty($shippingAddress)) {
             $addressRequest['deliveryAddress']['firstName'] = $shippingAddress->getFirstname();
             $addressRequest['deliveryAddress']['lastName'] = $shippingAddress->getLastname();
         }
