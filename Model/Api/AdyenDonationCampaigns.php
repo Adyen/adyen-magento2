@@ -89,7 +89,7 @@ class AdyenDonationCampaigns implements AdyenDonationCampaignsInterface
                 $payloadData, $order->getStoreId());
 
             if (!empty($donationCampaignsResponse['donationCampaigns'])) {
-                $campaign = array_first($donationCampaignsResponse['donationCampaigns']);
+                $campaign = reset($donationCampaignsResponse['donationCampaigns']);
                 $this->donationsHelper->setDonationCampaignId($order, $campaign['id']);
             }
 
