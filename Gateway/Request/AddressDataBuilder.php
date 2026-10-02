@@ -11,47 +11,56 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Adyen\Payment\Helper\PaymentMethods;
+use Adyen\Payment\Helper\Requests;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Payment\Gateway\Data\PaymentDataObject;
+use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
 class AddressDataBuilder implements BuilderInterface
 {
     /**
-     * @var \Adyen\Payment\Helper\Requests
-     */
-    private $adyenRequestsHelper;
-
-    /**
      * AddressDataBuilder constructor.
      *
-     * @param \Adyen\Payment\Helper\Requests $adyenRequestsHelper
+     * @param Requests $adyenRequestsHelper
      */
     public function __construct(
-        \Adyen\Payment\Helper\Requests $adyenRequestsHelper
-    ) {
-        $this->adyenRequestsHelper = $adyenRequestsHelper;
-    }
+        private readonly Requests $adyenRequestsHelper
+    ) { }
 
     /**
      * Add delivery\billing details into request
      *
      * @param array $buildSubject
      * @return array
+     * @throws LocalizedException
      */
-    public function build(array $buildSubject)
+    public function build(array $buildSubject): array
     {
-        /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
-        $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
+        /** @var PaymentDataObject $paymentDataObject */
+        $paymentDataObject = SubjectReader::readPayment($buildSubject);
+        $paymentMethodCode = $paymentDataObject->getPayment()->getMethodInstance()->getCode();
         $order = $paymentDataObject->getOrder();
         $billingAddress = $order->getBillingAddress();
         $shippingAddress = $order->getShippingAddress();
 
-        $request['body'] = $this->adyenRequestsHelper->buildAddressData(
+        $addressRequest = $this->adyenRequestsHelper->buildAddressData(
             $billingAddress,
             $shippingAddress,
-            $order->getStoreId(),
-            []
+            $order->getStoreId()
         );
 
-        return $request;
+        // Add delivery customer information for Riverty payment method.
+        if (strcmp($paymentMethodCode, PaymentMethods::ADYEN_RIVERTY) === 0 &&
+            !empty($addressRequest['deliveryAddress']) &&
+            !empty($shippingAddress)) {
+            $addressRequest['deliveryAddress']['firstName'] = $shippingAddress->getFirstname();
+            $addressRequest['deliveryAddress']['lastName'] = $shippingAddress->getLastname();
+        }
+
+        return [
+            'body' => $addressRequest
+        ];
     }
 }
