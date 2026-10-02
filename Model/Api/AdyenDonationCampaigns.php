@@ -85,11 +85,15 @@ class AdyenDonationCampaigns implements AdyenDonationCampaignsInterface
         $payloadData['locale'] = $this->localeHelper->getCurrentLocaleCode($order->getStoreId());
 
         try {
-            $donationCampaignsResponse = $this->donationsHelper->fetchDonationCampaigns($payloadData, $order->getStoreId());
-            $campaignId = $donationCampaignsResponse['donationCampaigns'][0]['id'];
-            $this->donationsHelper->setDonationCampaignId($order, $campaignId);
-            $campaignsData = $this->donationsHelper->formatCampaign($donationCampaignsResponse);
-            return json_encode($campaignsData);
+            $donationCampaignsResponse = $this->donationsHelper->fetchDonationCampaigns(
+                $payloadData, $order->getStoreId());
+
+            if (!empty($donationCampaignsResponse['donationCampaigns'])) {
+                $campaign = reset($donationCampaignsResponse['donationCampaigns']);
+                $this->donationsHelper->setDonationCampaignId($order, $campaign['id']);
+            }
+
+            return json_encode($this->donationsHelper->formatCampaign($donationCampaignsResponse));
         } catch (\Exception $e) {
             $this->adyenLogger->error('Failed to fetch donation campaigns: ' . $e->getMessage());
             throw new LocalizedException(__('Unable to retrieve donation campaigns. Please try again later.'));
