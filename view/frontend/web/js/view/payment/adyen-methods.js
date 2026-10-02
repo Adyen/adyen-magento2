@@ -28,9 +28,13 @@ define(
 
         const paymentMethodComponent = 'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-method';
         const adyenTxVariants = window.checkoutConfig.payment.adyen.txVariants;
-        const customMethodRenderers = window.checkoutConfig.payment.adyen.customMethodRenderers;
+        const customMethodRenderers = window.checkoutConfig.payment.adyen.customMethodRenderers || {};
         // Push payment method renderers for alternative payment methods
         Object.keys(adyenTxVariants).forEach((index) => {
+            if (customMethodRenderers[index]) {
+                return;
+            }
+
             rendererList.push({
                 type: index,
                 component: paymentMethodComponent
