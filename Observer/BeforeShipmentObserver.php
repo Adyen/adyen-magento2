@@ -103,6 +103,18 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
             return;
         }
 
+        $txVariant = $this->paymentMethodsHelper->isAlternativePaymentMethod($paymentMethodInstance)
+            ? $this->paymentMethodsHelper->getAlternativePaymentMethodTxVariant($paymentMethodInstance)
+            : (string) $payment->getCcType();
+
+        if ($this->paymentMethodsHelper->isAutoCapture($order, $txVariant)) {
+            $this->logger->addAdyenInfoLog(
+                "Capture on shipment skipped, payment method is auto-capture for order id {$order->getId()}",
+                ['observer' => 'BeforeShipmentObserver']
+            );
+            return;
+        }
+
         if (!$this->paymentMethodsHelper->isOpenInvoice($paymentMethodInstance)) {
             $this->logger->addAdyenInfoLog(
                 "Payment method is from Adyen but isn't OpenInvoice for order id {$order->getId()}",
