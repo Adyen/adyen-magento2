@@ -111,6 +111,28 @@ class ConfigTest extends AbstractAdyenTestCase
         $this->assertEquals($expectedResult, $result);
     }
 
+    public function testGetTerminalApiRegion()
+    {
+        $storeId = PHP_INT_MAX;
+        $expectedResult = 'apse';
+
+        $path = sprintf(
+            "%s/%s/%s",
+            Config::XML_PAYMENT_PREFIX,
+            Config::XML_ADYEN_POS_CLOUD,
+            Config::XML_TERMINAL_API_REGION
+        );
+
+        $this->scopeConfigMock->expects($this->once())
+            ->method('getValue')
+            ->with($this->equalTo($path), $this->equalTo(ScopeInterface::SCOPE_STORE), $this->equalTo($storeId))
+            ->willReturn($expectedResult);
+
+        $result = $this->configHelper->getTerminalApiRegion($storeId);
+
+        $this->assertEquals($expectedResult, $result);
+    }
+
     public function testSetConfigData()
     {
         $value = 'TEST_VALUE';

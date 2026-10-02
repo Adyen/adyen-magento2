@@ -43,8 +43,17 @@ class ConnectedTerminals
             $storeId = $this->session->getQuote()->getStoreId();
         }
 
+        $apiKey = $this->adyenHelper->getPosApiKey($storeId);
+        if (empty($apiKey)) {
+            $this->adyenLogger->error(
+                "Required field POS API key is not configured! Check your Adyen configuration."
+            );
+
+            return [];
+        }
+
         // initialize the adyen client
-        $client = $this->adyenHelper->initializeAdyenClient($storeId, $this->adyenHelper->getPosApiKey($storeId));
+        $client = $this->adyenHelper->initializeAdyenClientForPos($storeId, $apiKey);
 
         // initialize service
         $service = $this->adyenHelper->createAdyenPosPaymentService($client);

@@ -55,6 +55,14 @@
             <config_path>payment/adyen_pos_cloud/api_key_live</config_path>
             <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding" />
         </field>
+        <field id="terminal_api_region" translate="label" type="select" sortOrder="75" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Region</label>
+            <tooltip>
+                <![CDATA[Select the region geographically closest to your terminals for the best connection performance. This setting only applies in live mode.]]>
+            </tooltip>
+            <source_model>Adyen\Payment\Model\Config\Source\TerminalApiRegion</source_model>
+            <config_path>payment/adyen_pos_cloud/terminal_api_region</config_path>
+        </field>
         <field id="capture_mode_pos" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Capture Delay</label>
             <tooltip>Please set your Capture Delay for POS transactions. Immediate is the default. Set to manual if you want to perform the capture of funds manually later. You need to change this setting as well in Adyen Customer Area => Settings => Merchant Settings => POS Capture Delay. If you have selected a capture delay of a couple of days in Adyen keep it here on immediate</tooltip>

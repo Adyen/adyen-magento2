@@ -476,6 +476,33 @@ class Data extends AbstractHelper
     }
 
     /**
+     * Builds an Adyen client for Terminal API usage and applies terminal specific configurations on top.
+     *
+     * @param int $storeId
+     * @param string $apiKey
+     * @return Client
+     * @throws AdyenException
+     * @throws NoSuchEntityException
+     */
+    public function initializeAdyenClientForPos(int $storeId, string $apiKey): Client
+    {
+        $client = $this->initializeAdyenClient($storeId, $apiKey);
+        $isDemo = $this->configHelper->isDemoMode($storeId);
+        $timeout =  $this->configHelper->getAdyenPosCloudConfigData('total_timeout', $storeId);
+
+        if (!empty($timeout)) {
+            $client->setTimeout($timeout);
+        }
+
+        $terminalApiRegion = $this->configHelper->getTerminalApiRegion($storeId);
+        if (!$isDemo && !empty($terminalApiRegion)) {
+            $client->setRegion($terminalApiRegion);
+        }
+
+        return $client;
+    }
+
+    /**
      * @throws AdyenException
      * @throws NoSuchEntityException
      */
