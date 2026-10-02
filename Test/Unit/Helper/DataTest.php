@@ -310,6 +310,59 @@ class DataTest extends AbstractAdyenTestCase
     }
 
     #[Test]
+    public function testInitializeAdyenClientForPosAppliesConfiguredTimeout(): void
+    {
+        $storeId = 1;
+        $apiKey = 'pos_api_key';
+        $timeout = 45;
+
+        $this->store->method('getId')->willReturn($storeId);
+        $this->storeManager->method('getStore')->willReturn($this->store);
+        $this->configHelper->method('isDemoMode')->with($storeId)->willReturn(false);
+        $this->configHelper->method('getLiveEndpointPrefix')->with($storeId)->willReturn('live-prefix');
+        $this->configHelper->method('getAdyenPosCloudConfigData')
+            ->with('total_timeout', $storeId)
+            ->willReturn($timeout);
+        $this->configHelper->method('getTerminalApiRegion')->with($storeId)->willReturn(null);
+        $this->platformInfo->method('getModuleName')->willReturn('Adyen_Payment');
+        $this->platformInfo->method('getModuleVersion')->willReturn('9.0.0');
+        $this->platformInfo->method('getMagentoDetails')
+            ->willReturn(['name' => 'Magento', 'version' => '2.4.6', 'edition' => 'Community']);
+        $this->scopeConfig->method('getValue')->willReturn(null);
+
+        $client = $this->dataHelper->initializeAdyenClientForPos($storeId, $apiKey);
+
+        self::assertInstanceOf(Client::class, $client);
+        self::assertSame($timeout, $client->getConfig()->get('timeout'));
+    }
+
+    #[Test]
+    public function testInitializeAdyenClientForPosDoesNotApplyTimeoutWhenEmpty(): void
+    {
+        $storeId = 1;
+        $apiKey = 'pos_api_key';
+
+        $this->store->method('getId')->willReturn($storeId);
+        $this->storeManager->method('getStore')->willReturn($this->store);
+        $this->configHelper->method('isDemoMode')->with($storeId)->willReturn(false);
+        $this->configHelper->method('getLiveEndpointPrefix')->with($storeId)->willReturn('live-prefix');
+        $this->configHelper->method('getAdyenPosCloudConfigData')
+            ->with('total_timeout', $storeId)
+            ->willReturn(null);
+        $this->configHelper->method('getTerminalApiRegion')->with($storeId)->willReturn(null);
+        $this->platformInfo->method('getModuleName')->willReturn('Adyen_Payment');
+        $this->platformInfo->method('getModuleVersion')->willReturn('9.0.0');
+        $this->platformInfo->method('getMagentoDetails')
+            ->willReturn(['name' => 'Magento', 'version' => '2.4.6', 'edition' => 'Community']);
+        $this->scopeConfig->method('getValue')->willReturn(null);
+
+        $client = $this->dataHelper->initializeAdyenClientForPos($storeId, $apiKey);
+
+        self::assertInstanceOf(Client::class, $client);
+        self::assertNull($client->getConfig()->get('timeout'));
+    }
+
+    #[Test]
     public function testGetAdyenMerchantAccountPosMethod(): void
     {
         $storeId = 10;

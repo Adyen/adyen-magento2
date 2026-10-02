@@ -12,59 +12,58 @@
 
 namespace Adyen\Payment\Gateway\Http\Client;
 
-use Adyen\AdyenException;
 use Adyen\Client;
+use Adyen\Exception\AuthenticationException;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
+use Exception;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
 class TransactionPosCloudSync implements ClientInterface
 {
-    protected int $storeId;
+    /**
+     * @deprecated Moved to initializeAdyenClientForPos()
+     */
     protected mixed $timeout;
+    /**
+     * @deprecated Moved to method scope
+     */
     protected Client $client;
-    protected Data $adyenHelper;
-    protected AdyenLogger $adyenLogger;
-    protected Config $configHelper;
+    /**
+     * @deprecated Moved to method scope
+     */
+    protected int $storeId;
 
     public function __construct(
-        Data $adyenHelper,
-        AdyenLogger $adyenLogger,
-        StoreManagerInterface $storeManager,
-        Config $configHelper
-    ) {
-        $this->adyenHelper = $adyenHelper;
-        $this->adyenLogger = $adyenLogger;
-        $this->configHelper = $configHelper;
-
-        $this->storeId = $storeManager->getStore()->getId();
-        $apiKey = $this->adyenHelper->getPosApiKey($this->storeId);
-
-        // initialize client
-        $client = $this->adyenHelper->initializeAdyenClientForPos($this->storeId, $apiKey);
-
-        //Set configurable option in M2
-        $this->timeout = $this->configHelper->getAdyenPosCloudConfigData('total_timeout', $this->storeId);
-        if (!empty($this->timeout)) {
-            $client->setTimeout($this->timeout);
-        }
-
-        $this->client = $client;
-    }
+        protected readonly Data $adyenHelper,
+        protected readonly AdyenLogger $adyenLogger,
+        protected readonly StoreManagerInterface $storeManager,
+        protected readonly Config $configHelper
+    ) { }
 
     public function placeRequest(TransferInterface $transferObject): array
     {
         $request = $transferObject->getBody();
-        $service = $this->adyenHelper->createAdyenPosPaymentService($this->client);
-
         $this->adyenHelper->logRequest($request, '', '/sync');
+
         try {
+            $storeId = $this->storeManager->getStore()->getId();
+            $apiKey = $this->adyenHelper->getPosApiKey($storeId);
+
+            if (empty($apiKey)) {
+                throw new AuthenticationException(
+                    'Required field POS API key is not configured! Check your Adyen configuration.'
+                );
+            }
+
+            $client = $this->adyenHelper->initializeAdyenClientForPos($storeId, $apiKey);
+            $service = $this->adyenHelper->createAdyenPosPaymentService($client);
+
             $response = $service->runTenderSync($request);
-        } catch (AdyenException $e) {
-            //Not able to perform a payment
+        } catch (Exception $e) {
             $this->adyenLogger->addAdyenDebug($response['error'] = $e->getMessage());
         }
 

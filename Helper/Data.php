@@ -488,6 +488,11 @@ class Data extends AbstractHelper
     {
         $client = $this->initializeAdyenClient($storeId, $apiKey);
         $isDemo = $this->configHelper->isDemoMode($storeId);
+        $timeout =  $this->configHelper->getAdyenPosCloudConfigData('total_timeout', $storeId);
+
+        if (!empty($timeout)) {
+            $client->setTimeout($timeout);
+        }
 
         $terminalApiRegion = $this->configHelper->getTerminalApiRegion($storeId);
         if (!$isDemo && !empty($terminalApiRegion)) {
