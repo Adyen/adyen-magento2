@@ -22,6 +22,9 @@ use Magento\Sales\Model\Order;
 
 class PosCloudBuilder implements BuilderInterface
 {
+    const TRANSACTION_TYPE_NORMAL = 'Normal';
+    const TRANSACTION_TYPE_REFUND = 'Refund';
+
     private ChargedCurrency $chargedCurrency;
     private PointOfSale $pointOfSale;
 
@@ -62,7 +65,6 @@ class PosCloudBuilder implements BuilderInterface
         }
 
         $poiId = $terminalId;
-        $transactionType = \Adyen\TransactionType::NORMAL;
         $amountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order);
 
         $serviceID = date("dHis");
@@ -110,7 +112,7 @@ class PosCloudBuilder implements BuilderInterface
             ];
 
             $request['SaleToPOIRequest']['PaymentData'] = [
-                'PaymentType' => $transactionType,
+                'PaymentType' => self::TRANSACTION_TYPE_NORMAL
             ];
         } else {
             if (isset($numberOfInstallments) && !empty($numberOfInstallments)) {
@@ -126,7 +128,7 @@ class PosCloudBuilder implements BuilderInterface
                 ];
             } else {
                 $request['SaleToPOIRequest']['PaymentData'] = [
-                    'PaymentType' => $transactionType,
+                    'PaymentType' => self::TRANSACTION_TYPE_NORMAL
                 ];
             }
 
