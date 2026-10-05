@@ -13,7 +13,10 @@ use Magento\Quote\Model\Quote\Address;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class MerchantRiskIndicatorDataBuilderTest extends AbstractAdyenTestCase
 {
     protected ?MerchantRiskIndicatorDataBuilder $merchantRiskIndicatorDataBuilder;
@@ -63,7 +66,7 @@ class MerchantRiskIndicatorDataBuilderTest extends AbstractAdyenTestCase
         $this->merchantRiskIndicatorDataBuilder = null;
     }
 
-    private static function testBuildDataProvider(): array
+    public static function buildDataProvider(): array
     {
         return [
             [
@@ -85,7 +88,6 @@ class MerchantRiskIndicatorDataBuilderTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider testBuildDataProvider
      *
      * @param $isVirtual
      * @param $sameAsBillingAddress
@@ -93,6 +95,7 @@ class MerchantRiskIndicatorDataBuilderTest extends AbstractAdyenTestCase
      * @return void
      * @throws NoSuchEntityException
      */
+    #[DataProvider('buildDataProvider')]
     public function testBuildWithoutGiftcards($isVirtual, $sameAsBillingAddress, $deliveryAddressIndicator)
     {
         $customerEmail = 'roni_cost@example.com';

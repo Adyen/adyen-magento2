@@ -23,7 +23,9 @@ use Adyen\Service\Checkout\ModificationsApi;
 use Magento\Payment\Gateway\Http\TransferInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use Adyen\AdyenException;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class TransactionRefundTest extends AbstractAdyenTestCase
 {
     /**

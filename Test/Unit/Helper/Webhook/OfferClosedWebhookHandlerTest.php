@@ -15,7 +15,9 @@ use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\Order\Payment;
 use PHPUnit\Framework\MockObject\MockObject;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class OfferClosedWebhookHandlerTest extends AbstractAdyenTestCase
 {
     private PaymentMethods|MockObject $paymentMethodsHelper;

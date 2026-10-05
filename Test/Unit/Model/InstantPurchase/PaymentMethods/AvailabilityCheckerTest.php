@@ -18,7 +18,10 @@ use Magento\Framework\Exception\NotFoundException;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class AvailabilityCheckerTest extends AbstractAdyenTestCase
 {
     const STORE_ID = PHP_INT_MAX;
@@ -60,8 +63,8 @@ class AvailabilityCheckerTest extends AbstractAdyenTestCase
      * @param $expectedResult
      *
      * @return void
-     * @dataProvider availabilityTestDataProvider
      */
+    #[DataProvider('availabilityTestDataProvider')]
     public function testIsAvailableAdyenMethod(
         $paymentMethod,
         $isMethodRecurringEnabled,
@@ -84,7 +87,7 @@ class AvailabilityCheckerTest extends AbstractAdyenTestCase
     /**
      * @return array[]
      */
-    protected static function availabilityTestDataProvider(): array
+    public static function availabilityTestDataProvider(): array
     {
         return [
             [

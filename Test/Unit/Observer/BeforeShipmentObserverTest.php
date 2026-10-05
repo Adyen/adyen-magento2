@@ -24,7 +24,9 @@ use Magento\Sales\Api\Data\ShipmentItemInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\InvoiceRepository;
 use Magento\Sales\Model\Order\Payment;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class BeforeShipmentObserverTest extends AbstractAdyenTestCase
 {
     # Build the test class

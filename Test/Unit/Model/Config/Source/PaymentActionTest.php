@@ -5,7 +5,9 @@ namespace Adyen\Payment\Test\Unit\Model\Config\Source;
 use Adyen\Payment\Model\Config\Source\PaymentAction;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Payment\Model\MethodInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class PaymentActionTest extends AbstractAdyenTestCase
 {
     public function testToOptionArray()

@@ -14,7 +14,9 @@ namespace Adyen\Payment\Test\Helper\Unit\Model\InstantPurchase\PaymentMethods;
 use Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class TokenFormatterTest extends AbstractAdyenTestCase
 {
     public function testFormatPaymentToken()

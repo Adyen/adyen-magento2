@@ -24,7 +24,9 @@ use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\Locale;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class AdyenGenericConfigProviderTest extends AbstractAdyenTestCase
 {
     protected AdyenGenericConfigProvider $provider;

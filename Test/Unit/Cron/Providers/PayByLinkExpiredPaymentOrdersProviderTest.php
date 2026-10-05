@@ -16,7 +16,9 @@ use Magento\Sales\Api\OrderPaymentRepositoryInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order\Payment as OrderPayment;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class PayByLinkExpiredPaymentOrdersProviderTest extends AbstractAdyenTestCase
 {
     protected PayByLinkExpiredPaymentOrdersProvider $payByLinkExpiredPaymentOrdersProvider;

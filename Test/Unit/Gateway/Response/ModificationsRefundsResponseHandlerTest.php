@@ -12,7 +12,9 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\Order\Payment;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class ModificationsRefundsResponseHandlerTest extends AbstractAdyenTestCase
 {
     protected ?ModificationsRefundsResponseHandler $modificationsRefundsResponseHandler;

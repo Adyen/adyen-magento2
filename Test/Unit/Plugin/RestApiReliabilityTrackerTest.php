@@ -20,7 +20,10 @@ use Magento\Webapi\Controller\Rest\InputParamsResolver;
 use Magento\Webapi\Controller\Rest\Router\Route;
 use Magento\Webapi\Controller\Rest\SynchronousRequestProcessor;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class RestApiReliabilityTrackerTest extends AbstractAdyenTestCase
 {
     protected RestApiReliabilityTracker $restApiReliabilityTracker;
@@ -116,9 +119,7 @@ class RestApiReliabilityTrackerTest extends AbstractAdyenTestCase
         $this->assertEquals($expectedResult, $result);
     }
 
-    /**
-     * @dataProvider trackedClassNamesDataProvider
-     */
+    #[DataProvider('trackedClassNamesDataProvider')]
     public function testAroundProcessDispatchesEventsForTrackedAdyenActions(string $className)
     {
         $expectedResult = 'result';
@@ -433,9 +434,7 @@ class RestApiReliabilityTrackerTest extends AbstractAdyenTestCase
         $this->assertTrue($result);
     }
 
-    /**
-     * @dataProvider magentoTrackedActionsDataProvider
-     */
+    #[DataProvider('magentoTrackedActionsDataProvider')]
     public function testIsActionTrackedReturnsTrueForMagentoTrackedActions(string $className)
     {
         $result = $this->invokeMethod(

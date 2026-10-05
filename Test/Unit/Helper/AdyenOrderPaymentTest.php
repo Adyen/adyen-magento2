@@ -25,7 +25,9 @@ use Adyen\Payment\Model\ResourceModel\Order\Payment;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\App\Helper\Context;
 use Magento\Sales\Model\Order;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class AdyenOrderPaymentTest extends AbstractAdyenTestCase
 {
     public function testCreateAdyenOrderPayment()

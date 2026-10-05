@@ -25,7 +25,9 @@ use Adyen\Payment\Helper\Idempotency;
 use Magento\Checkout\Model\Session;
 use Adyen\Service\Checkout\PaymentsApi;
 use Adyen\Client;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class PaymentDetailsTest extends AbstractAdyenTestCase
 {
     private $checkoutSessionMock;

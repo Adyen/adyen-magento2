@@ -21,7 +21,9 @@ use Magento\Payment\Model\MethodInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class SubmitQuoteObserverTest extends AbstractAdyenTestCase
 {
     private $paymentMethodsHelperMock;
@@ -41,8 +43,10 @@ class SubmitQuoteObserverTest extends AbstractAdyenTestCase
         $this->orderMock = $this->createMock(Order::class);
         $this->paymentMock = $this->createMock(Payment::class);
         $this->quoteMock = $this->createMock(Quote::class);
-        $this->eventMock = $this->getMockBuilder(\Magento\Framework\Event::class)
-            ->addMethods(['getOrder', 'getQuote'])
+        $this->eventMock = $this->getMockBuilder(
+            $this->createClassWithMagicMethods(\Magento\Framework\Event::class, ['getOrder', 'getQuote'])
+        )
+            ->onlyMethods(['getOrder', 'getQuote'])
             ->getMock();
 
         $this->submitQuoteObserver = new SubmitQuoteObserver(

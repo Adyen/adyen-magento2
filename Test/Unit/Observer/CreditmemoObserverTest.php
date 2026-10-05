@@ -20,7 +20,9 @@ use Magento\Framework\Event\Observer;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Creditmemo as MagentoCreditmemo;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class CreditmemoObserverTest extends AbstractAdyenTestCase
 {
     protected ?CreditmemoObserver $creditmemoObserver;

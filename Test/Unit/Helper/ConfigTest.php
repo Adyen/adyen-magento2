@@ -20,7 +20,9 @@ use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Payment\Model\MethodInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class ConfigTest extends AbstractAdyenTestCase
 {
     protected ScopeConfigInterface $scopeConfigMock;

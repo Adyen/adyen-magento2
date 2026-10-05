@@ -9,7 +9,9 @@ use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Payment\Helper\Data as DataHelper;
 use Magento\Payment\Model\MethodInterface;
 use UnexpectedValueException;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class TxVariantInterpreterTest extends AbstractAdyenTestCase
 {
     private DataHelper $dataHelper;

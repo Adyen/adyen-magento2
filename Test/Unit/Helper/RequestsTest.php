@@ -27,8 +27,10 @@ use Magento\Sales\Model\Order\Payment;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\MockObject\Exception;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 #[CoversClass(Requests::class)]
+#[AllowMockObjectsWithoutExpectations]
 class RequestsTest extends AbstractAdyenTestCase
 {
     private Requests $requests;

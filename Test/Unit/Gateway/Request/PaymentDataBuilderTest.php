@@ -13,7 +13,9 @@ use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment as OrderPayment;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class PaymentDataBuilderTest extends AbstractAdyenTestCase
 {
     private ?PaymentDataBuilder $paymentDataBuilder = null;

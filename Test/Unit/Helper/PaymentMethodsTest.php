@@ -41,8 +41,11 @@ use ReflectionClass;
 use ReflectionMethod;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Adyen\Payment\Helper\ShopperConversionId;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 #[CoversClass(PaymentMethods::class)]
+#[AllowMockObjectsWithoutExpectations]
 class PaymentMethodsTest extends AbstractAdyenTestCase
 {
     private PaymentMethods $helper;
@@ -85,9 +88,10 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $this->chargedCurrencyMock = $this->createMock(ChargedCurrency::class);
         $this->localeHelper = $this->createMock(Locale::class);
 
-        $this->quoteMock = $this->getMockBuilder(Quote::class)
-            ->addMethods(['getCustomerId'])
-            ->onlyMethods(['getStore','getBillingAddress','getEntityId'])
+        $this->quoteMock = $this->getMockBuilder(
+            $this->createClassWithMagicMethods(Quote::class, ['getCustomerId'])
+        )
+            ->onlyMethods(['getStore','getBillingAddress','getEntityId','getCustomerId'])
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -386,9 +390,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $this->assertEquals('overpaid_status', $status);
     }
 
-    /**
-     * @dataProvider autoCaptureDataProvider
-     */
+    #[DataProvider('autoCaptureDataProvider')]
     public function testIsAutoCapture(
         string $webhookPaymentMethod,
         ?string $webhookMethodCode,
@@ -549,9 +551,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $this->assertEquals('underpaid_status', $status);
     }
 
-    /**
-     * @dataProvider comparePaymentMethodProvider
-     */
+    #[DataProvider('comparePaymentMethodProvider')]
     public function testCompareOrderAndWebhookPaymentMethods(
         $orderPaymentMethod,
         $notificationPaymentMethod,
@@ -807,7 +807,6 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
     {
         $reflectionClass = new ReflectionClass($className);
         $method = $reflectionClass->getMethod($methodName);
-        $method->setAccessible(true);
         return $method;
     }
 
@@ -896,7 +895,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
 
         $this->repositoryMock->method('createAsset')->willReturn($asset);
 
-        $this->sourceMock->method('findSource')->will($this->onConsecutiveCalls(false, true)); // SVG not found, PNG found
+        $this->sourceMock->method('findSource')->willReturn(false, true); // SVG not found, PNG found
 
         $result = $this->helper->buildPaymentMethodIcon('scheme', []);
         $this->assertStringContainsString('.png', $result['url']);
@@ -1095,7 +1094,6 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
 
         $reflection = new ReflectionClass($helper);
         $property = $reflection->getProperty('paymentMethodsApiResponse');
-        $property->setAccessible(true);
         $this->assertSame($apiResponse, $property->getValue($helper));
     }
 
@@ -1132,7 +1130,6 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
 
         $reflection = new ReflectionClass($helper);
         $property = $reflection->getProperty('paymentMethodsApiResponse');
-        $property->setAccessible(true);
         $property->setValue($helper, $cached);
 
         $this->requestInterfaceMock->expects($this->never())

@@ -17,7 +17,9 @@ use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Payment\Model\Method\Adapter;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Sales\Model\Order\Address;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class PaymentMethodsFilterTest extends AbstractAdyenTestCase
 {
     const PAYMENT_METHODS = [
@@ -154,9 +156,11 @@ class PaymentMethodsFilterTest extends AbstractAdyenTestCase
 
     private array $magentoPaymentMethods;
 
-    public function __construct(?string $name = null, array $data = [], $dataName = '')
+    protected function setUp(): void
     {
-        parent::__construct($name, $data, $dataName);
+        parent::setUp();
+
+        $this->magentoPaymentMethods = [];
 
         foreach (self::PAYMENT_METHODS as $paymentMethod) {
             $this->magentoPaymentMethods[] = $this->createConfiguredMock(Adapter::class, [

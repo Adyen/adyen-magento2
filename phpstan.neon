@@ -21,3 +21,8 @@ parameters:
     scanDirectories:
         - ../../../dev/tests
         - ../../magento
+    ignoreErrors:
+        # DataFixture attribute is IS_REPEATABLE
+        -
+            identifier: attribute.nonRepeatable
+            path: Test/*

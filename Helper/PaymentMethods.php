@@ -58,6 +58,7 @@ class PaymentMethods extends AbstractHelper
     const ADYEN_PAYPAL = 'adyen_paypal';
     const ADYEN_SEPADIRECTDEBIT = 'adyen_sepadirectdebit';
     const ADYEN_BOLETO = 'adyen_boleto';
+    const ADYEN_RIVERTY = 'adyen_riverty';
     const ADYEN_PREFIX = 'adyen_';
     const ADYEN_CC_VAULT = 'adyen_cc_vault';
     const METHODS_WITH_BRAND_LOGO = [

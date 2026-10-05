@@ -18,7 +18,9 @@ use Magento\Framework\App\RequestInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Sales\Model\Order\Payment;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class ExpiryDateDataBuilderTest extends AbstractAdyenTestCase
 {
     protected ?ExpiryDateDataBuilder $expiryDateDataBuilder;

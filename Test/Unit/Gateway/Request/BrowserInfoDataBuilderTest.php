@@ -5,8 +5,10 @@ namespace Adyen\Payment\Test\Gateway\Request;
 use Adyen\Payment\Gateway\Request\BrowserInfoDataBuilder;
 use Adyen\Payment\Helper\Requests;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 
+#[AllowMockObjectsWithoutExpectations]
 class BrowserInfoDataBuilderTest extends AbstractAdyenTestCase
 {
     private $adyenRequestsHelperMock;

@@ -20,7 +20,9 @@ use Magento\Framework\Model\Context;
 use Magento\Framework\Registry;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class PlatformIntegratorTest extends AbstractAdyenTestCase
 {
     protected ?PlatformIntegrator $platformIntegrator;

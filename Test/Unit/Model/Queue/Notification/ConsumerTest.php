@@ -9,7 +9,9 @@ use Adyen\Payment\Model\Queue\Notification\Consumer;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Exception;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class ConsumerTest extends AbstractAdyenTestCase
 {
     /** @var Webhook|MockObject $webhookMock */

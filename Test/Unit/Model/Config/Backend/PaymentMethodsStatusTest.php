@@ -21,7 +21,9 @@ use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
 use Magento\Framework\Registry;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class PaymentMethodsStatusTest extends AbstractAdyenTestCase
 {
     const ENABLED_METHODS = [
@@ -37,8 +39,10 @@ class PaymentMethodsStatusTest extends AbstractAdyenTestCase
         parent::setUp();
 
         $this->paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
-        $this->paymentMethodsStatusMock = $this->getMockBuilder(PaymentMethodsStatus::class)
-            ->addMethods([
+        $this->paymentMethodsStatusMock = $this->getMockBuilder(
+            $this->createClassWithMagicMethods(PaymentMethodsStatus::class, ['getScope', 'getScopeId'])
+        )
+            ->onlyMethods([
                 'getScope',
                 'getScopeId'
             ])
