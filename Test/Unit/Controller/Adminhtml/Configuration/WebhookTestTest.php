@@ -14,7 +14,9 @@ use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManager;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class WebhookTestTest extends AbstractAdyenTestCase
 {
     private $contextMock;

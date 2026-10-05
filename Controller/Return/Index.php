@@ -89,10 +89,12 @@ class Index extends Action
     {
         // Receive all params as this could be a GET or POST request
         $redirectResponse = $this->getRequest()->getParams();
-        $storeId = $this->storeManager->getStore()->getId();
 
         if ($redirectResponse) {
-            $result = $this->validateRedirectResponse($redirectResponse);
+            $order = $this->getOrder($redirectResponse['merchantReference'] ?? null);
+            $storeId = (int) $order->getStoreId();
+
+            $result = $this->validateRedirectResponse($redirectResponse, $order);
 
             // Adjust the success path, fail path, and restore quote based on if it is a multishipping quote
             if (
@@ -134,6 +136,7 @@ class Index extends Action
                 $this->_redirect($failPath);
             }
         } else {
+            $storeId = $this->storeManager->getStore()->getId();
             $this->_redirect($this->configHelper->getAdyenAbstractConfigData('return_path', $storeId));
         }
     }
@@ -142,10 +145,9 @@ class Index extends Action
      * @throws LocalizedException
      * @throws Exception
      */
-    protected function validateRedirectResponse(array $redirectResponse): bool
+    protected function validateRedirectResponse(array $redirectResponse, OrderInterface $order): bool
     {
         $this->adyenLogger->addAdyenResult('Processing redirect response');
-        $order = $this->getOrder($redirectResponse['merchantReference'] ?? null);
 
         try {
             // Make paymentsDetails call to validate the payment

@@ -19,7 +19,9 @@ use Adyen\Payment\Plugin\MultishippingPaymentMethods;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Quote\Model\Quote;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class MultishippingPaymentMethodsTest extends AbstractAdyenTestCase
 {
     protected ?MultishippingPaymentMethods $multishippingPaymentMethods;
@@ -103,7 +105,7 @@ class MultishippingPaymentMethodsTest extends AbstractAdyenTestCase
 
         $this->paymentMethodsFilterMock->expects($this->once())
             ->method('sortAndFilterPaymentMethods')
-            ->willReturn([$filteredMethods]);
+            ->willReturn($filteredMethods);
 
         $this->paymentMethodsMock->expects($this->once())
             ->method('getApiResponse')

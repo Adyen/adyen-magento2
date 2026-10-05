@@ -8,7 +8,9 @@ use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class GuestAdyenPaymentMethodManagementTest extends AbstractAdyenTestCase
 {
     /** @var MaskedQuoteIdToQuoteIdInterface|MockObject */

@@ -10,7 +10,9 @@ use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Payment;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class ShopperConversionIdTest extends AbstractAdyenTestCase
 {
     private ?ShopperConversionId $helper = null;
@@ -138,7 +140,7 @@ class ShopperConversionIdTest extends AbstractAdyenTestCase
             ->method('setAdditionalInformation')
             ->with(
                 ShopperConversionId::SHOPPER_CONVERSION_ID,
-                $this->isType('string')
+                $this->callback('is_string')
             );
 
         $this->quoteMock->expects($this->once())

@@ -69,7 +69,7 @@ class InstallmentRequestValidator extends AbstractValidator
             $installmentsAvailable = $this->configHelper->getAdyenCcConfigData('installments');
             $installmentSelected = $payment->getAdditionalInformation('number_of_installments');
 
-            $ccType = $this->adyenHelper->getMagentoCreditCartType($payment->getAdditionalInformation('cc_type'));
+            $ccType = $this->adyenHelper->getMagentoCreditCartType($payment->getCcType());
             if ($installmentsAvailable) {
                 $installments = $this->serializer->unserialize($installmentsAvailable);
             }

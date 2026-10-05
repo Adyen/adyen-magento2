@@ -33,7 +33,9 @@ use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SearchCriteriaInterface;
 use Magento\Framework\Api\SearchResultsInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class AdyenOrderPaymentRepositoryTest extends AbstractAdyenTestCase
 {
     private ?AdyenOrderPaymentRepository $adyenOrderPaymentRepository;

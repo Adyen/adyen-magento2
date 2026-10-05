@@ -323,5 +323,8 @@
         <method name="adyen_iris">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="adyen_wero">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
     </methods>
 </payment>

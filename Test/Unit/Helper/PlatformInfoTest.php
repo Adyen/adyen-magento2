@@ -16,8 +16,10 @@ use Magento\Framework\Component\ComponentRegistrarInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Adyen\Payment\Gateway\Request\Header\HeaderDataBuilderInterface;
 use Magento\Payment\Model\InfoInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 #[CoversClass(PlatformInfo::class)]
+#[AllowMockObjectsWithoutExpectations]
 class PlatformInfoTest extends AbstractAdyenTestCase
 {
     private ComponentRegistrarInterface $componentRegistrar;

@@ -25,7 +25,9 @@ use Magento\Payment\Model\InfoInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class PaymentMethodInfoTest extends AbstractAdyenTestCase
 {
     protected ?PaymentMethodInfo $abstractInfo;

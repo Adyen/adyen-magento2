@@ -92,5 +92,13 @@
                 Enables application reliability metrics data collection and submission to Adyen for performance analysis purpose.
             </tooltip>
         </field>
+        <field id="clean_adyen_payment_response" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="0" showInStore="0">
+            <label>Clean-up Adyen payment response data</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_abstract/clean_adyen_payment_response</config_path>
+            <tooltip>
+                When enabled, a nightly cronjob removes stale rows from the `adyen_payment_response` table once the order is finalized (complete, closed or canceled) or is orphaned (older than 1 day with no associated order).
+            </tooltip>
+        </field>
     </group>
 </include>

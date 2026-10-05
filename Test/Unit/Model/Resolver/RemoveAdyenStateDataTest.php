@@ -23,7 +23,10 @@ use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class RemoveAdyenStateDataTest extends AbstractAdyenTestCase
 {
     private RemoveAdyenStateData $removeAdyenStateDataResolver;
@@ -119,9 +122,7 @@ class RemoveAdyenStateDataTest extends AbstractAdyenTestCase
         );
     }
 
-    /**
-     * @dataProvider inputFailureDataProvider
-     */
+    #[DataProvider('inputFailureDataProvider')]
     public function testResolveFailureWithWrongInput($stateDataId, $cartId)
     {
         $this->expectException(GraphQlInputException::class);
@@ -145,7 +146,7 @@ class RemoveAdyenStateDataTest extends AbstractAdyenTestCase
      *
      * @return array
      */
-    private static function inputFailureDataProvider(): array
+    public static function inputFailureDataProvider(): array
     {
         return [
             [

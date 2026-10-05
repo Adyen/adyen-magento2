@@ -12,19 +12,13 @@ define(
         'jquery',
         'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-method',
         'Adyen_Payment/js/model/adyen-configuration',
-        'Magento_Checkout/js/model/full-screen-loader',
-        'Adyen_Payment/js/model/adyen-payment-service',
-        'Magento_Checkout/js/model/error-processor',
-        'Adyen_Payment/js/model/payment-component-states',
+        'Magento_Checkout/js/model/full-screen-loader'
     ],
     function(
         $,
         adyenPaymentMethod,
         adyenConfiguration,
-        fullScreenLoader,
-        adyenPaymentService,
-        errorProcessor,
-        paymentComponentStates
+        fullScreenLoader
     ) {
         return adyenPaymentMethod.extend({
             placeOrderButtonVisible: false,
@@ -89,38 +83,14 @@ define(
                 component.handleReject(response);
             },
             handleOnError:  function (error, component) {
-                let self = this;
-                if ('test' === adyenConfiguration.getCheckoutEnvironment()) {
-                    console.log("An error occured on PayPal component!");
-                }
-
-                // call endpoint with component.paymentData if available
-                let request = {};
-                if (!!component.paymentData) {
-                    request.paymentData = component.paymentData;
-                }
-
-                //Create details array for the payload
-                let details = {};
-                if(!!this.token) {
-                    details.orderID = this.token;
-                }
-                request.details = details;
-
-                adyenPaymentService.paymentDetails(request, this.orderId).done(function() {
-                    $.mage.redirect(
-                        window.checkoutConfig.payment.adyen.successPage
-                    );
-                }).fail(function(response) {
-                    fullScreenLoader.stopLoader();
-
-                    if (this.popupModal) {
-                        this.closeModal(this.popupModal);
+                const request = {
+                    paymentData: component.paymentData,
+                    details: {
+                        orderID: this.token
                     }
-                    errorProcessor.process(response,
-                        self.currentMessageContainer);
-                    paymentComponentStates().setIsPlaceOrderAllowed(self.getMethodCode(), true);
-                });
+                }
+
+                this.handlePaymentsDetails(request);
             }
         })
     }

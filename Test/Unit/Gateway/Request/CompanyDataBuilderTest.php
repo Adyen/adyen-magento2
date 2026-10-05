@@ -17,7 +17,9 @@ use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Sales\Api\Data\OrderAddressInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class CompanyDataBuilderTest extends AbstractAdyenTestCase
 {
     /**

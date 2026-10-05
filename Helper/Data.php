@@ -54,6 +54,7 @@ class Data extends AbstractHelper
     const LIVE_AU = 'live-au';
     const LIVE_US = 'live-us';
     const LIVE_IN = 'live-in';
+    const LIVE_NEA = 'live-nea';
 
     /**
      * Extra keys we explicitly allow in logs besides *reference fields
@@ -111,7 +112,8 @@ class Data extends AbstractHelper
             'au' => 'AU - Australasia',
             'us' => 'US - United States',
             'in' => 'IN - India',
-            'apse' => 'APSE - Asia Pacific Southeast'
+            'apse' => 'APSE - Asia Pacific Southeast',
+            'nea' => 'NEA - North East Asia'
         ];
     }
 
@@ -554,6 +556,8 @@ class Data extends AbstractHelper
                 return self::LIVE_US;
             case "in":
                 return self::LIVE_IN;
+            case "nea":
+                return self::LIVE_NEA;
             default:
                 return self::LIVE;
         }

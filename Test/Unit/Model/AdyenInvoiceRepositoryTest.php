@@ -31,7 +31,10 @@ use Adyen\Payment\Model\InvoiceFactory;
 use Magento\Framework\Api\Search\SearchResultFactory;
 use Magento\Framework\Api\SearchCriteria\CollectionProcessor;
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class AdyenInvoiceRepositoryTest extends AbstractAdyenTestCase
 {
     private ?AdyenInvoiceRepository $adyenInvoiceRepository;
@@ -169,7 +172,7 @@ class AdyenInvoiceRepositoryTest extends AbstractAdyenTestCase
     /**
      * @return array[]
      */
-    private static function webhookTestDataProvider(): array
+    public static function webhookTestDataProvider(): array
     {
         return [
             [
@@ -194,7 +197,6 @@ class AdyenInvoiceRepositoryTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider webhookTestDataProvider
      *
      * @param $eventCode
      * @param $isExpectedType
@@ -204,6 +206,7 @@ class AdyenInvoiceRepositoryTest extends AbstractAdyenTestCase
      * @throws AdyenException
      * @throws LocalizedException
      */
+    #[DataProvider('webhookTestDataProvider')]
     public function testGetByRefundWebhook($eventCode, $isExpectedType, $invoiceId, $isResultValid)
     {
         $notificationPspreference = 'xyz_12345';

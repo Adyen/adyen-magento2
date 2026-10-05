@@ -49,8 +49,10 @@ class PaymentMethodsFilter
      */
     public function sortAndFilterPaymentMethods(array $magentoPaymentMethods, CartInterface $quote): array
     {
-        $adyenPaymentMethodsResponse = $this->paymentMethods->getApiResponse($quote);
-        $adyenPaymentMethodsDecoded = json_decode($adyenPaymentMethodsResponse, true);
+        $adyenPaymentMethodsDecoded = json_decode(
+            $this->paymentMethods->getApiResponse($quote),
+            true
+        );
 
         if (!empty($adyenPaymentMethodsDecoded)) {
             $adyenPaymentMethods = $adyenPaymentMethodsDecoded['paymentMethodsResponse']['paymentMethods'];
@@ -59,8 +61,7 @@ class PaymentMethodsFilter
             $magentoPaymentMethods = $this->sortPaymentMethodsList($magentoPaymentMethods, $adyenPaymentMethods);
         }
 
-        // TODO: Remove $adyenPaymentMethodsResponse from the response as it's not being used anymore.
-        return [$magentoPaymentMethods, $adyenPaymentMethodsResponse];
+        return $magentoPaymentMethods;
     }
 
     private function filterPaymentMethods(array $magentoPaymentMethods, array $adyenPaymentMethods): array

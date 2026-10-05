@@ -12,7 +12,9 @@ use Adyen\Webhook\PaymentStates;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Quote\Api\Data\PaymentInterface;
 use Magento\Sales\Model\Order;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class CancelOrRefundWebhookHandlerTest extends AbstractAdyenTestCase
 {
     protected $webhookHandler;

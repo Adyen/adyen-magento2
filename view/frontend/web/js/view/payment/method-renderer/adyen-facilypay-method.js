@@ -51,8 +51,8 @@ define(
                         firstName: formattedBillingAddress.firstName,
                         lastName: formattedBillingAddress.lastName,
                         telephoneNumber: formattedBillingAddress.telephone,
-                        shopperEmail: customerData?.email ?? quote?.guestEmail ?? '',
-                        dateOfBirth: customerData?.dob ?? ''
+                        shopperEmail: window.checkoutConfig?.customerData?.email ?? quote?.guestEmail ?? '',
+                        dateOfBirth: window.checkoutConfig?.customerData?.dob ?? ''
                     }
                 }
 

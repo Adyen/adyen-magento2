@@ -26,7 +26,10 @@ use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Vault\Model\Method\Vault;
 use PHPUnit\Framework\MockObject\MockObject;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class RecurringVaultDataBuilderTest extends AbstractAdyenTestCase
 {
     protected ?RecurringVaultDataBuilder $recurringVaultDataBuilder;
@@ -68,8 +71,8 @@ class RecurringVaultDataBuilderTest extends AbstractAdyenTestCase
      * @return void
      * @throws LocalizedException
      *
-     * @dataProvider dataProvider
      */
+    #[DataProvider('dataProvider')]
     public function testBuild($paymentMethodCode, $tokenDetails, $tokenType, $isInstantPurchase, $numberOfInstallments)
     {
         $quoteId = 1;

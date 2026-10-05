@@ -56,11 +56,14 @@ class Config
     const XML_WEBHOOK_NOTIFICATION_PROCESSOR = 'webhook_notification_processor';
     const AUTO_CAPTURE_OPENINVOICE = 'auto';
     const XML_CAPTURE_MODE = 'capture_mode';
+    const XML_SEPA_FLOW = 'sepa_flow';
+    const XML_PAYPAL_CAPTURE_MODE = 'paypal_capture_mode';
     const XML_RECURRING_CONFIGURATION = 'recurring_configuration';
     const XML_ALLOW_MULTISTORE_TOKENS = 'allow_multistore_tokens';
     const XML_THREEDS_FLOW = 'threeds_flow';
     const XML_REMOVE_PROCESSED_WEBHOOKS = 'remove_processed_webhooks';
     const XML_PROCESSED_WEBHOOK_REMOVAL_TIME = 'processed_webhook_removal_time';
+    const XML_CLEAN_ADYEN_PAYMENT_RESPONSE = 'clean_adyen_payment_response';
     const XML_PLATFORM_INTEGRATOR = 'platform_integrator';
     const XML_HAS_PLATFORM_INTEGRATOR = 'has_platform_integrator';
     const XML_OUTSIDE_CHECKOUT_DATA_COLLECTION = 'outside_checkout_data_collection';
@@ -613,6 +616,24 @@ class Config
         );
     }
 
+    /**
+     * Indicates whether the adyen_payment_response cleanup cronjob is enabled.
+     *
+     * This field can only be configured on default scope level as the
+     * adyen_payment_response table has no relation with the stores.
+     *
+     * @return bool
+     */
+    public function getIsPaymentResponseCleanupEnabled(): bool
+    {
+        return (bool) $this->getConfigData(
+            self::XML_CLEAN_ADYEN_PAYMENT_RESPONSE,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            null,
+            true
+        );
+    }
+
     public function getIsCvcRequiredForRecurringCardPayments(?int $storeId = null): bool
     {
         return (bool) $this->getConfigData(
@@ -703,6 +724,29 @@ class Config
     public function getCaptureMode(?int $storeId = null): ?string
     {
         return $this->getConfigData(self::XML_CAPTURE_MODE, Config::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
+    }
+
+    /**
+     * @param int|null $storeId
+     * @return string|null
+     */
+    public function getSepaFlow(?int $storeId = null): ?string
+    {
+        return $this->getConfigData(self::XML_SEPA_FLOW, Config::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
+    }
+
+    /**
+     * @param int|null $storeId
+     * @return bool
+     */
+    public function isPaypalManualCapture(?int $storeId = null): bool
+    {
+        return $this->getConfigData(
+            self::XML_PAYPAL_CAPTURE_MODE,
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId,
+            true
+        );
     }
 
     /**

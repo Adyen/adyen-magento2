@@ -12,7 +12,7 @@
 
 namespace Adyen\Payment\Helper;
 
-use Adyen\Payment\Model\Method\TxVariant;
+use Adyen\AdyenException;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
 use DateInterval;
@@ -20,6 +20,7 @@ use DateTime;
 use DateTimeZone;
 use Exception;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Model\InfoInterface;
 use Magento\Sales\Api\Data\OrderPaymentExtensionInterface;
 use Magento\Sales\Api\Data\OrderPaymentExtensionInterfaceFactory;
@@ -31,6 +32,7 @@ use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Vault\Model\PaymentTokenManagement;
 use Magento\Vault\Model\ResourceModel\PaymentToken as PaymentTokenResourceModel;
 use Magento\Vault\Model\Ui\VaultConfigProvider;
+use Adyen\Payment\Model\Method\TxVariantFactory;
 
 class Vault
 {
@@ -66,6 +68,8 @@ class Vault
      * @param Config $config
      * @param PaymentMethods $paymentMethodsHelper
      * @param StateData $stateData
+     * @param TxVariantFactory $txVariantFactory
+     * @param Data $adyenHelper
      */
     public function __construct(
         private readonly AdyenLogger $adyenLogger,
@@ -76,7 +80,9 @@ class Vault
         private readonly OrderPaymentExtensionInterfaceFactory $paymentExtensionFactory,
         private readonly Config $config,
         private readonly PaymentMethods $paymentMethodsHelper,
-        private readonly StateData $stateData
+        private readonly StateData $stateData,
+        private readonly TxVariantFactory $txVariantFactory,
+        private readonly Data $adyenHelper
     ) { }
 
     /**
@@ -174,6 +180,11 @@ class Vault
         return null;
     }
 
+    /**
+     * @throws AdyenException
+     * @throws NoSuchEntityException
+     * @throws LocalizedException
+     */
     public function createVaultToken(OrderPaymentInterface $payment, string $detailReference, ?string $cardHolderName = null): PaymentTokenInterface
     {
         $paymentMethodInstance = $payment->getMethodInstance();
@@ -205,10 +216,22 @@ class Vault
 
         if ($this->paymentMethodsHelper->isWalletPaymentMethod($paymentMethodInstance)) {
             $paymentToken->setType(PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD);
-            $txVariant = new TxVariant($payment->getCcType());
+
+            $ccType = $payment->getCcType();
+            $cardVariants = $this->adyenHelper->getCcTypesAltData();
+
+            // Based on the CA config, card type might contain wallet type or not (ie: `mc` or `mc_googlepay`)
+            if ($ccType !== null && empty($cardVariants[$ccType])) {
+                $validatedTxVariant = $this->txVariantFactory->create(['txVariant' => $ccType]);
+                if ($validatedTxVariant !== null) {
+                    $ccType = $validatedTxVariant->getCard();
+                }
+            }
+
             $details = [
-                'type' => $txVariant->getCard(),
-                'walletType' => $txVariant->getPaymentMethod(),
+                'type' => $ccType,
+                'walletType' => $this->paymentMethodsHelper->getAlternativePaymentMethodTxVariant(
+                    $paymentMethodInstance),
                 'maskedCC' => $additionalData['cardSummary'],
                 'expirationDate' => $additionalData['expiryDate']
             ];

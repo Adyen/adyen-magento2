@@ -15,7 +15,9 @@ use Adyen\Client;
 use Adyen\Model\Checkout\DonationCampaignsResponse;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Service\Checkout;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class DonationsHelperTest extends AbstractAdyenTestCase
 {
     private $donationsHelper;

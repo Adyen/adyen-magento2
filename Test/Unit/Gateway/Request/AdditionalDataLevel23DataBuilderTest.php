@@ -21,7 +21,10 @@ use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Requests;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class AdditionalDataLevel23DataBuilderTest extends AbstractAdyenTestCase
 {
     protected ?AdditionalDataLevel23DataBuilder $additionalDataBuilder;
@@ -66,7 +69,7 @@ class AdditionalDataLevel23DataBuilderTest extends AbstractAdyenTestCase
         $this->additionalDataBuilder = null;
     }
 
-    protected static function orderTypeDataProvider(): array
+    public static function orderTypeDataProvider(): array
     {
         return [
             ['isVirtual' => true],
@@ -75,12 +78,12 @@ class AdditionalDataLevel23DataBuilderTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider orderTypeDataProvider
      *
      * @param $isVirtual
      * @return void
      * @throws NoSuchEntityException
      */
+    #[DataProvider('orderTypeDataProvider')]
     public function testLevel23DataConfigurationEnabled($isVirtual)
     {
         $storeId = 1;

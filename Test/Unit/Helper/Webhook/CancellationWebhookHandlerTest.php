@@ -19,7 +19,9 @@ use Adyen\Webhook\PaymentStates;
 use Magento\Sales\Model\ResourceModel\Order\Invoice\Collection as InvoiceCollection;
 use PHPUnit\Framework\MockObject\MockObject;
 use Magento\Sales\Model\Order as MagentoOrder;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class CancellationWebhookHandlerTest extends AbstractAdyenTestCase
 {
     protected ?CancellationWebhookHandler $cancellationWebhookHandler;

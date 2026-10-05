@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Payment\Api\Data\InvoiceInterface;
+use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Api\Repository\AdyenInvoiceRepositoryInterface;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Data;
@@ -36,7 +37,10 @@ use Magento\Framework\DB\Transaction;
 use Magento\Sales\Api\InvoiceRepositoryInterface;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Adyen\Payment\Model\Invoice as AdyenInvoice;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class InvoiceTest extends AbstractAdyenTestCase
 {
     /**
@@ -74,7 +78,7 @@ class InvoiceTest extends AbstractAdyenTestCase
         $this->assertInstanceOf(InvoiceModel::class, $invoice);
     }
 
-    private static function notificationAmountDataProvider(): array
+    public static function notificationAmountDataProvider(): array
     {
         return [
             ['notificationAmount' => 0],
@@ -83,10 +87,10 @@ class InvoiceTest extends AbstractAdyenTestCase
     }
 
     /**
-     * @dataProvider notificationAmountDataProvider
      *
      * @throws LocalizedException
      */
+    #[DataProvider('notificationAmountDataProvider')]
     public function testCreateInvoiceManualCapture($notificationAmount = 1000)
     {
         $invoiceMock = $this->createGeneratedMock(
@@ -189,7 +193,12 @@ class InvoiceTest extends AbstractAdyenTestCase
         $adyenInvoiceFactory = $this->createGeneratedMock(InvoiceFactory::class, ['create']);
         $adyenInvoiceFactory->method('create')->willReturn($adyenInvoiceMock);
 
-        $orderMock = $this->createMock(MagentoOrder::class);
+        $invoiceOrderPaymentMock = $this->createConfiguredMock(MagentoOrder\Payment::class, [
+            'getEntityId' => 100
+        ]);
+        $orderMock = $this->createConfiguredMock(MagentoOrder::class, [
+            'getPayment' => $invoiceOrderPaymentMock
+        ]);
 
         $invoiceLoadedMock = $this->createConfiguredMock(InvoiceModel::class, [
             'getOrder' => $orderMock
@@ -207,7 +216,8 @@ class InvoiceTest extends AbstractAdyenTestCase
         $orderPaymentResourceModelMock = $this->createConfiguredMock(OrderPaymentResourceModel::class, [
             'getOrderPaymentDetails' => [
                 'entity_id' => 1000
-            ]
+            ],
+            'getLinkedAdyenOrderPayments' => []
         ]);
 
         $transactionMock = $this->createGeneratedMock(Transaction::class, ['addObject']);
@@ -316,6 +326,10 @@ class InvoiceTest extends AbstractAdyenTestCase
             ],
         ]);
 
+        $orderPaymentResourceModelMock = $this->createConfiguredMock(OrderPaymentResourceModel::class, [
+            'getLinkedAdyenOrderPayments' => []
+        ]);
+
         $invoiceAmountCurrency = $this->createMock(AdyenAmountCurrency::class);
         $invoiceAmountCurrency->expects($this->once())
             ->method('getAmount')
@@ -327,13 +341,20 @@ class InvoiceTest extends AbstractAdyenTestCase
         $chargedCurrencyMock = $this->createMock(ChargedCurrency::class);
         $chargedCurrencyMock->method('getInvoiceAmountCurrency')->willReturn($invoiceAmountCurrency);
 
+        $paymentMock = $this->createConfiguredMock(MagentoOrder\Payment::class, [
+            'getEntityId' => 100
+        ]);
+        $orderMock = $this->createConfiguredMock(MagentoOrder::class, [
+            'getPayment' => $paymentMock
+        ]);
+
         $invoiceHelper = $this->createInvoiceHelper(
             null,
             null,
             null,
             null,
             null,
-            null,
+            $orderPaymentResourceModelMock,
             $adyenInvoiceCollectionMock,
             null,
             null,
@@ -343,6 +364,71 @@ class InvoiceTest extends AbstractAdyenTestCase
         $invoiceMock = $this->createConfiguredMock(InvoiceModel::class, [
             'getGrandTotal' => 1000,
             'getOrderCurrencyCode' => 'EUR',
+            'getOrder' => $orderMock,
+        ]);
+
+        $isFullInvoiceAmountManuallyCaptured = $invoiceHelper->isFullInvoiceAmountManuallyCaptured(
+            $invoiceMock
+        );
+
+        $this->assertTrue($isFullInvoiceAmountManuallyCaptured);
+    }
+
+    public function testIsFullInvoiceAmountManuallyCapturedWithMixedCapture()
+    {
+        $adyenInvoiceCollectionMock = $this->createConfiguredMock(Collection::class, [
+            'getAdyenInvoicesLinkedToMagentoInvoice' => [
+                [
+                    InvoiceInterface::STATUS => InvoiceInterface::STATUS_SUCCESSFUL,
+                    InvoiceInterface::AMOUNT => 50
+                ]
+            ],
+        ]);
+
+        $orderPaymentResourceModelMock = $this->createConfiguredMock(OrderPaymentResourceModel::class, [
+            'getLinkedAdyenOrderPayments' => [
+                [
+                    OrderPaymentInterface::AMOUNT => 14,
+                    OrderPaymentInterface::CAPTURE_STATUS => OrderPaymentInterface::CAPTURE_STATUS_AUTO_CAPTURE
+                ]
+            ]
+        ]);
+
+        $invoiceAmountCurrency = $this->createMock(AdyenAmountCurrency::class);
+        $invoiceAmountCurrency->expects($this->once())
+            ->method('getAmount')
+            ->willReturn(64);
+        $invoiceAmountCurrency->expects($this->once())
+            ->method('getCurrencyCode')
+            ->willReturn('EUR');
+
+        $chargedCurrencyMock = $this->createMock(ChargedCurrency::class);
+        $chargedCurrencyMock->method('getInvoiceAmountCurrency')->willReturn($invoiceAmountCurrency);
+
+        $paymentMock = $this->createConfiguredMock(MagentoOrder\Payment::class, [
+            'getEntityId' => 100
+        ]);
+        $orderMock = $this->createConfiguredMock(MagentoOrder::class, [
+            'getPayment' => $paymentMock
+        ]);
+
+        $invoiceHelper = $this->createInvoiceHelper(
+            null,
+            null,
+            null,
+            null,
+            null,
+            $orderPaymentResourceModelMock,
+            $adyenInvoiceCollectionMock,
+            null,
+            null,
+            $chargedCurrencyMock
+        );
+
+        $invoiceMock = $this->createConfiguredMock(InvoiceModel::class, [
+            'getGrandTotal' => 64,
+            'getOrderCurrencyCode' => 'EUR',
+            'getOrder' => $orderMock,
         ]);
 
         $isFullInvoiceAmountManuallyCaptured = $invoiceHelper->isFullInvoiceAmountManuallyCaptured(

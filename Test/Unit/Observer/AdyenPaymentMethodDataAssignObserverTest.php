@@ -18,7 +18,9 @@ use Magento\Quote\Api\Data\PaymentInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use \Magento\Framework\DataObject;
 use Magento\Quote\Model\Quote\Payment;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class AdyenPaymentMethodDataAssignObserverTest extends AbstractAdyenTestCase
 {
     private MockObject|CheckoutStateDataValidator $checkoutStateDataValidator;
@@ -73,7 +75,7 @@ class AdyenPaymentMethodDataAssignObserverTest extends AbstractAdyenTestCase
             [AbstractDataAssignObserver::MODEL_CODE, $this->paymentInfo],
         ]);
 
-        $this->paymentInfo->expects($this->exactly(3))->method('unsAdditionalInformation');
+        $this->paymentInfo->expects($this->exactly(2))->method('unsAdditionalInformation');
 
         $this->paymentInfo->method('getData')
             ->with('quote_id')

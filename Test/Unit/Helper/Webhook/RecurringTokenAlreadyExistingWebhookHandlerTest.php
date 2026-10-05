@@ -7,7 +7,9 @@ use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order;
 use PHPUnit\Framework\MockObject\Exception;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class RecurringTokenAlreadyExistingWebhookHandlerTest extends AbstractAdyenTestCase
 {
     protected ?RecurringTokenAlreadyExistingWebhookHandler $handler;

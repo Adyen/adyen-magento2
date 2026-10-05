@@ -27,7 +27,9 @@ use Magento\Framework\Mail\MimePartInterface;
 use Magento\Framework\Mail\MimeMessageInterface;
 use ReflectionClass;
 use ReflectionException;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class TransportBuilderTest extends AbstractAdyenTestCase
 {
     private FactoryInterface&MockObject $templateFactory;
@@ -435,7 +437,6 @@ class TransportBuilderTest extends AbstractAdyenTestCase
     {
         $ref = new ReflectionClass($obj);
         $p = $ref->getProperty($prop);
-        $p->setAccessible(true);
         return $p->getValue($obj);
     }
 

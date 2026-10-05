@@ -26,6 +26,7 @@ class ChargedCurrency
      * Charged currency value when Global/Website is selected
      */
     const BASE = "base";
+    const DISPLAY = 'display';
 
     public function __construct(
         private readonly Config $config,

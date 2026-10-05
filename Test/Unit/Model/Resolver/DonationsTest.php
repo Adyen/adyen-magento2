@@ -34,7 +34,9 @@ use Magento\GraphQl\Helper\Error\AggregateExceptionMessageFormatter;
 use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use Magento\Sales\Model\Order;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class DonationsTest extends AbstractAdyenTestCase
 {
     private MockObject $adyenDonationsMock;

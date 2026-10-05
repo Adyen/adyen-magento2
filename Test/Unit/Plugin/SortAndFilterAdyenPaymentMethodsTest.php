@@ -18,7 +18,9 @@ use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Api\PaymentMethodManagementInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class SortAndFilterAdyenPaymentMethodsTest extends AbstractAdyenTestCase
 {
     private SortAndFilterAdyenPaymentMethods $plugin;
@@ -52,7 +54,7 @@ class SortAndFilterAdyenPaymentMethodsTest extends AbstractAdyenTestCase
 
         $this->paymentMethodsFilterMock->expects($this->once())
             ->method('sortAndFilterPaymentMethods')
-            ->willReturn([$filteredList, ['ignored' => true]]);
+            ->willReturn($filteredList);
 
         $subjectMock = $this->createMock(PaymentMethodManagementInterface::class);
 

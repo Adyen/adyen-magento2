@@ -35,7 +35,9 @@ use Magento\Framework\Message\ManagerInterface;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManager;
 use PHPUnit\Framework\MockObject\Exception;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class ManagementHelperTest extends AbstractAdyenTestCase
 {
     private Client $clientMock;

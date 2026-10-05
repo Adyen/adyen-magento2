@@ -18,8 +18,10 @@ use Magento\Sales\Model\Order\Payment;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use Magento\Sales\Model\Order;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 #[CoversClass(AdyenDonationCampaigns::class)]
+#[AllowMockObjectsWithoutExpectations]
 class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
 {
     private DonationsHelper $donationsHelper;
@@ -69,10 +71,46 @@ class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
         ]);
         $this->donationsHelper->method('formatCampaign')->willReturn(['id' => 'camp123']);
 
+        $this->donationsHelper->expects($this->once())
+            ->method('setDonationCampaignId')
+            ->with($order, 'camp123');
+
         $result = $this->campaigns->getCampaigns(10);
 
         $this->assertJson($result);
         $this->assertStringContainsString('camp123', $result);
+    }
+
+    #[Test]
+    public function getCampaignsDoesNotSetCampaignIdWhenNoCampaigns(): void
+    {
+        $storeId = 1;
+        $order = $this->createMock(Order::class);
+        $payment = $this->createMock(Payment::class);
+        $amountCurrency = $this->createConfiguredMock(\Adyen\Payment\Model\AdyenAmountCurrency::class, [
+            'getCurrencyCode' => 'EUR'
+        ]);
+        $order->method('getEntityId')->willReturn(123);
+        $order->method('getStoreId')->willReturn($storeId);
+        $order->method('getPayment')->willReturn($payment);
+        $payment->method('getAdditionalInformation')->with('donationToken')->willReturn('token');
+
+        $this->orderRepository->method('get')->willReturn($order);
+        $this->chargedCurrency->method('getOrderAmountCurrency')->willReturn($amountCurrency);
+        $this->configHelper->method('getMerchantAccount')->willReturn('merchant123');
+        $this->localeHelper->method('getCurrentLocaleCode')->willReturn('en_US');
+
+        $this->donationsHelper->method('fetchDonationCampaigns')->willReturn([
+            'donationCampaigns' => []
+        ]);
+        $this->donationsHelper->method('formatCampaign')->willReturn([]);
+
+        $this->donationsHelper->expects($this->never())
+            ->method('setDonationCampaignId');
+
+        $result = $this->campaigns->getCampaigns(10);
+
+        $this->assertJson($result);
     }
 
     #[Test]
@@ -143,6 +181,9 @@ class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
 
         $this->donationsHelper->method('fetchDonationCampaigns')
             ->willThrowException(new \Exception('Failed'));
+
+        $this->donationsHelper->expects($this->never())
+            ->method('setDonationCampaignId');
 
         $this->adyenLogger->expects($this->once())->method('error')
             ->with($this->stringContains('Failed to fetch donation campaigns'));

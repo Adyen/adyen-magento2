@@ -20,7 +20,9 @@ use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Payment\Model\MethodInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class ConfigTest extends AbstractAdyenTestCase
 {
     protected ScopeConfigInterface $scopeConfigMock;
@@ -206,6 +208,23 @@ class ConfigTest extends AbstractAdyenTestCase
         $result = $this->configHelper->getProcessedWebhookRemovalTime();
         $this->assertIsInt($result);
         $this->assertEquals(90, $result);
+    }
+
+    public function testGetIsPaymentResponseCleanupEnabled()
+    {
+        $path = sprintf(
+            "%s/%s/%s",
+            Config::XML_PAYMENT_PREFIX,
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            Config::XML_CLEAN_ADYEN_PAYMENT_RESPONSE
+        );
+
+        $this->scopeConfigMock->expects($this->once())
+            ->method('isSetFlag')
+            ->with($this->equalTo($path), $this->equalTo(ScopeInterface::SCOPE_STORE), $this->equalTo(null))
+            ->willReturn(true);
+
+        $this->assertTrue($this->configHelper->getIsPaymentResponseCleanupEnabled());
     }
 
     public function testGetHAsPlatformIntegrator()
