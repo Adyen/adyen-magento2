@@ -100,6 +100,53 @@ class StateDataTest extends AbstractAdyenTestCase
         $this->stateDataHelper->removeStateData($stateDataId, $quoteId);
     }
 
+    public function testGetValidatedStateDataFromCcNumberRemovesUnapprovedKeys()
+    {
+        $stateDataHelper = new StateData(
+            $this->stateDataCollectionMock,
+            $this->stateDataFactoryMock,
+            $this->stateDataResourceModelMock,
+            new CheckoutStateDataValidator(),
+            $this->adyenLoggerMock
+        );
+
+        $paymentMethod = [
+            'type' => 'scheme',
+            'encryptedCardNumber' => 'test_4111111111111111'
+        ];
+        $ccNumber = json_encode([
+            'unsupportedField' => 'value',
+            'paymentMethod' => $paymentMethod,
+            'storePaymentMethod' => true
+        ]);
+
+        $this->assertSame(
+            ['paymentMethod' => $paymentMethod, 'storePaymentMethod' => true],
+            $stateDataHelper->getValidatedStateDataFromCcNumber($ccNumber)
+        );
+    }
+
+    /**
+     * @dataProvider invalidCcNumberProvider
+     */
+    public function testGetValidatedStateDataFromCcNumberReturnsEmptyArrayForInvalidInput($ccNumber)
+    {
+        $this->checkoutStateDataValidatorMock->expects($this->never())->method('getValidatedAdditionalData');
+
+        $this->assertSame([], $this->stateDataHelper->getValidatedStateDataFromCcNumber($ccNumber));
+    }
+
+    public static function invalidCcNumberProvider(): array
+    {
+        return [
+            ['ccNumber' => null],
+            ['ccNumber' => ''],
+            ['ccNumber' => 'not-a-json'],
+            ['ccNumber' => '1'],
+            ['ccNumber' => ['paymentMethod' => ['type' => 'scheme']]]
+        ];
+    }
+
     /**
      * @dataProvider storedPaymentMethodIdProvider
      */
