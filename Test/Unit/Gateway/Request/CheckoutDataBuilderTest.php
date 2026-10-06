@@ -93,4 +93,46 @@ class CheckoutDataBuilderTest extends AbstractAdyenTestCase
 
         $this->assertArrayHasKey('nativeThreeDS', $request['body']['authenticationData']['threeDSRequestData']);
     }
+
+    /**
+     * @return void
+     * @throws LocalizedException
+     * @throws NoSuchEntityException|Exception
+     */
+    public function testCcNumberStateDataIsValidatedBeforeUsage()
+    {
+        $ccNumber = '{"unsupportedField":"value","paymentMethod":{"type":"scheme"}}';
+        $validatedStateData = ['paymentMethod' => ['type' => 'scheme']];
+
+        $orderMock = $this->createMock(Order::class);
+        $orderMock->method('getQuoteId')->willReturn(1);
+        $orderMock->method('getStoreId')->willReturn(1);
+
+        $paymentMock = $this->createMockWithMethods(
+            Payment::class,
+            ['getOrder', 'getMethodInstance', 'getMethod', 'getAdditionalInformation'],
+            ['getCcNumber']
+        );
+        $paymentMock->method('getOrder')->willReturn($orderMock);
+        $paymentMock->method('getMethodInstance')->willReturn($this->createMock(MethodInterface::class));
+        $paymentMock->method('getMethod')->willReturn('adyen_cc');
+        $paymentMock->method('getCcNumber')->willReturn($ccNumber);
+
+        $buildSubject = [
+            'payment' => $this->createConfiguredMock(PaymentDataObject::class, [
+                'getPayment' => $paymentMock
+            ])
+        ];
+
+        $this->stateDataMock->method('getStateData')->with(1)->willReturn([]);
+        $this->stateDataMock->expects($this->once())
+            ->method('getValidatedStateDataFromCcNumber')
+            ->with($ccNumber)
+            ->willReturn($validatedStateData);
+
+        $request = $this->checkoutDataBuilder->build($buildSubject);
+
+        $this->assertArrayNotHasKey('unsupportedField', $request['body']);
+        $this->assertSame('scheme', $request['body']['paymentMethod']['type']);
+    }
 }
