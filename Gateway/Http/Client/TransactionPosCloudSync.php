@@ -20,7 +20,6 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Exception;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
-use Magento\Store\Model\StoreManagerInterface;
 
 class TransactionPosCloudSync implements ClientInterface
 {
@@ -40,17 +39,18 @@ class TransactionPosCloudSync implements ClientInterface
     public function __construct(
         protected readonly Data $adyenHelper,
         protected readonly AdyenLogger $adyenLogger,
-        protected readonly StoreManagerInterface $storeManager,
         protected readonly Config $configHelper
     ) { }
 
     public function placeRequest(TransferInterface $transferObject): array
     {
         $request = $transferObject->getBody();
+        $clientConfig = $transferObject->getClientConfig();
+
         $this->adyenHelper->logRequest($request, '', '/sync');
 
         try {
-            $storeId = $this->storeManager->getStore()->getId();
+            $storeId = $clientConfig['storeId'];
             $apiKey = $this->adyenHelper->getPosApiKey($storeId);
 
             if (empty($apiKey)) {
