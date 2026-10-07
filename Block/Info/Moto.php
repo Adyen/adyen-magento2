@@ -45,7 +45,7 @@ class Moto extends AbstractInfo
         $types = $this->adyenHelper->getAdyenCcTypes();
         $ccType = $this->getInfo()->getCcType();
 
-        if (isset($types[$ccType])) {
+        if ($ccType !== null && isset($types[$ccType])) {
             return $types[$ccType]['name'];
         }
         else {
