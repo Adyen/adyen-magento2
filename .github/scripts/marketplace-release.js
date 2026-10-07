@@ -5,6 +5,7 @@ const { pipeline } = require('stream/promises');
 const crypto = require('crypto');
 
 const GITHUB_API_URL = 'api.github.com';
+const GITHUB_DOWNLOAD_HOSTS = [GITHUB_API_URL, 'codeload.github.com', 'objects.githubusercontent.com'];
 const ADOBE_EQP_API_URL = 'commercedeveloper-api.adobe.com';
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GITHUB_REPO = process.env.GITHUB_REPO;
@@ -130,6 +131,11 @@ async function getAdobeEQPAccessToken() {
  * @returns {Promise<void>}
  */
 async function downloadReleaseZipball(url, destPath) {
+    const { hostname } = new URL(url);
+    if (!GITHUB_DOWNLOAD_HOSTS.includes(hostname)) {
+        throw new Error(`Invalid download host "${hostname}", expected one of: ${GITHUB_DOWNLOAD_HOSTS.join(', ')}`);
+    }
+
     const response = await new Promise((resolve, reject) => {
         https.get(url, {
             headers: {
