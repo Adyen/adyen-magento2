@@ -74,24 +74,6 @@ class StateData
     }
 
     /**
-     * Returns the validated state data from the payment's cc_number field, which multishipping checkout uses
-     */
-    public function getValidatedStateDataFromCcNumber(mixed $ccNumber): array
-    {
-        if (!is_string($ccNumber) || $ccNumber === '') {
-            return [];
-        }
-
-        $stateData = json_decode($ccNumber, true);
-
-        if (!is_array($stateData)) {
-            return [];
-        }
-
-        return $this->checkoutStateDataValidator->getValidatedAdditionalData($stateData);
-    }
-
-    /**
      * Returns the payment method type from state data
      */
     public function getPaymentMethodVariant(int $quoteId): string

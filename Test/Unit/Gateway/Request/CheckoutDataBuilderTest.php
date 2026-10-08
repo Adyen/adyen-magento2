@@ -6,6 +6,7 @@ use Adyen\Payment\Gateway\Request\CheckoutDataBuilder;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\StateData;
+use Adyen\Payment\Helper\Util\CheckoutStateDataValidator;
 use Adyen\Payment\Model\Config\Source\ThreeDSFlow;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Catalog\Helper\Image;
@@ -29,6 +30,7 @@ class CheckoutDataBuilderTest extends AbstractAdyenTestCase
     protected Config|MockObject $configMock;
     protected PaymentMethods|MockObject $paymentMethodsHelperMock;
     protected Image|MockObject $imageMock;
+    protected CheckoutStateDataValidator|MockObject $checkoutStateDataValidatorMock;
 
     /**
      * @return void
@@ -40,12 +42,14 @@ class CheckoutDataBuilderTest extends AbstractAdyenTestCase
         $this->configMock = $this->createMock(Config::class);
         $this->imageMock = $this->createMock(Image::class);
         $this->paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
+        $this->checkoutStateDataValidatorMock = $this->createMock(CheckoutStateDataValidator::class);
 
         $this->checkoutDataBuilder = new CheckoutDataBuilder(
             $this->stateDataMock,
             $this->configMock,
             $this->paymentMethodsHelperMock,
-            $this->imageMock
+            $this->imageMock,
+            $this->checkoutStateDataValidatorMock
         );
 
         parent::setUp();
@@ -101,8 +105,23 @@ class CheckoutDataBuilderTest extends AbstractAdyenTestCase
      */
     public function testCcNumberStateDataIsValidatedBeforeUsage()
     {
-        $ccNumber = '{"unsupportedField":"value","paymentMethod":{"type":"scheme"}}';
-        $validatedStateData = ['paymentMethod' => ['type' => 'scheme']];
+        $checkoutDataBuilder = new CheckoutDataBuilder(
+            $this->stateDataMock,
+            $this->configMock,
+            $this->paymentMethodsHelperMock,
+            $this->imageMock,
+            new CheckoutStateDataValidator()
+        );
+
+        $paymentMethod = [
+            'type' => 'scheme',
+            'encryptedCardNumber' => 'test_4111111111111111'
+        ];
+        $ccNumber = json_encode([
+            'unsupportedField' => 'value',
+            'paymentMethod' => $paymentMethod,
+            'storePaymentMethod' => true
+        ]);
 
         $orderMock = $this->createMock(Order::class);
         $orderMock->method('getQuoteId')->willReturn(1);
@@ -125,14 +144,11 @@ class CheckoutDataBuilderTest extends AbstractAdyenTestCase
         ];
 
         $this->stateDataMock->method('getStateData')->with(1)->willReturn([]);
-        $this->stateDataMock->expects($this->once())
-            ->method('getValidatedStateDataFromCcNumber')
-            ->with($ccNumber)
-            ->willReturn($validatedStateData);
 
-        $request = $this->checkoutDataBuilder->build($buildSubject);
+        $request = $checkoutDataBuilder->build($buildSubject);
 
         $this->assertArrayNotHasKey('unsupportedField', $request['body']);
-        $this->assertSame('scheme', $request['body']['paymentMethod']['type']);
+        $this->assertSame($paymentMethod, $request['body']['paymentMethod']);
+        $this->assertTrue($request['body']['storePaymentMethod']);
     }
 }
