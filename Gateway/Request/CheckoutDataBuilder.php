@@ -14,6 +14,7 @@ namespace Adyen\Payment\Gateway\Request;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\StateData;
+use Adyen\Payment\Helper\Util\CheckoutStateDataValidator;
 use Adyen\Payment\Model\Config\Source\ThreeDSFlow;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
@@ -36,12 +37,14 @@ class CheckoutDataBuilder implements BuilderInterface
      * @param Config $configHelper
      * @param PaymentMethods $paymentMethodsHelper
      * @param Image $imageHelper
+     * @param CheckoutStateDataValidator $checkoutStateDataValidator
      */
     public function __construct(
         private readonly StateData $stateData,
         private readonly Config $configHelper,
         private readonly PaymentMethods $paymentMethodsHelper,
-        private readonly Image $imageHelper
+        private readonly Image $imageHelper,
+        private readonly CheckoutStateDataValidator $checkoutStateDataValidator
     ) { }
 
     /**
@@ -62,9 +65,13 @@ class CheckoutDataBuilder implements BuilderInterface
         // Initialize the request body with the current state data
         // Multishipping checkout uses the cc_number field for state data
         $requestBody = $this->stateData->getStateData($order->getQuoteId());
+        $ccNumber = $payment->getCcNumber();
 
-        if (empty($requestBody) && !is_null($payment->getCcNumber())) {
-            $requestBody = json_decode((string) $payment->getCcNumber(), true);
+        if (empty($requestBody) && is_string($ccNumber) && $ccNumber !== '') {
+            $decodedStateData = json_decode($ccNumber, true);
+            $requestBody = is_array($decodedStateData)
+                ? $this->checkoutStateDataValidator->getValidatedAdditionalData($decodedStateData)
+                : [];
         }
 
         $order->setCanSendNewEmailFlag(in_array($payment->getMethod(), PaymentMethods::ORDER_EMAIL_REQUIRED_METHODS));
