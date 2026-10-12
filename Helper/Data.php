@@ -259,7 +259,7 @@ class Data extends AbstractHelper
     {
         $ccTypesMapper = $this->getCcTypesAltData();
 
-        if ($ccType !== null && isset($ccTypesMapper[$ccType])) {
+        if (isset($ccType) && isset($ccTypesMapper[$ccType])) {
             $ccType = $ccTypesMapper[$ccType]['code'];
         }
 

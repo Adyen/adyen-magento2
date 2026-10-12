@@ -146,7 +146,7 @@ class PosCloud extends Form
             'MX' => 'MXN'
         ];
 
-        return $countryId !== null &&
+        return isset($countryId) &&
             isset($allowedCurrenciesByCountry[$countryId]) &&
             $currencyCode === $allowedCurrenciesByCountry[$countryId];
     }
