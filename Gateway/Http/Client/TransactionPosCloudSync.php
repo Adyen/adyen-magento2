@@ -19,7 +19,6 @@ use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
-use Magento\Store\Model\StoreManagerInterface;
 
 class TransactionPosCloudSync implements ClientInterface
 {
@@ -33,31 +32,28 @@ class TransactionPosCloudSync implements ClientInterface
     public function __construct(
         Data $adyenHelper,
         AdyenLogger $adyenLogger,
-        StoreManagerInterface $storeManager,
         Config $configHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenLogger = $adyenLogger;
         $this->configHelper = $configHelper;
-
-        $this->storeId = $storeManager->getStore()->getId();
-        $apiKey = $this->adyenHelper->getPosApiKey($this->storeId);
-
-        // initialize client
-        $client = $this->adyenHelper->initializeAdyenClient($this->storeId, $apiKey);
-
-        //Set configurable option in M2
-        $this->timeout = $this->configHelper->getAdyenPosCloudConfigData('total_timeout', $this->storeId);
-        if (!empty($this->timeout)) {
-            $client->setTimeout($this->timeout);
-        }
-
-        $this->client = $client;
     }
 
     public function placeRequest(TransferInterface $transferObject): array
     {
         $request = $transferObject->getBody();
+        $clientConfig = $transferObject->getClientConfig();
+
+        $this->storeId = $clientConfig['storeId'];
+        $apiKey = $this->adyenHelper->getPosApiKey($this->storeId);
+
+        $client = $this->adyenHelper->initializeAdyenClient($this->storeId, $apiKey);
+        $this->timeout = $this->configHelper->getAdyenPosCloudConfigData('total_timeout', $this->storeId);
+        if (!empty($this->timeout)) {
+            $client->setTimeout($this->timeout);
+        }
+        $this->client = $client;
+
         $service = $this->adyenHelper->createAdyenPosPaymentService($this->client);
 
         $this->adyenHelper->logRequest($request, '', '/sync');
