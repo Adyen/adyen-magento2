@@ -38,6 +38,7 @@ class PosCloudBuilder implements BuilderInterface
         $payment = $paymentDataObject->getPayment();
         $order = $payment->getOrder();
 
+        $request['clientConfig'] = ["storeId" => $order->getStoreId()];
         $request['body'] = $this->buildPosRequest(
             $order,
             $payment->getAdditionalInformation('terminal_id'),
