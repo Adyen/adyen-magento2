@@ -22,7 +22,7 @@ use Magento\Payment\Gateway\Http\TransferInterface;
 
 class TransactionPosCloudSync implements ClientInterface
 {
-    protected int $storeId;
+    protected ?int $storeId;
     protected mixed $timeout;
     protected Client $client;
     protected Data $adyenHelper;
