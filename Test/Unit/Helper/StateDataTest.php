@@ -12,6 +12,8 @@
 namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Payment\Helper\StateData;
+use Adyen\Payment\Helper\Util\CheckoutStateDataValidator;
+use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\ResourceModel\StateData as StateDataResourceModel;
 use Adyen\Payment\Model\ResourceModel\StateData\Collection as StateDataCollection;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
@@ -90,6 +92,62 @@ class StateDataTest extends AbstractAdyenTestCase
         $this->stateDataCollectionMock->method('getFirstItem')->willReturn($stateDataMock);
 
         $this->stateDataHelper->removeStateData($stateDataId, $quoteId);
+    }
+
+    public function testGetValidatedStateDataFromCcNumberRemovesUnapprovedKeys()
+    {
+        $stateDataHelper = new StateData(
+            $this->stateDataCollectionMock,
+            $this->stateDataFactoryMock,
+            $this->stateDataResourceModelMock,
+            new CheckoutStateDataValidator(),
+            $this->createMock(AdyenLogger::class)
+        );
+
+        $paymentMethod = [
+            'type' => 'scheme',
+            'encryptedCardNumber' => 'test_4111111111111111'
+        ];
+        $ccNumber = json_encode([
+            'unsupportedField' => 'value',
+            'paymentMethod' => $paymentMethod,
+            'storePaymentMethod' => true
+        ]);
+
+        $this->assertSame(
+            ['paymentMethod' => $paymentMethod, 'storePaymentMethod' => true],
+            $stateDataHelper->getValidatedStateDataFromCcNumber($ccNumber)
+        );
+    }
+
+    /**
+     * @dataProvider invalidCcNumberProvider
+     */
+    public function testGetValidatedStateDataFromCcNumberReturnsEmptyArrayForInvalidInput($ccNumber)
+    {
+        $checkoutStateDataValidatorMock = $this->createMock(CheckoutStateDataValidator::class);
+        $checkoutStateDataValidatorMock->expects($this->never())->method('getValidatedAdditionalData');
+
+        $stateDataHelper = new StateData(
+            $this->stateDataCollectionMock,
+            $this->stateDataFactoryMock,
+            $this->stateDataResourceModelMock,
+            $checkoutStateDataValidatorMock,
+            $this->createMock(AdyenLogger::class)
+        );
+
+        $this->assertSame([], $stateDataHelper->getValidatedStateDataFromCcNumber($ccNumber));
+    }
+
+    public static function invalidCcNumberProvider(): array
+    {
+        return [
+            ['ccNumber' => null],
+            ['ccNumber' => ''],
+            ['ccNumber' => 'not-a-json'],
+            ['ccNumber' => '1'],
+            ['ccNumber' => ['paymentMethod' => ['type' => 'scheme']]]
+        ];
     }
 
     /**
