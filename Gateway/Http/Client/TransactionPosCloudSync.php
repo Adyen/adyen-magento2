@@ -44,7 +44,7 @@ class TransactionPosCloudSync implements ClientInterface
         $request = $transferObject->getBody();
         $clientConfig = $transferObject->getClientConfig();
 
-        $this->storeId = $clientConfig['storeId'];
+        $this->storeId = $clientConfig['storeId'] ?? null;
         $apiKey = $this->adyenHelper->getPosApiKey($this->storeId);
 
         $client = $this->adyenHelper->initializeAdyenClient($this->storeId, $apiKey);
