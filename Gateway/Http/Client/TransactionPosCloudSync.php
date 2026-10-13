@@ -50,7 +50,7 @@ class TransactionPosCloudSync implements ClientInterface
         $this->adyenHelper->logRequest($request, '', '/sync');
 
         try {
-            $storeId = $clientConfig['storeId'];
+            $storeId = $clientConfig['storeId'] ?? null;
             $apiKey = $this->adyenHelper->getPosApiKey($storeId);
 
             if (empty($apiKey)) {
