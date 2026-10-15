@@ -800,6 +800,32 @@ class DataTest extends AbstractAdyenTestCase
     }
 
     #[Test]
+    public function testGetMagentoCreditCartTypeWithNullCcType(): void
+    {
+        $this->dataStorage
+            ->method('get')
+            ->with('adyen_credit_cards')
+            ->willReturn(['amex' => ['code' => 'AE', 'code_alt' => 'american_express']]);
+
+        $result = $this->dataHelper->getMagentoCreditCartType(null);
+
+        self::assertNull($result);
+    }
+
+    #[Test]
+    public function testGetMagentoCreditCartTypeWithUnmappedCcType(): void
+    {
+        $this->dataStorage
+            ->method('get')
+            ->with('adyen_credit_cards')
+            ->willReturn(['amex' => ['code' => 'AE', 'code_alt' => 'american_express']]);
+
+        $result = $this->dataHelper->getMagentoCreditCartType('eftpos_australia');
+
+        self::assertSame('eftpos_australia', $result);
+    }
+
+    #[Test]
     public function testGetCustomerStreetLinesEnabled(): void
     {
         $storeId = 99;

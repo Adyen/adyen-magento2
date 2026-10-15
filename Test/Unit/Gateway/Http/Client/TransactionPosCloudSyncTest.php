@@ -20,8 +20,6 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Adyen\Service\PosPayment;
 use Magento\Payment\Gateway\Http\TransferInterface;
-use Magento\Store\Api\Data\StoreInterface;
-use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
@@ -30,7 +28,6 @@ class TransactionPosCloudSyncTest extends AbstractAdyenTestCase
 {
     private Data|MockObject $adyenHelperMock;
     private AdyenLogger|MockObject $adyenLoggerMock;
-    private StoreManagerInterface|MockObject $storeManagerMock;
     private Config|MockObject $configHelperMock;
     private TransactionPosCloudSync $transactionPosCloudSync;
 
@@ -38,16 +35,11 @@ class TransactionPosCloudSyncTest extends AbstractAdyenTestCase
     {
         $this->adyenHelperMock = $this->createMock(Data::class);
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
-        $this->storeManagerMock = $this->createMock(StoreManagerInterface::class);
         $this->configHelperMock = $this->createMock(Config::class);
-
-        $store = $this->createConfiguredMock(StoreInterface::class, ['getId' => 1]);
-        $this->storeManagerMock->method('getStore')->willReturn($store);
 
         $this->transactionPosCloudSync = new TransactionPosCloudSync(
             $this->adyenHelperMock,
             $this->adyenLoggerMock,
-            $this->storeManagerMock,
             $this->configHelperMock
         );
     }
@@ -58,7 +50,8 @@ class TransactionPosCloudSyncTest extends AbstractAdyenTestCase
         $expectedResponse = ['SaleToPOIResponse' => ['PaymentResponse' => ['Response' => ['Result' => 'Success']]]];
 
         $transferObjectMock = $this->createConfiguredMock(TransferInterface::class, [
-            'getBody' => $requestBody
+            'getBody' => $requestBody,
+            'getClientConfig' => ['storeId' => 1]
         ]);
 
         $client = $this->createMock(Client::class);
@@ -91,7 +84,8 @@ class TransactionPosCloudSyncTest extends AbstractAdyenTestCase
         $requestBody = ['SaleToPOIRequest' => ['MessageHeader' => []]];
 
         $transferObjectMock = $this->createConfiguredMock(TransferInterface::class, [
-            'getBody' => $requestBody
+            'getBody' => $requestBody,
+            'getClientConfig' => ['storeId' => 1]
         ]);
 
         $this->adyenHelperMock->method('getPosApiKey')->with(1)->willReturn('');
@@ -116,7 +110,8 @@ class TransactionPosCloudSyncTest extends AbstractAdyenTestCase
         $requestBody = ['SaleToPOIRequest' => ['MessageHeader' => []]];
 
         $transferObjectMock = $this->createConfiguredMock(TransferInterface::class, [
-            'getBody' => $requestBody
+            'getBody' => $requestBody,
+            'getClientConfig' => ['storeId' => 1]
         ]);
 
         $client = $this->createMock(Client::class);
@@ -143,7 +138,8 @@ class TransactionPosCloudSyncTest extends AbstractAdyenTestCase
         $requestBody = ['SaleToPOIRequest' => ['MessageHeader' => []]];
 
         $transferObjectMock = $this->createConfiguredMock(TransferInterface::class, [
-            'getBody' => $requestBody
+            'getBody' => $requestBody,
+            'getClientConfig' => ['storeId' => 1]
         ]);
 
         $client = $this->createMock(Client::class);

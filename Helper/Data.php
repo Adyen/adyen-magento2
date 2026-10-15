@@ -259,7 +259,7 @@ class Data extends AbstractHelper
     {
         $ccTypesMapper = $this->getCcTypesAltData();
 
-        if (isset($ccTypesMapper[$ccType])) {
+        if (isset($ccType) && isset($ccTypesMapper[$ccType])) {
             $ccType = $ccTypesMapper[$ccType]['code'];
         }
 
@@ -478,13 +478,13 @@ class Data extends AbstractHelper
     /**
      * Builds an Adyen client for Terminal API usage and applies terminal specific configurations on top.
      *
-     * @param int $storeId
+     * @param int|null $storeId
      * @param string $apiKey
      * @return Client
      * @throws AdyenException
      * @throws NoSuchEntityException
      */
-    public function initializeAdyenClientForPos(int $storeId, string $apiKey): Client
+    public function initializeAdyenClientForPos(?int $storeId, string $apiKey): Client
     {
         $client = $this->initializeAdyenClient($storeId, $apiKey);
         $isDemo = $this->configHelper->isDemoMode($storeId);
