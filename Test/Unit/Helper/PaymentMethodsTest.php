@@ -6,7 +6,7 @@ namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\Client;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Helper\{ChargedCurrency, Config, Data, Locale, PaymentMethods, PlatformInfo};
+use Adyen\Payment\Helper\{Address, ChargedCurrency, Config, Data, Locale, PaymentMethods, PlatformInfo};
 use Adyen\Payment\Model\{AdyenAmountCurrency,
     Config\Source\CaptureMode,
     Config\Source\SepaFlow,
@@ -75,6 +75,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
     private MockObject $cartRepository;
     private MockObject $requestInterfaceMock;
     private MockObject $txVariantFactory;
+    private MockObject $addressHelper;
 
     protected function setUp(): void
     {
@@ -125,6 +126,10 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $this->checkoutSession->method('getQuote')->willReturn($sessionQuote);
         $this->requestInterfaceMock = $this->createMock(RequestInterface::class);
         $this->txVariantFactory = $this->createMock(TxVariantFactory::class);
+        $this->addressHelper = $this->createMock(Address::class);
+        $this->addressHelper->method('getAdyenCountryCode')->willReturnCallback(
+            fn (string $countryCode): string => $countryCode === 'XK' ? 'QZ' : $countryCode
+        );
 
         $this->helper = new PaymentMethods(
             $this->createMock(Context::class),
@@ -146,7 +151,8 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             $this->generateShopperConversionId,
             $this->checkoutSession,
             $this->requestInterfaceMock,
-            $this->txVariantFactory
+            $this->txVariantFactory,
+            $this->addressHelper
         );
     }
 
@@ -635,7 +641,8 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             $this->generateShopperConversionId,
             $this->checkoutSession,
             $this->requestInterfaceMock,
-            $this->txVariantFactory
+            $this->txVariantFactory,
+            $this->addressHelper
         );
 
 
@@ -798,6 +805,38 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         );
 
         $this->assertEquals($expected, $result);
+    }
+
+    public function testGetPaymentMethodsRequestMapsCountryCode()
+    {
+        $merchantAccount = 'TestMerchant';
+        $shopperLocale = 'en_US';
+        $currencyCode = 'EUR';
+
+        $this->amountCurrencyMock->method('getCurrencyCode')->willReturn($currencyCode);
+        $this->amountCurrencyMock->method('getAmount')->willReturn(100);
+        $this->chargedCurrencyMock->method('getQuoteAmountCurrency')->willReturn($this->amountCurrencyMock);
+
+        $this->localeHelper->method('getCurrentLocaleCode')->willReturn($shopperLocale);
+
+        // Kosovo (XK) must be mapped to the Adyen country code (QZ)
+        $this->invokeMethod($this->helper, 'setQuote', [$this->quoteMock]);
+
+        $getPaymentMethodsRequest = $this->getPrivateMethod(PaymentMethods::class, 'getPaymentMethodsRequest');
+
+        $storeMock = $this->createMock(\Magento\Store\Model\Store::class);
+        $storeMock->method('getCode')->willReturn('default');
+
+        $result = $getPaymentMethodsRequest->invoke(
+            $this->helper,
+            $merchantAccount,
+            $storeMock,
+            $this->quoteMock,
+            $shopperLocale,
+            'XK'
+        );
+
+        $this->assertSame('QZ', $result['countryCode']);
     }
 
     /**
@@ -1061,7 +1100,8 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
                 $this->generateShopperConversionId,
                 $this->checkoutSession,
                 $this->requestInterfaceMock,
-                $this->txVariantFactory
+                $this->txVariantFactory,
+                $this->addressHelper
             ])
             ->onlyMethods(['getPaymentMethods'])
             ->getMock();
@@ -1123,7 +1163,8 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
                 $this->generateShopperConversionId,
                 $this->checkoutSession,
                 $this->requestInterfaceMock,
-                $this->txVariantFactory
+                $this->txVariantFactory,
+                $this->addressHelper
             ])
             ->onlyMethods(['getPaymentMethods'])
             ->getMock();
