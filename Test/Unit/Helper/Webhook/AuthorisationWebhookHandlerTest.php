@@ -923,6 +923,93 @@ class AuthorisationWebhookHandlerTest extends AbstractAdyenTestCase
         return $method;
     }
 
+    public static function partialPaymentsCoveringTheOrderProvider(): array
+    {
+        return [
+            // order total, amount already authorised (as loaded from sales_order), last partial payment in minor units
+            'gift card 25.00 + card 4.99' => ['29.9900', '25.0000', 499],
+            'gift card 10.10 + card 20.20' => ['30.3000', '10.1000', 2020],
+            'gift card 10.00 + card 20.00' => ['30.0000', '10.0000', 2000],
+        ];
+    }
+
+    /**
+     * The last AUTHORISATION of a partial (split) payment completes the order amount, so the order must leave the
+     * "partially authorised" branch, whatever the amounts are.
+     *
+     * @throws ReflectionExceptionAlias
+     */
+    #[DataProvider('partialPaymentsCoveringTheOrderProvider')]
+    public function testLastPartialAuthorisationCompletesTheOrderAmount(
+        string $grandTotal,
+        string $authorizedSoFar,
+        int $lastPaymentMinorUnits
+    ): void {
+        $order = $this->createMockWithMethods(
+            Order::class,
+            ['getGrandTotal', 'getPaymentAuthorizationAmount', 'setPaymentAuthorizationAmount', 'getPayment',
+                'getStoreId', 'getQuoteId'],
+            ['getAdyenChargedCurrency']
+        );
+        $authorized = $authorizedSoFar;
+        $order->method('getAdyenChargedCurrency')->willReturn(ChargedCurrency::DISPLAY);
+        $order->method('getGrandTotal')->willReturn($grandTotal);
+        $order->method('getPaymentAuthorizationAmount')->willReturnCallback(function () use (&$authorized) {
+            return $authorized;
+        });
+        $order->method('setPaymentAuthorizationAmount')->willReturnCallback(
+            function ($amount) use (&$authorized, $order) {
+                $authorized = $amount;
+                return $order;
+            }
+        );
+        $order->method('getPayment')->willReturn($this->createMock(Order\Payment::class));
+        $order->method('getQuoteId')->willReturn('123');
+
+        $notification = $this->createConfiguredMock(Notification::class, [
+            'getPspreference' => 'ABCD1234GHJK5678',
+            'getMerchantReference' => 'TestMerchant',
+            'getPaymentMethod' => 'scheme',
+            'isSuccessful' => true,
+            'getAmountValue' => $lastPaymentMinorUnits,
+            'getAmountCurrency' => 'EUR'
+        ]);
+
+        // Real isFullAmountAuthorized() and real originalAmount(); only their collaborators are doubled.
+        $adyenOrderPayment = $this->createPartialMock(
+            AdyenOrderPayment::class,
+            ['createAdyenOrderPayment', 'isAllAutoCaptured']
+        );
+        $adyenOrderPayment->method('isAllAutoCaptured')->willReturn(true);
+        $adyenHelper = $this->createPartialMock(Data::class, []);
+
+        $orderHelper = $this->createMock(OrderHelper::class);
+        $orderHelper->expects($this->never())->method('addWebhookStatusHistoryComment');
+        $orderHelper->expects($this->once())->method('setPrePaymentAuthorized')->willReturn($order);
+        $orderHelper->method('finalizeOrder')->willReturn($order);
+
+        $cartRepository = $this->createMock(CartRepositoryInterface::class);
+        $cartRepository->method('get')->willReturn($this->quoteMock);
+
+        $handler = $this->createAuthorisationWebhookHandler(
+            $adyenOrderPayment,
+            $orderHelper,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $this->createConfiguredMock(PaymentMethods::class, ['isAutoCapture' => true]),
+            $cartRepository,
+            null,
+            null,
+            $adyenHelper
+        );
+
+        $method = $this->getPrivateMethod(AuthorisationWebhookHandler::class, 'handleSuccessfulAuthorisation');
+        $method->invokeArgs($handler, [$order, $notification]);
+    }
+
     protected function createAuthorisationWebhookHandler(
         $mockAdyenOrderPayment = null,
         $mockOrderHelper = null,
