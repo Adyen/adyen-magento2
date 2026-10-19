@@ -23,6 +23,8 @@ jobs:
       ADYEN_MERCHANT: ${{ secrets.ADYEN_MERCHANT }}
       ADYEN_API_KEY: ${{ secrets.ADYEN_API_KEY }}
       ADYEN_CLIENT_KEY: ${{ secrets.ADYEN_CLIENT_KEY }}
+      MARIADB_ROOT_PASSWORD: ${{ secrets.MARIADB_ROOT_PASSWORD }}
+      MARIADB_PASSWORD: ${{ secrets.MARIADB_PASSWORD }}
       DEPLOY_SAMPLEDATA: 0
 
     steps:
