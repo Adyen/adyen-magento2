@@ -319,6 +319,37 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
         $this->checkoutPaymentsDetailsHandler->handle($this->handlingSubject, $responseCollection);
     }
 
+    public function testIfNoTransactionIsRecordedWhileShopperActionIsPending()
+    {
+        $responseCollection = [
+            0 => [
+                'additionalData' => [],
+                'amount' => [],
+                'resultCode' => 'IdentifyShopper',
+                'pspReference' => 'ABC12345',
+                'action' => ['type' => 'threeDS2']
+            ]
+        ];
+
+        $this->paymentMock
+            ->expects($this->once())
+            ->method('setCcTransId')
+            ->with('ABC12345');
+
+        $this->paymentMock
+            ->expects($this->once())
+            ->method('setLastTransId')
+            ->with('ABC12345');
+
+        $this->paymentMock
+            ->expects($this->never())
+            ->method('setTransactionId');
+
+        $this->applyGenericMockExpectations();
+
+        $this->checkoutPaymentsDetailsHandler->handle($this->handlingSubject, $responseCollection);
+    }
+
     private function applyGenericMockExpectations() : void
     {
         $this->paymentMock
