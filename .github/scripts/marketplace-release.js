@@ -5,8 +5,7 @@ const { pipeline } = require('stream/promises');
 const crypto = require('crypto');
 
 const GITHUB_API_URL = 'api.github.com';
-const GITHUB_DOWNLOAD_HOSTS = [GITHUB_API_URL, 'codeload.github.com', 'objects.githubusercontent.com'];
-const MAX_DOWNLOAD_REDIRECTS = 5;
+const GITHUB_CODELOAD_URL = 'codeload.github.com';
 const ADOBE_EQP_API_URL = 'commercedeveloper-api.adobe.com';
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GITHUB_REPO = process.env.GITHUB_REPO;
@@ -126,38 +125,37 @@ async function getAdobeEQPAccessToken() {
 /**
  * Downloads a release zipball from GitHub and saves it to a file
  *
- * @param {string} url - The zipball URL from GitHub
+ * Redirects are deliberately not followed: a Location header is response data, and
+ * response data must not flow into outbound request URLs (SSRF, S5144).
+ *
+ * @param {string} url - The zipball URL, built from trusted configuration
  * @param {string} destPath - Destination file path
- * @param {number} redirects - Number of redirects already followed
  *
  * @returns {Promise<void>}
  */
-async function downloadReleaseZipball(url, destPath, redirects = 0) {
+async function downloadReleaseZipball(url, destPath) {
     const { hostname } = new URL(url);
-    if (!GITHUB_DOWNLOAD_HOSTS.includes(hostname)) {
-        throw new Error(`Invalid download host "${hostname}", expected one of: ${GITHUB_DOWNLOAD_HOSTS.join(', ')}`);
+    if (hostname !== GITHUB_CODELOAD_URL) {
+        throw new Error(`Invalid download host "${hostname}", expected ${GITHUB_CODELOAD_URL}`);
     }
 
     const response = await new Promise((resolve, reject) => {
         https.get(url, {
             headers: {
                 'Authorization': `Bearer ${GITHUB_TOKEN}`,
-                'User-Agent': 'Adyen-Magento2-Release-Script',
-                'Accept': 'application/vnd.github+json'
+                'User-Agent': 'Adyen-Magento2-Release-Script'
             }
         }, resolve).on('error', reject);
     });
 
-    if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
-        if (redirects >= MAX_DOWNLOAD_REDIRECTS) {
-            throw new Error(`Too many redirects while downloading the zipball (max ${MAX_DOWNLOAD_REDIRECTS})`);
-        }
-        const nextUrl = new URL(response.headers.location, url).toString();
-        return downloadReleaseZipball(nextUrl, destPath, redirects + 1);
+    if (response.statusCode >= 300 && response.statusCode < 400) {
+        response.resume();
+        throw new Error(`Unexpected redirect (HTTP ${response.statusCode}) while downloading the zipball`);
     }
 
     if (response.statusCode !== 200) {
-        throw new Error(`Failed to download the zipball!`);
+        response.resume();
+        throw new Error(`Failed to download the zipball (HTTP ${response.statusCode})`);
     }
 
     await pipeline(response, fs.createWriteStream(destPath));
@@ -325,7 +323,8 @@ async function main() {
         const zipballPath = path.join(process.cwd(), `${RELEASE_TAG}.zip`);
         // Build the zipball URL from trusted configuration rather than the API response's
         // zipball_url: response data must not flow into outbound request URLs (SSRF, S5144).
-        const zipballUrl = `https://${GITHUB_API_URL}/repos/${GITHUB_REPO}/zipball/${RELEASE_TAG}`;
+        // This is the codeload URL that the API's /zipball/{tag} endpoint redirects to.
+        const zipballUrl = `https://${GITHUB_CODELOAD_URL}/${GITHUB_REPO}/legacy.zip/refs/tags/${RELEASE_TAG}`;
         await downloadReleaseZipball(zipballUrl, zipballPath);
 
         // Upload the zipball to Adobe EQP
