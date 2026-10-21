@@ -6,6 +6,7 @@ const crypto = require('crypto');
 
 const GITHUB_API_URL = 'api.github.com';
 const GITHUB_DOWNLOAD_HOSTS = [GITHUB_API_URL, 'codeload.github.com', 'objects.githubusercontent.com'];
+const MAX_DOWNLOAD_REDIRECTS = 5;
 const ADOBE_EQP_API_URL = 'commercedeveloper-api.adobe.com';
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GITHUB_REPO = process.env.GITHUB_REPO;
@@ -127,10 +128,11 @@ async function getAdobeEQPAccessToken() {
  *
  * @param {string} url - The zipball URL from GitHub
  * @param {string} destPath - Destination file path
+ * @param {number} redirects - Number of redirects already followed
  *
  * @returns {Promise<void>}
  */
-async function downloadReleaseZipball(url, destPath) {
+async function downloadReleaseZipball(url, destPath, redirects = 0) {
     const { hostname } = new URL(url);
     if (!GITHUB_DOWNLOAD_HOSTS.includes(hostname)) {
         throw new Error(`Invalid download host "${hostname}", expected one of: ${GITHUB_DOWNLOAD_HOSTS.join(', ')}`);
@@ -147,7 +149,10 @@ async function downloadReleaseZipball(url, destPath) {
     });
 
     if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
-        return downloadReleaseZipball(response.headers.location, destPath);
+        if (redirects >= MAX_DOWNLOAD_REDIRECTS) {
+            throw new Error(`Too many redirects while downloading the zipball (max ${MAX_DOWNLOAD_REDIRECTS})`);
+        }
+        return downloadReleaseZipball(response.headers.location, destPath, redirects + 1);
     }
 
     if (response.statusCode !== 200) {
@@ -317,7 +322,10 @@ async function main() {
 
         // Download the release zipball from GitHub
         const zipballPath = path.join(process.cwd(), `${RELEASE_TAG}.zip`);
-        await downloadReleaseZipball(releaseInfo.zipball_url, zipballPath);
+        // Build the zipball URL from trusted configuration rather than the API response's
+        // zipball_url: response data must not flow into outbound request URLs (SSRF, S5144).
+        const zipballUrl = `https://${GITHUB_API_URL}/repos/${GITHUB_REPO}/zipball/${RELEASE_TAG}`;
+        await downloadReleaseZipball(zipballUrl, zipballPath);
 
         // Upload the zipball to Adobe EQP
         const [{ file_upload_id }] = await uploadZipballToAdobeEQP(tokenResponse.ust, zipballPath);
