@@ -152,7 +152,8 @@ async function downloadReleaseZipball(url, destPath, redirects = 0) {
         if (redirects >= MAX_DOWNLOAD_REDIRECTS) {
             throw new Error(`Too many redirects while downloading the zipball (max ${MAX_DOWNLOAD_REDIRECTS})`);
         }
-        return downloadReleaseZipball(response.headers.location, destPath, redirects + 1);
+        const nextUrl = new URL(response.headers.location, url).toString();
+        return downloadReleaseZipball(nextUrl, destPath, redirects + 1);
     }
 
     if (response.statusCode !== 200) {
@@ -308,7 +309,7 @@ function submitPackageToAdobeEQP(
  * Main function to orchestrate the release process
  */
 async function main() {
-    if (!RELEASE_TAG || !ADOBE_EQP_APP_ID || !ADOBE_EQP_APP_SECRET || !GITHUB_TOKEN) {
+    if (!RELEASE_TAG || !GITHUB_REPO || !ADOBE_EQP_APP_ID || !ADOBE_EQP_APP_SECRET || !GITHUB_TOKEN) {
         console.error('Missing required environment variables');
         process.exit(1);
     }
