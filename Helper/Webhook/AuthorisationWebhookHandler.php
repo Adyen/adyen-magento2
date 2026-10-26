@@ -88,7 +88,14 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
     private function handleSuccessfulAuthorisation(Order $order, Notification $notification): Order
     {
         $paymentMethod = (string) $notification->getPaymentMethod();
-        $isAutoCapture = $this->paymentMethodsHelper->isAutoCapture($order, $paymentMethod);
+        $additionalData = $this->getAdditionalDataArray($notification);
+        $requireFraudManualReview = $this->caseManagementHelper->requiresManualReview($additionalData);
+
+        $isAutoCapture = $this->paymentMethodsHelper->isAutoCapture(
+            $order,
+            $paymentMethod,
+            $requireFraudManualReview
+        );
 
         $this->markPaymentCapturedIfNeeded($order, $notification, $isAutoCapture);
 
@@ -108,9 +115,6 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
 
         $order = $this->orderHelper->setPrePaymentAuthorized($order);
         $this->orderHelper->updatePaymentDetails($order, $notification);
-
-        $additionalData = $this->getAdditionalDataArray($notification);
-        $requireFraudManualReview = $this->caseManagementHelper->requiresManualReview($additionalData);
 
         $isOrderAutoCapture = $this->adyenOrderPaymentHelper->isAllAutoCaptured($order);
         $order = $isOrderAutoCapture

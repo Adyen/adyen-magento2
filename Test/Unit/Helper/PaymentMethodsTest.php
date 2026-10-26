@@ -76,6 +76,7 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
     private MockObject $requestInterfaceMock;
     private MockObject $txVariantFactory;
     private MockObject $addressHelper;
+    private MockObject $adyenLoggerMock;
 
     protected function setUp(): void
     {
@@ -131,12 +132,14 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
             fn (string $countryCode): string => $countryCode === 'XK' ? 'QZ' : $countryCode
         );
 
+        $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
+
         $this->helper = new PaymentMethods(
             $this->createMock(Context::class),
             $this->cartRepository,
             $this->config,
             $this->dataHelper,
-            $this->createMock(AdyenLogger::class),
+            $this->adyenLoggerMock,
             $this->repositoryMock,
             $this->sourceMock,
             $this->createMock(DesignInterface::class),
@@ -1236,5 +1239,74 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
 
         $this->assertSame('No Type Method', $result[0]['name']);
         $this->assertSame('Kreditkarte',    $result[1]['name']);
+    }
+
+    public static function autoCaptureWithCaseManagementCaptureDelayProvider(): array
+    {
+        // [txVariant, orderMethodCode, captureMode, captureModePos, requireFraudManualReview,
+        //  captureDelayEnabled, expectConfigLookup, expectedResult]
+        return [
+            'manual review not required' => [
+                'visa', 'adyen_cc', CaptureMode::CAPTURE_MODE_AUTO, null, false, true, false, true
+            ],
+            'capture delay disabled' => [
+                'visa', 'adyen_cc', CaptureMode::CAPTURE_MODE_AUTO, null, true, false, true, true
+            ],
+            'capture delay enforced' => [
+                'visa', 'adyen_cc', CaptureMode::CAPTURE_MODE_AUTO, null, true, true, true, false
+            ],
+            'tx variant does not support manual capture' => [
+                'unknown_variant', 'adyen_cc', CaptureMode::CAPTURE_MODE_AUTO, null, true, true, false, true
+            ],
+            'already manual capture' => [
+                'visa', 'adyen_cc', CaptureMode::CAPTURE_MODE_MANUAL, null, true, true, false, false
+            ],
+            'capture delay enforced on POS auto capture' => [
+                'visa', AdyenPosCloudConfigProvider::CODE, CaptureMode::CAPTURE_MODE_AUTO,
+                CaptureMode::CAPTURE_MODE_AUTO, true, true, true, false
+            ]
+        ];
+    }
+
+    #[DataProvider('autoCaptureWithCaseManagementCaptureDelayProvider')]
+    public function testIsAutoCaptureWithCaseManagementCaptureDelay(
+        string $txVariant,
+        string $orderMethodCode,
+        string $captureMode,
+        ?string $captureModePos,
+        bool $requireFraudManualReview,
+        bool $captureDelayEnabled,
+        bool $expectConfigLookup,
+        bool $expectedResult
+    ): void {
+        $storeId = 1;
+
+        $this->orderMock->method('getStoreId')->willReturn($storeId);
+        $this->orderMock->method('getPayment')->willReturn($this->orderPaymentMock);
+        $this->orderPaymentMock->method('getMethod')->willReturn($orderMethodCode);
+
+        $this->dataHelper->method('getCcTypesAltData')->willReturn(['visa' => ['manual_capture' => 1]]);
+        $this->txVariantFactory->method('create')->willReturn(null);
+
+        $this->configHelper->method('getCaptureMode')->with($storeId)->willReturn($captureMode);
+        $this->configHelper->method('getAdyenPosCloudConfigData')
+            ->with('capture_mode_pos', $storeId)
+            ->willReturn($captureModePos);
+        $this->configHelper->expects($expectConfigLookup ? $this->once() : $this->never())
+            ->method('isCaseManagementCaptureDelayEnabled')
+            ->with($storeId)
+            ->willReturn($captureDelayEnabled);
+
+        $isCaptureDelayed = $expectConfigLookup && $captureDelayEnabled;
+        $this->adyenLoggerMock->expects($this->once())
+            ->method('addAdyenNotification')
+            ->with($isCaptureDelayed
+                ? $this->stringContains('case management capture delay is enforced')
+                : $this->logicalNot($this->stringContains('case management capture delay')));
+
+        $this->assertSame(
+            $expectedResult,
+            $this->helper->isAutoCapture($this->orderMock, $txVariant, $requireFraudManualReview)
+        );
     }
 }
