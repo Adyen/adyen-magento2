@@ -12,6 +12,7 @@
 
 namespace Adyen\Payment\Helper\Webhook;
 
+use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\CaseManagement;
 use Adyen\Payment\Helper\Order;
 use Adyen\Payment\Helper\PaymentMethods;
@@ -29,25 +30,40 @@ class ManualReviewAcceptWebhookHandler implements WebhookHandlerInterface
     /** @var Order */
     private $orderHelper;
 
+    /** @var AdyenOrderPayment */
+    private $adyenOrderPaymentHelper;
+
     public function __construct(
         CaseManagement $caseManagement,
         PaymentMethods $paymentMethodsHelper,
-        Order $orderHelper
+        Order $orderHelper,
+        AdyenOrderPayment $adyenOrderPaymentHelper
     ) {
         $this->caseManagementHelper = $caseManagement;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
         $this->orderHelper = $orderHelper;
+        $this->adyenOrderPaymentHelper = $adyenOrderPaymentHelper;
     }
 
     public function handleWebhook(MagentoOrder $order, Notification $notification, string $transitionState): MagentoOrder
     {
-        $order = $this->caseManagementHelper->markCaseAsAccepted($order, sprintf(
+        $isAutoCapture = $this->adyenOrderPaymentHelper->isAutoCaptured(
+            $order,
+            (string) $notification->getOriginalReference()
+        ) ?? $this->paymentMethodsHelper->isAutoCapture($order, $notification->getPaymentMethod());
+
+        $comment = sprintf(
             'Manual review accepted for order w/pspReference: %s',
             $notification->getOriginalReference()
-        ));
+        );
+        if (!$isAutoCapture) {
+            $comment .= '. The order will be finalized once the capture webhook is received.';
+        }
+
+        $order = $this->caseManagementHelper->markCaseAsAccepted($order, $comment);
 
         // Finalize order only in case of auto capture. For manual capture the capture notification will initiate this finalizeOrder call
-        if ($this->paymentMethodsHelper->isAutoCapture($order, $notification->getPaymentMethod())) {
+        if ($isAutoCapture) {
             $order = $this->orderHelper->finalizeOrder($order, $notification);
         }
 

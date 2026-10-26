@@ -12,6 +12,7 @@
 
 namespace Adyen\Payment\Helper\Webhook;
 
+use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\CaseManagement;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Model\Notification;
@@ -25,18 +26,30 @@ class ManualReviewRejectWebhookHandler implements WebhookHandlerInterface
     /** @var PaymentMethods */
     private $paymentMethodsHelper;
 
+    /** @var AdyenOrderPayment */
+    private $adyenOrderPaymentHelper;
+
     public function __construct(
         CaseManagement $caseManagement,
-        PaymentMethods $paymentMethodsHelper
+        PaymentMethods $paymentMethodsHelper,
+        AdyenOrderPayment $adyenOrderPaymentHelper
     ) {
         $this->caseManagementHelper = $caseManagement;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
+        $this->adyenOrderPaymentHelper = $adyenOrderPaymentHelper;
     }
 
     public function handleWebhook(MagentoOrder $order, Notification $notification, string $transitionState): MagentoOrder
     {
-        $isAutoCapture = $this->paymentMethodsHelper->isAutoCapture($order, $notification->getPaymentMethod());
+        $isAutoCapture = $this->adyenOrderPaymentHelper->isAutoCaptured(
+            $order,
+            (string) $notification->getOriginalReference()
+        ) ?? $this->paymentMethodsHelper->isAutoCapture($order, $notification->getPaymentMethod());
 
-        return $this->caseManagementHelper->markCaseAsRejected($order, $notification->getOriginalReference(), $isAutoCapture);
+        return $this->caseManagementHelper->markCaseAsRejected(
+            $order,
+            $notification->getOriginalReference(),
+            $isAutoCapture
+        );
     }
 }

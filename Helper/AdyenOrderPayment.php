@@ -299,6 +299,29 @@ class AdyenOrderPayment extends AbstractHelper
     }
 
     /**
+     * Check if the adyen_order_payment entry of the given pspReference has been persisted as auto-captured.
+     * Returns null if there is no adyen_order_payment entry linked to the order with the given pspReference.
+     *
+     * @param Order $order
+     * @param string $pspReference
+     * @return bool|null
+     */
+    public function isAutoCaptured(Order $order, string $pspReference): ?bool
+    {
+        $adyenOrderPayment = $this->orderPaymentResourceModel->getOrderPaymentDetails(
+            $pspReference,
+            $order->getPayment()->getEntityId()
+        );
+
+        if (empty($adyenOrderPayment)) {
+            return null;
+        }
+
+        return $adyenOrderPayment[OrderPaymentInterface::CAPTURE_STATUS] ===
+            OrderPaymentInterface::CAPTURE_STATUS_AUTO_CAPTURE;
+    }
+
+    /**
      * Compare the total of the passed adyen order payments to the grand total of the order
      *
      * @param Order $order
