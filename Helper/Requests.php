@@ -49,6 +49,7 @@ class Requests extends AbstractHelper
      * @param PaymentMethods $paymentMethodsHelper
      * @param Locale $localeHelper
      * @param CustomerRepositoryInterface $customerRepository
+     * @param DonationsHelper $donationsHelper
      */
     public function __construct(
         Context $context,
@@ -60,7 +61,8 @@ class Requests extends AbstractHelper
         protected readonly ChargedCurrency $chargedCurrency,
         protected readonly PaymentMethods $paymentMethodsHelper,
         protected readonly Locale $localeHelper,
-        private readonly CustomerRepositoryInterface $customerRepository
+        private readonly CustomerRepositoryInterface $customerRepository,
+        private readonly DonationsHelper $donationsHelper
     ) {
         parent::__construct($context);
     }
@@ -442,6 +444,14 @@ class Requests extends AbstractHelper
         $currencyCode = $orderAmountCurrency->getCurrencyCode();
 
         if ($payload['amount']['currency'] !== $currencyCode) {
+            throw new LocalizedException(__('Donation failed!'));
+        }
+
+        if (!$this->donationsHelper->isDonationAmountValid(
+            $payment->getAdditionalInformation(DonationsHelper::DONATION_CAMPAIGN_AMOUNTS),
+            $payload['amount'],
+            $this->adyenHelper->formatAmount($orderAmountCurrency->getAmount(), $currencyCode)
+        )) {
             throw new LocalizedException(__('Donation failed!'));
         }
 
