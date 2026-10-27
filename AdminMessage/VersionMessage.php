@@ -85,7 +85,7 @@ class VersionMessage implements MessageInterface
                  * This will compare the currently installed version with the latest available one.
                  * A message will appear after the login if the two are not matching.
                  */
-                if ($this->_platformInfo->getModuleVersion() != $githubContent['tag_name']) {
+                if ($this->normalizeVersion($this->_platformInfo->getModuleVersion()) !== $this->normalizeVersion($githubContent['tag_name'])) {
                     return true;
                 }
             } elseif ($this->request->getModuleName() === 'mui' && $this->isNewVersionAvailable()) {
@@ -165,7 +165,12 @@ class VersionMessage implements MessageInterface
         $githubContent = $this->getSessionData("AdyenGithubVersion");
 
         if (isset($githubContent)) {
-            return $this->_platformInfo->getModuleVersion() !== $githubContent['tag_name'];
+            return $this->normalizeVersion($this->_platformInfo->getModuleVersion()) !== $this->normalizeVersion($githubContent['tag_name']);
         }
+    }
+
+    private function normalizeVersion(string $version): string
+    {
+        return ltrim($version, 'vV');
     }
 }
