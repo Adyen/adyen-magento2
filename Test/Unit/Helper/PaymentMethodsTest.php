@@ -602,6 +602,21 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
                 'orderPaymentMethod' => 'adyen_klarna',
                 'notificationPaymentMethod' => 'boleto',
                 'assert' => false
+            ],
+            [
+                'orderPaymentMethod' => 'adyen_paybybank_ais_dd',
+                'notificationPaymentMethod' => 'paybybank_AIS_DD',
+                'assert' => true
+            ],
+            [
+                'orderPaymentMethod' => 'adyen_afterpaytouch_US',
+                'notificationPaymentMethod' => 'afterpaytouch_US',
+                'assert' => true
+            ],
+            [
+                'orderPaymentMethod' => 'adyen_paybybank_ais_dd',
+                'notificationPaymentMethod' => 'paybybank',
+                'assert' => false
             ]
         ];
     }

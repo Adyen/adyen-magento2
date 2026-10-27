@@ -912,8 +912,8 @@ class PaymentMethods extends AbstractHelper
         $isWalletPaymentMethod = $this->isWalletPaymentMethod($paymentMethodInstance);
         $isCardPaymentMethod = $order->getPayment()->getMethod() === self::ADYEN_CC || $order->getPayment()->getMethod() === self::ADYEN_ONE_CLICK;
 
-        // If it is a wallet method OR a card OR the methods match exactly, return true
-        if ($isWalletPaymentMethod || $isCardPaymentMethod || strcmp($notificationPaymentMethod, $orderPaymentMethod) === 0) {
+        // If it is a wallet method OR a card OR the methods match case-insensitively, return true
+        if ($isWalletPaymentMethod || $isCardPaymentMethod || strcasecmp($notificationPaymentMethod, $orderPaymentMethod) === 0) {
             return true;
         }
 
