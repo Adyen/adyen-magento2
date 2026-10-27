@@ -13,6 +13,10 @@ use Magento\Sales\Model\Order;
 
 class DonationsHelper extends AbstractHelper
 {
+    const DONATION_CAMPAIGN_AMOUNTS = 'donationCampaignAmounts';
+    const DONATION_TYPE_FIXED_AMOUNTS = 'fixedAmounts';
+    const DONATION_TYPE_ROUNDUP = 'roundup';
+
     private Data $adyenHelper;
 
     /**
@@ -74,10 +78,77 @@ class DonationsHelper extends AbstractHelper
             ];
     }
 
+    /**
+     * @deprecated Use setDonationCampaign() instead, which also stores the permitted donation amounts.
+     */
     public function setDonationCampaignId(Order $order, $campaignId): void
     {
         $order->getPayment()->setAdditionalInformation('donationCampaignId', $campaignId);
         $order->save();
+    }
+
+    public function setDonationCampaign(Order $order, array $campaign): void
+    {
+        $donation = $campaign['donation'] ?? [];
+
+        $payment = $order->getPayment();
+        $payment->setAdditionalInformation('donationCampaignId', $campaign['id'] ?? null);
+        $payment->setAdditionalInformation(self::DONATION_CAMPAIGN_AMOUNTS, [
+            'type' => $donation['donationType'] ?? $donation['type'] ?? null,
+            'currency' => $donation['currency'] ?? null,
+            'values' => array_map('intval', $donation['values'] ?? []),
+            'maxRoundupAmount' => isset($donation['maxRoundupAmount'])
+                ? (int) $donation['maxRoundupAmount']
+                : null
+        ]);
+
+        $order->save();
+    }
+
+    public function isDonationAmountValid(mixed $campaignAmounts, array $amount, int $originalPaymentAmount): bool
+    {
+        if (!is_array($campaignAmounts) || empty($campaignAmounts)) {
+            return $this->rejectDonationAmount('No donation campaign amounts found for the order.');
+        }
+
+        $value = $amount['value'] ?? null;
+
+        if (!is_int($value) || $value <= 0) {
+            return $this->rejectDonationAmount('Donation amount value must be a positive integer.');
+        }
+
+        if (($amount['currency'] ?? null) !== ($campaignAmounts['currency'] ?? null)) {
+            return $this->rejectDonationAmount('Donation currency does not match the donation campaign currency.');
+        }
+
+        switch ($campaignAmounts['type'] ?? null) {
+            case self::DONATION_TYPE_FIXED_AMOUNTS:
+                $isValid = in_array($value, $campaignAmounts['values'] ?? [], true);
+                break;
+            case self::DONATION_TYPE_ROUNDUP:
+                $maxRoundupAmount = (int) ($campaignAmounts['maxRoundupAmount'] ?? 0);
+                // Matches the Adyen Web Donation component; an exact multiple donates the full maxRoundupAmount.
+                $isValid = $maxRoundupAmount > 0
+                    && $value === $maxRoundupAmount - ($originalPaymentAmount % $maxRoundupAmount);
+                break;
+            default:
+                return $this->rejectDonationAmount('Unsupported donation campaign type.');
+        }
+
+        if (!$isValid) {
+            return $this->rejectDonationAmount(
+                sprintf('Donation amount %s is not permitted by the donation campaign.', $value)
+            );
+        }
+
+        return true;
+    }
+
+    private function rejectDonationAmount(string $reason): bool
+    {
+        $this->adyenLogger->addAdyenWarning('Donation rejected: ' . $reason);
+
+        return false;
     }
 
 }
