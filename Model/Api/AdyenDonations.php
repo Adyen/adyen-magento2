@@ -14,6 +14,7 @@ namespace Adyen\Payment\Model\Api;
 
 use Adyen\Payment\Api\AdyenDonationsInterface;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\DonationsHelper;
 use Adyen\Payment\Model\Sales\OrderRepository;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\LocalizedException;
@@ -113,6 +114,7 @@ class AdyenDonations implements AdyenDonationsInterface
     private function removeDonationCampaignId(Order $order): void
     {
         $order->getPayment()->unsAdditionalInformation('donationCampaignId');
+        $order->getPayment()->unsAdditionalInformation(DonationsHelper::DONATION_CAMPAIGN_AMOUNTS);
         $order->save();
     }
 }
