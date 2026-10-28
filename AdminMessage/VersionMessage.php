@@ -169,8 +169,8 @@ class VersionMessage implements MessageInterface
         }
     }
 
-    private function normalizeVersion(string $version): string
+    private function normalizeVersion(?string $version): string
     {
-        return ltrim($version, 'vV');
+        return ltrim($version ?? '', 'vV');
     }
 }
