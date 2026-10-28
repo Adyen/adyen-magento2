@@ -225,7 +225,7 @@ define(
                         self.storeCc = !!state.data.storePaymentMethod;
                     },
                     onBrand: function(state) {
-                        self.detectedBrand = state.brand;
+                        self.detectedBrand = state?.brand;
                     },
                     // Required for Click to Pay
                     onSubmit: function () {
