@@ -11,6 +11,7 @@
 namespace Adyen\Payment\Model\Method;
 
 use Adyen\Payment\Logger\AdyenLogger;
+use Exception;
 use Magento\Framework\ObjectManagerInterface;
 use UnexpectedValueException;
 
@@ -42,9 +43,11 @@ class TxVariantFactory
     {
         try {
             return $this->objectManager->create($this->instanceName, $data);
-        } catch (UnexpectedValueException $e) {
+        } catch (UnexpectedValueException) {
+            return null;
+        } catch (Exception $e) {
             $this->adyenLogger->error(sprintf(
-                'Payment method instance could not be identified! The variant %s is not an Adyen wallet or alternative payment method. %s',
+                'Payment method instance could not be resolved for tx_variant %s: %s',
                 $data['txVariant'] ?? '',
                 $e->getMessage()
             ));

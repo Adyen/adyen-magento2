@@ -11,9 +11,9 @@
 
 namespace Adyen\Payment\Helper;
 
-use Adyen\Util\IpAddress as IpAddressUtil;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\App\CacheInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\SerializerInterface;
 
 /**
@@ -22,52 +22,50 @@ use Magento\Framework\Serialize\SerializerInterface;
  */
 class IpAddress
 {
-
     const IP_ADDRESS_CACHE_ID = "Adyen_ip_address";
     const IP_ADDRESS_CACHE_LIFETIME = 86400;
 
     /**
-     * @var IpAddressUtil
-     */
-    private $ipAddressUtil;
-
-    /**
      * @var CacheInterface
      */
-    private $cache;
+    private CacheInterface $cache;
 
     /**
      * @var SerializerInterface
      */
-    private $serializer;
+    private SerializerInterface $serializer;
 
     /**
      * @var Config
      */
-    private $configHelper;
+    private Config $configHelper;
 
     /**
      * @var AdyenLogger $adyenLogger
      */
-    protected $adyenLogger;
+    protected AdyenLogger $adyenLogger;
+
+    /** @const */
+    protected static array $HOSTNAMES = array(
+        'out.adyen.com',
+        'outgoing1.adyen.com',
+        'outgoing2.adyen.com'
+    );
 
     /**
      * IpAddress constructor.
      *
-     * @param IpAddressUtil $ipAddressUtil
      * @param CacheInterface $cache
      * @param SerializerInterface $serializer
      * @param AdyenLogger $adyenLogger
      * @param Config $configHelper
      */
     public function __construct(
-        IpAddressUtil $ipAddressUtil,
         CacheInterface $cache,
         SerializerInterface $serializer,
         AdyenLogger $adyenLogger,
         Config $configHelper
     ) {
-        $this->ipAddressUtil = $ipAddressUtil;
         $this->cache = $cache;
         $this->serializer = $serializer;
         $this->adyenLogger = $adyenLogger;
@@ -79,8 +77,9 @@ class IpAddress
      *
      * @param string[] $ipAddresses
      * @return bool
+     * @throws NoSuchEntityException
      */
-    public function isIpAddressValid($ipAddresses): bool
+    public function isIpAddressValid(array $ipAddresses): bool
     {
         $isNotificationsIpCheckEnabled = $this->configHelper->getNotificationsIpCheck();
 
@@ -115,9 +114,9 @@ class IpAddress
     /**
      * Updates cache key containing Adyen webhook IP addresses with newly resolved records
      */
-    public function updateCachedIpAddresses()
+    public function updateCachedIpAddresses(): void
     {
-        $this->saveIpAddressesToCache($this->ipAddressUtil->getAdyenIpAddresses());
+        $this->saveIpAddressesToCache($this->getAdyenIpAddresses());
     }
 
     /**
@@ -125,7 +124,7 @@ class IpAddress
      *
      * @param string[] $ipAddresses
      */
-    public function saveIpAddressesToCache($ipAddresses)
+    public function saveIpAddressesToCache($ipAddresses): void
     {
         $this->cache->save(
             $this->serializer->serialize($ipAddresses),
@@ -138,14 +137,33 @@ class IpAddress
     /**
      * Loads value of IP addresses cache key and returns it as array
      *
-     * @return array|bool|float|int|string|null
+     * @return array
      */
-    public function getIpAddressesFromCache()
+    public function getIpAddressesFromCache(): array
     {
         $serializedIpAddresses = $this->cache->load(self::IP_ADDRESS_CACHE_ID);
         if (!empty($serializedIpAddresses)) {
             return $this->serializer->unserialize($serializedIpAddresses);
         }
         return [];
+    }
+
+    /**
+     * Gets IP addresses for the Adyen webhook hostnames
+     *
+     * @return string[]
+     */
+    private function getAdyenIpAddresses(): array
+    {
+        $ipAddresses = array();
+        foreach (self::$HOSTNAMES as $hostname) {
+            $ipAddressesOfHostName = gethostbynamel($hostname);
+
+            // gethostbynamel can return false if hostname could not be resolved
+            if (false !== $ipAddressesOfHostName) {
+                $ipAddresses = array_merge($ipAddresses, $ipAddressesOfHostName);
+            }
+        }
+        return $ipAddresses;
     }
 }

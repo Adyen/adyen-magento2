@@ -36,13 +36,11 @@ class IpAddressTest extends AbstractAdyenTestCase
 
         $serializer = $this->createMock(SerializerInterface::class);
         $serializer->method('unserialize')->willReturnArgument(0);
-        $ipAddressUtil = $this->createMock(\Adyen\Util\IpAddress::class);
         $adyenLogger = $this->createMock(AdyenLogger::class);
         $configHelper = $this->createMock(Config::class);
         $configHelper->method('getNotificationsIpCheck')->willReturn(true);
 
         $this->ipAddressHelper = new IpAddress(
-            $ipAddressUtil,
             $cache,
             $serializer,
             $adyenLogger,

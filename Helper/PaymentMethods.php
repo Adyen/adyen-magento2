@@ -119,6 +119,7 @@ class PaymentMethods extends AbstractHelper
      * @param CheckoutSession $checkoutSession
      * @param RequestInterface $request
      * @param TxVariantFactory $txVariantFactory
+     * @param Address $addressHelper
      */
     public function __construct(
         Context $context,
@@ -140,7 +141,8 @@ class PaymentMethods extends AbstractHelper
         protected readonly ShopperConversionId $generateShopperConversionId,
         protected readonly CheckoutSession $checkoutSession,
         protected readonly RequestInterface $request,
-        protected readonly TxVariantFactory $txVariantFactory
+        protected readonly TxVariantFactory $txVariantFactory,
+        protected readonly Address $addressHelper
     ) {
         parent::__construct($context);
     }
@@ -556,7 +558,9 @@ class PaymentMethods extends AbstractHelper
         $paymentMethodRequest = [
             "channel" => $channel,
             "merchantAccount" => $merchantAccount,
-            "countryCode" => $country ?? $this->getCurrentCountryCode($store),
+            "countryCode" => $this->addressHelper->getAdyenCountryCode(
+                $country ?? $this->getCurrentCountryCode($store)
+            ),
             "shopperLocale" => $shopperLocale ?? $this->localeHelper->getCurrentLocaleCode($store->getId()),
             "amount" => [
                 "currency" => $currencyCode
@@ -908,8 +912,8 @@ class PaymentMethods extends AbstractHelper
         $isWalletPaymentMethod = $this->isWalletPaymentMethod($paymentMethodInstance);
         $isCardPaymentMethod = $order->getPayment()->getMethod() === self::ADYEN_CC || $order->getPayment()->getMethod() === self::ADYEN_ONE_CLICK;
 
-        // If it is a wallet method OR a card OR the methods match exactly, return true
-        if ($isWalletPaymentMethod || $isCardPaymentMethod || strcmp($notificationPaymentMethod, $orderPaymentMethod) === 0) {
+        // If it is a wallet method OR a card OR the methods match case-insensitively, return true
+        if ($isWalletPaymentMethod || $isCardPaymentMethod || strcasecmp($notificationPaymentMethod, $orderPaymentMethod) === 0) {
             return true;
         }
 
