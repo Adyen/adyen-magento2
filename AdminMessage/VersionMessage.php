@@ -163,10 +163,7 @@ class VersionMessage implements MessageInterface
     private function isNewVersionAvailable()
     {
         $githubContent = $this->getSessionData("AdyenGithubVersion");
-
-        if (isset($githubContent)) {
-            return $this->normalizeVersion($this->_platformInfo->getModuleVersion()) !== $this->normalizeVersion($githubContent['tag_name']);
-        }
+        return version_compare($this->normalizeVersion($githubContent['tag_name'] ?? ''), $this->normalizeVersion($this->_platformInfo->getModuleVersion()), '>');
     }
 
     private function normalizeVersion(?string $version): string
