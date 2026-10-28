@@ -85,7 +85,7 @@ class VersionMessage implements MessageInterface
                  * This will compare the currently installed version with the latest available one.
                  * A message will appear after the login if the two are not matching.
                  */
-                if ($this->normalizeVersion($this->_platformInfo->getModuleVersion()) !== $this->normalizeVersion($githubContent['tag_name'])) {
+                if (version_compare($this->normalizeVersion($githubContent['tag_name'] ?? ''), $this->normalizeVersion($this->_platformInfo->getModuleVersion()), '>')) {
                     return true;
                 }
             } elseif ($this->request->getModuleName() === 'mui' && $this->isNewVersionAvailable()) {
