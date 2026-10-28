@@ -53,6 +53,7 @@ define(
             installments: ko.observable(),
             checkoutComponent: null,
             cardComponent: null,
+            detectedBrand: null,
 
             defaults: {
                 template: 'Adyen_Payment/payment/cc-form',
@@ -223,6 +224,9 @@ define(
                         self.placeOrderAllowed(!!state.isValid);
                         self.storeCc = !!state.data.storePaymentMethod;
                     },
+                    onBrand: function(state) {
+                        self.detectedBrand = state.brand;
+                    },
                     // Required for Click to Pay
                     onSubmit: function () {
                         self.placeOrder();
@@ -319,7 +323,7 @@ define(
                     const componentData = this.cardComponent.data;
 
                     data.additional_data.stateData = JSON.stringify(componentData);
-                    data.additional_data.cc_type = componentData.paymentMethod?.brand;
+                    data.additional_data.cc_type = componentData.paymentMethod?.brand ?? this.detectedBrand;
 
                     if (componentData.installments?.value) {
                         data.additional_data.number_of_installments = componentData.installments?.value;
