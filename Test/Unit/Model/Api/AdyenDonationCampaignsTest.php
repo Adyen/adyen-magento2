@@ -72,8 +72,8 @@ class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
         $this->donationsHelper->method('formatCampaign')->willReturn(['id' => 'camp123']);
 
         $this->donationsHelper->expects($this->once())
-            ->method('setDonationCampaignId')
-            ->with($order, 'camp123');
+            ->method('setDonationCampaign')
+            ->with($order, ['id' => 'camp123']);
 
         $result = $this->campaigns->getCampaigns(10);
 
@@ -106,7 +106,7 @@ class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
         $this->donationsHelper->method('formatCampaign')->willReturn([]);
 
         $this->donationsHelper->expects($this->never())
-            ->method('setDonationCampaignId');
+            ->method('setDonationCampaign');
 
         $result = $this->campaigns->getCampaigns(10);
 
@@ -183,7 +183,7 @@ class AdyenDonationCampaignsTest extends AbstractAdyenTestCase
             ->willThrowException(new \Exception('Failed'));
 
         $this->donationsHelper->expects($this->never())
-            ->method('setDonationCampaignId');
+            ->method('setDonationCampaign');
 
         $this->adyenLogger->expects($this->once())->method('error')
             ->with($this->stringContains('Failed to fetch donation campaigns'));

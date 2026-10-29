@@ -6,9 +6,11 @@ use Adyen\Payment\Helper\ShopperConversionId;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\App\Helper\Context;
-use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Phrase;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Payment;
+use Magento\Quote\Model\ResourceModel\Quote\Payment as QuotePaymentResource;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
@@ -20,8 +22,8 @@ class ShopperConversionIdTest extends AbstractAdyenTestCase
     /** @var MockObject&Context */
     private $contextMock;
 
-    /** @var MockObject&CartRepositoryInterface */
-    private $cartRepositoryMock;
+    /** @var MockObject&QuotePaymentResource */
+    private $quotePaymentResourceMock;
 
     /** @var MockObject&AdyenLogger */
     private $adyenLoggerMock;
@@ -36,15 +38,15 @@ class ShopperConversionIdTest extends AbstractAdyenTestCase
     {
         parent::setUp();
 
-        $this->contextMock        = $this->createMock(Context::class);
-        $this->cartRepositoryMock = $this->createMock(CartRepositoryInterface::class);
-        $this->adyenLoggerMock    = $this->createMock(AdyenLogger::class);
-        $this->quoteMock          = $this->createMock(Quote::class);
-        $this->paymentMock        = $this->createMock(Payment::class);
+        $this->contextMock              = $this->createMock(Context::class);
+        $this->quotePaymentResourceMock = $this->createMock(QuotePaymentResource::class);
+        $this->adyenLoggerMock          = $this->createMock(AdyenLogger::class);
+        $this->quoteMock                = $this->createMock(Quote::class);
+        $this->paymentMock              = $this->createMock(Payment::class);
 
         $this->helper = new ShopperConversionId(
             $this->contextMock,
-            $this->cartRepositoryMock,
+            $this->quotePaymentResourceMock,
             $this->adyenLoggerMock
         );
     }
@@ -71,7 +73,7 @@ class ShopperConversionIdTest extends AbstractAdyenTestCase
         $this->paymentMock->expects($this->never())
             ->method('setAdditionalInformation');
 
-        $this->cartRepositoryMock->expects($this->never())
+        $this->quotePaymentResourceMock->expects($this->never())
             ->method('save');
 
         $result = $this->helper->getShopperConversionId($this->quoteMock);
@@ -79,18 +81,11 @@ class ShopperConversionIdTest extends AbstractAdyenTestCase
         $this->assertSame($existing, $result);
     }
 
-    public function testGetShopperConversionIdGeneratesAndSaves(): void
+    public function testGetShopperConversionIdGeneratesAndSavesOnlyPayment(): void
     {
         $capturedId = null;
 
-        $this->quoteMock->expects($this->once())
-            ->method('getPayment')
-            ->willReturn($this->paymentMock);
-
-        $this->paymentMock->expects($this->once())
-            ->method('getAdditionalInformation')
-            ->with(ShopperConversionId::SHOPPER_CONVERSION_ID)
-            ->willReturn(null);
+        $this->mockQuoteWithoutShopperConversionId();
 
         $this->paymentMock->expects($this->once())
             ->method('setAdditionalInformation')
@@ -102,13 +97,15 @@ class ShopperConversionIdTest extends AbstractAdyenTestCase
                 })
             );
 
-        $this->quoteMock->expects($this->once())
-            ->method('setPayment')
+        $this->quoteMock->expects($this->never())
+            ->method('setPayment');
+
+        $this->quotePaymentResourceMock->expects($this->once())
+            ->method('save')
             ->with($this->paymentMock);
 
-        $this->cartRepositoryMock->expects($this->once())
-            ->method('save')
-            ->with($this->quoteMock);
+        $this->paymentMock->expects($this->never())
+            ->method('unsAdditionalInformation');
 
         $this->adyenLoggerMock->expects($this->never())
             ->method('error');
@@ -125,8 +122,9 @@ class ShopperConversionIdTest extends AbstractAdyenTestCase
         );
     }
 
-    public function testGetShopperConversionIdHandlesRuntimeException(): void
+    public function testGetShopperConversionIdReturnsNullWithoutSavingForQuoteWithoutId(): void
     {
+        $this->quoteMock->method('getId')->willReturn(null);
         $this->quoteMock->expects($this->once())
             ->method('getPayment')
             ->willReturn($this->paymentMock);
@@ -136,6 +134,45 @@ class ShopperConversionIdTest extends AbstractAdyenTestCase
             ->with(ShopperConversionId::SHOPPER_CONVERSION_ID)
             ->willReturn(null);
 
+        $this->paymentMock->expects($this->never())
+            ->method('setAdditionalInformation');
+
+        $this->quotePaymentResourceMock->expects($this->never())
+            ->method('save');
+
+        $this->assertNull($this->helper->getShopperConversionId($this->quoteMock));
+    }
+
+    public function testGetShopperConversionIdHandlesRuntimeException(): void
+    {
+        $this->assertSaveFailureIsHandled(new \RuntimeException('DB fail'), 'DB fail');
+    }
+
+    public function testGetShopperConversionIdHandlesLocalizedExceptionWithoutBreakingCheckout(): void
+    {
+        $this->assertSaveFailureIsHandled(
+            new LocalizedException(new Phrase('Not enough items for sale')),
+            'Not enough items for sale'
+        );
+    }
+
+    private function mockQuoteWithoutShopperConversionId(): void
+    {
+        $this->quoteMock->method('getId')->willReturn(1);
+        $this->quoteMock->expects($this->once())
+            ->method('getPayment')
+            ->willReturn($this->paymentMock);
+
+        $this->paymentMock->expects($this->once())
+            ->method('getAdditionalInformation')
+            ->with(ShopperConversionId::SHOPPER_CONVERSION_ID)
+            ->willReturn(null);
+    }
+
+    private function assertSaveFailureIsHandled(\Exception $exception, string $expectedMessage): void
+    {
+        $this->mockQuoteWithoutShopperConversionId();
+
         $this->paymentMock->expects($this->once())
             ->method('setAdditionalInformation')
             ->with(
@@ -143,18 +180,21 @@ class ShopperConversionIdTest extends AbstractAdyenTestCase
                 $this->callback('is_string')
             );
 
-        $this->quoteMock->expects($this->once())
-            ->method('setPayment')
-            ->with($this->paymentMock);
-
-        $this->cartRepositoryMock->expects($this->once())
+        $this->quotePaymentResourceMock->expects($this->once())
             ->method('save')
-            ->with($this->quoteMock)
-            ->willThrowException(new \RuntimeException('DB fail'));
+            ->with($this->paymentMock)
+            ->willThrowException($exception);
+
+        $this->paymentMock->expects($this->once())
+            ->method('unsAdditionalInformation')
+            ->with(ShopperConversionId::SHOPPER_CONVERSION_ID);
 
         $this->adyenLoggerMock->expects($this->once())
             ->method('error')
-            ->with($this->callback(fn($msg) => str_contains($msg, 'Failed to generate shopperConversionId') && str_contains($msg, 'DB fail')));
+            ->with($this->callback(
+                fn($msg) => str_contains($msg, 'Failed to generate shopperConversionId') &&
+                    str_contains($msg, $expectedMessage)
+            ));
 
         $result = $this->helper->getShopperConversionId($this->quoteMock);
 
