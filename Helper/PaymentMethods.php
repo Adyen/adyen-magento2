@@ -777,11 +777,16 @@ class PaymentMethods extends AbstractHelper
      *
      * @param Order $order Order object
      * @param string $notificationPaymentMethod `paymentMethod` provided on the webhook of the given order
+     * @param bool $requireFraudManualReview Whether the payment requires manual review by case management
      * @return bool
      */
-    public function isAutoCapture(Order $order, string $notificationPaymentMethod): bool
-    {
+    public function isAutoCapture(
+        Order $order,
+        string $notificationPaymentMethod,
+        bool $requireFraudManualReview = false
+    ): bool {
         $isAutoCapture = true;
+        $isCaptureDelayed = false;
 
         /*
          * First, validate the incoming tx_variant supports manual capture on the tx_variant level.
@@ -834,13 +839,21 @@ class PaymentMethods extends AbstractHelper
                     }
                 }
             }
+
+            // Case management capture delay holds the capture until the manual review is accepted
+            if ($isAutoCapture && $requireFraudManualReview &&
+                $this->configHelper->isCaseManagementCaptureDelayEnabled($order->getStoreId())) {
+                $isAutoCapture = false;
+                $isCaptureDelayed = true;
+            }
         }
 
         $this->adyenLogger->addAdyenNotification(
             sprintf(
-                'Capture mode of the webhook payment method %s is resolved as %s.',
+                'Capture mode of the webhook payment method %s is resolved as %s%s.',
                 $notificationPaymentMethod,
-                $isAutoCapture ? 'auto capture' : 'manual capture'
+                $isAutoCapture ? 'auto capture' : 'manual capture',
+                $isCaptureDelayed ? ' since case management capture delay is enforced for manual review' : ''
             ),
             [
                 'merchantReference' => $order->getIncrementId(),
