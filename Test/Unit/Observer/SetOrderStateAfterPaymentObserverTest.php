@@ -14,6 +14,7 @@ namespace Adyen\Payment\Test\Unit\Observer;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Model\Method\Adapter;
+use Adyen\Payment\Model\Method\PaymentMethodVault;
 use Adyen\Payment\Observer\SetOrderStateAfterPaymentObserver;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
 use Magento\Framework\Event\Observer;
@@ -110,6 +111,25 @@ class SetOrderStateAfterPaymentObserverTest extends AbstractAdyenTestCase
         }
 
         $this->setOrderStateAfterPaymentObserver->execute($this->observerMock);
+    }
+
+    public function testExecuteWithStoredCardMovesOrderToPendingPayment()
+    {
+        $paymentMock = $this->createMock(Payment::class);
+        $paymentMock->method('getMethodInstance')->willReturn($this->createMock(PaymentMethodVault::class));
+        $paymentMock->method('getOrder')->willReturn($this->orderMock);
+        $paymentMock->method('getAdditionalInformation')->willReturnMap([
+            ['resultCode', PaymentResponseHandler::IDENTIFY_SHOPPER],
+            ['action', ['type' => 'threeDS2']]
+        ]);
+
+        $observerMock = $this->createMock(Observer::class);
+        $observerMock->method('getData')->with('payment')->willReturn($paymentMock);
+
+        $this->orderMock->expects($this->once())->method('setState')->with(Order::STATE_PENDING_PAYMENT);
+        $this->orderRepositoryMock->expects($this->once())->method('save')->with($this->orderMock);
+
+        $this->setOrderStateAfterPaymentObserver->execute($observerMock);
     }
 
     public function testPosPaymentSuccessfulExecute()
