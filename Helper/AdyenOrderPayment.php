@@ -185,8 +185,16 @@ class AdyenOrderPayment extends AbstractHelper
     public function isFullAmountAuthorized(Order $order): bool
     {
         return match ($order->getAdyenChargedCurrency()) {
-            ChargedCurrency::BASE => floatval($order->getBaseGrandTotal()) === floatval($order->getPaymentAuthorizationAmount()),
-            ChargedCurrency::DISPLAY => floatval($order->getGrandTotal()) === floatval($order->getPaymentAuthorizationAmount()),
+            ChargedCurrency::BASE => $this->isSameAmount(
+                $order->getBaseGrandTotal(),
+                $order->getPaymentAuthorizationAmount(),
+                $order->getBaseCurrencyCode()
+            ),
+            ChargedCurrency::DISPLAY => $this->isSameAmount(
+                $order->getGrandTotal(),
+                $order->getPaymentAuthorizationAmount(),
+                $order->getOrderCurrencyCode()
+            ),
             default => false
         };
     }
@@ -341,5 +349,19 @@ class AdyenOrderPayment extends AbstractHelper
         $orderAmountCents = $this->adyenDataHelper->formatAmount($orderAmountCurrency->getAmount(), $orderAmountCurrency->getCurrencyCode());
 
         return $adyenOrderPaymentsTotalCents === $orderAmountCents;
+    }
+
+    /**
+     * Compare two amounts of the given currency in minor units
+     *
+     * @param mixed $expected
+     * @param mixed $actual
+     * @param string|null $currency
+     * @return bool
+     */
+    private function isSameAmount($expected, $actual, ?string $currency): bool
+    {
+        return $this->adyenDataHelper->formatAmount($expected, $currency) ===
+            $this->adyenDataHelper->formatAmount($actual, $currency);
     }
 }

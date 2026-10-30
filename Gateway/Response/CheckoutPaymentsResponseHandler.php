@@ -63,7 +63,6 @@ class CheckoutPaymentsResponseHandler implements HandlerInterface
         if (!empty($response['pspReference'])) {
             $payment->setCcTransId($response['pspReference']);
             $payment->setLastTransId($response['pspReference']);
-            $payment->setTransactionId($response['pspReference']);
         }
 
         // Store Checkout API Order data to be used in case of cancellation after `/payments/details` call.

@@ -310,9 +310,8 @@ class CheckoutPaymentsResponseHandlerTest extends AbstractAdyenTestCase
             ->with('ABC12345');
 
         $this->paymentMock
-            ->expects($this->once())
-            ->method('setTransactionId')
-            ->with('ABC12345');
+            ->expects($this->never())
+            ->method('setTransactionId');
 
         $this->applyGenericMockExpectations();
 

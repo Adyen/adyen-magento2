@@ -264,9 +264,76 @@ class AdyenOrderPaymentTest extends AbstractAdyenTestCase
         $order->method('getGrandTotal')->willReturn('100.0000');
         $order->method('getPaymentAuthorizationAmount')->willReturn('100.0000');
 
-        $adyenOrderPaymentHelper = $this->createAdyenOrderPaymentHelper();
+        $adyenOrderPaymentHelper = $this->createAdyenOrderPaymentHelper(
+            null,
+            null,
+            $this->createPartialMock(Data::class, [])
+        );
 
         $this->assertTrue($adyenOrderPaymentHelper->isFullAmountAuthorized($order));
+    }
+
+    public static function authorizedAmountProvider(): array
+    {
+        return [
+            'display, partial payments 25.00 + 4.99 summed as float' => [
+                ChargedCurrency::DISPLAY, '29.9900', '25.0000' + 4.99, 'EUR', true
+            ],
+            'base, partial payments 10.10 + 20.20 summed as float' => [
+                ChargedCurrency::BASE, '30.3000', '10.1000' + 20.20, 'EUR', true
+            ],
+            'display, partial payments 10.00 + 20.00 summed as float' => [
+                ChargedCurrency::DISPLAY, '30.0000', '10.0000' + 20.00, 'EUR', true
+            ],
+            'display, zero decimal currency' => [ChargedCurrency::DISPLAY, '1500.0000', 1500.0, 'JPY', true],
+            'display, only first partial payment authorized' => [
+                ChargedCurrency::DISPLAY, '29.9900', '25.0000', 'EUR', false
+            ],
+            'base, one cent missing' => [ChargedCurrency::BASE, '30.3000', '10.1000' + 20.19, 'EUR', false],
+            'display, nothing authorized' => [ChargedCurrency::DISPLAY, '29.9900', null, 'EUR', false],
+            'unknown charged currency' => [null, '29.9900', '29.9900', 'EUR', false],
+        ];
+    }
+
+    #[DataProvider('authorizedAmountProvider')]
+    public function testIsFullAmountAuthorizedComparesAmountsInMinorUnits(
+        ?string $chargedCurrency,
+        string $grandTotal,
+        $authorizedAmount,
+        string $currency,
+        bool $expected
+    ): void {
+        $order = $this->createMockWithMethods(
+            Order::class,
+            [
+                'getGrandTotal',
+                'getBaseGrandTotal',
+                'getOrderCurrencyCode',
+                'getBaseCurrencyCode',
+                'getPaymentAuthorizationAmount'
+            ],
+            ['getAdyenChargedCurrency']
+        );
+        $order->method('getAdyenChargedCurrency')->willReturn($chargedCurrency);
+        $order->method('getPaymentAuthorizationAmount')->willReturn($authorizedAmount);
+
+        if ($chargedCurrency === ChargedCurrency::BASE) {
+            $order->method('getBaseGrandTotal')->willReturn($grandTotal);
+            $order->method('getBaseCurrencyCode')->willReturn($currency);
+            $order->expects($this->never())->method('getGrandTotal');
+        } else {
+            $order->method('getGrandTotal')->willReturn($grandTotal);
+            $order->method('getOrderCurrencyCode')->willReturn($currency);
+            $order->expects($this->never())->method('getBaseGrandTotal');
+        }
+
+        $adyenOrderPaymentHelper = $this->createAdyenOrderPaymentHelper(
+            null,
+            null,
+            $this->createPartialMock(Data::class, [])
+        );
+
+        $this->assertSame($expected, $adyenOrderPaymentHelper->isFullAmountAuthorized($order));
     }
 
     public function testIsAllAutoCapturedReturnsTrue()

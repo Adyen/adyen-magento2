@@ -664,9 +664,12 @@ class Order extends AbstractHelper
             );
         }
 
-        $this->adyenCreditmemoHelper->updateAdyenCreditmemosStatus(
-            $linkedAdyenCreditmemo, CreditmemoInterface::COMPLETED_STATUS
-        );
+        if (isset($linkedAdyenCreditmemo)) {
+            $this->adyenCreditmemoHelper->updateAdyenCreditmemosStatus(
+                $linkedAdyenCreditmemo,
+                CreditmemoInterface::COMPLETED_STATUS
+            );
+        }
 
         $order->addStatusHistoryComment(__(sprintf(
             '%s Webhook successfully handled',

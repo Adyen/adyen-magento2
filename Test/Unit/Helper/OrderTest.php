@@ -340,6 +340,110 @@ class OrderTest extends AbstractAdyenTestCase
         $orderHelper->refundOrder($order, $notification);
     }
 
+    public function testRefundOrderWhenCreditmemoCannotBeCreated()
+    {
+        $adyenOrderPaymentHelper = $this->createMock(AdyenOrderPayment::class);
+        $adyenOrderPaymentHelper->expects($this->once())->method('refundAdyenOrderPayment');
+
+        $adyenCreditmemoHelper = $this->createMock(AdyenCreditmemoHelper::class);
+        $adyenCreditmemoHelper->expects($this->never())->method('createAdyenCreditMemo');
+        $adyenCreditmemoHelper->expects($this->never())->method('updateAdyenCreditmemosStatus');
+
+        $adyenCreditmemoRepositoryMock = $this->createMock(AdyenCreditmemoRepositoryInterface::class);
+        $adyenCreditmemoRepositoryMock->expects($this->once())
+            ->method('getByRefundWebhook')
+            ->willReturn(null);
+
+        $adyenLoggerMock = $this->createMock(AdyenLogger::class);
+        $adyenLoggerMock->method('getOrderContext')->willReturn([]);
+        $adyenLoggerMock->expects($this->exactly(2))
+            ->method('addAdyenNotification')
+            ->with($this->logicalOr(
+                $this->stringContains('Refunding'),
+                $this->stringContains('Could not create a credit memo')
+            ));
+
+        $orderHelper = $this->createOrderHelper(
+            null,
+            null,
+            $adyenOrderPaymentHelper,
+            null,
+            null,
+            $this->createAdyenOrderPaymentCollection(1),
+            null,
+            $adyenLoggerMock,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $adyenCreditmemoHelper,
+            null,
+            $adyenCreditmemoRepositoryMock
+        );
+
+        $order = $this->createMock(MagentoOrder::class);
+        $order->method('canCreditmemo')->willReturn(false);
+        $order->expects($this->never())->method('setState');
+        $order->expects($this->once())->method('addStatusHistoryComment');
+
+        $notification = $this->createWebhook('123-refund', '123-pspref');
+
+        $result = $orderHelper->refundOrder($order, $notification);
+
+        $this->assertSame($order, $result);
+    }
+
+    public function testRefundOrderWithExistingAdyenCreditmemo()
+    {
+        $adyenOrderPaymentHelper = $this->createMock(AdyenOrderPayment::class);
+        $adyenOrderPaymentHelper->expects($this->once())->method('refundAdyenOrderPayment');
+
+        $adyenCreditMemo = $this->createMock(CreditmemoInterface::class);
+
+        $adyenCreditmemoRepositoryMock = $this->createMock(AdyenCreditmemoRepositoryInterface::class);
+        $adyenCreditmemoRepositoryMock->expects($this->once())
+            ->method('getByRefundWebhook')
+            ->willReturn($adyenCreditMemo);
+
+        $adyenCreditmemoHelper = $this->createMock(AdyenCreditmemoHelper::class);
+        $adyenCreditmemoHelper->expects($this->never())->method('createAdyenCreditMemo');
+        $adyenCreditmemoHelper->expects($this->once())
+            ->method('updateAdyenCreditmemosStatus')
+            ->with($adyenCreditMemo, CreditmemoInterface::COMPLETED_STATUS);
+
+        $orderHelper = $this->createOrderHelper(
+            null,
+            null,
+            $adyenOrderPaymentHelper,
+            null,
+            null,
+            $this->createAdyenOrderPaymentCollection(1),
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $adyenCreditmemoHelper,
+            null,
+            $adyenCreditmemoRepositoryMock
+        );
+
+        $order = $this->createMock(MagentoOrder::class);
+        $order->expects($this->never())->method('canCreditmemo');
+        $order->expects($this->once())->method('addStatusHistoryComment');
+
+        $notification = $this->createWebhook('123-refund', '123-pspref');
+
+        $result = $orderHelper->refundOrder($order, $notification);
+
+        $this->assertSame($order, $result);
+    }
+
     public function testRefundOrderSkipsWhenOriginalReferenceIsMissing()
     {
         $adyenOrderPaymentHelper = $this->createMock(AdyenOrderPayment::class);

@@ -15,6 +15,7 @@ namespace Adyen\Payment\Observer;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Model\Method\Adapter;
+use Adyen\Payment\Model\Method\PaymentMethodVault;
 use Exception;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
@@ -83,7 +84,7 @@ class SetOrderStateAfterPaymentObserver implements ObserverInterface
     {
         $methodInstance = $payment->getMethodInstance();
 
-        if ($methodInstance instanceof Adapter) {
+        if ($methodInstance instanceof Adapter || $methodInstance instanceof PaymentMethodVault) {
             $order = $payment->getOrder();
             $resultCode = $payment->getAdditionalInformation('resultCode');
             $action = $payment->getAdditionalInformation('action');

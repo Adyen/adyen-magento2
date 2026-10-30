@@ -90,7 +90,7 @@ class AdyenDonationCampaigns implements AdyenDonationCampaignsInterface
 
             if (!empty($donationCampaignsResponse['donationCampaigns'])) {
                 $campaign = reset($donationCampaignsResponse['donationCampaigns']);
-                $this->donationsHelper->setDonationCampaignId($order, $campaign['id']);
+                $this->donationsHelper->setDonationCampaign($order, $campaign);
             }
 
             return json_encode($this->donationsHelper->formatCampaign($donationCampaignsResponse));

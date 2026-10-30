@@ -6,29 +6,28 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Adyen\Payment\Helper\Util\Uuid;
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote;
+use Magento\Quote\Model\ResourceModel\Quote\Payment as QuotePaymentResource;
 
 class ShopperConversionId extends AbstractHelper
 {
     const SHOPPER_CONVERSION_ID = 'shopper_conversion_id';
 
-    private CartRepositoryInterface $cartRepository;
+    private QuotePaymentResource $quotePaymentResource;
     private AdyenLogger $adyenLogger;
 
     /**
      * @param Context $context
-     * @param CartRepositoryInterface $cartRepository
+     * @param QuotePaymentResource $quotePaymentResource
      * @param AdyenLogger $adyenLogger
      */
     public function __construct(
         Context $context,
-        CartRepositoryInterface $cartRepository,
+        QuotePaymentResource $quotePaymentResource,
         AdyenLogger $adyenLogger
     ) {
         parent::__construct($context);
-        $this->cartRepository = $cartRepository;
+        $this->quotePaymentResource = $quotePaymentResource;
         $this->adyenLogger = $adyenLogger;
     }
 
@@ -37,10 +36,12 @@ class ShopperConversionId extends AbstractHelper
      *
      * @param Quote $quote
      * @return string|null
-     * @throws LocalizedException
      */
     public function getShopperConversionId(Quote $quote): ?string
     {
+        $payment = null;
+        $isGenerated = false;
+
         try {
             $payment = $quote->getPayment();
             $shopperConversionId = $payment->getAdditionalInformation(self::SHOPPER_CONVERSION_ID);
@@ -49,13 +50,21 @@ class ShopperConversionId extends AbstractHelper
                 return $shopperConversionId;
             }
 
+            if (!$quote->getId()) {
+                return null;
+            }
+
             $shopperConversionId = Uuid::generateV4();
             $payment->setAdditionalInformation(self::SHOPPER_CONVERSION_ID, $shopperConversionId);
-            $quote->setPayment($payment);
-            $this->cartRepository->save($quote);
+            $isGenerated = true;
+            $this->quotePaymentResource->save($payment);
 
             return $shopperConversionId;
-        } catch (\RuntimeException $e) {
+        } catch (\Exception $e) {
+            if ($isGenerated) {
+                $payment->unsAdditionalInformation(self::SHOPPER_CONVERSION_ID);
+            }
+
             $this->adyenLogger->error('Failed to generate shopperConversionId: ' . $e->getMessage());
             return null;
         }
