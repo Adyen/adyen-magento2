@@ -16,7 +16,7 @@ use Monolog\Level;
 
 class AdyenNotification extends Base
 {
-    protected $fileName = '/var/log/adyen/notification.log';
+    protected $fileName = '/var/log/adyen_notification.log';
     protected $loggerType = Level::Info;
     protected Level $level = Level::Info;
 }
