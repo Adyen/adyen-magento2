@@ -43,6 +43,7 @@ use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderSta
 use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Model\Service\OrderService;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 #[AllowMockObjectsWithoutExpectations]
 class OrderTest extends AbstractAdyenTestCase
@@ -157,6 +158,89 @@ class OrderTest extends AbstractAdyenTestCase
         $order->expects($this->never())->method('cancel');
         $order->expects($this->never())->method('hold');
         $orderHelper->holdCancelOrder($order, false);
+    }
+
+    public static function voidNotificationDataProvider(): array
+    {
+        return [
+            'open authorisation transaction' => [true, false, true],
+            'closed authorisation transaction' => [true, true, false],
+            'no authorisation transaction' => [false, false, false]
+        ];
+    }
+
+    #[DataProvider('voidNotificationDataProvider')]
+    public function testHoldCancelOrderCancelRegistersVoidNotification(
+        bool $hasAuthorisationTransaction,
+        bool $isAuthorisationTransactionClosed,
+        bool $shouldRegisterVoid
+    ) {
+        $configHelper = $this->createConfiguredMock(Config::class, [
+            'getConfigData' => 'payment_cancelled',
+            'getNotificationsCanCancel' => true
+        ]);
+
+        $orderHelper = $this->createOrderHelper(
+            $this->createOrderStatusCollection(MagentoOrder::STATE_PROCESSING),
+            $configHelper,
+        );
+
+        $authorisationTransaction = $hasAuthorisationTransaction
+            ? $this->createConfiguredMock(Transaction::class, ['getIsClosed' => $isAuthorisationTransactionClosed])
+            : false;
+
+        $paymentMock = $this->createMock(Payment::class);
+        $paymentMock->method('getAuthorizationTransaction')->willReturn($authorisationTransaction);
+        $paymentMock->expects($this->never())->method('canVoid');
+
+        $order = $this->createMock(MagentoOrder::class);
+        $order->method('getPayment')->willReturn($paymentMock);
+        $order->method('hasInvoices')->willReturn(false);
+        $order->method('canCancel')->willReturn(true);
+
+        $calls = [];
+        $paymentMock->expects($shouldRegisterVoid ? $this->once() : $this->never())
+            ->method('registerVoidNotification')
+            ->willReturnCallback(function () use (&$calls, $paymentMock) {
+                $calls[] = 'registerVoidNotification';
+                return $paymentMock;
+            });
+        $order->expects($this->once())
+            ->method('cancel')
+            ->willReturnCallback(function () use (&$calls, $order) {
+                $calls[] = 'cancel';
+                return $order;
+            });
+
+        $orderHelper->holdCancelOrder($order, true);
+
+        $this->assertSame($shouldRegisterVoid ? ['registerVoidNotification', 'cancel'] : ['cancel'], $calls);
+    }
+
+    public function testHoldCancelOrderHoldDoesNotRegisterVoidNotification()
+    {
+        $configHelper = $this->createConfiguredMock(Config::class, [
+            'getConfigData' => MagentoOrder::STATE_HOLDED,
+            'getNotificationsCanCancel' => true
+        ]);
+
+        $orderHelper = $this->createOrderHelper(
+            $this->createOrderStatusCollection(MagentoOrder::STATE_PROCESSING),
+            $configHelper,
+        );
+
+        $paymentMock = $this->createMock(Payment::class);
+        $paymentMock->method('getAuthorizationTransaction')
+            ->willReturn($this->createConfiguredMock(Transaction::class, ['getIsClosed' => false]));
+        $paymentMock->expects($this->never())->method('registerVoidNotification');
+
+        $order = $this->createMock(MagentoOrder::class);
+        $order->method('getPayment')->willReturn($paymentMock);
+        $order->method('hasInvoices')->willReturn(false);
+        $order->method('canHold')->willReturn(true);
+        $order->expects($this->once())->method('hold');
+
+        $orderHelper->holdCancelOrder($order, true);
     }
 
     public function testHoldCancelOrderNotConfigurableToCancel()

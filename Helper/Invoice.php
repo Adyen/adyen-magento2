@@ -15,6 +15,7 @@ use Adyen\Payment\Api\Data\InvoiceInterface;
 use Adyen\Payment\Api\Data\NotificationInterface;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Api\Repository\AdyenInvoiceRepositoryInterface;
+use Adyen\Payment\Api\Repository\AdyenOrderPaymentRepositoryInterface;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Invoice as AdyenInvoice;
 use Adyen\Payment\Model\InvoiceFactory;
@@ -57,6 +58,7 @@ class Invoice extends AbstractHelper
      * @param ChargedCurrency $chargedCurrencyHelper
      * @param OrderRepositoryInterface $orderRepository
      * @param AdyenInvoiceRepositoryInterface $adyenInvoiceRepository
+     * @param AdyenOrderPaymentRepositoryInterface $adyenOrderPaymentRepository
      */
     public function __construct(
         protected readonly Context $context,
@@ -70,7 +72,8 @@ class Invoice extends AbstractHelper
         protected readonly Transaction $transaction,
         protected readonly ChargedCurrency $chargedCurrencyHelper,
         protected readonly OrderRepositoryInterface $orderRepository,
-        protected readonly AdyenInvoiceRepositoryInterface $adyenInvoiceRepository
+        protected readonly AdyenInvoiceRepositoryInterface $adyenInvoiceRepository,
+        protected readonly AdyenOrderPaymentRepositoryInterface $adyenOrderPaymentRepository
     ) {
         parent::__construct($context);
     }
@@ -415,6 +418,17 @@ class Invoice extends AbstractHelper
             $notification->getAmountValue(),
             $invoice->getId()
         );
+
+        /*
+         * The invoice is paid before being saved, so InvoiceObserver doesn't link the adyen_invoice and doesn't
+         * update the captured amount of the adyen_order_payment. Update it here to reflect the capture correctly.
+         */
+        $adyenOrderPayment = $this->adyenOrderPaymentRepository->get((int) $adyenInvoice->getAdyenPaymentOrderId());
+        $adyenOrderPayment->setTotalCaptured(
+            (float) $adyenOrderPayment->getTotalCaptured() + (float) $adyenInvoice->getAmount()
+        );
+        $this->orderPaymentResourceModel->save($adyenOrderPayment);
+
         $this->adyenLogger->addAdyenInfoLog(sprintf(
             'Created new adyen_invoice linked to original reference %s, psp reference %s, and order %s.',
             $notification->getOriginalReference(),

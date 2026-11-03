@@ -41,6 +41,7 @@
                 <reliability_data_collection>0</reliability_data_collection>
                 <outside_checkout_data_collection>0</outside_checkout_data_collection>
                 <ignore_expire_webhook>1</ignore_expire_webhook>
+                <case_management_capture_delay>0</case_management_capture_delay>
             </adyen_abstract>
             <adyen_cc>
                 <active>0</active>

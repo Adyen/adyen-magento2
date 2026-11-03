@@ -404,6 +404,7 @@ class Order extends AbstractHelper
                 $order->setActionFlag(MagentoOrder::ACTION_FLAG_CANCEL, true);
 
                 if ($order->canCancel()) {
+                    $this->registerVoidNotificationIfNeeded($order);
                     $order->cancel();
                     $order->addCommentToStatusHistory('Order cancelled', $orderStatus ?? false);
                 } else {
@@ -426,6 +427,26 @@ class Order extends AbstractHelper
         }
 
         return $order;
+    }
+
+    /**
+     * The order is cancelled as a result of a webhook, meaning that the payment can no longer be captured on Adyen
+     * (e.g. cancelled, expired or refused). Void the payment to prevent sending redundant `/cancels` call to Adyen.
+     *
+     * The authorisation transaction is checked directly instead of `Payment::canVoid()`, since the latter caches
+     * the result and causes `Payment::cancel()` to void the payment online.
+     *
+     * @param MagentoOrder $order
+     * @return void
+     */
+    private function registerVoidNotificationIfNeeded(MagentoOrder $order): void
+    {
+        $payment = $order->getPayment();
+        $authorisationTransaction = $payment->getAuthorizationTransaction();
+
+        if ($authorisationTransaction && !$authorisationTransaction->getIsClosed()) {
+            $payment->registerVoidNotification();
+        }
     }
 
     public function addRefundFailedNotice(MagentoOrder $order, Notification $notification): Notification

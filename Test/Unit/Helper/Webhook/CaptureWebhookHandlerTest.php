@@ -53,7 +53,11 @@ class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
             $invoiceHelper = $this->createMockWithMethods(Invoice::class, ['handleCaptureWebhook'], []);
         }
         if ($adyenOrderPaymentHelper == null) {
-            $adyenOrderPaymentHelper = $this->createMockWithMethods(AdyenOrderPayment::class, ['refreshPaymentCaptureStatus'], []);
+            $adyenOrderPaymentHelper = $this->createMockWithMethods(
+                AdyenOrderPayment::class,
+                ['refreshPaymentCaptureStatus', 'isAutoCaptured'],
+                []
+            );
         }
         if ($adyenLogger == null) {
             $adyenLogger = $this->createGeneratedMock(AdyenLogger::class, ['addAdyenNotification', 'getInvoiceContext']);
@@ -167,6 +171,85 @@ class CaptureWebhookHandlerTest extends AbstractAdyenTestCase
 
         // Assert that the order is finalized
         $this->assertEqualsCanonicalizing($this->order, $result);
+    }
+
+    public function testHandleWebhookWithPersistedAutoCaptureStatus()
+    {
+        $notification = $this->createWebhook('original_reference', 'ABCD1234GHJK5678');
+
+        $adyenOrderPaymentHelperMock = $this->createMock(AdyenOrderPayment::class);
+        $adyenOrderPaymentHelperMock->expects($this->once())
+            ->method('isAutoCaptured')
+            ->with($this->order, 'original_reference')
+            ->willReturn(true);
+        $adyenOrderPaymentHelperMock->expects($this->never())->method('refreshPaymentCaptureStatus');
+
+        $paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
+        $paymentMethodsHelperMock->expects($this->never())->method('isAutoCapture');
+
+        $invoiceHelperMock = $this->createMock(Invoice::class);
+        $invoiceHelperMock->expects($this->never())->method('handleCaptureWebhook');
+
+        $this->captureWebhookHandler = $this->createCaptureWebhookHandler(
+            $invoiceHelperMock,
+            $adyenOrderPaymentHelperMock,
+            null,
+            null,
+            $paymentMethodsHelperMock
+        );
+
+        $result = $this->captureWebhookHandler->handleWebhook($this->order, $notification, 'paid');
+
+        $this->assertSame($this->order, $result);
+    }
+
+    /**
+     * The configured capture mode is auto capture, but the payment has been persisted as manual capture
+     * (e.g. capture delay enforced by case management). The capture webhook should finalize the order.
+     */
+    public function testHandleWebhookWithPersistedManualCaptureStatus()
+    {
+        $adyenOrderPaymentId = 123;
+        $adyenInvoice = $this->createConfiguredMock(
+            AdyenInvoice::class,
+            ['getAdyenPaymentOrderId' => $adyenOrderPaymentId, 'getInvoiceId' => 456]
+        );
+        $magentoInvoice = $this->createMock(MagentoOrder\Invoice::class);
+
+        $paymentMethodsHelperMock = $this->createMock(PaymentMethods::class);
+        $paymentMethodsHelperMock->method('isAutoCapture')->willReturn(true);
+
+        $invoiceHelperMock = $this->createMock(Invoice::class);
+        $invoiceHelperMock->expects($this->once())
+            ->method('handleCaptureWebhook')
+            ->willReturn([$adyenInvoice, $magentoInvoice, $this->order]);
+
+        $adyenOrderPaymentMock = $this->createMock(Payment::class);
+        $adyenOrderPaymentRepositoryMock = $this->createMock(AdyenOrderPaymentRepositoryInterface::class);
+        $adyenOrderPaymentRepositoryMock->method('get')->with($adyenOrderPaymentId)->willReturn($adyenOrderPaymentMock);
+
+        $adyenOrderPaymentHelperMock = $this->createMock(AdyenOrderPayment::class);
+        $adyenOrderPaymentHelperMock->method('isAutoCaptured')->willReturn(false);
+        $adyenOrderPaymentHelperMock->expects($this->once())->method('refreshPaymentCaptureStatus');
+
+        $orderHelperMock = $this->createMock(Order::class);
+        $orderHelperMock->expects($this->once())
+            ->method('finalizeOrder')
+            ->with($this->order, $this->notification)
+            ->willReturn($this->order);
+
+        $this->captureWebhookHandler = $this->createCaptureWebhookHandler(
+            $invoiceHelperMock,
+            $adyenOrderPaymentHelperMock,
+            null,
+            $orderHelperMock,
+            $paymentMethodsHelperMock,
+            $adyenOrderPaymentRepositoryMock
+        );
+
+        $result = $this->captureWebhookHandler->handleWebhook($this->order, $this->notification, 'paid');
+
+        $this->assertSame($this->order, $result);
     }
 
     public function testHandleWebhookTransitionNotPaid()

@@ -73,6 +73,7 @@ class Config
     const XML_ADYEN_ANALYTICS_PREFIX = "adyen_analytics";
     const XML_INSTALLATION_TIME = 'installation_time';
     const XML_PAYMENT_METHOD_TITLE_OVERRIDES = 'payment_method_title_overrides';
+    const XML_CASE_MANAGEMENT_CAPTURE_DELAY = 'case_management_capture_delay';
 
     /**
      * @param ScopeConfigInterface $scopeConfig
@@ -806,6 +807,22 @@ class Config
         } catch (\InvalidArgumentException $e) {
             return [];
         }
+    }
+
+    /**
+     * Returns true if the case management capture delay is enabled
+     *
+     * @param int|null $storeId
+     * @return bool
+     */
+    public function isCaseManagementCaptureDelayEnabled(?int $storeId = null): bool
+    {
+        return $this->getConfigData(
+            self::XML_CASE_MANAGEMENT_CAPTURE_DELAY,
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId,
+            true
+        );
     }
 
     public function getConfigData(string $field, string $xmlPrefix, ?int $storeId, bool $flag = false): mixed

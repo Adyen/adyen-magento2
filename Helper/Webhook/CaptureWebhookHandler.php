@@ -55,7 +55,14 @@ class CaptureWebhookHandler implements WebhookHandlerInterface
      */
     public function handleWebhook(MagentoOrder $order, Notification $notification, string $transitionState): MagentoOrder
     {
-        $isAutoCapture = $this->paymentMethodsHelper->isAutoCapture($order, $notification->getPaymentMethod());
+        /*
+         * Rely on the capture mode persisted while handling the AUTHORISATION webhook, as it might be different
+         * from the configured capture mode (e.g. capture delay enforced by case management).
+         */
+        $isAutoCapture = $this->adyenOrderPaymentHelper->isAutoCaptured(
+            $order,
+            (string) $notification->getOriginalReference()
+        ) ?? $this->paymentMethodsHelper->isAutoCapture($order, $notification->getPaymentMethod());
 
         if ($isAutoCapture || $transitionState !== PaymentStates::STATE_PAID) {
             $this->adyenLogger->addAdyenNotification(sprintf(

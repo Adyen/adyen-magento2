@@ -17,50 +17,57 @@
         <comment>
             <![CDATA[<p>Enter the <a href="https://docs.adyen.com/risk-management" target="_blank">risk rules</a> you're using in the Customer Area so we can identify orders that require review and help with fraud prevention.</p>]]>
         </comment>
-        <field id="send_additional_risk_data" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Send additional risk data</label>
-            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-            <config_path>payment/adyen_abstract/send_additional_risk_data</config_path>
-            <comment>
-                <![CDATA[
+        <group id="adyen_data_collection" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label><![CDATA[Data collection]]></label>
+            <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+            <field id="send_additional_risk_data" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Send additional risk data</label>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <config_path>payment/adyen_abstract/send_additional_risk_data</config_path>
+                <comment>
+                    <![CDATA[
                 If enabled additional risk data will be sent with every payment request. To learn more about risk management, refer to
                 <a target="_blank" href="https://docs.adyen.com/risk-management">Adyen documentation</a>.
                 ]]>
-            </comment>
-        </field>
-        <field id="outside_checkout_data_collection" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Collect data outside of the checkout</label>
-            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-            <config_path>payment/adyen_abstract/outside_checkout_data_collection</config_path>
-            <comment>
-                <![CDATA[
+                </comment>
+            </field>
+            <field id="outside_checkout_data_collection" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Collect data outside of the checkout</label>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <config_path>payment/adyen_abstract/outside_checkout_data_collection</config_path>
+                <comment>
+                    <![CDATA[
                 Additional data will be collected to detect fraud outside of the checkout page if enabled. To learn more about data collection to detect fraud, refer to
                 <a target="_blank" href="https://docs.adyen.com/risk-management/fraud-data-collection">Adyen documentation</a>.
                 ]]>
-            </comment>
-        </field>
-        <field id="fraud_manual_review_status" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Manual review status</label>
-            <tooltip>Select a specific status for orders that require manual intervention before fulfillment. This helps your team identify "held" orders in the Magento order grid. Leave as '— Please Select —' to use your default order status.</tooltip>
-            <source_model>Magento\Sales\Model\Config\Source\Order\Status\NewStatus</source_model>
-            <config_path>payment/adyen_abstract/fraud_manual_review_status</config_path>
+                </comment>
+            </field>
+        </group>
+        <group id="adyen_case_management" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label><![CDATA[Case management]]></label>
+            <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
             <comment>
-                <![CDATA[
-                Manual Review features require a Revenue Protect Premium subscription. Contact support@adyen.com for setup assistance. To learn more about Manual Review, refer to
-                <a target="_blank" href="https://docs.adyen.com/risk-management/case-management">Adyen documentation</a>.
-                ]]>
+                <![CDATA[<p>Manually review a transaction before it is captured, as a second layer of enforcement on top of risk rules. Refer to
+                <a target="_blank" href="https://docs.adyen.com/risk-management/case-management">Adyen documentation</a> to learn more and contact support@adyen.com for setup assistance.</p>]]>
             </comment>
-        </field>
-        <field id="fraud_manual_review_accept_status" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Manual review accepted status</label>
-            <tooltip>The status to be applied when an order is approved in the Adyen Customer Area. If you have already configured Adyen to automate the next step (e.g., capture) or don't need a specific status for accepted reviews, keep this as '— Please Select —'.</tooltip>
-            <source_model>Magento\Sales\Model\Config\Source\Order\Status\Processing</source_model>
-            <config_path>payment/adyen_abstract/fraud_manual_review_accept_status</config_path>
-            <comment>
-                <![CDATA[
-                Part of the Case Management premium feature set. See the field above for setup and documentation details.
-                ]]>
-            </comment>
-        </field>
+            <field id="fraud_manual_review_status" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Manual review status</label>
+                <tooltip>Select a specific status for orders that require manual intervention before fulfillment. This helps your team identify "held" orders in the Magento order grid. Leave as '— Please Select —' to use your default order status.</tooltip>
+                <source_model>Magento\Sales\Model\Config\Source\Order\Status\NewStatus</source_model>
+                <config_path>payment/adyen_abstract/fraud_manual_review_status</config_path>
+            </field>
+            <field id="fraud_manual_review_accept_status" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Manual review accepted status</label>
+                <tooltip>The status to be applied when an order is approved in the Adyen Customer Area. If you have already configured Adyen to automate the next step (e.g., capture) or don't need a specific status for accepted reviews, keep this as '— Please Select —'.</tooltip>
+                <source_model>Magento\Sales\Model\Config\Source\Order\Status\Processing</source_model>
+                <config_path>payment/adyen_abstract/fraud_manual_review_accept_status</config_path>
+            </field>
+            <field id="case_management_capture_delay" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Capture delay for case management</label>
+                <tooltip>Delays the capture of payments that require manual review until the review is accepted. Must match the Capture delay setting under Risk settings in your Customer Area.</tooltip>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <config_path>payment/adyen_abstract/case_management_capture_delay</config_path>
+            </field>
+        </group>
     </group>
 </include>

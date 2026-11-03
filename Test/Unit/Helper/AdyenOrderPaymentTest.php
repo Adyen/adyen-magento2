@@ -421,6 +421,48 @@ class AdyenOrderPaymentTest extends AbstractAdyenTestCase
         $this->assertFalse($adyenOrderPaymentHelper->isAllAutoCaptured($order));
     }
 
+    public static function isAutoCapturedProvider(): array
+    {
+        return [
+            'auto captured' => [
+                [OrderPaymentInterface::CAPTURE_STATUS => OrderPaymentInterface::CAPTURE_STATUS_AUTO_CAPTURE],
+                true
+            ],
+            'not captured' => [
+                [OrderPaymentInterface::CAPTURE_STATUS => OrderPaymentInterface::CAPTURE_STATUS_NO_CAPTURE],
+                false
+            ],
+            'manually captured' => [
+                [OrderPaymentInterface::CAPTURE_STATUS => OrderPaymentInterface::CAPTURE_STATUS_MANUAL_CAPTURE],
+                false
+            ],
+            'no adyen_order_payment' => [null, null]
+        ];
+    }
+
+    #[DataProvider('isAutoCapturedProvider')]
+    public function testIsAutoCaptured(?array $adyenOrderPayment, ?bool $expected)
+    {
+        $payment = $this->createConfiguredMock(Order\Payment::class, ['getEntityId' => 55]);
+        $order = $this->createConfiguredMock(Order::class, ['getPayment' => $payment]);
+
+        $mockOrderPaymentResourceModel = $this->createMock(Payment::class);
+        $mockOrderPaymentResourceModel->expects($this->once())
+            ->method('getOrderPaymentDetails')
+            ->with('PSP_REFERENCE', 55)
+            ->willReturn($adyenOrderPayment);
+
+        $adyenOrderPaymentHelper = $this->createAdyenOrderPaymentHelper(
+            null,
+            null,
+            null,
+            null,
+            $mockOrderPaymentResourceModel
+        );
+
+        $this->assertSame($expected, $adyenOrderPaymentHelper->isAutoCaptured($order, 'PSP_REFERENCE'));
+    }
+
     public function testRefundAdyenOrderPayment()
     {
         $payment = $this->createMock(\Adyen\Payment\Model\Order\Payment::class);
