@@ -114,7 +114,7 @@ class ChargedCurrency
                 $item->getBaseDiscountAmount() / $item->getQty(),
                 $item->getBaseTaxAmount() / $item->getQty(),
                 null,
-                $priceRenderer->getBaseTotalAmount($item)
+                $priceRenderer->getBaseTotalAmount($item) / $item->getQty()
             );
         }
 
@@ -124,7 +124,7 @@ class ChargedCurrency
             $item->getDiscountAmount() / $item->getQty(),
             $item->getTaxAmount() / $item->getQty(),
             null,
-            $priceRenderer->getTotalAmount($item)
+            $priceRenderer->getTotalAmount($item) / $item->getQty()
         );
     }
 
@@ -207,7 +207,7 @@ class ChargedCurrency
                 $item->getBaseDiscountAmount() / $item->getQty(),
                 $item->getBaseTaxAmount() / $item->getQty(),
                 null,
-                $priceRenderer->getBaseTotalAmount($item)
+                $priceRenderer->getBaseTotalAmount($item) / $item->getQty()
             );
         }
         return new AdyenAmountCurrency(
@@ -216,7 +216,7 @@ class ChargedCurrency
             $item->getDiscountAmount() / $item->getQty(),
             $item->getTaxAmount() / $item->getQty(),
             null,
-            $priceRenderer->getTotalAmount($item)
+            $priceRenderer->getTotalAmount($item) / $item->getQty()
         );
     }
 
