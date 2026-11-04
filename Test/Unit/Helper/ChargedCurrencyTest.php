@@ -52,6 +52,22 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
             ]
     ];
 
+    const MULTIPLE_QUANTITY_ROW = [
+        'qty' => 5,
+        'base' => [
+            'rowTotal' => 200.00,
+            'discountAmount' => 20.00,
+            'taxAmount' => 36.00,
+            'totalAmount' => 216.00
+        ],
+        'display' => [
+            'rowTotal' => 100.00,
+            'discountAmount' => 10.00,
+            'taxAmount' => 18.00,
+            'totalAmount' => 108.00
+        ]
+    ];
+
     /**
      * @var ChargedCurrency
      */
@@ -734,6 +750,127 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
         );
     }
 
+    /**
+     * @dataProvider multipleQuantityProvider
+     */
+    public function testGetInvoiceItemAmountCurrencyReturnsPerUnitAmountsForMultipleQuantities(
+        string $chargedCurrency,
+        string $currencyCode,
+        float $amount,
+        float $discountAmount,
+        float $taxAmount,
+        float $amountIncludingTax
+    ): void {
+        $this->order->method('getAdyenChargedCurrency')->willReturn($chargedCurrency);
+
+        $invoiceItem = $this->createMockWithMethods(
+            Order\Invoice\Item::class,
+            [
+                'getInvoice',
+                'getQty',
+                'getBaseRowTotal',
+                'getRowTotal',
+                'getBaseDiscountAmount',
+                'getDiscountAmount',
+                'getBaseTaxAmount',
+                'getTaxAmount'
+            ],
+            []
+        );
+        $this->mockMethods($invoiceItem, array_merge(
+            ['getInvoice' => $this->invoice],
+            $this->multipleQuantityRowMethods()
+        ));
+
+        $result = $this->createHelperWithRowTotalAmounts()->getInvoiceItemAmountCurrency($invoiceItem);
+
+        $this->assertSame($currencyCode, $result->getCurrencyCode());
+        $this->assertEqualsWithDelta($amount, $result->getAmount(), 0.0001);
+        $this->assertEqualsWithDelta($discountAmount, $result->getDiscountAmount(), 0.0001);
+        $this->assertEqualsWithDelta($taxAmount, $result->getTaxAmount(), 0.0001);
+        $this->assertEqualsWithDelta($amountIncludingTax, $result->getAmountIncludingTax(), 0.0001);
+    }
+
+    /**
+     * @dataProvider multipleQuantityProvider
+     */
+    public function testGetCreditMemoItemAmountCurrencyReturnsPerUnitAmountsForMultipleQuantities(
+        string $chargedCurrency,
+        string $currencyCode,
+        float $amount,
+        float $discountAmount,
+        float $taxAmount,
+        float $amountIncludingTax
+    ): void {
+        $this->order->method('getAdyenChargedCurrency')->willReturn($chargedCurrency);
+
+        $creditMemoItem = $this->createMockWithMethods(
+            Item::class,
+            [
+                'getCreditMemo',
+                'getQty',
+                'getBaseRowTotal',
+                'getRowTotal',
+                'getBaseDiscountAmount',
+                'getDiscountAmount',
+                'getBaseTaxAmount',
+                'getTaxAmount'
+            ],
+            []
+        );
+        $this->mockMethods($creditMemoItem, array_merge(
+            ['getCreditMemo' => $this->creditMemo],
+            $this->multipleQuantityRowMethods()
+        ));
+
+        $result = $this->createHelperWithRowTotalAmounts()->getCreditMemoItemAmountCurrency($creditMemoItem);
+
+        $this->assertSame($currencyCode, $result->getCurrencyCode());
+        $this->assertEqualsWithDelta($amount, $result->getAmount(), 0.0001);
+        $this->assertEqualsWithDelta($discountAmount, $result->getDiscountAmount(), 0.0001);
+        $this->assertEqualsWithDelta($taxAmount, $result->getTaxAmount(), 0.0001);
+        $this->assertEqualsWithDelta($amountIncludingTax, $result->getAmountIncludingTax(), 0.0001);
+    }
+
+    public static function multipleQuantityProvider(): array
+    {
+        return [
+            'base charged currency' => ['base', 'EUR', 40.0, 4.0, 7.2, 43.2],
+            'display charged currency' => ['display', 'USD', 20.0, 2.0, 3.6, 21.6],
+        ];
+    }
+
+    private function multipleQuantityRowMethods(): array
+    {
+        $row = self::MULTIPLE_QUANTITY_ROW;
+
+        return [
+            'getQty' => $row['qty'],
+            'getBaseRowTotal' => $row['base']['rowTotal'],
+            'getBaseDiscountAmount' => $row['base']['discountAmount'],
+            'getBaseTaxAmount' => $row['base']['taxAmount'],
+            'getRowTotal' => $row['display']['rowTotal'],
+            'getDiscountAmount' => $row['display']['discountAmount'],
+            'getTaxAmount' => $row['display']['taxAmount'],
+        ];
+    }
+
+    /**
+     * The tax price renderer returns row totals (all units combined), like Magento's Renderer does.
+     */
+    private function createHelperWithRowTotalAmounts(): ChargedCurrency
+    {
+        $row = self::MULTIPLE_QUANTITY_ROW;
+
+        $priceRenderer = $this->createMock(Renderer::class);
+        $priceRenderer->method('getBaseTotalAmount')->willReturn($row['base']['totalAmount']);
+        $priceRenderer->method('getTotalAmount')->willReturn($row['display']['totalAmount']);
+
+        $priceRendererFactory = $this->createGeneratedMock(RendererFactory::class, ['create']);
+        $priceRendererFactory->method('create')->willReturn($priceRenderer);
+
+        return new ChargedCurrency($this->configHelper, $priceRendererFactory);
+    }
     private function mockMethods(MockObject $object, $methods): void
     {
         foreach ($methods as $method => $return) {
