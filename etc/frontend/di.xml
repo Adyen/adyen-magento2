@@ -185,7 +185,7 @@
                 <item name="adyen_dana" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
                 <item name="adyen_paybybank_ais_dd" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
                 <item name="adyen_payto" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
-                <item name="adyen_revolutpay" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
+                <item name="adyen_revolutpay" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
             </argument>
         </arguments>
     </type>
