@@ -122,6 +122,7 @@
                     <item name="adyen_payto" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
                     <item name="adyen_iris" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
                     <item name="adyen_wero" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
+                    <item name="adyen_revolutpay" xsi:type="string">Adyen_Payment::form/multishipping/abstract-form.phtml</item>
                 </argument>
                 <argument name="cacheable" xsi:type="boolean">false</argument>
             </arguments>

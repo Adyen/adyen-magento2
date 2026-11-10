@@ -133,6 +133,7 @@
                 <item name="adyen_payto" xsi:type="string">payto</item>
                 <item name="adyen_iris" xsi:type="string">iris</item>
                 <item name="adyen_wero" xsi:type="string">wero</item>
+                <item name="adyen_revolutpay" xsi:type="string">revolutpay</item>
             </argument>
             <argument name="customMethodRenderers" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method</item>
@@ -184,6 +185,7 @@
                 <item name="adyen_dana" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
                 <item name="adyen_paybybank_ais_dd" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
                 <item name="adyen_payto" xsi:type="object">Adyen\Payment\Model\Ui\PaymentMethodTokenUiComponentProvider</item>
+                <item name="adyen_revolutpay" xsi:type="object">Adyen\Payment\Model\Ui\CardTokenUiComponentProvider</item>
             </argument>
         </arguments>
     </type>
