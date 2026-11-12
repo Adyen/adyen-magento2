@@ -52,7 +52,7 @@
             <backend_model>Adyen\Payment\Model\Config\Backend\BnplDisclaimer</backend_model>
             <config_path>payment/adyen_abstract/bnpl_disclaimer</config_path>
             <comment>
-                <![CDATA[Required to comply with the EU Consumer Credit Directive (CCD2). To learn more about the requirement, refer to <a href="https://docs.adyen.com/payment-methods/bnpl-eu-regulations" target="_blank">Adyen documentation</a>.]]>
+                <![CDATA[A disclaimer message for BNPL payment methods is required to comply with the EU Consumer Credit Directive (CCD2). To learn more, see the <a href="https://docs.adyen.com/payment-methods/bnpl-eu-regulations" target="_blank" rel="noopener noreferrer">Adyen documentation</a>.]]>
             </comment>
         </field>
         <field id="delivery_days" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
