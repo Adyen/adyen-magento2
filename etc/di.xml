@@ -828,6 +828,7 @@
                 <item name="adyen_trustly" xsi:type="string">AdyenPaymentCommandManager</item>
                 <item name="adyen_twint" xsi:type="string">AdyenPaymentCommandManager</item>
                 <item name="adyen_zip" xsi:type="string">AdyenPaymentCommandManager</item>
+                <item name="adyen_revolutpay" xsi:type="string">AdyenPaymentCommandManager</item>
             </argument>
         </arguments>
     </type>
@@ -4909,6 +4910,58 @@
     <virtualType name="AdyenPaymentWeroConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
             <argument name="methodCode" xsi:type="string">adyen_wero</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentRevolutpayFacade" type="Adyen\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="string">adyen_revolutpay</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\PaymentMethodInfo</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentRevolutpayValueHandlerPool</argument>
+            <argument name="validatorPool" xsi:type="object">AdyenPaymentValidatorPool</argument>
+            <argument name="commandPool" xsi:type="object">AdyenPaymentCommandPool</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentRevolutpayValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AdyenPaymentRevolutpayConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentRevolutpayConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AdyenPaymentRevolutpayConfig</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentRevolutpayConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="string">adyen_revolutpay</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentRevolutpayVaultFacade" type="Adyen\Payment\Model\Method\PaymentMethodVault">
+        <arguments>
+            <argument name="code" xsi:type="string">adyen_revolutpay_vault</argument>
+            <argument name="config" xsi:type="object">AdyenPaymentRevolutpayVaultConfig</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentRevolutpayVaultValueHandlerPool</argument>
+            <argument name="vaultProvider" xsi:type="object">AdyenPaymentRevolutpayFacade</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentRevolutpayVaultValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AdyenPaymentRevolutpayVaultConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentRevolutpayVaultConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AdyenPaymentRevolutpayVaultConfig</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentRevolutpayVaultConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="string">adyen_revolutpay_vault</argument>
         </arguments>
     </virtualType>
 </config>
