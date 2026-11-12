@@ -53,6 +53,9 @@ define(
             },
             getVirtualQuoteConnectedTerminals: function () {
                 return window.checkoutConfig.payment.adyen.virtualQuote.connectedTerminals;
+            },
+            getOpenInvoicePaymentMethods: function () {
+                return window.checkoutConfig.payment.adyenPm.openInvoicePaymentMethods;
             }
         };
     },

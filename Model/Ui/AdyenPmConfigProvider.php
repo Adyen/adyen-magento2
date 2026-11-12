@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Model\Ui;
 
 use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\PaymentMethods;
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\RequestInterface;
@@ -23,17 +24,20 @@ class AdyenPmConfigProvider implements ConfigProviderInterface
     protected RequestInterface $request;
     protected Session $session;
     protected StoreManagerInterface $storeManager;
+    protected PaymentMethods $paymentMethodsHelper;
 
     public function __construct(
         RequestInterface $request,
         Session $session,
         StoreManagerInterface $storeManager,
-        Config $configHelper
+        Config $configHelper,
+        PaymentMethods $paymentMethodsHelper
     ) {
         $this->request = $request;
         $this->session = $session;
         $this->storeManager = $storeManager;
         $this->configHelper = $configHelper;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
 
     public function getConfig(): array
@@ -45,6 +49,7 @@ class AdyenPmConfigProvider implements ConfigProviderInterface
                 'adyenPm' => [
                     'ratePayId' => $this->configHelper->getRatePayId($storeId),
                     'bnplDisclaimer' => $this->configHelper->getBnplDisclaimer($storeId),
+                    'openInvoicePaymentMethods' => $this->paymentMethodsHelper->getOpenInvoicePaymentMethods(),
                     'deviceIdentToken' =>  hash("sha256", $this->session->getQuoteId() . date('c'))
                 ]
             ]
