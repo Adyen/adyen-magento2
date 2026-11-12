@@ -44,6 +44,7 @@ class AdyenPmConfigProvider implements ConfigProviderInterface
             'payment' => [
                 'adyenPm' => [
                     'ratePayId' => $this->configHelper->getRatePayId($storeId),
+                    'bnplDisclaimer' => $this->configHelper->getBnplDisclaimer($storeId),
                     'deviceIdentToken' =>  hash("sha256", $this->session->getQuoteId() . date('c'))
                 ]
             ]
