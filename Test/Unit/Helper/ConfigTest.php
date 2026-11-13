@@ -21,6 +21,7 @@ use Magento\Payment\Model\MethodInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 #[AllowMockObjectsWithoutExpectations]
 class ConfigTest extends AbstractAdyenTestCase
@@ -479,5 +480,33 @@ class ConfigTest extends AbstractAdyenTestCase
             ->willReturn('just a string');
 
         $this->assertSame([], $this->configHelper->getPaymentMethodTitleOverrides(1));
+    }
+
+    public function testGetBnplDisclaimerReturnsTrimmedValue(): void
+    {
+        $storeId = 1;
+
+        $this->scopeConfigMock->expects($this->once())
+            ->method('getValue')
+            ->with('payment/adyen_abstract/bnpl_disclaimer', ScopeInterface::SCOPE_STORE, $storeId)
+            ->willReturn("  Read the [terms](https://www.example.com/terms).\n");
+
+        $this->assertSame(
+            'Read the [terms](https://www.example.com/terms).',
+            $this->configHelper->getBnplDisclaimer($storeId)
+        );
+    }
+
+    #[DataProvider('emptyBnplDisclaimerProvider')]
+    public function testGetBnplDisclaimerReturnsNullWhenEmpty(?string $value): void
+    {
+        $this->scopeConfigMock->method('getValue')->willReturn($value);
+
+        $this->assertNull($this->configHelper->getBnplDisclaimer(1));
+    }
+
+    public static function emptyBnplDisclaimerProvider(): array
+    {
+        return [[null], [''], ['   ']];
     }
 }
