@@ -57,10 +57,13 @@ class CaptureWebhookHandler implements WebhookHandlerInterface
     {
         $isAutoCapture = $this->paymentMethodsHelper->isAutoCapture($order, $notification->getPaymentMethod());
 
-        if ($isAutoCapture || $transitionState !== PaymentStates::STATE_PAID) {
+        $isSuccessful = $notification->isSuccessful();
+
+        if (!$isSuccessful || $isAutoCapture || $transitionState !== PaymentStates::STATE_PAID) {
             $this->adyenLogger->addAdyenNotification(sprintf(
-                'Capture webhook for order %s was not handled due to AutoCapture: %b, OR TransitionState: %s',
+                'Capture webhook for order %s was not handled due to Success: %b, AutoCapture: %b, TransitionState: %s',
                 $order->getIncrementId(),
+                $isSuccessful,
                 $isAutoCapture,
                 $transitionState
             ),
