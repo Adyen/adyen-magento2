@@ -7,8 +7,10 @@ use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\OrderStatusHistory;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Test\Unit\AbstractAdyenTestCase;
+use Magento\Framework\Escaper;
 use Magento\Sales\Model\Order;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class OrderStatusHistoryTest extends AbstractAdyenTestCase
 {
@@ -23,7 +25,8 @@ class OrderStatusHistoryTest extends AbstractAdyenTestCase
 
         $this->orderStatusHistory = new OrderStatusHistory(
             $this->chargedCurrencyMock,
-            $this->adyenHelperMock
+            $this->adyenHelperMock,
+            new Escaper()
         );
     }
 
@@ -90,5 +93,72 @@ class OrderStatusHistoryTest extends AbstractAdyenTestCase
         $this->assertStringContainsString('Reason', $result);
         $this->assertStringContainsString('Reservation number', $result);
         $this->assertStringContainsString('Amount', $result);
+    }
+
+    public static function apiResponseFieldDataProvider(): array
+    {
+        $payload = '<img src=x onerror=alert(1)>';
+
+        return [
+            'resultCode' => [['resultCode' => $payload]],
+            'status' => [['status' => $payload]],
+            'pspReference' => [['pspReference' => $payload]],
+            'paymentPspReference' => [['paymentPspReference' => $payload]],
+            'paymentMethod.brand' => [['paymentMethod' => ['brand' => $payload]]],
+            'paymentMethod.type' => [['paymentMethod' => ['type' => $payload]]],
+            'refusalReason' => [['refusalReason' => $payload]],
+            'errorCode' => [['errorCode' => $payload]],
+        ];
+    }
+
+    #[DataProvider('apiResponseFieldDataProvider')]
+    public function testBuildApiResponseCommentEscapesResponseValues(array $response): void
+    {
+        $result = $this->orderStatusHistory->buildApiResponseComment(
+            $response,
+            'Adyen initiate /payments',
+            '/payments'
+        );
+
+        $this->assertStringNotContainsString('<img', $result);
+        $this->assertStringContainsString('&lt;img src=x onerror=alert(1)&gt;', $result);
+        $this->assertStringStartsWith('<strong>Adyen initiate /payments</strong><br />', $result);
+        $this->assertStringEndsWith('<br />', $result);
+    }
+
+    public function testBuildWebhookCommentEscapesNotificationValues(): void
+    {
+        $payload = '<img src=x onerror=alert(1)>';
+
+        $webhook = $this->createConfiguredMock(Notification::class, [
+            'getEventCode' => '<script>x</script>',
+            'getPspreference' => $payload,
+            'getOriginalReference' => $payload,
+            'getPaymentMethod' => $payload,
+            'getSuccess' => 'true',
+            'isSuccessful' => true,
+            'getReason' => $payload . '"\'&',
+            'getFormattedAmountCurrency' => $payload
+        ]);
+
+        $result = $this->orderStatusHistory->buildWebhookComment(
+            $this->createMock(Order::class),
+            $webhook,
+            $payload
+        );
+
+        $this->assertStringNotContainsString('<img', $result);
+        $this->assertStringNotContainsStringIgnoringCase('<script', $result);
+        $this->assertStringStartsWith(
+            '<strong>Adyen &lt;SCRIPT&gt;X&lt;/SCRIPT&gt; webhook</strong><br />',
+            $result
+        );
+        $this->assertSame(
+            6,
+            substr_count($result, '&lt;img src=x onerror=alert(1)&gt;'),
+            'PSP reference, original reference, payment method, amount, reason and reservation number must be escaped'
+        );
+        $this->assertStringContainsString('&quot;&#039;&amp;', $result);
+        $this->assertStringContainsString('Event status: Successful<br />', $result);
     }
 }
