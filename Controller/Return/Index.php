@@ -16,6 +16,7 @@ use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Helper\PaymentsDetails;
 use Adyen\Payment\Helper\Quote;
 use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\Util\DataArrayValidator;
 use Adyen\Payment\Logger\AdyenLogger;
 use Exception;
 use Magento\Checkout\Model\Session;
@@ -35,6 +36,7 @@ class Index extends Action
         'MD',
         'PaReq',
         'PaRes',
+        'authorization_token',
         'billingToken',
         'cupsecureplus.smscode',
         'facilitatorAccessToken',
@@ -45,9 +47,12 @@ class Index extends Action
         'paymentID',
         'paymentStatus',
         'redirectResult',
+        'resultCode',
+        'returnUrlQueryString',
         'threeDSResult',
         'threeds2.challengeResult',
-        'threeds2.fingerprint'
+        'threeds2.fingerprint',
+        'vaultToken'
     ];
 
     private ?OrderInterface $order = null;
@@ -151,7 +156,10 @@ class Index extends Action
 
         try {
             // Make paymentsDetails call to validate the payment
-            $request["details"] = $redirectResponse;
+            $request["details"] = DataArrayValidator::getArrayOnlyWithApprovedKeys(
+                $redirectResponse,
+                self::DETAILS_ALLOWED_PARAM_KEYS
+            );
             $paymentsDetailsResponse = $this->paymentsDetailsHelper->initiatePaymentDetails($order, $request);
         } catch (Exception $e) {
             $paymentsDetailsResponse['error'] = $e->getMessage();
