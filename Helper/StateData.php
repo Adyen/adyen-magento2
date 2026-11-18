@@ -12,6 +12,8 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\AdyenException;
+use Adyen\Payment\Api\AdyenPaymentMethodsBalanceInterface;
 use Adyen\Payment\Helper\Util\CheckoutStateDataValidator;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\ResourceModel\StateData as StateDataResourceModel;
@@ -21,6 +23,7 @@ use Adyen\Payment\Model\StateDataFactory;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Quote\Api\CartRepositoryInterface;
 
 class StateData
 {
@@ -33,6 +36,9 @@ class StateData
     private StateDataResourceModel $stateDataResourceModel;
     private CheckoutStateDataValidator $checkoutStateDataValidator;
     private AdyenLogger $adyenLogger;
+    private AdyenPaymentMethodsBalanceInterface $paymentMethodsBalance;
+    private CartRepositoryInterface $quoteRepository;
+    private Data $adyenHelper;
 
     /**
      * Temporary (per request) storage of state data
@@ -44,13 +50,19 @@ class StateData
         StateDataFactory $stateDataFactory,
         StateDataResourceModel $stateDataResourceModel,
         CheckoutStateDataValidator $checkoutStateDataValidator,
-        AdyenLogger $adyenLogger
+        AdyenLogger $adyenLogger,
+        AdyenPaymentMethodsBalanceInterface $paymentMethodsBalance,
+        CartRepositoryInterface $quoteRepository,
+        Data $adyenHelper
     ) {
         $this->stateDataCollection = $stateDataCollection;
         $this->stateDataFactory = $stateDataFactory;
         $this->stateDataResourceModel = $stateDataResourceModel;
         $this->checkoutStateDataValidator = $checkoutStateDataValidator;
         $this->adyenLogger = $adyenLogger;
+        $this->paymentMethodsBalance = $paymentMethodsBalance;
+        $this->quoteRepository = $quoteRepository;
+        $this->adyenHelper = $adyenHelper;
     }
 
     public function cleanQuoteStateData(int $quoteId, string $resultCode): void
@@ -117,13 +129,57 @@ class StateData
             throw new LocalizedException(__('State data call failed because the request was not a valid JSON'));
         }
 
-        $stateData = json_encode($this->checkoutStateDataValidator->getValidatedAdditionalData($stateData));
+        $stateData = $this->checkoutStateDataValidator->getValidatedAdditionalData($stateData);
+
+        if (($stateData['paymentMethod']['type'] ?? null) === 'giftcard') {
+            $giftcard = is_array($stateData['giftcard'] ?? null) ? $stateData['giftcard'] : [];
+            $giftcard['balance'] = $this->getGiftcardBalance($stateData['paymentMethod'], $quoteId);
+            $stateData['giftcard'] = $giftcard;
+        }
+
+        $stateData = json_encode($stateData);
 
         $stateDataObj = $this->stateDataFactory->create();
         $stateDataObj->setQuoteId($quoteId)->setStateData((string)$stateData);
         $this->stateDataResourceModel->save($stateDataObj);
 
         return $stateDataObj;
+    }
+
+    /**
+     * Returns the consumable gift card balance from a server side balance check
+     *
+     * @throws LocalizedException
+     */
+    private function getGiftcardBalance(array $paymentMethod, int $quoteId): array
+    {
+        $quote = $this->quoteRepository->get($quoteId);
+        $currency = $quote->getQuoteCurrencyCode();
+
+        try {
+            $response = json_decode($this->paymentMethodsBalance->getBalance(json_encode([
+                'paymentMethod' => $paymentMethod,
+                'amount' => [
+                    'currency' => $currency,
+                    'value' => $this->adyenHelper->formatAmount($quote->getGrandTotal(), $currency)
+                ]
+            ])), true);
+        } catch (AdyenException $e) {
+            throw new LocalizedException(__('The gift card balance could not be verified.'), $e);
+        }
+
+        $balance = $response['balance'] ?? null;
+        $transactionLimit = $response['transactionLimit'] ?? null;
+
+        if (!empty($transactionLimit['value']) && $transactionLimit['value'] <= ($balance['value'] ?? 0)) {
+            $balance = $transactionLimit;
+        }
+
+        if (!isset($balance['value']) || !is_numeric($balance['value']) || $balance['value'] <= 0) {
+            throw new LocalizedException(__('The gift card has no available balance.'));
+        }
+
+        return $balance;
     }
 
     /**
