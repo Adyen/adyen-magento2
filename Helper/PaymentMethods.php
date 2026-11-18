@@ -1025,6 +1025,23 @@ class PaymentMethods extends AbstractHelper
     }
 
     /**
+     * Returns the codes of the Adyen payment methods flagged with the `is_open_invoice` configuration field.
+     *
+     * @return string[]
+     */
+    public function getOpenInvoicePaymentMethods(): array
+    {
+        $openInvoicePaymentMethods = array_filter(
+            $this->dataHelper->getPaymentMethods(),
+            fn ($config, $code): bool => str_starts_with((string) $code, self::ADYEN_PREFIX)
+                && !empty($config[self::CONFIG_FIELD_IS_OPEN_INVOICE]),
+            ARRAY_FILTER_USE_BOTH
+        );
+
+        return array_keys($openInvoicePaymentMethods);
+    }
+
+    /**
      * Checks the requirement of line items for the given payment method
      *
      * @param MethodInterface $paymentMethodInstance

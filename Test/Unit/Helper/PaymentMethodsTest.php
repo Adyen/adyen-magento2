@@ -297,6 +297,19 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $this->assertEquals(['adyen_cc', 'adyen_ideal'], $result);
     }
 
+    public function testGetOpenInvoicePaymentMethods(): void
+    {
+        $this->magentoDataHelper->method('getPaymentMethods')->willReturn([
+            'adyen_klarna' => [PaymentMethods::CONFIG_FIELD_IS_OPEN_INVOICE => '1'],
+            'adyen_ideal' => [PaymentMethods::CONFIG_FIELD_IS_OPEN_INVOICE => '0'],
+            'adyen_cc' => ['active' => '1'],
+            'adyen_riverty' => [PaymentMethods::CONFIG_FIELD_IS_OPEN_INVOICE => '1'],
+            'other_invoice' => [PaymentMethods::CONFIG_FIELD_IS_OPEN_INVOICE => '1']
+        ]);
+
+        $this->assertSame(['adyen_klarna', 'adyen_riverty'], $this->helper->getOpenInvoicePaymentMethods());
+    }
+
     public function testBuildPaymentMethodIconFallbackToExternal(): void
     {
         $asset = $this->createMock(LocalInterface::class); // instead of AssetInterface

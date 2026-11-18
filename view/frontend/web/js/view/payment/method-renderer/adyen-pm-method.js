@@ -22,6 +22,7 @@ define(
         'Adyen_Payment/js/model/adyen-payment-modal',
         'Adyen_Payment/js/model/adyen-checkout',
         'Adyen_Payment/js/model/payment-component-states',
+        'Adyen_Payment/js/helper/disclaimerHelper',
     ],
     function(
         ko,
@@ -36,7 +37,8 @@ define(
         adyenConfiguration,
         adyenPaymentModal,
         adyenCheckout,
-        paymentComponentStates
+        paymentComponentStates,
+        disclaimerHelper
     ) {
         'use strict';
 
@@ -260,6 +262,16 @@ define(
                         onSubmit: this.handleOnSubmit.bind(this),
                         onError: this.handleOnError.bind(this)
                     });
+
+                if (adyenConfiguration.getOpenInvoicePaymentMethods().includes(self.getMethodCode())) {
+                    const disclaimerMessage = disclaimerHelper.buildDisclaimerMessage(
+                        adyenConfiguration.getBnplDisclaimer()
+                    );
+
+                    if (disclaimerMessage) {
+                        configuration.disclaimerMessage = disclaimerMessage;
+                    }
+                }
 
                 return configuration;
             },

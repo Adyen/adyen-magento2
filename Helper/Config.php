@@ -73,6 +73,7 @@ class Config
     const XML_ADYEN_ANALYTICS_PREFIX = "adyen_analytics";
     const XML_INSTALLATION_TIME = 'installation_time';
     const XML_PAYMENT_METHOD_TITLE_OVERRIDES = 'payment_method_title_overrides';
+    const XML_BNPL_DISCLAIMER = 'bnpl_disclaimer';
 
     /**
      * @param ScopeConfigInterface $scopeConfig
@@ -806,6 +807,23 @@ class Config
         } catch (\InvalidArgumentException $e) {
             return [];
         }
+    }
+
+    /**
+     * Returns the BNPL disclaimer message (plain text with Markdown links) or null if not configured.
+     *
+     * @param int|null $storeId
+     * @return string|null
+     */
+    public function getBnplDisclaimer(?int $storeId = null): ?string
+    {
+        $disclaimer = trim((string) $this->getConfigData(
+            self::XML_BNPL_DISCLAIMER,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId
+        ));
+
+        return $disclaimer === '' ? null : $disclaimer;
     }
 
     public function getConfigData(string $field, string $xmlPrefix, ?int $storeId, bool $flag = false): mixed

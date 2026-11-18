@@ -46,6 +46,15 @@
             <tooltip>This will override the default shopper locale of the Magento store (e.g. nl_NL). Leave empty to let Magento decide.</tooltip>
             <config_path>payment/adyen_hpp/shopper_locale</config_path>
         </field>
+        <field id="bnpl_disclaimer" translate="label tooltip comment" type="textarea" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>BNPL disclaimer message</label>
+            <tooltip>This message is mandatory for BNPL payment methods offered in the EU. Links can be provided in Markdown format, e.g. [Terms and conditions](https://www.example.com/terms).</tooltip>
+            <backend_model>Adyen\Payment\Model\Config\Backend\BnplDisclaimer</backend_model>
+            <config_path>payment/adyen_abstract/bnpl_disclaimer</config_path>
+            <comment>
+                <![CDATA[A disclaimer message for BNPL payment methods is required to comply with the EU Consumer Credit Directive (CCD2). To learn more, see the <a href="https://docs.adyen.com/payment-methods/bnpl-eu-regulations" target="_blank" rel="noopener noreferrer">Adyen documentation</a>.]]>
+            </comment>
+        </field>
         <field id="delivery_days" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>Boleto Days for Delivery</label>
             <tooltip>How many days to be added to the current date for delivery. Only numbers allowed.</tooltip>
