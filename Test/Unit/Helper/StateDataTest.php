@@ -12,8 +12,10 @@
 namespace Adyen\Payment\Test\Unit\Helper;
 
 use Adyen\AdyenException;
-use Adyen\Payment\Api\AdyenPaymentMethodsBalanceInterface;
+use Adyen\Model\Checkout\BalanceCheckResponse;
+use Adyen\Model\Checkout\ObjectSerializer;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\OrdersApi;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Helper\Util\CheckoutStateDataValidator;
 use Adyen\Payment\Logger\AdyenLogger;
@@ -39,7 +41,7 @@ class StateDataTest extends AbstractAdyenTestCase
     private StateDataResourceModel|MockObject $stateDataResourceModelMock;
     private CheckoutStateDataValidator|MockObject $checkoutStateDataValidatorMock;
     private AdyenLogger|MockObject $adyenLoggerMock;
-    private AdyenPaymentMethodsBalanceInterface|MockObject $paymentMethodsBalanceMock;
+    private OrdersApi|MockObject $ordersApiHelperMock;
     private CartRepositoryInterface|MockObject $quoteRepositoryMock;
     private Data|MockObject $adyenHelperMock;
     private \Adyen\Payment\Model\StateData|MockObject $stateDataMock;
@@ -50,7 +52,7 @@ class StateDataTest extends AbstractAdyenTestCase
         $this->stateDataResourceModelMock = $this->createMock(StateDataResourceModel::class);
         $this->checkoutStateDataValidatorMock = $this->createMock(CheckoutStateDataValidator::class);
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
-        $this->paymentMethodsBalanceMock = $this->createMock(AdyenPaymentMethodsBalanceInterface::class);
+        $this->ordersApiHelperMock = $this->createMock(OrdersApi::class);
         $this->quoteRepositoryMock = $this->createMock(CartRepositoryInterface::class);
         $this->adyenHelperMock = $this->createMock(Data::class);
 
@@ -66,7 +68,7 @@ class StateDataTest extends AbstractAdyenTestCase
             $this->stateDataResourceModelMock,
             $this->checkoutStateDataValidatorMock,
             $this->adyenLoggerMock,
-            $this->paymentMethodsBalanceMock,
+            $this->ordersApiHelperMock,
             $this->quoteRepositoryMock,
             $this->adyenHelperMock
         );
@@ -97,13 +99,13 @@ class StateDataTest extends AbstractAdyenTestCase
         $quoteId = 1;
         $this->setupGiftcardBalanceCheck($quoteId);
 
-        $this->paymentMethodsBalanceMock->expects($this->once())
-            ->method('getBalance')
-            ->with(json_encode([
+        $this->ordersApiHelperMock->expects($this->once())
+            ->method('getGiftcardBalance')
+            ->with([
                 'paymentMethod' => $stateData['paymentMethod'],
                 'amount' => ['currency' => 'EUR', 'value' => 6000]
-            ]))
-            ->willReturn($balanceResponse);
+            ], 2)
+            ->willReturn(ObjectSerializer::deserialize($balanceResponse, BalanceCheckResponse::class));
 
         $this->stateDataMock->expects($this->once())
             ->method('setStateData')
@@ -170,7 +172,7 @@ class StateDataTest extends AbstractAdyenTestCase
         ];
 
         $this->checkoutStateDataValidatorMock->method('getValidatedAdditionalData')->willReturnArgument(0);
-        $this->paymentMethodsBalanceMock->expects($this->never())->method('getBalance');
+        $this->ordersApiHelperMock->expects($this->never())->method('getGiftcardBalance');
         $this->stateDataMock->expects($this->once())
             ->method('setStateData')
             ->with(json_encode($stateData))
@@ -187,10 +189,11 @@ class StateDataTest extends AbstractAdyenTestCase
         $this->setupGiftcardBalanceCheck($quoteId);
 
         if (is_null($balanceResponse)) {
-            $this->paymentMethodsBalanceMock->method('getBalance')
+            $this->ordersApiHelperMock->method('getGiftcardBalance')
                 ->willThrowException(new AdyenException('Balance check failed'));
         } else {
-            $this->paymentMethodsBalanceMock->method('getBalance')->willReturn($balanceResponse);
+            $this->ordersApiHelperMock->method('getGiftcardBalance')
+                ->willReturn(ObjectSerializer::deserialize($balanceResponse, BalanceCheckResponse::class));
         }
 
         $this->stateDataResourceModelMock->expects($this->never())->method('save');
@@ -215,9 +218,14 @@ class StateDataTest extends AbstractAdyenTestCase
     {
         $this->checkoutStateDataValidatorMock->method('getValidatedAdditionalData')->willReturnArgument(0);
 
-        $quoteMock = $this->createMockWithMethods(Quote::class, [], ['getGrandTotal', 'getQuoteCurrencyCode']);
+        $quoteMock = $this->createMockWithMethods(
+            Quote::class,
+            ['getStoreId'],
+            ['getGrandTotal', 'getQuoteCurrencyCode']
+        );
         $quoteMock->method('getGrandTotal')->willReturn(60.00);
         $quoteMock->method('getQuoteCurrencyCode')->willReturn('EUR');
+        $quoteMock->method('getStoreId')->willReturn(2);
         $this->quoteRepositoryMock->method('get')->with($quoteId)->willReturn($quoteMock);
         $this->adyenHelperMock->method('formatAmount')->with(60.00, 'EUR')->willReturn(6000);
     }

@@ -13,7 +13,6 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
-use Adyen\Payment\Api\AdyenPaymentMethodsBalanceInterface;
 use Adyen\Payment\Helper\Util\CheckoutStateDataValidator;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\ResourceModel\StateData as StateDataResourceModel;
@@ -36,7 +35,7 @@ class StateData
     private StateDataResourceModel $stateDataResourceModel;
     private CheckoutStateDataValidator $checkoutStateDataValidator;
     private AdyenLogger $adyenLogger;
-    private AdyenPaymentMethodsBalanceInterface $paymentMethodsBalance;
+    private OrdersApi $ordersApiHelper;
     private CartRepositoryInterface $quoteRepository;
     private Data $adyenHelper;
 
@@ -51,7 +50,7 @@ class StateData
         StateDataResourceModel $stateDataResourceModel,
         CheckoutStateDataValidator $checkoutStateDataValidator,
         AdyenLogger $adyenLogger,
-        AdyenPaymentMethodsBalanceInterface $paymentMethodsBalance,
+        OrdersApi $ordersApiHelper,
         CartRepositoryInterface $quoteRepository,
         Data $adyenHelper
     ) {
@@ -60,7 +59,7 @@ class StateData
         $this->stateDataResourceModel = $stateDataResourceModel;
         $this->checkoutStateDataValidator = $checkoutStateDataValidator;
         $this->adyenLogger = $adyenLogger;
-        $this->paymentMethodsBalance = $paymentMethodsBalance;
+        $this->ordersApiHelper = $ordersApiHelper;
         $this->quoteRepository = $quoteRepository;
         $this->adyenHelper = $adyenHelper;
     }
@@ -139,29 +138,29 @@ class StateData
         $currency = $quote->getQuoteCurrencyCode();
 
         try {
-            $response = json_decode($this->paymentMethodsBalance->getBalance(json_encode([
+            $response = $this->ordersApiHelper->getGiftcardBalance([
                 'paymentMethod' => $paymentMethod,
                 'amount' => [
                     'currency' => $currency,
                     'value' => $this->adyenHelper->formatAmount($quote->getGrandTotal(), $currency)
                 ]
-            ])), true);
+            ], (int) $quote->getStoreId());
         } catch (AdyenException $e) {
             throw new LocalizedException(__('The gift card balance could not be verified.'), $e);
         }
 
-        $balance = $response['balance'] ?? null;
-        $transactionLimit = $response['transactionLimit'] ?? null;
+        $balance = $response->getBalance();
+        $transactionLimit = $response->getTransactionLimit();
 
-        if (!empty($transactionLimit['value']) && $transactionLimit['value'] <= ($balance['value'] ?? 0)) {
+        if ($transactionLimit?->getValue() && $transactionLimit->getValue() <= (int) $balance?->getValue()) {
             $balance = $transactionLimit;
         }
 
-        if (!isset($balance['value']) || !is_numeric($balance['value']) || $balance['value'] <= 0) {
+        if (($balance?->getValue() ?? 0) <= 0) {
             throw new LocalizedException(__('The gift card has no available balance.'));
         }
 
-        return $balance;
+        return ['currency' => $balance->getCurrency(), 'value' => $balance->getValue()];
     }
 
     /**
