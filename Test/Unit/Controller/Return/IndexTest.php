@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Adyen\Payment\Test\Unit\Controller\Return;
 
+use Adyen\Model\Checkout\PaymentCompletionDetails;
 use Adyen\Payment\Controller\Return\Index;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\PaymentResponseHandler;
@@ -28,6 +29,7 @@ use Magento\Sales\Model\OrderFactory;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class IndexTest extends AbstractAdyenTestCase
 {
@@ -206,6 +208,76 @@ class IndexTest extends AbstractAdyenTestCase
             ->with('custom/success/path', ['_query' => ['order_increment_id' => '1001']]);
 
         $this->indexController->execute();
+    }
+
+    public static function dataProviderRedirectResponseDetails(): array
+    {
+        return [
+            'unknown params are not forwarded' => [
+                [
+                    'merchantReference' => '1001',
+                    'redirectResult' => 'test',
+                    'utm_source' => 'newsletter',
+                    'form_key' => 'abc',
+                    'amount' => ['value' => 1]
+                ],
+                ['redirectResult' => 'test']
+            ],
+            'all supported details keys are forwarded' => [
+                [
+                    'merchantReference' => '1001',
+                    'MD' => 'md',
+                    'PaRes' => 'pares',
+                    'authorization_token' => 'token',
+                    'resultCode' => 'Authorised',
+                    'threeds2.challengeResult' => 'challenge'
+                ],
+                [
+                    'MD' => 'md',
+                    'PaRes' => 'pares',
+                    'authorization_token' => 'token',
+                    'resultCode' => 'Authorised',
+                    'threeds2.challengeResult' => 'challenge'
+                ]
+            ],
+            'no supported details keys' => [
+                ['merchantReference' => '1001', 'isAjax' => '1', 'foo' => 'bar'],
+                []
+            ]
+        ];
+    }
+
+    #[DataProvider('dataProviderRedirectResponseDetails')]
+    public function testExecuteFiltersRedirectResponseDetails(array $params, array $expectedDetails): void
+    {
+        $this->request->method('getParams')->willReturn($params);
+        $this->quoteHelper->method('getIsQuoteMultiShippingWithMerchantReference')->willReturn(false);
+        $this->configHelper->method('getAdyenAbstractConfigData')->willReturn('checkout/cart');
+
+        $order = $this->createMock(OrderInterface::class);
+        $order->method('getStoreId')->willReturn(1);
+
+        $orderModel = $this->createMock(OrderModel::class);
+        $orderModel->method('getEntityId')->willReturn(1);
+        $orderModel->method('loadByIncrementId')->willReturn($orderModel);
+
+        $this->orderFactory->method('create')->willReturn($orderModel);
+        $this->orderRepository->method('get')->willReturn($order);
+
+        $this->paymentsDetailsHelper->expects($this->once())
+            ->method('initiatePaymentDetails')
+            ->with($order, ['details' => $expectedDetails])
+            ->willReturn(['resultCode' => 'Refused']);
+        $this->paymentResponseHandler->method('handlePaymentsDetailsResponse')->willReturn(false);
+
+        $this->indexController->execute();
+    }
+
+    public function testDetailsAllowedParamKeysMatchPaymentCompletionDetails(): void
+    {
+        $expectedKeys = array_values(PaymentCompletionDetails::attributeMap());
+
+        $this->assertEqualsCanonicalizing($expectedKeys, Index::DETAILS_ALLOWED_PARAM_KEYS);
     }
 
     public function testExecuteWithoutParams(): void
