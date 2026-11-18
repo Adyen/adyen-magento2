@@ -9,12 +9,10 @@
  */
 define(
     [
-        'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-method',
-        'Magento_Checkout/js/model/full-screen-loader',
+        'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-method'
     ],
     function(
-        adyenPaymentMethod,
-        fullScreenLoader
+        adyenPaymentMethod
     ) {
         return adyenPaymentMethod.extend({
             placeOrderButtonVisible: false,
@@ -29,7 +27,7 @@ define(
                 return cashAppConfiguration
             },
             renderActionComponent: function(resultCode, action, component) {
-                fullScreenLoader.stopLoader();
+                this.stopFullScreenLoader();
 
                 this.actionComponent = component.handleAction(action);
             },

@@ -11,14 +11,12 @@ define(
     [
         'jquery',
         'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-method',
-        'Adyen_Payment/js/model/adyen-configuration',
-        'Magento_Checkout/js/model/full-screen-loader'
+        'Adyen_Payment/js/model/adyen-configuration'
     ],
     function(
         $,
         adyenPaymentMethod,
-        adyenConfiguration,
-        fullScreenLoader
+        adyenConfiguration
     ) {
         return adyenPaymentMethod.extend({
             placeOrderButtonVisible: false,
@@ -70,13 +68,13 @@ define(
                 return paypalConfiguration;
             },
             renderActionComponent: function(resultCode, action, component) {
-                fullScreenLoader.stopLoader();
+                this.stopFullScreenLoader();
                 this.token = action.sdkData.token;
                 this.actionComponent = component.handleAction(action);
             },
             handleOnFailure: function(response, component) {
                 this.isPlaceOrderAllowed(true);
-                fullScreenLoader.stopLoader();
+                this.stopFullScreenLoader();
                 if (response && response.error) {
                     console.error('Error details:', response.error);
                 }
