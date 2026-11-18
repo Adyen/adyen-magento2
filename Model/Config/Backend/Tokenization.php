@@ -20,8 +20,10 @@ use Magento\Framework\Data\Collection\AbstractDb;
 use Magento\Framework\Math\Random;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
+use Magento\Framework\Phrase;
 use Magento\Framework\Registry;
 use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Framework\Validator\Exception;
 use Magento\Payment\Helper\Data;
 
 /**
@@ -75,6 +77,20 @@ class Tokenization extends Value
             $name = $data['name'];
             $enabled = $data['enabled'];
             $recurringProcessingModel = $data['recurring_processing_model'];
+
+            if ($enabled && !in_array(
+                $recurringProcessingModel,
+                $this->paymentMethodsHelper->getSupportedRecurringProcessingModels(
+                    $this->dataHelper->getMethodInstance($paymentMethodCode)
+                )
+            )) {
+                throw new Exception(
+                    new Phrase(
+                        'The recurring processing model %1 is not supported by %2.',
+                        [$recurringProcessingModel, $name]
+                    )
+                );
+            }
 
             $result[$paymentMethodCode] = array(
                 "name" => $name,
