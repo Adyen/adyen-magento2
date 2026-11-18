@@ -120,8 +120,8 @@ class GiftcardPayment
                 continue;
             }
 
-            if (isset($stateData['paymentMethod']['type']) ||
-                isset($stateData['paymentMethod']['brand']) ||
+            if (isset($stateData['paymentMethod']['type']) &&
+                isset($stateData['paymentMethod']['brand']) &&
                 $stateData['paymentMethod']['type'] === 'giftcard') {
                 $totalBalance += $giftCardValue;
             }
