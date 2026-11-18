@@ -2777,6 +2777,7 @@
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
                 <supports_recurring>1</supports_recurring>
+                <supported_recurring_processing_models>UnscheduledCardOnFile,Subscription</supported_recurring_processing_models>
                 <supports_manual_capture>1</supports_manual_capture>
                 <is_wallet>0</is_wallet>
                 <is_open_invoice>0</is_open_invoice>

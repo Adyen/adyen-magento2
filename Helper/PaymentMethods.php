@@ -73,6 +73,7 @@ class PaymentMethods extends AbstractHelper
     const CONFIG_FIELD_REQUIRES_LINE_ITEMS = 'requires_line_items';
     const CONFIG_FIELD_IS_OPEN_INVOICE = 'is_open_invoice';
     const CONFIG_FIELD_REFUND_REQUIRES_CAPTURE_PSPREFERENCE = 'refund_requires_capture_pspreference';
+    const CONFIG_FIELD_SUPPORTED_RECURRING_PROCESSING_MODELS = 'supported_recurring_processing_models';
     const VALID_CHANNELS = ["iOS", "Android", "Web"];
 
     /*
@@ -720,6 +721,21 @@ class PaymentMethods extends AbstractHelper
     public function paymentMethodSupportsRecurring(MethodInterface $paymentMethodInstance): bool
     {
         return boolval($paymentMethodInstance->getConfigData('supports_recurring'));
+    }
+
+    /**
+     * @param MethodInterface $paymentMethodInstance
+     * @return string[]
+     */
+    public function getSupportedRecurringProcessingModels(MethodInterface $paymentMethodInstance): array
+    {
+        $configuredModels = explode(
+            ',',
+            (string) $paymentMethodInstance->getConfigData(self::CONFIG_FIELD_SUPPORTED_RECURRING_PROCESSING_MODELS)
+        );
+        $supportedModels = array_intersect(Vault::getRecurringTypes(), array_map('trim', $configuredModels));
+
+        return empty($supportedModels) ? Vault::getRecurringTypes() : array_values($supportedModels);
     }
 
     /**

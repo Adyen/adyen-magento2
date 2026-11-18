@@ -11,9 +11,14 @@
 
 namespace Adyen\Payment\Block\Adminhtml\System\Config\Field;
 
+use Adyen\Payment\Helper\PaymentMethods;
+use Adyen\Payment\Helper\Vault;
+use Magento\Backend\Block\Template\Context;
 use Magento\Config\Block\System\Config\Form\Field\FieldArray\AbstractFieldArray;
 use Magento\Framework\DataObject;
 use Magento\Framework\View\Element\BlockInterface;
+use Magento\Framework\View\Helper\SecureHtmlRenderer;
+use Magento\Payment\Helper\Data;
 
 class Tokenization extends AbstractFieldArray
 {
@@ -23,6 +28,23 @@ class Tokenization extends AbstractFieldArray
     protected ?InputHidden $paymentMethodCodeRenderer = null;
     protected ?RecurringProcessingModel $recurringProcessingModelRenderer = null;
     protected $_template = 'Adyen_Payment::config/token_type_table_array.phtml';
+
+    /**
+     * @param Context $context
+     * @param PaymentMethods $paymentMethodsHelper
+     * @param Data $dataHelper
+     * @param array $data
+     * @param SecureHtmlRenderer|null $secureRenderer
+     */
+    public function __construct(
+        Context $context,
+        private readonly PaymentMethods $paymentMethodsHelper,
+        private readonly Data $dataHelper,
+        array $data = [],
+        ?SecureHtmlRenderer $secureRenderer = null
+    ) {
+        parent::__construct($context, $data, $secureRenderer);
+    }
 
     protected function _prepareToRender(): void
     {
@@ -113,9 +135,19 @@ class Tokenization extends AbstractFieldArray
         $options = [];
         $enabled = $row->getData('enabled');
         $recurringProcessingModel = $row->getData('recurring_processing_model');
+        $supportedRecurringProcessingModels = $this->getSupportedRecurringProcessingModels(
+            $row->getData('payment_method_code')
+        );
 
         if ($enabled) {
             $options['option_' . $this->getEnabledRenderer()->calcOptionHash($enabled)] = 'selected=\"selected\"';
+        }
+
+        if ($recurringProcessingModel && !in_array($recurringProcessingModel, $supportedRecurringProcessingModels)) {
+            $columnValues = $row->getData('column_values');
+            $columnValues[$this->_getCellInputElementId($row->getData('_id'), 'recurring_processing_model')] = null;
+            $row->setData('column_values', $columnValues);
+            $recurringProcessingModel = null;
         }
 
         if ($recurringProcessingModel) {
@@ -127,6 +159,26 @@ class Tokenization extends AbstractFieldArray
             $options[$key] = 'selected=\"selected\"';
         }
 
+        foreach (array_diff(Vault::getRecurringTypes(), $supportedRecurringProcessingModels) as $unsupportedModel) {
+            $key = sprintf(
+                "option_%s",
+                $this->getRecurringProcessingModelRenderer()->calcOptionHash($unsupportedModel)
+            );
+
+            $options[$key] = 'disabled="disabled" hidden="hidden"';
+        }
+
         $row->setData('option_extra_attrs', $options);
+    }
+
+    private function getSupportedRecurringProcessingModels(?string $paymentMethodCode): array
+    {
+        if (empty($paymentMethodCode)) {
+            return Vault::getRecurringTypes();
+        }
+
+        return $this->paymentMethodsHelper->getSupportedRecurringProcessingModels(
+            $this->dataHelper->getMethodInstance($paymentMethodCode)
+        );
     }
 }
