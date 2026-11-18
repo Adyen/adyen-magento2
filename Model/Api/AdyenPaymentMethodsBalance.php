@@ -13,11 +13,8 @@
 namespace Adyen\Payment\Model\Api;
 
 use Adyen\AdyenException;
-use Adyen\Model\Checkout\BalanceCheckRequest;
 use Adyen\Payment\Api\AdyenPaymentMethodsBalanceInterface;
-use Adyen\Payment\Helper\Config;
-use Adyen\Payment\Helper\Data;
-use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Helper\OrdersApi;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Store\Model\StoreManager;
@@ -37,39 +34,23 @@ class AdyenPaymentMethodsBalance implements AdyenPaymentMethodsBalanceInterface
     private StoreManager $storeManager;
 
     /**
-     * @var Config
+     * @var OrdersApi
      */
-    private Config $config;
-
-    /**
-     * @var Data
-     */
-    private Data $adyenHelper;
-
-    /**
-     * @var AdyenLogger
-     */
-    private AdyenLogger $adyenLogger;
+    private OrdersApi $ordersApiHelper;
 
     /**
      * @param Json $jsonSerializer
      * @param StoreManager $storeManager
-     * @param Config $config
-     * @param Data $adyenHelper
-     * @param AdyenLogger $adyenLogger
+     * @param OrdersApi $ordersApiHelper
      */
     public function __construct(
         Json $jsonSerializer,
         StoreManager $storeManager,
-        Config $config,
-        Data $adyenHelper,
-        AdyenLogger $adyenLogger
+        OrdersApi $ordersApiHelper
     ) {
         $this->jsonSerializer = $jsonSerializer;
         $this->storeManager = $storeManager;
-        $this->config = $config;
-        $this->adyenHelper = $adyenHelper;
-        $this->adyenLogger = $adyenLogger;
+        $this->ordersApiHelper = $ordersApiHelper;
     }
 
     /**
@@ -81,28 +62,10 @@ class AdyenPaymentMethodsBalance implements AdyenPaymentMethodsBalanceInterface
     public function getBalance(string $payload): string
     {
         $payload = $this->jsonSerializer->unserialize($payload);
-        $storeId = $this->storeManager->getStore()->getId();
+        $storeId = (int) $this->storeManager->getStore()->getId();
 
-        $payload['merchantAccount'] = $this->config->getMerchantAccount($storeId);
+        $response = $this->ordersApiHelper->getGiftcardBalance($payload, $storeId);
 
-        try {
-            $client = $this->adyenHelper->initializeAdyenClient($storeId);
-            $service = $this->adyenHelper->initializeOrdersApi($client);
-            $response = $service->getBalanceOfGiftCard(new BalanceCheckRequest($payload));
-
-            if ($response->getResultCode() === self::FAILED_RESULT_CODE) {
-                // Balance endpoint doesn't send HTTP status 422 for invalid PIN, manual handling required.
-                $errorMessage = $response['additionalData']['acquirerResponseCode'] ?? 'Unknown error!';
-                throw new AdyenException($errorMessage);
-            }
-
-            return json_encode($response->jsonSerialize());
-        } catch (AdyenException $e) {
-            $this->adyenLogger->error(
-                sprintf("An error occurred during balance check! %s", $e->getMessage())
-            );
-
-            throw $e;
-        }
+        return json_encode($response->jsonSerialize());
     }
 }
