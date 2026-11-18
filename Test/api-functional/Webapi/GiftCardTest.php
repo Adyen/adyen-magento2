@@ -370,8 +370,8 @@ class GiftCardTest extends WebapiAbstract
             'paymentMethod' => [
                 'type' => 'giftcard',
                 'brand' => 'givex',
-                'encryptedCardNumber' => 'test_6036280000000000000',
-                'encryptedSecurityCode' => 'test_123'
+                'number' => '6036280000000000000',
+                'cvc' => '123'
             ],
             'amount' => [
                 'currency' => 'EUR',
