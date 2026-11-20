@@ -116,7 +116,7 @@ class RefundDataBuilder implements BuilderInterface
                 $refundableValues = [];
                 foreach ($orderPaymentCollection as $partialPayment) {
                     $refundableValues[] = max(0, $this->adyenHelper->formatAmount(
-                        $partialPayment->getAmount() - $partialPayment->getTotalRefunded(),
+                        (float)$partialPayment->getAmount() - (float)$partialPayment->getTotalRefunded(),
                         $currency
                     ));
                 }
