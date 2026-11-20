@@ -12,6 +12,8 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
+use Adyen\Model\Checkout\BalanceCheckRequest;
+use Adyen\Model\Checkout\BalanceCheckResponse;
 use Adyen\Model\Checkout\CreateOrderRequest;
 use Adyen\Client;
 use Adyen\Payment\Logger\AdyenLogger;
@@ -80,6 +82,38 @@ class OrdersApi
         $this->adyenHelper->logResponse($response);
 
         return $response;
+    }
+
+    /**
+     * @param array $request
+     * @param int $storeId
+     * @return BalanceCheckResponse
+     * @throws AdyenException
+     * @throws NoSuchEntityException
+     */
+    public function getGiftcardBalance(array $request, int $storeId): BalanceCheckResponse
+    {
+        $request['merchantAccount'] = $this->configHelper->getMerchantAccount($storeId);
+
+        try {
+            $client = $this->adyenHelper->initializeAdyenClient($storeId);
+            $service = $this->adyenHelper->initializeOrdersApi($client);
+            $response = $service->getBalanceOfGiftCard(new BalanceCheckRequest($request));
+
+            if ($response->getResultCode() === BalanceCheckResponse::RESULT_CODE_FAILED) {
+                // Balance endpoint doesn't send HTTP status 422 for invalid PIN, manual handling required.
+                $errorMessage = $response['additionalData']['acquirerResponseCode'] ?? 'Unknown error!';
+                throw new AdyenException($errorMessage);
+            }
+
+            return $response;
+        } catch (AdyenException $e) {
+            $this->adyenLogger->error(
+                sprintf("An error occurred during balance check! %s", $e->getMessage())
+            );
+
+            throw $e;
+        }
     }
 
     /**
