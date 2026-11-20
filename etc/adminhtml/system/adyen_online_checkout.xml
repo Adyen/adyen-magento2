@@ -23,7 +23,7 @@
         </field>
         <field id="payment_method_title_overrides" translate="label" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Payment Method Title Overrides</label>
-            <tooltip>Override the payment method title returned by the /paymentMethods API. The custom title will be used in checkout instead of the translated title from the API response. Leave the title blank or remove the row to fall back to the API response value.</tooltip>
+            <tooltip>Override the payment method title returned by the /paymentMethods API and the payment method title configured in Magento. The custom title will be used in checkout instead of the translated title from the API response, and in orders, emails, invoices and the admin panel instead of the configured title. Leave the title blank or remove the row to fall back to the API response value and the configured title.</tooltip>
             <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\Field\PaymentMethodTitles</frontend_model>
             <backend_model>Adyen\Payment\Model\Config\Backend\PaymentMethodTitles</backend_model>
             <config_path>payment/adyen_abstract/payment_method_title_overrides</config_path>
