@@ -47,6 +47,7 @@ define(
             checkoutComponent: null,
             paymentComponent: null,
             popupModal: null,
+            isFullScreenLoaderActive: false,
             defaults: {
                 template: 'Adyen_Payment/payment/pm-form',
                 orderId: null,
@@ -226,7 +227,7 @@ define(
             handleOnFailure: function(error, component) {
                 paymentComponentStates().setIsPlaceOrderAllowed(this.getMethodCode(), true);
 
-                fullScreenLoader.stopLoader();
+                this.stopFullScreenLoader();
                 errorProcessor.process(error, this.currentMessageContainer);
             },
 
@@ -318,9 +319,28 @@ define(
 
             handleOnAdditionalDetails: function(state, component, actions) {
                 adyenPaymentModal.hideModalLabel(this.modalLabel);
-                fullScreenLoader.startLoader();
+                // Still running after a frictionless 3DS2 flow, started again after a 3DS2 challenge or another action
+                this.startFullScreenLoader();
 
                 this.handlePaymentsDetails(state.data, actions);
+            },
+
+            /**
+             * Magento's full-screen loader is counted: every startLoader() needs its own stopLoader().
+             * The payment flow holds at most one of them, so the loader started when the order is placed
+             * is still running when a frictionless 3DS2 flow reaches handleOnAdditionalDetails().
+             */
+            startFullScreenLoader: function () {
+                if (!this.isFullScreenLoaderActive) {
+                    this.isFullScreenLoaderActive = true;
+                    fullScreenLoader.startLoader();
+                }
+            },
+            stopFullScreenLoader: function () {
+                if (this.isFullScreenLoaderActive) {
+                    this.isFullScreenLoaderActive = false;
+                    fullScreenLoader.stopLoader();
+                }
             },
 
             handlePaymentsDetails: function (request, actions = null) {
@@ -358,7 +378,7 @@ define(
                     actions.reject();
                 }
 
-                fullScreenLoader.stopLoader();
+                this.stopFullScreenLoader();
                 if (this.popupModal) {
                     this.closeModal(this.popupModal);
                 }
@@ -411,7 +431,7 @@ define(
             placeRedirectOrder: async function(data, component, actions = null) {
                 const self = this;
 
-                fullScreenLoader.startLoader();
+                self.startFullScreenLoader();
                 $('.hpp-message').slideUp();
                 paymentComponentStates().setIsPlaceOrderAllowed(this.getMethodCode(), false);
 
@@ -487,7 +507,7 @@ define(
                     if (action.type === 'threeDS2') {
                         isModalVisible = false;
                     } else {
-                        fullScreenLoader.stopLoader();
+                        self.stopFullScreenLoader();
                     }
 
                     self.popupModal = adyenPaymentModal.showModal(
@@ -506,7 +526,7 @@ define(
                 self.actionComponent = self.checkoutComponent.createFromAction(action, {
                     onActionHandled: function (event) {
                         if (event.componentType === "3DS2Challenge") {
-                            fullScreenLoader.stopLoader();
+                            self.stopFullScreenLoader();
                             self.popupModal.modal('openModal');
                         }
                     }
