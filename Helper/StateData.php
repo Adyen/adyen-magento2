@@ -12,6 +12,7 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\AdyenException;
 use Adyen\Payment\Helper\Util\CheckoutStateDataValidator;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\ResourceModel\StateData as StateDataResourceModel;
@@ -21,6 +22,7 @@ use Adyen\Payment\Model\StateDataFactory;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Quote\Api\CartRepositoryInterface;
 
 class StateData
 {
@@ -33,6 +35,9 @@ class StateData
     private StateDataResourceModel $stateDataResourceModel;
     private CheckoutStateDataValidator $checkoutStateDataValidator;
     private AdyenLogger $adyenLogger;
+    private OrdersApi $ordersApiHelper;
+    private CartRepositoryInterface $quoteRepository;
+    private Data $adyenHelper;
 
     /**
      * Temporary (per request) storage of state data
@@ -44,13 +49,19 @@ class StateData
         StateDataFactory $stateDataFactory,
         StateDataResourceModel $stateDataResourceModel,
         CheckoutStateDataValidator $checkoutStateDataValidator,
-        AdyenLogger $adyenLogger
+        AdyenLogger $adyenLogger,
+        OrdersApi $ordersApiHelper,
+        CartRepositoryInterface $quoteRepository,
+        Data $adyenHelper
     ) {
         $this->stateDataCollection = $stateDataCollection;
         $this->stateDataFactory = $stateDataFactory;
         $this->stateDataResourceModel = $stateDataResourceModel;
         $this->checkoutStateDataValidator = $checkoutStateDataValidator;
         $this->adyenLogger = $adyenLogger;
+        $this->ordersApiHelper = $ordersApiHelper;
+        $this->quoteRepository = $quoteRepository;
+        $this->adyenHelper = $adyenHelper;
     }
 
     public function cleanQuoteStateData(int $quoteId, string $resultCode): void
@@ -99,13 +110,57 @@ class StateData
             throw new LocalizedException(__('State data call failed because the request was not a valid JSON'));
         }
 
-        $stateData = json_encode($this->checkoutStateDataValidator->getValidatedAdditionalData($stateData));
+        $stateData = $this->checkoutStateDataValidator->getValidatedAdditionalData($stateData);
+
+        if (($stateData['paymentMethod']['type'] ?? null) === 'giftcard') {
+            $giftcard = is_array($stateData['giftcard'] ?? null) ? $stateData['giftcard'] : [];
+            $giftcard['balance'] = $this->getGiftcardBalance($stateData['paymentMethod'], $quoteId);
+            $stateData['giftcard'] = $giftcard;
+        }
+
+        $stateData = json_encode($stateData);
 
         $stateDataObj = $this->stateDataFactory->create();
         $stateDataObj->setQuoteId($quoteId)->setStateData((string)$stateData);
         $this->stateDataResourceModel->save($stateDataObj);
 
         return $stateDataObj;
+    }
+
+    /**
+     * Returns the consumable gift card balance from a server side balance check
+     *
+     * @throws LocalizedException
+     */
+    private function getGiftcardBalance(array $paymentMethod, int $quoteId): array
+    {
+        $quote = $this->quoteRepository->get($quoteId);
+        $currency = $quote->getQuoteCurrencyCode();
+
+        try {
+            $response = $this->ordersApiHelper->getGiftcardBalance([
+                'paymentMethod' => $paymentMethod,
+                'amount' => [
+                    'currency' => $currency,
+                    'value' => $this->adyenHelper->formatAmount($quote->getGrandTotal(), $currency)
+                ]
+            ], (int) $quote->getStoreId());
+        } catch (AdyenException $e) {
+            throw new LocalizedException(__('The gift card balance could not be verified.'), $e);
+        }
+
+        $balance = $response->getBalance();
+        $transactionLimit = $response->getTransactionLimit();
+
+        if ($transactionLimit?->getValue() && $transactionLimit->getValue() <= (int) $balance?->getValue()) {
+            $balance = $transactionLimit;
+        }
+
+        if (($balance?->getValue() ?? 0) <= 0) {
+            throw new LocalizedException(__('The gift card has no available balance.'));
+        }
+
+        return ['currency' => $balance->getCurrency(), 'value' => $balance->getValue()];
     }
 
     /**
