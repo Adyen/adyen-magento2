@@ -69,7 +69,6 @@ class RefundDataBuilder implements BuilderInterface
         $payment = $paymentDataObject->getPayment();
         $order = $payment->getOrder();
         $paymentMethodInstance = $payment->getMethodInstance();
-        $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order, false);
 
         // Construct AdyenAmountCurrency from creditmemo
         $creditMemo = $payment->getCreditMemo();
@@ -101,7 +100,7 @@ class RefundDataBuilder implements BuilderInterface
                 'partial_payments_refund_strategy',
                 $storeId
             );
-            $ratio = null;
+            $refundBasedOnRatio = false;
 
             if ($refundStrategy == self::REFUND_STRATEGY_ASCENDING_ORDER) {
                 // Refund in ascending order
@@ -111,20 +110,36 @@ class RefundDataBuilder implements BuilderInterface
                 $orderPaymentCollection->addPaymentFilterDescending($payment->getId());
             } elseif ($refundStrategy == self::REFUND_STRATEGY_BASED_ON_RATIO) {
                 // refund based on ratio
-                $ratio = $amount / $orderAmountCurrency->getAmount();
+                $refundBasedOnRatio = true;
                 $orderPaymentCollection->addPaymentFilterAscending($payment->getId());
+
+                $refundableValues = [];
+                foreach ($orderPaymentCollection as $partialPayment) {
+                    $refundableValues[] = max(0, $this->adyenHelper->formatAmount(
+                        $partialPayment->getAmount() - $partialPayment->getTotalRefunded(),
+                        $currency
+                    ));
+                }
+                $ratioRefundValues = $this->splitRefundValueByRatio(
+                    $this->adyenHelper->formatAmount($amount, $currency),
+                    $refundableValues
+                );
             }
 
             // loop over payment methods and refund them all
             $requestBody = [];
+            $partialPaymentIndex = -1;
             foreach ($orderPaymentCollection as $partialPayment) {
+                $partialPaymentIndex++;
                 // could be that not all the partial payments need a refund
                 if ($amount > 0) {
-                    if ($ratio) {
+                    if ($refundBasedOnRatio) {
                         // refund based on ratio calculate refund amount
-                        $modificationAmount = $ratio * (
-                                $partialPayment->getAmount() - $partialPayment->getTotalRefunded()
-                            );
+                        $modificationValue = $ratioRefundValues[$partialPaymentIndex];
+
+                        if ($modificationValue <= 0) {
+                            continue;
+                        }
                     } else {
                         // total authorised amount of the partial payment
                         $partialPaymentAmount = $partialPayment->getAmount() - $partialPayment->getTotalRefunded();
@@ -142,11 +157,12 @@ class RefundDataBuilder implements BuilderInterface
                         }
                         // update amount with rest of the available amount
                         $amount = $amount - $partialPaymentAmount;
+                        $modificationValue = $this->adyenHelper->formatAmount($modificationAmount, $currency);
                     }
 
                     $modificationAmountObject = [
                         'currency' => $currency,
-                        'value' => $this->adyenHelper->formatAmount($modificationAmount, $currency)
+                        'value' => $modificationValue
                     ];
 
                     $requestBody[] = [
@@ -209,5 +225,45 @@ class RefundDataBuilder implements BuilderInterface
         ];
 
         return $request;
+    }
+
+    /**
+     * Splits a refund value in minor units over the partial payments in proportion to what is left to refund on each.
+     * No part exceeds what is left on its payment. The parts add up to the refund value when it is not more than
+     * what is left on all payments together, otherwise to what is left.
+     *
+     * @param int $refundValue
+     * @param int[] $refundableValues
+     * @return int[]
+     */
+    private function splitRefundValueByRatio(int $refundValue, array $refundableValues): array
+    {
+        $refundableTotal = array_sum($refundableValues);
+        if ($refundableTotal <= 0) {
+            return array_fill_keys(array_keys($refundableValues), 0);
+        }
+
+        $splitValues = [];
+        foreach ($refundableValues as $key => $refundableValue) {
+            $splitValues[$key] = min(
+                $refundableValue,
+                (int)round($refundValue * $refundableValue / $refundableTotal)
+            );
+        }
+
+        if (array_sum($splitValues) === $refundValue) {
+            return $splitValues;
+        }
+
+        // rounding left a difference, so each part is taken from what is still left to split
+        foreach ($refundableValues as $key => $refundableValue) {
+            $splitValues[$key] = $refundableTotal > 0
+                ? min($refundableValue, (int)round($refundValue * $refundableValue / $refundableTotal))
+                : 0;
+            $refundValue -= $splitValues[$key];
+            $refundableTotal -= $refundableValue;
+        }
+
+        return $splitValues;
     }
 }
