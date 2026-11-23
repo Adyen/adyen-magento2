@@ -18,6 +18,9 @@ define(
         AdyenWeb
     ) {
         'use strict';
+
+        const disposedComponents = new WeakSet();
+
         return {
             buildCheckoutComponent: function (
                 paymentMethodsResponse,
@@ -58,7 +61,10 @@ define(
 
                         if ('isAvailable' in paymentMethodComponent) {
                             paymentMethodComponent.isAvailable().then(() => {
-                                paymentMethodComponent.mount(elementLabel);
+                                // The component may have been disposed while its availability was checked.
+                                if (!disposedComponents.has(paymentMethodComponent)) {
+                                    paymentMethodComponent.mount(elementLabel);
+                                }
                             }).catch(e => {
                                 if (!!result) {
                                     result.isAvailable(false); // Set observable to false, to match component availability
@@ -77,6 +83,23 @@ define(
                 }
 
                 return false;
+            },
+
+            // Unmounts the component and stops a pending mountPaymentMethodComponent() from mounting it later.
+            disposePaymentMethodComponent(paymentMethodComponent) {
+                if (!paymentMethodComponent) {
+                    return;
+                }
+
+                disposedComponents.add(paymentMethodComponent);
+
+                if (typeof paymentMethodComponent.unmount === 'function') {
+                    try {
+                        paymentMethodComponent.unmount();
+                    } catch (e) {
+                        console.warn('Failed to unmount Adyen component:', e);
+                    }
+                }
             }
         };
     }

@@ -10,22 +10,27 @@
 define(
     [
         'Magento_Checkout/js/model/quote',
+        'Magento_Checkout/js/model/full-screen-loader',
         'Adyen_Payment/js/view/payment/method-renderer/adyen-pm-method',
         'Adyen_Payment/js/model/adyen-checkout',
         'Adyen_Payment/js/model/adyen-configuration',
+        'Adyen_Payment/js/model/payment-component-states',
         'mage/url'
     ],
     function(
         quote,
+        fullScreenLoader,
         adyenPaymentMethod,
         adyenCheckout,
         adyenConfiguration,
+        paymentComponentStates,
         urlBuilder
     ) {
         const amazonSessionKey = 'amazonCheckoutSessionId';
         return adyenPaymentMethod.extend({
             placeOrderButtonVisible: false,
             amazonPayComponent: null,
+            _declineFlowPending: false,
 
             buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo) {
                 let self = this;
@@ -120,7 +125,12 @@ define(
                             currency: configuration.amount.currency,
                             value: configuration.amount.value
                         },
-                        showChangePaymentDetailsButton: false
+                        showChangePaymentDetailsButton: false,
+                        // This component has no handlers of its own, and the checkout's are not these.
+                        onSubmit: this.handleOnSubmit.bind(this),
+                        onError: this.handleOnError.bind(this),
+                        // It has already submitted the payment; Enter would submit it again.
+                        onEnterKeyPressed: function () {}
                     }
 
                     this.amazonPayComponent = adyenCheckout.mountPaymentMethodComponent(
@@ -143,6 +153,8 @@ define(
              * If handle decline flow is not present, the component will throw `onError` event.
              */
             handleOnFailure: function (response, component) {
+                // Reached from placeRedirectOrder(), which started the loader.
+                this._declineFlowPending = true;
                 this.amazonPayComponent.handleDeclineFlow();
             },
 
@@ -151,7 +163,27 @@ define(
             * In this case, remove `amazonCheckoutSessionId` from the URL and remount the payment component.
             */
             handleOnError: function (error, component) {
+                // The decline flow could not continue, so release what placeRedirectOrder() started. Other
+                // errors (e.g. from the Amazon Pay button) did not start the loader.
+                if (this._declineFlowPending) {
+                    this._declineFlowPending = false;
+                    fullScreenLoader.stopLoader();
+                    paymentComponentStates().setIsPlaceOrderAllowed(this.getMethodCode(), true);
+                }
+
                 this.remountAmazonPayComponent();
+            },
+
+            /*
+             * Back from Amazon Pay, the mounted component has already submitted the payment and a rebuild would
+             * submit it again. remountAmazonPayComponent() removes the session ID first.
+             */
+            rebuildComponentAfterAmountChange: function () {
+                if (this.amazonPayComponent && new URL(location.href).searchParams.has(amazonSessionKey)) {
+                    return;
+                }
+
+                this._super();
             },
 
             /*
