@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Adyen\Payment\Test\Unit\Model\Resolver;
 
 use Adyen\Payment\Exception\GraphQlAdyenException;
+use Adyen\Payment\Helper\Quote as QuoteHelper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Api\AdyenDonations;
 use Adyen\Payment\Model\GraphqlInputArgumentValidator;
@@ -31,7 +32,6 @@ use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\GraphQl\Helper\Error\AggregateExceptionMessageFormatter;
-use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use Magento\Sales\Model\Order;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
@@ -40,7 +40,7 @@ use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 class DonationsTest extends AbstractAdyenTestCase
 {
     private MockObject $adyenDonationsMock;
-    private MockObject $maskedQuoteIdToQuoteIdMock;
+    private MockObject $quoteHelperMock;
     private MockObject $orderRepositoryMock;
     private MockObject $jsonSerializerMock;
     private MockObject $graphqlInputArgumentValidatorMock;
@@ -54,14 +54,14 @@ class DonationsTest extends AbstractAdyenTestCase
     protected function setUp(): void
     {
         $this->adyenDonationsMock = $this->createMock(AdyenDonations::class);
-        $this->maskedQuoteIdToQuoteIdMock = $this->createMock(MaskedQuoteIdToQuoteIdInterface::class);
+        $this->quoteHelperMock = $this->createMock(QuoteHelper::class);
         $this->orderRepositoryMock = $this->createMock(OrderRepository::class);
         $this->jsonSerializerMock = $this->createMock(Json::class);
         $this->graphqlInputArgumentValidatorMock = $this->createMock(GraphqlInputArgumentValidator::class);
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
         $this->adyenGraphQlExceptionMessageFormatterMock = $this->createMock(AggregateExceptionMessageFormatter::class);
         $this->fieldMock = $this->createMock(Field::class);
-        $this->contextMock = $this->createMock(ContextInterface::class);
+        $this->contextMock = $this->createGraphQlContextMock();
         $this->infoMock = $this->createMock(ResolveInfo::class);
 
         $objectManagerMock = $this->createMock(ObjectManagerInterface::class);
@@ -72,7 +72,7 @@ class DonationsTest extends AbstractAdyenTestCase
         ObjectManager::setInstance($objectManagerMock);
 
         $this->donationsResolver = new Donations(
-            $this->maskedQuoteIdToQuoteIdMock,
+            $this->quoteHelperMock,
             $this->orderRepositoryMock,
             $this->graphqlInputArgumentValidatorMock,
             $this->adyenLoggerMock,
@@ -95,9 +95,9 @@ class DonationsTest extends AbstractAdyenTestCase
         $orderMock = $this->createMock(Order::class);
         $serializedPayload = '{"amount":{"currency":"EUR","value":500},"returnUrl":"https:\/\/example.com\/return"}';
 
-        $this->maskedQuoteIdToQuoteIdMock->method('execute')
+        $this->quoteHelperMock->method('getCartForUser')
             ->with('masked_cart_id')
-            ->willReturn($quoteId);
+            ->willReturn($this->createQuoteMockWithId($quoteId));
 
         $this->orderRepositoryMock->method('getOrderByQuoteId')
             ->with($quoteId)
@@ -152,7 +152,7 @@ class DonationsTest extends AbstractAdyenTestCase
             'returnUrl' => 'https://example.com/return'
         ];
 
-        $this->maskedQuoteIdToQuoteIdMock->method('execute')
+        $this->quoteHelperMock->method('getCartForUser')
             ->with('invalid_masked_id')
             ->willThrowException(new NoSuchEntityException());
 
@@ -182,9 +182,9 @@ class DonationsTest extends AbstractAdyenTestCase
 
         $quoteId = 123;
 
-        $this->maskedQuoteIdToQuoteIdMock->method('execute')
+        $this->quoteHelperMock->method('getCartForUser')
             ->with('masked_cart_id')
-            ->willReturn($quoteId);
+            ->willReturn($this->createQuoteMockWithId($quoteId));
 
         $this->orderRepositoryMock->method('getOrderByQuoteId')
             ->with($quoteId)
@@ -217,9 +217,9 @@ class DonationsTest extends AbstractAdyenTestCase
         $quoteId = 123;
         $orderMock = $this->createMock(Order::class);
 
-        $this->maskedQuoteIdToQuoteIdMock->method('execute')
+        $this->quoteHelperMock->method('getCartForUser')
             ->with('masked_cart_id')
-            ->willReturn($quoteId);
+            ->willReturn($this->createQuoteMockWithId($quoteId));
 
         $this->orderRepositoryMock->method('getOrderByQuoteId')
             ->with($quoteId)
@@ -274,9 +274,9 @@ class DonationsTest extends AbstractAdyenTestCase
         $quoteId = 123;
         $orderMock = $this->createMock(Order::class);
 
-        $this->maskedQuoteIdToQuoteIdMock->method('execute')
+        $this->quoteHelperMock->method('getCartForUser')
             ->with('masked_cart_id')
-            ->willReturn($quoteId);
+            ->willReturn($this->createQuoteMockWithId($quoteId));
 
         $this->orderRepositoryMock->method('getOrderByQuoteId')
             ->with($quoteId)
@@ -298,6 +298,35 @@ class DonationsTest extends AbstractAdyenTestCase
             $this->infoMock,
             null,
             $args
+        );
+    }
+
+    public function testResolveRejectsCartNotOwnedByCurrentUser(): void
+    {
+        $contextMock = $this->createGraphQlContextMock(42, 3);
+
+        // The user ID and store ID from the GraphQL context must be used to resolve the cart
+        $this->quoteHelperMock->expects($this->once())
+            ->method('getCartForUser')
+            ->with('other_customer_cart', 42, 3)
+            ->willThrowException(new NoSuchEntityException(
+                __('The current user cannot perform operations on cart "%masked_cart_id"', ['masked_cart_id' => 'other_customer_cart'])
+            ));
+        $this->orderRepositoryMock->expects($this->never())->method('getOrderByQuoteId');
+        $this->adyenDonationsMock->expects($this->never())->method('makeDonation');
+
+        $this->expectException(GraphQlAdyenException::class);
+
+        $this->donationsResolver->resolve(
+            $this->fieldMock,
+            $contextMock,
+            $this->infoMock,
+            null,
+            [
+                'cartId' => 'other_customer_cart',
+                'amount' => ['currency' => 'EUR', 'value' => 500],
+                'returnUrl' => 'https://example.com/return'
+            ]
         );
     }
 }

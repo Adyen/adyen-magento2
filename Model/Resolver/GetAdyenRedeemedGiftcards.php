@@ -15,9 +15,9 @@ namespace Adyen\Payment\Model\Resolver;
 
 use Adyen\Payment\Exception\GraphQlAdyenException;
 use Adyen\Payment\Helper\GiftcardPayment;
+use Adyen\Payment\Helper\Quote as QuoteHelper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
@@ -29,13 +29,13 @@ class GetAdyenRedeemedGiftcards implements ResolverInterface
     /**
      * @param GiftcardPayment $giftcardPayment
      * @param Json $jsonSerializer
-     * @param MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
+     * @param QuoteHelper $quoteHelper
      * @param AdyenLogger $adyenLogger
      */
     public function __construct(
         private readonly GiftcardPayment $giftcardPayment,
         private readonly Json $jsonSerializer,
-        private readonly MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
+        private readonly QuoteHelper $quoteHelper,
         private readonly AdyenLogger $adyenLogger
     ) { }
 
@@ -61,9 +61,17 @@ class GetAdyenRedeemedGiftcards implements ResolverInterface
         }
 
         try {
-            $quoteId = $this->maskedQuoteIdToQuoteId->execute($args['cartId']);
+            $quoteId = (int) $this->quoteHelper->getCartForUser(
+                $args['cartId'],
+                $context->getUserId(),
+                (int) $context->getExtensionAttributes()->getStore()->getId()
+            )->getId();
         } catch (NoSuchEntityException $e) {
-            $this->adyenLogger->error(sprintf("Quote with masked ID %s not found!", $args['cartId']));
+            $this->adyenLogger->error(sprintf(
+                "Unable to resolve cart with masked ID %s: %s",
+                $args['cartId'],
+                $e->getMessage()
+            ));
             throw new GraphQlAdyenException(
                 __("An error occurred while fetching redeemed gift cards!")
             );

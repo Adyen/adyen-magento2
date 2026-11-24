@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Adyen\Payment\Model\Resolver;
 
 use Adyen\Payment\Exception\GraphQlAdyenException;
+use Adyen\Payment\Helper\Quote as QuoteHelper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\GraphqlInputArgumentValidator;
 use Adyen\Payment\Model\Sales\OrderRepository;
@@ -25,20 +26,19 @@ use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use Magento\GraphQl\Helper\Error\AggregateExceptionMessageFormatter;
-use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 
 abstract class AbstractDonationResolver implements ResolverInterface
 {
     /**
-     * @param MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
+     * @param QuoteHelper $quoteHelper
      * @param OrderRepository $orderRepository
      * @param GraphqlInputArgumentValidator $graphqlInputArgumentValidator
      * @param AdyenLogger $adyenLogger
      * @param AggregateExceptionMessageFormatter $adyenGraphQlExceptionMessageFormatter
      */
     public function __construct(
-        protected readonly MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
+        protected readonly QuoteHelper $quoteHelper,
         protected readonly OrderRepository $orderRepository,
         protected readonly GraphqlInputArgumentValidator $graphqlInputArgumentValidator,
         protected readonly AdyenLogger $adyenLogger,
@@ -95,9 +95,17 @@ abstract class AbstractDonationResolver implements ResolverInterface
         $this->graphqlInputArgumentValidator->execute($args, $this->getRequiredFields());
 
         try {
-            $quoteId = $this->maskedQuoteIdToQuoteId->execute($args['cartId']);
+            $quoteId = (int) $this->quoteHelper->getCartForUser(
+                $args['cartId'],
+                $context->getUserId(),
+                (int) $context->getExtensionAttributes()->getStore()->getId()
+            )->getId();
         } catch (NoSuchEntityException $e) {
-            $this->adyenLogger->error(sprintf("Quote with masked ID %s not found!", $args['cartId']));
+            $this->adyenLogger->error(sprintf(
+                "Unable to resolve cart with masked ID %s: %s",
+                $args['cartId'],
+                $e->getMessage()
+            ));
             throw new GraphQlAdyenException(__($this->getGenericErrorMessage()));
         }
 

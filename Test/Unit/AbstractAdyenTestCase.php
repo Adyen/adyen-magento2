@@ -18,6 +18,10 @@ use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\ResourceModel\Order\Status\Collection as OrderStatusCollection;
 use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderStatusCollectionFactory;
 use InvalidArgumentException;
+use Magento\Framework\Api\ExtensionAttributesInterface;
+use Magento\Framework\GraphQl\Query\Resolver\ContextInterface as GraphQlContextInterface;
+use Magento\Quote\Model\Quote;
+use Magento\Store\Api\Data\StoreInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -131,6 +135,41 @@ abstract class AbstractAdyenTestCase extends TestCase
         }
 
         return $file;
+    }
+
+    /**
+     * Creates a GraphQL resolver context exposing the user ID and the current store,
+     * as used by resolvers to check the cart ownership.
+     */
+    protected function createGraphQlContextMock(?int $userId = null, int $storeId = 1): MockObject
+    {
+        $storeMock = $this->createMock(StoreInterface::class);
+        $storeMock->method('getId')->willReturn($storeId);
+
+        $extensionAttributesMock = $this->createGeneratedMock(
+            ExtensionAttributesInterface::class,
+            [],
+            ['getStore']
+        );
+        $extensionAttributesMock->method('getStore')->willReturn($storeMock);
+
+        $contextMock = $this->createGeneratedMock(
+            GraphQlContextInterface::class,
+            [],
+            ['getUserId', 'getExtensionAttributes']
+        );
+        $contextMock->method('getUserId')->willReturn($userId);
+        $contextMock->method('getExtensionAttributes')->willReturn($extensionAttributesMock);
+
+        return $contextMock;
+    }
+
+    protected function createQuoteMockWithId(int $quoteId): MockObject
+    {
+        $quoteMock = $this->createMock(Quote::class);
+        $quoteMock->method('getId')->willReturn($quoteId);
+
+        return $quoteMock;
     }
 
     /**
