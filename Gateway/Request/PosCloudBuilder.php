@@ -13,6 +13,7 @@
 namespace Adyen\Payment\Gateway\Request;
 
 use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Helper\ConnectedTerminals;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\PointOfSale;
 use Magento\Framework\Exception\LocalizedException;
@@ -27,11 +28,16 @@ class PosCloudBuilder implements BuilderInterface
 
     private ChargedCurrency $chargedCurrency;
     private PointOfSale $pointOfSale;
+    private ConnectedTerminals $connectedTerminals;
 
-    public function __construct(ChargedCurrency $chargedCurrency, PointOfSale $pointOfSale)
-    {
+    public function __construct(
+        ChargedCurrency $chargedCurrency,
+        PointOfSale $pointOfSale,
+        ConnectedTerminals $connectedTerminals
+    ) {
         $this->chargedCurrency = $chargedCurrency;
         $this->pointOfSale = $pointOfSale;
+        $this->connectedTerminals = $connectedTerminals;
     }
 
     public function build(array $buildSubject): array
@@ -41,10 +47,16 @@ class PosCloudBuilder implements BuilderInterface
         $payment = $paymentDataObject->getPayment();
         $order = $payment->getOrder();
 
+        $terminalId = $payment->getAdditionalInformation('terminal_id');
+        $connectedTerminals = $this->connectedTerminals->getConnectedTerminals((int) $order->getStoreId());
+        if (!in_array($terminalId, $connectedTerminals['uniqueTerminalIds'] ?? [], true)) {
+            throw new LocalizedException(__('The selected terminal is not available. Please select another terminal.'));
+        }
+
         $request['clientConfig'] = ["storeId" => $order->getStoreId()];
         $request['body'] = $this->buildPosRequest(
             $order,
-            $payment->getAdditionalInformation('terminal_id'),
+            $terminalId,
             $payment->getAdditionalInformation('funding_source'),
             $payment->getAdditionalInformation('number_of_installments'),
         );
