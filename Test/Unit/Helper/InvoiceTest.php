@@ -189,6 +189,50 @@ class InvoiceTest extends AbstractAdyenTestCase
         $this->assertInstanceOf(InvoiceModel::class, $invoice);
     }
 
+    /**
+     * @throws LocalizedException
+     */
+    public function testCreateInvoiceClosesAuthorizationBuiltForTheWebhook()
+    {
+        $builtAuthorizationMock = $this->createGeneratedMock(
+            PaymentTransaction::class,
+            ['close', 'getTxnType'],
+            ['getIsClosed']
+        );
+        $builtAuthorizationMock->method('getTxnType')->willReturn(PaymentTransaction::TYPE_AUTH);
+        $builtAuthorizationMock->method('getIsClosed')->willReturn(0);
+        $builtAuthorizationMock->expects($this->once())->method('close');
+
+        $orderPaymentMock = $this->createGeneratedMock(
+            MagentoOrder\Payment::class,
+            ['getAuthorizationTransaction'],
+            ['getCreatedTransaction']
+        );
+        $orderPaymentMock->method('getCreatedTransaction')->willReturn($builtAuthorizationMock);
+        $orderPaymentMock->expects($this->never())->method('getAuthorizationTransaction');
+
+        $invoiceMock = $this->createConfiguredMock(InvoiceModel::class, [
+            'getOrder' => $this->createMock(Order::class),
+            'register' => $this->createMock(InvoiceModel::class)
+        ]);
+
+        $orderMock = $this->createConfiguredMock(MagentoOrder::class, [
+            'prepareInvoice' => $invoiceMock,
+            'canInvoice' => true,
+            'getPayment' => $orderPaymentMock
+        ]);
+
+        $contextMock = $this->createConfiguredMock(Context::class, [
+            'getScopeConfig' => $this->createConfiguredMock(ScopeConfigInterface::class, ['isSetFlag' => false])
+        ]);
+
+        $invoiceHelper = $this->createInvoiceHelper($contextMock);
+
+        $invoice = $invoiceHelper->createInvoice($orderMock, $this->createWebhook(), true);
+
+        $this->assertInstanceOf(InvoiceModel::class, $invoice);
+    }
+
     public function testCreateAdyenInvoice()
     {
         $adyenInvoiceMockForFactory = $this->createMock(AdyenInvoice::class);

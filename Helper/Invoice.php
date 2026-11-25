@@ -35,6 +35,7 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Email\Container\InvoiceIdentity;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Sales\Model\Order\Invoice as InvoiceModel;
+use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Model\Order\Payment as MagentoOrderPayment;
 use Magento\Store\Model\ScopeInterface;
 
@@ -459,7 +460,15 @@ class Invoice extends AbstractHelper
             return;
         }
 
-        $authorizationTransaction = $payment->getAuthorizationTransaction();
+        // The authorization built while processing this webhook is a related object of the order and is saved
+        // again with the order, so that instance has to be closed, not a copy loaded from the repository.
+        $authorizationTransaction = $payment->getCreatedTransaction();
+        if (!$authorizationTransaction
+            || $authorizationTransaction->getTxnType() !== TransactionInterface::TYPE_AUTH
+        ) {
+            $authorizationTransaction = $payment->getAuthorizationTransaction();
+        }
+
         if ($authorizationTransaction && !$authorizationTransaction->getIsClosed()) {
             $authorizationTransaction->close();
         }
