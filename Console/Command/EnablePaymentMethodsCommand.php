@@ -175,6 +175,7 @@ class EnablePaymentMethodsCommand extends Command
         }
 
         $scopes = [];
+        $stores = $this->storeManager->getStores();
         foreach ($this->storeManager->getWebsites() as $website) {
             $websiteId = (int) $website->getId();
             if ($this->hasMerchantAccount(ScopeInterface::SCOPE_WEBSITES, $websiteId)) {
@@ -182,7 +183,7 @@ class EnablePaymentMethodsCommand extends Command
                 continue;
             }
 
-            foreach ($this->storeManager->getStores() as $store) {
+            foreach ($stores as $store) {
                 $storeId = (int) $store->getId();
                 if ((int) $store->getWebsiteId() === $websiteId
                     && $this->hasMerchantAccount(ScopeInterface::SCOPE_STORES, $storeId)
