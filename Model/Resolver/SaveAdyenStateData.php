@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Adyen\Payment\Model\Resolver;
 
 use Adyen\Payment\Exception\GraphQlAdyenException;
+use Adyen\Payment\Helper\Quote as QuoteHelper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Api\AdyenStateData;
 use Exception;
@@ -22,18 +23,17 @@ use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
-use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 
 class SaveAdyenStateData implements ResolverInterface
 {
     /**
      * @param AdyenStateData $adyenStateData
-     * @param MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
+     * @param QuoteHelper $quoteHelper
      * @param AdyenLogger $adyenLogger
      */
     public function __construct(
         private readonly AdyenStateData $adyenStateData,
-        private readonly MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
+        private readonly QuoteHelper $quoteHelper,
         private readonly AdyenLogger $adyenLogger
     ) { }
 
@@ -63,9 +63,17 @@ class SaveAdyenStateData implements ResolverInterface
         }
 
         try {
-            $quoteId = $this->maskedQuoteIdToQuoteId->execute($args['cartId']);
+            $quoteId = (int) $this->quoteHelper->getCartForUser(
+                $args['cartId'],
+                $context->getUserId(),
+                (int) $context->getExtensionAttributes()->getStore()->getId()
+            )->getId();
         } catch (NoSuchEntityException $e) {
-            $this->adyenLogger->error(sprintf("Quote with masked ID %s not found!", $args['cartId']));
+            $this->adyenLogger->error(sprintf(
+                "Unable to resolve cart with masked ID %s: %s",
+                $args['cartId'],
+                $e->getMessage()
+            ));
             throw new GraphQlAdyenException(__("An error occurred while saving the state data."));
         }
 

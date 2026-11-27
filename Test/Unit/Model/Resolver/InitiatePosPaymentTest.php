@@ -11,6 +11,7 @@
 namespace Adyen\Payment\Test\Model\Resolver;
 
 use Adyen\Payment\Exception\GraphQlAdyenException;
+use Adyen\Payment\Helper\Quote as QuoteHelper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Api\GuestAdyenPosCloud;
 use Adyen\Payment\Model\Resolver\DataProvider\GetAdyenPaymentStatus;
@@ -22,7 +23,6 @@ use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\GraphQl\Query\Resolver\ContextInterface;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
-use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
@@ -35,7 +35,7 @@ class  InitiatePosPaymentTest extends AbstractAdyenTestCase
     protected GuestAdyenPosCloud|MockObject $guestAdyenPosCloudMock;
     protected ContextInterface|MockObject $contextMock;
     protected ResolveInfo|MockObject $infoMock;
-    protected MaskedQuoteIdToQuoteIdInterface|MockObject $maskedQuoteIdToQuoteIdMock;
+    protected QuoteHelper|MockObject $quoteHelperMock;
     protected AdyenLogger|MockObject $adyenLoggerMock;
     protected GetAdyenPaymentStatus|MockObject $getAdyenPaymentStatusDataProviderMock;
     protected OrderRepository|MockObject $orderRepositoryMock;
@@ -43,21 +43,21 @@ class  InitiatePosPaymentTest extends AbstractAdyenTestCase
     protected function setUp(): void
     {
         $this->fieldMock = $this->createMock(Field::class);
-        $this->contextMock = $this->createMock(ContextInterface::class);
+        $this->contextMock = $this->createGraphQlContextMock();
         $this->infoMock = $this->createMock(ResolveInfo::class);
 
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
         $this->guestAdyenPosCloudMock = $this->createMock(GuestAdyenPosCloud::class);
         $this->getAdyenPaymentStatusDataProviderMock = $this->createMock(GetAdyenPaymentStatus::class);
-        $this->maskedQuoteIdToQuoteIdMock = $this->createMock(MaskedQuoteIdToQuoteIdInterface::class);
-        $this->maskedQuoteIdToQuoteIdMock->method('execute')->willReturn(1);
+        $this->quoteHelperMock = $this->createMock(QuoteHelper::class);
+        $this->quoteHelperMock->method('getCartForUser')->willReturn($this->createQuoteMockWithId(1));
         $this->orderRepositoryMock = $this->createMock(OrderRepository::class);
 
         $this->resolver = new InitiatePosPayment(
             $this->adyenLoggerMock,
             $this->guestAdyenPosCloudMock,
             $this->getAdyenPaymentStatusDataProviderMock,
-            $this->maskedQuoteIdToQuoteIdMock,
+            $this->quoteHelperMock,
             $this->orderRepositoryMock
         );
     }
@@ -86,9 +86,9 @@ class  InitiatePosPaymentTest extends AbstractAdyenTestCase
             'cartId' => 'masked_cart_id_mock'
         ];
 
-        $this->maskedQuoteIdToQuoteIdMock
+        $this->quoteHelperMock
             ->expects($this->once())
-            ->method('execute')
+            ->method('getCartForUser')
             ->willthrowException(new NoSuchEntityException());
 
         $this->resolver->resolve($this->fieldMock, $this->contextMock, $this->infoMock, null, $args);
@@ -105,11 +105,11 @@ class  InitiatePosPaymentTest extends AbstractAdyenTestCase
             'cartId' => $cartId
         ];
 
-        $this->maskedQuoteIdToQuoteIdMock
+        $this->quoteHelperMock
             ->expects($this->once())
-            ->method('execute')
+            ->method('getCartForUser')
             ->with($cartId)
-            ->willReturn($quoteId);
+            ->willReturn($this->createQuoteMockWithId($quoteId));
 
         $this->orderRepositoryMock->expects($this->once())
             ->method('getOrderByQuoteId')
@@ -136,11 +136,11 @@ class  InitiatePosPaymentTest extends AbstractAdyenTestCase
             'cartId' => $cartId
         ];
 
-        $this->maskedQuoteIdToQuoteIdMock
+        $this->quoteHelperMock
             ->expects($this->once())
-            ->method('execute')
+            ->method('getCartForUser')
             ->with($cartId)
-            ->willReturn($quoteId);
+            ->willReturn($this->createQuoteMockWithId($quoteId));
 
         $orderMock = $this->createMock(OrderInterface::class);
         $orderMock->expects($this->exactly(2))->method('getEntityId')->willReturn($orderId);
@@ -164,5 +164,50 @@ class  InitiatePosPaymentTest extends AbstractAdyenTestCase
         $this->assertArrayHasKey('posPayment', $result);
         $this->assertArrayHasKey('isFinal', $result['posPayment']);
         $this->assertArrayHasKey('resultCode', $result['posPayment']);
+    }
+
+    public function testResolveRejectsCartNotOwnedByCurrentUser(): void
+    {
+        $contextMock = $this->createGraphQlContextMock(42, 3);
+
+        // The user ID and store ID from the GraphQL context must be used to resolve the cart
+        $this->quoteHelperMock->expects($this->once())
+            ->method('getCartForUser')
+            ->with('other_customer_cart', 42, 3)
+            ->willThrowException(new NoSuchEntityException(
+                __('The current user cannot perform operations on cart "%masked_cart_id"', ['masked_cart_id' => 'other_customer_cart'])
+            ));
+        $this->orderRepositoryMock->expects($this->never())->method('getOrderByQuoteId');
+        $this->guestAdyenPosCloudMock->expects($this->never())->method('pay');
+
+        $this->expectException(GraphQlAdyenException::class);
+
+        $this->resolver->resolve(
+            $this->fieldMock,
+            $contextMock,
+            $this->infoMock,
+            null,
+            ['cartId' => 'other_customer_cart']
+        );
+    }
+
+    public function testResolveThrowsExceptionWhenNoOrderExistsForCart(): void
+    {
+        $this->orderRepositoryMock->expects($this->once())
+            ->method('getOrderByQuoteId')
+            ->with(1)
+            ->willReturn(false);
+
+        $this->guestAdyenPosCloudMock->expects($this->never())->method('pay');
+
+        $this->expectException(GraphQlAdyenException::class);
+
+        $this->resolver->resolve(
+            $this->fieldMock,
+            $this->contextMock,
+            $this->infoMock,
+            null,
+            ['cartId' => 'masked_cart_id']
+        );
     }
 }

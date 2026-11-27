@@ -11,6 +11,8 @@
 namespace Adyen\Payment\Test\Model\Resolver;
 
 use Adyen\Payment\Exception\GraphQlAdyenException;
+use Adyen\Payment\Helper\Quote as QuoteHelper;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Api\AdyenStateData;
 use Adyen\Payment\Model\Resolver\RemoveAdyenStateData;
@@ -21,7 +23,6 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
-use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
@@ -34,23 +35,23 @@ class RemoveAdyenStateDataTest extends AbstractAdyenTestCase
     private Field|MockObject $fieldMock;
     private ContextInterface|MockObject $contextMock;
     private ResolveInfo|MockObject $infoMock;
-    private MaskedQuoteIdToQuoteIdInterface|MockObject $maskedQuoteIdToQuoteIdMock;
+    private QuoteHelper|MockObject $quoteHelperMock;
     private AdyenLogger|MockObject $adyenLoggerMock;
 
     public function setUp(): void
     {
         $this->adyenStateDataHelperMock = $this->createMock(AdyenStateData::class);
         $this->fieldMock = $this->createMock(Field::class);
-        $this->contextMock = $this->createMock(ContextInterface::class);
+        $this->contextMock = $this->createGraphQlContextMock();
         $this->infoMock = $this->createMock(ResolveInfo::class);
         $this->adyenLoggerMock = $this->createMock(AdyenLogger::class);
 
-        $this->maskedQuoteIdToQuoteIdMock = $this->createMock(MaskedQuoteIdToQuoteIdInterface::class);
-        $this->maskedQuoteIdToQuoteIdMock->method('execute')->willReturn(1);
+        $this->quoteHelperMock = $this->createMock(QuoteHelper::class);
+        $this->quoteHelperMock->method('getCartForUser')->willReturn($this->createQuoteMockWithId(1));
 
         $this->removeAdyenStateDataResolver = new RemoveAdyenStateData(
             $this->adyenStateDataHelperMock,
-            $this->maskedQuoteIdToQuoteIdMock,
+            $this->quoteHelperMock,
             $this->adyenLoggerMock
         );
     }
@@ -166,5 +167,29 @@ class RemoveAdyenStateDataTest extends AbstractAdyenTestCase
                 'cartId' => '1'
             ]
         ];
+    }
+
+    public function testResolveRejectsCartNotOwnedByCurrentUser(): void
+    {
+        $contextMock = $this->createGraphQlContextMock(42, 3);
+
+        // The user ID and store ID from the GraphQL context must be used to resolve the cart
+        $this->quoteHelperMock->expects($this->once())
+            ->method('getCartForUser')
+            ->with('other_customer_cart', 42, 3)
+            ->willThrowException(new NoSuchEntityException(
+                __('The current user cannot perform operations on cart "%masked_cart_id"', ['masked_cart_id' => 'other_customer_cart'])
+            ));
+        $this->adyenStateDataHelperMock->expects($this->never())->method('remove');
+
+        $this->expectException(GraphQlAdyenException::class);
+
+        $this->removeAdyenStateDataResolver->resolve(
+            $this->fieldMock,
+            $contextMock,
+            $this->infoMock,
+            null,
+            ['stateDataId' => 1, 'cartId' => 'other_customer_cart']
+        );
     }
 }
