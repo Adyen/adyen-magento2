@@ -1034,6 +1034,30 @@ class PaymentMethodsTest extends AbstractAdyenTestCase
         $this->assertFalse($this->helper->paymentMethodSupportsRecurring($this->methodMock));
     }
 
+    #[DataProvider('supportedRecurringProcessingModelsDataProvider')]
+    public function testGetSupportedRecurringProcessingModels(?string $configValue, array $expected): void
+    {
+        $this->methodMock->method('getConfigData')
+            ->with('supported_recurring_processing_models')
+            ->willReturn($configValue);
+
+        $this->assertSame($expected, $this->helper->getSupportedRecurringProcessingModels($this->methodMock));
+    }
+
+    public static function supportedRecurringProcessingModelsDataProvider(): array
+    {
+        $allModels = ['CardOnFile', 'Subscription', 'UnscheduledCardOnFile'];
+
+        return [
+            'not configured' => [null, $allModels],
+            'empty' => ['', $allModels],
+            'restricted' => ['UnscheduledCardOnFile,Subscription', ['Subscription', 'UnscheduledCardOnFile']],
+            'single with whitespace' => [' Subscription ', ['Subscription']],
+            'unknown entries ignored' => ['Subscription,Unknown', ['Subscription']],
+            'only unknown entries' => ['Unknown', $allModels]
+        ];
+    }
+
     public function testGetBoletoStatusWithMissingAmounts(): void
     {
         $order = $this->createConfiguredMock(\Magento\Sales\Model\Order::class, ['getStoreId' => 1]);
