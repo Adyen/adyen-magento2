@@ -51,16 +51,11 @@ class Cc extends AbstractInfo
         }
 
         $types = $this->adyenHelper->getAdyenCcTypes();
-        if (isset($types[$ccType])) {
-            return $types[$ccType]['name'];
-        }
+        $typesByAltCode = $this->adyenHelper->getCcTypesAltData();
 
         // Card payments store the Adyen brand (e.g. "mc", "visa"), which is the code_alt of the card type.
-        $typesByAltCode = $this->adyenHelper->getCcTypesAltData();
-        if (isset($typesByAltCode[$ccType])) {
-            return $typesByAltCode[$ccType]['name'];
-        }
-
-        return $ccType;
+        return $types[$ccType]['name']
+            ?? $typesByAltCode[$ccType]['name']
+            ?? $ccType;
     }
 }
