@@ -1,0 +1,7 @@
+# Composer dependencies installed at the module root (e.g. to run unit tests or static analysis)
+/vendor/
+/composer.lock
+
+# PHPUnit cache
+/.phpunit.cache/
+/.phpunit.result.cache
