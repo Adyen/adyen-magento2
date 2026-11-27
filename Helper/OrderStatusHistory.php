@@ -13,6 +13,7 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Api\Data\NotificationInterface;
 use Adyen\Payment\Model\Notification;
+use Magento\Framework\Escaper;
 use Magento\Sales\Api\Data\OrderInterface;
 
 class OrderStatusHistory
@@ -20,10 +21,12 @@ class OrderStatusHistory
     /**
      * @param ChargedCurrency $chargedCurrencyHelper
      * @param Data $adyenHelper
+     * @param Escaper $escaper
      */
     public function __construct(
         private readonly ChargedCurrency $chargedCurrencyHelper,
-        private readonly Data $adyenHelper
+        private readonly Data $adyenHelper,
+        private readonly Escaper $escaper
     ) { }
 
     /**
@@ -40,32 +43,35 @@ class OrderStatusHistory
         $comment .= __("API endpoint: %1", $apiEndpoint) . '<br />';
 
         if (isset($response['resultCode'])) {
-            $comment .= __("Result code: %1", $response['resultCode']) . '<br />';
+            $comment .= __("Result code: %1", $this->escaper->escapeHtml($response['resultCode'])) . '<br />';
         }
 
         // Modification responses contain `status` but not `resultCode`.
         if (isset($response['status'])) {
-            $comment .= __("Status: %1", $response['status']) . '<br />';
+            $comment .= __("Status: %1", $this->escaper->escapeHtml($response['status'])) . '<br />';
         }
 
         if (isset($response['pspReference'])) {
-            $comment .= __("PSP reference: %1", $response['pspReference']) . '<br />';
+            $comment .= __("PSP reference: %1", $this->escaper->escapeHtml($response['pspReference'])) . '<br />';
         }
 
         if (isset($response['paymentPspReference'])) {
-            $comment .= __("Original PSP reference: %1", $response['paymentPspReference']) . '<br />';
+            $comment .= __(
+                "Original PSP reference: %1",
+                $this->escaper->escapeHtml($response['paymentPspReference'])
+            ) . '<br />';
         }
 
         if ($paymentMethod = $response['paymentMethod']['brand'] ?? $response['paymentMethod']['type'] ?? null) {
-            $comment .= __("Payment method: %1", $paymentMethod) . '<br />';
+            $comment .= __("Payment method: %1", $this->escaper->escapeHtml($paymentMethod)) . '<br />';
         }
 
         if (isset($response['refusalReason'])) {
-            $comment .= __("Refusal reason: %1", $response['refusalReason']) . '<br />';
+            $comment .= __("Refusal reason: %1", $this->escaper->escapeHtml($response['refusalReason'])) . '<br />';
         }
 
         if (isset($response['errorCode'])) {
-            $comment .= __("Error code: %1", $response['errorCode']) . '<br />';
+            $comment .= __("Error code: %1", $this->escaper->escapeHtml($response['errorCode'])) . '<br />';
         }
 
         return $comment;
@@ -87,23 +93,35 @@ class OrderStatusHistory
         $comment = '<strong>' . __(
             "Adyen %1%2 webhook",
             $this->getIsWebhookForPartialPayment($order, $notification) ? 'partial ': '',
-            strtoupper($notification->getEventCode())
+            $this->escaper->escapeHtml(strtoupper((string) $notification->getEventCode()))
         ) . '</strong><br />';
 
         if (!empty($notification->getPspreference())) {
-            $comment .= __("PSP reference: %1", $notification->getPspreference()) . '<br />';
+            $comment .= __(
+                "PSP reference: %1",
+                $this->escaper->escapeHtml($notification->getPspreference())
+            ) . '<br />';
         }
 
         if (!empty($notification->getOriginalReference())) {
-            $comment .= __("Original PSP reference: %1", $notification->getOriginalReference()) . '<br />';
+            $comment .= __(
+                "Original PSP reference: %1",
+                $this->escaper->escapeHtml($notification->getOriginalReference())
+            ) . '<br />';
         }
 
         if (!empty($notification->getPaymentMethod())) {
-            $comment .= __("Payment method: %1", $notification->getPaymentMethod()) . '<br />';
+            $comment .= __(
+                "Payment method: %1",
+                $this->escaper->escapeHtml($notification->getPaymentMethod())
+            ) . '<br />';
         }
 
         if (!empty($notification->getFormattedAmountCurrency())) {
-            $comment .= __("Amount: %1", $notification->getFormattedAmountCurrency()) . '<br />';
+            $comment .= __(
+                "Amount: %1",
+                $this->escaper->escapeHtml($notification->getFormattedAmountCurrency())
+            ) . '<br />';
         }
 
         if (!empty($notification->getSuccess())) {
@@ -112,11 +130,14 @@ class OrderStatusHistory
         }
 
         if (!empty($notification->getReason())) {
-            $comment .= __("Reason: %1", $notification->getReason()) . '<br />';
+            $comment .= __("Reason: %1", $this->escaper->escapeHtml($notification->getReason())) . '<br />';
         }
 
         if (isset($klarnaReservationNumber)) {
-            $comment .= __("Reservation number: %1", $klarnaReservationNumber) . '<br />';
+            $comment .= __(
+                "Reservation number: %1",
+                $this->escaper->escapeHtml($klarnaReservationNumber)
+            ) . '<br />';
         }
 
         return $comment;
