@@ -47,6 +47,10 @@ define(
             checkoutComponent: null,
             paymentComponent: null,
             popupModal: null,
+            _componentBuildId: 0,
+            _componentBuild: null,
+            _renderedAmount: null,
+            _buildWhenBillingAddressSet: false,
             defaults: {
                 template: 'Adyen_Payment/payment/pm-form',
                 orderId: null,
@@ -73,6 +77,7 @@ define(
                 paymentMethodsObserver.subscribe(
                     function(paymentMethodsResponse) {
                         self.enablePaymentMethod(paymentMethodsResponse);
+                        self.rebuildComponentIfAmountChanged();
                     }
                 );
 
@@ -111,7 +116,15 @@ define(
                     }
 
                     // Rebuild component with updated configuration
-                    if (self.isChecked() === self.getCode()) {
+                    if (self.isChecked() === self.getCode() && !self.isWaitingForAmount()) {
+                        self.rebuildComponentAfterAmountChange();
+                    }
+                });
+
+                // A build that could not start without a billing country runs once the country is set.
+                quote.billingAddress.subscribe(function (billingAddress) {
+                    if (self._buildWhenBillingAddressSet && billingAddress && billingAddress.countryId
+                        && self.isChecked() === self.getCode()) {
                         self.rebuildComponentAfterAmountChange();
                     }
                 });
@@ -164,24 +177,56 @@ define(
              */
             selectPaymentMethod: function () {
                 this._super();
-                this.createCheckoutComponent();
+
+                // No component is mounted, or the amount changed while another payment method was selected.
+                if (this.checkoutComponent && (!this.paymentComponent || this.hasAmountChanged())) {
+                    this.rebuildComponentAfterAmountChange();
+                } else {
+                    this.createCheckoutComponent();
+                }
+
                 return true;
             },
 
             rebuildComponentAfterAmountChange: function () {
                 // Unmount existing component if present
-                if (this.paymentComponent && typeof this.paymentComponent.unmount === 'function') {
-                    try {
-                        this.paymentComponent.unmount();
-                    } catch (e) {
-                        console.warn('Failed to unmount Adyen component:', e);
-                    }
-                }
+                adyenCheckout.disposePaymentMethodComponent(this.paymentComponent);
                 this.paymentComponent = null;
-                this.checkoutComponent = null;
 
-                // Force re-create component with updated configuration
+                // Force re-create component with updated configuration. checkoutComponent is kept until the new one
+                // renders, so an action for a payment that is already submitted (e.g. 3DS) can still be handled.
                 this.createCheckoutComponent(true);
+            },
+
+            /*
+             * Components that show an amount take it from the payment methods response. Magento stores the new
+             * quote totals before that response, so these components are rebuilt here instead of on the totals.
+             */
+            rebuildComponentIfAmountChanged: function () {
+                if (this.isChecked() === this.getCode() && this.hasAmountChanged()) {
+                    this.rebuildComponentAfterAmountChange();
+                }
+            },
+
+            isWaitingForAmount: function () {
+                return !!this._renderedAmount && !this.hasAmountChanged();
+            },
+
+            hasAmountChanged: function () {
+                if (!this._renderedAmount) {
+                    return false;
+                }
+
+                const paymentMethod = this.paymentMethod();
+                const amount = this.getAmountKey(
+                    paymentMethod && this.paymentMethodsExtraInfo()?.[paymentMethod.type]?.configuration?.amount
+                );
+
+                return amount !== null && amount !== this._renderedAmount;
+            },
+
+            getAmountKey: function (amount) {
+                return amount ? amount.currency + ' ' + amount.value : null;
             },
 
             /*
@@ -202,20 +247,44 @@ define(
                 let self = this;
 
                 if (billingAddressObservable() && billingAddressObservable().countryId) {
+                    let ownBuild = null;
+
                     if (!this.checkoutComponent || forceCreate) {
+                        const buildId = ++this._componentBuildId;
                         const paymentMethodsResponse = adyenPaymentService.getPaymentMethods();
 
-                        this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
+                        this._buildWhenBillingAddressSet = false;
+                        ownBuild = this._componentBuild = Promise.resolve(adyenCheckout.buildCheckoutComponent(
                             paymentMethodsResponse(),
                             billingAddressObservable().countryId,
                             this.handleOnAdditionalDetails.bind(this),
                             this.handleOnCancel.bind(this),
                             this.handleOnSubmit.bind(this),
                             this.handleOnError.bind(this)
-                        );
-
-                        this.renderCheckoutComponent();
+                        )).then((checkoutComponent) => {
+                            // Only the newest build renders, as an older one has an outdated configuration.
+                            if (buildId === this._componentBuildId) {
+                                this.checkoutComponent = checkoutComponent;
+                                this.renderCheckoutComponent();
+                            }
+                        });
                     }
+
+                    // Callers expect the component to be mounted when this resolves, so wait for the newest build.
+                    // A failure is passed on only if this call started the newest build.
+                    let build;
+                    do {
+                        build = this._componentBuild;
+                        try {
+                            await build;
+                        } catch (e) {
+                            if (build === ownBuild && build === this._componentBuild) {
+                                throw e;
+                            }
+                        }
+                    } while (build !== this._componentBuild);
+                } else {
+                    this._buildWhenBillingAddressSet = true;
                 }
             },
 
@@ -234,7 +303,12 @@ define(
                 let methodCode = this.getMethodCode();
                 let configuration = this.buildComponentConfiguration(this.paymentMethod(), this.paymentMethodsExtraInfo());
 
+                // Forced builds do not all go through rebuildComponentAfterAmountChange(), e.g. Amazon Pay's remount.
+                adyenCheckout.disposePaymentMethodComponent(this.paymentComponent);
+                this.paymentComponent = null;
+
                 this.mountPaymentMethodComponent(this.paymentMethod(), configuration, methodCode);
+                this._renderedAmount = this.paymentComponent ? this.getAmountKey(configuration.amount) : null;
             },
 
             buildComponentConfiguration: function (paymentMethod, paymentMethodsExtraInfo) {
