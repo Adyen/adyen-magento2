@@ -246,14 +246,60 @@ class GiftcardPaymentTest extends AbstractAdyenTestCase
         );
     }
 
-    public function testGetQuoteGiftcardTotalBalance(): void
+    public static function giftcardTotalBalanceDataProvider(): array
     {
+        $giftcardBalance = ['giftcard' => ['balance' => ['currency' => 'EUR', 'value' => 5000], 'title' => 'SVS']];
+        $row = fn (array $stateData): array => [
+            'entity_id' => 2,
+            'quote_id' => 1,
+            'state_data' => json_encode($stateData)
+        ];
+
+        return [
+            'giftcard' => [
+                'stateDataCollection' => self::STATE_DATA_COLLECTION,
+                'expectedGiftcardTotalBalance' => 5000
+            ],
+            'giftcard and non-giftcard with balance' => [
+                'stateDataCollection' => [
+                    self::STATE_DATA_COLLECTION[0],
+                    $row(['paymentMethod' => ['type' => 'scheme'], ...$giftcardBalance])
+                ],
+                'expectedGiftcardTotalBalance' => 5000
+            ],
+            'non-giftcard type with balance' => [
+                'stateDataCollection' => [
+                    $row(['paymentMethod' => ['type' => 'scheme', 'brand' => 'visa'], ...$giftcardBalance])
+                ],
+                'expectedGiftcardTotalBalance' => 0
+            ],
+            'giftcard type without brand' => [
+                'stateDataCollection' => [$row(['paymentMethod' => ['type' => 'giftcard'], ...$giftcardBalance])],
+                'expectedGiftcardTotalBalance' => 0
+            ],
+            'brand without type' => [
+                'stateDataCollection' => [$row(['paymentMethod' => ['brand' => 'svs'], ...$giftcardBalance])],
+                'expectedGiftcardTotalBalance' => 0
+            ],
+            'without paymentMethod' => [
+                'stateDataCollection' => [$row($giftcardBalance)],
+                'expectedGiftcardTotalBalance' => 0
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider giftcardTotalBalanceDataProvider
+     */
+    public function testGetQuoteGiftcardTotalBalance(
+        array $stateDataCollection,
+        int $expectedGiftcardTotalBalance
+    ): void {
         $quoteId = 1;
-        $expectedGiftcardTotalBalance = 5000;
 
         $adyenStateDataMock = $this->createConfiguredMock(StateDataCollection::class, [
             'getStateDataRowsWithQuoteId' => $this->createConfiguredMock(StateDataCollection::class, [
-                'getData' => self::STATE_DATA_COLLECTION
+                'getData' => $stateDataCollection
             ])
         ]);
 
