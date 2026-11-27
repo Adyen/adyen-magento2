@@ -1764,6 +1764,9 @@
     <type name="Adyen\Payment\Block\Checkout\Multishipping\Billing">
         <plugin name="MultishippingPaymentMethods" type="Adyen\Payment\Plugin\MultishippingPaymentMethods" sortOrder="10" />
     </type>
+    <type name="Adyen\Payment\Model\Method\Adapter">
+        <plugin name="AdyenPaymentMethodTitleOverride" type="Adyen\Payment\Plugin\PaymentMethodTitleOverride" sortOrder="10" />
+    </type>
     <type name="Magento\InstantPurchase\PaymentMethodIntegration\Integration">
         <plugin name="InstantPurchateIntegration" type="Adyen\Payment\Plugin\InstantPurchaseIntegration" sortOrder="10" />
     </type>
