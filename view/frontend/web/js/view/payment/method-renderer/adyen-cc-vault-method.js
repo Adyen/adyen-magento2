@@ -51,6 +51,7 @@ define([
             modalLabel: null,
         },
         checkoutComponent: null,
+        isFullScreenLoaderActive: false,
 
         initObservable: function () {
             this._super()
@@ -154,7 +155,8 @@ define([
             let self = this;
             let request = result.data;
             adyenPaymentModal.hideModalLabel(this.modalLabel);
-            fullScreenLoader.startLoader();
+            // Still running after a frictionless 3DS2 flow, started again after a 3DS2 challenge
+            self.startFullScreenLoader();
             let popupModal = self.showModal();
 
             adyenPaymentService.paymentDetails(request, self.orderId).done(function (responseJSON) {
@@ -163,8 +165,25 @@ define([
                 self.closeModal(popupModal);
                 errorProcessor.process(response, self.messageContainer);
                 self.isPlaceOrderActionAllowed(true);
-                fullScreenLoader.stopLoader();
+                self.stopFullScreenLoader();
             });
+        },
+        /**
+         * Magento's full-screen loader is counted: every startLoader() needs its own stopLoader().
+         * The payment flow holds at most one of them, so the loader started when the order is placed
+         * is still running when a frictionless 3DS2 flow reaches handleOnAdditionalDetails().
+         */
+        startFullScreenLoader: function () {
+            if (!this.isFullScreenLoaderActive) {
+                this.isFullScreenLoaderActive = true;
+                fullScreenLoader.startLoader();
+            }
+        },
+        stopFullScreenLoader: function () {
+            if (this.isFullScreenLoaderActive) {
+                this.isFullScreenLoaderActive = false;
+                fullScreenLoader.stopLoader();
+            }
         },
 
         renderCheckoutComponent: function () {
@@ -228,7 +247,7 @@ define([
             }
 
             if (this.validate() && this.isPlaceOrderActionAllowed() === true) {
-                fullScreenLoader.startLoader();
+                this.startFullScreenLoader();
                 this.isPlaceOrderActionAllowed(false);
                 this.getPlaceOrderDeferredObject().done(
                     function (orderId) {
@@ -239,7 +258,7 @@ define([
                     },
                 ).fail(
                     function () {
-                        fullScreenLoader.stopLoader();
+                        self.stopFullScreenLoader();
                         self.isPlaceOrderActionAllowed(true);
                     }
                 );
@@ -285,7 +304,7 @@ define([
                     this.messageContainer.addErrorMessage(response);
                     this.isPlaceOrderActionAllowed(true);
 
-                    fullScreenLoader.stopLoader();
+                    this.stopFullScreenLoader();
                 }
             } else {
                 this.handleAction(response.action, orderId);
@@ -305,7 +324,7 @@ define([
                     challengeWindowSize: screen.width < 460 ? '01' : '02',
                     onActionHandled: function (event) {
                         if (event.componentType === "3DS2Challenge") {
-                            fullScreenLoader.stopLoader();
+                            self.stopFullScreenLoader();
                             popupModal.modal('openModal');
                         }
                     }

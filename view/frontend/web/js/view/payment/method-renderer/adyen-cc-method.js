@@ -54,6 +54,7 @@ define(
             checkoutComponent: null,
             cardComponent: null,
             detectedBrand: null,
+            isFullScreenLoaderActive: false,
 
             defaults: {
                 template: 'Adyen_Payment/payment/cc-form',
@@ -264,7 +265,7 @@ define(
                     self.checkoutComponent.createFromAction(action, {
                         onActionHandled: function (event) {
                             if (event.componentType === "3DS2Challenge") {
-                                fullScreenLoader.stopLoader();
+                                self.stopFullScreenLoader();
                                 popupModal.modal('openModal');
                             }
                         }
@@ -358,12 +359,12 @@ define(
                 }
 
                 if (this.validate() && additionalValidators.validate()) {
-                    fullScreenLoader.startLoader();
+                    self.startFullScreenLoader();
                     self.isPlaceOrderActionAllowed(false);
 
                     self.getPlaceOrderDeferredObject().fail(
                         function() {
-                            fullScreenLoader.stopLoader();
+                            self.stopFullScreenLoader();
                             self.isPlaceOrderActionAllowed(true);
                         }
                     ).done(
@@ -400,7 +401,7 @@ define(
                         this.messageContainer.addErrorMessage(response);
                         this.isPlaceOrderActionAllowed(true);
 
-                        fullScreenLoader.stopLoader();
+                        this.stopFullScreenLoader();
                     }
                 } else {
                     // Handle action
@@ -411,7 +412,8 @@ define(
                 const self = this;
                 let request = result.data;
                 AdyenPaymentModal.hideModalLabel(this.modalLabel);
-                fullScreenLoader.startLoader();
+                // Still running after a frictionless 3DS2 flow, started again after a 3DS2 challenge
+                self.startFullScreenLoader();
                 let popupModal = self.showModal();
 
                 adyenPaymentService.paymentDetails(request, self.orderId)
@@ -422,8 +424,25 @@ define(
                         self.closeModal(popupModal);
                         errorProcessor.process(response, self.messageContainer);
                         self.isPlaceOrderActionAllowed(true);
-                        fullScreenLoader.stopLoader();
+                        self.stopFullScreenLoader();
                     });
+            },
+            /**
+             * Magento's full-screen loader is counted: every startLoader() needs its own stopLoader().
+             * The payment flow holds at most one of them, so the loader started when the order is placed
+             * is still running when a frictionless 3DS2 flow reaches handleOnAdditionalDetails().
+             */
+            startFullScreenLoader: function () {
+                if (!this.isFullScreenLoaderActive) {
+                    this.isFullScreenLoaderActive = true;
+                    fullScreenLoader.startLoader();
+                }
+            },
+            stopFullScreenLoader: function () {
+                if (this.isFullScreenLoaderActive) {
+                    this.isFullScreenLoaderActive = false;
+                    fullScreenLoader.stopLoader();
+                }
             },
             /**
              * Validates the payment date when clicking the pay button
