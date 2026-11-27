@@ -111,8 +111,10 @@ class TokenWebhookAcceptor implements WebhookAcceptorInterface
                 ));
             }
 
+            // The signature covers the raw request body; re-encoding the decoded payload can change it
+            // (escaped slashes, unicode escapes, number formatting, whitespace).
             $expectedSignature = base64_encode(
-                hash_hmac('sha256', json_encode($payload), pack("H*", $webhookHmacKey), true)
+                hash_hmac('sha256', (string) $this->request->getContent(), pack("H*", $webhookHmacKey), true)
             );
 
             if (!hash_equals($expectedSignature, $webhookHmacSignature)) {
