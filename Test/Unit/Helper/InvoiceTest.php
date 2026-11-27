@@ -29,6 +29,7 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\Order\Invoice as InvoiceModel;
+use Magento\Sales\Model\Order\Payment\Transaction as PaymentTransaction;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\ResourceModel\Invoice\Collection;
 use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel;
@@ -132,6 +133,102 @@ class InvoiceTest extends AbstractAdyenTestCase
             $notificationMock,
             false
         );
+
+        $this->assertInstanceOf(InvoiceModel::class, $invoice);
+    }
+
+    public static function authorizationTransactionDataProvider(): array
+    {
+        return [
+            'auto capture closes open authorization' => [true, 0, 1],
+            'auto capture skips already closed authorization' => [true, 1, 0],
+            'manual capture keeps authorization open' => [false, 0, 0]
+        ];
+    }
+
+    /**
+     * @throws LocalizedException
+     */
+    #[DataProvider('authorizationTransactionDataProvider')]
+    public function testCreateInvoiceClosesAuthorizationTransaction(
+        bool $isAutoCapture,
+        int $isClosed,
+        int $expectedCloseCalls
+    ) {
+        $authorizationTransactionMock = $this->createGeneratedMock(
+            PaymentTransaction::class,
+            ['close'],
+            ['getIsClosed']
+        );
+        $authorizationTransactionMock->method('getIsClosed')->willReturn($isClosed);
+        $authorizationTransactionMock->expects($this->exactly($expectedCloseCalls))->method('close');
+
+        $orderPaymentMock = $this->createConfiguredMock(MagentoOrder\Payment::class, [
+            'getAuthorizationTransaction' => $authorizationTransactionMock
+        ]);
+
+        $invoiceMock = $this->createConfiguredMock(InvoiceModel::class, [
+            'getOrder' => $this->createMock(Order::class),
+            'register' => $this->createMock(InvoiceModel::class)
+        ]);
+
+        $orderMock = $this->createConfiguredMock(MagentoOrder::class, [
+            'prepareInvoice' => $invoiceMock,
+            'canInvoice' => true,
+            'getPayment' => $orderPaymentMock
+        ]);
+
+        $contextMock = $this->createConfiguredMock(Context::class, [
+            'getScopeConfig' => $this->createConfiguredMock(ScopeConfigInterface::class, ['isSetFlag' => false])
+        ]);
+
+        $invoiceHelper = $this->createInvoiceHelper($contextMock);
+
+        $invoice = $invoiceHelper->createInvoice($orderMock, $this->createWebhook(), $isAutoCapture);
+
+        $this->assertInstanceOf(InvoiceModel::class, $invoice);
+    }
+
+    /**
+     * @throws LocalizedException
+     */
+    public function testCreateInvoiceClosesAuthorizationBuiltForTheWebhook()
+    {
+        $builtAuthorizationMock = $this->createGeneratedMock(
+            PaymentTransaction::class,
+            ['close', 'getTxnType'],
+            ['getIsClosed']
+        );
+        $builtAuthorizationMock->method('getTxnType')->willReturn(PaymentTransaction::TYPE_AUTH);
+        $builtAuthorizationMock->method('getIsClosed')->willReturn(0);
+        $builtAuthorizationMock->expects($this->once())->method('close');
+
+        $orderPaymentMock = $this->createGeneratedMock(
+            MagentoOrder\Payment::class,
+            ['getAuthorizationTransaction'],
+            ['getCreatedTransaction']
+        );
+        $orderPaymentMock->method('getCreatedTransaction')->willReturn($builtAuthorizationMock);
+        $orderPaymentMock->expects($this->never())->method('getAuthorizationTransaction');
+
+        $invoiceMock = $this->createConfiguredMock(InvoiceModel::class, [
+            'getOrder' => $this->createMock(Order::class),
+            'register' => $this->createMock(InvoiceModel::class)
+        ]);
+
+        $orderMock = $this->createConfiguredMock(MagentoOrder::class, [
+            'prepareInvoice' => $invoiceMock,
+            'canInvoice' => true,
+            'getPayment' => $orderPaymentMock
+        ]);
+
+        $contextMock = $this->createConfiguredMock(Context::class, [
+            'getScopeConfig' => $this->createConfiguredMock(ScopeConfigInterface::class, ['isSetFlag' => false])
+        ]);
+
+        $invoiceHelper = $this->createInvoiceHelper($contextMock);
+
+        $invoice = $invoiceHelper->createInvoice($orderMock, $this->createWebhook(), true);
 
         $this->assertInstanceOf(InvoiceModel::class, $invoice);
     }
@@ -479,9 +576,18 @@ class InvoiceTest extends AbstractAdyenTestCase
             $transactionMock
         );
 
+        $authorizationTransactionMock = $this->createGeneratedMock(
+            PaymentTransaction::class,
+            ['close'],
+            ['getIsClosed']
+        );
+        $authorizationTransactionMock->method('getIsClosed')->willReturn(0);
+        $authorizationTransactionMock->expects($this->once())->method('close');
+
         $orderPaymentMock = $this->createConfiguredMock(MagentoOrder\Payment::class, [
             'getMethod' => 'adyen_cc',
-            'getOrder' => $this->createMock(Order::class)
+            'getOrder' => $this->createMock(Order::class),
+            'getAuthorizationTransaction' => $authorizationTransactionMock
         ]);
 
         $orderMock = $this->createConfiguredMock(MagentoOrder::class, [

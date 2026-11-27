@@ -35,6 +35,8 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Email\Container\InvoiceIdentity;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Sales\Model\Order\Invoice as InvoiceModel;
+use Magento\Sales\Api\Data\TransactionInterface;
+use Magento\Sales\Model\Order\Payment as MagentoOrderPayment;
 use Magento\Store\Model\ScopeInterface;
 
 /**
@@ -120,6 +122,10 @@ class Invoice extends AbstractHelper
                 }
 
                 $this->invoiceRepository->save($invoice);
+
+                if ($isAutoCapture) {
+                    $this->closeAuthorizationTransaction($order);
+                }
                 $this->adyenLogger->addAdyenNotification(sprintf(
                     'Notification %s created an invoice for order with pspReference %s and merchantReference %s',
                     $notification->getEntityId(),
@@ -376,6 +382,7 @@ class Invoice extends AbstractHelper
         $invoice->pay();
 
         $this->invoiceRepository->save($invoice);
+        $this->closeAuthorizationTransaction($order);
 
         $transactionSave = $this->transaction->addObject(
             $invoice
@@ -434,6 +441,36 @@ class Invoice extends AbstractHelper
                 "Exception in Send Mail in Magento. This is an issue in the the core of Magento" .
                 $exception->getMessage()
             );
+        }
+    }
+
+    /**
+     * Close the authorization once the invoice is paid without Magento's online capture.
+     *
+     * The capture already happened at Adyen, so no capture transaction is created that would close
+     * the authorization. Left open, Magento still treats the payment as voidable.
+     *
+     * @param Order $order
+     * @return void
+     */
+    private function closeAuthorizationTransaction(Order $order): void
+    {
+        $payment = $order->getPayment();
+        if (!$payment instanceof MagentoOrderPayment) {
+            return;
+        }
+
+        // The authorization built while processing this webhook is a related object of the order and is saved
+        // again with the order, so that instance has to be closed, not a copy loaded from the repository.
+        $authorizationTransaction = $payment->getCreatedTransaction();
+        if (!$authorizationTransaction
+            || $authorizationTransaction->getTxnType() !== TransactionInterface::TYPE_AUTH
+        ) {
+            $authorizationTransaction = $payment->getAuthorizationTransaction();
+        }
+
+        if ($authorizationTransaction && !$authorizationTransaction->getIsClosed()) {
+            $authorizationTransaction->close();
         }
     }
 }
