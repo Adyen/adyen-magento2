@@ -131,7 +131,7 @@ class Index extends Action
                 );
 
                 $this->session->restoreQuote();
-                $this->messageManager->addError(__('Your payment failed, Please try again later'));
+                $this->messageManager->addError(__('Your payment failed. Please try again later'));
 
                 $this->_redirect($failPath);
             }

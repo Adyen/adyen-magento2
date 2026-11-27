@@ -16,7 +16,7 @@
 "Unknown","Unknown"
 "Mismatch between Live/Test modes of Magento store and the Adyen platform","Mismatch between Live/Test modes of Magento store and the Adyen platform"
 "You have cancelled the order. Please try again","You have cancelled the order. Please try again"
-"Your payment failed, Please try again later","Your payment failed, Please try again later"
+"Your payment failed. Please try again later","Your payment failed. Please try again later"
 "Response is empty, please check your webserver that the result url accepts parameters","Response is empty, please check your webserver that the result url accepts parameters"
 "ResultUrl authentification failure","ResultUrl authentification failure"
 "Order does not exists with increment_id: %1","Order does not exists with increment_id: %1"

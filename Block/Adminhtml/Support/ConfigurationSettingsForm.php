@@ -139,7 +139,7 @@ class ConfigurationSettingsForm extends Generic
        <span></span>
        </span>
        <div class="tooltip-content">
-       Headless integration is when you use Adyen pre-configured backend but have a custom store frontend.
+       Headless integration is when you use the Adyen pre-configured backend but have a custom store frontend.
             </div>
        </div>');
 
@@ -196,7 +196,7 @@ class ConfigurationSettingsForm extends Generic
                 'name' => 'descriptionComments',
                 'label' => __('Description'),
                 'title' => __('Description'),
-                'placeholder' => __('Tell us what is happening in  detail'),
+                'placeholder' => __('Tell us what is happening in detail'),
                 'class' => '',
                 'required' => false,
             ]

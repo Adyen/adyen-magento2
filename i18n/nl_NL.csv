@@ -16,7 +16,7 @@
 "Unknown","Onbekend"
 "Mismatch between Live/Test modes of Magento store and the Adyen platform","Niet-overeenstemming tussen Live / Test-modi van Magento-winkel en het Adyen-platform"
 "You have cancelled the order. Please try again","U hebt de bestelling geannuleerd Probeer het opnieuw"
-"Your payment failed, Please try again later","Uw betaling is mislukt. Probeer het later opnieuw"
+"Your payment failed. Please try again later","Uw betaling is mislukt. Probeer het later opnieuw"
 "Response is empty, please check your webserver that the result url accepts parameters","Reactie is leeg, controleer uw webserver dat de resultaat-URL parameters accepteert"
 "ResultUrl authentification failure","ResultUrl authenticatie fout "
 "Order does not exists with increment_id: %1","Bestelling bestaat niet met increment_id: %1"
