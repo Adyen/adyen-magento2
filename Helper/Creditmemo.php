@@ -29,6 +29,8 @@ use Magento\Framework\App\Helper\Context;
  */
 class Creditmemo extends AbstractHelper
 {
+    private const ADYEN_CREDITMEMO_IDS = 'adyen_creditmemo_ids';
+
     /**
      * @param Context $context
      * @param Data $adyenDataHelper
@@ -81,6 +83,13 @@ class Creditmemo extends AbstractHelper
 
         $this->adyenCreditmemoRepository->save($adyenCreditmemo);
 
+        $magentoCreditmemo = $payment->getCreditmemo();
+        if ($magentoCreditmemo instanceof MagentoCreditMemoModel && $magentoCreditmemo->getEntityId() === null) {
+            $adyenCreditmemoIds = $magentoCreditmemo->getData(self::ADYEN_CREDITMEMO_IDS) ?? [];
+            $adyenCreditmemoIds[] = (int)$adyenCreditmemo->getEntityId();
+            $magentoCreditmemo->setData(self::ADYEN_CREDITMEMO_IDS, $adyenCreditmemoIds);
+        }
+
         return $adyenCreditmemo;
     }
 
@@ -98,11 +107,21 @@ class Creditmemo extends AbstractHelper
         $adyenCreditmemos = $this->adyenCreditmemoRepository->getByAdyenOrderPaymentId(
             $adyenOrderPayment->getEntityId()
         );
+        $adyenCreditmemoIds = $magentoCreditmemo->getData(self::ADYEN_CREDITMEMO_IDS);
 
         if (isset($adyenCreditmemos)) {
             foreach ($adyenCreditmemos as $adyenCreditmemo) {
                 // Skip if the Adyen creditmemo has already been linked to Magento creditmemo
                 if ($adyenCreditmemo->getCreditmemoId() !== null) {
+                    continue;
+                }
+
+                if (is_array($adyenCreditmemoIds)) {
+                    if (in_array((int)$adyenCreditmemo->getEntityId(), $adyenCreditmemoIds, true)) {
+                        $adyenCreditmemo->setCreditmemoId($magentoCreditmemo->getEntityId());
+                        $this->adyenCreditmemoRepository->save($adyenCreditmemo);
+                    }
+
                     continue;
                 }
 
