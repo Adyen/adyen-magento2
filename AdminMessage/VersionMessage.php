@@ -17,28 +17,42 @@ use Adyen\Payment\Helper\PlatformInfo;
 use Magento\AdminNotification\Model\InboxFactory;
 use Magento\Backend\Model\Auth\Session;
 use Magento\Framework\App\RequestInterface;
+use Magento\Framework\Escaper;
+use Magento\Framework\HTTP\Client\CurlFactory;
 use Magento\Framework\Notification\MessageInterface;
 
 class VersionMessage implements MessageInterface
 {
+    private const GITHUB_LATEST_RELEASE_API_URL = 'https://api.github.com/repos/adyen/adyen-magento2/releases/latest';
+    private const GITHUB_RELEASES_URL_PREFIX = 'https://github.com/Adyen/adyen-magento2/releases/';
+    private const CONNECT_TIMEOUT_SECONDS = 1;
+    private const REQUEST_TIMEOUT_SECONDS = 3;
+    private const SESSION_KEY = 'AdyenGithubVersion';
+
     protected Session $_authSession;
     protected Data $_adyenHelper;
     protected InboxFactory $_inboxFactory;
     protected RequestInterface $request;
     protected PlatformInfo $_platformInfo;
+    private Escaper $escaper;
+    private CurlFactory $curlFactory;
 
     public function __construct(
         Session $authSession,
         Data $adyenHelper,
         InboxFactory $inboxFactory,
         RequestInterface $request,
-        PlatformInfo $platformInfo
+        PlatformInfo $platformInfo,
+        Escaper $escaper,
+        CurlFactory $curlFactory
     ) {
         $this->_authSession = $authSession;
         $this->_adyenHelper = $adyenHelper;
         $this->_inboxFactory = $inboxFactory;
         $this->request = $request;
         $this->_platformInfo = $platformInfo;
+        $this->escaper = $escaper;
+        $this->curlFactory = $curlFactory;
     }
 
     const MESSAGE_IDENTITY = 'Adyen Version Control message';
@@ -64,13 +78,17 @@ class VersionMessage implements MessageInterface
         try {
             if ($this->_authSession->isFirstPageAfterLogin()) {
                 $githubContent = $this->getDecodedContentFromGithub();
-                $this->setSessionData("AdyenGithubVersion", $githubContent);
+                if ($githubContent === null) {
+                    return false;
+                }
+
+                $this->setSessionData(self::SESSION_KEY, $githubContent);
                 $title = "Adyen extension version " . $githubContent['tag_name'] . " available!";
                 $versionData[] = [
                     'severity' => self::SEVERITY_NOTICE,
-                    'date_added' => $githubContent['published_at'],
+                    'date_added' => $githubContent['published_at'] ?? null,
                     'title' => $title,
-                    'description' => $githubContent['body'],
+                    'description' => $githubContent['body'] ?? '',
                     'url' => $githubContent['html_url'],
                     'is_read' => !$this->isNewVersionAvailable()
                 ];
@@ -110,16 +128,22 @@ class VersionMessage implements MessageInterface
      */
     public function getText()
     {
-        $githubContent = $this->getSessionData("AdyenGithubVersion");
-        $message = __("A new Adyen extension version is now available: ");
-        $message .= __(
-            "<a href= \"" . $githubContent['html_url'] . "\" target='_blank'> " . $githubContent['tag_name'] . "!</a>"
+        $githubContent = $this->getSessionData(self::SESSION_KEY);
+        $currentVersion = $this->escaper->escapeHtml((string) $this->_platformInfo->getModuleVersion());
+
+        if (!is_array($githubContent) || !$this->isValidRelease($githubContent)) {
+            return __(
+                'A new Adyen extension version is now available. You are running the %1 version. We advise to update your extension.',
+                $currentVersion
+            );
+        }
+
+        return __(
+            'A new Adyen extension version is now available: <a href="%1" target="_blank" rel="noopener noreferrer">%2!</a> You are running the %3 version. We advise to update your extension.',
+            $this->escaper->escapeUrl($githubContent['html_url']),
+            $this->escaper->escapeHtml($githubContent['tag_name']),
+            $currentVersion
         );
-        $message .= __(
-            " You are running the " . $this->_platformInfo->getModuleVersion(
-            ) . " version. We advise to update your extension."
-        );
-        return __($message);
     }
 
     /**
@@ -134,15 +158,27 @@ class VersionMessage implements MessageInterface
 
     public function getDecodedContentFromGithub()
     {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, 'https://api.github.com/repos/adyen/adyen-magento2/releases/latest');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'magento');
-        $content = curl_exec($ch);
-        curl_close($ch);
-        $json = json_decode($content, true);
-        return $json;
+        try {
+            $curl = $this->curlFactory->create();
+            $curl->setTimeout(self::REQUEST_TIMEOUT_SECONDS);
+            $curl->setOption(CURLOPT_CONNECTTIMEOUT, self::CONNECT_TIMEOUT_SECONDS);
+            $curl->setOption(CURLOPT_USERAGENT, 'magento');
+            $curl->get(self::GITHUB_LATEST_RELEASE_API_URL);
+
+            if ($curl->getStatus() !== 200) {
+                return null;
+            }
+
+            $content = json_decode($curl->getBody(), true);
+        } catch (\Exception $e) {
+            return null;
+        }
+
+        if (!is_array($content) || !$this->isValidRelease($content)) {
+            return null;
+        }
+
+        return $content;
     }
 
     /**
@@ -163,10 +199,21 @@ class VersionMessage implements MessageInterface
 
     private function isNewVersionAvailable()
     {
-        $githubContent = $this->getSessionData("AdyenGithubVersion");
+        $githubContent = $this->getSessionData(self::SESSION_KEY);
 
         if (isset($githubContent)) {
             return $this->_platformInfo->getModuleVersion() !== $githubContent['tag_name'];
         }
+    }
+
+    private function isValidRelease(array $release): bool
+    {
+        $tagName = $release['tag_name'] ?? null;
+        $htmlUrl = $release['html_url'] ?? null;
+
+        return is_string($tagName)
+            && preg_match('/^v?\d+\.\d+\.\d+$/', $tagName) === 1
+            && is_string($htmlUrl)
+            && str_starts_with($htmlUrl, self::GITHUB_RELEASES_URL_PREFIX);
     }
 }
