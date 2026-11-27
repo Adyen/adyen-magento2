@@ -49,9 +49,14 @@ class TokenWebhookAcceptorTest extends AbstractAdyenTestCase
     /** @var Http|MockObject */
     protected $httpRequestMock;
 
-    // Mock HMAC SHA256 Key (hex) & signature for the base payload below
+    // Mock HMAC SHA256 Key (hex) & signature for the raw request body below
     private const HMAC_KEY = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
-    private const HMAC_SIGNATURE = 'zwKm8q8XyIbiWjlIzV9+3eLTUhhOscxytenALWFM7IU=';
+    private const HMAC_SIGNATURE = 'JpstfxFVSW+WMZFJnxZfWy/v72yyg+HBuGEUs7hHB+U=';
+
+    // json_encode() of the decoded body differs from it (spaces, escaped slash, unicode escapes)
+    private const RAW_BODY = '{"eventId": "evt-123", "type": "token.created", "data": {"storedPaymentMethodId": '
+        . '"mock-psp", "type": "visa", "shopperReference": "shopper/123-Ångström", "merchantAccount": '
+        . '"TestMerchant"}, "environment": "test"}';
 
     /**
      * @throws Exception
@@ -181,6 +186,27 @@ class TokenWebhookAcceptorTest extends AbstractAdyenTestCase
         $this->acceptor->getNotifications($payload);
     }
 
+    public function testAcceptsValidHmacSignatureCalculatedOverRawBody(): void
+    {
+        $this->httpRequestMock->method('getHeader')
+            ->with('hmacsignature')
+            ->willReturn(self::HMAC_SIGNATURE);
+        $this->httpRequestMock->method('getContent')->willReturn(self::RAW_BODY);
+
+        $this->configHelperMock->method('isDemoMode')->willReturn(true);
+        $this->configHelperMock->method('getNotificationsHmacKey')->willReturn(self::HMAC_KEY);
+        $this->notificationReceiverMock->method('validateNotificationMode')->willReturn(true);
+
+        $notification = $this->createMock(Notification::class);
+        $notification->method('isDuplicate')->willReturn(false);
+        $this->notificationFactoryMock->method('create')->willReturn($notification);
+
+        $result = $this->acceptor->getNotifications(json_decode(self::RAW_BODY, true));
+
+        $this->assertCount(1, $result);
+        $this->assertSame($notification, reset($result));
+    }
+
     public function testValidateThrowsAuthenticationExceptionWithInvalidHmacSignature(): void
     {
         $this->expectException(AuthenticationException::class);
@@ -188,16 +214,15 @@ class TokenWebhookAcceptorTest extends AbstractAdyenTestCase
         $this->httpRequestMock->method('getHeader')
             ->with('hmacsignature')
             ->willReturn(self::HMAC_SIGNATURE);
-
-        $payload = $this->getValidPayload();
-        // Mutate payload so the precomputed signature no longer matches
-        $payload['data']['storedPaymentMethodId'] = 'alternative_psp';
+        // Mutate the body so the precomputed signature no longer matches
+        $rawBody = str_replace('mock-psp', 'alternative_psp', self::RAW_BODY);
+        $this->httpRequestMock->method('getContent')->willReturn($rawBody);
 
         $this->configHelperMock->method('isDemoMode')->willReturn(true);
         $this->configHelperMock->method('getNotificationsHmacKey')->willReturn(self::HMAC_KEY);
 
         $this->adyenLoggerMock->expects($this->once())->method('addAdyenNotification');
-        $this->acceptor->getNotifications($payload);
+        $this->acceptor->getNotifications(json_decode($rawBody, true));
     }
 
     public function testValidateThrowsInvalidDataExceptionWithMissingHmacSignature(): void
